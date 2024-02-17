@@ -1,0 +1,3 @@
+[submodule "NotRed/NotRed/vendor/spdlog"]
+	path = NotRed/NotRed/vendor/spdlog
+	url = https://github.com/gabime/spdlog
