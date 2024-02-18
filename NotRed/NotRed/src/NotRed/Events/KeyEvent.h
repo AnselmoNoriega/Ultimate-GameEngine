@@ -2,8 +2,6 @@
 
 #include "Event.h"
 
-#include <sstream>
-
 namespace NR
 {
     class NR_API KeyEvent : public Event

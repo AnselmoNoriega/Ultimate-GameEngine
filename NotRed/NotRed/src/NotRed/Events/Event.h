@@ -2,9 +2,6 @@
 
 #include "NotRed/Core.h"
 
-#include <string>
-#include <functional>
-
 namespace NR
 {
     enum class EventType

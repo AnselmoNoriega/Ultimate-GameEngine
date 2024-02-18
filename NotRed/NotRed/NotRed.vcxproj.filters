@@ -4,6 +4,9 @@
     <Filter Include="NotRed">
       <UniqueIdentifier>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NotRed\Events">
+      <UniqueIdentifier>{B5BE1F99-217F-9BCF-EAB9-E44C5639E0AB}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
@@ -16,13 +19,22 @@
     <ClInclude Include="src\NotRed\EntryPoint.h">
       <Filter>NotRed</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Events\ApplicationEvent.h">
+      <Filter>NotRed\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Events\Event.h">
+      <Filter>NotRed\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Events\KeyEvent.h">
+      <Filter>NotRed\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Events\MouseEvent.h">
+      <Filter>NotRed\Events</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Log.h">
       <Filter>NotRed</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Events\Event.h" />
-    <ClInclude Include="src\NotRed\Events\ApplicationEvent.h" />
-    <ClInclude Include="src\NotRed\Events\KeyEvent.h" />
-    <ClInclude Include="src\NotRed\Events\MouseEvent.h" />
+    <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
@@ -31,5 +43,6 @@
     <ClCompile Include="src\NotRed\Log.cpp">
       <Filter>NotRed</Filter>
     </ClCompile>
+    <ClCompile Include="src\nrpch.cpp" />
   </ItemGroup>
 </Project>
