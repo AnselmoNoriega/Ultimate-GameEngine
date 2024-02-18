@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>vendor\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -150,6 +150,10 @@
     <ClInclude Include="src\NotRed\Application.h" />
     <ClInclude Include="src\NotRed\Core.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
+    <ClInclude Include="src\NotRed\Events\ApplicationEvent.h" />
+    <ClInclude Include="src\NotRed\Events\Event.h" />
+    <ClInclude Include="src\NotRed\Events\KeyEvent.h" />
+    <ClInclude Include="src\NotRed\Events\MouseEvent.h" />
     <ClInclude Include="src\NotRed\Log.h" />
   </ItemGroup>
   <ItemGroup>
