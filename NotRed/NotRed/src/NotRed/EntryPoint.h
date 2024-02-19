@@ -8,9 +8,6 @@ int main(int argc, char** argv)
 {
 	NR::Log::Initialize();
 
-	NR_INFO("Vardwadfa");
-	NR_CORE_TRACE("Vardwadfa");
-
 	auto app = NR::CreateApplication();
 	app->Run();
 	delete app;

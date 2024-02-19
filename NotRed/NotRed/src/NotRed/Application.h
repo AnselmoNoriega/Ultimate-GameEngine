@@ -5,6 +5,8 @@
 
 namespace NR
 {
+	class WindowCloseEvent;
+
 	class NR_API Application
 	{
 	public:
@@ -12,6 +14,11 @@ namespace NR
 		virtual ~Application();
 
 		void Run();
+
+		void OnEvent(Event& e);
+
+	private:
+		bool OnWindowClose(WindowCloseEvent& e);
 
 	private:
 		bool mRunning = true;

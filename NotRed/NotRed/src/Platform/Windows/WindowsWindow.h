@@ -26,6 +26,8 @@ namespace NR
         virtual void Init(const WindowProps& props);
         virtual void Shutdown();
 
+        virtual void EventCallBacks() const;
+
     private:
         GLFWwindow* mWindow;
 
