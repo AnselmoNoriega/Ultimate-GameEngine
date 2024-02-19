@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nrpch.h"
 #include "NotRed/Core.h"
 
 namespace NR

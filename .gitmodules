@@ -1,3 +1,6 @@
 [submodule "NotRed/NotRed/vendor/spdlog"]
 	path = NotRed/NotRed/vendor/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "NotRed/NotRed/vendor/GLFW"]
+	path = NotRed/NotRed/vendor/GLFW
+	url = https://github.com/TheCherno/GLFW

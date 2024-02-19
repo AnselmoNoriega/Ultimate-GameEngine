@@ -26,7 +26,6 @@ namespace NR
 #define NR_CORE_INFO(...)  ::NR::Log::GetCoreLogger()->info(__VA_ARGS__)
 #define NR_CORE_WARN(...)  ::NR::Log::GetCoreLogger()->warn(__VA_ARGS__)
 #define NR_CORE_ERROR(...) ::NR::Log::GetCoreLogger()->error(__VA_ARGS__)
-#define NR_CORE_FATAL(...) ::NR::Log::GetCoreLogger()->fatal(__VA_ARGS__)
 
 #define NR_TRACE(...)      ::NR::Log::GetClientLogger()->trace(__VA_ARGS__)
 #define NR_INFO(...)       ::NR::Log::GetClientLogger()->info(__VA_ARGS__)

@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "NotRed/Log.h"
+
 #ifdef  NR_PLATFORM_WINDOWS
     #include <Windows.h>
 #endif 

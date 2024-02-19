@@ -1,23 +1,31 @@
 #include "nrpch.h"
 #include "Application.h"
 
+#include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
 #include "NotRed/Log.h"
 
-using namespace NR;
+#include <GLFW/glfw3.h>
 
-Application::Application()
+namespace NR
 {
+    Application::Application()
+    {
+        mWindow = std::unique_ptr<Window>(Window::Create());
+    }
+
+    Application::~Application()
+    {
+    }
+
+    void Application::Run()
+    {
+        while (mRunning)
+        {
+            glClearColor(0.75f, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT);
+            mWindow->Update();
+        }
+    }
 }
 
-Application::~Application()
-{
-}
-
-void Application::Run()
-{
-	WindowResizeEvent e(1280, 720);
-	NR_TRACE(e);
-
-	while (true);
-}
