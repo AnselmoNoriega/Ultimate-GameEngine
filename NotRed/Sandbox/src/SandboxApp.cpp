@@ -24,7 +24,7 @@ class Sandbox : public NR::Application
 public:
 	Sandbox()
 	{
-
+		PushOverlay(new NR::ImGuiLayer());
 	}
 
 	~Sandbox() override

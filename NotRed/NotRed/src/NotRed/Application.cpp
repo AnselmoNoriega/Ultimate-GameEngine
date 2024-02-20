@@ -11,8 +11,12 @@ namespace NR
 {
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
+    Application* Application::sInstance = nullptr;
+
     Application::Application()
     {
+        NR_CORE_ASSERT(!sInstance, "There can only be one application");
+        sInstance = this;
         mWindow = std::unique_ptr<Window>(Window::Create());
         mWindow->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
     }
@@ -35,11 +39,13 @@ namespace NR
     void Application::PushLayer(Layer* layer)
     {
         mLayerStack.PushLayer(layer);
+        layer->Attach();
     }
 
     void Application::PushOverlay(Layer* overlay)
     {
         mLayerStack.PushOverlay(overlay);
+        overlay->Attach();
     }
 
     void Application::Run()

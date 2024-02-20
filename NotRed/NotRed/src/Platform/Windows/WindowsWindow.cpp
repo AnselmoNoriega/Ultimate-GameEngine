@@ -119,6 +119,16 @@ namespace NR
             }
         );
 
+        glfwSetCharCallback(
+            mWindow,
+            [](GLFWwindow* window, unsigned int character)
+            {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(window));
+                KeyTypedEvent charEvent(character);
+                data.EventCallback(charEvent);
+            }
+        );
+
         glfwSetMouseButtonCallback(
             mWindow,
             [](GLFWwindow* window, int button, int action, int mods)
