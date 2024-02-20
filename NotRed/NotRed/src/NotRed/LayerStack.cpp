@@ -39,5 +39,10 @@ namespace NR
 
     void NR::LayerStack::PopOverlay(Layer* overlay)
     {
+        auto it = std::find(mLayers.begin(), mLayers.end(), overlay);
+        if (it != mLayers.end())
+        {
+            mLayers.erase(it);
+        }
     }
 }
