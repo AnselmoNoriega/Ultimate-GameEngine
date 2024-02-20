@@ -37,6 +37,12 @@
     <ClInclude Include="src\NotRed\Events\MouseEvent.h">
       <Filter>NotRed\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Layer.h">
+      <Filter>NotRed</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\LayerStack.h">
+      <Filter>NotRed</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Log.h">
       <Filter>NotRed</Filter>
     </ClInclude>
@@ -50,6 +56,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
+      <Filter>NotRed</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Layer.cpp">
+      <Filter>NotRed</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\LayerStack.cpp">
       <Filter>NotRed</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Log.cpp">

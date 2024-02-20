@@ -12,8 +12,10 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
 IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
+IncludeDir["Glad"] = "NotRed/vendor/glad/include"
 
 include "NotRed/vendor/GLFW"
+include "NotRed/vendor/glad"
 
 project "NotRed"
 	location "NotRed"
@@ -36,12 +38,14 @@ project "NotRed"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include",
-		"%{IncludeDir.GLFW}"
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}"
 	}
 
 	links
 	{
 		"GLFW",
+		"glad",
 		"opengl32.lib"
 	}
 
@@ -53,7 +57,8 @@ project "NotRed"
 		defines
 		{
 			"NR_PLATFORM_WINDOWS",
-			"NR_BUILD_DLL"
+			"NR_BUILD_DLL",
+			"GLFW_INCLUDE_NONE"
 		}
 
 		postbuildcommands
@@ -63,14 +68,17 @@ project "NotRed"
 
 	filter "configurations:Debug"
 		defines "NR_DEBUG"
+		buildoptions "/MDd"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "NR_RELEASE"
+		buildoptions "/MDd"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "NR_DIST"
+		buildoptions "/MDd"
 		optimize "On"
 
 project "Sandbox"
@@ -110,12 +118,15 @@ project "Sandbox"
 
 	filter "configurations:Debug"
 		defines "NR_DEBUG"
+		buildoptions "/MDd"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "NR_RELEASE"
+		buildoptions "/MDd"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "NR_DIST"
+		buildoptions "/MDd"
 		optimize "On"

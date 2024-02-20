@@ -5,7 +5,7 @@
 #include "Events/ApplicationEvent.h"
 #include "NotRed/Log.h"
 
-#include <GLFW/glfw3.h>
+#include <glad/glad.h>
 
 namespace NR
 {
@@ -21,7 +21,25 @@ namespace NR
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
-        NR_CORE_INFO("{0}", e);
+
+        for (auto layer = mLayerStack.end(); layer != mLayerStack.begin();)
+        {
+            (*--layer)->OnEvent(e);
+            if (e.Handled)
+            {
+                break;
+            }
+        }
+    }
+
+    void Application::PushLayer(Layer* layer)
+    {
+        mLayerStack.PushLayer(layer);
+    }
+
+    void Application::PushOverlay(Layer* overlay)
+    {
+        mLayerStack.PushOverlay(overlay);
     }
 
     void Application::Run()
@@ -30,6 +48,12 @@ namespace NR
         {   
             glClearColor(0.75f, 0, 0, 1);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            for (Layer* layer : mLayerStack)
+            {
+                layer->Update();
+            }
+
             mWindow->Update();
         }
     }

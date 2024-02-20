@@ -32,6 +32,9 @@ namespace NR
     class NR_API Event
     {
     public:
+        bool Handled = false;
+
+    public:
         virtual EventType GetEventType() const = 0;
         virtual int GetCategoryFlags() const = 0;
         virtual std::string ToString() const = 0;
@@ -40,9 +43,6 @@ namespace NR
         {
             return GetCategoryFlags() & category;
         }
-
-    protected:
-        bool mHandled = false;
 
     private:
         friend class EventDispatcher;
@@ -59,7 +59,7 @@ namespace NR
         {
             if (mEvent.GetEventType() == T::GetStaticType())
             {
-                mEvent.mHandled = func(*(T*)&mEvent);
+                mEvent.Handled = func(*static_cast<T*>(&mEvent));
                 return true;
             }
             return false;

@@ -1,31 +1,38 @@
 #pragma once
 
 #include "Core.h"
+
 #include "Window.h"
+#include "NotRed/LayerStack.h"
 
 namespace NR
 {
-	class WindowCloseEvent;
+    class WindowCloseEvent;
 
-	class NR_API Application
-	{
-	public:
-		Application();
-		virtual ~Application();
+    class NR_API Application
+    {
+    public:
+        Application();
+        virtual ~Application();
 
-		void Run();
+        void Run();
 
-		void OnEvent(Event& e);
+        void OnEvent(Event& e);
 
-	private:
-		bool OnWindowClose(WindowCloseEvent& e);
+        void PushLayer(Layer* layer);
+        void PushOverlay(Layer* overlay);
 
-	private:
-		bool mRunning = true;
+    private:
+        bool OnWindowClose(WindowCloseEvent& e);
 
-		std::unique_ptr<Window> mWindow;
-	};
+    private:
+        bool mRunning = true;
 
-	Application* CreateApplication();
+        std::unique_ptr<Window> mWindow;
+        
+        LayerStack mLayerStack;
+    };
+
+    Application* CreateApplication();
 }
 
