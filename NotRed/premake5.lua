@@ -1,5 +1,6 @@
 workspace "NotRed"
 	architecture "x64"
+	startproject "Sandbox"
 
 	configurations
 	{
@@ -15,9 +16,12 @@ IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
 IncludeDir["Glad"] = "NotRed/vendor/glad/include"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 
-include "NotRed/vendor/GLFW"
-include "NotRed/vendor/glad"
-include "NotRed/vendor/imgui"
+group "Dependencies"
+	include "NotRed/vendor/GLFW"
+	include "NotRed/vendor/glad"
+	include "NotRed/vendor/imgui"
+
+group ""
 
 project "NotRed"
 	location "NotRed"
@@ -67,7 +71,7 @@ project "NotRed"
 
 		postbuildcommands
 		{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox")
+			("{COPY} %{cfg.buildtarget.relpath} \"../bin/" .. outputdir .. "/Sandbox/\"")
 		}
 
 	filter "configurations:Debug"
