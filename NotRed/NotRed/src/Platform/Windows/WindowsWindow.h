@@ -10,7 +10,7 @@ namespace NR
     {
     public:
         WindowsWindow(const WindowProps& props);
-        virtual ~WindowsWindow();
+        ~WindowsWindow() override;
 
         void Update() override;
 
@@ -22,11 +22,13 @@ namespace NR
 
         bool VSyncEnabled() const override { return mData.VSync; }
 
-    private:
-        virtual void Init(const WindowProps& props);
-        virtual void Shutdown();
+        inline void* GetNativeWindow() const override { return mWindow; }
 
-        virtual void EventCallBacks() const;
+    private:
+        void Init(const WindowProps& props);
+        void Shutdown();
+
+        void EventCallBacks() const;
 
     private:
         GLFWwindow* mWindow;

@@ -5,6 +5,8 @@
 #include "Events/ApplicationEvent.h"
 #include "NotRed/Log.h"
 
+#include "Input.h"
+
 #include <glad/glad.h>
 
 namespace NR
