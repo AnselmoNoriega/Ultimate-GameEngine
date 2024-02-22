@@ -15,6 +15,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
 IncludeDir["Glad"] = "NotRed/vendor/glad/include"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
+IncludeDir["Glm"] = "NotRed/vendor/glm"
 
 group "Dependencies"
 	include "NotRed/vendor/GLFW"
@@ -47,7 +48,8 @@ project "NotRed"
 		"%{prj.name}/vendor/spdlog/include",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.ImGui}"
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Glm}"
 	}
 
 	links
@@ -107,7 +109,8 @@ project "Sandbox"
 	includedirs
 	{
 		"NotRed/vendor/spdlog/include",
-		"NotRed/src"
+		"NotRed/src",
+		"%{IncludeDir.Glm}"
 	}
 
 	links
