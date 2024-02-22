@@ -10,10 +10,7 @@ public:
 
     void Update() override
     {
-        if (NR::Input::IsKeyPressed(NR_KEY_TAB))
-        {
-            NR_INFO("daweiouhfbnieuodhsf");
-        }
+
     }
 
     void OnEvent(NR::Event& myEvent) override
@@ -28,7 +25,6 @@ public:
     Sandbox()
     {
         PushOverlay(new ExampleLayer());
-        PushOverlay(new NR::ImGuiLayer());
     }
 
     ~Sandbox() override

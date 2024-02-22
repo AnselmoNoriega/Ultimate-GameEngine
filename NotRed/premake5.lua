@@ -110,6 +110,7 @@ project "Sandbox"
 	{
 		"NotRed/vendor/spdlog/include",
 		"NotRed/src",
+		"NotRed/vendor",
 		"%{IncludeDir.Glm}"
 	}
 

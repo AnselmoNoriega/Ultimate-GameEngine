@@ -5,6 +5,8 @@
 #include "Window.h"
 #include "NotRed/LayerStack.h"
 
+#include "NotRed/ImGui/ImGuiLayer.h"
+
 namespace NR
 {
     class WindowCloseEvent;
@@ -34,6 +36,7 @@ namespace NR
         bool mRunning = true;
 
         std::unique_ptr<Window> mWindow;
+        ImGuiLayer* mImGuiLayer;
         
         LayerStack mLayerStack;
     };

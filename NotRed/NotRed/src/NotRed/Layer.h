@@ -14,6 +14,7 @@ namespace NR
         virtual void Attach() {}
         virtual void Detach() {}
         virtual void Update() {}
+        virtual void ImGuiRender() {}
         virtual void OnEvent(Event& event) {}
 
         inline const std::string& GetName() const { return mDebugName; }

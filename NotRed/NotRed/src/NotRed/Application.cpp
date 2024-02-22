@@ -19,8 +19,12 @@ namespace NR
     {
         NR_CORE_ASSERT(!sInstance, "There can only be one application");
         sInstance = this;
+
         mWindow = std::unique_ptr<Window>(Window::Create());
         mWindow->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
+        mImGuiLayer = new ImGuiLayer();
+        PushOverlay(mImGuiLayer);
     }
 
     void Application::OnEvent(Event& e)
@@ -61,6 +65,13 @@ namespace NR
             {
                 layer->Update();
             }
+
+            mImGuiLayer->Begin();
+            for (Layer* layer : mLayerStack)
+            {
+                layer->ImGuiRender();
+            }
+            mImGuiLayer->End();
 
             mWindow->Update();
         }

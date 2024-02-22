@@ -5,7 +5,7 @@ namespace NR
 {
     NR::LayerStack::LayerStack()
     {
-        mLayerInsert = mLayers.begin();
+
     }
 
     NR::LayerStack::~LayerStack()
@@ -19,7 +19,8 @@ namespace NR
 
     void NR::LayerStack::PushLayer(Layer* layer)
     {
-        mLayerInsert = mLayers.emplace(mLayerInsert, layer);
+        mLayers.emplace(mLayers.begin() + mLayerInsertIndex, layer);
+        ++mLayerInsertIndex;
     }
 
     void NR::LayerStack::PushOverlay(Layer* overlay)
@@ -33,7 +34,7 @@ namespace NR
         if (it != mLayers.end())
         {
             mLayers.erase(it);
-            --mLayerInsert;
+            --mLayerInsertIndex;
         }
     }
 

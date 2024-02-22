@@ -168,18 +168,17 @@
     <ClInclude Include="src\NotRed\Log.h" />
     <ClInclude Include="src\NotRed\MouseButtonCodes.h" />
     <ClInclude Include="src\NotRed\Window.h" />
-    <ClInclude Include="src\Platform\OpenGL\ImguiOpenGLRenderer.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Layer.cpp" />
     <ClCompile Include="src\NotRed\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Log.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\ImguiOpenGLRenderer.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\nrpch.cpp">
