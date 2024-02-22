@@ -3,37 +3,41 @@
 class ExampleLayer : public NR::Layer
 {
 public:
-	ExampleLayer()
-		:Layer("Example")
-	{
-	}
+    ExampleLayer()
+        :Layer("Example")
+    {
+    }
 
-	void Update() override
-	{
-		NR_INFO("Example Update");
-	}
+    void Update() override
+    {
+        if (NR::Input::IsKeyPressed(NR_KEY_TAB))
+        {
+            NR_INFO("daweiouhfbnieuodhsf");
+        }
+    }
 
-	void OnEvent(NR::Event& myEvent) override
-	{
-		NR_TRACE("{0}", myEvent);
-	}
+    void OnEvent(NR::Event& myEvent) override
+    {
+        //NR_TRACE("{0}", myEvent);
+    }
 };
 
 class Sandbox : public NR::Application
 {
 public:
-	Sandbox()
-	{
-		PushOverlay(new NR::ImGuiLayer());
-	}
+    Sandbox()
+    {
+        PushOverlay(new ExampleLayer());
+        PushOverlay(new NR::ImGuiLayer());
+    }
 
-	~Sandbox() override
-	{
+    ~Sandbox() override
+    {
 
-	}
+    }
 };
 
 NR::Application* NR::CreateApplication()
 {
-	return new Sandbox();
+    return new Sandbox();
 }

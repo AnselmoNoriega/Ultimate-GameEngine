@@ -46,6 +46,12 @@
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
       <Filter>NotRed\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Input.h">
+      <Filter>NotRed</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\KeyCodes.h">
+      <Filter>NotRed</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Layer.h">
       <Filter>NotRed</Filter>
     </ClInclude>
@@ -55,18 +61,22 @@
     <ClInclude Include="src\NotRed\Log.h">
       <Filter>NotRed</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\MouseButtonCodes.h">
+      <Filter>NotRed</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Window.h">
       <Filter>NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\ImguiOpenGLRenderer.h">
       <Filter>Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\Windows\WindowsInput.h">
+      <Filter>Platform\Windows</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Input.h" />
-    <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
@@ -87,10 +97,12 @@
     <ClCompile Include="src\Platform\OpenGL\ImguiOpenGLRenderer.cpp">
       <Filter>Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
+      <Filter>Platform\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
-    <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
   </ItemGroup>
 </Project>
