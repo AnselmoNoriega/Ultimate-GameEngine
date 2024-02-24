@@ -39,6 +39,8 @@ namespace NR
         ImGuiLayer* mImGuiLayer;
         
         LayerStack mLayerStack;
+
+        unsigned int mVertexArray, mVertexBuffer, mIndexBuffer;
     };
 
     Application* CreateApplication();
