@@ -11,7 +11,7 @@ namespace NR
 {
     class WindowCloseEvent;
 
-    class NR_API Application
+    class  Application
     {
     public:
         Application();

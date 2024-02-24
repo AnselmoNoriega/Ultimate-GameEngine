@@ -5,7 +5,7 @@
 #include "NotRed/Events/MouseEvent.h"
 #include "NotRed/Events/KeyEvent.h"
 
-#include <glad/glad.h>
+#include "Platform/OpenGL/OpenGLContext.h"
 
 namespace NR
 {
@@ -26,19 +26,6 @@ namespace NR
         Init(props);
     }
 
-    void WindowsWindow::Update()
-    {
-        glfwPollEvents();
-        glfwSwapBuffers(mWindow);
-    }
-
-    void WindowsWindow::SetVSync(bool enabled)
-    {
-        glfwSwapInterval(enabled ? 1 : 0);
-
-        mData.VSync = enabled;
-    }
-
     void WindowsWindow::Init(const WindowProps& props)
     {
         mData.Tile = props.Title;
@@ -55,13 +42,27 @@ namespace NR
         }
 
         mWindow = glfwCreateWindow(props.Width, props.Height, mData.Tile.c_str(), nullptr, nullptr);
-        glfwMakeContextCurrent(mWindow);
-        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-        NR_CORE_ASSERT(status, "Glad failed to initialize");
+
+        mContext = new OpenGLContext(mWindow);
+        mContext->Init();
+
         glfwSetWindowUserPointer(mWindow, &mData);
         SetVSync(true);
 
         EventCallBacks();
+    }
+
+    void WindowsWindow::Update()
+    {
+        glfwPollEvents();
+        mContext->SwapBuffers();
+    }
+
+    void WindowsWindow::SetVSync(bool enabled)
+    {
+        glfwSwapInterval(enabled ? 1 : 0);
+
+        mData.VSync = enabled;
     }
 
     void WindowsWindow::EventCallBacks() const

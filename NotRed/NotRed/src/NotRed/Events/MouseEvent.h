@@ -4,7 +4,7 @@
 
 namespace NR
 {
-    class NR_API MouseMovedEvent : public Event
+    class  MouseMovedEvent : public Event
     {
     public:
         MouseMovedEvent(float x, float y)
@@ -28,7 +28,7 @@ namespace NR
         float mMouseX, mMouseY;
     };
 
-    class NR_API MouseScrolledEvent : public Event
+    class  MouseScrolledEvent : public Event
     {
     public:
         MouseScrolledEvent(float xOffset, float yOffset)
@@ -51,7 +51,7 @@ namespace NR
         float mXOffset, mYOffset;
     };
 
-    class NR_API MouseButtonEvent : public Event
+    class  MouseButtonEvent : public Event
     {
     public:
 
@@ -66,7 +66,7 @@ namespace NR
         int mButton;
     };
 
-    class NR_API MouseButtonPressedEvent : public MouseButtonEvent
+    class  MouseButtonPressedEvent : public MouseButtonEvent
     {
     public:
         MouseButtonPressedEvent(int button)
@@ -82,7 +82,7 @@ namespace NR
         EVENT_CLASS_TYPE(MouseButtonPressed)
     };
 
-    class NR_API MouseButtonReleasedEvent : public MouseButtonEvent
+    class  MouseButtonReleasedEvent : public MouseButtonEvent
     {
     public:
         MouseButtonReleasedEvent(int button)

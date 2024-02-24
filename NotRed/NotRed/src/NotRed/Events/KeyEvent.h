@@ -4,7 +4,7 @@
 
 namespace NR
 {
-    class NR_API KeyEvent : public Event
+    class  KeyEvent : public Event
     {
     public:
         inline int GetKeyCode() const { return mKeyCode; }
@@ -18,7 +18,7 @@ namespace NR
         int mKeyCode;
     };
 
-    class NR_API KeyPressedEvent : public KeyEvent
+    class  KeyPressedEvent : public KeyEvent
     {
     public:
         KeyPressedEvent(int keycode, int repeatCount)
@@ -39,7 +39,7 @@ namespace NR
         int mRepeatCount;
     };
 
-    class NR_API KeyReleasedEvent : public KeyEvent
+    class  KeyReleasedEvent : public KeyEvent
     {
     public:
         KeyReleasedEvent(int keycode)
@@ -55,7 +55,7 @@ namespace NR
         EVENT_CLASS_TYPE(KeyReleased)
     };
 
-    class NR_API KeyTypedEvent : public KeyEvent
+    class  KeyTypedEvent : public KeyEvent
     {
     public:
         KeyTypedEvent(int keycode)

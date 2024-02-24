@@ -28,10 +28,10 @@ project "GLFW"
 	}
 
 	filter "system:linux"
-		pic "On"
+		pic "on"
 
 		systemversion "latest"
-		staticruntime "On"
+		staticruntime "on"
 		
 		files
 		{
@@ -55,8 +55,8 @@ project "GLFW"
 		}
 
 	filter "system:macosx"
-		pic "On"
-		staticruntime "On"
+		pic "on"
+		staticruntime "on"
 
 		files
 		{
@@ -79,7 +79,7 @@ project "GLFW"
 
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "On"
+		staticruntime "on"
 
 		files
 		{
@@ -118,4 +118,4 @@ project "GLFW"
     filter "configurations:Dist"
 		runtime "Release"
 		optimize "speed"
-        symbols "off"
+		symbols "off"

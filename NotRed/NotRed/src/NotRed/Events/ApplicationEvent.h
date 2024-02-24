@@ -4,7 +4,7 @@
 
 namespace NR
 {
-    class NR_API WindowResizeEvent : public Event
+    class  WindowResizeEvent : public Event
     {
     public:
         WindowResizeEvent(uint32_t width, uint32_t height)
@@ -27,7 +27,7 @@ namespace NR
         uint32_t mWidth, mHeight;
     };
 
-    class NR_API WindowCloseEvent : public Event
+    class  WindowCloseEvent : public Event
     {
     public:
         WindowCloseEvent() {}
@@ -43,7 +43,7 @@ namespace NR
         EVENT_CLASS_CATEGORY(EVENTCATEGORYAPPLICATION)
     };
 
-    class NR_API AppTickEvent : public Event
+    class  AppTickEvent : public Event
     {
         AppTickEvent() {}
 
@@ -51,7 +51,7 @@ namespace NR
         EVENT_CLASS_CATEGORY(EVENTCATEGORYAPPLICATION)
     };
 
-    class NR_API AppUpdateEvent : public Event
+    class  AppUpdateEvent : public Event
     {
         AppUpdateEvent() {}
 
@@ -59,7 +59,7 @@ namespace NR
         EVENT_CLASS_CATEGORY(EVENTCATEGORYAPPLICATION)
     };
 
-    class NR_API AppRenderEvent : public Event
+    class  AppRenderEvent : public Event
     {
         AppRenderEvent() {}
 

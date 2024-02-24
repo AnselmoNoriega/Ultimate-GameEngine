@@ -4,7 +4,7 @@
 
 namespace NR
 {
-    class NR_API Input
+    class  Input
     {
     public:
         inline static bool IsKeyPressed(int keycode) { return sInstance->IsKeyPressedImpl(keycode); }

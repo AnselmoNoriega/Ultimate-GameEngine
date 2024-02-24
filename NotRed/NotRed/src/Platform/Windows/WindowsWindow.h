@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/Window.h"
+#include "NotRed/Renderer/GraphicsContext.h"
 
 #include <GLFW/glfw3.h>
 
@@ -32,6 +33,7 @@ namespace NR
 
     private:
         GLFWwindow* mWindow;
+        GraphicsContext* mContext;
 
         struct WindowData
         {

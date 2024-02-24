@@ -8,7 +8,7 @@ namespace NR
 {
 	using loggerPtr = std::shared_ptr<spdlog::logger>;
 
-	class NR_API Log
+	class  Log
 	{
 	public:
 		static void Initialize();

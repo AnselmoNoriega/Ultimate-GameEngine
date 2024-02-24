@@ -20,7 +20,7 @@ namespace NR
         ) : Title(title), Width(width), Height(height) {}
     };
 
-    class NR_API Window
+    class  Window
     {
     public:
         using EventCallbackFn = std::function<void(Event&)>;

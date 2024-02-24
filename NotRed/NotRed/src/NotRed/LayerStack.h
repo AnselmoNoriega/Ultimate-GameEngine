@@ -6,7 +6,7 @@
 
 namespace NR
 {
-    class NR_API LayerStack
+    class  LayerStack
     {
     public:
         LayerStack();
