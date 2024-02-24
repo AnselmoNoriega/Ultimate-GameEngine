@@ -49,6 +49,33 @@ namespace NR
 
         unsigned int indices[3] = { 0, 1, 2 };
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+        std::string vertexSrc = R"(
+        #version 330 core
+        
+        layout(location = 0) in vec3 aPosition;
+        out vec3 vPosition;
+        
+        void main()
+        {
+            vPosition = aPosition;
+            gl_Position = vec4(aPosition, 1.0);
+        }
+        )";
+
+        std::string fragmentSrc = R"(
+        #version 330 core
+        
+        out vec4 color;
+        in vec3 vPosition;
+        
+        void main()
+        {
+            color = vec4(vPosition.xy + 0.3, vPosition.z, 1.0);
+        }
+        )";
+
+        mShader.reset(new Shader(vertexSrc, fragmentSrc));
     }
 
     void Application::OnEvent(Event& e)
@@ -85,6 +112,7 @@ namespace NR
             glClearColor(0.05f, 0, 0, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            mShader->Bind();
             glBindVertexArray(mVertexArray);
             glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 

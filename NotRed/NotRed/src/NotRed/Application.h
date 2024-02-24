@@ -7,6 +7,8 @@
 
 #include "NotRed/ImGui/ImGuiLayer.h"
 
+#include "NotRed/Renderer/Shader.h"
+
 namespace NR
 {
     class WindowCloseEvent;
@@ -41,6 +43,7 @@ namespace NR
         LayerStack mLayerStack;
 
         unsigned int mVertexArray, mVertexBuffer, mIndexBuffer;
+        std::unique_ptr<Shader> mShader;
     };
 
     Application* CreateApplication();
