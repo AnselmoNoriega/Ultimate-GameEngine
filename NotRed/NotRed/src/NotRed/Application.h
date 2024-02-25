@@ -10,6 +10,7 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"
+#include "NotRed/Renderer/VertexArray.h"
 
 namespace NR
 {
@@ -44,10 +45,8 @@ namespace NR
         
         LayerStack mLayerStack;
 
-        unsigned int mVertexArray;
-        std::unique_ptr<Shader> mShader;
-        std::unique_ptr<VertexBuffer> mVertexBuffer;
-        std::unique_ptr<IndexBuffer> mIndexBuffer;
+        std::shared_ptr<Shader> mShader;
+        std::shared_ptr<VertexArray> mVertexArray;
     };
 
     Application* CreateApplication();

@@ -15,25 +15,6 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
-    static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
-    {
-        switch (type)
-        {
-        case NR::ShaderDataType::None:    return GL_FLOAT;
-        case NR::ShaderDataType::Float:   return GL_FLOAT;
-        case NR::ShaderDataType::Float2:  return GL_FLOAT;
-        case NR::ShaderDataType::Float3:  return GL_FLOAT;
-        case NR::ShaderDataType::Float4:  return GL_FLOAT;
-        case NR::ShaderDataType::Mat3:    return GL_FLOAT;
-        case NR::ShaderDataType::Mat4:    return GL_FLOAT;
-        default:
-        {
-            NR_CORE_ASSERT(false, "Unknown ShaderDataType!");
-            return 0;
-        }
-        }
-    }
-
     Application::Application()
     {
         NR_CORE_ASSERT(!sInstance, "There can only be one application");
@@ -45,8 +26,7 @@ namespace NR
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);
 
-        glGenVertexArrays(1, &mVertexArray);
-        glBindVertexArray(mVertexArray);
+        mVertexArray.reset(VertexArray::Create());
 
         float vertices[] =
         {
@@ -55,33 +35,21 @@ namespace NR
              0.0f,  0.5f, 0.0f,
         };
 
-        mVertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
+        std::shared_ptr<VertexBuffer> vertexBuffer;
+        vertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
+        BufferLayout layout =
         {
-            BufferLayout layout =
-            {
-                {ShaderDataType::Float3, "aPosition"}
-            };
-            mVertexBuffer->SetLayout(layout);
-        }
+            {ShaderDataType::Float3, "aPosition"}
+        };
 
-        uint32_t index = 0;
-        for (const auto& element : mVertexBuffer->GetLayout())
-        {
-            glEnableVertexAttribArray(index);
-            glVertexAttribPointer(
-                index,
-                element.GetComponentCount(),
-                ShaderDataTypeToOpenGLBaseType(element.Type),
-                element.Normalized ? GL_TRUE : GL_FALSE,
-                mVertexBuffer->GetLayout().GetStride(),
-                (const void*)element.Offset
-            );
-            ++index;
-        }
+        vertexBuffer->SetLayout(layout);
+        mVertexArray->AddVertexBuffer(vertexBuffer);
 
         uint32_t indices[3] = { 0, 1, 2 };
-        mIndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+        std::shared_ptr<IndexBuffer>indexBuffer;
+        indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+        mVertexArray->SetIndexBuffer(indexBuffer);
 
         std::string vertexSrc = R"(
         #version 330 core
@@ -146,8 +114,8 @@ namespace NR
             glClear(GL_COLOR_BUFFER_BIT);
 
             mShader->Bind();
-            glBindVertexArray(mVertexArray);
-            glDrawElements(GL_TRIANGLES, mIndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
+            mVertexArray->Bind();
+            glDrawElements(GL_TRIANGLES, mVertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 
             for (Layer* layer : mLayerStack)
             {

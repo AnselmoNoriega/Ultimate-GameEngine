@@ -143,8 +143,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
+    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
@@ -173,8 +175,9 @@
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Renderer\BufferLayout.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
