@@ -143,6 +143,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\NotRed.h" />
@@ -165,8 +169,13 @@
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\NotRed\Application.cpp" />
@@ -180,6 +189,7 @@
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
