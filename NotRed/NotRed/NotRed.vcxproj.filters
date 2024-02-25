@@ -79,6 +79,7 @@
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
+    <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
@@ -113,5 +114,6 @@
     <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\BufferLayout.cpp" />
   </ItemGroup>
 </Project>

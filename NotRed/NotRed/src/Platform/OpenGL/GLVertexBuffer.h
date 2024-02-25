@@ -13,7 +13,11 @@ namespace NR
         void Bind() const override;
         void Unbind() const override;
 
+        const BufferLayout& GetLayout() const override { return mLayout; }
+        void SetLayout(const BufferLayout& layout) override { mLayout = layout; }
+
     private:
         uint32_t mID;
+        BufferLayout mLayout;
     };
 }

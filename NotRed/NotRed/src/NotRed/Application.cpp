@@ -15,6 +15,25 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
+    static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
+    {
+        switch (type)
+        {
+        case NR::ShaderDataType::None:    return GL_FLOAT;
+        case NR::ShaderDataType::Float:   return GL_FLOAT;
+        case NR::ShaderDataType::Float2:  return GL_FLOAT;
+        case NR::ShaderDataType::Float3:  return GL_FLOAT;
+        case NR::ShaderDataType::Float4:  return GL_FLOAT;
+        case NR::ShaderDataType::Mat3:    return GL_FLOAT;
+        case NR::ShaderDataType::Mat4:    return GL_FLOAT;
+        default:
+        {
+            NR_CORE_ASSERT(false, "Unknown ShaderDataType!");
+            return 0;
+        }
+        }
+    }
+
     Application::Application()
     {
         NR_CORE_ASSERT(!sInstance, "There can only be one application");
@@ -38,8 +57,28 @@ namespace NR
 
         mVertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+        {
+            BufferLayout layout =
+            {
+                {ShaderDataType::Float3, "aPosition"}
+            };
+            mVertexBuffer->SetLayout(layout);
+        }
+
+        uint32_t index = 0;
+        for (const auto& element : mVertexBuffer->GetLayout())
+        {
+            glEnableVertexAttribArray(index);
+            glVertexAttribPointer(
+                index,
+                element.GetComponentCount(),
+                ShaderDataTypeToOpenGLBaseType(element.Type),
+                element.Normalized ? GL_TRUE : GL_FALSE,
+                mVertexBuffer->GetLayout().GetStride(),
+                (const void*)element.Offset
+            );
+            ++index;
+        }
 
         uint32_t indices[3] = { 0, 1, 2 };
         mIndexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
@@ -102,7 +141,7 @@ namespace NR
     void Application::Run()
     {
         while (mRunning)
-        {   
+        {
             glClearColor(0.05f, 0, 0, 1);
             glClear(GL_COLOR_BUFFER_BIT);
 
