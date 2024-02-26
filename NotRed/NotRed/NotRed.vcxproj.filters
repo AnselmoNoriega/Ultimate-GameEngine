@@ -85,6 +85,7 @@
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
+    <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
@@ -124,5 +125,6 @@
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
   </ItemGroup>
 </Project>

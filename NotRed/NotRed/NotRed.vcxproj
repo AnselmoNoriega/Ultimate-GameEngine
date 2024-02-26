@@ -143,6 +143,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h" />
     <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
@@ -178,6 +179,7 @@
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />

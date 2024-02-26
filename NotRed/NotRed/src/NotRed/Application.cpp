@@ -17,6 +17,7 @@ namespace NR
     Application* Application::sInstance = nullptr;
 
     Application::Application()
+        : mCamera()
     {
         NR_CORE_ASSERT(!sInstance, "There can only be one application");
         sInstance = this;
@@ -57,11 +58,13 @@ namespace NR
         
         layout(location = 0) in vec3 aPosition;
         out vec3 vPosition;
+
+        uniform mat4 uViewProjection;
         
         void main()
         {
             vPosition = aPosition;
-            gl_Position = vec4(aPosition, 1.0);
+            gl_Position = uViewProjection * vec4(aPosition, 1.0);
         }
         )";
 
@@ -113,10 +116,9 @@ namespace NR
         {
             RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
 
-            Renderer::BeginScene();
+            Renderer::BeginScene(mCamera);
 
-            mShader->Bind();
-            Renderer::Submit(mVertexArray);
+            Renderer::Submit(mShader, mVertexArray);
 
             Renderer::EndScene();
 
