@@ -8,8 +8,6 @@
 #include "NotRed/ImGui/ImGuiLayer.h"
 
 #include "NotRed/Renderer/Shader.h"
-#include "NotRed/Renderer/VertexBuffer.h"
-#include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/VertexArray.h"
 
 namespace NR

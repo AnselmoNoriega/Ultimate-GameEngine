@@ -11,8 +11,8 @@ namespace NR
     {
         switch (Renderer::GetAPI())
         {
-        case RendererAPI::None: NR_CORE_ASSERT(false, "Renderer API \"None\" is currently not supported!");
-        case RendererAPI::OpenGL: return new GLVertexArray();
+        case RendererAPI::API::None: NR_CORE_ASSERT(false, "Renderer API \"None\" is currently not supported!");
+        case RendererAPI::API::OpenGL: return new GLVertexArray();
         }
     }
 }

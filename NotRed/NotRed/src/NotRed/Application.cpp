@@ -1,13 +1,14 @@
 #include "nrpch.h"
 #include "Application.h"
 
+#include "NotRed/Log.h"
+
 #include "Events/Event.h"
 #include "Events/ApplicationEvent.h"
-#include "NotRed/Log.h"
 
 #include "Input.h"
 
-#include <glad/glad.h>
+#include "NotRed/Renderer/Renderer.h"
 
 namespace NR
 {
@@ -110,12 +111,14 @@ namespace NR
     {
         while (mRunning)
         {
-            glClearColor(0.05f, 0, 0, 1);
-            glClear(GL_COLOR_BUFFER_BIT);
+            RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
+
+            Renderer::BeginScene();
 
             mShader->Bind();
-            mVertexArray->Bind();
-            glDrawElements(GL_TRIANGLES, mVertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+            Renderer::Submit(mVertexArray);
+
+            Renderer::EndScene();
 
             for (Layer* layer : mLayerStack)
             {
