@@ -143,19 +143,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
-    <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h" />
-    <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
-    <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
-    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\Shader.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Application.h" />
     <ClInclude Include="src\NotRed\Core.h" />
@@ -171,38 +158,51 @@
     <ClInclude Include="src\NotRed\LayerStack.h" />
     <ClInclude Include="src\NotRed\Log.h" />
     <ClInclude Include="src\NotRed\MouseButtonCodes.h" />
+    <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
     <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
+    <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\NotRed\Renderer\Shader.h" />
+    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
+    <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Window.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\Windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\NotRed\Application.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Layer.cpp" />
     <ClCompile Include="src\NotRed\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Log.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">

@@ -7,15 +7,11 @@
 
 #include "NotRed/ImGui/ImGuiLayer.h"
 
-#include "NotRed/Renderer/Shader.h"
-#include "NotRed/Renderer/VertexArray.h"
-#include "NotRed/Renderer/OrthographicCamera.h"
-
 namespace NR
 {
     class WindowCloseEvent;
 
-    class  Application
+    class Application
     {
     public:
         Application();
@@ -43,10 +39,6 @@ namespace NR
         ImGuiLayer* mImGuiLayer;
         
         LayerStack mLayerStack;
-
-        OrthographicCamera mCamera;
-        std::shared_ptr<Shader> mShader;
-        std::shared_ptr<VertexArray> mVertexArray;
     };
 
     Application* CreateApplication();

@@ -10,8 +10,14 @@
     <Filter Include="NotRed\ImGui">
       <UniqueIdentifier>{DBF162F5-C754-F299-70DA-2A505C1CBE1C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NotRed\Renderer">
+      <UniqueIdentifier>{B74E0557-23DA-721B-2CEB-F50F98F5CE1B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Platform">
       <UniqueIdentifier>{2AC788B4-1694-E3BF-3FAD-D1672BD9184E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform\OpenGL">
+      <UniqueIdentifier>{1E7D2C1D-8A08-9AE1-9319-1DD6FF23F6E1}</UniqueIdentifier>
     </Filter>
     <Filter Include="Platform\Windows">
       <UniqueIdentifier>{64FBD71A-50F4-F66C-7926-DCF1657ED678}</UniqueIdentifier>
@@ -61,8 +67,53 @@
     <ClInclude Include="src\NotRed\MouseButtonCodes.h">
       <Filter>NotRed</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\RenderCommand.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Renderer.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\RendererAPI.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Shader.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\VertexArray.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Window.h">
       <Filter>NotRed</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h">
+      <Filter>Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h">
+      <Filter>Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h">
+      <Filter>Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h">
+      <Filter>Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
+      <Filter>Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>Platform\Windows</Filter>
@@ -71,21 +122,6 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Renderer\Shader.h" />
-    <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
-    <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h" />
-    <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
-    <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
-    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h" />
-    <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
-    <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
-    <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
@@ -106,6 +142,45 @@
     <ClCompile Include="src\NotRed\Log.cpp">
       <Filter>NotRed</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp">
+      <Filter>Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp">
+      <Filter>Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp">
+      <Filter>Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp">
+      <Filter>Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
+      <Filter>Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>Platform\Windows</Filter>
     </ClCompile>
@@ -113,18 +188,5 @@
       <Filter>Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
   </ItemGroup>
 </Project>
