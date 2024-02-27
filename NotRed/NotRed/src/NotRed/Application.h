@@ -7,6 +7,8 @@
 
 #include "NotRed/ImGui/ImGuiLayer.h"
 
+#include "NotRed/Core/TimeStep.h"
+
 namespace NR
 {
     class WindowCloseEvent;
@@ -36,9 +38,11 @@ namespace NR
         bool mRunning = true;
 
         std::unique_ptr<Window> mWindow;
-        ImGuiLayer* mImGuiLayer;
         
         LayerStack mLayerStack;
+        ImGuiLayer* mImGuiLayer;
+
+        TimeStep mTimeStep;
     };
 
     Application* CreateApplication();

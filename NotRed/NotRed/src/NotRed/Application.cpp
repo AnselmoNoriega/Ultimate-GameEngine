@@ -10,6 +10,8 @@
 
 #include "NotRed/Renderer/Renderer.h"
 
+#include <GLFW/glfw3.h>
+
 namespace NR
 {
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
@@ -59,9 +61,12 @@ namespace NR
     {
         while (mRunning)
         {
+            float time = static_cast<float>(glfwGetTime());
+            mTimeStep.UpdateTimeFrame(time);
+
             for (Layer* layer : mLayerStack)
             {
-                layer->Update();
+                layer->Update(mTimeStep);
             }
 
             mImGuiLayer->Begin();

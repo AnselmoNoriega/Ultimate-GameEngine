@@ -8,6 +8,8 @@
 
 #include "NotRed/Events/KeyEvent.h"
 
+#include "NotRed/Core/TimeStep.h"
+
 #include "NotRed/Log.h"
 #include "NotRed/Layer.h"
 #include "NotRed/ImGui/ImGuiLayer.h"

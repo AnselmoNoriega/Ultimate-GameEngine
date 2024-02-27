@@ -38,11 +38,12 @@ public:
         out vec3 vPosition;
 
         uniform mat4 uViewProjection;
+        uniform mat4 uTransform;
         
         void main()
         {
             vPosition = aPosition;
-            gl_Position = uViewProjection * vec4(aPosition, 1.0);
+            gl_Position = uViewProjection * uTransform * vec4(aPosition, 1.0);
         }
         )";
 
@@ -61,38 +62,38 @@ public:
         mShader.reset(new NR::Shader(vertexSrc, fragmentSrc));
     }
 
-    void Update() override
+    void Update(float deltaTime) override
     {
         if (NR::Input::IsKeyPressed(NR_KEY_A))
         {
-            mCameraPos.x -= mCamMoveSpeed;
+            mCameraPos.x -= mCamMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPos);
         }
         else if (NR::Input::IsKeyPressed(NR_KEY_D))
         {
-            mCameraPos.x += mCamMoveSpeed;
+            mCameraPos.x += mCamMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPos);
         }
 
         if (NR::Input::IsKeyPressed(NR_KEY_S))
         {
-            mCameraPos.y -= mCamMoveSpeed;
+            mCameraPos.y -= mCamMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPos);
         }
         else if (NR::Input::IsKeyPressed(NR_KEY_W))
         {
-            mCameraPos.y += mCamMoveSpeed;
+            mCameraPos.y += mCamMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPos);
         }
 
         if (NR::Input::IsKeyPressed(NR_KEY_RIGHT))
         {
-            mCameraRot += mCamRotSpeed;
+            mCameraRot += mCamRotSpeed * deltaTime;
             mCamera.SetRotation(mCameraRot);
         }
         else if (NR::Input::IsKeyPressed(NR_KEY_LEFT))
         {
-            mCameraRot -= mCamRotSpeed;
+            mCameraRot -= mCamRotSpeed * deltaTime;
             mCamera.SetRotation(mCameraRot);
         }
 
@@ -118,8 +119,8 @@ private:
     std::shared_ptr<NR::Shader> mShader;
     std::shared_ptr<NR::VertexArray> mVertexArray;
     
-    float mCamMoveSpeed = 0.1f;
-    float mCamRotSpeed = 1.0f;
+    float mCamMoveSpeed = 0.8f;
+    float mCamRotSpeed = 15.0f;
 };
 
 class Sandbox : public NR::Application

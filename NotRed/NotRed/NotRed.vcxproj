@@ -146,6 +146,7 @@
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Application.h" />
     <ClInclude Include="src\NotRed\Core.h" />
+    <ClInclude Include="src\NotRed\Core\TimeStep.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\Events\ApplicationEvent.h" />
     <ClInclude Include="src\NotRed\Events\Event.h" />

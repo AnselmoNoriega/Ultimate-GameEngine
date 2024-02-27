@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace NR
 {
     Renderer::SceneData* Renderer::sSceneData = new Renderer::SceneData;
@@ -16,11 +18,14 @@ namespace NR
 
     void Renderer::Submit(
         const std::shared_ptr<Shader>& shader,
-        const std::shared_ptr<VertexArray>& vertexArray
+        const std::shared_ptr<VertexArray>& vertexArray,
+        const glm::mat4& transform
     )
     {
         shader->Bind();
         shader->SetUniformMat4("uViewProjection", sSceneData->ViewProjectionMatrix);
+        shader->SetUniformMat4("uTransform", transform);
+
         RenderCommand::DrawIndexed(vertexArray);
     }
 }

@@ -13,7 +13,7 @@ namespace NR
 
         virtual void Attach() {}
         virtual void Detach() {}
-        virtual void Update() {}
+        virtual void Update(float deltaTime) {}
         virtual void ImGuiRender() {}
         virtual void OnEvent(Event& event) {}
 
