@@ -19,8 +19,8 @@ namespace NR
     }
 
     void Renderer::Submit(
-        const std::shared_ptr<Shader>& shader,
-        const std::shared_ptr<VertexArray>& vertexArray,
+        const Ref<Shader>& shader,
+        const Ref<VertexArray>& vertexArray,
         const glm::mat4& transform
     )
     {

@@ -39,7 +39,7 @@ namespace NR
         glBindVertexArray(0);
     }
 
-    void GLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexbuffer)
+    void GLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexbuffer)
     {
         NR_CORE_ASSERT(vertexbuffer->GetLayout().GetElements().size(), "VertexBuffer's layout is empty!")
 
@@ -64,7 +64,7 @@ namespace NR
         mVertexBuffers.push_back(vertexbuffer);
     }
 
-    void GLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer)
+    void GLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
     {
         glBindVertexArray(mID);
         indexBuffer->Bind();

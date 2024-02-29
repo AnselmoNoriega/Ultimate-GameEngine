@@ -1,6 +1,6 @@
 #include <NotRed.h>
 
-//#include "imgui/imgui.g"
+#include "imgui/imgui.h"
 
 class ExampleLayer : public NR::Layer
 {
@@ -17,7 +17,7 @@ public:
              0.0f,  0.5f, 0.0f,
         };
 
-        std::shared_ptr<NR::VertexBuffer> vertexBuffer;
+        NR::Ref<NR::VertexBuffer> vertexBuffer;
         vertexBuffer.reset(NR::VertexBuffer::Create(vertices, sizeof(vertices)));
 
         NR::BufferLayout layout =
@@ -29,7 +29,7 @@ public:
         mVertexArray->AddVertexBuffer(vertexBuffer);
 
         uint32_t indices[3] = { 0, 1, 2 };
-        std::shared_ptr<NR::IndexBuffer>indexBuffer;
+        NR::Ref<NR::IndexBuffer>indexBuffer;
         indexBuffer.reset(NR::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         mVertexArray->SetIndexBuffer(indexBuffer);
 
@@ -115,9 +115,9 @@ public:
 
     virtual void ImGuiRender() override
     {
-       /* ImGui::Begin("Settings");
+       ImGui::Begin("Settings");
 
-        ImGui::End();*/
+      ImGui::End();
     }
 
 private:
@@ -125,8 +125,8 @@ private:
     glm::vec3 mCameraPos;
     float mCameraRot = 0.0f;
 
-    std::shared_ptr<NR::Shader> mShader;
-    std::shared_ptr<NR::VertexArray> mVertexArray;
+    NR::Ref<NR::Shader> mShader;
+    NR::Ref<NR::VertexArray> mVertexArray;
     
     float mCamMoveSpeed = 0.8f;
     float mCamRotSpeed = 15.0f;
