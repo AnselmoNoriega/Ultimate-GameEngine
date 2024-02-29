@@ -15,7 +15,7 @@ namespace NR
         virtual void Detach() {}
         virtual void Update(float deltaTime) {}
         virtual void ImGuiRender() {}
-        virtual void OnEvent(Event& event) {}
+        virtual void OnEvent(Event& myEvent) {}
 
         inline const std::string& GetName() const { return mDebugName; }
 

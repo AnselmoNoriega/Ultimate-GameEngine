@@ -122,6 +122,8 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Core\TimeStep.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLShader.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
@@ -188,5 +190,6 @@
       <Filter>Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLShader.cpp" />
   </ItemGroup>
 </Project>

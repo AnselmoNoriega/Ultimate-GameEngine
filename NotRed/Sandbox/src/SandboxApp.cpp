@@ -1,5 +1,7 @@
 #include <NotRed.h>
 
+//#include "imgui/imgui.g"
+
 class ExampleLayer : public NR::Layer
 {
 public:
@@ -59,7 +61,7 @@ public:
         }
         )";
 
-        mShader.reset(new NR::Shader(vertexSrc, fragmentSrc));
+        mShader.reset(NR::Shader::Create(vertexSrc, fragmentSrc));
     }
 
     void Update(float deltaTime) override
@@ -109,6 +111,13 @@ public:
     void OnEvent(NR::Event& myEvent) override
     {
         //NR_TRACE("{0}", myEvent);
+    }
+
+    virtual void ImGuiRender() override
+    {
+       /* ImGui::Begin("Settings");
+
+        ImGui::End();*/
     }
 
 private:

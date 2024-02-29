@@ -3,6 +3,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Platform/OpenGL/GLShader.h"
+
 namespace NR
 {
     Renderer::SceneData* Renderer::sSceneData = new Renderer::SceneData;
@@ -23,8 +25,8 @@ namespace NR
     )
     {
         shader->Bind();
-        shader->SetUniformMat4("uViewProjection", sSceneData->ViewProjectionMatrix);
-        shader->SetUniformMat4("uTransform", transform);
+        std::dynamic_pointer_cast<GLShader>(shader)->SetUniformMat4("uViewProjection", sSceneData->ViewProjectionMatrix);
+        std::dynamic_pointer_cast<GLShader>(shader)->SetUniformMat4("uTransform", transform);
 
         RenderCommand::DrawIndexed(vertexArray);
     }
