@@ -61,7 +61,7 @@ namespace NR
     class BufferLayout
     {
     public:
-        BufferLayout() {}
+        BufferLayout() = default;
         BufferLayout(const std::initializer_list<BufferElement>& elements)
             : mElements(elements)
         {

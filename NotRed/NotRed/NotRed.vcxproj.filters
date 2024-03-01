@@ -1,195 +1,237 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="NotRed">
-      <UniqueIdentifier>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</UniqueIdentifier>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NotRed\Events">
-      <UniqueIdentifier>{B5BE1F99-217F-9BCF-EAB9-E44C5639E0AB}</UniqueIdentifier>
+    <Filter Include="src\NotRed">
+      <UniqueIdentifier>{28E54923-149D-8B70-7DA4-64CC697B2661}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NotRed\ImGui">
-      <UniqueIdentifier>{DBF162F5-C754-F299-70DA-2A505C1CBE1C}</UniqueIdentifier>
+    <Filter Include="src\NotRed\Core">
+      <UniqueIdentifier>{80820827-EC0D-76EB-F51E-F9DF6129D2EB}</UniqueIdentifier>
     </Filter>
-    <Filter Include="NotRed\Renderer">
-      <UniqueIdentifier>{B74E0557-23DA-721B-2CEB-F50F98F5CE1B}</UniqueIdentifier>
+    <Filter Include="src\NotRed\Events">
+      <UniqueIdentifier>{0C345510-784A-53A6-C1C1-DEC72D17242E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Platform">
-      <UniqueIdentifier>{2AC788B4-1694-E3BF-3FAD-D1672BD9184E}</UniqueIdentifier>
+    <Filter Include="src\NotRed\ImGui">
+      <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Platform\OpenGL">
-      <UniqueIdentifier>{1E7D2C1D-8A08-9AE1-9319-1DD6FF23F6E1}</UniqueIdentifier>
+    <Filter Include="src\NotRed\Renderer">
+      <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Platform\Windows">
-      <UniqueIdentifier>{64FBD71A-50F4-F66C-7926-DCF1657ED678}</UniqueIdentifier>
+    <Filter Include="src\Platform">
+      <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform\OpenGL">
+      <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Platform\Windows">
+      <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor">
+      <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\stb_image">
+      <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed.h" />
+    <ClInclude Include="src\NotRed.h">
+      <Filter>src</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Application.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\TimeStep.h">
+      <Filter>src\NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\EntryPoint.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Events\ApplicationEvent.h">
-      <Filter>NotRed\Events</Filter>
+      <Filter>src\NotRed\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Events\Event.h">
-      <Filter>NotRed\Events</Filter>
+      <Filter>src\NotRed\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Events\KeyEvent.h">
-      <Filter>NotRed\Events</Filter>
+      <Filter>src\NotRed\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Events\MouseEvent.h">
-      <Filter>NotRed\Events</Filter>
+      <Filter>src\NotRed\Events</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
-      <Filter>NotRed\ImGui</Filter>
+      <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Input.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\KeyCodes.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Layer.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\LayerStack.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Log.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\MouseButtonCodes.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Renderer.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Shader.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Texture.h">
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Window.h">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLShader.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLTexture.h">
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
-      <Filter>Platform\Windows</Filter>
+      <Filter>src\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
-      <Filter>Platform\Windows</Filter>
+      <Filter>src\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Core\TimeStep.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLShader.h" />
+    <ClInclude Include="src\nrpch.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\stb_image\stb_image.h">
+      <Filter>vendor\stb_image</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Application.cpp">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp">
-      <Filter>NotRed\ImGui</Filter>
+      <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp">
-      <Filter>NotRed\ImGui</Filter>
+      <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Layer.cpp">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\LayerStack.cpp">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Log.cpp">
-      <Filter>NotRed</Filter>
+      <Filter>src\NotRed</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
-      <Filter>NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLShader.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLTexture.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp">
-      <Filter>Platform\OpenGL</Filter>
+      <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
-      <Filter>Platform\Windows</Filter>
+      <Filter>src\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
-      <Filter>Platform\Windows</Filter>
+      <Filter>src\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\nrpch.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLShader.cpp" />
+    <ClCompile Include="src\nrpch.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\stb_image\stb_image.cpp">
+      <Filter>vendor\stb_image</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

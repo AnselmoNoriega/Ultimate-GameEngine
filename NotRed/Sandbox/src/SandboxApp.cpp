@@ -2,6 +2,8 @@
 
 #include "imgui/imgui.h"
 
+#include "Platform/OpenGL/GLShader.h"
+
 class ExampleLayer : public NR::Layer
 {
 public:
@@ -10,11 +12,12 @@ public:
     {
         mVertexArray.reset(NR::VertexArray::Create());
 
-        float vertices[] =
+        float vertices[5 * 4] =
         {
-            -0.5f, -0.5f, 0.0f,
-             0.5f, -0.5f, 0.0f,
-             0.0f,  0.5f, 0.0f,
+            -0.5f, -0.5f, 0.0f,    0.0f, 0.0f,
+             0.5f, -0.5f, 0.0f,    1.0f, 0.0f,
+             0.5f,  0.5f, 0.0f,    1.0f, 1.0f,
+            -0.5f,  0.5f, 0.0f,    0.0f, 1.0f
         };
 
         NR::Ref<NR::VertexBuffer> vertexBuffer;
@@ -22,13 +25,14 @@ public:
 
         NR::BufferLayout layout =
         {
-            {NR::ShaderDataType::Float3, "aPosition"}
+            {NR::ShaderDataType::Float3, "aPosition"},
+            {NR::ShaderDataType::Float2, "aTexCoord"}
         };
 
         vertexBuffer->SetLayout(layout);
         mVertexArray->AddVertexBuffer(vertexBuffer);
 
-        uint32_t indices[3] = { 0, 1, 2 };
+        uint32_t indices[2 * 3] = { 0, 1, 2, 2, 3, 0 };
         NR::Ref<NR::IndexBuffer>indexBuffer;
         indexBuffer.reset(NR::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         mVertexArray->SetIndexBuffer(indexBuffer);
@@ -37,31 +41,40 @@ public:
         #version 330 core
         
         layout(location = 0) in vec3 aPosition;
-        out vec3 vPosition;
+        layout(location = 1) in vec2 aTexCoord;
 
         uniform mat4 uViewProjection;
         uniform mat4 uTransform;
+
+        out vec2 vTexCoord;
         
         void main()
         {
-            vPosition = aPosition;
+            vTexCoord = aTexCoord;
             gl_Position = uViewProjection * uTransform * vec4(aPosition, 1.0);
         }
         )";
 
         std::string fragmentSrc = R"(
         #version 330 core
+
+        uniform sampler2D uTexture;
         
+        in vec2 vTexCoord;
+
         out vec4 color;
-        in vec3 vPosition;
         
         void main()
         {
-            color = vec4(vPosition.xy + 0.3, vPosition.z, 1.0);
+            color = texture(uTexture, vTexCoord);
         }
         )";
 
         mShader.reset(NR::Shader::Create(vertexSrc, fragmentSrc));
+        mTexture = NR::Texture2D::Create("Assets/Textures/Image_Two.png");
+
+        std::dynamic_pointer_cast<NR::GLShader>(mShader)->Bind();
+        std::dynamic_pointer_cast<NR::GLShader>(mShader)->SetUniformInt("uTexture", 0);
     }
 
     void Update(float deltaTime) override
@@ -103,6 +116,7 @@ public:
 
         NR::Renderer::BeginScene(mCamera);
 
+        mTexture->Bind();
         NR::Renderer::Submit(mShader, mVertexArray);
 
         NR::Renderer::EndScene();
@@ -127,6 +141,7 @@ private:
 
     NR::Ref<NR::Shader> mShader;
     NR::Ref<NR::VertexArray> mVertexArray;
+    NR::Ref<NR::Texture> mTexture;
     
     float mCamMoveSpeed = 0.8f;
     float mCamRotSpeed = 15.0f;

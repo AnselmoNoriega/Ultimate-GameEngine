@@ -16,6 +16,7 @@ IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
 IncludeDir["Glad"] = "NotRed/vendor/glad/include"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 IncludeDir["Glm"] = "NotRed/vendor/glm"
+IncludeDir["Stb"] = "NotRed/vendor/stb_image"
 
 group "Dependencies"
 	include "NotRed/vendor/GLFW"
@@ -40,7 +41,9 @@ project "NotRed"
 	files
 	{
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/vendor/stb_image/**.h",
+		"%{prj.name}/vendor/stb_image/**.cpp"
 	}
 
 
@@ -56,7 +59,8 @@ project "NotRed"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
-		"%{IncludeDir.Glm}"
+		"%{IncludeDir.Glm}",
+		"%{IncludeDir.Stb}"
 	}
 
 	links
