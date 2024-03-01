@@ -1,5 +1,5 @@
 #include "nrpch.h"
-#include "OpenGLContext.h"
+#include "GLContext.h"
 
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
@@ -7,13 +7,13 @@
 
 namespace NR
 {
-    OpenGLContext::OpenGLContext(GLFWwindow* windowHandle)
+    GLContext::GLContext(GLFWwindow* windowHandle)
         : mWindowHandle(windowHandle)
     {
         NR_CORE_ASSERT(windowHandle, "Window does not exist.")
     }
 
-    void OpenGLContext::Init()
+    void GLContext::Init()
     {
         glfwMakeContextCurrent(mWindowHandle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
@@ -25,12 +25,12 @@ namespace NR
             (const char*)glGetString(GL_VERSION));
     }
 
-    void OpenGLContext::SwapBuffers()
+    void GLContext::SwapBuffers()
     {
         glfwSwapBuffers(mWindowHandle);
     }
 
-    OpenGLContext::~OpenGLContext()
+    GLContext::~GLContext()
     {
     }
 }

@@ -5,7 +5,7 @@
 #include "NotRed/Events/MouseEvent.h"
 #include "NotRed/Events/KeyEvent.h"
 
-#include "Platform/OpenGL/OpenGLContext.h"
+#include "Platform/OpenGL/GLContext.h"
 
 namespace NR
 {
@@ -43,7 +43,7 @@ namespace NR
 
         mWindow = glfwCreateWindow(props.Width, props.Height, mData.Tile.c_str(), nullptr, nullptr);
 
-        mContext = new OpenGLContext(mWindow);
+        mContext = new GLContext(mWindow);
         mContext->Init();
 
         glfwSetWindowUserPointer(mWindow, &mData);

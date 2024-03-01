@@ -6,11 +6,11 @@ struct GLFWwindow;
 
 namespace NR
 {
-    class OpenGLContext : public GraphicsContext
+    class GLContext : public GraphicsContext
     {
     public:
-        OpenGLContext(GLFWwindow* windowHandle);
-        ~OpenGLContext() override;
+        GLContext(GLFWwindow* windowHandle);
+        ~GLContext() override;
 
         void Init() override;
         void SwapBuffers() override;
