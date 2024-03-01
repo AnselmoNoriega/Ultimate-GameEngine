@@ -141,6 +141,10 @@
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\Texture\TextureFrag.glsl" />
+    <None Include="Assets\Shaders\Texture\TextureVert.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

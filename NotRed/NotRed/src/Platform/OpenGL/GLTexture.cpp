@@ -17,13 +17,32 @@ namespace NR
         mWidth = width;
         mHeight = height;
 
+        GLenum glFormat = 0, dataFormat = 0;
+        switch (channnels)
+        {
+        case 4:
+        {
+            glFormat = GL_RGBA8;
+            dataFormat = GL_RGBA;
+            break;
+        }
+        case 3:
+        {
+            glFormat = GL_RGB8;
+            dataFormat = GL_RGB;
+            break;
+        }
+        }
+
+        NR_CORE_ASSERT(glFormat & dataFormat, "Not supported format!");
+
         glCreateTextures(GL_TEXTURE_2D, 1, &mID);
-        glTextureStorage2D(mID, 1, GL_RGB8, mWidth, mHeight);
+        glTextureStorage2D(mID, 1, glFormat, mWidth, mHeight);
 
         glTextureParameteri(mID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTextureParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        glTextureSubImage2D(mID, 0, 0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTextureSubImage2D(mID, 0, 0, 0, mWidth, mHeight, dataFormat, GL_UNSIGNED_BYTE, data);
 
         stbi_image_free(data);
     }

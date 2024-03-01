@@ -37,40 +37,7 @@ public:
         indexBuffer.reset(NR::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         mVertexArray->SetIndexBuffer(indexBuffer);
 
-        std::string vertexSrc = R"(
-        #version 330 core
-        
-        layout(location = 0) in vec3 aPosition;
-        layout(location = 1) in vec2 aTexCoord;
-
-        uniform mat4 uViewProjection;
-        uniform mat4 uTransform;
-
-        out vec2 vTexCoord;
-        
-        void main()
-        {
-            vTexCoord = aTexCoord;
-            gl_Position = uViewProjection * uTransform * vec4(aPosition, 1.0);
-        }
-        )";
-
-        std::string fragmentSrc = R"(
-        #version 330 core
-
-        uniform sampler2D uTexture;
-        
-        in vec2 vTexCoord;
-
-        out vec4 color;
-        
-        void main()
-        {
-            color = texture(uTexture, vTexCoord);
-        }
-        )";
-
-        mShader.reset(NR::Shader::Create(vertexSrc, fragmentSrc));
+        mShader.reset(NR::Shader::Create("Assets/Shaders/Texture"));
         mTexture = NR::Texture2D::Create("Assets/Textures/Image_Two.png");
 
         std::dynamic_pointer_cast<NR::GLShader>(mShader)->Bind();

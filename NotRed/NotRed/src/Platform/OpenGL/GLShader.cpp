@@ -1,66 +1,105 @@
 #include "nrpch.h"
 #include "GLShader.h"
 
+#include <fstream>
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace NR
 {
+    GLShader::GLShader(const std::string& filepath)
+    {
+        const std::string fileName = GetShaderName(filepath);
+        const std::string vertSource = ParseFile(filepath + fileName + "Vert.glsl");
+        const std::string fragSource = ParseFile(filepath + fileName + "Frag.glsl");
+
+        Compile(vertSource, fragSource);
+    }
+
     GLShader::GLShader(const std::string& vertexSrc, const std::string& fragmentSrc)
     {
-        GLuint vertexGLShader = glCreateShader(GL_VERTEX_SHADER);
+        Compile(vertexSrc, fragmentSrc);
+    }
 
-        const GLchar* source = vertexSrc.c_str();
-        glShaderSource(vertexGLShader, 1, &source, 0);
+    std::string GLShader::ParseFile(const std::string& filepath)
+    {
+        std::ifstream in(filepath, std::ios::in, std::ios::binary);
+        std::string result;
 
-        glCompileShader(vertexGLShader);
-
-        GLint isCompiled = 0;
-        glGetShaderiv(vertexGLShader, GL_COMPILE_STATUS, &isCompiled);
-        if (isCompiled == GL_FALSE)
+        if (in)
         {
-            GLint maxLength = 0;
-            glGetShaderiv(vertexGLShader, GL_INFO_LOG_LENGTH, &maxLength);
+            in.seekg(0, std::ios::end);
+            result.resize(in.tellg());
+            in.seekg(0, std::ios::beg);
+            in.read(&result[0], result.size());
+            in.close();
 
-            std::vector<GLchar> infoLog(maxLength);
-            glGetShaderInfoLog(vertexGLShader, maxLength, &maxLength, &infoLog[0]);
-
-            glDeleteShader(vertexGLShader);
-
-            NR_CORE_ERROR("{0}", infoLog.data());
-            NR_CORE_ASSERT(false, "Vertex GLShader failed to compile!");
-            return;
+        }
+        else
+        {
+            NR_CORE_ERROR("Could not open file \"{0}\"!", filepath);
         }
 
-        GLuint fragmentGLShader = glCreateShader(GL_FRAGMENT_SHADER);
+        return result;
+    }
 
-        source = fragmentSrc.c_str();
-        glShaderSource(fragmentGLShader, 1, &source, 0);
+    std::string GLShader::GetShaderName(const std::string& filepath)
+    {
+        size_t fileName = filepath.find_last_of("/");
 
-        glCompileShader(fragmentGLShader);
-
-        glGetShaderiv(fragmentGLShader, GL_COMPILE_STATUS, &isCompiled);
-        if (isCompiled == GL_FALSE)
+        if (fileName != std::string::npos)
         {
-            GLint maxLength = 0;
-            glGetShaderiv(fragmentGLShader, GL_INFO_LOG_LENGTH, &maxLength);
+            return "/" + filepath.substr(fileName + 1);
+        }
+        else
+        {
+            NR_CORE_ERROR("File is in wrong folder!");
+            return filepath;
+        }
+    }
 
-            std::vector<GLchar> infoLog(maxLength);
-            glGetShaderInfoLog(fragmentGLShader, maxLength, &maxLength, &infoLog[0]);
+    void GLShader::Compile(const std::string& vertexSrc, const std::string& fragmentSrc)
+    {
+        std::vector<std::pair<GLuint, std::string>> shaders = {
+            { glCreateShader(GL_VERTEX_SHADER), vertexSrc },
+            { glCreateShader(GL_FRAGMENT_SHADER), fragmentSrc }
+        };
 
-            glDeleteShader(fragmentGLShader);
-            glDeleteShader(vertexGLShader);
+        for (int i = 0; i < shaders.size(); ++i)
+        {
+            const GLchar* source = shaders[i].second.c_str();
+            glShaderSource(shaders[i].first, 1, &source, 0);
 
-            NR_CORE_ERROR("{0}", infoLog.data());
-            NR_CORE_ASSERT(false, "Fragment GLShader failed to compile!");
-            return;
+            glCompileShader(shaders[i].first);
+
+            GLint isCompiled = 0;
+            glGetShaderiv(shaders[i].first, GL_COMPILE_STATUS, &isCompiled);
+            if (isCompiled == GL_FALSE)
+            {
+                GLint maxLength = 0;
+                glGetShaderiv(shaders[i].first, GL_INFO_LOG_LENGTH, &maxLength);
+
+                std::vector<GLchar> infoLog(maxLength);
+                glGetShaderInfoLog(shaders[i].first, maxLength, &maxLength, &infoLog[0]);
+
+                while (i >= 0)
+                {
+                    glDeleteShader(shaders[i--].first);
+                }
+
+                NR_CORE_ERROR("{0}", infoLog.data());
+                NR_CORE_ASSERT(false, "GLShader failed to compile!");
+                return;
+            }
         }
 
         mID = glCreateProgram();
         GLuint program = mID;
 
-        glAttachShader(program, vertexGLShader);
-        glAttachShader(program, fragmentGLShader);
+        for (auto shader : shaders)
+        {
+            glAttachShader(program, shader.first);
+        }
 
         glLinkProgram(program);
 
@@ -75,16 +114,20 @@ namespace NR
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             glDeleteProgram(program);
-            glDeleteShader(vertexGLShader);
-            glDeleteShader(fragmentGLShader);
+            for (auto shader : shaders)
+            {
+                glDeleteShader(shader.first);
+            }
 
             NR_CORE_ERROR("{0}", infoLog.data());
             NR_CORE_ASSERT(false, "GLShader link failure!");
             return;
         }
 
-        glDetachShader(program, vertexGLShader);
-        glDetachShader(program, fragmentGLShader);
+        for (auto shader : shaders)
+        {
+            glDetachShader(program, shader.first);
+        }
     }
 
     void GLShader::SetUniformInt(const std::string& name, const int values)

@@ -9,6 +9,11 @@ namespace NR
 {
     Renderer::SceneData* Renderer::sSceneData = new Renderer::SceneData;
 
+    void Renderer::Init()
+    {
+        RenderCommand::Init();
+    }
+
     void Renderer::BeginScene(OrthographicCamera& camera)
     {
         sSceneData->ViewProjectionMatrix = camera.GetVPMatrix();
