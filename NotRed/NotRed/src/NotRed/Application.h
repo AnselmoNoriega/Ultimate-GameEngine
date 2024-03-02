@@ -12,6 +12,7 @@
 namespace NR
 {
     class WindowCloseEvent;
+    class WindowResizeEvent;
 
     class Application
     {
@@ -31,11 +32,13 @@ namespace NR
 
     private:
         bool OnWindowClose(WindowCloseEvent& e);
+        bool OnWindowResize(WindowResizeEvent& e);
 
     private:
         static Application* sInstance;
 
         bool mRunning = true;
+        bool mMinimized = false;
 
         std::unique_ptr<Window> mWindow;
         

@@ -36,6 +36,7 @@ namespace NR
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
         for (auto layer = mLayerStack.end(); layer != mLayerStack.begin();)
         {
@@ -66,9 +67,12 @@ namespace NR
             float time = static_cast<float>(glfwGetTime());
             mTimeStep.UpdateTimeFrame(time);
 
-            for (Layer* layer : mLayerStack)
+            if (!mMinimized)
             {
-                layer->Update(mTimeStep);
+                for (Layer* layer : mLayerStack)
+                {
+                    layer->Update(mTimeStep);
+                }
             }
 
             mImGuiLayer->Begin();
@@ -86,6 +90,20 @@ namespace NR
     {
         mRunning = false;
         return true;
+    }
+
+    bool Application::OnWindowResize(WindowResizeEvent& e)
+    {
+        if (e.GetWidth() == 0 || e.GetHeight() == 0)
+        {
+            mMinimized = true;
+            return false;
+        }
+
+        mMinimized = false;
+        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+
+        return false;
     }
 
     Application::~Application()
