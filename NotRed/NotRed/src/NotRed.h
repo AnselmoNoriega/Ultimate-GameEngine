@@ -12,6 +12,8 @@
 
 #include "NotRed/Core/TimeStep.h"
 
+#include "NotRed/OrthographicCameraController.h"
+
 #include "NotRed/Log.h"
 #include "NotRed/Layer.h"
 #include "NotRed/ImGui/ImGuiLayer.h"

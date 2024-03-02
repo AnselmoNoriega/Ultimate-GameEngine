@@ -54,12 +54,13 @@ namespace NR
         EventDispatcher(Event& event)
             : mEvent(event) {}
 
-        template <typename T>
-        bool Dispatch(std::function<bool(T&)> func)
+        //std::function<bool(T&)>
+        template <typename T, typename F>
+        bool Dispatch(const F& func)
         {
             if (mEvent.GetEventType() == T::GetStaticType())
             {
-                mEvent.Handled = func(*static_cast<T*>(&mEvent));
+                mEvent.Handled = func(static_cast<T&>(mEvent));
                 return true;
             }
             return false;

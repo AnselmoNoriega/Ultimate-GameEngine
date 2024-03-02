@@ -8,7 +8,7 @@ class ExampleLayer : public NR::Layer
 {
 public:
     ExampleLayer()
-        :Layer("Example"), mCameraPos(mCamera.GetPosition())
+        :Layer("Example"), mCameraController(1280.0f / 720.0f)
     {
         mVertexArray.reset(NR::VertexArray::Create());
 
@@ -46,42 +46,11 @@ public:
 
     void Update(float deltaTime) override
     {
-        if (NR::Input::IsKeyPressed(NR_KEY_A))
-        {
-            mCameraPos.x -= mCamMoveSpeed * deltaTime;
-            mCamera.SetPosition(mCameraPos);
-        }
-        else if (NR::Input::IsKeyPressed(NR_KEY_D))
-        {
-            mCameraPos.x += mCamMoveSpeed * deltaTime;
-            mCamera.SetPosition(mCameraPos);
-        }
-
-        if (NR::Input::IsKeyPressed(NR_KEY_S))
-        {
-            mCameraPos.y -= mCamMoveSpeed * deltaTime;
-            mCamera.SetPosition(mCameraPos);
-        }
-        else if (NR::Input::IsKeyPressed(NR_KEY_W))
-        {
-            mCameraPos.y += mCamMoveSpeed * deltaTime;
-            mCamera.SetPosition(mCameraPos);
-        }
-
-        if (NR::Input::IsKeyPressed(NR_KEY_RIGHT))
-        {
-            mCameraRot += mCamRotSpeed * deltaTime;
-            mCamera.SetRotation(mCameraRot);
-        }
-        else if (NR::Input::IsKeyPressed(NR_KEY_LEFT))
-        {
-            mCameraRot -= mCamRotSpeed * deltaTime;
-            mCamera.SetRotation(mCameraRot);
-        }
+        mCameraController.Update(deltaTime);
 
         NR::RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
 
-        NR::Renderer::BeginScene(mCamera);
+        NR::Renderer::BeginScene(mCameraController.GetCamera());
 
         mTexture->Bind();
         NR::Renderer::Submit(mShader, mVertexArray);
@@ -91,7 +60,7 @@ public:
 
     void OnEvent(NR::Event& myEvent) override
     {
-        //NR_TRACE("{0}", myEvent);
+        mCameraController.OnEvent(myEvent);
     }
 
     virtual void ImGuiRender() override
@@ -102,16 +71,11 @@ public:
     }
 
 private:
-    NR::OrthographicCamera mCamera;
-    glm::vec3 mCameraPos;
-    float mCameraRot = 0.0f;
+    NR::OrthographicCameraController mCameraController;
 
     NR::Ref<NR::Shader> mShader;
     NR::Ref<NR::VertexArray> mVertexArray;
     NR::Ref<NR::Texture> mTexture;
-    
-    float mCamMoveSpeed = 0.8f;
-    float mCamRotSpeed = 15.0f;
 };
 
 class Sandbox : public NR::Application

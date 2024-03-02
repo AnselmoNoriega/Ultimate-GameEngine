@@ -9,8 +9,12 @@ namespace NR
         :mProjectionMatrix(glm::ortho(left, right, bottom, top, -1.0f, 1.0f)), mViewMatrix(1.0f)
     {
         mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
-        //Test this: 
-        //mViewProjectionMatrix = mViewMatrix * mProjectionMatrix;
+    }
+
+    void OrthographicCamera::SetProjection(float left, float right, float bottom, float top)
+    {
+        mProjectionMatrix = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
+        mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
     }
 
     void OrthographicCamera::RecalculateMatrix()
@@ -19,6 +23,6 @@ namespace NR
         transform = glm::rotate(transform, glm::radians(mRotation), glm::vec3(0, 0, 1));
 
         mViewMatrix = glm::inverse(transform);
-        mViewProjectionMatrix = mViewMatrix * mProjectionMatrix;
+        mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;
     }
 }

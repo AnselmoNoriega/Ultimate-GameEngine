@@ -143,6 +143,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\OrthographicCameraController.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Application.h" />
     <ClInclude Include="src\NotRed\Core.h" />
@@ -184,6 +185,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\OrthographicCameraController.cpp" />
     <ClCompile Include="src\NotRed\Application.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
