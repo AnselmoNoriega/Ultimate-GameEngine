@@ -9,21 +9,32 @@ namespace NR
 {
     GLShader::GLShader(const std::string& filepath)
     {
-        const std::string fileName = GetShaderName(filepath);
-        const std::string vertSource = ParseFile(filepath + fileName + "Vert.glsl");
-        const std::string fragSource = ParseFile(filepath + fileName + "Frag.glsl");
+        mName = GetShaderName(filepath);
+        const std::string vertSource = ParseFile(filepath + "/" + mName + "Vert.glsl");
+        const std::string fragSource = ParseFile(filepath + "/" + mName + "Frag.glsl");
 
-        Compile(vertSource, fragSource);
+        ShaderInfo shaders[] = {
+            {glCreateShader(GL_VERTEX_SHADER), vertSource},
+            {glCreateShader(GL_FRAGMENT_SHADER), fragSource}
+        };
+
+        Compile(shaders, 2);
     }
 
-    GLShader::GLShader(const std::string& vertexSrc, const std::string& fragmentSrc)
+    GLShader::GLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
+        : mName(name)
     {
-        Compile(vertexSrc, fragmentSrc);
+        ShaderInfo shaders[] = {
+            {glCreateShader(GL_VERTEX_SHADER), vertexSrc},
+            {glCreateShader(GL_FRAGMENT_SHADER), fragmentSrc}
+        };
+
+        Compile(shaders, 2);
     }
 
     std::string GLShader::ParseFile(const std::string& filepath)
     {
-        std::ifstream in(filepath, std::ios::in, std::ios::binary);
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
         std::string result;
 
         if (in)
@@ -45,27 +56,22 @@ namespace NR
 
     std::string GLShader::GetShaderName(const std::string& filepath)
     {
-        size_t fileName = filepath.find_last_of("/");
+        size_t fileName = filepath.find_last_of("/\\");
 
         if (fileName != std::string::npos)
         {
-            return "/" + filepath.substr(fileName + 1);
+            return filepath.substr(fileName + 1);
         }
         else
         {
-            NR_CORE_ERROR("File is in wrong folder!");
+            NR_CORE_WARN("File is in wrong folder!");
             return filepath;
         }
     }
 
-    void GLShader::Compile(const std::string& vertexSrc, const std::string& fragmentSrc)
+    void GLShader::Compile(const ShaderInfo* shaders, uint32_t count)
     {
-        std::vector<std::pair<GLuint, std::string>> shaders = {
-            { glCreateShader(GL_VERTEX_SHADER), vertexSrc },
-            { glCreateShader(GL_FRAGMENT_SHADER), fragmentSrc }
-        };
-
-        for (int i = 0; i < shaders.size(); ++i)
+        for (int i = 0; i < count; ++i)
         {
             const GLchar* source = shaders[i].second.c_str();
             glShaderSource(shaders[i].first, 1, &source, 0);
@@ -96,9 +102,9 @@ namespace NR
         mID = glCreateProgram();
         GLuint program = mID;
 
-        for (auto shader : shaders)
+        for (int i = 0; i < count; ++i)
         {
-            glAttachShader(program, shader.first);
+            glAttachShader(program, shaders[i].first);
         }
 
         glLinkProgram(program);
@@ -114,9 +120,9 @@ namespace NR
             glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
 
             glDeleteProgram(program);
-            for (auto shader : shaders)
+            for (int i = 0; i < count; ++i)
             {
-                glDeleteShader(shader.first);
+                glDeleteShader(shaders[i].first);
             }
 
             NR_CORE_ERROR("{0}", infoLog.data());
@@ -124,9 +130,9 @@ namespace NR
             return;
         }
 
-        for (auto shader : shaders)
+        for (int i = 0; i < count; ++i)
         {
-            glDetachShader(program, shader.first);
+            glDetachShader(program, shaders[i].first);
         }
     }
 

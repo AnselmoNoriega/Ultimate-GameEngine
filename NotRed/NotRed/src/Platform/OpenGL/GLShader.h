@@ -9,15 +9,19 @@ typedef unsigned int GLenum;
 
 namespace NR
 {
-    class GLShader : public Shader
+    using ShaderInfo = std::pair<uint32_t, std::string>;
+
+    class GLShader : public Shader 
     {
     public:
         GLShader(const std::string& filepath);
-        GLShader(const std::string& vertexSrc, const std::string& fragmentSrc);
+        GLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc);
         ~GLShader() override;
 
         void Bind() const override;
-        void Unbind() const override;
+        void Unbind() const override; 
+        
+        const std::string& GetName() const override { return mName; }
 
         void SetUniformInt(const std::string& name, const int values);
 
@@ -32,10 +36,11 @@ namespace NR
     private:
         std::string ParseFile(const std::string& filepath);
         std::string GetShaderName(const std::string& filepath);
-        void Compile(const std::string& vertexSrc, const std::string& fragmentSrc);
+        void Compile(const ShaderInfo* shaders, uint32_t count);
 
     private:
         uint32_t mID;
+        std::string mName;
     };
 }
 

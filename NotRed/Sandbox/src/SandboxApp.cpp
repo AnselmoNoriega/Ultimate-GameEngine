@@ -37,7 +37,7 @@ public:
         indexBuffer.reset(NR::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         mVertexArray->SetIndexBuffer(indexBuffer);
 
-        mShader.reset(NR::Shader::Create("Assets/Shaders/Texture"));
+        mShader = NR::Shader::Create("Assets/Shaders/Texture");
         mTexture = NR::Texture2D::Create("Assets/Textures/Image_Two.png");
 
         std::dynamic_pointer_cast<NR::GLShader>(mShader)->Bind();
