@@ -7,12 +7,12 @@
 
 namespace NR
 {
-    VertexArray* VertexArray::Create()
+    Ref<VertexArray> VertexArray::Create()
     {
         switch (Renderer::GetAPI())
         {
         case RendererAPI::API::None: NR_CORE_ASSERT(false, "Renderer API \"None\" is currently not supported!");
-        case RendererAPI::API::OpenGL: return new GLVertexArray();
+        case RendererAPI::API::OpenGL: return std::make_shared<GLVertexArray>();
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RenderAPI!");

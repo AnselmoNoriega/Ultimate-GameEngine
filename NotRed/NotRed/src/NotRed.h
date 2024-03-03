@@ -29,6 +29,3 @@
 #include "NotRed/Renderer/IndexBuffer.h"
 
 #include "NotRed/Renderer/OrthographicCamera.h"
-
-//-------------Entry Point--------------------------
-#include "NotRed/Core/EntryPoint.h"
