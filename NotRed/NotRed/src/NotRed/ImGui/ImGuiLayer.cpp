@@ -5,7 +5,7 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "backends/imgui_impl_glfw.h"
 
-#include "NotRed/Application.h"
+#include "NotRed/Core/Application.h"
 
 //Should be optimized and removed
 #include <GLFW/glfw3.h>

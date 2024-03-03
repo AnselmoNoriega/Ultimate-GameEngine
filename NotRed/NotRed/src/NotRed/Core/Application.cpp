@@ -1,10 +1,10 @@
 #include "nrpch.h"
 #include "Application.h"
 
-#include "NotRed/Log.h"
+#include "NotRed/Core/Log.h"
 
-#include "Events/Event.h"
-#include "Events/ApplicationEvent.h"
+#include "NotRed/Events/Event.h"
+#include "NotRed/Events/ApplicationEvent.h"
 
 #include "Input.h"
 

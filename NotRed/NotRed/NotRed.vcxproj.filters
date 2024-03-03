@@ -39,17 +39,38 @@
     <ClInclude Include="src\NotRed.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Application.h">
-      <Filter>src\NotRed</Filter>
+    <ClInclude Include="src\NotRed\Core\Application.h">
+      <Filter>src\NotRed\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core.h">
-      <Filter>src\NotRed</Filter>
+    <ClInclude Include="src\NotRed\Core\Core.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\EntryPoint.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Input.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\KeyCodes.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Layer.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\LayerStack.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Log.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\MouseButtonCodes.h">
+      <Filter>src\NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\TimeStep.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\EntryPoint.h">
-      <Filter>src\NotRed</Filter>
+    <ClInclude Include="src\NotRed\Core\Window.h">
+      <Filter>src\NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Events\ApplicationEvent.h">
       <Filter>src\NotRed\Events</Filter>
@@ -66,24 +87,6 @@
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Input.h">
-      <Filter>src\NotRed</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\KeyCodes.h">
-      <Filter>src\NotRed</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Layer.h">
-      <Filter>src\NotRed</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\LayerStack.h">
-      <Filter>src\NotRed</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Log.h">
-      <Filter>src\NotRed</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\MouseButtonCodes.h">
-      <Filter>src\NotRed</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -94,6 +97,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\OrthographicCameraController.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h">
@@ -117,8 +123,8 @@
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Window.h">
-      <Filter>src\NotRed</Filter>
+    <ClInclude Include="src\Platform\OpenGL\GLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h">
       <Filter>src\Platform\OpenGL</Filter>
@@ -138,9 +144,6 @@
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\OpenGL\GLContext.h">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsInput.h">
       <Filter>src\Platform\Windows</Filter>
     </ClInclude>
@@ -153,11 +156,19 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\OrthographicCameraController.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Application.cpp">
-      <Filter>src\NotRed</Filter>
+    <ClCompile Include="src\NotRed\Core\Application.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Layer.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\LayerStack.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Log.cpp">
+      <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp">
       <Filter>src\NotRed\ImGui</Filter>
@@ -165,19 +176,13 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Layer.cpp">
-      <Filter>src\NotRed</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\LayerStack.cpp">
-      <Filter>src\NotRed</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Log.cpp">
-      <Filter>src\NotRed</Filter>
-    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\OrthographicCameraController.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp">
@@ -201,6 +206,9 @@
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -219,9 +227,6 @@
     <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\OpenGL\GLContext.cpp">
-      <Filter>src\Platform\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
@@ -234,6 +239,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\OrthographicCameraController.cpp" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "nrpch.h"
-#include "NotRed/Core.h"
+#include "NotRed/Core/Core.h"
 
 namespace NR
 {
@@ -54,7 +54,6 @@ namespace NR
         EventDispatcher(Event& event)
             : mEvent(event) {}
 
-        //std::function<bool(T&)>
         template <typename T, typename F>
         bool Dispatch(const F& func)
         {

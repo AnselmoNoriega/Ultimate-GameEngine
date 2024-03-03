@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "NotRed/Log.h"
+#include "NotRed/Core/Log.h"
 
 #ifdef  NR_PLATFORM_WINDOWS
     #include <Windows.h>

@@ -1,8 +1,8 @@
 #include "nrpch.h"
 #include "OrthographicCameraController.h"
 
-#include "NotRed/Input.h"
-#include "NotRed/KeyCodes.h"
+#include "NotRed/Core/Input.h"
+#include "NotRed/Core/KeyCodes.h"
 
 namespace NR
 {

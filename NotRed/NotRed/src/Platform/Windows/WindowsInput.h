@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Input.h"
+#include "NotRed/Core/Input.h"
 
 namespace NR
 {

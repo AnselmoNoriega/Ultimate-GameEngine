@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Core.h"
+#include "NotRed/Core/Core.h"
 #include "NotRed/Events/Event.h"
 
 namespace NR

@@ -1,21 +1,21 @@
 #pragma once
 
-#include "NotRed/Application.h"
+#include "NotRed/Core/Application.h"
 
 //-------------Inputs--------------------------
-#include "NotRed/Input.h"
-#include "NotRed/KeyCodes.h"
-#include "NotRed/MouseButtonCodes.h"
+#include "NotRed/Core/Input.h"
+#include "NotRed/Core/KeyCodes.h"
+#include "NotRed/Core/MouseButtonCodes.h"
 
 //-------------System--------------------------
 #include "NotRed/Events/KeyEvent.h"
 
 #include "NotRed/Core/TimeStep.h"
 
-#include "NotRed/OrthographicCameraController.h"
+#include "NotRed/Renderer/OrthographicCameraController.h"
 
-#include "NotRed/Log.h"
-#include "NotRed/Layer.h"
+#include "NotRed/Core/Log.h"
+#include "NotRed/Core/Layer.h"
 #include "NotRed/ImGui/ImGuiLayer.h"
 
 //-------------Rendering--------------------------
@@ -31,4 +31,4 @@
 #include "NotRed/Renderer/OrthographicCamera.h"
 
 //-------------Entry Point--------------------------
-#include "NotRed/EntryPoint.h"
+#include "NotRed/Core/EntryPoint.h"

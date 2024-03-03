@@ -1,7 +1,7 @@
 #include "nrpch.h"
 #include "WindowsInput.h"
 
-#include "NotRed/Application.h"
+#include "NotRed/Core/Application.h"
 
 #include <GLFW/glfw3.h>
 
