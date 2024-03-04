@@ -54,12 +54,6 @@ namespace NR
         ImGui::DestroyContext();
     }
 
-    void ImGuiLayer::ImGuiRender()
-    {
-        static bool show = true;
-        ImGui::ShowDemoWindow(&show);
-    }
-
     void ImGuiLayer::Begin()
     {
         ImGui_ImplOpenGL3_NewFrame();

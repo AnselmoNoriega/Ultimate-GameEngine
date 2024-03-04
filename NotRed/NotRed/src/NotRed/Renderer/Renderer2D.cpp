@@ -1,19 +1,21 @@
 #include "nrpch.h"
 #include "Renderer2D.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 #include "RenderCommand.h"
-
-#include "Platform/OpenGL/GLShader.h"
 
 namespace NR
 {
     struct Renderer2DStorage
     {
         Ref<VertexArray> VertArr;
-        Ref<Shader> FlatColorShader;
+        Ref<Shader> ColorShader;
+        Ref<Shader> TextureShader;
     };
 
     static Renderer2DStorage* sData;
@@ -35,7 +37,7 @@ namespace NR
         Ref<VertexBuffer> vertexBuffer;
         vertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
-        BufferLayout layout =
+        BufferLayout layout = 
         {
             {ShaderDataType::Float3, "aPosition"},
             {ShaderDataType::Float2, "aTexCoord"}
@@ -49,7 +51,11 @@ namespace NR
         indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         sData->VertArr->SetIndexBuffer(indexBuffer);
 
-        sData->FlatColorShader = Shader::Create("Assets/Shaders/Color");
+        sData->ColorShader = Shader::Create("Assets/Shaders/Color");
+        sData->TextureShader = Shader::Create("Assets/Shaders/Texture");
+
+        sData->TextureShader->Bind();
+        sData->TextureShader->SetInt("uTexture", 0);
     }
 
     void Renderer2D::Shutdown()
@@ -59,9 +65,11 @@ namespace NR
 
     void Renderer2D::BeginScene(const OrthographicCamera& camera)
     {
-        std::dynamic_pointer_cast<GLShader>(sData->FlatColorShader)->Bind();
-        std::dynamic_pointer_cast<GLShader>(sData->FlatColorShader)->SetUniformMat4("uViewProjection", camera.GetVPMatrix());
-        std::dynamic_pointer_cast<GLShader>(sData->FlatColorShader)->SetUniformMat4("uTransform", glm::mat4(1.0));
+        sData->ColorShader->Bind();
+        sData->ColorShader->SetMat4("uViewProjection", camera.GetVPMatrix());
+
+        sData->TextureShader->Bind();
+        sData->TextureShader->SetMat4("uViewProjection", camera.GetVPMatrix());
     }
 
     void Renderer2D::EndScene()
@@ -75,8 +83,33 @@ namespace NR
 
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
     {
-        std::dynamic_pointer_cast<GLShader>(sData->FlatColorShader)->Bind();
-        std::dynamic_pointer_cast<GLShader>(sData->FlatColorShader)->SetUniformFloat4("uColor", color);
+        sData->ColorShader->Bind();
+        sData->ColorShader->SetFloat4("uColor", color);
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
+        //transform = glm::rotate(transform, glm::radians(0.0f), glm::vec3(0, 0, 1));
+        transform = glm::scale(transform, { size.x, size.y, 1.0f });
+        sData->ColorShader->SetMat4("uTransform", transform);
+
+        sData->VertArr->Bind();
+        RenderCommand::DrawIndexed(sData->VertArr);
+    }
+
+    void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture)
+    {
+        DrawQuad({position.x, position.y, 0.0f}, size, texture);
+    }
+
+    void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture)
+    {
+        sData->TextureShader->Bind();
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
+        //transform = glm::rotate(transform, glm::radians(0.0f), glm::vec3(0, 0, 1));
+        transform = glm::scale(transform, { size.x, size.y, 1.0f });
+        sData->TextureShader->SetMat4("uTransform", transform);
+
+        texture->Bind();
 
         sData->VertArr->Bind();
         RenderCommand::DrawIndexed(sData->VertArr);

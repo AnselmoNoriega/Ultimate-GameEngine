@@ -136,6 +136,36 @@ namespace NR
         }
     }
 
+    void GLShader::Bind() const
+    {
+        glUseProgram(mID);
+    }
+
+    void GLShader::Unbind() const
+    {
+        glUseProgram(0);
+    }
+
+    void GLShader::SetInt(const std::string& name, int value)
+    {
+        SetUniformInt(name, value);
+    }
+
+    void GLShader::SetFloat3(const std::string& name, const glm::vec3& value)
+    {
+        SetUniformFloat3(name, value);
+    }
+
+    void GLShader::SetFloat4(const std::string& name, const glm::vec4& value)
+    {
+        SetUniformFloat4(name, value);
+    }
+
+    void GLShader::SetMat4(const std::string& name, const glm::mat4& value)
+    {
+        SetUniformMat4(name, value);
+    }
+
     void GLShader::SetUniformInt(const std::string& name, const int values)
     {
         GLint location = glGetUniformLocation(mID, name.c_str());
@@ -176,16 +206,6 @@ namespace NR
     {
         GLint location = glGetUniformLocation(mID, name.c_str());
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
-    }
-
-    void GLShader::Bind() const
-    {
-        glUseProgram(mID);
-    }
-
-    void GLShader::Unbind() const
-    {
-        glUseProgram(0);
     }
 
     GLShader::~GLShader()

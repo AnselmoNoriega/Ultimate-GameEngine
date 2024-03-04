@@ -1,5 +1,7 @@
 #include "Sandbox2D.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "imgui/imgui.h"
 
 Sandbox2D::Sandbox2D()
@@ -9,6 +11,7 @@ Sandbox2D::Sandbox2D()
 
 void Sandbox2D::Attach()
 {
+    mTexture = NR::Texture2D::Create("Assets/Textures/Image_Two.png");
 }
 
 void Sandbox2D::Detach()
@@ -23,7 +26,8 @@ void Sandbox2D::Update(float deltaTime)
 
     NR::Renderer2D::BeginScene(mCameraController.GetCamera());
 
-    NR::Renderer2D::DrawQuad({ 0.0f, 0.0f }, { 1.0f, 1.0f }, {0.8f, 0.2f, 0.3f, 1.0f});
+    NR::Renderer2D::DrawQuad(objPositions[0], { 1.0f, 1.0f }, mSquareColor);
+    NR::Renderer2D::DrawQuad(objPositions[1], { 1.0f, 1.0f }, mTexture);
 
     NR::Renderer2D::EndScene();
 }
@@ -36,6 +40,10 @@ void Sandbox2D::OnEvent(NR::Event& myEvent)
 void Sandbox2D::ImGuiRender()
 {
     ImGui::Begin("Settings");
+
+    ImGui::ColorEdit4("Square Color", glm::value_ptr(mSquareColor));
+    ImGui::DragFloat2("Obj pos 1", &objPositions[0].x, 0.1f, -10.0f, 10.0f);
+    ImGui::DragFloat2("Obj pos 2", &objPositions[1].x, 0.1f, -10.0f, 10.0f);
 
     ImGui::End();
 }

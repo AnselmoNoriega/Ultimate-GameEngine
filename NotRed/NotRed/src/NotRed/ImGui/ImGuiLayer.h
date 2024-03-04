@@ -12,7 +12,6 @@ namespace NR
 
         void Attach() override;
         void Detach() override;
-        void ImGuiRender() override;
 
         void Begin();
         void End();
