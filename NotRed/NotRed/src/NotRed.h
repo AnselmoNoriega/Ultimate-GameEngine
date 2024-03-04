@@ -20,6 +20,7 @@
 
 //-------------Rendering--------------------------
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Renderer/RenderCommand.h"
 
 #include "NotRed/Renderer/Shader.h"

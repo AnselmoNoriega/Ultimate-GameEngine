@@ -1,9 +1,8 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Platform/OpenGL/GLShader.h"
+#include "Renderer2D.h"
 
 namespace NR
 {
@@ -12,6 +11,7 @@ namespace NR
     void Renderer::Init()
     {
         RenderCommand::Init();
+        Renderer2D::Init();
     }
 
     void Renderer::OnWindowResize(uint32_t width, uint32_t height)

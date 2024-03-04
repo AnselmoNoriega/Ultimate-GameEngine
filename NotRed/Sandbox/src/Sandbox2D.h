@@ -17,9 +17,5 @@ public:
 
 private:
     NR::OrthographicCameraController mCameraController;
-
-    NR::Ref<NR::Shader> mShader;
-    NR::Ref<NR::VertexArray> mVertexArray;
-    NR::Ref<NR::Texture> mTexture;
 };
 

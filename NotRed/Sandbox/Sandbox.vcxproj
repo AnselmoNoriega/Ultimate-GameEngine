@@ -145,6 +145,10 @@
   <ItemGroup>
     <ClInclude Include="src\Sandbox2D.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\Color\ColorFrag.glsl" />
+    <None Include="Assets\Shaders\Color\ColorVert.glsl" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
