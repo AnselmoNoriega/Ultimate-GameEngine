@@ -14,8 +14,8 @@ namespace NR
     struct Renderer2DStorage
     {
         Ref<VertexArray> VertArr;
-        Ref<Shader> ColorShader;
-        Ref<Shader> TextureShader;
+        Ref<Shader> ObjShader;
+        Ref<Texture2D> EmptyTexture;
     };
 
     static Renderer2DStorage* sData;
@@ -51,11 +51,11 @@ namespace NR
         indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
         sData->VertArr->SetIndexBuffer(indexBuffer);
 
-        sData->ColorShader = Shader::Create("Assets/Shaders/Color");
-        sData->TextureShader = Shader::Create("Assets/Shaders/Texture");
+        sData->EmptyTexture = Texture2D::Create(1, 1);
+        uint32_t emptyTextureData = 0xffffffff;
+        sData->EmptyTexture->SetData(&emptyTextureData, sizeof(uint32_t));
 
-        sData->TextureShader->Bind();
-        sData->TextureShader->SetInt("uTexture", 0);
+        sData->ObjShader = Shader::Create("Assets/Shaders/Texture");
     }
 
     void Renderer2D::Shutdown()
@@ -65,11 +65,8 @@ namespace NR
 
     void Renderer2D::BeginScene(const OrthographicCamera& camera)
     {
-        sData->ColorShader->Bind();
-        sData->ColorShader->SetMat4("uViewProjection", camera.GetVPMatrix());
-
-        sData->TextureShader->Bind();
-        sData->TextureShader->SetMat4("uViewProjection", camera.GetVPMatrix());
+        sData->ObjShader->Bind();
+        sData->ObjShader->SetMat4("uViewProjection", camera.GetVPMatrix());
     }
 
     void Renderer2D::EndScene()
@@ -83,13 +80,14 @@ namespace NR
 
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
     {
-        sData->ColorShader->Bind();
-        sData->ColorShader->SetFloat4("uColor", color);
+        sData->ObjShader->SetFloat4("uColor", color);
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
         //transform = glm::rotate(transform, glm::radians(0.0f), glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
-        sData->ColorShader->SetMat4("uTransform", transform);
+        sData->ObjShader->SetMat4("uTransform", transform);
+
+        sData->EmptyTexture->Bind();
 
         sData->VertArr->Bind();
         RenderCommand::DrawIndexed(sData->VertArr);
@@ -102,12 +100,12 @@ namespace NR
 
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture)
     {
-        sData->TextureShader->Bind();
+        sData->ObjShader->SetFloat4("uColor", glm::vec4(1.0));
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
         //transform = glm::rotate(transform, glm::radians(0.0f), glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
-        sData->TextureShader->SetMat4("uTransform", transform);
+        sData->ObjShader->SetMat4("uTransform", transform);
 
         texture->Bind();
 

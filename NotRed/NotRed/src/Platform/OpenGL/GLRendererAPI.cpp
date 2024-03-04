@@ -29,7 +29,6 @@ namespace NR
 
     void GLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray)
     {
-        vertexArray->Bind();
         glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     }
 }
