@@ -13,6 +13,7 @@
 #include <unordered_set>
 
 #include "NotRed/Core/Log.h"
+#include "NotRed/Debug/Instrumentor.h"
 
 #ifdef  NR_PLATFORM_WINDOWS
     #include <Windows.h>

@@ -20,16 +20,28 @@ void Sandbox2D::Detach()
 
 void Sandbox2D::Update(float deltaTime)
 {
-    mCameraController.Update(deltaTime);
+    NR_PROFILE_FUNCTION();
 
-    NR::RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
+    {
+        NR_PROFILE_SCOPE("Camera Update");
+        mCameraController.Update(deltaTime);
+    }
 
-    NR::Renderer2D::BeginScene(mCameraController.GetCamera());
+    {
+        NR_PROFILE_SCOPE("Render Start");
+        NR::RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
+        NR::RenderCommand::Clear();
+    }
 
-    NR::Renderer2D::DrawQuad(objPositions[0], { 1.0f, 1.0f }, mSquareColor);
-    NR::Renderer2D::DrawQuad(objPositions[1], { 1.0f, 1.0f }, mTexture);
+    {
+        NR_PROFILE_SCOPE("Rendering");
+        NR::Renderer2D::BeginScene(mCameraController.GetCamera());
 
-    NR::Renderer2D::EndScene();
+        NR::Renderer2D::DrawQuad(objPositions[0], { 1.0f, 1.0f }, mSquareColor);
+        NR::Renderer2D::DrawQuad(objPositions[1], { 1.0f, 1.0f }, mTexture);
+
+        NR::Renderer2D::EndScene();
+    }
 }
 
 void Sandbox2D::OnEvent(NR::Event& myEvent)
@@ -39,6 +51,8 @@ void Sandbox2D::OnEvent(NR::Event& myEvent)
 
 void Sandbox2D::ImGuiRender()
 {
+    NR_PROFILE_FUNCTION();
+
     ImGui::Begin("Settings");
 
     ImGui::ColorEdit4("Square Color", glm::value_ptr(mSquareColor));

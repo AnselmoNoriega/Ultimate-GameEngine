@@ -157,6 +157,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
+    <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
