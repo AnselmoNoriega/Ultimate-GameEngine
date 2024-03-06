@@ -91,7 +91,6 @@ namespace NR
         sData->ObjShader->SetFloat4("uColor", color);
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
-        //transform = glm::rotate(transform, glm::radians(0.0f), glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
         sData->ObjShader->SetMat4("uTransform", transform);
 
@@ -113,7 +112,50 @@ namespace NR
         sData->ObjShader->SetFloat4("uColor", glm::vec4(1.0));
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
-        //transform = glm::rotate(transform, glm::radians(0.0f), glm::vec3(0, 0, 1));
+        transform = glm::scale(transform, { size.x, size.y, 1.0f });
+        sData->ObjShader->SetMat4("uTransform", transform);
+
+        texture->Bind();
+
+        sData->VertArr->Bind();
+        RenderCommand::DrawIndexed(sData->VertArr);
+    }
+
+    void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+    {
+        DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, color);
+    }
+
+    void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+    {
+        NR_PROFILE_FUNCTION();
+
+        sData->ObjShader->SetFloat4("uColor", color);
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
+        transform = glm::rotate(transform, rotation, glm::vec3(0, 0, 1));
+        transform = glm::scale(transform, { size.x, size.y, 1.0f });
+        sData->ObjShader->SetMat4("uTransform", transform);
+
+        sData->EmptyTexture->Bind();
+
+        sData->VertArr->Bind();
+        RenderCommand::DrawIndexed(sData->VertArr);
+    }
+
+    void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture)
+    {
+        DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, texture);
+    }
+
+    void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture)
+    {
+        NR_PROFILE_FUNCTION();
+
+        sData->ObjShader->SetFloat4("uColor", glm::vec4(1.0));
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
+        transform = glm::rotate(transform, rotation, glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
         sData->ObjShader->SetMat4("uTransform", transform);
 
