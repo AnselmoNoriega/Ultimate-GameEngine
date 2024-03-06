@@ -22,6 +22,8 @@ namespace NR
 
     void Renderer2D::Init()
     {
+        NR_PROFILE_FUNCTION();
+
         sData = new Renderer2DStorage;
 
         sData->VertArr = VertexArray::Create();
@@ -35,7 +37,7 @@ namespace NR
         };
 
         Ref<VertexBuffer> vertexBuffer;
-        vertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
+        vertexBuffer = VertexBuffer::Create(vertices, sizeof(vertices));
 
         BufferLayout layout = 
         {
@@ -48,7 +50,7 @@ namespace NR
 
         uint32_t indices[2 * 3] = { 0, 1, 2, 2, 3, 0 };
         Ref<IndexBuffer>indexBuffer;
-        indexBuffer.reset(IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+        indexBuffer = IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t));
         sData->VertArr->SetIndexBuffer(indexBuffer);
 
         sData->EmptyTexture = Texture2D::Create(1, 1);
@@ -60,11 +62,15 @@ namespace NR
 
     void Renderer2D::Shutdown()
     {
+        NR_PROFILE_FUNCTION();
+
         delete sData;
     }
 
     void Renderer2D::BeginScene(const OrthographicCamera& camera)
     {
+        NR_PROFILE_FUNCTION();
+
         sData->ObjShader->Bind();
         sData->ObjShader->SetMat4("uViewProjection", camera.GetVPMatrix());
     }
@@ -80,6 +86,8 @@ namespace NR
 
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
     {
+        NR_PROFILE_FUNCTION();
+
         sData->ObjShader->SetFloat4("uColor", color);
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
@@ -100,6 +108,8 @@ namespace NR
 
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture)
     {
+        NR_PROFILE_FUNCTION();
+
         sData->ObjShader->SetFloat4("uColor", glm::vec4(1.0));
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);

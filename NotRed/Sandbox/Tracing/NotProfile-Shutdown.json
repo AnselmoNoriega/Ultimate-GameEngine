@@ -1,1 +1,1 @@
-{"otherData": {},"traceEvents":[]}
+{"otherData": {},"traceEvents":[{"cat":"function","dur":2,"name":"__cdecl NR::GLTexture2D::~GLTexture2D(void)","ph":"X","pid":0,"tid":1401635337,"ts":1148896199981},{"cat":"function","dur":23565,"name":"void __cdecl NR::WindowsWindow::Shutdown(void)","ph":"X","pid":0,"tid":1401635337,"ts":1148896200021},{"cat":"function","dur":23657,"name":"__cdecl NR::WindowsWindow::~WindowsWindow(void)","ph":"X","pid":0,"tid":1401635337,"ts":1148896200021}]}

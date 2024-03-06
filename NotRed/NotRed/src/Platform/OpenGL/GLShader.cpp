@@ -9,6 +9,8 @@ namespace NR
 {
     GLShader::GLShader(const std::string& filepath)
     {
+        NR_PROFILE_FUNCTION();
+
         mName = GetShaderName(filepath);
         const std::string vertSource = ParseFile(filepath + "/" + mName + "Vert.glsl");
         const std::string fragSource = ParseFile(filepath + "/" + mName + "Frag.glsl");
@@ -24,6 +26,8 @@ namespace NR
     GLShader::GLShader(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)
         : mName(name)
     {
+        NR_PROFILE_FUNCTION();
+
         ShaderInfo shaders[] = {
             {glCreateShader(GL_VERTEX_SHADER), vertexSrc},
             {glCreateShader(GL_FRAGMENT_SHADER), fragmentSrc}
@@ -34,6 +38,8 @@ namespace NR
 
     std::string GLShader::ParseFile(const std::string& filepath)
     {
+        NR_PROFILE_FUNCTION();
+
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
         std::string result;
 
@@ -56,6 +62,8 @@ namespace NR
 
     std::string GLShader::GetShaderName(const std::string& filepath)
     {
+        NR_PROFILE_FUNCTION();
+
         size_t fileName = filepath.find_last_of("/\\");
 
         if (fileName != std::string::npos)
@@ -71,6 +79,8 @@ namespace NR
 
     void GLShader::Compile(const ShaderInfo* shaders, uint32_t count)
     {
+        NR_PROFILE_FUNCTION();
+
         for (int i = 0; i < count; ++i)
         {
             const GLchar* source = shaders[i].second.c_str();
@@ -138,11 +148,15 @@ namespace NR
 
     void GLShader::Bind() const
     {
+        NR_PROFILE_FUNCTION();
+
         glUseProgram(mID);
     }
 
     void GLShader::Unbind() const
     {
+        NR_PROFILE_FUNCTION();
+
         glUseProgram(0);
     }
 
@@ -210,6 +224,8 @@ namespace NR
 
     GLShader::~GLShader()
     {
+        NR_PROFILE_FUNCTION();
+
         glDeleteProgram(mID);
     }
 }

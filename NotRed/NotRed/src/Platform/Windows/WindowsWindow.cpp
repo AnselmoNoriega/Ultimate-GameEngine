@@ -9,7 +9,7 @@
 
 namespace NR
 {
-    static bool sGLFWInitialized = false;
+    static uint8_t sGLFWwindowCount = 0;
 
     static void GLFWErrorCallback(int error, const char* info)
     {
@@ -28,20 +28,22 @@ namespace NR
 
     void WindowsWindow::Init(const WindowProps& props)
     {
+        NR_PROFILE_FUNCTION();
+
         mData.Tile = props.Title;
         mData.Width = props.Width;
         mData.Height = props.Height;
 
         NR_CORE_INFO("Creating window \"{0}\" ({1}, {2})", props.Title, props.Width, props.Height);
 
-        if (!sGLFWInitialized)
+        if (sGLFWwindowCount == 0)
         {
             NR_CORE_VERIFY(glfwInit(), "Could not initialize GLFW");
             glfwSetErrorCallback(GLFWErrorCallback);
-            sGLFWInitialized = true;
         }
 
         mWindow = glfwCreateWindow(props.Width, props.Height, mData.Tile.c_str(), nullptr, nullptr);
+        ++sGLFWwindowCount;
 
         mContext = new GLContext(mWindow);
         mContext->Init();
@@ -54,12 +56,16 @@ namespace NR
 
     void WindowsWindow::Update()
     {
+        NR_PROFILE_FUNCTION();
+
         glfwPollEvents();
         mContext->SwapBuffers();
     }
 
     void WindowsWindow::SetVSync(bool enabled)
     {
+        NR_PROFILE_FUNCTION();
+
         glfwSwapInterval(enabled ? 1 : 0);
 
         mData.VSync = enabled;
@@ -179,11 +185,22 @@ namespace NR
 
     void WindowsWindow::Shutdown()
     {
+        NR_PROFILE_FUNCTION();
+
         glfwDestroyWindow(mWindow);
+
+        --sGLFWwindowCount;
+
+        if (sGLFWwindowCount == 0)
+        {
+            glfwTerminate();
+        }
     }
 
     WindowsWindow::~WindowsWindow()
     {
+        NR_PROFILE_FUNCTION();
+
         Shutdown();
     }
 }

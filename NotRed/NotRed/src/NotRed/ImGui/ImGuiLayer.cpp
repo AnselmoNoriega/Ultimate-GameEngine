@@ -24,6 +24,8 @@ namespace NR
 
     void ImGuiLayer::Attach()
     {
+        NR_PROFILE_FUNCTION();
+
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -49,6 +51,8 @@ namespace NR
 
     void ImGuiLayer::Detach()
     {
+        NR_PROFILE_FUNCTION();
+
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -56,6 +60,8 @@ namespace NR
 
     void ImGuiLayer::Begin()
     {
+        NR_PROFILE_FUNCTION();
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -63,6 +69,8 @@ namespace NR
 
     void ImGuiLayer::End()
     {
+        NR_PROFILE_FUNCTION();
+
         ImGuiIO& io = ImGui::GetIO(); 
         Application& app = Application::Get();
 

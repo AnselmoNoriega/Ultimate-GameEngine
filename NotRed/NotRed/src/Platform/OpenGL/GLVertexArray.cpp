@@ -26,21 +26,29 @@ namespace NR
 
     GLVertexArray::GLVertexArray()
     {
+        NR_PROFILE_FUNCTION();
+
         glCreateVertexArrays(1, &mID);
     }
 
     void GLVertexArray::Bind() const
     {
+        NR_PROFILE_FUNCTION();
+
         glBindVertexArray(mID);
     }
 
     void GLVertexArray::Unbind() const
     {
+        NR_PROFILE_FUNCTION();
+
         glBindVertexArray(0);
     }
 
     void GLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexbuffer)
     {
+        NR_PROFILE_FUNCTION();
+
         NR_CORE_ASSERT(vertexbuffer->GetLayout().GetElements().size(), "VertexBuffer's layout is empty!")
 
         glBindVertexArray(mID);
@@ -66,6 +74,8 @@ namespace NR
 
     void GLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
     {
+        NR_PROFILE_FUNCTION();
+
         glBindVertexArray(mID);
         indexBuffer->Bind();
 
@@ -74,6 +84,8 @@ namespace NR
 
     GLVertexArray::~GLVertexArray()
     {
+        NR_PROFILE_FUNCTION();
+
         glDeleteVertexArrays(1, &mID);
     }
 }

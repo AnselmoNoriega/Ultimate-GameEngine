@@ -13,6 +13,8 @@ namespace NR
 
     void OrthographicCameraController::Update(float deltaTime)
     {
+        NR_PROFILE_FUNCTION();
+
         if (Input::IsKeyPressed(NR_KEY_A))
         {
             mCameraPosition.x -= mCameraMoveSpeed * deltaTime;
@@ -49,6 +51,8 @@ namespace NR
 
     void OrthographicCameraController::OnEvent(Event& e)
     {
+        NR_PROFILE_FUNCTION();
+
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(NR_BIND_EVENT_FN(OrthographicCameraController::MouseScrolled));
         dispatcher.Dispatch<WindowResizeEvent>(NR_BIND_EVENT_FN(OrthographicCameraController::WindowResized));
@@ -56,6 +60,8 @@ namespace NR
 
     bool OrthographicCameraController::MouseScrolled(MouseScrolledEvent& e)
     {
+        NR_PROFILE_FUNCTION();
+
         mZoomLevel -= e.GetY_Offset() * 0.25f;
         mZoomLevel = std::max(mZoomLevel, 0.25f);
         mCameraMoveSpeed = mZoomLevel;
@@ -65,6 +71,8 @@ namespace NR
 
     bool OrthographicCameraController::WindowResized(WindowResizeEvent& e)
     {
+        NR_PROFILE_FUNCTION();
+
         mAspectRatio = static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight());
         mCamera.SetProjection(-mAspectRatio * mZoomLevel, mAspectRatio * mZoomLevel, -mZoomLevel, mZoomLevel);
         return false;

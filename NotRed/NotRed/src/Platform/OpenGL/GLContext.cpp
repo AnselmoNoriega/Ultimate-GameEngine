@@ -15,6 +15,8 @@ namespace NR
 
     void GLContext::Init()
     {
+        NR_PROFILE_FUNCTION();
+
         glfwMakeContextCurrent(mWindowHandle);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         NR_CORE_ASSERT(status, "Glad failed to initialize");
@@ -27,6 +29,8 @@ namespace NR
 
     void GLContext::SwapBuffers()
     {
+        NR_PROFILE_FUNCTION();
+
         glfwSwapBuffers(mWindowHandle);
     }
 

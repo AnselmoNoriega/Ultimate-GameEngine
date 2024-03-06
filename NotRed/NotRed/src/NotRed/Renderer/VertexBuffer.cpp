@@ -7,7 +7,7 @@
 
 namespace NR
 {
-    VertexBuffer* VertexBuffer::Create(float* vertices, uint32_t size)
+    Ref<VertexBuffer> VertexBuffer::Create(float* vertices, uint32_t size)
     {
         switch (Renderer::GetAPI())
         {
@@ -18,7 +18,7 @@ namespace NR
 
             case RendererAPI::API::OpenGL:
             {
-                return new GLVertexBuffer(vertices, size);
+                return CreateRef<GLVertexBuffer>(vertices, size);
             }
 
             default:

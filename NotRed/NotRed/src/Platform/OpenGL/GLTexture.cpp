@@ -10,6 +10,8 @@ namespace NR
     GLTexture2D::GLTexture2D(uint32_t width, uint32_t height)
         :mWidth(width), mHeight(height)
     {
+        NR_PROFILE_FUNCTION();
+
         GLenum glFormat = GL_RGBA8;
         mDataFormat = GL_RGBA;
 
@@ -25,9 +27,15 @@ namespace NR
 
     GLTexture2D::GLTexture2D(const std::string& path)
     {
+        NR_PROFILE_FUNCTION();
+
         int width, height, channnels;
         stbi_set_flip_vertically_on_load(true);
-        stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channnels, 0);
+        stbi_uc* data = nullptr;
+        {
+            NR_PROFILE_SCOPE("stbi_load - GLTexture2D::GLTexture2D(const std::string&)");
+            data = stbi_load(path.c_str(), &width, &height, &channnels, 0);
+        }
 
         NR_CORE_ASSERT(data, "Failed to load image!");
         mWidth = width;
@@ -69,11 +77,15 @@ namespace NR
 
     GLTexture2D::~GLTexture2D()
     {
+        NR_PROFILE_FUNCTION();
+
         glDeleteTextures(1, &mID);
     }
 
     void GLTexture2D::SetData(void* data, uint32_t size)
     {
+        NR_PROFILE_FUNCTION();
+
         uint32_t bpp = mDataFormat == GL_RGBA ? 4 : 3;
         NR_CORE_ASSERT(size == mWidth * mHeight * bpp, "Data must be entire texture!");
         glTextureSubImage2D(mID, 0, 0, 0, mWidth, mHeight, mDataFormat, GL_UNSIGNED_BYTE, data);
@@ -81,6 +93,8 @@ namespace NR
 
     void GLTexture2D::Bind(uint32_t slot) const
     {
+        NR_PROFILE_FUNCTION();
+
         glBindTextureUnit(slot, mID);
     }
 }

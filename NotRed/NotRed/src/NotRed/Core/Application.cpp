@@ -20,6 +20,8 @@ namespace NR
 
     Application::Application()
     {
+        NR_PROFILE_FUNCTION();
+
         NR_CORE_ASSERT(!sInstance, "There can only be one application");
         sInstance = this;
 
@@ -34,6 +36,8 @@ namespace NR
 
     void Application::OnEvent(Event& e)
     {
+        NR_PROFILE_FUNCTION();
+
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
@@ -50,25 +54,35 @@ namespace NR
 
     void Application::PushLayer(Layer* layer)
     {
+        NR_PROFILE_FUNCTION();
+
         mLayerStack.PushLayer(layer);
         layer->Attach();
     }
 
     void Application::PushOverlay(Layer* overlay)
     {
+        NR_PROFILE_FUNCTION();
+
         mLayerStack.PushOverlay(overlay);
         overlay->Attach();
     }
 
     void Application::Run()
     {
+        NR_PROFILE_FUNCTION();
+
         while (mRunning)
         {
+            NR_PROFILE_SCOPE("Run loop");
+
             float time = static_cast<float>(glfwGetTime());
             mTimeStep.UpdateTimeFrame(time);
 
             if (!mMinimized)
             {
+                NR_PROFILE_SCOPE("LayerStack Update");
+
                 for (Layer* layer : mLayerStack)
                 {
                     layer->Update(mTimeStep);
@@ -76,9 +90,13 @@ namespace NR
             }
 
             mImGuiLayer->Begin();
-            for (Layer* layer : mLayerStack)
             {
-                layer->ImGuiRender();
+                NR_PROFILE_SCOPE("ImGUIStack Update");
+
+                for (Layer* layer : mLayerStack)
+                {
+                    layer->ImGuiRender();
+                }
             }
             mImGuiLayer->End();
 
@@ -94,6 +112,8 @@ namespace NR
 
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {
+        NR_PROFILE_FUNCTION();
+
         if (e.GetWidth() == 0 || e.GetHeight() == 0)
         {
             mMinimized = true;

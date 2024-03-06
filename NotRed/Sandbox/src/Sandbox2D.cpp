@@ -11,6 +11,8 @@ Sandbox2D::Sandbox2D()
 
 void Sandbox2D::Attach()
 {
+    NR_PROFILE_FUNCTION();
+
     mTexture = NR::Texture2D::Create("Assets/Textures/Image_Two.png");
 }
 
@@ -22,10 +24,7 @@ void Sandbox2D::Update(float deltaTime)
 {
     NR_PROFILE_FUNCTION();
 
-    {
-        NR_PROFILE_SCOPE("Camera Update");
         mCameraController.Update(deltaTime);
-    }
 
     {
         NR_PROFILE_SCOPE("Render Start");

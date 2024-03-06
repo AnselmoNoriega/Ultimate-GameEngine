@@ -12,7 +12,7 @@ namespace NR
         switch (Renderer::GetAPI())
         {
         case RendererAPI::API::None: NR_CORE_ASSERT(false, "Renderer API \"None\" is currently not supported!");
-        case RendererAPI::API::OpenGL: return std::make_shared<GLVertexArray>();
+        case RendererAPI::API::OpenGL: return CreateRef<GLVertexArray>();
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RenderAPI!");
