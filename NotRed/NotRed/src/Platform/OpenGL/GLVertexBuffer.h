@@ -7,6 +7,7 @@ namespace NR
     class GLVertexBuffer : public VertexBuffer
     {
     public:
+        GLVertexBuffer(uint32_t size);
         GLVertexBuffer(float* vertices, uint32_t size);
         ~GLVertexBuffer() override;
 
@@ -15,6 +16,8 @@ namespace NR
 
         const BufferLayout& GetLayout() const override { return mLayout; }
         void SetLayout(const BufferLayout& layout) override { mLayout = layout; }
+
+        void SetData(const void* data, uint32_t size) override;
 
     private:
         uint32_t mID;

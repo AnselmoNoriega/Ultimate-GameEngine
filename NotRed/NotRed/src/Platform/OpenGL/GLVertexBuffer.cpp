@@ -5,6 +5,15 @@
 
 namespace NR
 {
+    GLVertexBuffer::GLVertexBuffer(uint32_t size)
+    {
+        NR_PROFILE_FUNCTION();
+
+        glCreateBuffers(1, &mID);
+        glNamedBufferData(mID, size, nullptr, GL_DYNAMIC_DRAW);
+        Bind();
+    }
+
     GLVertexBuffer::GLVertexBuffer(float* vertices, uint32_t size)
     {
         NR_PROFILE_FUNCTION();
@@ -26,6 +35,12 @@ namespace NR
         NR_PROFILE_FUNCTION();
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    void GLVertexBuffer::SetData(const void* data, uint32_t size)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mID);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
     }
 
     GLVertexBuffer::~GLVertexBuffer()

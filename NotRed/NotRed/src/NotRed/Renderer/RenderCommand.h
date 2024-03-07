@@ -27,9 +27,9 @@ namespace NR
             sRendererAPI->Clear();
         }
 
-        inline static void DrawIndexed(const Ref<VertexArray>& vertexArray)
+        inline static void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t count = 0)
         {
-            sRendererAPI->DrawIndexed(vertexArray);
+            sRendererAPI->DrawIndexed(vertexArray, count);
         }
 
     private:

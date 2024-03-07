@@ -37,7 +37,7 @@ void Sandbox2D::Update(float deltaTime)
         NR::Renderer2D::BeginScene(mCameraController.GetCamera());
 
         NR::Renderer2D::DrawQuad(objPositions[0], { 1.0f, 1.0f }, mSquareColor);
-        NR::Renderer2D::DrawQuad(objPositions[1], { 1.0f, 1.0f }, mTexture);
+        //NR::Renderer2D::DrawQuad(objPositions[1], { 1.0f, 1.0f }, mTexture);
 
         NR::Renderer2D::EndScene();
     }

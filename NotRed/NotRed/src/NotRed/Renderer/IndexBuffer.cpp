@@ -7,7 +7,7 @@
 
 namespace NR
 {
-    Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t size)
+    Ref<IndexBuffer> IndexBuffer::Create(uint32_t* indices, uint32_t count)
     {
         switch (Renderer::GetAPI())
         {
@@ -18,7 +18,7 @@ namespace NR
 
             case RendererAPI::API::OpenGL:
             {
-                return CreateRef<GLIndexBuffer>(indices, size);
+                return CreateRef<GLIndexBuffer>(indices, count);
             }
 
             default:
