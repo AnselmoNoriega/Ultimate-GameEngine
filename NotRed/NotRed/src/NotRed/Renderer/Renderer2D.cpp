@@ -16,6 +16,7 @@ namespace NR
         glm::vec3 Position;
         glm::vec2 TexCoord;
         glm::vec4 Color;
+        float TexIndex;
     };
 
     struct Renderer2DStorage
@@ -23,6 +24,7 @@ namespace NR
         const uint32_t MaxQuads = 10000;
         const uint32_t MaxVertices = MaxQuads * 4;
         const uint32_t MaxIndices = MaxQuads * 6;
+        static const uint32_t MaxTextureSlots = 32;
 
         Ref<VertexArray> VertexArray;
         Ref<VertexBuffer> VertexBuffer;
@@ -32,6 +34,9 @@ namespace NR
         QuadVertex* VertexBufferBase = nullptr;
         QuadVertex* VertexBufferPtr = nullptr;
         uint32_t IndexCount = 0;
+
+        std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+        uint32_t TextureSlotIndex = 1;
     };
 
     static Renderer2DStorage sData;
@@ -47,7 +52,8 @@ namespace NR
             {
                 {ShaderDataType::Float3, "aPosition"},
                 {ShaderDataType::Float2, "aTexCoord"},
-                {ShaderDataType::Float4, "aColor"}
+                {ShaderDataType::Float4, "aColor"},
+                {ShaderDataType::Float, "aTexIndex"}
             });
         sData.VertexArray->AddVertexBuffer(sData.VertexBuffer);
 
@@ -77,7 +83,17 @@ namespace NR
         uint32_t emptyTextureData = 0xffffffff;
         sData.EmptyTexture->SetData(&emptyTextureData, sizeof(uint32_t));
 
+        int32_t samplers[sData.MaxTextureSlots];
+        for (uint32_t i = 0; i < sData.MaxTextureSlots; ++i)
+        {
+            samplers[i] = i;
+        }
+
         sData.ObjShader = Shader::Create("Assets/Shaders/Texture");
+        sData.ObjShader->Bind();
+        sData.ObjShader->SetIntArray("uTextures", samplers, sData.MaxTextureSlots);
+
+        sData.TextureSlots[0] = sData.EmptyTexture;
     }
 
     void Renderer2D::Shutdown()
@@ -94,6 +110,8 @@ namespace NR
 
         sData.IndexCount = 0;
         sData.VertexBufferPtr = sData.VertexBufferBase;
+
+        sData.TextureSlotIndex = 1;
     }
 
     void Renderer2D::EndScene()
@@ -108,6 +126,10 @@ namespace NR
 
     void Renderer2D::Flush()
     {
+        for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
+        {
+            sData.TextureSlots[i]->Bind(i);
+        }
         RenderCommand::DrawIndexed(sData.VertexArray, sData.IndexCount);
     }
 
@@ -120,38 +142,34 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        glm::vec2 halfSize{ size.x / 2, size.y / 2};
+        glm::vec2 halfSize{ size.x / 2, size.y / 2 };
+        float textureIndex = 0.0f;
 
         sData.VertexBufferPtr->Position = { position.x - halfSize.x, position.y - halfSize.y, 0.0f };
         sData.VertexBufferPtr->Color = color;
         sData.VertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
         ++sData.VertexBufferPtr;
 
         sData.VertexBufferPtr->Position = { position.x + halfSize.x, position.y - halfSize.y, 0.0f };
         sData.VertexBufferPtr->Color = color;
         sData.VertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
         ++sData.VertexBufferPtr;
 
         sData.VertexBufferPtr->Position = { position.x + halfSize.x, position.y + halfSize.y, 0.0f };
         sData.VertexBufferPtr->Color = color;
         sData.VertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
         ++sData.VertexBufferPtr;
 
         sData.VertexBufferPtr->Position = { position.x - halfSize.x, position.y + halfSize.y, 0.0f };
         sData.VertexBufferPtr->Color = color;
         sData.VertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
         ++sData.VertexBufferPtr;
 
         sData.IndexCount += 6;
-
-        /*glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
-        transform = glm::scale(transform, { size.x, size.y, 1.0f });
-        sData.ObjShader->SetMat4("uTransform", transform);
-
-        sData.EmptyTexture->Bind();
-
-        sData.VertexArray->Bind();
-        RenderCommand::DrawIndexed(sData.VertexArray);*/
     }
 
     void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture)
@@ -163,16 +181,52 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        sData.ObjShader->SetFloat4("uColor", glm::vec4(1.0));
+        constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float textureIndex = 0.0f;
 
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
-        transform = glm::scale(transform, { size.x, size.y, 1.0f });
-        sData.ObjShader->SetMat4("uTransform", transform);
+        for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
+        {
+            if (*sData.TextureSlots[i].get() == *texture.get())
+            {
+                textureIndex = (float)i;
+                break;
+            }
+        }
 
-        texture->Bind();
+        if (textureIndex == 0.0f)
+        {
+            textureIndex = (float)sData.TextureSlotIndex;
+            sData.TextureSlots[sData.TextureSlotIndex] = texture;
+            ++sData.TextureSlotIndex;
+        }
 
-        sData.VertexArray->Bind();
-        RenderCommand::DrawIndexed(sData.VertexArray);
+        glm::vec2 halfSize{ size.x / 2, size.y / 2 };
+
+        sData.VertexBufferPtr->Position = { position.x - halfSize.x, position.y - halfSize.y, 0.0f };
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = { position.x + halfSize.x, position.y - halfSize.y, 0.0f };
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = { position.x + halfSize.x, position.y + halfSize.y, 0.0f };
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = { position.x - halfSize.x, position.y + halfSize.y, 0.0f };
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.IndexCount += 6;
     }
 
     void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)

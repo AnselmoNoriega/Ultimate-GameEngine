@@ -18,6 +18,11 @@ namespace NR
 
         void Bind(uint32_t slot = 0) const override;
 
+        bool operator== (const Texture& other) const override 
+        { 
+            return mID == ((GLTexture2D&)other).mID; 
+        }
+
     private:
         uint32_t mWidth, mHeight;
         uint32_t mID;

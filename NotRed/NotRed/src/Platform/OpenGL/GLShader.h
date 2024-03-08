@@ -19,11 +19,13 @@ namespace NR
         const std::string& GetName() const override { return mName; }
 
         void SetInt(const std::string& name, int value) override;
+        void SetIntArray(const std::string& name, int* values, uint32_t count) override;
         void SetFloat3(const std::string& name, const glm::vec3& value) override;
         void SetFloat4(const std::string& name, const glm::vec4& value) override;
         void SetMat4(const std::string& name, const glm::mat4& value) override;
 
         void SetUniformInt(const std::string& name, const int values);
+        void SetUniformIntArray(const std::string& name, int* values, uint32_t count);
 
         void SetUniformFloat(const std::string& name, float values);
         void SetUniformFloat2(const std::string& name, const glm::vec2& values);

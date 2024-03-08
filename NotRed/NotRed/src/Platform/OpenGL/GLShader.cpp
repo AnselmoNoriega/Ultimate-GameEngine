@@ -165,6 +165,11 @@ namespace NR
         SetUniformInt(name, value);
     }
 
+    void GLShader::SetIntArray(const std::string& name, int* values, uint32_t count)
+    {
+        SetUniformIntArray(name, values, count);
+    }
+
     void GLShader::SetFloat3(const std::string& name, const glm::vec3& value)
     {
         SetUniformFloat3(name, value);
@@ -184,6 +189,12 @@ namespace NR
     {
         GLint location = glGetUniformLocation(mID, name.c_str());
         glUniform1i(location, values);
+    }
+
+    void GLShader::SetUniformIntArray(const std::string& name, int* values, uint32_t count)
+    {
+        GLint location = glGetUniformLocation(mID, name.c_str());
+        glUniform1iv(location, count, values);
     }
 
     void GLShader::SetUniformFloat(const std::string& name, float values)
