@@ -37,6 +37,8 @@ namespace NR
 
         std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
         uint32_t TextureSlotIndex = 1;
+
+        glm::vec4 VertexPositions[4];
     };
 
     static Renderer2DStorage sData;
@@ -94,6 +96,11 @@ namespace NR
         sData.ObjShader->SetIntArray("uTextures", samplers, sData.MaxTextureSlots);
 
         sData.TextureSlots[0] = sData.EmptyTexture;
+
+        sData.VertexPositions[0] = { -0.5, -0.5, 0.0, 1.0f };
+        sData.VertexPositions[1] = {  0.5, -0.5, 0.0, 1.0f };
+        sData.VertexPositions[2] = {  0.5,  0.5, 0.0, 1.0f };
+        sData.VertexPositions[3] = { -0.5,  0.5, 0.0, 1.0f };
     }
 
     void Renderer2D::Shutdown()
@@ -238,17 +245,36 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        sData.ObjShader->SetFloat4("uColor", color);
-
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
         transform = glm::rotate(transform, rotation, glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
-        sData.ObjShader->SetMat4("uTransform", transform);
 
-        sData.EmptyTexture->Bind();
+        glm::vec2 halfSize{ size.x / 2, size.y / 2 };
+        float textureIndex = 0.0f;
 
-        sData.VertexArray->Bind();
-        RenderCommand::DrawIndexed(sData.VertexArray);
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[0];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[1];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[2];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[3];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
     }
 
     void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture)
@@ -260,16 +286,53 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        sData.ObjShader->SetFloat4("uColor", glm::vec4(1.0));
+        constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float textureIndex = 0.0f;
+
+        for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
+        {
+            if (*sData.TextureSlots[i].get() == *texture.get())
+            {
+                textureIndex = (float)i;
+                break;
+            }
+        }
+
+        if (textureIndex == 0.0f)
+        {
+            textureIndex = (float)sData.TextureSlotIndex;
+            sData.TextureSlots[sData.TextureSlotIndex] = texture;
+            ++sData.TextureSlotIndex;
+        }
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
         transform = glm::rotate(transform, rotation, glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
-        sData.ObjShader->SetMat4("uTransform", transform);
 
-        texture->Bind();
+        glm::vec2 halfSize{ size.x / 2, size.y / 2 };
 
-        sData.VertexArray->Bind();
-        RenderCommand::DrawIndexed(sData.VertexArray);
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[0];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[1];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[2];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
+
+        sData.VertexBufferPtr->Position = transform * sData.VertexPositions[3];
+        sData.VertexBufferPtr->Color = color;
+        sData.VertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+        sData.VertexBufferPtr->TexIndex = textureIndex;
+        ++sData.VertexBufferPtr;
     }
 }
