@@ -21,9 +21,9 @@ namespace NR
 
     struct Renderer2DStorage
     {
-        const uint32_t MaxQuads = 10000;
-        const uint32_t MaxVertices = MaxQuads * 4;
-        const uint32_t MaxIndices = MaxQuads * 6;
+        static const uint32_t MaxQuads = 1000;
+        static const uint32_t MaxVertices = MaxQuads * 4;
+        static const uint32_t MaxIndices = MaxQuads * 6;
         static const uint32_t MaxTextureSlots = 32;
 
         Ref<VertexArray> VertexArray;
@@ -140,6 +140,15 @@ namespace NR
         RenderCommand::DrawIndexed(sData.VertexArray, sData.IndexCount);
     }
 
+    void Renderer2D::FlushAndReset()
+    {
+        EndScene();
+        sData.IndexCount = 0;
+        sData.VertexBufferPtr = sData.VertexBufferBase;
+
+        sData.TextureSlotIndex = 1;
+    }
+
     void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
     {
         DrawQuad({ position.x, position.y, 0.0f }, size, color);
@@ -148,6 +157,11 @@ namespace NR
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
     {
         NR_PROFILE_FUNCTION();
+
+        if (sData.IndexCount >= Renderer2DStorage::MaxIndices)
+        {
+            FlushAndReset();
+        }
 
         glm::vec2 halfSize{ size.x / 2, size.y / 2 };
         float textureIndex = 0.0f;
@@ -187,6 +201,11 @@ namespace NR
     void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture)
     {
         NR_PROFILE_FUNCTION();
+
+        if (sData.IndexCount >= Renderer2DStorage::MaxIndices)
+        {
+            FlushAndReset();
+        }
 
         constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
         float textureIndex = 0.0f;
@@ -245,6 +264,11 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
+        if (sData.IndexCount >= Renderer2DStorage::MaxIndices)
+        {
+            FlushAndReset();
+        }
+
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
         transform = glm::rotate(transform, rotation, glm::vec3(0, 0, 1));
         transform = glm::scale(transform, { size.x, size.y, 1.0f });
@@ -285,6 +309,11 @@ namespace NR
     void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture)
     {
         NR_PROFILE_FUNCTION();
+
+        if (sData.IndexCount >= Renderer2DStorage::MaxIndices)
+        {
+            FlushAndReset();
+        }
 
         constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
         float textureIndex = 0.0f;
