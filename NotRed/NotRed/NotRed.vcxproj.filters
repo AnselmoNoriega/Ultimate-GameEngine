@@ -158,6 +158,7 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
+    <ClInclude Include="src\NotRed\Renderer\SubTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -242,5 +243,6 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp" />
   </ItemGroup>
 </Project>
