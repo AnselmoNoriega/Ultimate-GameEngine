@@ -26,6 +26,7 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/SubTexture.h"
+#include "NotRed/Renderer/Framebuffer.h"
 #include "NotRed/Renderer/VertexArray.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"

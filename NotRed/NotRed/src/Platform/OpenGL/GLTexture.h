@@ -17,6 +17,7 @@ namespace NR
         void SetData(void* data, uint32_t size) override;
 
         void Bind(uint32_t slot = 0) const override;
+        uint32_t GetRendererID() override { return mID; };
 
         bool operator== (const Texture& other) const override 
         { 

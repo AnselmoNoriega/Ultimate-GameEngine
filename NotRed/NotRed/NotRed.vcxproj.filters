@@ -159,6 +159,8 @@
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
     <ClInclude Include="src\NotRed\Renderer\SubTexture.h" />
+    <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -244,5 +246,7 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />
   </ItemGroup>
 </Project>

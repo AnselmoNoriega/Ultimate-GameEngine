@@ -19,6 +19,7 @@ private:
     NR::OrthographicCameraController mCameraController;
 
     NR::Ref<NR::Texture2D> mTexture;
+    NR::Ref<NR::Framebuffer> mFramebuffer;
 
     glm::vec4 mSquareColor = { 0.8f, 0.3f, 0.2f, 1.0f };
 

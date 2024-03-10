@@ -19,5 +19,7 @@ namespace NR
             return nullptr;
         }
         }
+
+        return nullptr;
     }
 }

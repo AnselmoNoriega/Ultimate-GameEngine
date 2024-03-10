@@ -143,6 +143,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
     <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed.h" />
@@ -188,6 +190,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />

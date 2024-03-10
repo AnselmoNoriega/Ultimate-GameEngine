@@ -30,6 +30,8 @@ namespace NR
         inline Window& GetWindow() { return *mWindow; }
         inline static Application& Get() { return *sInstance; }
 
+        inline void Close() { mRunning = false; }
+
     private:
         bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);

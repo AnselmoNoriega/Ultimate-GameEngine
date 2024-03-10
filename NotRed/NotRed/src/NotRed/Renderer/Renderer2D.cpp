@@ -232,6 +232,7 @@ namespace NR
             { position.x + halfSize.x, position.y + halfSize.y, position.z },
             { position.x - halfSize.x, position.y + halfSize.y, position.z }
         };
+
         glm::vec2 texCoords[4] = {
             { 0.0f, 0.0f },
             { 1.0f, 0.0f },

@@ -18,6 +18,8 @@ namespace NR
             return nullptr;
         }
         }
+
+        return nullptr;
     }
 
     Ref<Shader> Shader::Create(const std::string& name, const std::string& vertexSrc, const std::string& fragmentSrc)

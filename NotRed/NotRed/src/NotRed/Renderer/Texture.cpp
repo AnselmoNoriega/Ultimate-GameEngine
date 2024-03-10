@@ -18,6 +18,8 @@ namespace NR
             return nullptr;
         }
         }
+
+        return nullptr;
     }
 
     Ref<Texture2D> Texture2D::Create(const std::string& path)
@@ -32,5 +34,7 @@ namespace NR
             return nullptr;
         }
         }
+
+        return nullptr;
     }
 }

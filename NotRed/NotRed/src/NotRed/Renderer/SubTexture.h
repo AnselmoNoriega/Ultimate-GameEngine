@@ -14,7 +14,11 @@ namespace NR
         const Ref<Texture2D> GetTexture() const { return mTexture; }
         const glm::vec2* GetTexCoords() const { return mTexCoords; }
 
-        static Ref<SubTexture> CreateFromCoords(const Ref<Texture2D>& texture, const glm::vec2& coords, const glm::vec2& spriteSize);
+        static Ref<SubTexture> CreateFromCoords(
+            const Ref<Texture2D>& texture, 
+            const glm::vec2& coords, 
+            const glm::vec2& cellSize, 
+            const glm::vec2& spriteSize = {1.0f, 1.0f});
     private:
         Ref<Texture2D> mTexture;
 
