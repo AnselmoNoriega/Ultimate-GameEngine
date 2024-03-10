@@ -143,10 +143,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
-    <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
-    <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Core.h" />
@@ -159,18 +155,21 @@
     <ClInclude Include="src\NotRed\Core\MouseButtonCodes.h" />
     <ClInclude Include="src\NotRed\Core\TimeStep.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
+    <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
     <ClInclude Include="src\NotRed\Events\ApplicationEvent.h" />
     <ClInclude Include="src\NotRed\Events\Event.h" />
     <ClInclude Include="src\NotRed\Events\KeyEvent.h" />
     <ClInclude Include="src\NotRed\Events\MouseEvent.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
+    <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\OrthographicCamera.h" />
     <ClInclude Include="src\NotRed\Renderer\OrthographicCameraController.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
+    <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\SubTexture.h" />
@@ -178,6 +177,7 @@
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\GLContext.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\GLShader.h" />
@@ -190,20 +190,19 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\OrthographicCameraController.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp" />
@@ -211,6 +210,7 @@
     <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLContext.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLShader.cpp" />

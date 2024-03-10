@@ -16,9 +16,9 @@ namespace NR
         NR_CORE_ERROR("GLFW ERRROR ({0}): {1}", error, info);
     }
 
-    Window* Window::Create(const WindowProps& props)
+    Scope<Window> Window::Create(const WindowProps& props)
     {
-        return new WindowsWindow(props);
+        return CreateScope<WindowsWindow>(props);
     }
 
     WindowsWindow::WindowsWindow(const WindowProps& props)

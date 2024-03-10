@@ -18,14 +18,14 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
-    Application::Application()
+    Application::Application(const std::string& name)
     {
         NR_PROFILE_FUNCTION();
 
         NR_CORE_ASSERT(!sInstance, "There can only be one application");
         sInstance = this;
 
-        mWindow = std::unique_ptr<Window>(Window::Create());
+        mWindow = Window::Create(WindowProps(name));
         mWindow->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();

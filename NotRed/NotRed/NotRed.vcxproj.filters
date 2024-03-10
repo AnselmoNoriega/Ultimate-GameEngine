@@ -10,6 +10,9 @@
     <Filter Include="src\NotRed\Core">
       <UniqueIdentifier>{80820827-EC0D-76EB-F51E-F9DF6129D2EB}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Debug">
+      <UniqueIdentifier>{9E2D2508-8A26-445A-B358-29DF9FB02366}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Events">
       <UniqueIdentifier>{0C345510-784A-53A6-C1C1-DEC72D17242E}</UniqueIdentifier>
     </Filter>
@@ -72,6 +75,9 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Debug\Instrumentor.h">
+      <Filter>src\NotRed\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Events\ApplicationEvent.h">
       <Filter>src\NotRed\Events</Filter>
     </ClInclude>
@@ -88,6 +94,9 @@
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Framebuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h">
@@ -108,10 +117,16 @@
     <ClInclude Include="src\NotRed\Renderer\Renderer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Renderer2D.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Shader.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\SubTexture.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
@@ -124,6 +139,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLContext.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLIndexBuffer.h">
@@ -156,11 +174,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
-    <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
-    <ClInclude Include="src\NotRed\Renderer\SubTexture.h" />
-    <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -181,6 +194,9 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -196,10 +212,16 @@
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
@@ -212,6 +234,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLContext.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp">
@@ -244,9 +269,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />
   </ItemGroup>
 </Project>
