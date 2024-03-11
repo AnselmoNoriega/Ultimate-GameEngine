@@ -30,6 +30,8 @@ namespace NR
         inline Window& GetWindow() { return *mWindow; }
         inline static Application& Get() { return *sInstance; }
 
+        ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
+
         inline void Close() { mRunning = false; }
 
     private:

@@ -19,6 +19,8 @@ namespace NR
 
         std::vector<Layer*>::iterator begin() { return mLayers.begin(); }
         std::vector<Layer*>::iterator end() { return mLayers.end(); }
+        std::vector<Layer*>::reverse_iterator rbegin() { return mLayers.rbegin(); }
+        std::vector<Layer*>::reverse_iterator rend() { return mLayers.rend(); }
 
     private:
         std::vector<Layer*> mLayers;

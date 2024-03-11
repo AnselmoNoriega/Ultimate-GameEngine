@@ -30,8 +30,8 @@ namespace NR
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;    
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
         ImGui::StyleColorsDark();
 
@@ -58,6 +58,16 @@ namespace NR
         ImGui::DestroyContext();
     }
 
+    void ImGuiLayer::OnEvent(Event& myEvent)
+    {
+        if (!mEventsBlocked)
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            myEvent.Handled |= myEvent.IsInCategory(EVENTCATEGORYMOUSE) & io.WantCaptureMouse;
+            myEvent.Handled |= myEvent.IsInCategory(EVENTCATEGORYKEYBOARD) & io.WantCaptureKeyboard;
+        }
+    }
+
     void ImGuiLayer::Begin()
     {
         NR_PROFILE_FUNCTION();
@@ -71,7 +81,7 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        ImGuiIO& io = ImGui::GetIO(); 
+        ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::Get();
 
         io.DisplaySize = ImVec2(static_cast<float>(app.GetWindow().GetWidth()), static_cast<float>(app.GetWindow().GetHeight()));
@@ -80,11 +90,11 @@ namespace NR
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
+        {
+            GLFWwindow* backup_current_context = glfwGetCurrentContext();
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+            glfwMakeContextCurrent(backup_current_context);
+        }
     }
 }

@@ -42,13 +42,13 @@ namespace NR
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-        for (auto layer = mLayerStack.end(); layer != mLayerStack.begin();)
+        for (auto layer = mLayerStack.rbegin(); layer != mLayerStack.rend(); ++layer)
         {
-            (*--layer)->OnEvent(e);
             if (e.Handled)
             {
                 break;
             }
+            (*layer)->OnEvent(e);
         }
     }
 

@@ -14,6 +14,7 @@ namespace NR
 
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
+
     bool Input::IsMouseButtonPressed(int button)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
@@ -21,6 +22,7 @@ namespace NR
 
         return state == GLFW_PRESS;
     }
+
     std::pair<float, float> Input::GetMousePosition()
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());

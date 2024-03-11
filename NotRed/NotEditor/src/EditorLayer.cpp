@@ -31,7 +31,10 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        mCameraController.Update(deltaTime);
+        if (mViewportFocused)
+        {
+            mCameraController.Update(deltaTime);
+        }
 
         {
             NR_PROFILE_SCOPE("Render Start");
@@ -54,7 +57,10 @@ namespace NR
 
     void EditorLayer::OnEvent(Event& myEvent)
     {
-        mCameraController.OnEvent(myEvent);
+        if (mViewportFocused && mViewportHovered)
+        {
+            mCameraController.OnEvent(myEvent);
+        }
     }
 
     void EditorLayer::ImGuiRender()
@@ -121,6 +127,15 @@ namespace NR
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
+
+        mViewportFocused = ImGui::IsWindowFocused();
+        mViewportHovered = ImGui::IsWindowHovered();
+        if (mViewportFocused || mViewportHovered)
+        {
+            Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused || !mViewportHovered);
+
+        }
+        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused || !mViewportHovered);
 
         ImVec2 vpSize = ImGui::GetContentRegionAvail();
         if (mViewportSize != *((glm::vec2*)&vpSize))
