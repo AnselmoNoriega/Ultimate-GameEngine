@@ -25,6 +25,8 @@ namespace NR
 
         glm::vec4 mSquareColor = { 0.8f, 0.3f, 0.2f, 1.0f };
 
+        glm::vec2 mViewportSize = { 0.0f, 0.0f };
+
         glm::vec2 objPositions[2] = {
             { 1.0f, 0.0f },
             {-1.0f, 0.0f }

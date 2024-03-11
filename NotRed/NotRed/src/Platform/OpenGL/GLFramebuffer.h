@@ -10,18 +10,22 @@ namespace NR
         GLFramebuffer(const FramebufferStruct& spec);
         ~GLFramebuffer() override;
 
+        void Bind() override;
+        void Unbind() override;
+
+        void Resize(uint32_t width, uint32_t height) override;
+
         const FramebufferStruct& GetSpecification() const override;
         uint32_t GetTextureRendererID() const override { return mTextureID; }
 
-        void Bind() override;
-        void Unbind() override;
 
     private:
         void Invalidate();
 
     private:
-        uint32_t mID;
-        uint32_t mTextureID;
+        uint32_t mID = 0, 
+                 mTextureID = 0, 
+                 mDepthID = 0;
 
         FramebufferStruct mSpecification;
     };

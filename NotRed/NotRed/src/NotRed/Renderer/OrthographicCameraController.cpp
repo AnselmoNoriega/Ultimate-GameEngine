@@ -58,6 +58,12 @@ namespace NR
         dispatcher.Dispatch<WindowResizeEvent>(NR_BIND_EVENT_FN(OrthographicCameraController::WindowResized));
     }
 
+    void OrthographicCameraController::Resize(float width, float height)
+    {
+        mAspectRatio = width / height;
+        mCamera.SetProjection(-mAspectRatio * mZoomLevel, mAspectRatio * mZoomLevel, -mZoomLevel, mZoomLevel);
+    }
+
     bool OrthographicCameraController::MouseScrolled(MouseScrolledEvent& e)
     {
         NR_PROFILE_FUNCTION();
@@ -73,8 +79,7 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        mAspectRatio = static_cast<float>(e.GetWidth()) / static_cast<float>(e.GetHeight());
-        mCamera.SetProjection(-mAspectRatio * mZoomLevel, mAspectRatio * mZoomLevel, -mZoomLevel, mZoomLevel);
+        Resize((float)e.GetWidth(), (float)e.GetHeight());
         return false;
     }
 }

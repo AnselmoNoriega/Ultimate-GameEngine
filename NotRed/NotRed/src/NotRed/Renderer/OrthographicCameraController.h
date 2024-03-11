@@ -18,6 +18,8 @@ namespace NR
         OrthographicCamera& GetCamera() { return mCamera; }
         const OrthographicCamera& GetCamera() const { return mCamera; }
 
+        void Resize(float width, float height);
+
     private:
         bool MouseScrolled(MouseScrolledEvent& e);
         bool WindowResized(WindowResizeEvent& e);

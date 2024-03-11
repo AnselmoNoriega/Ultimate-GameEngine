@@ -1,6 +1,6 @@
 workspace "NotRed"
 	architecture "x64"
-	startproject "Sandbox"
+	startproject "NotEditor"
 
 	configurations
 	{
@@ -148,8 +148,8 @@ project "Sandbox"
 		runtime "Release"
 		optimize "on"
 
-project "NotRed-Editor"
-	location "NotRed-Editor"
+project "NotEditor"
+	location "NotEditor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"

@@ -32,6 +32,7 @@ namespace NR
     class  Event
     {
     public:
+        virtual ~Event() = default;
         bool Handled = false;
 
     public:
