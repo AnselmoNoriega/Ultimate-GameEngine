@@ -1,5 +1,5 @@
 #include "nrpch.h"
-#include "WindowsInput.h"
+#include "NotRed/Core/Input.h"
 
 #include "NotRed/Core/Application.h"
 
@@ -7,23 +7,21 @@
 
 namespace NR
 {
-    Input* Input::sInstance = new WindowsInput();
-
-    bool WindowsInput::IsKeyPressedImpl(int keycode)
+    bool Input::IsKeyPressed(int keycode)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         auto state = glfwGetKey(window, keycode);
 
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
-    bool WindowsInput::IsMouseBtnPressedImpl(int button)
+    bool Input::IsMouseButtonPressed(int button)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         auto state = glfwGetMouseButton(window, button);
 
         return state == GLFW_PRESS;
     }
-    std::pair<float, float> WindowsInput::GetMousePosImpl()
+    std::pair<float, float> Input::GetMousePosition()
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         double xPos, yPos;

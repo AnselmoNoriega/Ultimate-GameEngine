@@ -7,18 +7,9 @@ namespace NR
     class  Input
     {
     public:
-        virtual ~Input() = default;
+        static bool IsKeyPressed(int keycode);
+        static bool IsMouseButtonPressed(int button);
 
-        inline static bool IsKeyPressed(int keycode) { return sInstance->IsKeyPressedImpl(keycode); }
-        inline static bool IsMouseButtonPressed(int button) { return sInstance->IsMouseBtnPressedImpl(button); }
-        inline static std::pair<float, float> GetMousePosition() { return sInstance->GetMousePosImpl(); }
-
-    protected:
-        virtual bool IsKeyPressedImpl(int keycode) = 0;
-        virtual bool IsMouseBtnPressedImpl(int button) = 0;
-        virtual std::pair<float, float> GetMousePosImpl() = 0;
-
-    private:
-        static Input* sInstance;
+        static std::pair<float, float> GetMousePosition();
     };
 }
