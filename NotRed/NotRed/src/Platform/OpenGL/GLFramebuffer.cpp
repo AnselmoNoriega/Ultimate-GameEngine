@@ -57,6 +57,12 @@ namespace NR
 
     void GLFramebuffer::Resize(uint32_t width, uint32_t height)
     {
+        if (width == 0 || width >= 8100 || height == 0 || height >= 8100)
+        {
+            NR_CORE_WARN("Attempted to rezize with unusable values: {0}, {1}", width, height);
+            return;
+        }
+
         mSpecification.Width = width;
         mSpecification.Height = height;
 

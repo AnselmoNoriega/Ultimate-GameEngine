@@ -2,7 +2,6 @@
 #include "OrthographicCameraController.h"
 
 #include "NotRed/Core/Input.h"
-#include "NotRed/Core/KeyCodes.h"
 
 namespace NR
 {
@@ -15,34 +14,34 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        if (Input::IsKeyPressed(NR_KEY_A))
+        if (Input::IsKeyPressed(KeyCode::A))
         {
             mCameraPosition.x -= mCameraMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPosition);
         }
-        else if (Input::IsKeyPressed(NR_KEY_D))
+        else if (Input::IsKeyPressed(KeyCode::D))
         {
             mCameraPosition.x += mCameraMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPosition);
         }
 
-        if (Input::IsKeyPressed(NR_KEY_S))
+        if (Input::IsKeyPressed(KeyCode::S))
         {
             mCameraPosition.y -= mCameraMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPosition);
         }
-        else if (Input::IsKeyPressed(NR_KEY_W))
+        else if (Input::IsKeyPressed(KeyCode::W))
         {
             mCameraPosition.y += mCameraMoveSpeed * deltaTime;
             mCamera.SetPosition(mCameraPosition);
         }
 
-        if (Input::IsKeyPressed(NR_KEY_E))
+        if (Input::IsKeyPressed(KeyCode::E))
         {
             mCameraRotation += mCameraRotationSpeed * deltaTime;
             mCamera.SetRotation(mCameraRotation);
         }
-        else if (Input::IsKeyPressed(NR_KEY_Q))
+        else if (Input::IsKeyPressed(KeyCode::Q))
         {
             mCameraRotation -= mCameraRotationSpeed * deltaTime;
             mCamera.SetRotation(mCameraRotation);

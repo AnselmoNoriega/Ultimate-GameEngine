@@ -1,24 +1,24 @@
 #include "nrpch.h"
 #include "NotRed/Core/Input.h"
 
-#include "NotRed/Core/Application.h"
-
 #include <GLFW/glfw3.h>
+
+#include "NotRed/Core/Application.h"
 
 namespace NR
 {
-    bool Input::IsKeyPressed(int keycode)
+    bool Input::IsKeyPressed(KeyCode keycode)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetKey(window, keycode);
+        auto state = glfwGetKey(window, static_cast<int>(keycode));
 
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    bool Input::IsMouseButtonPressed(int button)
+    bool Input::IsMouseButtonPressed(KeyCode button)
     {
         auto window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        auto state = glfwGetMouseButton(window, button);
+        auto state = glfwGetMouseButton(window, static_cast<int>(button));
 
         return state == GLFW_PRESS;
     }
