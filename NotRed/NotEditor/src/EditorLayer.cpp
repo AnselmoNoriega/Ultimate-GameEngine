@@ -21,6 +21,12 @@ namespace NR
         fbSpecs.Width = 1280;
         fbSpecs.Height = 720;
         mFramebuffer = Framebuffer::Create(fbSpecs);
+
+        mActiveScene = CreateRef<Scene>();
+        auto entity = mActiveScene->CreateEntity();
+
+        mActiveScene->Reg().emplace<TransformComponent>(entity);
+        mActiveScene->Reg().emplace<SpriteRendererComponent>(entity);
     }
 
     void EditorLayer::Detach()
@@ -47,8 +53,7 @@ namespace NR
             NR_PROFILE_SCOPE("Rendering");
             Renderer2D::BeginScene(mCameraController.GetCamera());
 
-            Renderer2D::DrawQuad(objPositions[0], { 1.0f, 1.0f }, mSquareColor);
-            Renderer2D::DrawQuad(objPositions[1], { 1.0f, 1.0f }, mTexture);
+            mActiveScene->Update(deltaTime);
 
             Renderer2D::EndScene();
             mFramebuffer->Unbind();

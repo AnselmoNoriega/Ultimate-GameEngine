@@ -176,6 +176,7 @@
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
+    <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Scene.h" />
     <ClInclude Include="src\Platform\OpenGL\GLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />

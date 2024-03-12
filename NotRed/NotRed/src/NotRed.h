@@ -18,6 +18,9 @@
 #include "NotRed/Core/Layer.h"
 #include "NotRed/ImGui/ImGuiLayer.h"
 
+#include "NotRed/Scene/Scene.h"
+#include "NotRed/Scene/Components.h"
+
 //-------------Rendering--------------------------
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Renderer2D.h"

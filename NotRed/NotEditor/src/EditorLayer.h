@@ -18,6 +18,8 @@ namespace NR
         void ImGuiRender() override;
 
     private:
+        Ref<Scene> mActiveScene;
+
         OrthographicCameraController mCameraController;
 
         Ref<Texture2D> mTexture;

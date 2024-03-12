@@ -10,6 +10,12 @@ namespace NR
         Scene();
         ~Scene();
 
+        void Update(float dt);
+
+        entt::entity CreateEntity();
+
+        entt::registry& Reg() { return mRegistry; }
+
     private:
         entt::registry mRegistry;
     };
