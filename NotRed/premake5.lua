@@ -18,6 +18,8 @@ IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 IncludeDir["Glm"] = "NotRed/vendor/glm"
 IncludeDir["Stb"] = "NotRed/vendor/stb_image"
 
+IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
+
 group "Dependencies"
 	include "NotRed/vendor/GLFW"
 	include "NotRed/vendor/glad"
@@ -60,7 +62,9 @@ project "NotRed"
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Glm}",
-		"%{IncludeDir.Stb}"
+		"%{IncludeDir.Stb}",
+
+		"%{IncludeDir.Entt}"
 	}
 
 	links
@@ -117,7 +121,9 @@ project "Sandbox"
 		"NotRed/vendor/spdlog/include",
 		"NotRed/src",
 		"NotRed/vendor",
-		"%{IncludeDir.Glm}"
+		"%{IncludeDir.Glm}",
+
+		"%{IncludeDir.Entt}"
 	}
 
 	links
@@ -169,7 +175,9 @@ project "NotEditor"
 		"NotRed/vendor/spdlog/include",
 		"NotRed/src",
 		"NotRed/vendor",
-		"%{IncludeDir.Glm}"
+		"%{IncludeDir.Glm}",
+
+		"%{IncludeDir.Entt}"
 	}
 
 	links

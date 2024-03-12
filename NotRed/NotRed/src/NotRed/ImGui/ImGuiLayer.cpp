@@ -60,7 +60,7 @@ namespace NR
 
     void ImGuiLayer::OnEvent(Event& myEvent)
     {
-        if (!mEventsBlocked)
+        if (mEventsBlocked)
         {
             ImGuiIO& io = ImGui::GetIO();
             myEvent.Handled |= myEvent.IsInCategory(EVENTCATEGORYMOUSE) & io.WantCaptureMouse;
