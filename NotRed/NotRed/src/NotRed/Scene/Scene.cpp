@@ -21,7 +21,7 @@ namespace NR
 
         for (auto enttity : group)
         {
-            auto& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(enttity);
+            auto&& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(enttity);
 
             Renderer2D::DrawQuad(transform, sprite.Color);
         }

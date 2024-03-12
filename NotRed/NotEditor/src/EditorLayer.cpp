@@ -23,10 +23,12 @@ namespace NR
         mFramebuffer = Framebuffer::Create(fbSpecs);
 
         mActiveScene = CreateRef<Scene>();
-        auto entity = mActiveScene->CreateEntity();
 
+        auto entity = mActiveScene->CreateEntity();
         mActiveScene->Reg().emplace<TransformComponent>(entity);
         mActiveScene->Reg().emplace<SpriteRendererComponent>(entity);
+
+        mEntity = entity;
     }
 
     void EditorLayer::Detach()
@@ -124,7 +126,8 @@ namespace NR
 
         ImGui::Begin("Settings");
 
-        ImGui::ColorEdit4("Square Color", glm::value_ptr(mSquareColor));
+        auto& color = mActiveScene->Reg().get<SpriteRendererComponent>(mEntity).Color;
+        ImGui::ColorEdit4("Square Color", glm::value_ptr(color));
         ImGui::DragFloat2("Obj pos 1", &objPositions[0].x, 0.1f, -10.0f, 10.0f);
         ImGui::DragFloat2("Obj pos 2", &objPositions[1].x, 0.1f, -10.0f, 10.0f);
 
