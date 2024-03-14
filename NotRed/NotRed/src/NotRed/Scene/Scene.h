@@ -4,6 +4,8 @@
 
 namespace NR
 {
+    class Entity;
+
     class Scene
     {
     public:
@@ -12,11 +14,11 @@ namespace NR
 
         void Update(float dt);
 
-        entt::entity CreateEntity();
-
-        entt::registry& Reg() { return mRegistry; }
+        Entity CreateEntity(const std::string& tagName = "Object");
 
     private:
         entt::registry mRegistry;
+
+        friend class Entity;
     };
 }

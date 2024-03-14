@@ -4,6 +4,20 @@
 
 namespace NR
 {
+    struct TagComponent
+    {
+        std::string Tag;
+
+        TagComponent() = default;
+        TagComponent(const TagComponent&) = default;
+        TagComponent(const std::string& tag)
+            : Tag(tag) {};
+
+        operator std::string& () { return Tag; }
+        operator const std::string& () const { return Tag; }
+        operator const char* () const { return Tag.c_str(); }
+    };
+
     struct TransformComponent
     {
         glm::mat4 Transform = glm::mat4(1.0f);

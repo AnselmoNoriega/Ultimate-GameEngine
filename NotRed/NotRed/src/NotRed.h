@@ -19,6 +19,7 @@
 #include "NotRed/ImGui/ImGuiLayer.h"
 
 #include "NotRed/Scene/Scene.h"
+#include "NotRed/Scene/Entity.h"
 #include "NotRed/Scene/Components.h"
 
 //-------------Rendering--------------------------

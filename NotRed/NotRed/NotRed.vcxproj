@@ -177,6 +177,7 @@
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
+    <ClInclude Include="src\NotRed\Scene\Entity.h" />
     <ClInclude Include="src\NotRed\Scene\Scene.h" />
     <ClInclude Include="src\Platform\OpenGL\GLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
@@ -210,6 +211,7 @@
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />

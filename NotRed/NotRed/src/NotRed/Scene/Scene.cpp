@@ -4,6 +4,8 @@
 #include "Components.h"
 #include "NotRed/Renderer/Renderer2D.h"
 
+#include "Entity.h"
+
 namespace NR
 {
     Scene::Scene()
@@ -27,8 +29,11 @@ namespace NR
         }
     }
 
-    entt::entity Scene::CreateEntity()
+    Entity Scene::CreateEntity(const std::string& tagName)
     {
-        return mRegistry.create();
+        Entity entity = { mRegistry.create(), this };
+        entity.AddComponent<TransformComponent>();
+        entity.AddComponent<TagComponent>(tagName);
+        return entity;
     }
 }
