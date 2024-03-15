@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-#include "NotRed/Renderer/Camera.h"
+#include "SceneCamera.h"
 
 namespace NR
 {
@@ -45,12 +45,11 @@ namespace NR
 
     struct CameraComponent
     {
-        NR::Camera Camera;
+        SceneCamera Camera;
         bool IsPrimary = true;
+        bool HasFixedAspectRatio = false;
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent&) = default;
-        CameraComponent(const glm::mat4& projection)
-            : Camera(projection) {};
     };
 }

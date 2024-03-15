@@ -22,10 +22,10 @@ namespace NR
         Camera* mainCamera = nullptr;
         glm::mat4* cameraTransform = nullptr;
         {
-            auto group = mRegistry.view<TransformComponent, CameraComponent>();
-            for (auto entity : group)
+            auto view = mRegistry.view<TransformComponent, CameraComponent>();
+            for (auto entity : view)
             {
-                auto&& [tranform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+                auto&& [tranform, camera] = view.get<TransformComponent, CameraComponent>(entity);
 
                 if (camera.IsPrimary)
                 {
@@ -62,5 +62,18 @@ namespace NR
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(tagName);
         return entity;
+    }
+
+    void Scene::ViewportResize(uint32_t width, uint32_t height)
+    {
+        auto view = mRegistry.view<CameraComponent>();
+        for (auto entity : view)
+        {
+            auto& camera = view.get<CameraComponent>(entity);
+            if (!camera.HasFixedAspectRatio)
+            {
+                camera.Camera.SetViewportSize(width, height);
+            }
+        }
     }
 }

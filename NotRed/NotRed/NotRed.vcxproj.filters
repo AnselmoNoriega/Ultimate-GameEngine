@@ -175,6 +175,7 @@
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
+    <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -272,5 +273,6 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
+    <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp" />
   </ItemGroup>
 </Project>

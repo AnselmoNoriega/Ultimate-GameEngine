@@ -28,7 +28,7 @@ namespace NR
         mEntity.AddComponent<SpriteRendererComponent>();
 
         mCameraEntity = mActiveScene->CreateEntity("Camera");
-        mCameraEntity.AddComponent<CameraComponent>(glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f));
+        mCameraEntity.AddComponent<CameraComponent>();
     }
 
     void EditorLayer::Detach()
@@ -44,17 +44,11 @@ namespace NR
             (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
             mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            //mCameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+            mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
         }
-
-        //if (mViewportFocused)
-        //{
-        //    mCameraController.Update(deltaTime);
-        //}
 
         {
             NR_PROFILE_SCOPE("Render Start");
-            //Renderer2D::ResetStats();
             mFramebuffer->Bind();
             RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
             RenderCommand::Clear();
@@ -71,10 +65,7 @@ namespace NR
 
     void EditorLayer::OnEvent(Event& myEvent)
     {
-        if (mViewportFocused && mViewportHovered)
-        {
-            //mCameraController.OnEvent(myEvent);
-        }
+
     }
 
     void EditorLayer::ImGuiRender()
@@ -138,9 +129,6 @@ namespace NR
         auto& color = mEntity.GetComponent<SpriteRendererComponent>().Color;
         ImGui::ColorEdit4("Square Color", glm::value_ptr(color));
         ImGui::Separator();
-
-        ImGui::DragFloat2("Obj pos 1", &objPositions[0].x, 0.1f, -10.0f, 10.0f);
-        ImGui::DragFloat2("Obj pos 2", &objPositions[1].x, 0.1f, -10.0f, 10.0f);
 
         ImGui::End();
 
