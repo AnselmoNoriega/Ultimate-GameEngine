@@ -20,8 +20,6 @@ namespace NR
     private:
         Ref<Scene> mActiveScene;
 
-        OrthographicCameraController mCameraController;
-
         Ref<Texture2D> mTexture;
         Ref<Framebuffer> mFramebuffer;
 
@@ -37,5 +35,6 @@ namespace NR
         };
 
         Entity mEntity;
+        Entity mCameraEntity;
     };
 }

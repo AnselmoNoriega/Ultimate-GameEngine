@@ -7,7 +7,7 @@
 namespace NR
 {
     EditorLayer::EditorLayer()
-        :Layer("EditorLayer"), mCameraController(1280.0f / 720.0f)
+        :Layer("EditorLayer")
     {
     }
 
@@ -24,9 +24,11 @@ namespace NR
 
         mActiveScene = CreateRef<Scene>();
 
-        auto entity = mActiveScene->CreateEntity("Fernando");
-        entity.AddComponent<SpriteRendererComponent>();
-        mEntity = entity;
+        mEntity = mActiveScene->CreateEntity();
+        mEntity.AddComponent<SpriteRendererComponent>();
+
+        mCameraEntity = mActiveScene->CreateEntity("Camera");
+        mCameraEntity.AddComponent<CameraComponent>(glm::ortho(-16.0f, 16.0f, -9.0f, 9.0f, -1.0f, 1.0f));
     }
 
     void EditorLayer::Detach()
@@ -36,14 +38,23 @@ namespace NR
     void EditorLayer::Update(float deltaTime)
     {
         NR_PROFILE_FUNCTION();
-
-        if (mViewportFocused)
+        
+        if (FramebufferStruct spec = mFramebuffer->GetSpecification();
+            mViewportSize.x > 0.0f && mViewportSize.y > 0.0f &&
+            (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
-            mCameraController.Update(deltaTime);
+            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            //mCameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
         }
+
+        //if (mViewportFocused)
+        //{
+        //    mCameraController.Update(deltaTime);
+        //}
 
         {
             NR_PROFILE_SCOPE("Render Start");
+            //Renderer2D::ResetStats();
             mFramebuffer->Bind();
             RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
             RenderCommand::Clear();
@@ -51,11 +62,9 @@ namespace NR
 
         {
             NR_PROFILE_SCOPE("Rendering");
-            Renderer2D::BeginScene(mCameraController.GetCamera());
 
             mActiveScene->Update(deltaTime);
 
-            Renderer2D::EndScene();
             mFramebuffer->Unbind();
         }
     }
@@ -64,7 +73,7 @@ namespace NR
     {
         if (mViewportFocused && mViewportHovered)
         {
-            mCameraController.OnEvent(myEvent);
+            //mCameraController.OnEvent(myEvent);
         }
     }
 
@@ -140,20 +149,11 @@ namespace NR
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
-        if (mViewportFocused || mViewportHovered)
-        {
-            Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused || !mViewportHovered);
-        }
         Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused || !mViewportHovered);
 
         ImVec2 vpSize = ImGui::GetContentRegionAvail();
-        if (mViewportSize != *((glm::vec2*)&vpSize))
-        {
-            mViewportSize = { vpSize.x, vpSize.y };
-            mFramebuffer->Resize((uint32_t)vpSize.x, (uint32_t)vpSize.y);
+        mViewportSize = { vpSize.x, vpSize.y };
 
-            mCameraController.Resize(vpSize.x, vpSize.y);
-        }
         uint32_t textureID = mFramebuffer->GetTextureRendererID();
         ImGui::Image((void*)textureID, ImVec2{ mViewportSize.x, mViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 

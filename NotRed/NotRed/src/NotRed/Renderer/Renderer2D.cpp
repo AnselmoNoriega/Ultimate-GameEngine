@@ -109,6 +109,21 @@ namespace NR
         NR_PROFILE_FUNCTION();
     }
 
+    void Renderer2D::BeginScene(const Camera& camera, glm::mat4 transform)
+    {
+        NR_PROFILE_FUNCTION();
+
+        glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
+
+        sData.ObjShader->Bind();
+        sData.ObjShader->SetMat4("uViewProjection", viewProj);
+
+        sData.IndexCount = 0;
+        sData.VertexBufferPtr = sData.VertexBufferBase;
+
+        sData.TextureSlotIndex = 1;
+    }
+
     void Renderer2D::BeginScene(const OrthographicCamera& camera)
     {
         NR_PROFILE_FUNCTION();

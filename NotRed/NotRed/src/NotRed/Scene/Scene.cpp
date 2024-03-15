@@ -19,13 +19,40 @@ namespace NR
 
     void Scene::Update(float dt)
     {
-        auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-
-        for (auto enttity : group)
+        Camera* mainCamera = nullptr;
+        glm::mat4* cameraTransform = nullptr;
         {
-            auto&& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(enttity);
+            auto group = mRegistry.view<TransformComponent, CameraComponent>();
+            for (auto entity : group)
+            {
+                auto&& [tranform, camera] = group.get<TransformComponent, CameraComponent>(entity);
 
-            Renderer2D::DrawQuad(transform, sprite.Color);
+                if (camera.IsPrimary)
+                {
+                    mainCamera = &camera.Camera;
+                    cameraTransform = &tranform.Transform;
+                    break;
+                }
+            }
+        }
+
+        if (mainCamera)
+        {
+            Renderer2D::BeginScene(*mainCamera, *cameraTransform);
+
+            auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+            for (auto entity : group)
+            {
+                auto&& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+
+                Renderer2D::DrawQuad(transform, sprite.Color);
+            }
+
+            Renderer2D::EndScene();
+            //delete mainCamera;
+            //mainCamera = nullptr;
+            //delete cameraTransform;
+            //cameraTransform = nullptr;
         }
     }
 

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "OrthographicCamera.h"
+#include "Camera.h"
 
 namespace NR
 {
     class Texture2D;
     class SubTexture;
+    class Camera;
 
     class Renderer2D
     {
@@ -13,6 +15,7 @@ namespace NR
         static void Init();
         static void Shutdown();
 
+        static void BeginScene(const Camera& camera, glm::mat4 transform);
         static void BeginScene(const OrthographicCamera& camera);
         static void EndScene();
 

@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include "NotRed/Renderer/Camera.h"
+
 namespace NR
 {
     struct TagComponent
@@ -39,5 +41,16 @@ namespace NR
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
         SpriteRendererComponent(const glm::vec4& color)
             : Color(color) {};
+    };
+
+    struct CameraComponent
+    {
+        NR::Camera Camera;
+        bool IsPrimary = true;
+
+        CameraComponent() = default;
+        CameraComponent(const CameraComponent&) = default;
+        CameraComponent(const glm::mat4& projection)
+            : Camera(projection) {};
     };
 }

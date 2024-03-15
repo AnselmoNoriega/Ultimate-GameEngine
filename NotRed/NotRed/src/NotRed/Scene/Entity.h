@@ -40,10 +40,10 @@ namespace NR
             return mScene->mRegistry.remove<T>(mEntity);
         }
 
-        operator bool() const { return (uint32_t)mEntity != 0; }
+        operator bool() const { return (uint32_t)mEntity != entt::null; }
 
     private:
-        entt::entity mEntity{ 0 };
+        entt::entity mEntity{ entt::null };
         Scene* mScene = nullptr;
     };
 }
