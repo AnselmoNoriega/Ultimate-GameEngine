@@ -19,6 +19,7 @@ namespace NR
 
     private:
         void DrawNode(Entity& entity);
+        void DrawComponents(Entity& entity);
 
     private:
         Ref<Scene> mContext;
