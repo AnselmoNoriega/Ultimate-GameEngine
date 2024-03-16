@@ -176,6 +176,7 @@
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
+    <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">

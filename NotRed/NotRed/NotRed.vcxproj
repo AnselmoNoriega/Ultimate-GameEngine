@@ -143,6 +143,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h" />
     <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />

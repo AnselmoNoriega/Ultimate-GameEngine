@@ -20,6 +20,7 @@
 
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
+#include "NotRed/Scene/ScriptableEntity.h"
 #include "NotRed/Scene/Components.h"
 
 //-------------Rendering--------------------------

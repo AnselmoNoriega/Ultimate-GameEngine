@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "SceneCamera.h"
+#include "ScriptableEntity.h"
 
 namespace NR
 {
@@ -51,5 +52,28 @@ namespace NR
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent&) = default;
+    };
+
+    struct NativeScriptComponent
+    {
+        ScriptableEntity* Instance = nullptr;
+
+        std::function<void()> InstantiateFunction;
+        std::function<void()> DestroyInstanceFunction;
+
+        std::function<void()> CreateFunction;
+        std::function<void(float)> UpdateFunction;
+        std::function<void()> DestroyFunction;
+
+        template<typename T>
+        void Bind()
+        {
+            InstantiateFunction = [&]() { Instance = new T(); };
+            DestroyInstanceFunction = [&]() { delete (T*)Instance; Instance = nullptr; };
+
+            CreateFunction = [&]() { ((T*)Instance)->Create(); };
+            UpdateFunction = [&](float dt) { ((T*)Instance)->Update(); };
+            DestroyFunction = [&]() { ((T*)Instance)->Destroy(); };
+        }
     };
 }

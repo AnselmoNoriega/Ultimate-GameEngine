@@ -19,6 +19,20 @@ namespace NR
 
     void Scene::Update(float dt)
     {
+        {
+            mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+                {
+                    if (!nsc.Instance)
+                    {
+                        nsc.InstantiateFunction();
+                        nsc.Instance->mEntity = { entity, this };
+                        nsc.CreateFunction();
+                    }
+
+                    nsc.UpdateFunction(dt);
+                });
+        }
+
         Camera* mainCamera = nullptr;
         glm::mat4* cameraTransform = nullptr;
         {
@@ -49,10 +63,6 @@ namespace NR
             }
 
             Renderer2D::EndScene();
-            //delete mainCamera;
-            //mainCamera = nullptr;
-            //delete cameraTransform;
-            //cameraTransform = nullptr;
         }
     }
 
