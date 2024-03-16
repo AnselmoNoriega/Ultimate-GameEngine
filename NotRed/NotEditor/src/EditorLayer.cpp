@@ -23,6 +23,7 @@ namespace NR
         mFramebuffer = Framebuffer::Create(fbSpecs);
 
         mActiveScene = CreateRef<Scene>();
+        mSceneHierarchyPanel.SetContext(mActiveScene);
 
         mEntity = mActiveScene->CreateEntity();
         mEntity.AddComponent<SpriteRendererComponent>();
@@ -122,10 +123,11 @@ namespace NR
             ImGui::EndMenuBar();
         }
 
+        mSceneHierarchyPanel.ImGuiRender();
+
         ImGui::Begin("Settings");
 
         ImGui::Separator();
-        ImGui::Text("%s", (const char*)mEntity.GetComponent<TagComponent>());
         auto& color = mEntity.GetComponent<SpriteRendererComponent>().Color;
         ImGui::ColorEdit4("Square Color", glm::value_ptr(color));
         ImGui::Separator();

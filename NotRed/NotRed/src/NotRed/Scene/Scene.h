@@ -22,5 +22,6 @@ namespace NR
         entt::registry mRegistry;
 
         friend class Entity;
+        friend class SceneHierarchyPanel;
     };
 }

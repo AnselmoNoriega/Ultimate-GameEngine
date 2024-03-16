@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed.h"
+#include "Panels/SceneHierarchyPanel.h"
 
 namespace NR
 {
@@ -19,6 +20,7 @@ namespace NR
 
     private:
         Ref<Scene> mActiveScene;
+        SceneHierarchyPanel mSceneHierarchyPanel;
 
         Ref<Texture2D> mTexture;
         Ref<Framebuffer> mFramebuffer;

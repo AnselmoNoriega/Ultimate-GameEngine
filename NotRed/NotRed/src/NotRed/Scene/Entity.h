@@ -3,6 +3,7 @@
 #include "Scene.h"
 
 #include "entt.hpp"
+#include "NotRed/Core/Log.h"
 
 namespace NR
 {
@@ -40,7 +41,18 @@ namespace NR
             return mScene->mRegistry.remove<T>(mEntity);
         }
 
-        operator bool() const { return (uint32_t)mEntity != entt::null; }
+        operator bool() const { return mEntity != entt::null; }
+        operator uint32_t() const { return (uint32_t)mEntity; }
+
+        bool operator==(const Entity& other) const
+        {
+            return mEntity == other.mEntity && mScene == other.mScene;
+        }
+
+        bool operator!=(const Entity& other) const
+        {
+            return !(*this == other);
+        }
 
     private:
         entt::entity mEntity{ entt::null };
