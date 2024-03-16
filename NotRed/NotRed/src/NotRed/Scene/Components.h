@@ -58,12 +58,12 @@ namespace NR
     {
         ScriptableEntity* Instance = nullptr;
 
-        std::function<void()> InstantiateFunction;
-        std::function<void()> DestroyInstanceFunction;
+        void (*InstantiateFunction)() = nullptr;
+        void (*DestroyInstanceFunction)() = nullptr;
 
-        std::function<void()> CreateFunction;
-        std::function<void(float)> UpdateFunction;
-        std::function<void()> DestroyFunction;
+        void (*CreateFunction)() = {};
+        void (*UpdateFunction)(float) = {};
+        void (*DestroyFunction) = {};
 
         template<typename T>
         void Bind()
@@ -71,9 +71,20 @@ namespace NR
             InstantiateFunction = [&]() { Instance = new T(); };
             DestroyInstanceFunction = [&]() { delete (T*)Instance; Instance = nullptr; };
 
-            CreateFunction = [&]() { ((T*)Instance)->Create(); };
-            UpdateFunction = [&](float dt) { ((T*)Instance)->Update(); };
-            DestroyFunction = [&]() { ((T*)Instance)->Destroy(); };
+            if constexpr (std::is_invocable_v<decltype(&T::Create), T>)
+            {
+                CreateFunction = [&]() { static_cast<T*>(Instance)->Create(); };
+            }
+
+            if constexpr (std::is_invocable_v<decltype(&T::Update), T, float>)
+            {
+                UpdateFunction = [&](float dt) { static_cast<T*>(Instance)->Update(dt); };
+            }
+
+            if constexpr (std::is_invocable_v<decltype(&T::Destroy), T>)
+            {
+                DestroyFunction = [&]() { static_cast<T*>(Instance)->Destroy(); };
+            }
         }
     };
 }

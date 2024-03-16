@@ -15,6 +15,13 @@ namespace NR
 
     Scene::~Scene()
     {
+        mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+            {
+                if (nsc.Instance)
+                {
+                    nsc.DestroyInstanceFunction();
+                }
+            });
     }
 
     void Scene::Update(float dt)
