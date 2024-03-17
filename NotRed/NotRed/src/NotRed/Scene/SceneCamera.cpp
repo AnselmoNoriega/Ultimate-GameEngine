@@ -5,16 +5,24 @@
 
 namespace NR
 {
-    SceneCamera::SceneCamera()
-    {
-
-    }
-
     void SceneCamera::SetOrthographic(float size, float nearClip, float farClip)
     {
-        mOrthographicSize = size;
-        mOrthographicNear = nearClip;
-        mOrthographicFar = farClip;
+        mProjectionType = ProjectionType::Orthographic;
+
+        mFOV = size;
+        mNearClip = nearClip;
+        mFarClip = farClip;
+
+        RecalculateProjection();
+    }
+
+    void SceneCamera::SetPerspective(float fov, float nearClip, float farClip)
+    {
+        mProjectionType = ProjectionType::Perspective;
+
+        mFOV = fov;
+        mNearClip = nearClip;
+        mFarClip = farClip;
 
         RecalculateProjection();
     }
@@ -29,20 +37,40 @@ namespace NR
         }
     }
 
-    void SceneCamera::SetOrthographicSize(float size)
+    void SceneCamera::SetProjectionType(ProjectionType type)
     {
-        mOrthographicSize = size;
+        mProjectionType = type;
+
+        if (mProjectionType == ProjectionType::Orthographic)
+        {
+            mFOV = 10.0f;
+            mNearClip = -1.0f;
+            mFarClip = 1.0f;
+        }
+        else
+        {
+            mFOV = glm::radians(45.0f);
+            mNearClip = 0.0f;
+            mFarClip = 1000.0f;
+        }
 
         RecalculateProjection();
     }
 
     void SceneCamera::RecalculateProjection()
     {
-        float orthoLeft = -mOrthographicSize * mAspectRatio * 0.5f;
-        float orthoRight = mOrthographicSize * mAspectRatio * 0.5f;
-        float orthoBottom = -mOrthographicSize * 0.5f;
-        float orthoTop = mOrthographicSize * 0.5f;
+        if (mProjectionType == ProjectionType::Orthographic)
+        {
+            float orthoLeft = -mFOV * mAspectRatio * 0.5f;
+            float orthoRight = mFOV * mAspectRatio * 0.5f;
+            float orthoBottom = -mFOV * 0.5f;
+            float orthoTop = mFOV * 0.5f;
 
-        mProjection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, mOrthographicNear, mOrthographicFar);
+            mProjection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, mNearClip, mFarClip);
+        }
+        else
+        {
+            mProjection = glm::perspective(mFOV, mAspectRatio, mNearClip, mFarClip);
+        }
     }
 }

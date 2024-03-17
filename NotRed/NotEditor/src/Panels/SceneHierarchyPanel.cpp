@@ -81,5 +81,68 @@ namespace NR
 
             ImGui::TreePop();
         }
+
+        if (entity.HasComponent<CameraComponent>())
+        {
+            if (ImGui::TreeNodeEx((void*)typeid(CameraComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Camera"))
+            {
+                auto& cameraComponent = entity.GetComponent<CameraComponent>();
+                auto& camera = entity.GetComponent<CameraComponent>().Camera;
+                const char* projectionTypes[] = { "Perspective", "Orthographic" };
+                int currentProjection = (int)camera.GetProjectionType();
+
+                ImGui::Checkbox("Primary Camera", &cameraComponent.IsPrimary);
+                ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.HasFixedAspectRatio);
+
+                if (ImGui::Combo("Projection", &currentProjection, projectionTypes, 2))
+                {
+                    camera.SetProjectionType((SceneCamera::ProjectionType)currentProjection);
+                }
+
+                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+                {
+                    float fov = glm::degrees(camera.GetFOV());
+                    if (ImGui::DragFloat("FOV", &fov, 0.5f))
+                    {
+                        camera.SetFOV(glm::radians(fov));
+                    }
+
+                    float perspectiveNear = camera.GetNearClip();
+                    if (ImGui::DragFloat("Near Clip", &perspectiveNear, 0.5f))
+                    {
+                        camera.SetNearClip(perspectiveNear);
+                    }
+
+                    float perspectiveFar = camera.GetFarClip();
+                    if (ImGui::DragFloat("Far Clip", &perspectiveFar, 0.5f))
+                    {
+                        camera.SetFarClip(perspectiveFar);
+                    }
+                }
+                else
+                {
+                    float orthoSize = camera.GetFOV();
+                    if (ImGui::DragFloat("Size", &orthoSize, 0.5f))
+                    {
+                        camera.SetFOV(orthoSize);
+                    }
+
+                    float orthoNear = camera.GetNearClip();
+                    if (ImGui::DragFloat("Near Clip", &orthoNear, 0.5f))
+                    {
+                        camera.SetNearClip(orthoNear);
+                    }
+
+                    float orthoFar = camera.GetFarClip();
+                    if (ImGui::DragFloat("Far Clip", &orthoFar, 0.5f))
+                    {
+                        camera.SetFarClip(orthoFar);
+                    }
+
+                }
+
+                ImGui::TreePop();
+            }
+        }
     }
 }
