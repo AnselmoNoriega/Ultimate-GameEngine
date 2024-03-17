@@ -125,15 +125,6 @@ namespace NR
 
         mSceneHierarchyPanel.ImGuiRender();
 
-        ImGui::Begin("Settings");
-
-        ImGui::Separator();
-        auto& color = mEntity.GetComponent<SpriteRendererComponent>().Color;
-        ImGui::ColorEdit4("Square Color", glm::value_ptr(color));
-        ImGui::Separator();
-
-        ImGui::End();
-
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
 
