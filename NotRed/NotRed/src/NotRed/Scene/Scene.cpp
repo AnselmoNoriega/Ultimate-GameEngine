@@ -41,7 +41,7 @@ namespace NR
         }
 
         Camera* mainCamera = nullptr;
-        glm::mat4* cameraTransform = nullptr;
+        glm::mat4 cameraTransform;
         {
             auto view = mRegistry.view<TransformComponent, CameraComponent>();
             for (auto entity : view)
@@ -51,7 +51,7 @@ namespace NR
                 if (camera.IsPrimary)
                 {
                     mainCamera = &camera.Camera;
-                    cameraTransform = &tranform.Transform;
+                    cameraTransform = tranform.GetTransform();
                     break;
                 }
             }
@@ -59,14 +59,14 @@ namespace NR
 
         if (mainCamera)
         {
-            Renderer2D::BeginScene(*mainCamera, *cameraTransform);
+            Renderer2D::BeginScene(*mainCamera, cameraTransform);
 
             auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
             for (auto entity : group)
             {
                 auto&& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
 
-                Renderer2D::DrawQuad(transform, sprite.Color);
+                Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
             }
 
             Renderer2D::EndScene();
