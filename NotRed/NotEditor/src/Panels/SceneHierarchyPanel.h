@@ -24,5 +24,8 @@ namespace NR
     private:
         Ref<Scene> mContext;
         Entity mSelectionContext;
+
+        bool mOpenPanel = false;
+        bool mDeleteSelected = false;
     };
 }

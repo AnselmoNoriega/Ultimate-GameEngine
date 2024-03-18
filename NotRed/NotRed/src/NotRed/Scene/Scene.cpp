@@ -81,8 +81,16 @@ namespace NR
         return entity;
     }
 
+    void Scene::RemoveEntity(Entity entity)
+    {
+        mRegistry.destroy(entity);
+    }
+
     void Scene::ViewportResize(uint32_t width, uint32_t height)
     {
+        mWidth = width;
+        mHeight = height;
+
         auto view = mRegistry.view<CameraComponent>();
         for (auto entity : view)
         {
@@ -92,5 +100,40 @@ namespace NR
                 camera.Camera.SetViewportSize(width, height);
             }
         }
+    }
+
+    template<typename T>
+    void Scene::ComponentAdded(Entity entity, T& component)
+    {
+    }
+
+    template<>
+    void Scene::ComponentAdded<TagComponent>(Entity entity, TagComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::ComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::ComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
+    {
+
+    }
+
+    template<>
+    void Scene::ComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
+    {
+        component.Camera.SetViewportSize(mWidth, mHeight);
+    }
+
+    template<>
+    void Scene::ComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
+    {
+
     }
 }

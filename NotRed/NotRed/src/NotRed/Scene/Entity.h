@@ -18,7 +18,9 @@ namespace NR
         T& AddComponent(Args&&... args)
         {
             NR_CORE_ASSERT(!HasComponent<T>(), "This Entity already has this component!");
-            return mScene->mRegistry.emplace<T>(mEntity, std::forward<Args>(args)...);
+            T& component = mScene->mRegistry.emplace<T>(mEntity, std::forward<Args>(args)...);
+            mScene->ComponentAdded<T>(*this, component);
+            return component;
         }
 
         template<typename T>
@@ -42,6 +44,7 @@ namespace NR
         }
 
         operator bool() const { return mEntity != entt::null; }
+        operator entt::entity() const { return mEntity; }
         operator uint32_t() const { return (uint32_t)mEntity; }
 
         bool operator==(const Entity& other) const
