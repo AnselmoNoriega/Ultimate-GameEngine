@@ -50,7 +50,7 @@ namespace NR
         else
         {
             mFOV = glm::radians(45.0f);
-            mNearClip = 0.0f;
+            mNearClip = 0.1f;
             mFarClip = 1000.0f;
         }
 

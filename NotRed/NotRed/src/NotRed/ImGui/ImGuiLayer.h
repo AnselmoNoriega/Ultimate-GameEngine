@@ -19,6 +19,8 @@ namespace NR
 
         void SetEventsActive(bool block) { mEventsBlocked = block; }
 
+        void SetThemeColors();
+
     private:
         bool mEventsBlocked = true;
         float mTime = 0.0f;

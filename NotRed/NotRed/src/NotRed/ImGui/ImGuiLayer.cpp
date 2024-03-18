@@ -33,6 +33,9 @@ namespace NR
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+        io.Fonts->AddFontFromFileTTF("Assets/Fornts/Main/Baskervville-Italic.ttf", 30.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fornts/Main/Baskervville-Regular.ttf", 25.0f);
+
         ImGui::StyleColorsDark();
 
         ImGuiStyle& style = ImGui::GetStyle();
@@ -41,6 +44,8 @@ namespace NR
             style.WindowRounding = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
+
+        SetThemeColors();
 
         Application& app = Application::Get();
         GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
@@ -96,5 +101,34 @@ namespace NR
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }
+    }
+
+    void ImGuiLayer::SetThemeColors()
+    {
+        auto& colors = ImGui::GetStyle().Colors;
+
+        colors[ImGuiCol_WindowBg] = ImVec4{ 0.03f, 0.0f, 0.0f, 1.0f };
+
+        colors[ImGuiCol_Header] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.2f, 0.2f, 0.2f, 1.0f };
+        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+
+        colors[ImGuiCol_Button] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.2f, 0.2f, 0.2f, 1.0f };
+        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+
+        colors[ImGuiCol_FrameBg] = ImVec4{ 0.08f, 0.08f, 0.08f, 1.0f };
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.13f, 0.1f, 0.1f, 1.0f };
+
+        colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_TabHovered] = ImVec4{ 0.38f, 0.38f, 0.38f, 1.0f };
+        colors[ImGuiCol_TabActive] = ImVec4{ 0.28f, 0.28f, 0.28f, 1.0f };
+        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.2f, 0.2f, 0.2f, 1.0f };
+
+        colors[ImGuiCol_TitleBg] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
     }
 }
