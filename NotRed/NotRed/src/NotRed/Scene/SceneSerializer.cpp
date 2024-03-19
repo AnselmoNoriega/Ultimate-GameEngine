@@ -217,7 +217,7 @@ namespace NR
                 }
 
                 auto scYaml = entity["SpriteRendererComponent"];
-                if (ccYaml)
+                if (scYaml)
                 {
                     auto& sc = loadedEntity.AddComponent<SpriteRendererComponent>();
                     sc.Color = scYaml["Color"].as<glm::vec4>();
