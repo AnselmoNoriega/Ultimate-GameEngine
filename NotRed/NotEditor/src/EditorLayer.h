@@ -22,16 +22,10 @@ namespace NR
         Ref<Scene> mActiveScene;
         SceneHierarchyPanel mSceneHierarchyPanel;
 
-        Ref<Texture2D> mTexture;
         Ref<Framebuffer> mFramebuffer;
 
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         bool mViewportFocused = false,
              mViewportHovered = false;
-
-        glm::vec4 mSquareColor = { 0.8f, 0.3f, 0.2f, 1.0f };
-
-        Entity mEntity;
-        Entity mCameraEntity;
     };
 }

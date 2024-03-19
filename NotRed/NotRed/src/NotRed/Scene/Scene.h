@@ -28,6 +28,7 @@ namespace NR
 
         friend class Entity;
         friend class SceneHierarchyPanel;
+        friend class SceneSerializer;
 
         uint32_t mWidth = 0, mHeight = 0;
     };

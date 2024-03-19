@@ -22,6 +22,9 @@
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Scene">
+      <UniqueIdentifier>{45903309-3189-525B-5ABB-37E046133267}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
@@ -96,6 +99,9 @@
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Camera.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Framebuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -138,6 +144,24 @@
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Components.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Entity.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Scene.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\SceneCamera.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\SceneSerializer.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLContext.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -171,12 +195,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Scene\Scene.h" />
-    <ClInclude Include="src\NotRed\Scene\Components.h" />
-    <ClInclude Include="src\NotRed\Scene\Entity.h" />
-    <ClInclude Include="src\NotRed\Renderer\Camera.h" />
-    <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
-    <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -236,6 +254,18 @@
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\Entity.cpp">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\Scene.cpp">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\SceneSerializer.cpp">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLContext.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -272,8 +302,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
-    <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
-    <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp" />
   </ItemGroup>
 </Project>

@@ -17,13 +17,14 @@ IncludeDir["Glad"] = "NotRed/vendor/glad/include"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 IncludeDir["Glm"] = "NotRed/vendor/glm"
 IncludeDir["Stb"] = "NotRed/vendor/stb_image"
-
 IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
+IncludeDir["Yaml"] = "NotRed/vendor/yaml-cpp/include"
 
 group "Dependencies"
 	include "NotRed/vendor/GLFW"
 	include "NotRed/vendor/glad"
 	include "NotRed/vendor/imgui"
+	include "NotRed/vendor/yaml-cpp"
 
 group ""
 
@@ -63,8 +64,8 @@ project "NotRed"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Glm}",
 		"%{IncludeDir.Stb}",
-
-		"%{IncludeDir.Entt}"
+		"%{IncludeDir.Entt}",
+		"%{IncludeDir.Yaml}"
 	}
 
 	links
@@ -72,6 +73,7 @@ project "NotRed"
 		"GLFW",
 		"glad",
 		"imgui",
+		"yaml-cpp",
 		"opengl32.lib"
 	}
 

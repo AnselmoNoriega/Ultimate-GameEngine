@@ -3,6 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "imgui/imgui.h"
+#include "NotRed/Scene/SceneSerializer.h"
 
 namespace NR
 {
@@ -15,8 +16,6 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        mTexture = Texture2D::Create("Assets/Textures/Image_Two.png");
-
         FramebufferStruct fbSpecs;
         fbSpecs.Width = 1280;
         fbSpecs.Height = 720;
@@ -24,12 +23,6 @@ namespace NR
 
         mActiveScene = CreateRef<Scene>();
         mSceneHierarchyPanel.SetContext(mActiveScene);
-
-        mEntity = mActiveScene->CreateEntity();
-        mEntity.AddComponent<SpriteRendererComponent>();
-
-        mCameraEntity = mActiveScene->CreateEntity("Camera");
-        mCameraEntity.AddComponent<CameraComponent>();
     }
 
     void EditorLayer::Detach()
@@ -122,6 +115,17 @@ namespace NR
                 // Disabling fullscreen would allow the window to be moved to the front of other windows, 
                 // which we can't undo at the moment without finer window depth/z control.
                 //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+                if (ImGui::MenuItem("Save Scene"))
+                {
+                    SceneSerializer serializer(mActiveScene);
+                    serializer.Serialize("Assets/SaveFiles/NotSafe.nr");
+                }
+                if (ImGui::MenuItem("Load Scene"))
+                {
+                    SceneSerializer serializer(mActiveScene);
+                    serializer.Deserialize("Assets/SaveFiles/NotSafe.nr");
+                }
+                
                 if (ImGui::MenuItem("Exit")) Application::Get().Close();
                 ImGui::EndMenu();
             }
