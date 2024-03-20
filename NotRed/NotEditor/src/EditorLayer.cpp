@@ -5,6 +5,8 @@
 #include "imgui/imgui.h"
 #include "NotRed/Scene/SceneSerializer.h"
 
+#include "NotRed/Utils/PlatformUtils.h"
+
 namespace NR
 {
     EditorLayer::EditorLayer()
@@ -32,7 +34,7 @@ namespace NR
     void EditorLayer::Update(float deltaTime)
     {
         NR_PROFILE_FUNCTION();
-        
+
         if (FramebufferStruct spec = mFramebuffer->GetSpecification();
             mViewportSize.x > 0.0f && mViewportSize.y > 0.0f &&
             (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
@@ -44,7 +46,7 @@ namespace NR
         {
             NR_PROFILE_SCOPE("Render Start");
             mFramebuffer->Bind();
-            RenderCommand::SetClearColor({ 0.05f, 0, 0, 1 });
+            RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
             RenderCommand::Clear();
         }
 
@@ -55,11 +57,6 @@ namespace NR
 
             mFramebuffer->Unbind();
         }
-    }
-
-    void EditorLayer::OnEvent(Event& myEvent)
-    {
-
     }
 
     void EditorLayer::ImGuiRender()
@@ -115,17 +112,19 @@ namespace NR
                 // Disabling fullscreen would allow the window to be moved to the front of other windows, 
                 // which we can't undo at the moment without finer window depth/z control.
                 //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
-                if (ImGui::MenuItem("Save Scene"))
+                if (ImGui::MenuItem("New", "Ctrl+N"))
                 {
-                    SceneSerializer serializer(mActiveScene);
-                    serializer.Serialize("Assets/SaveFiles/NotSafe.nr");
+                    NewScene();
                 }
-                if (ImGui::MenuItem("Load Scene"))
+                if (ImGui::MenuItem("Open...", "Ctrl+O"))
                 {
-                    SceneSerializer serializer(mActiveScene);
-                    serializer.Deserialize("Assets/SaveFiles/NotSafe.nr");
+                    OpenScene();
                 }
-                
+                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
+                {
+                    SaveSceneAs();
+                }
+
                 if (ImGui::MenuItem("Exit")) Application::Get().Close();
                 ImGui::EndMenu();
             }
@@ -151,5 +150,85 @@ namespace NR
         ImGui::PopStyleVar();
 
         ImGui::End();
+    }
+
+    void EditorLayer::OnEvent(Event& myEvent)
+    {
+        EventDispatcher dispatch(myEvent);
+        dispatch.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::KeyPressed));
+    }
+
+    bool EditorLayer::KeyPressed(KeyPressedEvent& e)
+    {
+        if (e.GetRepeatCount() > 0)
+        {
+            return false;
+        }
+
+        bool ctrl = Input::IsKeyPressed(KeyCode::Left_Control) || Input::IsKeyPressed(KeyCode::Right_Control);
+        bool shift = Input::IsKeyPressed(KeyCode::Left_Shift) || Input::IsKeyPressed(KeyCode::Right_Shift);
+
+        switch ((KeyCode)e.GetKeyCode())
+        {
+        case KeyCode::N:
+        {
+            if (ctrl)
+            {
+                NewScene();
+            }
+            break;
+        }
+        case KeyCode::O:
+        {
+            if (ctrl)
+            {
+                OpenScene();
+            }
+            break;
+        }
+        case KeyCode::S:
+        {
+            if (ctrl && shift)
+            {
+                SaveSceneAs();
+            }
+            break;
+        }
+        default:
+            return false;
+        }
+    }
+
+    void EditorLayer::NewScene()
+    {
+        mActiveScene = CreateRef<Scene>();
+        mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+        mSceneHierarchyPanel.SetContext(mActiveScene);
+    }
+
+    void EditorLayer::OpenScene()
+    {
+        std::string filepath = FileDialogs::OpenFile("NotRed Scene (*.nr)\0*.nr\0");
+
+        if (!filepath.empty())
+        {
+            mActiveScene = CreateRef<Scene>();
+            mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mSceneHierarchyPanel.SetContext(mActiveScene);
+
+            SceneSerializer serializer(mActiveScene);
+            serializer.Deserialize(filepath);
+        }
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {
+        std::string filepath = FileDialogs::SaveFile("NotRed Scene (*.nr)\0*.nr\0");
+
+        if (!filepath.empty())
+        {
+            SceneSerializer serializer(mActiveScene);
+            serializer.Serialize(filepath);
+        }
     }
 }

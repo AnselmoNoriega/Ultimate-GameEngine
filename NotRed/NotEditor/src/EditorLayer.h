@@ -19,6 +19,13 @@ namespace NR
         void ImGuiRender() override;
 
     private:
+        bool KeyPressed(KeyPressedEvent& e);
+
+        void OpenScene();
+        void SaveSceneAs();
+        void NewScene();
+
+    private:
         Ref<Scene> mActiveScene;
         SceneHierarchyPanel mSceneHierarchyPanel;
 
@@ -26,6 +33,6 @@ namespace NR
 
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         bool mViewportFocused = false,
-             mViewportHovered = false;
+            mViewportHovered = false;
     };
 }

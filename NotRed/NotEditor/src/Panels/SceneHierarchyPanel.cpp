@@ -16,6 +16,7 @@ namespace NR
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& context)
     {
         mContext = context;
+        mSelectionContext = {};
     }
 
     void SceneHierarchyPanel::ImGuiRender()
@@ -229,13 +230,13 @@ namespace NR
 
         if (ImGui::BeginPopup("AddComponent"))
         {
-            if (ImGui::MenuItem("Camera"))
+            if (!mSelectionContext.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
             {
                 mSelectionContext.AddComponent<CameraComponent>();
                 ImGui::CloseCurrentPopup();
             }
 
-            if (ImGui::MenuItem("Sprite Renderer"))
+            if (!mSelectionContext.HasComponent<SpriteRendererComponent>() && ImGui::MenuItem("Sprite Renderer"))
             {
                 mSelectionContext.AddComponent<SpriteRendererComponent>();
                 ImGui::CloseCurrentPopup();

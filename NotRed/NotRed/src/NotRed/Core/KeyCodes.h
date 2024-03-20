@@ -128,14 +128,14 @@ namespace NR
         Kp_enter             = 335,
         Kp_equal             = 336,
 
-        Left_shift           = 340,
-        Left_control         = 341,
-        Left_alt             = 342,
-        Left_super           = 343,
-        Right_shift          = 344,
-        Right_control        = 345,
-        Right_alt            = 346,
-        Right_super          = 347,
+        Left_Shift           = 340,
+        Left_Control         = 341,
+        Left_Alt             = 342,
+        Left_Super           = 343,
+        Right_Shift          = 344,
+        Right_Control        = 345,
+        Right_Alt            = 346,
+        Right_Super          = 347,
         Menu                 = 348,
     };
 }
