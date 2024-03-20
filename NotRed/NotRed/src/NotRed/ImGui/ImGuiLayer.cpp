@@ -107,7 +107,7 @@ namespace NR
     {
         auto& colors = ImGui::GetStyle().Colors;
 
-        colors[ImGuiCol_WindowBg] = ImVec4{ 0.03f, 0.0f, 0.0f, 1.0f };
+        colors[ImGuiCol_WindowBg] = ImVec4{ 0.01f, 0.01f, 0.01f, 1.0f };
 
         colors[ImGuiCol_Header] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
         colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.2f, 0.2f, 0.2f, 1.0f };
