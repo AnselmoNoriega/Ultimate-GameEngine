@@ -17,6 +17,8 @@ namespace NR
 
         void ImGuiRender();
 
+        Entity GetSelectedEntity() { return mSelectionContext; }
+
     private:
         void DrawNode(Entity& entity);
         void DrawComponents(Entity& entity);

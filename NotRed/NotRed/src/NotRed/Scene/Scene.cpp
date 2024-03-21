@@ -102,6 +102,20 @@ namespace NR
         }
     }
 
+    Entity Scene::GetPrimaryCameraEntity()
+    {
+        auto view = mRegistry.view<CameraComponent>();
+        for (auto entity : view)
+        {
+            const auto& camera = view.get<CameraComponent>(entity);
+            if (camera.IsPrimary)
+            {
+                return Entity{ entity, this };
+            }
+        }
+        return {};
+    }
+
     template<typename T>
     void Scene::ComponentAdded(Entity entity, T& component)
     {

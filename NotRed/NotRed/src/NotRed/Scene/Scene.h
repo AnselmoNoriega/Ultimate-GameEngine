@@ -19,6 +19,8 @@ namespace NR
 
         void ViewportResize(uint32_t width, uint32_t height);
 
+        Entity GetPrimaryCameraEntity();
+
     private:
         template<typename T>
         void ComponentAdded(Entity entity, T& component);

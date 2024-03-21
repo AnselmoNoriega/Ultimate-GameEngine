@@ -25,6 +25,9 @@
     <Filter Include="src\NotRed\Scene">
       <UniqueIdentifier>{45903309-3189-525B-5ABB-37E046133267}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Utils">
+      <UniqueIdentifier>{88246109-741D-805B-9D4F-65E089A75F67}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform">
       <UniqueIdentifier>{21CA02E5-0D2D-9289-B6B2-CA3FA2F45D0C}</UniqueIdentifier>
     </Filter>
@@ -36,6 +39,9 @@
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\ImGuizmo">
+      <UniqueIdentifier>{73BF7F4C-DF4A-ED10-E85B-700554664911}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\stb_image">
       <UniqueIdentifier>{0DA0BA59-F998-D9AB-22CB-BE300E23B9B7}</UniqueIdentifier>
@@ -162,6 +168,9 @@
     <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Utils\PlatformUtils.h">
+      <Filter>src\NotRed\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLContext.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -192,10 +201,12 @@
     <ClInclude Include="src\nrpch.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h">
+      <Filter>vendor\ImGuizmo</Filter>
+    </ClInclude>
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Utils\PlatformUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -294,15 +305,20 @@
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Windows\WindowsUtils.cpp">
+      <Filter>src\Platform\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
+      <Filter>vendor\ImGuizmo</Filter>
+    </ClCompile>
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Windows\WindowsUtils.cpp" />
   </ItemGroup>
 </Project>

@@ -2,10 +2,12 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "imgui/imgui.h"
+#include "NotRed/Math/Math.h"
+#include "NotRed/Utils/PlatformUtils.h"
 #include "NotRed/Scene/SceneSerializer.h"
 
-#include "NotRed/Utils/PlatformUtils.h"
+#include "imgui/imgui.h"
+#include "ImGuizmo.h"
 
 namespace NR
 {
@@ -146,6 +148,42 @@ namespace NR
         uint32_t textureID = mFramebuffer->GetTextureRendererID();
         ImGui::Image((void*)textureID, ImVec2{ mViewportSize.x, mViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
+        Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
+        if (selectedEntity && mGizmoType >= 0)
+        {
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+
+            ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+
+            auto cameraEntity = mActiveScene->GetPrimaryCameraEntity();
+            const glm::mat4& camProj = cameraEntity.GetComponent<CameraComponent>().Camera.GetProjection();
+
+            auto& tc = selectedEntity.GetComponent<TransformComponent>();
+            glm::mat4 transform = tc.GetTransform();
+            glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+
+            bool snap = Input::IsKeyPressed(KeyCode::Left_Control);
+            float snapValue = mGizmoType != ImGuizmo::OPERATION::ROTATE ? 1.0f : 45.0f;
+
+            float snapValues[3] = { snapValue, snapValue, snapValue };
+
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(camProj), 
+                (ImGuizmo::OPERATION)mGizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snapValues : nullptr);
+
+            if (ImGuizmo::IsUsing())
+            {
+                glm::vec3 translation, rotation, scale;
+                Math::DecomposeTransform(transform, translation, rotation, scale);
+
+                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                tc.Translation = translation;
+                tc.Rotation += deltaRotation;
+                tc.Scale = scale;
+            }
+        }
+
         ImGui::End();
         ImGui::PopStyleVar();
 
@@ -194,6 +232,26 @@ namespace NR
             }
             break;
         }
+
+        //Gizmos
+        case KeyCode::Q:
+        {
+            mGizmoType = -1;
+            break;
+        }case KeyCode::W:
+        {
+            mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            break;
+        }case KeyCode::E:
+        {
+            mGizmoType = ImGuizmo::OPERATION::SCALE;
+            break;
+        }case KeyCode::R:
+        {
+            mGizmoType = ImGuizmo::OPERATION::ROTATE;
+            break;
+        }
+
         default:
             return false;
         }

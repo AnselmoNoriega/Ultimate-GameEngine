@@ -19,6 +19,7 @@ IncludeDir["Glm"] = "NotRed/vendor/glm"
 IncludeDir["Stb"] = "NotRed/vendor/stb_image"
 IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
 IncludeDir["Yaml"] = "NotRed/vendor/yaml-cpp/include"
+IncludeDir["ImGuizmo"] = "NotRed/vendor/ImGuizmo"
 
 group "Dependencies"
 	include "NotRed/vendor/GLFW"
@@ -46,7 +47,10 @@ project "NotRed"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/vendor/stb_image/**.h",
-		"%{prj.name}/vendor/stb_image/**.cpp"
+		"%{prj.name}/vendor/stb_image/**.cpp",
+
+		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.h",
+		"%{prj.name}/vendor/ImGuizmo/ImGuizmo.cpp"
 	}
 
 
@@ -65,7 +69,8 @@ project "NotRed"
 		"%{IncludeDir.Glm}",
 		"%{IncludeDir.Stb}",
 		"%{IncludeDir.Entt}",
-		"%{IncludeDir.Yaml}"
+		"%{IncludeDir.Yaml}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links
@@ -76,6 +81,9 @@ project "NotRed"
 		"yaml-cpp",
 		"opengl32.lib"
 	}
+
+	filter "files:NotRed/vendor/ImGuizmo/**.cpp"
+	flags { "NoPCH" }
 
 	filter "system:windows"
 		systemversion "latest"
@@ -178,8 +186,8 @@ project "NotEditor"
 		"NotRed/src",
 		"NotRed/vendor",
 		"%{IncludeDir.Glm}",
-
-		"%{IncludeDir.Entt}"
+		"%{IncludeDir.Entt}",
+		"%{IncludeDir.ImGuizmo}"
 	}
 
 	links
