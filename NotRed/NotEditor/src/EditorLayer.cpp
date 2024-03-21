@@ -140,7 +140,7 @@ namespace NR
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused || !mViewportHovered);
+        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused && !mViewportHovered);
 
         ImVec2 vpSize = ImGui::GetContentRegionAvail();
         mViewportSize = { vpSize.x, vpSize.y };
