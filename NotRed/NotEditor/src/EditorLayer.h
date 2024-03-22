@@ -3,6 +3,8 @@
 #include "NotRed.h"
 #include "Panels/SceneHierarchyPanel.h"
 
+#include "NotRed/Renderer/EditorCamera.h"
+
 namespace NR
 {
     class EditorLayer : public Layer
@@ -28,6 +30,8 @@ namespace NR
     private:
         Ref<Scene> mActiveScene;
         SceneHierarchyPanel mSceneHierarchyPanel;
+
+        EditorCamera mEditorCamera;
 
         Ref<Framebuffer> mFramebuffer;
 

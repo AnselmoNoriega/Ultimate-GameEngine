@@ -21,12 +21,14 @@ namespace NR
         NR_PROFILE_FUNCTION();
 
         FramebufferStruct fbSpecs;
-        fbSpecs.Width = 1280;
-        fbSpecs.Height = 720;
+        fbSpecs.Width = 1600;
+        fbSpecs.Height = 900;
         mFramebuffer = Framebuffer::Create(fbSpecs);
 
         mActiveScene = CreateRef<Scene>();
         mSceneHierarchyPanel.SetContext(mActiveScene);
+
+        mEditorCamera = EditorCamera(30.0f, 16 / 9, 0.1f, 1000.0f);
     }
 
     void EditorLayer::Detach()
@@ -42,11 +44,18 @@ namespace NR
             (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
         {
             mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
             mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+        }
+
+        if (mViewportFocused)
+        {
+            mEditorCamera.OnUpdate(deltaTime);
         }
 
         {
             NR_PROFILE_SCOPE("Render Start");
+            Renderer2D::ResetStats();
             mFramebuffer->Bind();
             RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
             RenderCommand::Clear();
@@ -55,7 +64,7 @@ namespace NR
         {
             NR_PROFILE_SCOPE("Rendering");
 
-            mActiveScene->Update(deltaTime);
+            mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
 
             mFramebuffer->Unbind();
         }
@@ -156,12 +165,17 @@ namespace NR
 
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
 
-            auto cameraEntity = mActiveScene->GetPrimaryCameraEntity();
-            const glm::mat4& camProj = cameraEntity.GetComponent<CameraComponent>().Camera.GetProjection();
+            //auto cameraEntity = mActiveScene->GetPrimaryCameraEntity();
+            //const glm::mat4& camProj = cameraEntity.GetComponent<CameraComponent>().Camera.GetProjection();
+            //
+            //auto& tc = selectedEntity.GetComponent<TransformComponent>();
+            //glm::mat4 transform = tc.GetTransform();
+            //glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
 
+            const glm::mat4& camProj = mEditorCamera.GetProjection();
+            glm::mat4 cameraView = mEditorCamera.GetViewMatrix(); 
             auto& tc = selectedEntity.GetComponent<TransformComponent>();
             glm::mat4 transform = tc.GetTransform();
-            glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
 
             bool snap = Input::IsKeyPressed(KeyCode::Left_Control);
             float snapValue = mGizmoType != ImGuizmo::OPERATION::ROTATE ? 1.0f : 45.0f;
@@ -192,6 +206,8 @@ namespace NR
 
     void EditorLayer::OnEvent(Event& myEvent)
     {
+        mEditorCamera.OnEvent(myEvent);
+
         EventDispatcher dispatch(myEvent);
         dispatch.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::KeyPressed));
     }
@@ -251,10 +267,9 @@ namespace NR
             mGizmoType = ImGuizmo::OPERATION::ROTATE;
             break;
         }
-
-        default:
-            return false;
         }
+
+        return false;
     }
 
     void EditorLayer::NewScene()

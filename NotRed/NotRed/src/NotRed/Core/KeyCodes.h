@@ -4,7 +4,6 @@ namespace NR
 {
     typedef enum class KeyCode : uint16_t
     {
-
         Space                = 32,
         Apostrophe           = 39,
         Comma                = 44,

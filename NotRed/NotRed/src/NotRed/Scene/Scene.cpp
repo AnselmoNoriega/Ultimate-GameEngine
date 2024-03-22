@@ -24,7 +24,22 @@ namespace NR
             });
     }
 
-    void Scene::Update(float dt)
+    void Scene::UpdateEditor(float dt, EditorCamera& camera)
+    {
+        Renderer2D::BeginScene(camera);
+
+        auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+        for (auto entity : group)
+        {
+            auto&& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+
+            Renderer2D::DrawQuad(transform.GetTransform(), sprite.Color);
+        }
+
+        Renderer2D::EndScene();
+    }
+
+    void Scene::UpdateRunTime(float dt)
     {
         {
             mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NotRed/Renderer/EditorCamera.h"
+
 #include "entt.hpp"
 
 namespace NR
@@ -12,7 +14,8 @@ namespace NR
         Scene();
         ~Scene();
 
-        void Update(float dt); 
+        void UpdateEditor(float dt, EditorCamera& camera); 
+        void UpdateRunTime(float dt);
 
         Entity CreateEntity(const std::string& tagName = "Object");
         void RemoveEntity(Entity entity);
