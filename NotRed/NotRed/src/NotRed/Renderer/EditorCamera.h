@@ -16,7 +16,7 @@ namespace NR
 		EditorCamera(float fov, float aspectRatio, float nearClip, float farClip);
 		~EditorCamera() override = default;
 
-		void OnUpdate(float dt);
+		void Update(float dt);
 		void OnEvent(Event& e);
 
 		inline float GetDistance() const { return mDistance; }

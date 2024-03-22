@@ -23,6 +23,7 @@ namespace NR
 
 	void EditorCamera::UpdateView()
 	{
+		mYaw = mPitch = 0.0f;
 		mPosition = CalculatePosition();
 
 		glm::quat orientation = GetOrientation();
@@ -55,7 +56,7 @@ namespace NR
 		return speed;
 	}
 
-	void EditorCamera::OnUpdate(float dt)
+	void EditorCamera::Update(float dt)
 	{
 		if (Input::IsKeyPressed(KeyCode::Left_Alt))
 		{

@@ -21,6 +21,7 @@ namespace NR
         NR_PROFILE_FUNCTION();
 
         FramebufferStruct fbSpecs;
+        fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
         fbSpecs.Width = 1600;
         fbSpecs.Height = 900;
         mFramebuffer = Framebuffer::Create(fbSpecs);
@@ -48,9 +49,9 @@ namespace NR
             mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
         }
 
-        if (mViewportFocused)
+        if (mViewportFocused || mViewportHovered)
         {
-            mEditorCamera.OnUpdate(deltaTime);
+            mEditorCamera.Update(deltaTime);
         }
 
         {

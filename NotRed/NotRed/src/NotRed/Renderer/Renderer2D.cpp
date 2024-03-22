@@ -215,7 +215,7 @@ namespace NR
         sData.Stats.QuadCount++;
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture)
+    void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color)
     {
         NR_PROFILE_FUNCTION();
 
@@ -257,7 +257,7 @@ namespace NR
         {
             sData.VertexBufferPtr->Position = transform * sData.VertexPositions[i];
             sData.VertexBufferPtr->TexCoord = textureCoords[i];
-            sData.VertexBufferPtr->Color = { 0.0f, 0.0f, 0.0f, 0.0f };
+            sData.VertexBufferPtr->Color = color;
             sData.VertexBufferPtr->TexIndex = textureIndex;
             sData.VertexBufferPtr++;
         }
