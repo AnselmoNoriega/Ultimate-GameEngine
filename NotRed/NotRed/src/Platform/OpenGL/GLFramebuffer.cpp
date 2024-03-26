@@ -71,6 +71,16 @@ namespace NR
         return false;
     }
 
+    static GLenum NotRedTextureFormatToGL(FramebufferTextureFormat format)
+    {
+        switch (format)
+        {
+        case FramebufferTextureFormat::RGBA8:                  return GL_RGBA8;
+        case FramebufferTextureFormat::RED_INTEGER:            return GL_RED_INTEGER;
+        default: NR_CORE_ASSERT(false, "Invalid Format!");     return 0;
+        }
+    }
+
     GLFramebuffer::GLFramebuffer(const FramebufferStruct& spec)
         :mSpecification(spec)
     {
@@ -209,6 +219,15 @@ namespace NR
         int pixelData;
         glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
         return pixelData;
+    }
+
+    void GLFramebuffer::ClearAttachment(uint32_t attachmentIndex, int value)
+    {
+        NR_CORE_ASSERT(attachmentIndex < mTextureIDs.size(), "Index out of Array!");
+
+        auto format = mTextureAttachmentSpecification[attachmentIndex].TextureFormat;
+
+        glClearTexImage(mTextureIDs[attachmentIndex], 0, NotRedTextureFormatToGL(format), GL_INT, &value);
     }
 
     void GLFramebuffer::Bind()

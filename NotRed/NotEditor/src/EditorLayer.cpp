@@ -60,6 +60,8 @@ namespace NR
             mFramebuffer->Bind();
             RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
             RenderCommand::Clear();
+
+            //mFramebuffer->ClearAttachment(1, -1);
         }
 
         {

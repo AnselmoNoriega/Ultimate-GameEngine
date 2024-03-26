@@ -16,6 +16,8 @@ namespace NR
         void Resize(uint32_t width, uint32_t height) override;
         int GetPixel(uint32_t attachmentIndex, int x, int y) override;
 
+        void ClearAttachment(uint32_t attachmentIndex, int value) override;
+
         const FramebufferStruct& GetSpecification() const override;
         uint32_t GetTextureRendererID(uint32_t index = 0) const override
         {
