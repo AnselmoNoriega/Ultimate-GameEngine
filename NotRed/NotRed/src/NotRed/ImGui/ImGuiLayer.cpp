@@ -35,8 +35,8 @@ namespace NR
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        io.Fonts->AddFontFromFileTTF("Assets/Fornts/Main/Baskervville-Italic.ttf", 30.0f);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fornts/Main/Baskervville-Regular.ttf", 25.0f);
+        io.Fonts->AddFontFromFileTTF("Assets/Fonts/Main/Baskervville-Italic.ttf", 30.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/Main/Baskervville-Regular.ttf", 25.0f);
 
         ImGui::StyleColorsDark();
 

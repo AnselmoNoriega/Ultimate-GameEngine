@@ -39,6 +39,8 @@ namespace NR
         bool mViewportFocused = false,
             mViewportHovered = false;
 
+        glm::vec2 mViewportBounds[2];
+
         int mGizmoType = -1;
     };
 }

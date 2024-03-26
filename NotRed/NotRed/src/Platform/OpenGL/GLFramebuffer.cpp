@@ -23,6 +23,7 @@ namespace NR
     static void AttachColorTexture(
         uint32_t id,
         int samples,
+        GLenum internalFormat,
         GLenum format,
         uint32_t width,
         uint32_t height,
@@ -32,11 +33,11 @@ namespace NR
         bool multisampled = samples > 1;
         if (multisampled)
         {
-            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, format, width, height, GL_FALSE);
+            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, internalFormat, width, height, GL_FALSE);
         }
         else
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -133,6 +134,17 @@ namespace NR
                         mTextureIDs[i],
                         mSpecification.Samples,
                         GL_RGBA8,
+                        GL_RGBA,
+                        mSpecification.Width,
+                        mSpecification.Height, i
+                    );
+                    break;
+                case FramebufferTextureFormat::RED_INTEGER:
+                    AttachColorTexture(
+                        mTextureIDs[i],
+                        mSpecification.Samples,
+                        GL_R32I,
+                        GL_RED_INTEGER,
                         mSpecification.Width,
                         mSpecification.Height, i
                     );
@@ -187,6 +199,16 @@ namespace NR
         mSpecification.Height = height;
 
         Invalidate();
+    }
+
+    int GLFramebuffer::GetPixel(uint32_t attachmentIndex, int x, int y)
+    {
+        NR_CORE_ASSERT(attachmentIndex < mTextureIDs.size(), "Index out of Array!");
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+
+        int pixelData;
+        glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+        return pixelData;
     }
 
     void GLFramebuffer::Bind()

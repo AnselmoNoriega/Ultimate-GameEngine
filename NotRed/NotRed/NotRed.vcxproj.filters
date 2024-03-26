@@ -19,6 +19,9 @@
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Math">
+      <UniqueIdentifier>{01C30D27-6D4E-7BEB-765F-FEDFE269D7EB}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
     </Filter>
@@ -102,10 +105,16 @@
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Math\Math.h">
+      <Filter>src\NotRed\Math</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\EditorCamera.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Framebuffer.h">
@@ -207,8 +216,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Math\Math.h" />
-    <ClInclude Include="src\NotRed\Renderer\EditorCamera.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -228,6 +235,12 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp">
       <Filter>src\NotRed\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Math\Math.cpp">
+      <Filter>src\NotRed\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\EditorCamera.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
@@ -322,7 +335,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Math\Math.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\EditorCamera.cpp" />
   </ItemGroup>
 </Project>

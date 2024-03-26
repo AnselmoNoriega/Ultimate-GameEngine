@@ -173,6 +173,7 @@ namespace NR
     void Renderer2D::StartBatch()
     {
         sData.IndexCount = 0;
+        sData.Stats.QuadCount = 0;
         sData.VertexBufferPtr = sData.VertexBufferBase;
 
         sData.TextureSlotIndex = 1;
@@ -334,7 +335,7 @@ namespace NR
 
     void Renderer2D::ResetStats()
     {
-        memset(&sData.IndexCount, 0, sizeof(Statistics));
+        memset(&sData.Stats, 0, sizeof(Statistics));
     }
 
     Renderer2D::Statistics Renderer2D::GetStats()

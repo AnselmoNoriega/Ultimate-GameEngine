@@ -145,8 +145,20 @@ namespace NR
 
         mSceneHierarchyPanel.ImGuiRender();
 
+        ImGui::Begin("Stats");
+
+        auto stats = Renderer2D::GetStats();
+        ImGui::Text("Renderer Stats:");
+        ImGui::Text("Draw Calls: %d", stats.DrawCalls);
+        ImGui::Text("Quads: %d", stats.QuadCount);
+        ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
+        ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
+
+        ImGui::End();
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
+        auto viewPortOffset = ImGui::GetCursorPos();
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
@@ -157,6 +169,15 @@ namespace NR
 
         uint32_t textureID = mFramebuffer->GetTextureRendererID();
         ImGui::Image((void*)textureID, ImVec2{ mViewportSize.x, mViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        auto windowSize = ImGui::GetWindowSize();
+        ImVec2 minBound = ImGui::GetWindowPos();
+        minBound.x += viewPortOffset.x;
+        minBound.y += viewPortOffset.y;
+
+        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+        mViewportBounds[0] = { minBound.x, minBound.y };
+        mViewportBounds[1] = { maxBound.x, maxBound.y };
 
         Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && mGizmoType >= 0)

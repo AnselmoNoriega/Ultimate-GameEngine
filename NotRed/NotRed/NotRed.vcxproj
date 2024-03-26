@@ -143,7 +143,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Renderer\EditorCamera.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Core.h" />
@@ -165,6 +164,7 @@
     <ClInclude Include="src\NotRed\Math\Math.h" />
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
+    <ClInclude Include="src\NotRed\Renderer\EditorCamera.h" />
     <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
@@ -200,7 +200,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
@@ -208,6 +207,7 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\EditorCamera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\OrthographicCamera.cpp" />
