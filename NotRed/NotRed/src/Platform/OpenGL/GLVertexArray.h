@@ -21,6 +21,7 @@ namespace NR
 
     private:
         uint32_t mID;
+        uint32_t mVertexBufferIndex = 0;
 
         std::vector<Ref<VertexBuffer>> mVertexBuffers;
         Ref<IndexBuffer> mIndexBuffer;

@@ -9,6 +9,7 @@ namespace NR
     class Texture2D;
     class SubTexture;
     class Camera;
+    struct SpriteRendererComponent;
 
     class Renderer2D
     {
@@ -23,22 +24,20 @@ namespace NR
 
         static void Flush();
 
-        static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
-        static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color = { 0.0f, 0.0f, 0.0f, 0.0f });
+        static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+        static void DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color = { 0.0f, 0.0f, 0.0f, 0.0f }, int entityID = -1);
 
         static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color);
         static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color);
         static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<Texture2D>& texture);
         static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture);
-        static void DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture>& subTexture);
-        static void DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<SubTexture>& subTexture);
 
         static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color);
         static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color);
         static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture);
         static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture);
-        static void DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<SubTexture>& subTexture);
-        static void DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<SubTexture>& subTexture);
+
+        static void DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
 
         struct Statistics
         {

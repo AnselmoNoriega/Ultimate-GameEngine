@@ -7,6 +7,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "SubTexture.h"
+#include "NotRed/Scene/Components.h"
 
 #include "RenderCommand.h"
 
@@ -14,10 +15,12 @@ namespace NR
 {
     struct QuadVertex
     {
-        glm::vec3 Position;
-        glm::vec2 TexCoord;
-        glm::vec4 Color;
-        float TexIndex;
+        glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+        glm::vec2 TexCoord = { 0.0f, 0.0f };
+        glm::vec4 Color = { 0.0f, 0.0f, 0.0f, 0.0f};
+        float TexIndex = 0.0f;
+
+        int EntityID = -1;
     };
 
     struct Renderer2DStorage
@@ -56,8 +59,9 @@ namespace NR
             {
                 {ShaderDataType::Float3, "aPosition"},
                 {ShaderDataType::Float2, "aTexCoord"},
-                {ShaderDataType::Float4, "aColor"},
-                {ShaderDataType::Float, "aTexIndex"}
+                {ShaderDataType::Float4, "aColor"   },
+                {ShaderDataType::Float,  "aTexIndex"},
+                {ShaderDataType::Int,    "aEntityID"}
             });
         sData.VertexArray->AddVertexBuffer(sData.VertexBuffer);
 
@@ -185,7 +189,7 @@ namespace NR
         StartBatch();
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+    void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID)
     {
         NR_PROFILE_FUNCTION();
 
@@ -208,6 +212,7 @@ namespace NR
             sData.VertexBufferPtr->TexCoord = textureCoords[i];
             sData.VertexBufferPtr->Color = color;
             sData.VertexBufferPtr->TexIndex = textureIndex;
+            sData.VertexBufferPtr->EntityID = entityID;
             sData.VertexBufferPtr++;
         }
 
@@ -216,7 +221,7 @@ namespace NR
         sData.Stats.QuadCount++;
     }
 
-    void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color)
+    void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, const glm::vec4& color, int entityID)
     {
         NR_PROFILE_FUNCTION();
 
@@ -260,6 +265,7 @@ namespace NR
             sData.VertexBufferPtr->TexCoord = textureCoords[i];
             sData.VertexBufferPtr->Color = color;
             sData.VertexBufferPtr->TexIndex = textureIndex;
+            sData.VertexBufferPtr->EntityID = entityID;
             sData.VertexBufferPtr++;
         }
 
@@ -288,16 +294,6 @@ namespace NR
         DrawQuad(transform, texture);
     }
 
-    void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& size, const Ref<SubTexture>& subTexture)
-    {
-        NR_PROFILE_FUNCTION();
-
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
-            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
-
-        DrawQuad(transform, subTexture->GetTexture());
-    }
-
     void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
     {
         NR_PROFILE_FUNCTION();
@@ -320,17 +316,9 @@ namespace NR
         DrawQuad(transform, texture);
     }
 
-    void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<SubTexture>& subTexture)
+    void Renderer2D::DrawSprite(const glm::mat4& transform, SpriteRendererComponent& src, int entityID)
     {
-        NR_PROFILE_FUNCTION();
-
-        const Ref<Texture2D> texture = subTexture->GetTexture();
-
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position);
-        transform = glm::rotate(transform, rotation, glm::vec3(0, 0, 1));
-        transform = glm::scale(transform, { size.x, size.y, 1.0f });
-
-        DrawQuad(transform, texture);
+        DrawQuad(transform, src.Color, entityID);
     }
 
     void Renderer2D::ResetStats()
@@ -353,11 +341,6 @@ namespace NR
         DrawQuad({ position.x, position.y, 0.0f }, size, texture);
     }
 
-    void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const Ref<SubTexture>& subTexture)
-    {
-        DrawQuad({ position.x, position.y, 0.0f }, size, subTexture);
-    }
-
     void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)
     {
         DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, color);
@@ -366,10 +349,5 @@ namespace NR
     void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture)
     {
         DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, texture);
-    }
-
-    void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<SubTexture>& subTexture)
-    {
-        DrawRotatedQuad({ position.x, position.y, 0.0f }, size, rotation, subTexture);
     }
 }

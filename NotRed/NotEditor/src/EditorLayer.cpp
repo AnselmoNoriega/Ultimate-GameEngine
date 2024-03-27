@@ -21,7 +21,7 @@ namespace NR
         NR_PROFILE_FUNCTION();
 
         FramebufferStruct fbSpecs;
-        fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::Depth };
+        fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         fbSpecs.Width = 1600;
         fbSpecs.Height = 900;
         mFramebuffer = Framebuffer::Create(fbSpecs);
@@ -61,13 +61,25 @@ namespace NR
             RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
             RenderCommand::Clear();
 
-            //mFramebuffer->ClearAttachment(1, -1);
+            mFramebuffer->ClearAttachment(1, -1);
         }
 
         {
             NR_PROFILE_SCOPE("Rendering");
 
             mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
+
+            auto [mx, my] = ImGui::GetMousePos();
+            mx -= mViewportBounds[0].x;
+            my -= mViewportBounds[0].y;
+            glm::vec2 viewportSize = mViewportBounds[1] - mViewportBounds[0];
+            my = viewportSize.y - my;
+
+            if(mx >= 0.0f && my >= 0.0f && mx < viewportSize.x && my < viewportSize.y)
+            {
+                int pixelData = mFramebuffer->GetPixel(1, mx, my);
+                mHoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, mActiveScene.get());
+            }
 
             mFramebuffer->Unbind();
         }
@@ -148,6 +160,13 @@ namespace NR
         mSceneHierarchyPanel.ImGuiRender();
 
         ImGui::Begin("Stats");
+
+        std::string hoveredEntityName = "None";
+        if (mHoveredEntity)
+        {
+            hoveredEntityName = mHoveredEntity.GetComponent<TagComponent>().Tag;
+        }
+        ImGui::Text("Hovered Entity: %s", hoveredEntityName.c_str());
 
         auto stats = Renderer2D::GetStats();
         ImGui::Text("Renderer Stats:");

@@ -42,5 +42,7 @@ namespace NR
         glm::vec2 mViewportBounds[2];
 
         int mGizmoType = -1;
+
+        Entity mHoveredEntity;
     };
 }
