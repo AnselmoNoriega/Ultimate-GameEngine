@@ -179,26 +179,22 @@ namespace NR
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
         ImGui::Begin("Viewport");
-        auto viewPortOffset = ImGui::GetCursorPos();
+
+        auto minBound = ImGui::GetWindowContentRegionMin();
+        auto maxBound = ImGui::GetWindowContentRegionMax();
+        auto viewportOffset = ImGui::GetWindowPos();
+        mViewportBounds[0] = { minBound.x + viewportOffset.x, minBound.y + viewportOffset.y };
+        mViewportBounds[1] = { maxBound.x + viewportOffset.x, maxBound.y + viewportOffset.y };
+
+        ImVec2 vpSize = ImGui::GetContentRegionAvail();
+        mViewportSize = { vpSize.x, vpSize.y };
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
         Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused && !mViewportHovered);
 
-        ImVec2 vpSize = ImGui::GetContentRegionAvail();
-        mViewportSize = { vpSize.x, vpSize.y };
-
         uint32_t textureID = mFramebuffer->GetTextureRendererID();
         ImGui::Image((void*)textureID, ImVec2{ mViewportSize.x, mViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
-
-        auto windowSize = ImGui::GetWindowSize();
-        ImVec2 minBound = ImGui::GetWindowPos();
-        minBound.x += viewPortOffset.x;
-        minBound.y += viewPortOffset.y;
-
-        ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
-        mViewportBounds[0] = { minBound.x, minBound.y };
-        mViewportBounds[1] = { maxBound.x, maxBound.y };
 
         Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && mGizmoType >= 0)
@@ -253,6 +249,7 @@ namespace NR
 
         EventDispatcher dispatch(myEvent);
         dispatch.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::KeyPressed));
+        dispatch.Dispatch<MouseButtonPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::MouseButtonPressed));
     }
 
     bool EditorLayer::KeyPressed(KeyPressedEvent& e)
@@ -310,6 +307,19 @@ namespace NR
             mGizmoType = ImGuizmo::OPERATION::ROTATE;
             break;
         }
+        }
+
+        return false;
+    }
+
+    bool EditorLayer::MouseButtonPressed(MouseButtonPressedEvent& e)
+    {
+        if (e.GetMouseButton() == (int)MouseCode::ButtonLeft)
+        {
+            if (mViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(KeyCode::Left_Alt))
+            {
+                mSceneHierarchyPanel.SetSelecetedEntity(mHoveredEntity);
+            }
         }
 
         return false;

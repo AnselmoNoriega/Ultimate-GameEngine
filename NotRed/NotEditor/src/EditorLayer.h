@@ -22,6 +22,7 @@ namespace NR
 
     private:
         bool KeyPressed(KeyPressedEvent& e);
+        bool MouseButtonPressed(MouseButtonPressedEvent& e);
 
         void OpenScene();
         void SaveSceneAs();

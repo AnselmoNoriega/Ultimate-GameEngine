@@ -19,6 +19,8 @@ namespace NR
 
         Entity GetSelectedEntity() { return mSelectionContext; }
 
+        void SetSelecetedEntity(Entity entity);
+
     private:
         void DrawNode(Entity& entity);
         void DrawComponents(Entity& entity);

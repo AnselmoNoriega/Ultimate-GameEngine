@@ -55,6 +55,11 @@ namespace NR
         ImGui::End();
     }
 
+    void SceneHierarchyPanel::SetSelecetedEntity(Entity entity)
+    {
+        mSelectionContext = entity;
+    }
+
     void SceneHierarchyPanel::DrawNode(Entity& entity)
     {
         auto& tag = entity.GetComponent<TagComponent>().Tag;
