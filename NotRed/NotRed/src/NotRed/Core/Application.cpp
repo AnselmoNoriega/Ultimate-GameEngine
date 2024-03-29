@@ -18,7 +18,7 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
-    Application::Application(const std::string& name, AppCommandLineArgs args = AppCommandLineArgs())
+    Application::Application(const std::string& name, AppCommandLineArgs args)
         : mCommandLineArgs(args)
     {
         NR_PROFILE_FUNCTION();

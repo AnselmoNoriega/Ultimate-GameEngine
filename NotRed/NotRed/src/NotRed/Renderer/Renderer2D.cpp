@@ -107,7 +107,7 @@ namespace NR
             samplers[i] = i;
         }
 
-        sData.ObjShader = Shader::Create("Assets/Shaders/Texture");
+        sData.ObjShader = Shader::Create("Assets/Shaders/Base");
 
         sData.TextureSlots[0] = sData.EmptyTexture;
 
