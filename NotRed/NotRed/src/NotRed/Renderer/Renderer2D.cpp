@@ -2,11 +2,13 @@
 #include "Renderer2D.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "VertexArray.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "SubTexture.h"
+#include "NotRed/Renderer/UniformBuffer.h"
 #include "NotRed/Scene/Components.h"
 
 #include "RenderCommand.h"
@@ -44,6 +46,14 @@ namespace NR
 
         glm::vec4 VertexPositions[4];
         Renderer2D::Statistics Stats;
+
+
+        struct CameraData
+        {
+            glm::mat4 ViewProjection;
+        };
+        CameraData CameraBuffer;
+        Ref<UniformBuffer> CameraUniformBuffer;
     };
 
     static Renderer2DStorage sData;
@@ -98,8 +108,6 @@ namespace NR
         }
 
         sData.ObjShader = Shader::Create("Assets/Shaders/Texture");
-        sData.ObjShader->Bind();
-        sData.ObjShader->SetIntArray("uTextures", samplers, sData.MaxTextureSlots);
 
         sData.TextureSlots[0] = sData.EmptyTexture;
 
@@ -107,6 +115,8 @@ namespace NR
         sData.VertexPositions[1] = { 0.5, -0.5, 0.0, 1.0f };
         sData.VertexPositions[2] = { 0.5,  0.5, 0.0, 1.0f };
         sData.VertexPositions[3] = { -0.5,  0.5, 0.0, 1.0f };
+
+        sData.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DStorage::CameraData), 0);
     }
 
     void Renderer2D::Shutdown()
@@ -120,10 +130,8 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
-
-        sData.ObjShader->Bind();
-        sData.ObjShader->SetMat4("uViewProjection", viewProj);
+        sData.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
+        sData.CameraUniformBuffer->SetData(&sData.CameraBuffer, sizeof(Renderer2DStorage::CameraData));
 
         StartBatch();
     }
@@ -131,9 +139,9 @@ namespace NR
     void Renderer2D::BeginScene(const EditorCamera& camera)
     {
         NR_PROFILE_FUNCTION();
-
-        sData.ObjShader->Bind();
-        sData.ObjShader->SetMat4("uViewProjection", camera.GetViewProjection());
+        
+		sData.CameraBuffer.ViewProjection = camera.GetViewProjection();
+		sData.CameraUniformBuffer->SetData(&sData.CameraBuffer, sizeof(Renderer2DStorage::CameraData));
 
         StartBatch();
     }
@@ -170,6 +178,7 @@ namespace NR
             sData.TextureSlots[i]->Bind(i);
         }
 
+        sData.ObjShader->Bind();
         RenderCommand::DrawIndexed(sData.VertexArray, sData.IndexCount);
         sData.Stats.DrawCalls++;
     }

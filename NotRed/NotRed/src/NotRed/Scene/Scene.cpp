@@ -103,8 +103,8 @@ namespace NR
 
     void Scene::ViewportResize(uint32_t width, uint32_t height)
     {
-        mWidth = width;
-        mHeight = height;
+        mViewportWidth = width;
+        mViewportHeight = height;
 
         auto view = mRegistry.view<CameraComponent>();
         for (auto entity : view)
@@ -157,7 +157,10 @@ namespace NR
     template<>
     void Scene::ComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
     {
-        component.Camera.SetViewportSize(mWidth, mHeight);
+        if (mViewportWidth > 0 && mViewportHeight > 0)
+        {
+            component.Camera.SetViewportSize(mViewportWidth, mViewportHeight);
+        }
     }
 
     template<>

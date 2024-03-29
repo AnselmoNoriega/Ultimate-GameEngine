@@ -35,6 +35,6 @@ namespace NR
         friend class SceneHierarchyPanel;
         friend class SceneSerializer;
 
-        uint32_t mWidth = 0, mHeight = 0;
+        uint32_t mViewportWidth = 0, mViewportHeight = 0;
     };
 }

@@ -12,12 +12,24 @@
 namespace NR
 {
     class WindowCloseEvent;
-    class WindowResizeEvent;
+    class WindowResizeEvent; 
+    
+    struct AppCommandLineArgs
+    {
+        int Count = 0;
+        char** Args = nullptr;
+
+        const char* operator[](int index) const
+        {
+            NR_CORE_ASSERT(index < Count, "Overflow!");
+            return Args[index];
+        }
+    };
 
     class Application
     {
     public:
-        Application(const std::string& name = "");
+        Application(const std::string& name = "NotRed APP", AppCommandLineArgs args = AppCommandLineArgs());
         virtual ~Application();
 
         void Run();
@@ -30,6 +42,8 @@ namespace NR
         inline Window& GetWindow() { return *mWindow; }
         inline static Application& Get() { return *sInstance; }
 
+        AppCommandLineArgs GetCommandLineArgs() const { return mCommandLineArgs; }
+
         ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
 
         inline void Close() { mRunning = false; }
@@ -40,6 +54,8 @@ namespace NR
 
     private:
         static Application* sInstance;
+
+        AppCommandLineArgs mCommandLineArgs;
 
         bool mRunning = true;
         bool mMinimized = false;
