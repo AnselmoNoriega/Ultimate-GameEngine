@@ -8,8 +8,8 @@ namespace NR
     class NotEditor : public Application
     {
     public:
-        NotEditor()
-            : Application("Not-Red Editor")
+        NotEditor(AppCommandLineArgs args)
+            : Application("Not-Red Editor", args)
         {
             PushOverlay(new EditorLayer());
         }
@@ -20,8 +20,8 @@ namespace NR
         }
     };
 
-    Application* CreateApplication()
+    Application* CreateApplication(AppCommandLineArgs args)
     {
-        return new NotEditor();
+        return new NotEditor(args);
     }
 }
