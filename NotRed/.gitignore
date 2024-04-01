@@ -5,3 +5,7 @@ bin-int/
 
 # Files
 *.user
+
+NotRed/vendor/VulkanSDK
+NotEditor/assets/cache
+scripts/__pycache__

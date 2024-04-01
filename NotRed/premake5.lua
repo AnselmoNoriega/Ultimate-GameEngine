@@ -1,5 +1,8 @@
+include "./vendor/premake/premake_customization/solution_items.lua"
+include "Dependencies.lua"
+
 workspace "NotRed"
-	architecture "x64"
+	architecture "x86_64"
 	startproject "NotEditor"
 
 	configurations
@@ -9,17 +12,17 @@ workspace "NotRed"
 		"Dist"
 	}
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+	solution_items
+	{
+		".editorconfig"
+	}
 
-IncludeDir = {}
-IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
-IncludeDir["Glad"] = "NotRed/vendor/glad/include"
-IncludeDir["ImGui"] = "NotRed/vendor/imgui"
-IncludeDir["Glm"] = "NotRed/vendor/glm"
-IncludeDir["Stb"] = "NotRed/vendor/stb_image"
-IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
-IncludeDir["Yaml"] = "NotRed/vendor/yaml-cpp/include"
-IncludeDir["ImGuizmo"] = "NotRed/vendor/ImGuizmo"
+	flags
+	{
+		"MultiProcessorCompile"
+	}
+
+outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 group "Dependencies"
 	include "NotRed/vendor/GLFW"

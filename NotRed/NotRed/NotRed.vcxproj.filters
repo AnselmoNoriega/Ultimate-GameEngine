@@ -153,6 +153,9 @@
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -198,6 +201,9 @@
     <ClInclude Include="src\Platform\OpenGL\GLTexture.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\Platform\OpenGL\GLUniformBuffer.h">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h">
       <Filter>src\Platform\OpenGL</Filter>
     </ClInclude>
@@ -216,8 +222,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLUniformBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -277,6 +281,9 @@
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -313,6 +320,9 @@
     <ClCompile Include="src\Platform\OpenGL\GLTexture.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\OpenGL\GLUniformBuffer.cpp">
+      <Filter>src\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
@@ -337,7 +347,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLUniformBuffer.cpp" />
   </ItemGroup>
 </Project>
