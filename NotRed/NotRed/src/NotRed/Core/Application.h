@@ -68,6 +68,6 @@ namespace NR
         TimeStep mTimeStep;
     };
 
-    Application* CreateApplication();
+    Application* CreateApplication(AppCommandLineArgs args);
 }
 
