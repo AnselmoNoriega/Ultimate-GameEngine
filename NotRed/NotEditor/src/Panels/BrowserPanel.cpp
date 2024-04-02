@@ -9,6 +9,8 @@ namespace NR
 	BrowserPanel::BrowserPanel()
 		: mCurrentDirectory(sAssetsPath)
 	{
+		mFolderIcon = Texture2D::Create("Resources/Icons/BrowserImg/folderImg.png");
+		mFileIcon = Texture2D::Create("Resources/Icons/BrowserImg/fileImg.png");
 	}
 
 	void BrowserPanel::ImGuiRender()
@@ -23,26 +25,42 @@ namespace NR
 			}
 		}
 
+		static float padding = 16.0f;
+		static float thumbnailSize = 90.0f;
+		float cellSize = thumbnailSize + padding;
+
+		float panelWidth = ImGui::GetContentRegionAvail().x;
+		int columnCount = (int)(panelWidth / cellSize);
+		if (columnCount < 1)
+		{
+			columnCount = 1;
+		}
+
+		ImGui::Columns(columnCount, 0, false);
+
 		for (auto& entry : std::filesystem::directory_iterator(mCurrentDirectory))
 		{
 			auto relativePath = std::filesystem::relative(entry.path(), sAssetsPath);
 			std::string entryPath = relativePath.filename().string();
 
-			if (entry.is_directory())
+			Ref<Texture2D> icon = entry.is_directory() ? mFolderIcon : mFileIcon;
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+			ImGui::ImageButton((ImTextureID)icon->GetRendererID(), { thumbnailSize, thumbnailSize }, { 0, 1 }, { 1, 0 });
+			ImGui::PopStyleColor();
+			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
 			{
-				if (ImGui::Button(entryPath.c_str()))
+				if (entry.is_directory())
 				{
 					mCurrentDirectory /= relativePath.filename();
 				}
 			}
-			else
-			{
-				if (ImGui::Button(entryPath.c_str()))
-				{
 
-				}
-			}
+			ImGui::TextWrapped(entryPath.c_str());
+
+			ImGui::NextColumn();
 		}
+
+		ImGui::Columns(1);
 
 		ImGui::End();
 	}
