@@ -11,6 +11,8 @@
 
 namespace NR
 {
+    extern const std::filesystem::path gAssetsPath;
+
     EditorLayer::EditorLayer()
         :Layer("EditorLayer")
     {
@@ -197,6 +199,16 @@ namespace NR
         uint32_t textureID = mFramebuffer->GetTextureRendererID();
         ImGui::Image((void*)textureID, ImVec2{ mViewportSize.x, mViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const wchar_t* path = (const wchar_t*)payload->Data;
+                OpenScene(std::filesystem::path(gAssetsPath) / path);
+            }
+            ImGui::EndDragDropTarget();
+        }
+
         Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity && mGizmoType >= 0)
         {
@@ -332,13 +344,18 @@ namespace NR
 
         if (!filepath.empty())
         {
-            mActiveScene = CreateRef<Scene>();
-            mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            mSceneHierarchyPanel.SetContext(mActiveScene);
-
-            SceneSerializer serializer(mActiveScene);
-            serializer.Deserialize(filepath);
+            OpenScene(filepath);
         }
+    }
+
+    void EditorLayer::OpenScene(const std::filesystem::path& path)
+    {
+        mActiveScene = CreateRef<Scene>();
+        mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+        mSceneHierarchyPanel.SetContext(mActiveScene);
+
+        SceneSerializer serializer(mActiveScene);
+        serializer.Deserialize(path.string());
     }
 
     void EditorLayer::SaveSceneAs()

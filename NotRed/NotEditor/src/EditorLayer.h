@@ -26,6 +26,7 @@ namespace NR
         bool MouseButtonPressed(MouseButtonPressedEvent& e);
 
         void OpenScene();
+        void OpenScene(const std::filesystem::path& path);
         void SaveSceneAs();
         void NewScene();
 
