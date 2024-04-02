@@ -8,6 +8,7 @@
 
 #include "SceneCamera.h"
 #include "ScriptableEntity.h"
+#include "NotRed/Renderer/Texture.h"
 
 namespace NR
 {
@@ -49,6 +50,7 @@ namespace NR
     struct SpriteRendererComponent
     {
         glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        Ref<Texture2D> Texture;
 
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
