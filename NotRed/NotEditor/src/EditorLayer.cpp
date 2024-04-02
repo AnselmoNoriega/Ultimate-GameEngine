@@ -123,7 +123,7 @@ namespace NR
         ImGuiIO& io = ImGui::GetIO();
         ImGuiStyle& style = ImGui::GetStyle();
         float minWinSizeX = style.WindowMinSize.x;
-        style.WindowMinSize.x = 600.0f;
+        style.WindowMinSize.x = 200.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -158,6 +158,7 @@ namespace NR
         }
 
         mSceneHierarchyPanel.ImGuiRender();
+        mBrowserPanel.ImGuiRender();
 
         ImGui::Begin("Stats");
 
@@ -203,13 +204,6 @@ namespace NR
             ImGuizmo::SetDrawlist();
 
             ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
-
-            //auto cameraEntity = mActiveScene->GetPrimaryCameraEntity();
-            //const glm::mat4& camProj = cameraEntity.GetComponent<CameraComponent>().Camera.GetProjection();
-            //
-            //auto& tc = selectedEntity.GetComponent<TransformComponent>();
-            //glm::mat4 transform = tc.GetTransform();
-            //glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
 
             const glm::mat4& camProj = mEditorCamera.GetProjection();
             glm::mat4 cameraView = mEditorCamera.GetViewMatrix(); 

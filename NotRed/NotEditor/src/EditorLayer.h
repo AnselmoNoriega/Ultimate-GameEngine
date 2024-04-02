@@ -2,6 +2,7 @@
 
 #include "NotRed.h"
 #include "Panels/SceneHierarchyPanel.h"
+#include "Panels/BrowserPanel.h"
 
 #include "NotRed/Renderer/EditorCamera.h"
 
@@ -31,6 +32,7 @@ namespace NR
     private:
         Ref<Scene> mActiveScene;
         SceneHierarchyPanel mSceneHierarchyPanel;
+        BrowserPanel mBrowserPanel;
 
         EditorCamera mEditorCamera;
 
