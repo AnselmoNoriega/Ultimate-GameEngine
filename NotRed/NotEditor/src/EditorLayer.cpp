@@ -22,6 +22,9 @@ namespace NR
 	{
 		NR_PROFILE_FUNCTION();
 
+		mPlayIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PlayButton.png");
+		mStopIcon = Texture2D::Create("Resources/Icons/ToolBarUI/StopButton.png");
+
 		FramebufferStruct fbSpecs;
 		fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
 		fbSpecs.Width = 1600;
@@ -51,11 +54,6 @@ namespace NR
 			mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
 		}
 
-		if (mViewportFocused || mViewportHovered)
-		{
-			mEditorCamera.Update(deltaTime);
-		}
-
 		{
 			NR_PROFILE_SCOPE("Render Start");
 			Renderer2D::ResetStats();
@@ -69,7 +67,24 @@ namespace NR
 		{
 			NR_PROFILE_SCOPE("Rendering");
 
-			mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
+			switch (mSceneState)
+			{
+			case SceneState::Edit:
+			{
+				if (mViewportFocused || mViewportHovered)
+				{
+					mEditorCamera.Update(deltaTime);
+				}
+
+				mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
+				break;
+			}
+			case SceneState::Play:
+			{
+				mActiveScene->UpdateRunTime(deltaTime);
+				break;
+			}
+			}
 
 			auto [mx, my] = ImGui::GetMousePos();
 			mx -= mViewportBounds[0].x;
@@ -260,6 +275,42 @@ namespace NR
 		ImGui::End();
 		ImGui::PopStyleVar();
 
+		ToolbarUI();
+
+		ImGui::End();
+	}
+
+	void EditorLayer::ToolbarUI()
+	{
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+
+		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+		auto& colors = ImGui::GetStyle().Colors;
+
+		const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+		const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
+		
+		ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		
+		float size = ImGui::GetWindowHeight() - 4.0f;
+		Ref<Texture2D> icon = mSceneState == SceneState::Edit ? mPlayIcon : mStopIcon;
+		ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+		if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+		{
+			if (mSceneState == SceneState::Edit)
+			{
+				PlayScene();
+			}
+			else if (mSceneState == SceneState::Play)
+			{
+				StopScene();
+			}
+		}
+		ImGui::PopStyleVar(2);
+		ImGui::PopStyleColor(3);
 		ImGui::End();
 	}
 
@@ -381,5 +432,15 @@ namespace NR
 			SceneSerializer serializer(mActiveScene);
 			serializer.Serialize(filepath);
 		}
+	}
+
+	void EditorLayer::PlayScene()
+	{
+		mSceneState = SceneState::Play;
+	}
+
+	void EditorLayer::StopScene()
+	{
+		mSceneState = SceneState::Edit;
 	}
 }

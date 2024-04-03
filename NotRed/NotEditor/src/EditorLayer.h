@@ -21,6 +21,11 @@ namespace NR
         void OnEvent(Event& myEvent) override;
         void ImGuiRender() override;
 
+        void PlayScene();
+        void StopScene();
+
+        void ToolbarUI();
+
     private:
         bool KeyPressed(KeyPressedEvent& e);
         bool MouseButtonPressed(MouseButtonPressedEvent& e);
@@ -35,9 +40,17 @@ namespace NR
         SceneHierarchyPanel mSceneHierarchyPanel;
         BrowserPanel mBrowserPanel;
 
+        enum class SceneState
+        {
+            Edit,
+            Play
+        };
+        SceneState mSceneState = SceneState::Edit;
+
         EditorCamera mEditorCamera;
 
-        Ref<Framebuffer> mFramebuffer;
+        Ref<Framebuffer> mFramebuffer; 
+        Ref<Texture2D> mPlayIcon, mStopIcon;
 
         glm::vec2 mViewportSize = { 0.0f, 0.0f };
         bool mViewportFocused = false,
