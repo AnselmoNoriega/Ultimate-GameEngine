@@ -25,6 +25,7 @@ workspace "NotRed"
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 group "Dependencies"
+	include "NotRed/vendor/box2d"
 	include "NotRed/vendor/GLFW"
 	include "NotRed/vendor/glad"
 	include "NotRed/vendor/imgui"
@@ -66,6 +67,7 @@ project "NotRed"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/vendor/spdlog/include",
+		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
@@ -78,6 +80,7 @@ project "NotRed"
 
 	links
 	{
+		"box2d",
 		"GLFW",
 		"glad",
 		"imgui",
