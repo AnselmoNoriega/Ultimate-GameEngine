@@ -234,6 +234,13 @@ namespace NR
 						std::filesystem::path texturePath = std::filesystem::path(gAssetsPath) / path;
 						mHoveredEntity.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
 					}
+					else if (!mHoveredEntity)
+					{
+						auto entity = mActiveScene->CreateEntity();
+						entity.AddComponent<SpriteRendererComponent>();
+						std::filesystem::path texturePath = std::filesystem::path(gAssetsPath) / path;
+						entity.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
+					}
 				}
 			}
 			ImGui::EndDragDropTarget();
