@@ -437,10 +437,12 @@ namespace NR
 	void EditorLayer::PlayScene()
 	{
 		mSceneState = SceneState::Play;
+		mActiveScene->RuntimeStart();
 	}
 
 	void EditorLayer::StopScene()
 	{
 		mSceneState = SceneState::Edit;
+		mActiveScene->RuntimeStop();
 	}
 }

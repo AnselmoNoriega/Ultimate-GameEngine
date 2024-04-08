@@ -4,7 +4,7 @@
 VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir = {}
-IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/box2d/include"
+IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/Box2D/include"
 IncludeDir["GLFW"] = "%{wks.location}/NotRed/vendor/GLFW/include"
 IncludeDir["Glad"] = "%{wks.location}/NotRed/vendor/Glad/include"
 IncludeDir["Glm"] = "%{wks.location}/NotRed/vendor/glm"
@@ -20,7 +20,8 @@ IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 LibraryDir = {}
 
 LibraryDir["VulkanSDK"] = "%{VULKAN_SDK}/Lib"
-LibraryDir["VulkanSDK_Debug"] = "%{wks.location}/NotRed/vendor/VulkanSDK/Lib"
+LibraryDir["VulkanSDK_Debug"] = "%{wks.location}/Hazel/vendor/VulkanSDK/Lib"
+LibraryDir["VulkanSDK_DebugDLL"] = "%{wks.location}/Hazel/vendor/VulkanSDK/Bin"
 
 Library = {}
 Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"

@@ -166,8 +166,8 @@ namespace NR
     {
         if (entity.HasComponent<T>())
         {
-            const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed 
-                | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap 
+            const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed
+                | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap
                 | ImGuiTreeNodeFlags_FramePadding;
 
             ImVec2 contentRegAvail = ImGui::GetContentRegionAvail();
@@ -247,6 +247,23 @@ namespace NR
                 ImGui::CloseCurrentPopup();
             }
 
+            if (!mSelectionContext.HasComponent<Rigidbody2DComponent>() && ImGui::MenuItem("Rigidbody 2D"))
+            {
+                mSelectionContext.AddComponent<Rigidbody2DComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
+            if (!mSelectionContext.HasComponent<BoxCollider2DComponent>() && ImGui::MenuItem("Box Collider 2D"))
+            {
+                if (!mSelectionContext.HasComponent<Rigidbody2DComponent>())
+                {
+                    mSelectionContext.AddComponent<Rigidbody2DComponent>();
+                }
+
+                mSelectionContext.AddComponent<BoxCollider2DComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
             ImGui::EndPopup();
         }
 
@@ -321,6 +338,29 @@ namespace NR
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+            });
+
+        DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](Rigidbody2DComponent& component)
+            {
+                const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+                int currentBodyTypeIndex = (int)component.Type;
+
+                if (ImGui::Combo("Body Type", &currentBodyTypeIndex, bodyTypeStrings, 3))
+                {
+                    component.Type = (Rigidbody2DComponent::BodyType)currentBodyTypeIndex;
+                }
+
+                ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+                ImGui::DragFloat("Density", &component.Density, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
+                ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.01f, 0.0f);
+            });
+
+        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& component)
+            {
+                ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+                ImGui::DragFloat2("Size", glm::value_ptr(component.Offset));
             });
     }
 }

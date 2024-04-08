@@ -2,14 +2,20 @@
 
 #include  <memory>
 
-#ifdef NR_PLATFORM_WINDOWS
-
-#else
-	#error This Engine only supports Windows.
-#endif
+#include "PlatformDetection.h"
 
 #ifdef NR_DEBUG
-	#define NR_ENABLE_ASSERTS
+#if defined(NR_PLATFORM_WINDOWS)
+#define NR_DEBUGBREAK() __debugbreak()
+#elif defined(NR_PLATFORM_LINUX)
+#include <signal.h>
+#define NR_DEBUGBREAK() raise(SIGTRAP)
+#else
+#error "Platform doesn't support debugbreak yet!"
+#endif
+#define NR_ENABLE_ASSERTS
+#else
+#define NR_DEBUGBREAK()
 #endif
 
 #ifdef NR_ENABLE_ASSERTS
