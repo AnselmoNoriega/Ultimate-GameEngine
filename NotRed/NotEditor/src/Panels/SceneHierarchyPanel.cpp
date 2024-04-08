@@ -342,7 +342,7 @@ namespace NR
 
         DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](Rigidbody2DComponent& component)
             {
-                const char* bodyTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+                const char* bodyTypeStrings[] = { "Static", "Kinematic", "Dynamic" };
                 int currentBodyTypeIndex = (int)component.Type;
 
                 if (ImGui::Combo("Body Type", &currentBodyTypeIndex, bodyTypeStrings, 3))

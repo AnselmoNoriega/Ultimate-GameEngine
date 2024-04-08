@@ -222,10 +222,9 @@ namespace NR
             out << YAML::Key << "Size" << YAML::Value << bc2dComponent.Size;
 
             out << YAML::EndMap;
-
-
-            out << YAML::EndMap;
         }
+
+        out << YAML::EndMap;
     }
 
     void SceneSerializer::Serialize(const std::string& filepath)

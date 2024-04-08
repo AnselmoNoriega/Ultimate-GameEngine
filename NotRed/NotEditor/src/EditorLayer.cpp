@@ -224,6 +224,7 @@ namespace NR
 
 				if (!wcscmp(fileExtension, L".nr"))
 				{
+					StopScene();
 					OpenScene(std::filesystem::path(gAssetsPath) / path);
 				}
 				else if (!wcscmp(fileExtension, L".png"))

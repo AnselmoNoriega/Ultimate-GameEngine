@@ -113,7 +113,7 @@ namespace NR
 
         float Density = 1.0f;
         float Friction = 0.5f;
-        float Restitution = 0.0f;
+        float Restitution = 0.1f;
         float RestitutionThreshold = 0.5f;
 
         Rigidbody2DComponent() = default;
