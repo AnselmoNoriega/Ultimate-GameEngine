@@ -77,6 +77,7 @@ namespace NR
 				}
 
 				mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
+
 				break;
 			}
 			case SceneState::Play:

@@ -4,6 +4,7 @@
 #define YAML_CPP_STATIC_DEFINE
 #include <yaml-cpp/yaml.h>
 
+#include "Entity.h"
 #include "Components.h"
 
 namespace YAML
@@ -144,7 +145,7 @@ namespace NR
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
         out << YAML::BeginMap;
-        out << YAML::Key << "Entity" << YAML::Value << "123456";
+        out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
 
         out << YAML::Key << "TagComponent";
         out << YAML::BeginMap;
@@ -274,11 +275,11 @@ namespace NR
         {
             for (auto entity : entities)
             {
-                uint64_t id = entity["Entity"].as<uint64_t>();
+                uint64_t uuid = entity["Entity"].as<uint64_t>();
                 std::string name = entity["TagComponent"]["Tag"].as<std::string>();
-                NR_CORE_TRACE("Entity ID = {0}, Name = {1}", id, name);
+                NR_CORE_TRACE("Entity ID = {0}, Name = {1}", uuid, name);
 
-                Entity loadedEntity = mScene->CreateEntity(name);
+                Entity loadedEntity = mScene->CreateEntityWithUUID(uuid, name);
 
                 auto tcYaml = entity["TransformComponent"];
                 auto& tc = loadedEntity.GetComponent<TransformComponent>();

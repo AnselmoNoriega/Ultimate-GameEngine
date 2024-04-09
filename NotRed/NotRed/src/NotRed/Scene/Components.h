@@ -7,11 +7,19 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include "SceneCamera.h"
-#include "ScriptableEntity.h"
+#include "NotRed/Core/UUID.h"
 #include "NotRed/Renderer/Texture.h"
 
 namespace NR
 {
+    struct IDComponent
+    {
+        UUID ID;
+
+        IDComponent(UUID uuid) { ID = uuid; }
+        IDComponent(const IDComponent&) = default;
+    };
+
     struct TagComponent
     {
         std::string Tag;
@@ -68,6 +76,7 @@ namespace NR
         CameraComponent(const CameraComponent&) = default;
     };
 
+    class ScriptableEntity;
     struct NativeScriptComponent
     {
         ScriptableEntity* Instance = nullptr;
@@ -77,7 +86,7 @@ namespace NR
 
         void (*CreateFunction)() = {};
         void (*UpdateFunction)(float) = {};
-        void (*DestroyFunction) = {};
+        void(*DestroyFunction) = {};
 
         template<typename T>
         void Bind()

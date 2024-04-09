@@ -1,6 +1,6 @@
 Scene: Name
 Entities:
-  - Entity: 123456
+  - Entity: 57677566890593907
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -15,7 +15,7 @@ Entities:
         FarClip: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 123456
+  - Entity: 4274657439661873420
     TagComponent:
       Tag: Floor
     TransformComponent:
@@ -34,7 +34,7 @@ Entities:
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
-  - Entity: 123456
+  - Entity: 5984931229566868018
     TagComponent:
       Tag: Object
     TransformComponent:

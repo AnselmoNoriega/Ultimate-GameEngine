@@ -2,9 +2,8 @@
 #include "Scene.h"
 
 #include "Components.h"
+#include "ScriptableEntity.h"
 #include "NotRed/Renderer/Renderer2D.h"
-
-#include "Entity.h"
 
 #include "box2d/b2_world.h"
 #include "box2d/b2_body.h"
@@ -114,7 +113,13 @@ namespace NR
 
     Entity Scene::CreateEntity(const std::string& tagName)
     {
+        return CreateEntityWithUUID(UUID(), tagName);
+    }
+
+    Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& tagName)
+    {
         Entity entity = { mRegistry.create(), this };
+        entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(tagName);
         return entity;
@@ -201,6 +206,11 @@ namespace NR
 
     template<typename T>
     void Scene::ComponentAdded(Entity entity, T& component)
+    {
+    }
+
+    template<>
+    void Scene::ComponentAdded<IDComponent>(Entity entity, IDComponent& component)
     {
     }
 

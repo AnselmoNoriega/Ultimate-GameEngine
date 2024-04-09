@@ -1,8 +1,9 @@
 #pragma once
 
-#include "NotRed/Renderer/EditorCamera.h"
-
 #include "entt.hpp"
+
+#include "NotRed/Core/UUID.h"
+#include "NotRed/Renderer/EditorCamera.h"
 
 class b2World;
 
@@ -20,6 +21,7 @@ namespace NR
         void UpdateRunTime(float dt);
 
         Entity CreateEntity(const std::string& tagName = "Object");
+        Entity CreateEntityWithUUID(UUID uuid, const std::string& tagName = "Object");
         void RemoveEntity(Entity entity);
 
         void RuntimeStart();

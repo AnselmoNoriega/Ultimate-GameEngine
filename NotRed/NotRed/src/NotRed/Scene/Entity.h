@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Scene.h"
-
 #include "entt.hpp"
-#include "NotRed/Core/Log.h"
+
+#include "Scene.h"
+#include "NotRed/Core/UUID.h"
+#include "Components.h"
 
 namespace NR
 {
@@ -46,6 +47,8 @@ namespace NR
         operator bool() const { return mEntity != entt::null; }
         operator entt::entity() const { return mEntity; }
         operator uint32_t() const { return (uint32_t)mEntity; }
+
+        UUID GetUUID() { return GetComponent<IDComponent>().ID; }
 
         bool operator==(const Entity& other) const
         {
