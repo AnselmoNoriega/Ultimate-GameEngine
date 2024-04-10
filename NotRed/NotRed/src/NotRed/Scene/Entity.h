@@ -44,11 +44,20 @@ namespace NR
             return mScene->mRegistry.remove<T>(mEntity);
         }
 
+        template<typename T, typename... Args>
+        T& AddOrReplaceComponent(Args&&... args)
+        {
+            T& component = mScene->mRegistry.emplace_or_replace<T>(mEntity, std::forward<Args>(args)...);
+            mScene->ComponentAdded<T>(*this, component);
+            return component;
+        }
+
         operator bool() const { return mEntity != entt::null; }
         operator entt::entity() const { return mEntity; }
         operator uint32_t() const { return (uint32_t)mEntity; }
 
         UUID GetUUID() { return GetComponent<IDComponent>().ID; }
+        const std::string& GetName() { return GetComponent<TagComponent>().Tag; }
 
         bool operator==(const Entity& other) const
         {

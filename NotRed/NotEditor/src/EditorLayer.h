@@ -32,11 +32,18 @@ namespace NR
 
         void OpenScene();
         void OpenScene(const std::filesystem::path& path);
-        void SaveSceneAs();
         void NewScene();
+        void SaveSceneAs(); 
+        void SaveScene();
+        
+        void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
+
+        void DuplicateEntity();
 
     private:
         Ref<Scene> mActiveScene;
+        Ref<Scene> mEditorScene;
+        std::filesystem::path mScenePath;
         SceneHierarchyPanel mSceneHierarchyPanel;
         BrowserPanel mBrowserPanel;
 

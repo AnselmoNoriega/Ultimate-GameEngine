@@ -17,12 +17,16 @@ namespace NR
         Scene();
         ~Scene();
 
+        static Ref<Scene> Copy(Ref<Scene> other);
+
         void UpdateEditor(float dt, EditorCamera& camera);
         void UpdateRunTime(float dt);
 
         Entity CreateEntity(const std::string& tagName = "Object");
         Entity CreateEntityWithUUID(UUID uuid, const std::string& tagName = "Object");
         void RemoveEntity(Entity entity);
+
+        void DuplicateEntity(Entity entity);
 
         void RuntimeStart();
         void RuntimeStop();
