@@ -31,6 +31,16 @@ namespace NR
         {
             sRendererAPI->DrawIndexed(vertexArray, count);
         }
+        
+        inline static void DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
+        {
+            sRendererAPI->DrawLines(vertexArray, vertexCount);
+        }
+
+        inline static void SetLineWidth(float width)
+        {
+            sRendererAPI->SetLineWidth(width);
+        }
 
     private:
         static RendererAPI* sRendererAPI;

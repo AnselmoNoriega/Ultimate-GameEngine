@@ -264,6 +264,17 @@ namespace NR
                 ImGui::CloseCurrentPopup();
             }
 
+            if (!mSelectionContext.HasComponent<CircleCollider2DComponent>() && ImGui::MenuItem("Circle Collider 2D"))
+            {
+                if (!mSelectionContext.HasComponent<Rigidbody2DComponent>())
+                {
+                    mSelectionContext.AddComponent<Rigidbody2DComponent>();
+                }
+
+                mSelectionContext.AddComponent<CircleCollider2DComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
             ImGui::EndPopup();
         }
 
@@ -360,7 +371,13 @@ namespace NR
         DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& component)
             {
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
-                ImGui::DragFloat2("Size", glm::value_ptr(component.Offset));
+                ImGui::DragFloat2("Size", glm::value_ptr(component.Size));
+            });
+
+        DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](CircleCollider2DComponent& component)
+            {
+                ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
+                ImGui::DragFloat("Radius", &component.Radius);
             });
     }
 }

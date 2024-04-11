@@ -9,6 +9,7 @@
 #include "box2d/b2_body.h"
 #include "box2d/b2_fixture.h"
 #include "box2d/b2_polygon_shape.h"
+#include "box2d/b2_circle_shape.h"
 
 namespace NR
 {
@@ -77,6 +78,7 @@ namespace NR
         CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<Rigidbody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
         return newScene;
     }
@@ -194,6 +196,7 @@ namespace NR
         CopyComponentIfExists<NativeScriptComponent>(newEntity, entity);
         CopyComponentIfExists<Rigidbody2DComponent>(newEntity, entity);
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity, entity);
+        CopyComponentIfExists<CircleCollider2DComponent>(newEntity, entity);
     }
 
     void Scene::RuntimeStart()
@@ -221,10 +224,27 @@ namespace NR
                 auto& box2D = entity.GetComponent<BoxCollider2DComponent>();
 
                 b2PolygonShape boxShape;
-                boxShape.SetAsBox(box2D.Size.x * transform.Scale.x, box2D.Size.y * transform.Scale.y);
+                boxShape.SetAsBox(box2D.Size.x, box2D.Size.y);
 
                 b2FixtureDef fixtureDef;
                 fixtureDef.shape = &boxShape;
+                fixtureDef.density = rb2d.Density;
+                fixtureDef.friction = rb2d.Friction;
+                fixtureDef.restitution = rb2d.Restitution;
+                fixtureDef.restitutionThreshold = rb2d.RestitutionThreshold;
+                body->CreateFixture(&fixtureDef);
+            }
+            
+            if (entity.HasComponent<CircleCollider2DComponent>())
+            {
+                auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+
+                b2CircleShape circleShape;
+                circleShape.m_p.Set(cc2d.Offset.x, cc2d.Offset.y);
+                circleShape.m_radius = cc2d.Radius;
+
+                b2FixtureDef fixtureDef;
+                fixtureDef.shape = &circleShape;
                 fixtureDef.density = rb2d.Density;
                 fixtureDef.friction = rb2d.Friction;
                 fixtureDef.restitution = rb2d.Restitution;
@@ -316,6 +336,11 @@ namespace NR
 
     template<>
     void Scene::ComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
+    {
+    }
+
+    template<>
+    void Scene::ComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
     {
     }
 }

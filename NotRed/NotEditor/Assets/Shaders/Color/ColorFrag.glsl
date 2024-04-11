@@ -1,10 +1,15 @@
-#version 330 core
+#version 450 core
 
-out vec4 color;
+layout(location = 0) out vec4 oColor;
 
-uniform vec4 uColor;
+struct VertexOutput
+{
+	vec4 Color;
+};
+
+layout (location = 0) in VertexOutput Input;
 
 void main()
 {
-    color = uColor;
+	oColor = Input.Color;
 }

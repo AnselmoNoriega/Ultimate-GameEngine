@@ -57,7 +57,19 @@ namespace NR
 
     void GLRendererAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
     {
+        vertexArray->Bind();
         uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+    }
+
+    void GLRendererAPI::DrawLines(const Ref<VertexArray>& vertexArray, uint32_t vertexCount)
+    {
+        vertexArray->Bind();
+        glDrawArrays(GL_LINES, 0, vertexCount);
+    }
+
+    void GLRendererAPI::SetLineWidth(float width)
+    {
+        glLineWidth(width);
     }
 }

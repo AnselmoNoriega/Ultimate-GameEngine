@@ -225,6 +225,18 @@ namespace NR
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<CircleCollider2DComponent>())
+        {
+            out << YAML::Key << "CircleCollider2DComponent";
+            out << YAML::BeginMap;
+
+            auto& cc2dComponent = entity.GetComponent<CircleCollider2DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << cc2dComponent.Offset;
+            out << YAML::Key << "Radius" << YAML::Value << cc2dComponent.Radius;
+
+            out << YAML::EndMap;
+        }
+
         out << YAML::EndMap;
     }
 
@@ -327,6 +339,14 @@ namespace NR
                     auto& bc2d = loadedEntity.AddComponent<BoxCollider2DComponent>();
                     bc2d.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
                     bc2d.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
+                }
+                
+                auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+                if (circleCollider2DComponent)
+                {
+                    auto& cc2d = loadedEntity.AddComponent<CircleCollider2DComponent>();
+                    cc2d.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
+                    cc2d.Radius = circleCollider2DComponent["Radius"].as<float>();
                 }
             }
         }

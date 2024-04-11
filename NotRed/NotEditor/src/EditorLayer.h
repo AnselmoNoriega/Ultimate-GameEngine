@@ -19,6 +19,7 @@ namespace NR
 
         void Update(float deltaTime) override;
         void OnEvent(Event& myEvent) override;
+        void OnOverlayRender();
         void ImGuiRender() override;
 
         void PlayScene();
@@ -66,6 +67,7 @@ namespace NR
         glm::vec2 mViewportBounds[2];
 
         int mGizmoType = -1;
+        bool mShowPhysicsColliders = false;
 
         Entity mHoveredEntity;
     };
