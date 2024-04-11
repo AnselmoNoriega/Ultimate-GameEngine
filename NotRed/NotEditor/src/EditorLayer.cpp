@@ -359,7 +359,7 @@ namespace NR
                 auto view = mActiveScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
                 for (auto entity : view)
                 {
-                    auto [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
+                    auto&& [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
 
                     glm::vec3 translation = tc.Translation + glm::vec3(bc2d.Offset.x, bc2d.Offset.y, 0.001f);
                     glm::vec3 scale = tc.Scale * glm::vec3(bc2d.Size.x * 2.0f, bc2d.Size.y * 2.0f, 1.0f);
@@ -369,11 +369,9 @@ namespace NR
                         * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 0.0f, 1.0f))
                         * glm::scale(glm::mat4(1.0f), scale);
 
-                    Renderer2D::DrawRect(transform, glm::vec4(0, 1, 0, 1));
+                    Renderer2D::DrawRect(transform, glm::vec4(0.0f, 1.0f, 0.2f, 1.0f));
                 }
             }
-
-            // Circle Colliders
             {
                 auto view = mActiveScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
                 for (auto entity : view)
@@ -381,12 +379,12 @@ namespace NR
                     auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
 
                     glm::vec3 translation = tc.Translation + glm::vec3(cc2d.Offset.x, cc2d.Offset.y, 0.001f);
-                    glm::vec3 scale = tc.Scale * glm::vec3(cc2d.Radius * 2.0f);
+                    float scale = tc.Scale.x * cc2d.Radius * 2.0f;
 
                     glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
-                        * glm::scale(glm::mat4(1.0f), scale);
+                        * glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 1.0f));
 
-                    Renderer2D::DrawCircle(transform, glm::vec4(0, 1, 0, 1), 0.01f);
+                    Renderer2D::DrawCircle(transform, glm::vec4(0.0f, 1.0f, 0.2f, 1.0f), 0.01f);
                 }
             }
         }

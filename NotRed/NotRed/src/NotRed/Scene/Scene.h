@@ -38,7 +38,7 @@ namespace NR
         template<typename... Components>
         auto GetAllEntitiesWith()
         {
-            return m_Registry.view<Components...>();
+            return mRegistry.view<Components...>();
         }
 
     private:

@@ -25,6 +25,16 @@ namespace NR
         int EntityID = -1;
     };
 
+    struct CircleVertex
+    {
+        glm::vec3 WorldPosition;
+        glm::vec3 LocalPosition;
+        glm::vec4 Color;
+        float Thickness;
+
+        int EntityID;
+    };
+
     struct LineVertex
     {
         glm::vec3 Position;
@@ -38,22 +48,30 @@ namespace NR
         static const uint32_t MaxIndices = MaxQuads * 6;
         static const uint32_t MaxTextureSlots = 32;
 
+        Ref<VertexArray> QuadVertexArray;
+        Ref<VertexBuffer> QuadVertexBuffer;
+        Ref<Shader> ObjShader;
+        Ref<Texture2D> EmptyTexture;
+
+        Ref<VertexArray> CircleVertexArray;
+        Ref<VertexBuffer> CircleVertexBuffer;
+        Ref<Shader> CircleShader;
+
         Ref<VertexArray> LineVertexArray;
         Ref<VertexBuffer> LineVertexBuffer;
         Ref<Shader> LineShader;
 
-        Ref<VertexArray> VertexArray;
-        Ref<VertexBuffer> VertexBuffer;
-        Ref<Shader> ObjShader;
-        Ref<Texture2D> EmptyTexture;
-
+        uint32_t IndexCount = 0;
         QuadVertex* VertexBufferBase = nullptr;
         QuadVertex* VertexBufferPtr = nullptr;
-        uint32_t IndexCount = 0;
 
+        uint32_t CircleIndexCount = 0;
+        CircleVertex* CircleVertexBufferBase = nullptr;
+        CircleVertex* CircleVertexBufferPtr = nullptr;
+
+        uint32_t LineVertexCount = 0;
         LineVertex* LineVertexBufferBase = nullptr;
         LineVertex* LineVertexBufferPtr = nullptr;
-        uint32_t LineVertexCount = 0;
 
         float LineWidth = 2.0f;
 
@@ -85,68 +103,76 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        sData.VertexArray = VertexArray::Create();
-
-        sData.VertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex));
-        sData.VertexBuffer->SetLayout(
-            {
-                {ShaderDataType::Float3, "aPosition"},
-                {ShaderDataType::Float2, "aTexCoord"},
-                {ShaderDataType::Float4, "aColor"   },
-                {ShaderDataType::Float,  "aTexIndex"},
-                {ShaderDataType::Int,    "aEntityID"}
-            });
-        sData.VertexArray->AddVertexBuffer(sData.VertexBuffer);
-
-        sData.VertexBufferBase = new QuadVertex[sData.MaxVertices];
-
-        uint32_t* indices = new uint32_t[sData.MaxIndices];
-
-        uint32_t offset = 0;
-        for (uint32_t i = 0; i < sData.MaxIndices; i += 6)
         {
-            indices[i + 0] = offset + 0;
-            indices[i + 1] = offset + 1;
-            indices[i + 2] = offset + 2;
+            sData.QuadVertexArray = VertexArray::Create();
 
-            indices[i + 3] = offset + 2;
-            indices[i + 4] = offset + 3;
-            indices[i + 5] = offset + 0;
-
-            offset += 4;
+            sData.QuadVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex));
+            sData.QuadVertexBuffer->SetLayout(
+                {
+                    {ShaderDataType::Float3, "aPosition"},
+                    {ShaderDataType::Float2, "aTexCoord"},
+                    {ShaderDataType::Float4, "aColor"   },
+                    {ShaderDataType::Float,  "aTexIndex"},
+                    {ShaderDataType::Int,    "aEntityID"}
+                });
+            sData.QuadVertexArray->AddVertexBuffer(sData.QuadVertexBuffer);
+            sData.VertexBufferBase = new QuadVertex[sData.MaxVertices];
         }
-
-        Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, sData.MaxIndices);
-        sData.VertexArray->SetIndexBuffer(indexBuffer);
-        delete[] indices;
-
-        sData.EmptyTexture = Texture2D::Create(1, 1);
-        uint32_t emptyTextureData = 0xffffffff;
-        sData.EmptyTexture->SetData(&emptyTextureData, sizeof(uint32_t));
-
-        //Line Set up--------------------------------------
-        sData.LineVertexArray = VertexArray::Create();
-
-        sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(LineVertex));
-        sData.LineVertexBuffer->SetLayout({
-            { ShaderDataType::Float3, "a_Position" },
-            { ShaderDataType::Float4, "a_Color"    }
-            });
-        sData.LineVertexArray->AddVertexBuffer(sData.LineVertexBuffer);
-        sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
-
-        sData.LineVertexCount = 0;
-        sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
-        //Line Set up--------------------------------------
-
-        int32_t samplers[sData.MaxTextureSlots];
-        for (uint32_t i = 0; i < sData.MaxTextureSlots; ++i)
         {
-            samplers[i] = i;
+            sData.CircleVertexArray = VertexArray::Create();
+
+            sData.CircleVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(CircleVertex));
+            sData.CircleVertexBuffer->SetLayout({
+               { ShaderDataType::Float3, "aWorldPosition" },
+               { ShaderDataType::Float3, "aLocalPosition" },
+               { ShaderDataType::Float4, "aColor"         },
+               { ShaderDataType::Float,  "aThickness"     },
+               { ShaderDataType::Int,    "aEntityID"      }
+                });
+            sData.CircleVertexArray->AddVertexBuffer(sData.CircleVertexBuffer);
+            sData.CircleVertexBufferBase = new CircleVertex[sData.MaxVertices];
+        }
+        {
+            uint32_t* indices = new uint32_t[sData.MaxIndices];
+
+            uint32_t offset = 0;
+            for (uint32_t i = 0; i < sData.MaxIndices; i += 6)
+            {
+                indices[i + 0] = offset + 0;
+                indices[i + 1] = offset + 1;
+                indices[i + 2] = offset + 2;
+
+                indices[i + 3] = offset + 2;
+                indices[i + 4] = offset + 3;
+                indices[i + 5] = offset + 0;
+
+                offset += 4;
+            }
+
+            Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices, sData.MaxIndices);
+            sData.QuadVertexArray->SetIndexBuffer(indexBuffer);
+            sData.CircleVertexArray->SetIndexBuffer(indexBuffer);
+            delete[] indices;
+
+            sData.EmptyTexture = Texture2D::Create(1, 1);
+            uint32_t emptyTextureData = 0xffffffff;
+            sData.EmptyTexture->SetData(&emptyTextureData, sizeof(uint32_t));
+        }
+        {
+            sData.LineVertexArray = VertexArray::Create();
+
+            sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(LineVertex));
+            sData.LineVertexBuffer->SetLayout({
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float4, "aColor"    }
+                });
+            sData.LineVertexArray->AddVertexBuffer(sData.LineVertexBuffer);
+            sData.LineVertexBufferBase = new LineVertex[sData.MaxVertices];
         }
 
         sData.ObjShader = Shader::Create("Assets/Shaders/Base");
         sData.LineShader = Shader::Create("assets/shaders/Color");
+        sData.CircleShader = Shader::Create("assets/shaders/Circle");
 
         sData.TextureSlots[0] = sData.EmptyTexture;
 
@@ -202,7 +228,7 @@ namespace NR
         if (sData.IndexCount)
         {
             uint32_t dataSize = (uint32_t)((uint8_t*)sData.VertexBufferPtr - (uint8_t*)sData.VertexBufferBase);
-            sData.VertexBuffer->SetData(sData.VertexBufferBase, dataSize);
+            sData.QuadVertexBuffer->SetData(sData.VertexBufferBase, dataSize);
 
             for (uint32_t i = 0; i < sData.TextureSlotIndex; i++)
             {
@@ -210,7 +236,17 @@ namespace NR
             }
 
             sData.ObjShader->Bind();
-            RenderCommand::DrawIndexed(sData.VertexArray, sData.IndexCount);
+            RenderCommand::DrawIndexed(sData.QuadVertexArray, sData.IndexCount);
+            sData.Stats.DrawCalls++;
+        }
+
+        if (sData.CircleIndexCount)
+        {
+            uint32_t dataSize = (uint32_t)((uint8_t*)sData.CircleVertexBufferPtr - (uint8_t*)sData.CircleVertexBufferBase);
+            sData.CircleVertexBuffer->SetData(sData.CircleVertexBufferBase, dataSize);
+
+            sData.CircleShader->Bind();
+            RenderCommand::DrawIndexed(sData.CircleVertexArray, sData.CircleIndexCount);
             sData.Stats.DrawCalls++;
         }
 
@@ -228,9 +264,16 @@ namespace NR
 
     void Renderer2D::StartBatch()
     {
-        sData.IndexCount = 0;
         sData.Stats.QuadCount = 0;
+
+        sData.IndexCount = 0;
         sData.VertexBufferPtr = sData.VertexBufferBase;
+
+        sData.CircleIndexCount = 0;
+        sData.CircleVertexBufferPtr = sData.CircleVertexBufferBase;
+
+        sData.LineVertexCount = 0;
+        sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
 
         sData.TextureSlotIndex = 1;
     }
@@ -263,6 +306,30 @@ namespace NR
         }
 
         sData.IndexCount += 6;
+
+        sData.Stats.QuadCount++;
+    }
+
+    void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness, int entityID)
+    {
+        NR_PROFILE_FUNCTION();
+
+        if (sData.CircleIndexCount >= Renderer2DStorage::MaxIndices)
+        {
+            NextBatch();
+        }
+
+        for (size_t i = 0; i < 4; i++)
+        {
+            sData.CircleVertexBufferPtr->WorldPosition = transform * sData.VertexPositions[i];
+            sData.CircleVertexBufferPtr->LocalPosition = sData.VertexPositions[i] * 2.0f;
+            sData.CircleVertexBufferPtr->Color = color;
+            sData.CircleVertexBufferPtr->Thickness = thickness;
+            sData.CircleVertexBufferPtr->EntityID = entityID;
+            sData.CircleVertexBufferPtr++;
+        }
+
+        sData.CircleIndexCount += 6;
 
         sData.Stats.QuadCount++;
     }

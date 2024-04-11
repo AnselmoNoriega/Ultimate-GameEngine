@@ -247,6 +247,12 @@ namespace NR
                 ImGui::CloseCurrentPopup();
             }
 
+            if (!mSelectionContext.HasComponent<CircleRendererComponent>() && ImGui::MenuItem("Circle Renderer"))
+            {
+                mSelectionContext.AddComponent<CircleRendererComponent>();
+                ImGui::CloseCurrentPopup();
+            }
+
             if (!mSelectionContext.HasComponent<Rigidbody2DComponent>() && ImGui::MenuItem("Rigidbody 2D"))
             {
                 mSelectionContext.AddComponent<Rigidbody2DComponent>();
@@ -349,6 +355,12 @@ namespace NR
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+            });
+
+        DrawComponent<CircleRendererComponent>("Circle Renderer", entity, [](CircleRendererComponent& component)
+            {
+                ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+                ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
             });
 
         DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](Rigidbody2DComponent& component)
