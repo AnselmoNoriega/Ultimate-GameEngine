@@ -70,14 +70,13 @@ namespace NR
         CopyComponentIfExists<Component...>(dst, src);
     }
 
-
     Ref<Scene> Scene::Copy(Ref<Scene> other)
     {
         Ref<Scene> newScene = CreateRef<Scene>();
 
         newScene->mViewportWidth = other->mViewportWidth;
         newScene->mViewportHeight = other->mViewportHeight;
-
+        
         auto& srcSceneRegistry = other->mRegistry;
         auto& dstSceneRegistry = newScene->mRegistry;
         std::unordered_map<UUID, entt::entity> enttMap;
@@ -124,7 +123,7 @@ namespace NR
     void Scene::UpdateRunTime(float dt)
     {
         {
-            mRegistry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+            mRegistry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
                 {
                     if (!nsc.Instance)
                     {

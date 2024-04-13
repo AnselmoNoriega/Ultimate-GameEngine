@@ -9,17 +9,17 @@ struct VertexOutput
 {
 	vec4 Color;
 	vec2 TexCoord;
-	float TexIndex;
 };
 
 layout (location = 0) in VertexOutput Input;
-layout (location = 3) in flat int aEntityID;
+layout (location = 3) in flat float vTexIndex;
+layout (location = 4) in flat int aEntityID;
 
 void main()
 {
 	vec4 texColor = Input.Color;
 
-	switch(int(Input.TexIndex))
+	switch(int(vTexIndex))
 	{
 		case  0: texColor *= texture(uTextures[ 0], Input.TexCoord); break;
 		case  1: texColor *= texture(uTextures[ 1], Input.TexCoord); break;
@@ -54,7 +54,12 @@ void main()
 		case 30: texColor *= texture(uTextures[30], Input.TexCoord); break;
 		case 31: texColor *= texture(uTextures[31], Input.TexCoord); break;
 	}
-	
+
+	if (texColor.a == 0.0)
+	{
+		discard;
+	}
+
 	oColor = texColor;
     oEntityID = aEntityID;
 }

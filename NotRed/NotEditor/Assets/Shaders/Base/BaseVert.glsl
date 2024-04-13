@@ -15,17 +15,18 @@ struct VertexOutput
 {
 	vec4 Color;
 	vec2 TexCoord;
-	float TexIndex;
 };
 
 layout (location = 0) out VertexOutput Output;
-layout (location = 3) out flat int oEntityID;
+layout (location = 3) out flat float vTexIndex;
+layout (location = 4) out flat int oEntityID;
 
 void main()
 {
     Output.TexCoord = aTexCoord;
     Output.Color = aColor;
-    Output.TexIndex = aTexIndex;
+    vTexIndex = aTexIndex;
     oEntityID = aEntityID;
+
     gl_Position = uViewProjection * vec4(aPosition, 1.0);
 }

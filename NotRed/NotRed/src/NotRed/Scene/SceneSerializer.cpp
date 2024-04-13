@@ -192,8 +192,12 @@ namespace NR
             out << YAML::Key << "SpriteRendererComponent";
             out << YAML::BeginMap;
 
-            out << YAML::Key << "Color" << YAML::Value << entity.GetComponent<SpriteRendererComponent>().Color;
-
+            auto& spriteRendererComponent = entity.GetComponent<SpriteRendererComponent>();
+            out << YAML::Key << "Color" << YAML::Value << spriteRendererComponent.Color;
+            if (spriteRendererComponent.Texture)
+            {
+                out << YAML::Key << "TexturePath" << YAML::Value << spriteRendererComponent.Texture->GetPath();
+            }
             out << YAML::EndMap;
         }
 
@@ -331,6 +335,11 @@ namespace NR
                 {
                     auto& sc = loadedEntity.AddComponent<SpriteRendererComponent>();
                     sc.Color = scYaml["Color"].as<glm::vec4>();
+                    if (scYaml["TexturePath"])
+                    {
+                        std::string texturePath = scYaml["TexturePath"].as<std::string>();
+                        sc.Texture = Texture2D::Create(texturePath);
+                    }
                 }
 
                 auto circleRendererComponent = entity["CircleRendererComponent"];

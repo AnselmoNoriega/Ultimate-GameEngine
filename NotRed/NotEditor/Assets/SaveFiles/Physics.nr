@@ -1,20 +1,5 @@
 Scene: Name
 Entities:
-  - Entity: 57677566890593907
-    TagComponent:
-      Tag: Camera
-    TransformComponent:
-      Translation: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CameraComponent:
-      CameraInfo:
-        ProjectionType: 1
-        FOV: 10
-        NearClip: -1
-        FarClip: 1
-      Primary: true
-      FixedAspectRatio: false
   - Entity: 4274657439661873420
     TagComponent:
       Tag: FloorT
@@ -34,25 +19,21 @@ Entities:
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
-  - Entity: 5984931229566868018
+  - Entity: 57677566890593907
     TagComponent:
-      Tag: Object
+      Tag: Camera
     TransformComponent:
       Translation: [0, 0, 0]
-      Rotation: [0, 0, 0.596902609]
-      Scale: [0.5, 0.5, 1]
-    SpriteRendererComponent:
-      Color: [1, 1, 1, 1]
-    Rigidbody2DComponent:
-      BodyType: Dynamic
-      FixedRotation: false
-      Density: 1
-      Friction: 0.5
-      Restitution: 0.400000006
-      RestitutionThreshold: 0.5
-    BoxCollider2DComponent:
-      Offset: [0, 0]
-      Size: [0.5, 0.5]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      CameraInfo:
+        ProjectionType: 1
+        FOV: 10
+        NearClip: -1
+        FarClip: 1
+      Primary: true
+      FixedAspectRatio: false
   - Entity: 7458784592694837773
     TagComponent:
       Tag: Floor
@@ -92,3 +73,23 @@ Entities:
     CircleCollider2DComponent:
       Offset: [0, 0]
       Radius: 0.5
+  - Entity: 9147471346879783186
+    TagComponent:
+      Tag: Object
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0.596902609]
+      Scale: [0.5, 0.5, 1]
+    SpriteRendererComponent:
+      Color: [1, 1, 1, 1]
+      TexturePath: Assets\Textures\Image_Two.png
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: false
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.400000006
+      RestitutionThreshold: 0.5
+    BoxCollider2DComponent:
+      Offset: [0, 0]
+      Size: [0.5, 0.5]

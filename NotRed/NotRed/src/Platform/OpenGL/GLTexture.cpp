@@ -26,6 +26,7 @@ namespace NR
     }
 
     GLTexture2D::GLTexture2D(const std::string& path)
+        :mPath(path)
     {
         NR_PROFILE_FUNCTION();
 

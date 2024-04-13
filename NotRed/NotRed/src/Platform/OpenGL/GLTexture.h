@@ -16,6 +16,8 @@ namespace NR
 
         void SetData(void* data, uint32_t size) override;
 
+        const std::string& GetPath() const override { return mPath; }
+
         void Bind(uint32_t slot = 0) const override;
         uint32_t GetRendererID() override { return mID; };
 
@@ -27,6 +29,7 @@ namespace NR
     private:
         uint32_t mWidth, mHeight;
         uint32_t mID;
+        std::string mPath;
         uint32_t mDataFormat;
     };
 }
