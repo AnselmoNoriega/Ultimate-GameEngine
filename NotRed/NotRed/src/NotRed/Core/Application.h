@@ -26,10 +26,17 @@ namespace NR
         }
     };
 
+    struct ApplicationSpecification
+    {
+        std::string Name = "Hazel Application";
+        std::string WorkingDirectory;
+        AppCommandLineArgs CommandLineArgs;
+    };
+
     class Application
     {
     public:
-        Application(const std::string& name = "NotRed APP", AppCommandLineArgs args = AppCommandLineArgs());
+        Application(const ApplicationSpecification& specification);
         virtual ~Application();
 
         void Run();
@@ -42,7 +49,7 @@ namespace NR
         inline Window& GetWindow() { return *mWindow; }
         inline static Application& Get() { return *sInstance; }
 
-        AppCommandLineArgs GetCommandLineArgs() const { return mCommandLineArgs; }
+        const ApplicationSpecification& GetSpecification() const { return mSpecification; }
 
         ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
 
@@ -55,7 +62,7 @@ namespace NR
     private:
         static Application* sInstance;
 
-        AppCommandLineArgs mCommandLineArgs;
+        ApplicationSpecification mSpecification;
 
         bool mRunning = true;
         bool mMinimized = false;

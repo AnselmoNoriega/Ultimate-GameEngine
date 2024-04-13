@@ -4,7 +4,7 @@ layout(location = 0) in vec3 aWorldPosition;
 layout(location = 1) in vec3 aLocalPosition;
 layout(location = 2) in vec4 aColor;
 layout(location = 3) in float aThickness;
-layout(location = 5) in int aEntityID;
+layout(location = 4) in int aEntityID;
 
 layout(std140, binding = 0) uniform Camera
 {

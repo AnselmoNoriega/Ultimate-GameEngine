@@ -19,14 +19,14 @@ struct VertexOutput
 
 layout (location = 0) out VertexOutput Output;
 layout (location = 3) out flat float vTexIndex;
-layout (location = 4) out flat int oEntityID;
+layout (location = 4) out flat int vEntityID;
 
 void main()
 {
     Output.TexCoord = aTexCoord;
     Output.Color = aColor;
     vTexIndex = aTexIndex;
-    oEntityID = aEntityID;
+    vEntityID = aEntityID;
 
     gl_Position = uViewProjection * vec4(aPosition, 1.0);
 }

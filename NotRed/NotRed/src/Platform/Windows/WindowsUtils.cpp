@@ -1,5 +1,6 @@
 #include "nrpch.h"
 #include "NotRed/Utils/PlatformUtils.h"
+#include "NotRed/Core/Application.h"
 
 #include <commdlg.h>
 #include <GLFW/glfw3.h>
@@ -10,6 +11,11 @@
 
 namespace NR
 {
+    float Time::GetTime()
+    {
+        return glfwGetTime();
+    }
+
     std::string FileDialogs::OpenFile(const char* filter)
     {
         OPENFILENAMEA ofn;

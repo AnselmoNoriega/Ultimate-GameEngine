@@ -6,7 +6,8 @@
 class Sandbox : public NR::Application
 {
 public:
-    Sandbox()
+    Sandbox(const NR::ApplicationSpecification& specification)
+        : NR::Application(specification)
     {
         PushOverlay(new Sandbox2D());
     }
@@ -17,7 +18,12 @@ public:
     }
 };
 
-NR::Application* NR::CreateApplication()
+NR::Application* NR::CreateApplication(NR::AppCommandLineArgs args)
 {
-    return new Sandbox();
+    NR::ApplicationSpecification spec;
+    spec.Name = "Sandbox";
+    spec.WorkingDirectory = "../NotEditor";
+    spec.CommandLineArgs = args;
+
+    return new Sandbox(spec);
 }

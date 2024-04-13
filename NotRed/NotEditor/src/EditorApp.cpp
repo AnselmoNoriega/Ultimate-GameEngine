@@ -8,8 +8,8 @@ namespace NR
     class NotEditor : public Application
     {
     public:
-        NotEditor(AppCommandLineArgs args)
-            : Application("Not-Red Editor", args)
+        NotEditor(const ApplicationSpecification& spec)
+            : Application(spec)
         {
             PushOverlay(new EditorLayer());
         }
@@ -22,6 +22,10 @@ namespace NR
 
     Application* CreateApplication(AppCommandLineArgs args)
     {
-        return new NotEditor(args);
+        ApplicationSpecification spec;
+        spec.Name = "NotRed";
+        spec.CommandLineArgs = args;
+
+        return new NotEditor(spec);
     }
 }

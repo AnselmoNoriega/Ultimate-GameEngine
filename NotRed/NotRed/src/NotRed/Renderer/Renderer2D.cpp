@@ -32,7 +32,7 @@ namespace NR
         glm::vec4 Color;
         float Thickness;
 
-        int EntityID;
+        int EntityID = -1;
     };
 
     struct LineVertex

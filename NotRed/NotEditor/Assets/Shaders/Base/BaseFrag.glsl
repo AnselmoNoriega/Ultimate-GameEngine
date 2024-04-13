@@ -13,7 +13,7 @@ struct VertexOutput
 
 layout (location = 0) in VertexOutput Input;
 layout (location = 3) in flat float vTexIndex;
-layout (location = 4) in flat int aEntityID;
+layout (location = 4) in flat int vEntityID;
 
 void main()
 {
@@ -61,5 +61,5 @@ void main()
 	}
 
 	oColor = texColor;
-    oEntityID = aEntityID;
+    oEntityID = vEntityID;
 }

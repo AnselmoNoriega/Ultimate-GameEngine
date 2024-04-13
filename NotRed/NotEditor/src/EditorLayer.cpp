@@ -38,7 +38,16 @@ namespace NR
         mActiveScene = mEditorScene;
         mSceneHierarchyPanel.SetContext(mActiveScene);
 
+        auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
+        if (commandLineArgs.Count > 1)
+        {
+            auto sceneFilePath = commandLineArgs[1];
+            SceneSerializer serializer(mActiveScene);
+            serializer.Deserialize(sceneFilePath);
+        }
+
         mEditorCamera = EditorCamera(30.0f, 16 / 9, 0.1f, 1000.0f);
+        Renderer2D::SetLineWidth(4.0f);
     }
 
     void EditorLayer::Detach()
@@ -187,7 +196,7 @@ namespace NR
         ImGui::Begin("Stats");
 
         std::string hoveredEntityName = "None";
-        if (mHoveredEntity && mHoveredEntity.HasComponent<TagComponent>())
+        if (mHoveredEntity)
         {
             hoveredEntityName = mHoveredEntity.GetComponent<TagComponent>().Tag;
         }
@@ -387,6 +396,13 @@ namespace NR
                     Renderer2D::DrawCircle(transform, glm::vec4(0.0f, 1.0f, 0.2f, 1.0f), 0.01f);
                 }
             }
+        }
+
+        if (Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity()) 
+        {
+            TransformComponent transform = selectedEntity.GetComponent<TransformComponent>();
+
+            Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(1, 0, 0, 1));
         }
 
         Renderer2D::EndScene();
