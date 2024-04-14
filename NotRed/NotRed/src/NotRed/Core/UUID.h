@@ -1,7 +1,5 @@
 #pragma once
 
-#include <xhash>
-
 namespace NR
 {
 	class UUID
@@ -21,12 +19,15 @@ namespace NR
 
 namespace std 
 {
+	template <typename T> 
+	struct hash;
+
 	template<>
 	struct hash<NR::UUID>
 	{
 		std::size_t operator()(const NR::UUID& uuid) const
 		{
-			return hash<uint64_t>()((uint64_t)uuid);
+			return (uint64_t)uuid;
 		}
 	};
 }

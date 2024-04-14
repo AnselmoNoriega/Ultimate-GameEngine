@@ -13,11 +13,6 @@ namespace NR
         {
             PushOverlay(new EditorLayer());
         }
-
-        ~NotEditor() override
-        {
-
-        }
     };
 
     Application* CreateApplication(AppCommandLineArgs args)

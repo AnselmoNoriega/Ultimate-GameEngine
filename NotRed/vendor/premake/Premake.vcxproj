@@ -78,6 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\NotEditor\premake5.lua" />
+    <None Include="..\..\NotRed-ScriptCore\premake5.lua" />
     <None Include="..\..\NotRed\premake5.lua" />
     <None Include="..\..\NotRed\vendor\Box2D\premake5.lua" />
     <None Include="..\..\NotRed\vendor\GLFW\premake5.lua" />

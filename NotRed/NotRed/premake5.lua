@@ -40,6 +40,7 @@ project "NotRed"
 		"%{IncludeDir.Glm}",
 		"%{IncludeDir.Stb}",
 		"%{IncludeDir.Entt}",
+		"%{IncludeDir.Mono}",
 		"%{IncludeDir.Yaml}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.VulkanSDK}"
@@ -52,7 +53,9 @@ project "NotRed"
 		"Glad",
 		"ImGui",
 		"yaml-cpp",
-		"opengl32.lib"
+		"opengl32.lib",
+
+		"%{Library.Mono}",
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -63,6 +66,14 @@ project "NotRed"
 
 		defines
 		{
+		}
+
+		links
+		{
+			"%{Library.WinSock}",
+			"%{Library.WinMM}",
+			"%{Library.WinVersion}",
+			"%{Library.BCrypt}",
 		}
 
 	filter "configurations:Debug"

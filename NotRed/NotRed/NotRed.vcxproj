@@ -75,9 +75,9 @@
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\Box2D\include;vendor\GLFW\include;vendor\Glad\include;vendor\ImGui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\yaml-cpp\include;vendor\ImGuizmo;vendor\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\Box2D\include;vendor\GLFW\include;vendor\Glad\include;vendor\ImGui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\mono\include;vendor\yaml-cpp\include;vendor\ImGuizmo;vendor\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -91,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\VulkanSDK\Lib\shaderc_sharedd.lib;vendor\VulkanSDK\Lib\spirv-cross-cored.lib;vendor\VulkanSDK\Lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\libmono-static-sgen.lib;Ws2_32.lib;Winmm.lib;Version.lib;Bcrypt.lib;vendor\VulkanSDK\Lib\shaderc_sharedd.lib;vendor\VulkanSDK\Lib\spirv-cross-cored.lib;vendor\VulkanSDK\Lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\Box2D\include;vendor\GLFW\include;vendor\Glad\include;vendor\ImGui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\yaml-cpp\include;vendor\ImGuizmo;vendor\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\Box2D\include;vendor\GLFW\include;vendor\Glad\include;vendor\ImGui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\mono\include;vendor\yaml-cpp\include;vendor\ImGuizmo;vendor\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -117,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\VulkanSDK\Lib\shaderc_shared.lib;vendor\VulkanSDK\Lib\spirv-cross-core.lib;vendor\VulkanSDK\Lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Release\libmono-static-sgen.lib;Ws2_32.lib;Winmm.lib;Version.lib;Bcrypt.lib;vendor\VulkanSDK\Lib\shaderc_shared.lib;vendor\VulkanSDK\Lib\spirv-cross-core.lib;vendor\VulkanSDK\Lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -126,7 +126,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;GLFW_INCLUDE_NONE;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\Box2D\include;vendor\GLFW\include;vendor\Glad\include;vendor\ImGui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\yaml-cpp\include;vendor\ImGuizmo;vendor\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor\spdlog\include;vendor\Box2D\include;vendor\GLFW\include;vendor\Glad\include;vendor\ImGui;vendor\glm;vendor\stb_image;vendor\entt\include;vendor\mono\include;vendor\yaml-cpp\include;vendor\ImGuizmo;vendor\VulkanSDK\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -143,7 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\VulkanSDK\Lib\shaderc_shared.lib;vendor\VulkanSDK\Lib\spirv-cross-core.lib;vendor\VulkanSDK\Lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Dist\libmono-static-sgen.lib;Ws2_32.lib;Winmm.lib;Version.lib;Bcrypt.lib;vendor\VulkanSDK\Lib\shaderc_shared.lib;vendor\VulkanSDK\Lib\spirv-cross-core.lib;vendor\VulkanSDK\Lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -159,6 +159,7 @@
     <ClInclude Include="src\NotRed\Core\MouseButtonCodes.h" />
     <ClInclude Include="src\NotRed\Core\PlatformDetection.h" />
     <ClInclude Include="src\NotRed\Core\TimeStep.h" />
+    <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
     <ClInclude Include="src\NotRed\Debug\Instrumentor.h" />
     <ClInclude Include="src\NotRed\Events\ApplicationEvent.h" />
@@ -191,6 +192,7 @@
     <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
     <ClInclude Include="src\NotRed\Scene\SceneSerializer.h" />
     <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h" />
+    <ClInclude Include="src\NotRed\Scripting\ScriptEngine.h" />
     <ClInclude Include="src\NotRed\Utils\PlatformUtils.h" />
     <ClInclude Include="src\Platform\OpenGL\GLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />
@@ -203,7 +205,6 @@
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
     <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="vendor\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="vendor\glm\glm\common.hpp" />
     <ClInclude Include="vendor\glm\glm\detail\_features.hpp" />
@@ -628,6 +629,7 @@
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
+    <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />
@@ -650,6 +652,7 @@
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
     <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp" />
     <ClCompile Include="src\NotRed\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Scripting\ScriptEngine.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLFramebuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLIndexBuffer.cpp" />
@@ -665,7 +668,6 @@
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="vendor\ImGuizmo\ImGuizmo.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>

@@ -33,6 +33,15 @@ group "Dependencies"
 	include "NotRed/vendor/yaml-cpp"
 group ""
 
-include "NotRed"
-include "Sandbox"
-include "NotEditor"
+group "Core"
+	include "NotRed"
+	include "NotRed-ScriptCore"
+group ""
+
+group "Tools"
+	include "NotEditor"
+group ""
+
+group "Misc"
+	include "Sandbox"
+group ""

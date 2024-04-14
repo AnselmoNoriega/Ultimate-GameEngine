@@ -3,6 +3,8 @@
 
 #include "NotRed/Core/Log.h"
 
+#include "NotRed/Scripting/ScriptEngine.h"
+
 #include "NotRed/Events/Event.h"
 #include "NotRed/Events/ApplicationEvent.h"
 #include "NotRed/Utils/PlatformUtils.h"
@@ -37,6 +39,7 @@ namespace NR
         mWindow->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();
+        ScriptEngine::Init();
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);
@@ -136,6 +139,8 @@ namespace NR
 
     Application::~Application()
     {
+        ScriptEngine::Shutdown();
+        Renderer::Shutdown();
     }
 }
 

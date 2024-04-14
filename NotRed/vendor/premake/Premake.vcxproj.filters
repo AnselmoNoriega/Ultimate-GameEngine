@@ -28,6 +28,9 @@
     <Filter Include="..\NotRed\vendor\yaml-cpp">
       <UniqueIdentifier>{8BF5CF22-F7B7-03AD-4068-9239AC69DC8A}</UniqueIdentifier>
     </Filter>
+    <Filter Include="..\NotRed-ScriptCore">
+      <UniqueIdentifier>{C7007CE4-B38F-05AE-5CAE-19A9481C1654}</UniqueIdentifier>
+    </Filter>
     <Filter Include="..\Sandbox">
       <UniqueIdentifier>{3F7B6B1D-2B33-AD6A-943A-86C68011485B}</UniqueIdentifier>
     </Filter>
@@ -35,6 +38,9 @@
   <ItemGroup>
     <None Include="..\..\NotEditor\premake5.lua">
       <Filter>..\NotEditor</Filter>
+    </None>
+    <None Include="..\..\NotRed-ScriptCore\premake5.lua">
+      <Filter>..\NotRed-ScriptCore</Filter>
     </None>
     <None Include="..\..\NotRed\premake5.lua">
       <Filter>..\NotRed</Filter>

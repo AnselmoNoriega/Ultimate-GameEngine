@@ -1,0 +1,6 @@
+C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Resources\Scripts\Intermediates\Debug\NotRed-ScriptCore.csproj.AssemblyReference.cache
+C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Resources\Scripts\Intermediates\Debug\NotRed-ScriptCore.csproj.CoreCompileInputs.cache
+C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Resources\Scripts\Intermediates\Debug\NotRed-ScriptCore.dll
+C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Resources\Scripts\Intermediates\Debug\NotRed-ScriptCore.pdb
+C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Resources\Scripts\NotRed-ScriptCore.dll
+C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Resources\Scripts\NotRed-ScriptCore.pdb
