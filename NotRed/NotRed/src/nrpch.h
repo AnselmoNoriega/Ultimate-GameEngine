@@ -12,7 +12,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "NotRed/Core/Core.h"
 #include "NotRed/Core/Log.h"
+
 #include "NotRed/Debug/Instrumentor.h"
 
 #ifdef  NR_PLATFORM_WINDOWS

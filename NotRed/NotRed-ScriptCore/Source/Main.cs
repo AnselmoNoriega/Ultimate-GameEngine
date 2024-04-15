@@ -1,14 +1,20 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace NR
 {
-    public class Main
+    public static class InternalCalls
     {
-        public float FloatVar { get; set; }
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        internal extern static void NativeLog(string text, int parameter);
+    }
 
-        public Main()
+    public class Entity
+    {
+        public Entity()
         {
-            Console.WriteLine("Hello C#");
+            Console.WriteLine("Main constructor!");
+            Log("First message", 3000);
         }
 
         public void PrintMessage()
@@ -29,6 +35,11 @@ namespace NR
         public void PrintCustomMessage(string message)
         {
             Console.WriteLine(message);
+        }
+
+        private void Log(string text, int parameter)
+        {
+            InternalCalls.NativeLog(text, parameter);
         }
     }
 }
