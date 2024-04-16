@@ -120,6 +120,14 @@ namespace NR
         }
     };
 
+    struct ScriptComponent
+    {
+        std::string ClassName;
+
+        ScriptComponent() = default;
+        ScriptComponent(const ScriptComponent&) = default;
+    };
+
     struct Rigidbody2DComponent
     {
         enum class BodyType { Static, Kinematic, Dynamic };
@@ -166,5 +174,6 @@ namespace NR
     using AllComponents = 
         ComponentGroup<TransformComponent, SpriteRendererComponent, 
         CircleRendererComponent, CameraComponent, NativeScriptComponent, 
-        Rigidbody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent>;
+        ScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, 
+        CircleCollider2DComponent>;
 }

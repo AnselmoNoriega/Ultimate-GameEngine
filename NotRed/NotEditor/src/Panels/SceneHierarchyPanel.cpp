@@ -4,6 +4,8 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "NotRed/Scripting/ScriptEngine.h"
+
 #include "NotRed/Scene/Components.h"
 
 namespace NR
@@ -235,51 +237,13 @@ namespace NR
 
         if (ImGui::BeginPopup("AddComponent"))
         {
-            if (!mSelectionContext.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
-            {
-                mSelectionContext.AddComponent<CameraComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (!mSelectionContext.HasComponent<SpriteRendererComponent>() && ImGui::MenuItem("Sprite Renderer"))
-            {
-                mSelectionContext.AddComponent<SpriteRendererComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (!mSelectionContext.HasComponent<CircleRendererComponent>() && ImGui::MenuItem("Circle Renderer"))
-            {
-                mSelectionContext.AddComponent<CircleRendererComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (!mSelectionContext.HasComponent<Rigidbody2DComponent>() && ImGui::MenuItem("Rigidbody 2D"))
-            {
-                mSelectionContext.AddComponent<Rigidbody2DComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (!mSelectionContext.HasComponent<BoxCollider2DComponent>() && ImGui::MenuItem("Box Collider 2D"))
-            {
-                if (!mSelectionContext.HasComponent<Rigidbody2DComponent>())
-                {
-                    mSelectionContext.AddComponent<Rigidbody2DComponent>();
-                }
-
-                mSelectionContext.AddComponent<BoxCollider2DComponent>();
-                ImGui::CloseCurrentPopup();
-            }
-
-            if (!mSelectionContext.HasComponent<CircleCollider2DComponent>() && ImGui::MenuItem("Circle Collider 2D"))
-            {
-                if (!mSelectionContext.HasComponent<Rigidbody2DComponent>())
-                {
-                    mSelectionContext.AddComponent<Rigidbody2DComponent>();
-                }
-
-                mSelectionContext.AddComponent<CircleCollider2DComponent>();
-                ImGui::CloseCurrentPopup();
-            }
+            DisplayAddComponent<CameraComponent>("Camera");
+            DisplayAddComponent<ScriptComponent>("Script");
+            DisplayAddComponent<SpriteRendererComponent>("Sprite Renderer");
+            DisplayAddComponent<CircleRendererComponent>("Circle Renderer");
+            DisplayAddComponent<Rigidbody2DComponent>("Rigidbody 2D");
+            DisplayAddComponentCollider<BoxCollider2DComponent>("Box Collider 2D");
+            DisplayAddComponentCollider<CircleCollider2DComponent>("Circle Collider 2D");
 
             ImGui::EndPopup();
         }
@@ -352,6 +316,29 @@ namespace NR
                 }
             });
 
+        DrawComponent<ScriptComponent>("Script", entity, [](ScriptComponent& component)
+            {
+                bool scriptClassExists = ScriptEngine::EntityClassExists(component.ClassName);
+
+                static char buffer[64];
+                strcpy(buffer, component.ClassName.c_str());
+
+                if (!scriptClassExists)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
+                }
+
+                if (ImGui::InputText("Class", buffer, sizeof(buffer)))
+                {
+                    component.ClassName = buffer;
+                }
+
+                if (!scriptClassExists)
+                {
+                    ImGui::PopStyleColor();
+                }
+            });
+
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& component)
             {
                 ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
@@ -391,5 +378,29 @@ namespace NR
                 ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset));
                 ImGui::DragFloat("Radius", &component.Radius);
             });
+    }
+
+    template<typename T>
+    void SceneHierarchyPanel::DisplayAddComponent(const std::string& entryName)
+    {
+        if (!mSelectionContext.HasComponent<T>() && ImGui::MenuItem(entryName.c_str()))
+        {
+            mSelectionContext.AddComponent<T>();
+            ImGui::CloseCurrentPopup();
+        }
+    }
+    template<typename T>
+    void SceneHierarchyPanel::DisplayAddComponentCollider(const std::string& entryName)
+    {
+        if (!mSelectionContext.HasComponent<T>() && ImGui::MenuItem(entryName.c_str()))
+        {
+            if (!mSelectionContext.HasComponent<Rigidbody2DComponent>())
+            {
+                mSelectionContext.AddComponent<Rigidbody2DComponent>();
+            }
+
+            mSelectionContext.AddComponent<T>();
+            ImGui::CloseCurrentPopup();
+        }
     }
 }

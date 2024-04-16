@@ -21,7 +21,8 @@
     <OutputPath>..\NotEditor\Resources\Scripts\</OutputPath>
     <BaseIntermediateOutputPath>..\NotEditor\Resources\Scripts\Intermediates\Debug\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,7 +34,8 @@
     <OutputPath>..\NotEditor\Resources\Scripts\</OutputPath>
     <BaseIntermediateOutputPath>..\NotEditor\Resources\Scripts\Intermediates\Release\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -45,7 +47,8 @@
     <OutputPath>..\NotEditor\Resources\Scripts\</OutputPath>
     <BaseIntermediateOutputPath>..\NotEditor\Resources\Scripts\Intermediates\Dist\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
-    <DefineConstants></DefineConstants>
+    <DefineConstants>
+    </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -56,10 +59,17 @@
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Dist|x64' ">
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Source\Main.cs" />
+    <Compile Include="NotRed\Input.cs" />
+    <Compile Include="NotRed\InternalCalls.cs" />
+    <Compile Include="NotRed\KeyCode.cs" />
+    <Compile Include="NotRed\Scene\Components.cs" />
+    <Compile Include="NotRed\Scene\Entity.cs" />
+    <Compile Include="NotRed\Vector2.cs" />
+    <Compile Include="NotRed\Vector3.cs" />
+    <Compile Include="Player.cs" />
+    <Compile Include="Camera.cs" />
   </ItemGroup>
-  <ItemGroup>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.

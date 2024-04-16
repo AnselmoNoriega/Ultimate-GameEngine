@@ -26,6 +26,8 @@ namespace NR
         Entity CreateEntityWithUUID(UUID uuid, const std::string& tagName = "Object");
         void RemoveEntity(Entity entity);
 
+        Entity GetEntity(UUID uuid);
+
         void DuplicateEntity(Entity entity);
 
         void RuntimeStart();
@@ -51,6 +53,7 @@ namespace NR
         uint32_t mViewportWidth = 0, mViewportHeight = 0;
 
         b2World* mPhysicsWorld = nullptr;
+        std::unordered_map<UUID, entt::entity> mEntities;
 
         int32_t mVelocityIterations = 6, mPositionIterations = 2;
 

@@ -93,45 +93,14 @@ namespace NR
         MonoImage* CoreAssemblyImage = nullptr;
 
         ScriptClass EntityClass;
+
+        std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
+        std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
+
+        Scene* SceneContext = nullptr;
     };
 
     static ScriptEngineData* sMonoData = nullptr;
-
-    void ScriptEngine::Init()
-    {
-        sMonoData = new ScriptEngineData();
-
-        InitMono();
-        LoadAssembly("Resources/Scripts/NotRed-ScriptCore.dll");
-
-        ScriptGlue::RegisterFunctions();
-
-        sMonoData->EntityClass = ScriptClass("NR", "Entity");
-
-        MonoObject* instance = sMonoData->EntityClass.Instantiate();
-
-        MonoMethod* method = sMonoData->EntityClass.GetMethod("PrintMessage", 0);
-        sMonoData->EntityClass.InvokeMethod(instance, method);
-
-        MonoMethod* methodParam = sMonoData->EntityClass.GetMethod("PrintInt", 1);
-        int value = 5;
-        void* param = &value;
-        sMonoData->EntityClass.InvokeMethod(instance, methodParam, &param);
-
-        MonoMethod* methodParams = sMonoData->EntityClass.GetMethod("PrintInts", 2);
-        int value2 = 508;
-        void* params[2] =
-        {
-            &value,
-            &value2
-        };
-        sMonoData->EntityClass.InvokeMethod(instance, methodParams, params);
-
-        MonoString* monoString = mono_string_new(sMonoData->AppDomain, "Hello World from C++!");
-        MonoMethod* methodString = sMonoData->EntityClass.GetMethod("PrintCustomMessage", 1);
-        void* stringParam = monoString;
-        sMonoData->EntityClass.InvokeMethod(instance, methodString, &stringParam);
-    }
 
     void ScriptEngine::InitMono()
     {
@@ -150,10 +119,106 @@ namespace NR
         return instance;
     }
 
-    void ScriptEngine::Shutdown()
+    void ScriptEngine::LoadAssembly(const std::filesystem::path& filepath)
     {
-        ShutdownMono();
-        delete sMonoData;
+        sMonoData->AppDomain = mono_domain_create_appdomain((char*)"NotScriptRuntime", nullptr);
+        mono_domain_set(sMonoData->AppDomain, true);
+
+        sMonoData->CoreAssembly = Utils::LoadMonoAssembly(filepath);
+        sMonoData->CoreAssemblyImage = mono_assembly_get_image(sMonoData->CoreAssembly);
+    }
+
+    void ScriptEngine::LoadAssemblyClasses(MonoAssembly* assembly)
+    {
+        sMonoData->EntityClasses.clear();
+
+        MonoImage* image = mono_assembly_get_image(assembly);
+        const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
+        int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
+        MonoClass* entityClass = mono_class_from_name(image, "NotRed", "Entity");
+
+        for (int32_t i = 0; i < numTypes; i++)
+        {
+            uint32_t cols[MONO_TYPEDEF_SIZE];
+            mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
+
+            const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
+            const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
+            std::string strName = name;
+            /*if (strlen(nameSpace) != 0)
+            {
+                fullName = fmt::format("{}.{}", nameSpace, name);
+            }
+            else
+            {
+                fullName = name;
+            }*/
+
+            MonoClass* monoClass = mono_class_from_name(image, nameSpace, name);
+
+            if (monoClass == entityClass)
+            {
+                continue;
+            }
+
+            bool isEntity = mono_class_is_subclass_of(monoClass, entityClass, false);
+            if (isEntity)
+            {
+                sMonoData->EntityClasses[strName] = CreateRef<ScriptClass>(nameSpace, name);
+            }
+        }
+    }
+
+    void ScriptEngine::Init()
+    {
+        sMonoData = new ScriptEngineData();
+
+        InitMono();
+        LoadAssembly("Resources/Scripts/NotRed-ScriptCore.dll");
+        LoadAssemblyClasses(sMonoData->CoreAssembly);
+
+        ScriptGlue::RegisterComponents();
+        ScriptGlue::RegisterFunctions();
+
+        sMonoData->EntityClass = ScriptClass("NotRed", "Entity");
+
+        MonoObject* instance = sMonoData->EntityClass.Instantiate();
+    }
+
+    void ScriptEngine::RuntimeStart(Scene* scene)
+    {
+        sMonoData->SceneContext = scene;
+    }
+
+    bool ScriptEngine::EntityClassExists(const std::string& className)
+    {
+        return sMonoData->EntityClasses.find(className) != sMonoData->EntityClasses.end();
+    }
+
+    void ScriptEngine::CreateEntity(Entity entity)
+    {
+        const auto& sc = entity.GetComponent<ScriptComponent>();
+        if (ScriptEngine::EntityClassExists(sc.ClassName))
+        {
+            Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(sMonoData->EntityClasses[sc.ClassName], entity);
+            sMonoData->EntityInstances[entity.GetUUID()] = instance;
+            instance->InvokeCreate();
+        }
+    }
+
+    void ScriptEngine::UpdateEntity(Entity entity, float dt)
+    {
+        UUID entityUUID = entity.GetUUID();
+        NR_CORE_ASSERT(sMonoData->EntityInstances.find(entityUUID) != sMonoData->EntityInstances.end(), "Missing Instances of a Entity!");
+
+        Ref<ScriptInstance> instance = sMonoData->EntityInstances[entityUUID];
+        instance->InvokeUpdate(dt);
+    }
+
+    void ScriptEngine::RuntimeStop()
+    {
+        sMonoData->SceneContext = nullptr;
+        sMonoData->EntityInstances.clear();
     }
 
     void ScriptEngine::ShutdownMono()
@@ -162,13 +227,56 @@ namespace NR
         sMonoData->RootDomain = nullptr;
     }
 
-    void ScriptEngine::LoadAssembly(const std::filesystem::path& filepath)
+    void ScriptEngine::Shutdown()
     {
-        sMonoData->AppDomain = mono_domain_create_appdomain((char*)"NotScriptRuntime", nullptr);
-        mono_domain_set(sMonoData->AppDomain, true);
+        ShutdownMono();
+        delete sMonoData;
+    }
 
-        sMonoData->CoreAssembly = Utils::LoadMonoAssembly(filepath);
-        sMonoData->CoreAssemblyImage = mono_assembly_get_image(sMonoData->CoreAssembly);
+    std::unordered_map<std::string, Ref<ScriptClass>> ScriptEngine::GetEntityClasses()
+    {
+        return sMonoData->EntityClasses;
+    }
+
+    Scene* ScriptEngine::GetSceneContext()
+    {
+        return sMonoData->SceneContext;
+    }
+
+    MonoImage* ScriptEngine::GetCoreAssemblyImage()
+    {
+        return sMonoData->CoreAssemblyImage;
+    }
+
+    ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
+        : mScriptClass(scriptClass)
+    {
+        mInstance = scriptClass->Instantiate();
+
+        mConstructor = sMonoData->EntityClass.GetMethod(".ctor", 1);
+        mCreateMethod = scriptClass->GetMethod("Create", 0);
+        mUpdateMethod = scriptClass->GetMethod("Update", 1);
+
+        UUID entityID = entity.GetUUID();
+        void* param = &entityID;
+        mScriptClass->InvokeMethod(mInstance, mConstructor, &param);
+    }
+
+    void ScriptInstance::InvokeCreate()
+    {
+        if (mCreateMethod)
+        {
+            mScriptClass->InvokeMethod(mInstance, mCreateMethod);
+        }
+    }
+
+    void ScriptInstance::InvokeUpdate(float dt)
+    {
+        if (mUpdateMethod)
+        {
+            void* param = &dt;
+            mScriptClass->InvokeMethod(mInstance, mUpdateMethod, &param);
+        }
     }
 
     ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className)

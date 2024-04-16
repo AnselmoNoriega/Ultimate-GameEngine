@@ -187,6 +187,16 @@ namespace NR
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<ScriptComponent>())
+        {
+            auto& scriptComponent = entity.GetComponent<ScriptComponent>();
+
+            out << YAML::Key << "ScriptComponent";
+            out << YAML::BeginMap;
+            out << YAML::Key << "ClassName" << YAML::Value << scriptComponent.ClassName;
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<SpriteRendererComponent>())
         {
             out << YAML::Key << "SpriteRendererComponent";
@@ -328,6 +338,13 @@ namespace NR
 
                     cc.IsPrimary = ccYaml["Primary"].as<bool>();
                     cc.HasFixedAspectRatio = ccYaml["FixedAspectRatio"].as<bool>();
+                }
+
+                auto scriptComponent = entity["ScriptComponent"];
+                if (scriptComponent)
+                {
+                    auto& sc = loadedEntity.AddComponent<ScriptComponent>();
+                    sc.ClassName = scriptComponent["ClassName"].as<std::string>();
                 }
 
                 auto scYaml = entity["SpriteRendererComponent"];

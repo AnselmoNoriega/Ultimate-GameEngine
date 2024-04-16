@@ -25,6 +25,12 @@ namespace NR
         void DrawNode(Entity& entity);
         void DrawComponents(Entity& entity);
 
+        template<typename T>
+        void DisplayAddComponent(const std::string& entryName);
+
+        template<typename T>
+        void DisplayAddComponentCollider(const std::string& entryName);
+
     private:
         Ref<Scene> mContext;
         Entity mSelectionContext;

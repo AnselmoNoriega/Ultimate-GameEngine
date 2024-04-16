@@ -4,6 +4,7 @@
 #include "Components.h"
 #include "ScriptableEntity.h"
 #include "NotRed/Renderer/Renderer2D.h"
+#include "NotRed/Scripting/ScriptEngine.h"
 
 #include "box2d/b2_world.h"
 #include "box2d/b2_body.h"
@@ -123,6 +124,13 @@ namespace NR
     void Scene::UpdateRunTime(float dt)
     {
         {
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                ScriptEngine::UpdateEntity(entity, dt);
+            }
+
             mRegistry.view<NativeScriptComponent>().each([=](auto entity, NativeScriptComponent& nsc)
                 {
                     if (!nsc.Instance)
@@ -210,12 +218,25 @@ namespace NR
         entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(tagName);
+
+        mEntities[uuid] = entity;
         return entity;
     }
 
     void Scene::RemoveEntity(Entity entity)
     {
+        mEntities.erase(entity.GetUUID());
         mRegistry.destroy(entity);
+    }
+
+    Entity Scene::GetEntity(UUID uuid)
+    {
+        if (mEntities.find(uuid) != mEntities.end())
+        {
+            return { mEntities.at(uuid), this };
+        }
+
+        return {};
     }
 
     void Scene::DuplicateEntity(Entity entity)
@@ -279,12 +300,26 @@ namespace NR
                 body->CreateFixture(&fixtureDef);
             }
         }
+
+        {
+            ScriptEngine::RuntimeStart(this);
+            // Instantiate all script entities
+
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                ScriptEngine::CreateEntity(entity);
+            }
+        }
     }
 
     void Scene::RuntimeStop()
     {
         delete mPhysicsWorld;
         mPhysicsWorld = nullptr;
+
+        ScriptEngine::RuntimeStop();
     }
 
     void Scene::ViewportResize(uint32_t width, uint32_t height)
