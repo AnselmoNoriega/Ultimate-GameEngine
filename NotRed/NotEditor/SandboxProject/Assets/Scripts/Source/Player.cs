@@ -1,6 +1,5 @@
-﻿using System;
-using NotRed;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
+﻿using NotRed;
+using System;
 
 namespace Sandbox
 {
@@ -25,11 +24,11 @@ namespace Sandbox
 
             if (Input.IsKeyDown(KeyCode.W))
             {
-                velocity.Y = 1.0f;
+                velocity.Y = 5.0f;
             }
             else if (Input.IsKeyDown(KeyCode.S))
             {
-                velocity.Y = -1.0f;
+                velocity.Y = -5.0f;
             }
 
             if (Input.IsKeyDown(KeyCode.A))

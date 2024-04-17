@@ -56,6 +56,13 @@
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Dist|x64' ">
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Source\NotRed\Input.cs" />
+    <Compile Include="Source\NotRed\InternalCalls.cs" />
+    <Compile Include="Source\NotRed\KeyCode.cs" />
+    <Compile Include="Source\NotRed\Scene\Components.cs" />
+    <Compile Include="Source\NotRed\Scene\Entity.cs" />
+    <Compile Include="Source\NotRed\Vector2.cs" />
+    <Compile Include="Source\NotRed\Vector3.cs" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

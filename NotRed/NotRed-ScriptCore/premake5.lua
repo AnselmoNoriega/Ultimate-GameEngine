@@ -3,8 +3,8 @@ project "NotRed-ScriptCore"
 	language "C#"
 	dotnetframework "4.7.2"
 
-	targetdir ("%{wks.location}/NotEditor/Resources/Scripts")
-	objdir ("%{wks.location}/NotEditor/Resources/Scripts/Intermediates")
+	targetdir ("../NotEditor/Resources/Scripts")
+	objdir ("../NotEditor/Resources/Scripts/Intermediates")
 
 	files
 	{
