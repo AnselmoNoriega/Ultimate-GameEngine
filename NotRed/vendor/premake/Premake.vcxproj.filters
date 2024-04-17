@@ -13,11 +13,11 @@
     <Filter Include="..\NotRed\vendor">
       <UniqueIdentifier>{B9EE3AC4-A5E7-5916-CE19-3F9BBA713922}</UniqueIdentifier>
     </Filter>
-    <Filter Include="..\NotRed\vendor\Box2D">
-      <UniqueIdentifier>{87FF963F-73F9-BF91-5C66-56A248FF25FE}</UniqueIdentifier>
-    </Filter>
     <Filter Include="..\NotRed\vendor\GLFW">
       <UniqueIdentifier>{98C54457-0432-0052-CD25-98AF395122BA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\NotRed\vendor\box2d">
+      <UniqueIdentifier>{C70FDA41-B309-0394-9C76-99A4880F6900}</UniqueIdentifier>
     </Filter>
     <Filter Include="..\NotRed\vendor\glad">
       <UniqueIdentifier>{60DD5657-CC49-1252-953D-AAAF016934BA}</UniqueIdentifier>
@@ -45,11 +45,11 @@
     <None Include="..\..\NotRed\premake5.lua">
       <Filter>..\NotRed</Filter>
     </None>
-    <None Include="..\..\NotRed\vendor\Box2D\premake5.lua">
-      <Filter>..\NotRed\vendor\Box2D</Filter>
-    </None>
     <None Include="..\..\NotRed\vendor\GLFW\premake5.lua">
       <Filter>..\NotRed\vendor\GLFW</Filter>
+    </None>
+    <None Include="..\..\NotRed\vendor\box2d\premake5.lua">
+      <Filter>..\NotRed\vendor\box2d</Filter>
     </None>
     <None Include="..\..\NotRed\vendor\glad\premake5.lua">
       <Filter>..\NotRed\vendor\glad</Filter>
