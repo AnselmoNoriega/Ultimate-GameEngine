@@ -20,6 +20,7 @@ namespace NR
         static Ref<Scene> Copy(Ref<Scene> other);
 
         void UpdateEditor(float dt, EditorCamera& camera);
+        void UpdatePlay(float dt);
         void UpdateRunTime(float dt);
 
         Entity CreateEntity(const std::string& tagName = "Object");

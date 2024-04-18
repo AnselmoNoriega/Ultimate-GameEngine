@@ -32,7 +32,8 @@ namespace NR
         fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
         fbSpecs.Width = 1600;
         fbSpecs.Height = 900;
-        mFramebuffer = Framebuffer::Create(fbSpecs);
+        mFramebufferEditor = Framebuffer::Create(fbSpecs);
+        mFramebufferGame = Framebuffer::Create(fbSpecs);
 
         mEditorScene = CreateRef<Scene>();
         mActiveScene = mEditorScene;
@@ -79,13 +80,9 @@ namespace NR
             Renderer2D::ResetStats();
 
             mFramebufferEditor->Bind();
-            mFramebufferGame->Bind();
-
             RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
             RenderCommand::Clear();
-
             mFramebufferEditor->ClearAttachment(1, -1);
-            mFramebufferGame->ClearAttachment(1, -1);
         }
 
         {
@@ -96,20 +93,12 @@ namespace NR
                 mEditorCamera.Update(deltaTime);
             }
 
-            switch (mSceneState)
-            {
-            case SceneState::Edit:
-            {
-                mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
-
-                break;
-            }
-            case SceneState::Play:
+            if (mSceneState == SceneState::Play)
             {
                 mActiveScene->UpdateRunTime(deltaTime);
-                break;
             }
-            }
+
+            mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
 
             auto [mx, my] = ImGui::GetMousePos();
             mx -= mViewportBounds[0].x;
@@ -120,12 +109,19 @@ namespace NR
             if (mx >= 0.0f && my >= 0.0f && mx < viewportSize.x && my < viewportSize.y)
             {
                 int pixelData = mFramebufferEditor->GetPixel(1, mx, my);
-                mHoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, mActiveScene.get());
+                mHoveredEntity = pixelData < -1 ? Entity() : Entity((entt::entity)pixelData, mActiveScene.get());
             }
 
             OverlayRender();
-
             mFramebufferEditor->Unbind();
+
+            mFramebufferGame->Bind();
+            RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
+            RenderCommand::Clear();
+            mFramebufferGame->ClearAttachment(1, -1);
+
+            mActiveScene->UpdatePlay(deltaTime);
+
             mFramebufferGame->Unbind();
         }
     }
@@ -232,7 +228,7 @@ namespace NR
         ImGui::End();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
-        ImGui::Begin("Viewport");
+        ImGui::Begin("Viewport Editor");
 
         auto minBound = ImGui::GetWindowContentRegionMin();
         auto maxBound = ImGui::GetWindowContentRegionMax();
@@ -241,14 +237,13 @@ namespace NR
         mViewportBounds[1] = { maxBound.x + viewportOffset.x, maxBound.y + viewportOffset.y };
 
         ImVec2 vpSize = ImGui::GetContentRegionAvail();
-        mViewportSize = { vpSize.x, vpSize.y };
+        mEditorViewportSize = { vpSize.x, vpSize.y };
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused && !mViewportHovered);
 
-        uint32_t textureID = mFramebuffer->GetTextureRendererID();
-        ImGui::Image((void*)textureID, ImVec2{ mViewportSize.x, mViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+        uint32_t textureID = mFramebufferEditor->GetTextureRendererID();
+        ImGui::Image((void*)textureID, ImVec2{ mEditorViewportSize.x, mEditorViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
 
         if (ImGui::BeginDragDropTarget())
         {
@@ -316,6 +311,19 @@ namespace NR
         }
 
         ImGui::End();
+        ImGui::Begin("Viewport Game");
+
+        ImVec2 vpGameSize = ImGui::GetContentRegionAvail();
+        mGameViewportSize = { vpGameSize.x, vpGameSize.y };
+
+        mViewportFocused |= ImGui::IsWindowFocused();
+        mViewportHovered |= ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused && !mViewportHovered);
+
+        uint32_t gameTextureID = mFramebufferGame->GetTextureRendererID();
+        ImGui::Image((void*)gameTextureID, ImVec2{ mGameViewportSize.x, mGameViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        ImGui::End();
         ImGui::PopStyleVar();
 
         ToolbarUI();
@@ -368,15 +376,7 @@ namespace NR
 
     void EditorLayer::OverlayRender()
     {
-        if (mSceneState == SceneState::Play)
-        {
-            Entity camera = mActiveScene->GetPrimaryCameraEntity();
-            Renderer2D::BeginScene(camera.GetComponent<CameraComponent>().Camera, camera.GetComponent<TransformComponent>().GetTransform());
-        }
-        else
-        {
-            Renderer2D::BeginScene(mEditorCamera);
-        }
+        Renderer2D::BeginScene(mEditorCamera);
 
         if (mShowPhysicsColliders)
         {
@@ -414,7 +414,7 @@ namespace NR
             }
         }
 
-        if (Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity()) 
+        if (Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity())
         {
             TransformComponent transform = selectedEntity.GetComponent<TransformComponent>();
 
@@ -549,7 +549,7 @@ namespace NR
         SceneSerializer serializer(mEditorScene);
         if (serializer.Deserialize(path.string()))
         {
-            mEditorScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mEditorScene->ViewportResize((uint32_t)mEditorViewportSize.x, (uint32_t)mEditorViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             mActiveScene = mEditorScene;
@@ -565,7 +565,7 @@ namespace NR
         }
 
         mEditorScene = CreateRef<Scene>();
-        mEditorScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+        mEditorScene->ViewportResize((uint32_t)mEditorViewportSize.x, (uint32_t)mEditorViewportSize.y);
         mActiveScene = mEditorScene;
         mSceneHierarchyPanel.SetContext(mEditorScene);
         mScenePath = std::filesystem::path();
@@ -599,8 +599,8 @@ namespace NR
         mSceneState = SceneState::Play;
 
         mActiveScene = Scene::Copy(mEditorScene);
-        mActiveScene->RuntimeStart(); 
-        
+        mActiveScene->RuntimeStart();
+
         mSceneHierarchyPanel.SetContext(mActiveScene);
     }
 
