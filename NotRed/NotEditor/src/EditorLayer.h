@@ -19,7 +19,7 @@ namespace NR
 
         void Update(float deltaTime) override;
         void OnEvent(Event& myEvent) override;
-        void OnOverlayRender();
+        void OverlayRender();
         void ImGuiRender() override;
 
         void PlayScene();
@@ -57,10 +57,14 @@ namespace NR
 
         EditorCamera mEditorCamera;
 
-        Ref<Framebuffer> mFramebuffer; 
+        Ref<Framebuffer> mFramebufferEditor;
+        Ref<Framebuffer> mFramebufferGame;
+
         Ref<Texture2D> mPlayIcon, mStopIcon;
 
-        glm::vec2 mViewportSize = { 0.0f, 0.0f };
+        glm::vec2 mGameViewportSize = { 0.0f, 0.0f };
+        glm::vec2 mEditorViewportSize = { 0.0f, 0.0f };
+
         bool mViewportFocused = false,
             mViewportHovered = false;
 

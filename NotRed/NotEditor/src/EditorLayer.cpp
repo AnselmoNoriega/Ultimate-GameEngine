@@ -58,37 +58,48 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
-        if (FramebufferStruct spec = mFramebuffer->GetSpecification();
-            mViewportSize.x > 0.0f && mViewportSize.y > 0.0f &&
-            (spec.Width != mViewportSize.x || spec.Height != mViewportSize.y))
+        if (FramebufferStruct spec = mFramebufferEditor->GetSpecification();
+            mEditorViewportSize.x > 0.0f && mEditorViewportSize.y > 0.0f &&
+            (spec.Width != mEditorViewportSize.x || spec.Height != mEditorViewportSize.y))
         {
-            mFramebuffer->Resize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
-            mEditorCamera.SetViewportSize(mViewportSize.x, mViewportSize.y);
-            mActiveScene->ViewportResize((uint32_t)mViewportSize.x, (uint32_t)mViewportSize.y);
+            mFramebufferEditor->Resize((uint32_t)mEditorViewportSize.x, (uint32_t)mEditorViewportSize.y);
+            mEditorCamera.SetViewportSize(mEditorViewportSize.x, mEditorViewportSize.y);
+        }
+
+        if (FramebufferStruct spec = mFramebufferGame->GetSpecification();
+            mGameViewportSize.x > 0.0f && mGameViewportSize.y > 0.0f &&
+            (spec.Width != mGameViewportSize.x || spec.Height != mGameViewportSize.y))
+        {
+            mFramebufferGame->Resize((uint32_t)mGameViewportSize.x, (uint32_t)mGameViewportSize.y);
+            mActiveScene->ViewportResize((uint32_t)mGameViewportSize.x, (uint32_t)mGameViewportSize.y);
         }
 
         {
             NR_PROFILE_SCOPE("Render Start");
             Renderer2D::ResetStats();
-            mFramebuffer->Bind();
+
+            mFramebufferEditor->Bind();
+            mFramebufferGame->Bind();
+
             RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
             RenderCommand::Clear();
 
-            mFramebuffer->ClearAttachment(1, -1);
+            mFramebufferEditor->ClearAttachment(1, -1);
+            mFramebufferGame->ClearAttachment(1, -1);
         }
 
         {
             NR_PROFILE_SCOPE("Rendering");
 
+            if (mViewportFocused && mViewportHovered)
+            {
+                mEditorCamera.Update(deltaTime);
+            }
+
             switch (mSceneState)
             {
             case SceneState::Edit:
             {
-                if (mViewportFocused || mViewportHovered)
-                {
-                    mEditorCamera.Update(deltaTime);
-                }
-
                 mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
 
                 break;
@@ -108,13 +119,14 @@ namespace NR
 
             if (mx >= 0.0f && my >= 0.0f && mx < viewportSize.x && my < viewportSize.y)
             {
-                int pixelData = mFramebuffer->GetPixel(1, mx, my);
+                int pixelData = mFramebufferEditor->GetPixel(1, mx, my);
                 mHoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, mActiveScene.get());
             }
 
-            OnOverlayRender();
+            OverlayRender();
 
-            mFramebuffer->Unbind();
+            mFramebufferEditor->Unbind();
+            mFramebufferGame->Unbind();
         }
     }
 
@@ -354,7 +366,7 @@ namespace NR
         dispatch.Dispatch<MouseButtonPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::MouseButtonPressed));
     }
 
-    void EditorLayer::OnOverlayRender()
+    void EditorLayer::OverlayRender()
     {
         if (mSceneState == SceneState::Play)
         {
