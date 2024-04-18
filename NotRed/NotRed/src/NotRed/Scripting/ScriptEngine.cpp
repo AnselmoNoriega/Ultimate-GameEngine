@@ -4,11 +4,36 @@
 #include "ScriptGlue.h"
 
 #include "mono/jit/jit.h"
-#include "mono/metadata/assembly.h"
 #include "mono/metadata/object.h"
+#include "mono/metadata/assembly.h"
+#include "mono/metadata/attrdefs.h"
 
 namespace NR
 {
+    static std::unordered_map<std::string, ScriptFieldType> sScriptFieldTypeMap =
+    {
+        { "Char",    ScriptFieldType::Char    },
+        { "Byte",    ScriptFieldType::Byte    },
+        { "Boolean", ScriptFieldType::Bool    },
+                                              
+        { "Int32",   ScriptFieldType::Int     },
+        { "Single",  ScriptFieldType::Float   },
+        { "Double",  ScriptFieldType::Double  },
+        { "Int64",   ScriptFieldType::Long    },
+        { "Int16",   ScriptFieldType::Short   },
+                                              
+        { "UByte",   ScriptFieldType::UByte   },
+        { "UInt32",  ScriptFieldType::UInt    },
+        { "UInt64",  ScriptFieldType::ULong   },
+        { "UInt16",  ScriptFieldType::UShort  },
+
+        { "Vector2", ScriptFieldType::Vector2 },
+        { "Vector3", ScriptFieldType::Vector3 },
+        { "Vector4", ScriptFieldType::Vector4 },
+
+        { "Entity",  ScriptFieldType::Entity  }
+    };
+
     namespace Utils
     {
         static char* ReadBytes(const std::string& filepath, uint32_t* outSize)
@@ -44,7 +69,6 @@ namespace NR
             uint32_t fileSize = 0;
             char* fileData = ReadBytes(assemblyPath.string(), &fileSize);
 
-            // NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
             MonoImageOpenStatus status;
             MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
 
@@ -81,6 +105,51 @@ namespace NR
 
                 NR_CORE_TRACE("{}.{}", nameSpace, name);
             }
+        }
+
+        ScriptFieldType MonoTypeToScriptFieldType(MonoType* monoType)
+        {
+            std::string typeName = mono_type_get_name(monoType);
+
+            size_t pos = typeName.find_last_of('.');
+            typeName = typeName.substr(pos + 1);
+
+            auto it = sScriptFieldTypeMap.find(typeName);
+            if (it != sScriptFieldTypeMap.end())
+            {
+                return it->second;
+            }
+
+            NR_CORE_ERROR("Unknown type: {}", typeName);
+            return ScriptFieldType::None;
+        }
+
+        const char* ScriptFieldTypeToString(ScriptFieldType type)
+        {
+            switch (type)
+            {
+            case ScriptFieldType::Char:     return "Char";
+            case ScriptFieldType::Byte:     return "Byte";
+            case ScriptFieldType::Bool:     return "Bool";
+
+            case ScriptFieldType::Int:      return "Int";
+            case ScriptFieldType::Float:    return "Float";
+            case ScriptFieldType::Double:   return "Double";
+            case ScriptFieldType::Long:     return "Long";
+            case ScriptFieldType::Short:    return "Short";
+
+            case ScriptFieldType::UByte:    return "UByte";
+            case ScriptFieldType::UInt:     return "UInt";
+            case ScriptFieldType::ULong:    return "ULong";
+            case ScriptFieldType::UShort:   return "UShort";
+
+            case ScriptFieldType::Vector2:  return "Vector2";
+            case ScriptFieldType::Vector3:  return "Vector3";
+            case ScriptFieldType::Vector4:  return "Vector4";
+
+            case ScriptFieldType::Entity:   return "Entity";
+            }
+            return "<Unknown>";
         }
     }
 
@@ -151,10 +220,10 @@ namespace NR
             mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
 
             const char* nameSpace = mono_metadata_string_heap(sMonoData->AppAssemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
-            const char* name = mono_metadata_string_heap(sMonoData->AppAssemblyImage, cols[MONO_TYPEDEF_NAME]);
-            std::string strName = name;
+            const char* className = mono_metadata_string_heap(sMonoData->AppAssemblyImage, cols[MONO_TYPEDEF_NAME]);
+            std::string strName = className;
 
-            MonoClass* monoClass = mono_class_from_name(sMonoData->AppAssemblyImage, nameSpace, name);
+            MonoClass* monoClass = mono_class_from_name(sMonoData->AppAssemblyImage, nameSpace, className);
 
             if (monoClass == entityClass)
             {
@@ -162,11 +231,43 @@ namespace NR
             }
 
             bool isEntity = mono_class_is_subclass_of(monoClass, entityClass, false);
-            if (isEntity)
+            if (!isEntity)
             {
-                sMonoData->EntityClasses[strName] = CreateRef<ScriptClass>(nameSpace, name);
+                continue;
+            }
+
+            Ref<ScriptClass> scriptClass = CreateRef<ScriptClass>(nameSpace, className);
+            sMonoData->EntityClasses[className] = scriptClass;
+
+            int fieldCount = mono_class_num_fields(monoClass);
+            NR_CORE_INFO("{} has {} fields:", className, fieldCount);
+
+            void* iterator = nullptr;
+            while (MonoClassField* field = mono_class_get_fields(monoClass, &iterator))
+            {
+                const char* fieldName = mono_field_get_name(field);
+                uint32_t flags = mono_field_get_flags(field);
+                if (flags & MONO_FIELD_ATTR_PUBLIC)
+                {
+                    MonoType* monoType = mono_field_get_type(field);
+                    ScriptFieldType fieldType = Utils::MonoTypeToScriptFieldType(monoType);
+                    NR_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
+
+                    scriptClass->mFields[fieldName] = { fieldType, fieldName, field };
+                }
             }
         }
+    }
+
+    Ref<ScriptInstance> ScriptEngine::GetEntityScriptInstance(UUID entityID)
+    {
+        auto it = sMonoData->EntityInstances.find(entityID);
+        if (it != sMonoData->EntityInstances.end())
+        {
+            return it->second;
+        }
+
+        return nullptr;
     }
 
     void ScriptEngine::Init()
@@ -278,6 +379,34 @@ namespace NR
             void* param = &dt;
             mScriptClass->InvokeMethod(mInstance, mUpdateMethod, &param);
         }
+    }
+
+    bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
+    {
+        const auto& fields = mScriptClass->GetFields();
+        auto it = fields.find(name);
+        if (it != fields.end())
+        {
+            const ScriptField& field = it->second;
+            mono_field_get_value(mInstance, field.ClassField, buffer);
+            return true;
+        }
+        ///////Check bool and chek *(*T)
+        return false;
+    }
+
+    bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
+    {
+        const auto& fields = mScriptClass->GetFields();
+        auto it = fields.find(name);
+        if (it != fields.end())
+        {
+            const ScriptField& field = it->second;
+            mono_field_set_value(mInstance, field.ClassField, (void*)value);
+            return true;
+        }
+
+        return false;
     }
 
     ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore)

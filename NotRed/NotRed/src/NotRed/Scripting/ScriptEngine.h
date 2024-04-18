@@ -4,6 +4,7 @@
 
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
+#include <map>
 
 extern "C" 
 {
@@ -12,10 +13,29 @@ extern "C"
 	typedef struct _MonoMethod MonoMethod;
 	typedef struct _MonoAssembly MonoAssembly;
 	typedef struct _MonoImage MonoImage;
+	typedef struct _MonoClassField MonoClassField;
 }
 
 namespace NR
 {
+	enum class ScriptFieldType
+	{
+		None,
+		Char, Byte, Bool,
+		Int, Float, Double, Long, Short,
+		UByte, UInt, ULong, UShort,
+		Vector2, Vector3, Vector4,
+		Entity
+	};
+
+	struct ScriptField
+	{
+		ScriptFieldType Type;
+		std::string Name;
+
+		MonoClassField* ClassField;
+	};
+
 	class ScriptClass
 	{
 	public:
@@ -23,14 +43,20 @@ namespace NR
 		ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore = false);
 
 		MonoObject* Instantiate();
-		MonoMethod* GetMethod(const std::string& name, int parameterCount);
 		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr);
+		MonoMethod* GetMethod(const std::string& name, int parameterCount);
+
+		const std::map<std::string, ScriptField>& GetFields() const { return mFields; }
 
 	private:
 		std::string mClassNamespace;
 		std::string mClassName;
 
 		MonoClass* mMonoClass = nullptr;
+
+		std::map<std::string, ScriptField> mFields;
+
+		friend class ScriptEngine;
 	};
 
 	class ScriptInstance
@@ -41,6 +67,30 @@ namespace NR
 		void InvokeCreate();
 		void InvokeUpdate(float dt);
 
+		Ref<ScriptClass> GetScriptClass() { return mScriptClass; }
+
+		template<typename T>
+		T GetFieldValue(const std::string& name)
+		{
+			bool success = GetFieldValueInternal(name, sFieldValueBuffer);
+			if (!success)
+			{
+				return T();
+			}
+
+			return *(T*)sFieldValueBuffer;
+		}
+
+		template<typename T>
+		void SetFieldValue(const std::string& name, const T& value)
+		{
+			SetFieldValueInternal(name, &value);
+		}
+
+	private:
+		bool GetFieldValueInternal(const std::string& name, void* buffer);
+		bool SetFieldValueInternal(const std::string& name, const void* value);
+
 	private:
 		Ref<ScriptClass> mScriptClass;
 
@@ -48,6 +98,8 @@ namespace NR
 		MonoMethod* mConstructor = nullptr;
 		MonoMethod* mCreateMethod = nullptr;
 		MonoMethod* mUpdateMethod = nullptr;
+
+		inline static char sFieldValueBuffer[8];
 	};
 
 	class ScriptEngine
@@ -67,6 +119,7 @@ namespace NR
 		static void UpdateEntity(Entity entity, float dt);
 
 		static Scene* GetSceneContext();
+		static Ref<ScriptInstance> GetEntityScriptInstance(UUID entityID);
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
 
 		static MonoImage* GetCoreAssemblyImage();
