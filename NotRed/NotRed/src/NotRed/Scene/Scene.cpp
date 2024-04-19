@@ -252,6 +252,8 @@ namespace NR
 
     void Scene::RuntimeStart()
     {
+        mIsRunning = true;
+
         mPhysicsWorld = new b2World({ 0.0f, -9.81f });
 
         auto view = mRegistry.view<Rigidbody2DComponent>();
@@ -312,13 +314,15 @@ namespace NR
             for (auto e : view)
             {
                 Entity entity = { e, this };
-                ScriptEngine::CreateEntity(entity);
+                ScriptEngine::ConstructEntity(entity);
             }
         }
     }
 
     void Scene::RuntimeStop()
     {
+        mIsRunning = false;
+
         delete mPhysicsWorld;
         mPhysicsWorld = nullptr;
 

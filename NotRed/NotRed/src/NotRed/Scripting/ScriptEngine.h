@@ -33,8 +33,39 @@ namespace NR
 		ScriptFieldType Type;
 		std::string Name;
 
-		MonoClassField* ClassField;
+		MonoClassField* ClassField = nullptr;
 	};
+
+	struct ScriptFieldInstance
+	{
+		ScriptField Field;
+
+		ScriptFieldInstance()
+		{
+			memset(mBuffer, 0, sizeof(mBuffer));
+		}
+
+		template<typename T>
+		T GetValue()
+		{
+			NR_ASSERT(sizeof(T) <= 8, "Type too large!");
+			return *(T*)mBuffer;
+		}
+
+		template<typename T>
+		void SetValue(T value)
+		{
+			NR_ASSERT(sizeof(T) <= 8, "Type too large!");
+			memcpy(mBuffer, &value, sizeof(T));
+		}
+	private:
+		uint8_t mBuffer[8];
+
+		friend class ScriptEngine;
+		friend class ScriptInstance;
+	};
+
+	using ScriptFieldMap = std::unordered_map<std::string, ScriptFieldInstance>;
 
 	class ScriptClass
 	{
@@ -72,6 +103,7 @@ namespace NR
 		template<typename T>
 		T GetFieldValue(const std::string& name)
 		{
+			NR_ASSERT(sizeof(T) <= 8, "Type too large!");
 			bool success = GetFieldValueInternal(name, sFieldValueBuffer);
 			if (!success)
 			{
@@ -82,8 +114,9 @@ namespace NR
 		}
 
 		template<typename T>
-		void SetFieldValue(const std::string& name, const T& value)
+		void SetFieldValue(const std::string& name, T value)
 		{
+			NR_ASSERT(sizeof(T) <= 8, "Type too large!");
 			SetFieldValueInternal(name, &value);
 		}
 
@@ -100,6 +133,9 @@ namespace NR
 		MonoMethod* mUpdateMethod = nullptr;
 
 		inline static char sFieldValueBuffer[8];
+
+		friend class ScriptEngine;
+		friend struct ScriptFieldInstance;
 	};
 
 	class ScriptEngine
@@ -115,12 +151,15 @@ namespace NR
 		static void RuntimeStop();
 
 		static bool EntityClassExists(const std::string& className);
-		static void CreateEntity(Entity entity);
+		static void ConstructEntity(Entity entity);
 		static void UpdateEntity(Entity entity, float dt);
 
+		static Ref<ScriptClass> GetEntityClass(const std::string& name);
 		static Scene* GetSceneContext();
 		static Ref<ScriptInstance> GetEntityScriptInstance(UUID entityID);
+
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
+		static ScriptFieldMap& GetScriptFieldMap(Entity entity);
 
 		static MonoImage* GetCoreAssemblyImage();
 

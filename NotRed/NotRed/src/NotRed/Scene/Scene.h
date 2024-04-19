@@ -23,6 +23,8 @@ namespace NR
         void UpdatePlay(float dt);
         void UpdateRunTime(float dt);
 
+        bool IsRunning() const { return mIsRunning; }
+
         Entity CreateEntity(const std::string& tagName = "Object");
         Entity CreateEntityWithUUID(UUID uuid, const std::string& tagName = "Object");
         void RemoveEntity(Entity entity);
@@ -61,5 +63,7 @@ namespace NR
         friend class Entity;
         friend class SceneHierarchyPanel;
         friend class SceneSerializer;
+
+        bool mIsRunning = false;
     };
 }

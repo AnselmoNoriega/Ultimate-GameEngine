@@ -8,7 +8,7 @@ namespace Sandbox
         private TransformComponent _transform;
         private Rigidbody2DComponent _rigidbody;
 
-        public float Speed = 0.01f;
+        public float Speed = 0.1f;
 
         void Create()
         {
@@ -18,7 +18,7 @@ namespace Sandbox
             _rigidbody = GetComponent<Rigidbody2DComponent>();
         }
 
-        void Update(float ts)
+        void Update(float dt)
         {
             Vector3 velocity = Vector3.Zero;
 
@@ -40,7 +40,7 @@ namespace Sandbox
                 velocity.X = 1.0f;
             }
 
-            velocity *= Speed;
+            velocity *= Speed * dt;
 
             _rigidbody.ApplyImpulse(velocity.XY, true);
         }

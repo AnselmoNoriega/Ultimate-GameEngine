@@ -220,7 +220,7 @@ namespace NR
 
             char buffer[250];
             memset(buffer, 0, sizeof(buffer));
-            strcpy_s(buffer, sizeof(buffer), tag.c_str());
+            strncpy_s(buffer, sizeof(buffer), tag.c_str(), sizeof(buffer));
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
             {
                 tag = std::string(buffer);
@@ -316,12 +316,12 @@ namespace NR
                 }
             });
 
-        DrawComponent<ScriptComponent>("Script", entity, [entity](ScriptComponent& component) mutable
+        DrawComponent<ScriptComponent>("Script", entity, [entity, scene = mContext](ScriptComponent& component) mutable
             {
                 bool scriptClassExists = ScriptEngine::EntityClassExists(component.ClassName);
 
                 static char buffer[64];
-                strcpy(buffer, component.ClassName.c_str());
+                strcpy_s(buffer, sizeof(buffer), component.ClassName.c_str());
 
                 if (!scriptClassExists)
                 {
@@ -333,22 +333,60 @@ namespace NR
                     component.ClassName = buffer;
                 }
 
-                Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(entity.GetUUID());
-                if (scriptInstance)
+                bool sceneRunning = scene->IsRunning();
+                if (sceneRunning)
                 {
-                    const auto& fields = scriptInstance->GetScriptClass()->GetFields();
-
-                    for (const auto& [name, field] : fields)
+                    Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(entity.GetUUID());
+                    if (scriptInstance)
                     {
-                        if (field.Type == ScriptFieldType::Float)
+                        const auto& fields = scriptInstance->GetScriptClass()->GetFields();
+
+                        for (const auto& [name, field] : fields)
                         {
-                            float data = scriptInstance->GetFieldValue<float>(name);
-                            if (ImGui::DragFloat(name.c_str(), &data))
+                            if (field.Type == ScriptFieldType::Float)
                             {
-                                scriptInstance->SetFieldValue(name, data);
+                                float data = scriptInstance->GetFieldValue<float>(name);
+                                if (ImGui::DragFloat(name.c_str(), &data))
+                                {
+                                    scriptInstance->SetFieldValue(name, data);
+                                }
                             }
                         }
                     }
+                }
+                else if (scriptClassExists)
+                {
+                    Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(component.ClassName);
+                    const auto& fields = entityClass->GetFields();
+
+                    auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
+                    for (const auto& [name, field] : fields)
+                    {
+                        if (entityFields.find(name) != entityFields.end())
+                        {
+                            ScriptFieldInstance& scriptField = entityFields.at(name);
+
+                            if (field.Type == ScriptFieldType::Float)
+                            {
+                                float data = scriptField.GetValue<float>();
+                                if (ImGui::DragFloat(name.c_str(), &data))
+                                {
+                                    scriptField.SetValue(data);
+                                }
+                            }
+                        }
+                        else if (field.Type == ScriptFieldType::Float)
+                        {
+                            float data = 0.0f;
+                            if (ImGui::DragFloat(name.c_str(), &data))
+                            {
+                                ScriptFieldInstance& fieldInstance = entityFields[name];
+                                fieldInstance.Field = field;
+                                fieldInstance.SetValue(data);
+                            }
+                        }
+                    }
+
                 }
 
                 if (!scriptClassExists)

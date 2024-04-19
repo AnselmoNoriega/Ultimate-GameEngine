@@ -15,13 +15,13 @@ namespace NR
         { "Char",    ScriptFieldType::Char    },
         { "Byte",    ScriptFieldType::Byte    },
         { "Boolean", ScriptFieldType::Bool    },
-                                              
+
         { "Int32",   ScriptFieldType::Int     },
         { "Single",  ScriptFieldType::Float   },
         { "Double",  ScriptFieldType::Double  },
         { "Int64",   ScriptFieldType::Long    },
         { "Int16",   ScriptFieldType::Short   },
-                                              
+
         { "UByte",   ScriptFieldType::UByte   },
         { "UInt32",  ScriptFieldType::UInt    },
         { "UInt64",  ScriptFieldType::ULong   },
@@ -168,6 +168,7 @@ namespace NR
 
         std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
         std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
+        std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 
         Scene* SceneContext = nullptr;
     };
@@ -251,7 +252,7 @@ namespace NR
                 {
                     MonoType* monoType = mono_field_get_type(field);
                     ScriptFieldType fieldType = Utils::MonoTypeToScriptFieldType(monoType);
-                    NR_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
+                    NR_CORE_INFO("{} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
 
                     scriptClass->mFields[fieldName] = { fieldType, fieldName, field };
                 }
@@ -297,13 +298,25 @@ namespace NR
         return sMonoData->EntityClasses.find(className) != sMonoData->EntityClasses.end();
     }
 
-    void ScriptEngine::CreateEntity(Entity entity)
+    void ScriptEngine::ConstructEntity(Entity entity)
     {
         const auto& sc = entity.GetComponent<ScriptComponent>();
         if (ScriptEngine::EntityClassExists(sc.ClassName))
         {
+            UUID entityID = entity.GetUUID();
+
             Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(sMonoData->EntityClasses[sc.ClassName], entity);
-            sMonoData->EntityInstances[entity.GetUUID()] = instance;
+            sMonoData->EntityInstances[entityID] = instance;
+
+            if (sMonoData->EntityScriptFields.find(entityID) != sMonoData->EntityScriptFields.end())
+            {
+                const ScriptFieldMap& fieldMap = sMonoData->EntityScriptFields.at(entityID);
+                for (const auto& [name, fieldInstance] : fieldMap)
+                {
+                    instance->SetFieldValueInternal(name, fieldInstance.mBuffer);
+                }
+            }
+
             instance->InvokeCreate();
         }
     }
@@ -340,6 +353,11 @@ namespace NR
         return sMonoData->EntityClasses;
     }
 
+    ScriptFieldMap& ScriptEngine::GetScriptFieldMap(Entity entity)
+    {
+        return sMonoData->EntityScriptFields[entity.GetUUID()];
+    }
+
     Scene* ScriptEngine::GetSceneContext()
     {
         return sMonoData->SceneContext;
@@ -348,6 +366,16 @@ namespace NR
     MonoImage* ScriptEngine::GetCoreAssemblyImage()
     {
         return sMonoData->CoreAssemblyImage;
+    }
+
+    Ref<ScriptClass> ScriptEngine::GetEntityClass(const std::string& name)
+    {
+        if (sMonoData->EntityClasses.find(name) != sMonoData->EntityClasses.end())
+        {
+            return sMonoData->EntityClasses.at(name);
+        }
+
+        return nullptr;
     }
 
     ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
@@ -391,7 +419,7 @@ namespace NR
             mono_field_get_value(mInstance, field.ClassField, buffer);
             return true;
         }
-        ///////Check bool and chek *(*T)
+
         return false;
     }
 
