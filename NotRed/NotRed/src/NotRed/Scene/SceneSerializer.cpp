@@ -6,6 +6,8 @@
 
 #include "Entity.h"
 #include "Components.h"
+#include "NotRed/Scripting/ScriptEngine.h"
+#include "NotRed/Core/UUID.h"
 
 namespace YAML
 {
@@ -86,10 +88,35 @@ namespace YAML
             return true;
         }
     };
+
+    template<>
+    struct convert<NR::UUID>
+    {
+        static Node encode(const NR::UUID& uuid)
+        {
+            Node node;
+            node.push_back((uint64_t)uuid);
+            return node;
+        }
+
+        static bool decode(const Node& node, NR::UUID& uuid)
+        {
+            uuid = node.as<uint64_t>();
+            return true;
+        }
+    };
 }
 
 namespace NR
 {
+#define READ_SCRIPT_FIELD(FieldType, Type, scriptField, fieldInstance) \
+	case ScriptFieldType::FieldType:                    \
+	{                                                   \
+		Type data = scriptField["Data"].as<Type>();     \
+		fieldInstance.SetValue(data);                   \
+		break;                                          \
+	}
+
     YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
     {
         out << YAML::Flow;
@@ -194,6 +221,50 @@ namespace NR
             out << YAML::Key << "ScriptComponent";
             out << YAML::BeginMap;
             out << YAML::Key << "ClassName" << YAML::Value << scriptComponent.ClassName;
+
+            Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(scriptComponent.ClassName);
+            const auto& fields = entityClass->GetFields();
+            if (fields.size() > 0)
+            {
+                out << YAML::Key << "ScriptFields" << YAML::Value;
+                auto& entityFields = ScriptEngine::GetScriptFieldMap(entity);
+                out << YAML::BeginSeq;
+                for (const auto& [name, field] : fields)
+                {
+                    if (entityFields.find(name) == entityFields.end())
+                    {
+                        continue;
+                    }
+
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Name" << YAML::Value << name;
+                    out << YAML::Key << "Type" << YAML::Value << Utils::ScriptFieldTypeToString(field.Type);
+
+                    out << YAML::Key << "Data" << YAML::Value;
+                    ScriptFieldInstance& scriptField = entityFields.at(name);
+
+                    switch (field.Type)
+                    {
+                    case ScriptFieldType::Float:    out << scriptField.GetValue<float>();      break;
+                    case ScriptFieldType::Double:   out << scriptField.GetValue<double>();     break;
+                    case ScriptFieldType::Char:     out << scriptField.GetValue<char>();       break;
+                    case ScriptFieldType::Byte:     out << scriptField.GetValue<int8_t>();     break;
+                    case ScriptFieldType::Short:    out << scriptField.GetValue<int16_t>();    break;
+                    case ScriptFieldType::Int:      out << scriptField.GetValue<int32_t>();    break;
+                    case ScriptFieldType::Long:     out << scriptField.GetValue<int64_t>();    break;
+                    case ScriptFieldType::UByte:    out << scriptField.GetValue<uint8_t>();    break;
+                    case ScriptFieldType::UShort:   out << scriptField.GetValue<uint16_t>();   break;
+                    case ScriptFieldType::UInt:     out << scriptField.GetValue<uint32_t>();   break;
+                    case ScriptFieldType::ULong:    out << scriptField.GetValue<uint64_t>();   break;
+                    case ScriptFieldType::Vector2:  out << scriptField.GetValue<glm::vec2>();  break;
+                    case ScriptFieldType::Vector3:  out << scriptField.GetValue<glm::vec3>();  break;
+                    case ScriptFieldType::Vector4:  out << scriptField.GetValue<glm::vec4>();  break;
+                    case ScriptFieldType::Entity:   out << scriptField.GetValue<UUID>();       break;
+                    }
+                    out << YAML::EndMap;
+                }
+                out << YAML::EndSeq;
+            }
             out << YAML::EndMap;
         }
 
@@ -345,6 +416,50 @@ namespace NR
                 {
                     auto& sc = loadedEntity.AddComponent<ScriptComponent>();
                     sc.ClassName = scriptComponent["ClassName"].as<std::string>();
+
+                    auto scriptFields = scriptComponent["ScriptFields"];
+                    if (scriptFields)
+                    {
+                        Ref<ScriptClass> entityClass = ScriptEngine::GetEntityClass(sc.ClassName);
+                        const auto& fields = entityClass->GetFields();
+                        auto& entityFields = ScriptEngine::GetScriptFieldMap(loadedEntity);
+
+                        for (auto scriptField : scriptFields)
+                        {
+                            std::string name = scriptField["Name"].as<std::string>();
+                            if (fields.find(name) == fields.end())
+                            {
+                                continue;
+                            }
+
+                            std::string typeString = scriptField["Type"].as<std::string>();
+                            ScriptFieldType type = Utils::StringtoScriptFieldType(typeString);
+
+                            ScriptFieldInstance& fieldInstance = entityFields[name];
+
+                            fieldInstance.Field = fields.at(name);
+
+                            switch (type)
+                            {
+                                READ_SCRIPT_FIELD(Float, float, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Double, double, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Bool, bool, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Char, char, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Byte, int8_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Short, int16_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Int, int32_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Long, int64_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(UByte, uint8_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(UShort, uint16_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(UInt, uint32_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(ULong, uint64_t, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Vector2, glm::vec2, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Vector3, glm::vec3, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Vector4, glm::vec4, scriptField, fieldInstance);
+                                READ_SCRIPT_FIELD(Entity, UUID, scriptField, fieldInstance);
+                            }
+                        }
+                    }
                 }
 
                 auto scYaml = entity["SpriteRendererComponent"];

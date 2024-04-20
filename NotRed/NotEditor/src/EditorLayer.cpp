@@ -43,8 +43,7 @@ namespace NR
         if (commandLineArgs.Count > 1)
         {
             auto sceneFilePath = commandLineArgs[1];
-            SceneSerializer serializer(mActiveScene);
-            serializer.Deserialize(sceneFilePath);
+            OpenScene(sceneFilePath);
         }
 
         mEditorCamera = EditorCamera(30.0f, 16 / 9, 0.1f, 1000.0f);
@@ -228,6 +227,20 @@ namespace NR
         ImGui::End();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
+        ImGui::Begin("Viewport Game");
+
+        ImVec2 vpGameSize = ImGui::GetContentRegionAvail();
+        mGameViewportSize = { vpGameSize.x, vpGameSize.y };
+
+        uint32_t gameTextureID = mFramebufferGame->GetTextureRendererID();
+        ImGui::Image((void*)gameTextureID, ImVec2{ mGameViewportSize.x, mGameViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
+
+        ImGui::End();
+        ImGui::PopStyleVar();
+
+        ToolbarUI();
+
+        ImGui::End();
         ImGui::Begin("Viewport Editor");
 
         auto minBound = ImGui::GetWindowContentRegionMin();
@@ -241,6 +254,7 @@ namespace NR
 
         mViewportFocused = ImGui::IsWindowFocused();
         mViewportHovered = ImGui::IsWindowHovered();
+        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportHovered);
 
         uint32_t textureID = mFramebufferEditor->GetTextureRendererID();
         ImGui::Image((void*)textureID, ImVec2{ mEditorViewportSize.x, mEditorViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
@@ -309,24 +323,6 @@ namespace NR
                 tc.Scale = scale;
             }
         }
-
-        ImGui::End();
-        ImGui::Begin("Viewport Game");
-
-        ImVec2 vpGameSize = ImGui::GetContentRegionAvail();
-        mGameViewportSize = { vpGameSize.x, vpGameSize.y };
-
-        mViewportFocused |= ImGui::IsWindowFocused();
-        mViewportHovered |= ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportFocused && !mViewportHovered);
-
-        uint32_t gameTextureID = mFramebufferGame->GetTextureRendererID();
-        ImGui::Image((void*)gameTextureID, ImVec2{ mGameViewportSize.x, mGameViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
-
-        ImGui::End();
-        ImGui::PopStyleVar();
-
-        ToolbarUI();
 
         ImGui::End();
     }
@@ -549,7 +545,6 @@ namespace NR
         SceneSerializer serializer(mEditorScene);
         if (serializer.Deserialize(path.string()))
         {
-            mEditorScene->ViewportResize((uint32_t)mEditorViewportSize.x, (uint32_t)mEditorViewportSize.y);
             mSceneHierarchyPanel.SetContext(mEditorScene);
 
             mActiveScene = mEditorScene;

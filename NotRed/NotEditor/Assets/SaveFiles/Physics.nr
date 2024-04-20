@@ -82,6 +82,10 @@ Entities:
       Scale: [0.5, 0.5, 1]
     ScriptComponent:
       ClassName: Player
+      ScriptFields:
+        - Name: Speed
+          Type: Float
+          Data: 1.5
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TexturePath: Assets\Textures\Image_Two.png

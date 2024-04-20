@@ -22,7 +22,7 @@ namespace NR
         void SetThemeColors();
 
     private:
-        bool mEventsBlocked = true;
+        bool mEventsBlocked = false;
         float mTime = 0.0f;
     };
 }

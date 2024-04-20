@@ -11,7 +11,7 @@ namespace NR
         NotEditor(const ApplicationSpecification& spec)
             : Application(spec)
         {
-            PushOverlay(new EditorLayer());
+            PushLayer(new EditorLayer());
         }
     };
 
