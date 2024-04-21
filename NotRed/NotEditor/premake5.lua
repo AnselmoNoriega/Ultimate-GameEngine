@@ -18,8 +18,9 @@ project "NotEditor"
 		"%{wks.location}/NotRed/vendor/spdlog/include",
 		"%{wks.location}/NotRed/src",
 		"%{wks.location}/NotRed/vendor",
-		"%{IncludeDir.Glm}",
 		"%{IncludeDir.Entt}",
+		"%{IncludeDir.FileWatch}",
+		"%{IncludeDir.Glm}",
 		"%{IncludeDir.ImGuizmo}"
 	}
 

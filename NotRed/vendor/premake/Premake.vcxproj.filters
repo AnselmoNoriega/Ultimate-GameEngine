@@ -7,6 +7,15 @@
     <Filter Include="..\NotEditor">
       <UniqueIdentifier>{C81B1151-B47E-A0F5-5D04-D9AB49466C78}</UniqueIdentifier>
     </Filter>
+    <Filter Include="..\NotEditor\SandboxProject">
+      <UniqueIdentifier>{DD95402A-49A3-6E10-D289-6AFB3E963AC7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\NotEditor\SandboxProject\Assets">
+      <UniqueIdentifier>{1F02EE29-0B3E-F193-7450-098B60AB99AE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\NotEditor\SandboxProject\Assets\Scripts">
+      <UniqueIdentifier>{56985290-4200-195E-AB6B-2D7497F22F4A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="..\NotRed">
       <UniqueIdentifier>{DC474A34-48B2-FEAA-91F0-AF50FD99DCFF}</UniqueIdentifier>
     </Filter>
@@ -36,6 +45,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\NotEditor\SandboxProject\Assets\Scripts\premake5.lua">
+      <Filter>..\NotEditor\SandboxProject\Assets\Scripts</Filter>
+    </None>
     <None Include="..\..\NotEditor\premake5.lua">
       <Filter>..\NotEditor</Filter>
     </None>

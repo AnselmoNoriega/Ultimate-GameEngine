@@ -77,6 +77,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="..\..\NotEditor\SandboxProject\Assets\Scripts\premake5.lua" />
     <None Include="..\..\NotEditor\premake5.lua" />
     <None Include="..\..\NotRed-ScriptCore\premake5.lua" />
     <None Include="..\..\NotRed\premake5.lua" />

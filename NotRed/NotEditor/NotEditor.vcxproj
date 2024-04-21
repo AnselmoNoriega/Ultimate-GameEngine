@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\NotRed\vendor\spdlog\include;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\glm;..\NotRed\vendor\entt\include;..\NotRed\vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\NotRed\vendor\spdlog\include;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\entt\include;..\NotRed\vendor\filewatch;..\NotRed\vendor\glm;..\NotRed\vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -98,7 +98,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\NotRed\vendor\spdlog\include;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\glm;..\NotRed\vendor\entt\include;..\NotRed\vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\NotRed\vendor\spdlog\include;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\entt\include;..\NotRed\vendor\filewatch;..\NotRed\vendor\glm;..\NotRed\vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -120,7 +120,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\NotRed\vendor\spdlog\include;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\glm;..\NotRed\vendor\entt\include;..\NotRed\vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\NotRed\vendor\spdlog\include;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\entt\include;..\NotRed\vendor\filewatch;..\NotRed\vendor\glm;..\NotRed\vendor\ImGuizmo;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
