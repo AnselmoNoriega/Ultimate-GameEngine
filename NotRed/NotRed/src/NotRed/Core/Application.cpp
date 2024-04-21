@@ -79,6 +79,13 @@ namespace NR
         overlay->Attach();
     }
 
+    void Application::SubmitToMainThread(const std::function<void()>& function)
+    {
+        std::scoped_lock<std::mutex> lock(mMainThreadQueueMutex);
+
+        mQueuedFunctions.emplace_back(function);
+    }
+
     void Application::Run()
     {
         NR_PROFILE_FUNCTION();
@@ -89,6 +96,8 @@ namespace NR
 
             float time = Time::GetTime();;
             mTimeStep.UpdateTimeFrame(time);
+
+            ExecuteQueuedFunctions();
 
             if (!mMinimized)
             {
@@ -135,6 +144,18 @@ namespace NR
         Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
 
         return false;
+    }
+
+    void Application::ExecuteQueuedFunctions()
+    {
+        std::scoped_lock<std::mutex> lock(mMainThreadQueueMutex);
+
+        for (auto& func : mQueuedFunctions)
+        {
+            func();
+        }
+
+        mQueuedFunctions.clear();
     }
 
     Application::~Application()

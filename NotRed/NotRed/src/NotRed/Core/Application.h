@@ -28,7 +28,7 @@ namespace NR
 
     struct ApplicationSpecification
     {
-        std::string Name = "Hazel Application";
+        std::string Name = "NotRed Application";
         std::string WorkingDirectory;
         AppCommandLineArgs CommandLineArgs;
     };
@@ -51,6 +51,8 @@ namespace NR
 
         const ApplicationSpecification& GetSpecification() const { return mSpecification; }
 
+        void SubmitToMainThread(const std::function<void()>& function);
+
         ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
 
         inline void Close() { mRunning = false; }
@@ -59,10 +61,15 @@ namespace NR
         bool OnWindowClose(WindowCloseEvent& e);
         bool OnWindowResize(WindowResizeEvent& e);
 
+        void ExecuteQueuedFunctions();
+
     private:
         static Application* sInstance;
 
         ApplicationSpecification mSpecification;
+
+        std::vector<std::function<void()>> mQueuedFunctions;
+        std::mutex mMainThreadQueueMutex;
 
         bool mRunning = true;
         bool mMinimized = false;

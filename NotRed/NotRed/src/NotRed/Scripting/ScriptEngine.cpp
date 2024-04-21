@@ -8,6 +8,11 @@
 #include "mono/metadata/assembly.h"
 #include "mono/metadata/attrdefs.h"
 
+#include "FileWatch.h"
+
+#include "NotRed/Core/Application.h"
+#include "NotRed/Core/Timer.h"
+
 namespace NR
 {
     static std::unordered_map<std::string, ScriptFieldType> sScriptFieldTypeMap =
@@ -145,10 +150,27 @@ namespace NR
         std::unordered_map<UUID, Ref<ScriptClassInstance>> EntityInstances;
         std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 
+        Scope<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
+        bool AssemblyReloadPending = false;
+
         Scene* SceneContext = nullptr;
     };
 
     static ScriptEngineData* sMonoData = nullptr;
+
+    static void AssemblyFileSystemEvent(const std::string& path, const filewatch::Event changeType)
+    {
+        if (!sMonoData->AssemblyReloadPending && changeType == filewatch::Event::modified)
+        {
+            sMonoData->AssemblyReloadPending = true;
+
+            Application::Get().SubmitToMainThread([]()
+                {
+                    sMonoData->AppAssemblyFileWatcher.reset();
+                    ScriptEngine::ReloadAssembly();
+                });
+        }
+    }
 
     void ScriptEngine::InitMono()
     {
@@ -182,6 +204,9 @@ namespace NR
         sMonoData->AppAssemblyFilepath = filepath;
         sMonoData->AppAssembly = Utils::LoadMonoAssembly(filepath);
         sMonoData->AppAssemblyImage = mono_assembly_get_image(sMonoData->AppAssembly);
+
+        sMonoData->AppAssemblyFileWatcher = CreateScope<filewatch::FileWatch<std::string>>(filepath.string(), AssemblyFileSystemEvent);
+        sMonoData->AssemblyReloadPending = false;
     }
 
     void ScriptEngine::LoadAssemblyClasses()
