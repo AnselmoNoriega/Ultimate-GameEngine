@@ -136,10 +136,13 @@ namespace NR
         MonoAssembly* AppAssembly = nullptr;
         MonoImage* AppAssemblyImage = nullptr;
 
+        std::filesystem::path CoreAssemblyFilepath;
+        std::filesystem::path AppAssemblyFilepath;
+
         ScriptClass EntityClass;
 
         std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
-        std::unordered_map<UUID, Ref<ScriptInstance>> EntityInstances;
+        std::unordered_map<UUID, Ref<ScriptClassInstance>> EntityInstances;
         std::unordered_map<UUID, ScriptFieldMap> EntityScriptFields;
 
         Scene* SceneContext = nullptr;
@@ -169,12 +172,14 @@ namespace NR
         sMonoData->AppDomain = mono_domain_create_appdomain((char*)"NotScriptRuntime", nullptr);
         mono_domain_set(sMonoData->AppDomain, true);
 
+        sMonoData->CoreAssemblyFilepath = filepath;
         sMonoData->CoreAssembly = Utils::LoadMonoAssembly(filepath);
         sMonoData->CoreAssemblyImage = mono_assembly_get_image(sMonoData->CoreAssembly);
     }
 
     void ScriptEngine::LoadAppAssembly(const std::filesystem::path& filepath)
     {
+        sMonoData->AppAssemblyFilepath = filepath;
         sMonoData->AppAssembly = Utils::LoadMonoAssembly(filepath);
         sMonoData->AppAssemblyImage = mono_assembly_get_image(sMonoData->AppAssembly);
     }
@@ -232,7 +237,22 @@ namespace NR
         }
     }
 
-    Ref<ScriptInstance> ScriptEngine::GetEntityScriptInstance(UUID entityID)
+    void ScriptEngine::ReloadAssembly()
+    {
+        mono_domain_set(mono_get_root_domain(), false);
+
+        mono_domain_unload(sMonoData->AppDomain);
+
+        LoadAssembly(sMonoData->CoreAssemblyFilepath);
+        LoadAppAssembly(sMonoData->AppAssemblyFilepath);
+        LoadAssemblyClasses();
+
+        ScriptGlue::RegisterComponents();
+
+        sMonoData->EntityClass = ScriptClass("NotRed", "Entity", true);
+    }
+
+    Ref<ScriptClassInstance> ScriptEngine::GetEntityScriptInstance(UUID entityID)
     {
         auto it = sMonoData->EntityInstances.find(entityID);
         if (it != sMonoData->EntityInstances.end())
@@ -248,12 +268,13 @@ namespace NR
         sMonoData = new ScriptEngineData();
 
         InitMono();
+        ScriptGlue::RegisterFunctions();
+
         LoadAssembly("Resources/Scripts/NotRed-ScriptCore.dll");
         LoadAppAssembly("SandboxProject/Assets/Scripts/Binaries/Sandbox.dll");
         LoadAssemblyClasses();
 
         ScriptGlue::RegisterComponents();
-        ScriptGlue::RegisterFunctions();
 
         sMonoData->EntityClass = ScriptClass("NotRed", "Entity", true);
 
@@ -277,7 +298,7 @@ namespace NR
         {
             UUID entityID = entity.GetUUID();
 
-            Ref<ScriptInstance> instance = CreateRef<ScriptInstance>(sMonoData->EntityClasses[sc.ClassName], entity);
+            Ref<ScriptClassInstance> instance = CreateRef<ScriptClassInstance>(sMonoData->EntityClasses[sc.ClassName], entity);
             sMonoData->EntityInstances[entityID] = instance;
 
             if (sMonoData->EntityScriptFields.find(entityID) != sMonoData->EntityScriptFields.end())
@@ -298,7 +319,7 @@ namespace NR
         UUID entityUUID = entity.GetUUID();
         NR_CORE_ASSERT(sMonoData->EntityInstances.find(entityUUID) != sMonoData->EntityInstances.end(), "Missing Instances of a Entity!");
 
-        Ref<ScriptInstance> instance = sMonoData->EntityInstances[entityUUID];
+        Ref<ScriptClassInstance> instance = sMonoData->EntityInstances[entityUUID];
         instance->InvokeUpdate(dt);
     }
 
@@ -310,7 +331,12 @@ namespace NR
 
     void ScriptEngine::ShutdownMono()
     {
+        mono_domain_set(mono_get_root_domain(), false);
+
+        mono_domain_unload(sMonoData->AppDomain);
         sMonoData->AppDomain = nullptr;
+
+        mono_jit_cleanup(sMonoData->RootDomain);
         sMonoData->RootDomain = nullptr;
     }
 
@@ -350,7 +376,7 @@ namespace NR
         return nullptr;
     }
 
-    ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
+    ScriptClassInstance::ScriptClassInstance(Ref<ScriptClass> scriptClass, Entity entity)
         : mScriptClass(scriptClass)
     {
         mInstance = scriptClass->Instantiate();
@@ -364,7 +390,7 @@ namespace NR
         mScriptClass->InvokeMethod(mInstance, mConstructor, &param);
     }
 
-    void ScriptInstance::InvokeCreate()
+    void ScriptClassInstance::InvokeCreate()
     {
         if (mCreateMethod)
         {
@@ -372,7 +398,7 @@ namespace NR
         }
     }
 
-    void ScriptInstance::InvokeUpdate(float dt)
+    void ScriptClassInstance::InvokeUpdate(float dt)
     {
         if (mUpdateMethod)
         {
@@ -381,7 +407,7 @@ namespace NR
         }
     }
 
-    bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
+    bool ScriptClassInstance::GetFieldValueInternal(const std::string& name, void* buffer)
     {
         const auto& fields = mScriptClass->GetFields();
         auto it = fields.find(name);
@@ -395,7 +421,7 @@ namespace NR
         return false;
     }
 
-    bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
+    bool ScriptClassInstance::SetFieldValueInternal(const std::string& name, const void* value)
     {
         const auto& fields = mScriptClass->GetFields();
         auto it = fields.find(name);

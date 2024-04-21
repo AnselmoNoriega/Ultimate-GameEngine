@@ -34,8 +34,13 @@ namespace NR
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
     #endif
 
+        glCullFace(GL_FRONT);
+        glFrontFace(GL_CW);
+
         glEnable(GL_BLEND);
+        glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
+
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 

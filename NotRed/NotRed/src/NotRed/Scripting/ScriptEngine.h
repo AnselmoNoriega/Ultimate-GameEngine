@@ -90,10 +90,10 @@ namespace NR
 		friend class ScriptEngine;
 	};
 
-	class ScriptInstance
+	class ScriptClassInstance
 	{
 	public:
-		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
+		ScriptClassInstance(Ref<ScriptClass> scriptClass, Entity entity);
 
 		void InvokeCreate();
 		void InvokeUpdate(float dt);
@@ -147,6 +147,8 @@ namespace NR
 		static void LoadAssembly(const std::filesystem::path& filepath);
 		static void LoadAppAssembly(const std::filesystem::path& filepath);
 
+		static void ReloadAssembly();
+
 		static void RuntimeStart(Scene* scene);
 		static void RuntimeStop();
 
@@ -156,7 +158,7 @@ namespace NR
 
 		static Ref<ScriptClass> GetEntityClass(const std::string& name);
 		static Scene* GetSceneContext();
-		static Ref<ScriptInstance> GetEntityScriptInstance(UUID entityID);
+		static Ref<ScriptClassInstance> GetEntityScriptInstance(UUID entityID);
 
 		static std::unordered_map<std::string, Ref<ScriptClass>> GetEntityClasses();
 		static ScriptFieldMap& GetScriptFieldMap(Entity entity);

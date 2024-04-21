@@ -6,6 +6,7 @@
 #include "NotRed/Math/Math.h"
 #include "NotRed/Utils/PlatformUtils.h"
 #include "NotRed/Scene/SceneSerializer.h"
+#include "NotRed/Scripting/ScriptEngine.h"
 
 #include "imgui/imgui.h"
 #include "ImGuizmo.h"
@@ -175,9 +176,6 @@ namespace NR
         {
             if (ImGui::BeginMenu("File"))
             {
-                // Disabling fullscreen would allow the window to be moved to the front of other windows, 
-                // which we can't undo at the moment without finer window depth/z control.
-                //ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
                 if (ImGui::MenuItem("New", "Ctrl+N"))
                 {
                     NewScene();
@@ -195,9 +193,24 @@ namespace NR
                     SaveSceneAs();
                 }
 
-                if (ImGui::MenuItem("Exit")) Application::Get().Close();
+                if (ImGui::MenuItem("Exit"))
+                {
+                    Application::Get().Close();
+                }
+
                 ImGui::EndMenu();
             }
+
+            if (ImGui::BeginMenu("Script"))
+            {
+                if (ImGui::MenuItem("Reload assembly", "Ctrl+R"))
+                {
+                    ScriptEngine::ReloadAssembly();
+                }
+
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenuBar();
         }
 
@@ -488,7 +501,16 @@ namespace NR
             break;
         }case KeyCode::R:
         {
-            mGizmoType = ImGuizmo::OPERATION::ROTATE;
+            if (ctrl)
+            {
+                ScriptEngine::ReloadAssembly();
+            }
+            else
+            {
+                mGizmoType = ImGuizmo::OPERATION::ROTATE;
+
+            }
+
             break;
         }
         }

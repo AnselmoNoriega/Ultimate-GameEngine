@@ -336,7 +336,7 @@ namespace NR
                 bool sceneRunning = scene->IsRunning();
                 if (sceneRunning)
                 {
-                    Ref<ScriptInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(entity.GetUUID());
+                    Ref<ScriptClassInstance> scriptInstance = ScriptEngine::GetEntityScriptInstance(entity.GetUUID());
                     if (scriptInstance)
                     {
                         const auto& fields = scriptInstance->GetScriptClass()->GetFields();

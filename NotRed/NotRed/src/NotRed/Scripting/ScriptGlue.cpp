@@ -118,6 +118,7 @@ namespace NR
 
     void ScriptGlue::RegisterComponents()
     {
+		sEntityHasComponentFuncs.clear();
         RegisterComponent(AllComponents{});
     }
 
