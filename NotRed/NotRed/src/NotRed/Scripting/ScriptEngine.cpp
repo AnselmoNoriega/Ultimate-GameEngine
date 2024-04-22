@@ -11,7 +11,6 @@
 #include "FileWatch.h"
 
 #include "NotRed/Core/Application.h"
-#include "NotRed/Core/Timer.h"
 
 namespace NR
 {

@@ -169,6 +169,11 @@ namespace NR
 
     void Scene::UpdateRunTime(float dt)
     {
+        if (mIsPaused)
+        {
+            return;
+        }
+
         {
             auto view = mRegistry.view<ScriptComponent>();
             for (auto e : view)

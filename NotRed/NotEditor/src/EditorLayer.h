@@ -60,7 +60,7 @@ namespace NR
         Ref<Framebuffer> mFramebufferEditor;
         Ref<Framebuffer> mFramebufferGame;
 
-        Ref<Texture2D> mPlayIcon, mStopIcon;
+        Ref<Texture2D> mPlayIcon, mStopIcon, mPauseIcon;
 
         glm::vec2 mGameViewportSize = { 0.0f, 0.0f };
         glm::vec2 mEditorViewportSize = { 0.0f, 0.0f };

@@ -25,6 +25,10 @@ namespace NR
 
         bool IsRunning() const { return mIsRunning; }
 
+        bool IsPaused() const { return mIsPaused; }
+
+        void SetPaused(bool paused) { mIsPaused = paused; }
+
         Entity CreateEntity(const std::string& tagName = "Object");
         Entity CreateEntityWithUUID(UUID uuid, const std::string& tagName = "Object");
         void RemoveEntity(Entity entity);
@@ -59,6 +63,8 @@ namespace NR
         std::unordered_map<UUID, entt::entity> mEntities;
 
         int32_t mVelocityIterations = 6, mPositionIterations = 2;
+
+        bool mIsPaused = false;
 
         friend class Entity;
         friend class SceneHierarchyPanel;

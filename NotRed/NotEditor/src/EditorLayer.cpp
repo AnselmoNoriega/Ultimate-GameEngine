@@ -28,6 +28,7 @@ namespace NR
 
         mPlayIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PlayButton.png");
         mStopIcon = Texture2D::Create("Resources/Icons/ToolBarUI/StopButton.png");
+        mPauseIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PauseButton.png");
 
         FramebufferStruct fbSpecs;
         fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -356,8 +357,10 @@ namespace NR
         ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
         float size = ImGui::GetWindowHeight() - 4.0f;
+        float iconOffset = mSceneState == SceneState::Edit ? (size * 0.5f) : size;
         Ref<Texture2D> icon = mSceneState == SceneState::Edit ? mPlayIcon : mStopIcon;
-        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - iconOffset);
+
         if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
         {
             if (mSceneState == SceneState::Edit)
@@ -367,6 +370,17 @@ namespace NR
             else if (mSceneState == SceneState::Play)
             {
                 StopScene();
+            }
+        }
+
+        if (mSceneState != SceneState::Edit)
+        {
+            Ref<Texture2D> pauseIcon = mActiveScene->IsPaused() ? mPlayIcon : mPauseIcon;
+
+            ImGui::SameLine();
+            if (ImGui::ImageButton((ImTextureID)pauseIcon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+            {
+                mActiveScene->SetPaused(!mActiveScene->IsPaused());
             }
         }
         ImGui::PopStyleVar(2);
