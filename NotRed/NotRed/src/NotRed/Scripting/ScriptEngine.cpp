@@ -7,6 +7,8 @@
 #include "mono/metadata/object.h"
 #include "mono/metadata/assembly.h"
 #include "mono/metadata/attrdefs.h"
+#include "mono/metadata/mono-debug.h"
+#include "mono/metadata/threads.h"
 
 #include "FileWatch.h"
 
@@ -46,7 +48,6 @@ namespace NR
 
             if (!stream)
             {
-                // Failed to open the file
                 return nullptr;
             }
 
@@ -56,7 +57,6 @@ namespace NR
 
             if (size == 0)
             {
-                // File is empty
                 return nullptr;
             }
 
@@ -68,7 +68,7 @@ namespace NR
             return buffer;
         }
 
-        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath)
+        static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath, bool loadPDB = false)
         {
             uint32_t fileSize = 0;
             char* fileData = ReadBytes(assemblyPath.string(), &fileSize);
@@ -83,11 +83,25 @@ namespace NR
                 return nullptr;
             }
 
+            if (loadPDB)
+            {
+                std::filesystem::path pdbPath = assemblyPath;
+                pdbPath.replace_extension(".pdb");
+
+                if (std::filesystem::exists(pdbPath))
+                {
+                    uint32_t pdbFileSize = 0;
+                    char* pdbFileData = ReadBytes(pdbPath.string(), &pdbFileSize);
+                    mono_debug_open_image_from_memory(image, (const mono_byte*)pdbFileData, pdbFileSize);
+                    NR_CORE_INFO("Loaded PDB {}", pdbPath);
+                    delete[] pdbFileData;
+                }
+            }
+
             std::string pathString = assemblyPath.string();
             MonoAssembly* assembly = mono_assembly_load_from_full(image, pathString.c_str(), &status, 0);
             mono_image_close(image);
 
-            // Don't forget to free the file data
             delete[] fileData;
 
             return assembly;
@@ -152,6 +166,8 @@ namespace NR
         Scope<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
         bool AssemblyReloadPending = false;
 
+        bool DebugEnabled = true;
+
         Scene* SceneContext = nullptr;
     };
 
@@ -175,10 +191,28 @@ namespace NR
     {
         mono_set_assemblies_path("mono/lib");
 
+        if (sMonoData->DebugEnabled)
+        {
+            const char* argv[2] = {
+                "--debugger-agent=transport=dt_socket,address=127.0.0.1:2550,server=y,suspend=n,loglevel=3,logfile=NR_MonoDebugger.log",
+                "--soft-breakpoints"
+            };
+
+            mono_jit_parse_options(2, (char**)argv);
+            mono_debug_init(MONO_DEBUG_FORMAT_MONO);
+        }
+
         MonoDomain* rootDomain = mono_jit_init("NotJITRuntime");
         NR_CORE_ASSERT(rootDomain, "Unable to Initialize root Domain!");
 
         sMonoData->RootDomain = rootDomain;
+
+        if (sMonoData->DebugEnabled)
+        {
+            mono_debug_domain_create(sMonoData->RootDomain);
+        }
+
+        mono_thread_set_main(mono_thread_current());
     }
 
     MonoObject* ScriptEngine::InstantiateClass(MonoClass* monoClass)
@@ -194,14 +228,14 @@ namespace NR
         mono_domain_set(sMonoData->AppDomain, true);
 
         sMonoData->CoreAssemblyFilepath = filepath;
-        sMonoData->CoreAssembly = Utils::LoadMonoAssembly(filepath);
+        sMonoData->CoreAssembly = Utils::LoadMonoAssembly(filepath, sMonoData->DebugEnabled);
         sMonoData->CoreAssemblyImage = mono_assembly_get_image(sMonoData->CoreAssembly);
     }
 
     void ScriptEngine::LoadAppAssembly(const std::filesystem::path& filepath)
     {
         sMonoData->AppAssemblyFilepath = filepath;
-        sMonoData->AppAssembly = Utils::LoadMonoAssembly(filepath);
+        sMonoData->AppAssembly = Utils::LoadMonoAssembly(filepath, sMonoData->DebugEnabled);
         sMonoData->AppAssemblyImage = mono_assembly_get_image(sMonoData->AppAssembly);
 
         sMonoData->AppAssemblyFileWatcher = CreateScope<filewatch::FileWatch<std::string>>(filepath.string(), AssemblyFileSystemEvent);
@@ -478,6 +512,7 @@ namespace NR
 
     MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params)
     {
-        return mono_runtime_invoke(method, instance, params, nullptr);
+        MonoObject* exc = nullptr;
+        return mono_runtime_invoke(method, instance, params, &exc);
     }
 }
