@@ -78,10 +78,16 @@
     <ClInclude Include="src\NotRed\Core\Application.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Buffer.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Core.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\EntryPoint.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\FileSystem.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\Input.h">
@@ -1506,6 +1512,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\FileSystem.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Layer.cpp">

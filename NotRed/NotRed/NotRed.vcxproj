@@ -149,8 +149,10 @@
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
+    <ClInclude Include="src\NotRed\Core\Buffer.h" />
     <ClInclude Include="src\NotRed\Core\Core.h" />
     <ClInclude Include="src\NotRed\Core\EntryPoint.h" />
+    <ClInclude Include="src\NotRed\Core\FileSystem.h" />
     <ClInclude Include="src\NotRed\Core\Input.h" />
     <ClInclude Include="src\NotRed\Core\KeyCodes.h" />
     <ClInclude Include="src\NotRed\Core\Layer.h" />
@@ -627,6 +629,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
+    <ClCompile Include="src\NotRed\Core\FileSystem.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />

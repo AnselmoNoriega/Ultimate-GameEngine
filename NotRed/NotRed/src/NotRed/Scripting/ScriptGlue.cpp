@@ -103,7 +103,7 @@ namespace NR
                 MonoType* managedType = mono_reflection_type_from_name(managedTypename.data(), ScriptEngine::GetCoreAssemblyImage());
                 if (!managedType)
                 {
-                    NR_CORE_ERROR("Could not find component type {}!", managedTypename);
+                    NR_CORE_WARN("Could not find component type {}!", managedTypename);
                     return;
                 }
                 sEntityHasComponentFuncs[managedType] = [](Entity entity) { return entity.HasComponent<Component>(); };

@@ -11,6 +11,8 @@
 #include "mono/metadata/threads.h"
 
 #include "FileWatch.h"
+#include "NotRed/Core/Buffer.h"
+#include "NotRed/Core/FileSystem.h"
 
 #include "NotRed/Core/Application.h"
 
@@ -42,39 +44,12 @@ namespace NR
 
     namespace Utils
     {
-        static char* ReadBytes(const std::string& filepath, uint32_t* outSize)
-        {
-            std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
-
-            if (!stream)
-            {
-                return nullptr;
-            }
-
-            std::streampos end = stream.tellg();
-            stream.seekg(0, std::ios::beg);
-            uint32_t size = end - stream.tellg();
-
-            if (size == 0)
-            {
-                return nullptr;
-            }
-
-            char* buffer = new char[size];
-            stream.read((char*)buffer, size);
-            stream.close();
-
-            *outSize = size;
-            return buffer;
-        }
-
         static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath, bool loadPDB = false)
         {
-            uint32_t fileSize = 0;
-            char* fileData = ReadBytes(assemblyPath.string(), &fileSize);
+            ScopedBuffer fileData = FileSystem::ReadFileBinary<char>(assemblyPath);
 
             MonoImageOpenStatus status;
-            MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
+            MonoImage* image = mono_image_open_from_data_full(fileData.Data(), fileData.Size(), 1, &status, 0);
 
             if (status != MONO_IMAGE_OK)
             {
@@ -90,19 +65,15 @@ namespace NR
 
                 if (std::filesystem::exists(pdbPath))
                 {
-                    uint32_t pdbFileSize = 0;
-                    char* pdbFileData = ReadBytes(pdbPath.string(), &pdbFileSize);
-                    mono_debug_open_image_from_memory(image, (const mono_byte*)pdbFileData, pdbFileSize);
+                    ScopedBuffer pdbFile = FileSystem::ReadFileBinary<mono_byte>(pdbPath);
+                    mono_debug_open_image_from_memory(image, pdbFile.Data(), pdbFile.Size());
                     NR_CORE_INFO("Loaded PDB {}", pdbPath);
-                    delete[] pdbFileData;
                 }
             }
 
             std::string pathString = assemblyPath.string();
             MonoAssembly* assembly = mono_assembly_load_from_full(image, pathString.c_str(), &status, 0);
             mono_image_close(image);
-
-            delete[] fileData;
 
             return assembly;
         }
@@ -222,24 +193,38 @@ namespace NR
         return instance;
     }
 
-    void ScriptEngine::LoadAssembly(const std::filesystem::path& filepath)
+    bool ScriptEngine::LoadAssembly(const std::filesystem::path& filepath)
     {
         sMonoData->AppDomain = mono_domain_create_appdomain((char*)"NotScriptRuntime", nullptr);
         mono_domain_set(sMonoData->AppDomain, true);
 
         sMonoData->CoreAssemblyFilepath = filepath;
         sMonoData->CoreAssembly = Utils::LoadMonoAssembly(filepath, sMonoData->DebugEnabled);
+        if (sMonoData->CoreAssembly == nullptr)
+        {
+            return false;
+        }
+
         sMonoData->CoreAssemblyImage = mono_assembly_get_image(sMonoData->CoreAssembly);
+        
+        return true;
     }
 
-    void ScriptEngine::LoadAppAssembly(const std::filesystem::path& filepath)
+    bool ScriptEngine::LoadAppAssembly(const std::filesystem::path& filepath)
     {
         sMonoData->AppAssemblyFilepath = filepath;
         sMonoData->AppAssembly = Utils::LoadMonoAssembly(filepath, sMonoData->DebugEnabled);
+        if (sMonoData->AppAssembly == nullptr)
+        {
+            return false;
+        }
+        
         sMonoData->AppAssemblyImage = mono_assembly_get_image(sMonoData->AppAssembly);
 
         sMonoData->AppAssemblyFileWatcher = CreateScope<filewatch::FileWatch<std::string>>(filepath.string(), AssemblyFileSystemEvent);
         sMonoData->AssemblyReloadPending = false;
+        
+        return true;
     }
 
     void ScriptEngine::LoadAssemblyClasses()
@@ -301,8 +286,16 @@ namespace NR
 
         mono_domain_unload(sMonoData->AppDomain);
 
-        LoadAssembly(sMonoData->CoreAssemblyFilepath);
-        LoadAppAssembly(sMonoData->AppAssemblyFilepath);
+        bool status = LoadAssembly(sMonoData->CoreAssemblyFilepath);
+        if (!status)
+        {
+            NR_CORE_ERROR("Failed to load ScriptCore assembly!");
+        }
+        status = LoadAppAssembly(sMonoData->AppAssemblyFilepath);
+        if (!status)
+        {
+            NR_CORE_ERROR("Failed to load app assembly!");
+        }
         LoadAssemblyClasses();
 
         ScriptGlue::RegisterComponents();
@@ -375,10 +368,16 @@ namespace NR
     void ScriptEngine::UpdateEntity(Entity entity, float dt)
     {
         UUID entityUUID = entity.GetUUID();
-        NR_CORE_ASSERT(sMonoData->EntityInstances.find(entityUUID) != sMonoData->EntityInstances.end(), "Missing Instances of a Entity!");
 
-        Ref<ScriptClassInstance> instance = sMonoData->EntityInstances[entityUUID];
-        instance->InvokeUpdate(dt);
+        if(sMonoData->EntityInstances.find(entityUUID) != sMonoData->EntityInstances.end())
+        {
+            Ref<ScriptClassInstance> instance = sMonoData->EntityInstances[entityUUID];
+            instance->InvokeUpdate(dt);
+        }
+        else
+        {
+            NR_CORE_ERROR("Entity ({}) has no Instance", entityUUID);
+        }
     }
 
     void ScriptEngine::RuntimeStop()
