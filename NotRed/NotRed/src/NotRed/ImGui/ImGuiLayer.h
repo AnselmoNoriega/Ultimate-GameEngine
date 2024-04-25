@@ -21,6 +21,8 @@ namespace NR
 
         void SetThemeColors();
 
+        uint32_t GetActiveWidgetID() const;
+
     private:
         bool mEventsBlocked = false;
         float mTime = 0.0f;

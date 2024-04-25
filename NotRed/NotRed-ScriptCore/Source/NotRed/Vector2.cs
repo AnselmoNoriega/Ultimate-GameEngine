@@ -1,10 +1,15 @@
-﻿namespace NotRed
+﻿using System;
+
+namespace NotRed
 {
     public struct Vector2
     {
         public float X, Y;
 
         public static Vector2 Zero => new Vector2(0.0f);
+
+        public float MagnitudeSqrd => X * X + Y * Y;
+        public float Magnitude => (float)Math.Sqrt(MagnitudeSqrd);
 
         public Vector2(float scalar)
         {

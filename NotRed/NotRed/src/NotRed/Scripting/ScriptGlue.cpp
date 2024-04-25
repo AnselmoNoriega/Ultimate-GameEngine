@@ -85,6 +85,43 @@ namespace NR
 		body->ApplyLinearImpulseToCenter({ impulse->x, impulse->y }, wake);
 	}
 
+	static void Rigidbody2DComponent_GetVelocity(UUID entityID, glm::vec2* outVelocity)
+	{
+		Scene* scene = ScriptEngine::GetSceneContext();
+		NR_CORE_ASSERT(scene, "Theres no scene loaded!");
+		Entity entity = scene->GetEntity(entityID);
+		NR_CORE_ASSERT(entity, "Entity does not exist!");
+
+		auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+		b2Body* body = (b2Body*)rb2d.RuntimeBody;
+		const b2Vec2& velocity = body->GetLinearVelocity();
+		*outVelocity = glm::vec2(velocity.x, velocity.y);
+	}
+
+	static Rigidbody2DComponent::BodyType Rigidbody2DComponent_GetType(UUID entityID)
+	{
+		Scene* scene = ScriptEngine::GetSceneContext();
+		NR_CORE_ASSERT(scene, "Theres no scene loaded!");
+		Entity entity = scene->GetEntity(entityID);
+		NR_CORE_ASSERT(entity, "Entity does not exist!");
+
+		auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+		b2Body* body = (b2Body*)rb2d.RuntimeBody;
+		return (Rigidbody2DComponent::BodyType)body->GetType();
+	}
+
+	static void Rigidbody2DComponent_SetType(UUID entityID, Rigidbody2DComponent::BodyType bodyType)
+	{
+		Scene* scene = ScriptEngine::GetSceneContext();
+		NR_CORE_ASSERT(scene, "Theres no scene loaded!");
+		Entity entity = scene->GetEntity(entityID);
+		NR_CORE_ASSERT(entity, "Entity does not exist!");
+
+		auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+		b2Body* body = (b2Body*)rb2d.RuntimeBody;
+		body->SetType((b2BodyType)bodyType);
+	}
+
 	static bool Input_IsKeyDown(KeyCode keycode)
 	{
 		return Input::IsKeyPressed(keycode);
@@ -132,6 +169,10 @@ namespace NR
 
         NR_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyImpulse);
         NR_ADD_INTERNAL_CALL(Rigidbody2DComponent_ApplyImpulseToCenter);
+
+		NR_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetVelocity);
+		NR_ADD_INTERNAL_CALL(Rigidbody2DComponent_GetType);
+		NR_ADD_INTERNAL_CALL(Rigidbody2DComponent_SetType);
 
         NR_ADD_INTERNAL_CALL(Input_IsKeyDown);
     }

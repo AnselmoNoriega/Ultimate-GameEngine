@@ -35,7 +35,7 @@ namespace NR
 
         Entity GetEntity(UUID uuid);
 
-        void DuplicateEntity(Entity entity);
+        Entity DuplicateEntity(Entity entity);
 
         void RuntimeStart();
         void RuntimeStop();

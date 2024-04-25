@@ -10,6 +10,8 @@
 #include "mono/metadata/mono-debug.h"
 #include "mono/metadata/threads.h"
 
+#include "NotRed/Project/Project.h"
+
 #include "FileWatch.h"
 #include "NotRed/Core/Buffer.h"
 #include "NotRed/Core/FileSystem.h"
@@ -323,8 +325,16 @@ namespace NR
         InitMono();
         ScriptGlue::RegisterFunctions();
 
-        LoadAssembly("Resources/Scripts/NotRed-ScriptCore.dll");
-        LoadAppAssembly("SandboxProject/Assets/Scripts/Binaries/Sandbox.dll");
+        if (!LoadAssembly("Resources/Scripts/NotRed-ScriptCore.dll"))
+        {
+            NR_CORE_ERROR("Failed to load ScriptCore assembly!");
+        }
+
+        auto scriptModulePath = Project::GetAssetDirectory() / Project::GetActive()->GetConfig().ScriptModulePath;
+        if (!LoadAppAssembly(scriptModulePath))
+        {
+            NR_CORE_ERROR("Failed to load app assembly!");
+        }
         LoadAssemblyClasses();
 
         ScriptGlue::RegisterComponents();

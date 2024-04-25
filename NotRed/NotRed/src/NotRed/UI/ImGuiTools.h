@@ -9,7 +9,7 @@ namespace NR::UI
         StyleColor() = default;
 
         StyleColor(ImGuiCol idx, ImVec4 color, bool predicate = true)
-            : m_Set(predicate)
+            : mSet(predicate)
         {
             if (predicate)
             {
@@ -18,7 +18,7 @@ namespace NR::UI
         }
 
         StyleColor(ImGuiCol idx, ImU32 color, bool predicate = true)
-            : m_Set(predicate)
+            : mSet(predicate)
         {
             if (predicate)
             {
@@ -28,13 +28,13 @@ namespace NR::UI
 
         ~StyleColor()
         {
-            if (m_Set)
+            if (mSet)
             {
                 ImGui::PopStyleColor();
             }
         }
     private:
-        bool m_Set = false;
+        bool mSet = false;
     };
 
 

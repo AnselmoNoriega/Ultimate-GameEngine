@@ -39,7 +39,6 @@ namespace NR
         mWindow->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();
-        ScriptEngine::Init();
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);

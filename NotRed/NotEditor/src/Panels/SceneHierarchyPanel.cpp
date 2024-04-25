@@ -59,7 +59,7 @@ namespace NR
         ImGui::End();
     }
 
-    void SceneHierarchyPanel::SetSelecetedEntity(Entity entity)
+    void SceneHierarchyPanel::SetSelectedEntity(Entity entity)
     {
         mSelectionContext = entity;
     }

@@ -469,6 +469,21 @@ namespace NR
 
         switch ((KeyCode)e.GetKeyCode())
         {
+        case KeyCode::Delete:
+        {
+            if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+            {
+                Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
+                if (selectedEntity)
+                {
+                    mSceneHierarchyPanel.SetSelectedEntity({});
+                    mActiveScene->RemoveEntity(selectedEntity);
+                }
+            }
+            break;
+        }
+
+        //Settings
         case KeyCode::N:
         {
             if (ctrl)
@@ -552,7 +567,7 @@ namespace NR
         {
             if (mViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(KeyCode::Left_Alt))
             {
-                mSceneHierarchyPanel.SetSelecetedEntity(mHoveredEntity);
+                mSceneHierarchyPanel.SetSelectedEntity(mHoveredEntity);
             }
         }
 
@@ -564,7 +579,8 @@ namespace NR
         Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
         if (selectedEntity)
         {
-            mEditorScene->DuplicateEntity(selectedEntity);
+            Entity newEntity = mEditorScene->DuplicateEntity(selectedEntity);
+            mSceneHierarchyPanel.SetSelectedEntity(newEntity);
         }
     }
 
@@ -589,6 +605,8 @@ namespace NR
     {
         if (Project::Load(path))
         {
+            ScriptEngine::Init();
+
             auto startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().StartScene);
             OpenScene(startScenePath);
             mBrowserPanel = CreateScope<BrowserPanel>();

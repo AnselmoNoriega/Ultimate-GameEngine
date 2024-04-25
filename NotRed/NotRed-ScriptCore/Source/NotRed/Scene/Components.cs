@@ -23,6 +23,23 @@
 
     public class Rigidbody2DComponent : Component
     {
+        public enum BodyType { Static, Kinematic, Dynamic }
+
+        public Vector2 LinearVelocity
+        {
+            get
+            {
+                InternalCalls.Rigidbody2DComponent_GetVelocity(Entity.ID, out Vector2 velocity);
+                return velocity;
+            }
+        }
+
+        public BodyType Type
+        {
+            get => InternalCalls.Rigidbody2DComponent_GetType(Entity.ID);
+            set => InternalCalls.Rigidbody2DComponent_SetType(Entity.ID, value);
+        }
+
         public void ApplyImpulse(Vector2 impulse, Vector2 worldPosition, bool wake)
         {
             InternalCalls.Rigidbody2DComponent_ApplyImpulse(Entity.ID, ref impulse, ref worldPosition, wake);
