@@ -4,6 +4,8 @@
 
 #include "PlatformDetection.h"
 
+#include "NotRed/Core/Log.h"
+
 #ifdef NR_DEBUG
 #if defined(NR_PLATFORM_WINDOWS)
 #define NR_DEBUGBREAK() __debugbreak()

@@ -18,6 +18,8 @@
 #include "NotRed/Core/Layer.h"
 #include "NotRed/ImGui/ImGuiLayer.h"
 
+#include "NotRed/Project/Project.h"
+
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Scene/ScriptableEntity.h"

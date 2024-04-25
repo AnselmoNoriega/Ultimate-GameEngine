@@ -286,13 +286,11 @@ namespace NR
 
         mono_domain_unload(sMonoData->AppDomain);
 
-        bool status = LoadAssembly(sMonoData->CoreAssemblyFilepath);
-        if (!status)
+        if (!LoadAssembly(sMonoData->CoreAssemblyFilepath))
         {
             NR_CORE_ERROR("Failed to load ScriptCore assembly!");
         }
-        status = LoadAppAssembly(sMonoData->AppAssemblyFilepath);
-        if (!status)
+        if (!LoadAppAssembly(sMonoData->AppAssemblyFilepath))
         {
             NR_CORE_ERROR("Failed to load app assembly!");
         }

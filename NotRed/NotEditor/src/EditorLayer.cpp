@@ -15,8 +15,6 @@
 
 namespace NR
 {
-    extern const std::filesystem::path gAssetsPath;
-
     EditorLayer::EditorLayer()
         :Layer("EditorLayer")
     {
@@ -44,8 +42,12 @@ namespace NR
         auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
         if (commandLineArgs.Count > 1)
         {
-            auto sceneFilePath = commandLineArgs[1];
-            OpenScene(sceneFilePath);
+            auto projectFilePath = commandLineArgs[1];
+            OpenProject(projectFilePath);
+        }
+        else
+        {
+            NewProject();
         }
 
         mEditorCamera = EditorCamera(30.0f, 16 / 9, 0.1f, 1000.0f);
@@ -216,7 +218,7 @@ namespace NR
         }
 
         mSceneHierarchyPanel.ImGuiRender();
-        mBrowserPanel.ImGuiRender();
+        mBrowserPanel->ImGuiRender();
 
         ImGui::Begin("Stats");
 
@@ -278,25 +280,24 @@ namespace NR
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
             {
                 const wchar_t* path = (const wchar_t*)payload->Data;
-
                 const wchar_t* fileExtension = wcsrchr(path, L'.');
 
                 if (!wcscmp(fileExtension, L".nr"))
                 {
-                    OpenScene(std::filesystem::path(gAssetsPath) / path);
+                    OpenScene(path);
                 }
                 else if (!wcscmp(fileExtension, L".png"))
                 {
+                    std::filesystem::path texturePath(path);
+
                     if (mHoveredEntity && mHoveredEntity.HasComponent<SpriteRendererComponent>())
                     {
-                        std::filesystem::path texturePath = std::filesystem::path(gAssetsPath) / path;
                         mHoveredEntity.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
                     }
                     else if (!mHoveredEntity)
                     {
                         auto entity = mActiveScene->CreateEntity();
                         entity.AddComponent<SpriteRendererComponent>();
-                        std::filesystem::path texturePath = std::filesystem::path(gAssetsPath) / path;
                         entity.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
                     }
                 }
@@ -552,6 +553,25 @@ namespace NR
         {
             mEditorScene->DuplicateEntity(selectedEntity);
         }
+    }
+
+    void EditorLayer::NewProject()
+    {
+        Project::New();
+    }
+
+    void EditorLayer::OpenProject(const std::filesystem::path& path)
+    {
+        if (Project::Load(path))
+        {
+            auto startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().StartScene);
+            OpenScene(startScenePath);
+            mBrowserPanel = CreateScope<BrowserPanel>();
+        }
+    }
+
+    void EditorLayer::SaveProject()
+    {
     }
 
     void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)

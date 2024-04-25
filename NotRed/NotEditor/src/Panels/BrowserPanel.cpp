@@ -2,12 +2,12 @@
 
 #include <imgui/imgui.h>
 
+#include "NotRed/Project/Project.h"
+
 namespace NR
 {
-	extern const std::filesystem::path gAssetsPath = "Assets";
-
 	BrowserPanel::BrowserPanel()
-		: mCurrentDirectory(gAssetsPath)
+		: mBaseDirectory(Project::GetAssetDirectory()), mCurrentDirectory(mBaseDirectory)
 	{
 		mFolderIcon = Texture2D::Create("Resources/Icons/BrowserImg/folderImg.png");
 		mFileIcon = Texture2D::Create("Resources/Icons/BrowserImg/fileImg.png");
@@ -17,7 +17,7 @@ namespace NR
 	{
 		ImGui::Begin("Content Browser");
 
-		if (mCurrentDirectory.string() != gAssetsPath)
+		if (mCurrentDirectory.string() != mBaseDirectory)
 		{
 			if (ImGui::Button("Back"))
 			{
@@ -40,10 +40,10 @@ namespace NR
 
 		for (auto& entry : std::filesystem::directory_iterator(mCurrentDirectory))
 		{
-			auto relativePath = std::filesystem::relative(entry.path(), gAssetsPath);
-			std::string entryPath = relativePath.filename().string();
+			const auto& path = entry.path();
+			std::string fileName = path.filename().string();
 
-			ImGui::PushID(relativePath.filename().string().c_str());
+			ImGui::PushID(fileName.c_str());
 
 			Ref<Texture2D> icon = entry.is_directory() ? mFolderIcon : mFileIcon;
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -51,6 +51,7 @@ namespace NR
 			
 			if (ImGui::BeginDragDropSource())
 			{
+				std::filesystem::path relativePath(path);
 				const wchar_t* itemPath = relativePath.c_str();
 				ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", itemPath, (wcslen(itemPath) + 1) * sizeof(wchar_t));
 				ImGui::EndDragDropSource();
@@ -62,11 +63,11 @@ namespace NR
 			{
 				if (entry.is_directory())
 				{
-					mCurrentDirectory /= relativePath.filename();
+					mCurrentDirectory /= path.filename();
 				}
 			}
 
-			ImGui::TextWrapped(entryPath.c_str());
+			ImGui::TextWrapped(fileName.c_str());
 
 			ImGui::NextColumn();
 

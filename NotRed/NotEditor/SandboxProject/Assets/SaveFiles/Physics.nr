@@ -88,7 +88,7 @@ Entities:
           Data: 1.5
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      TexturePath: Assets\Textures\Image_Two.png
+      TexturePath: Textures\Image_Two.png
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false

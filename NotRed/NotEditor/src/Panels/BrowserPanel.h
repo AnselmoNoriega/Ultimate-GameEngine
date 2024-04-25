@@ -14,7 +14,7 @@ namespace NR
 		void ImGuiRender();
 
 	private:
-
+		std::filesystem::path mBaseDirectory;
 		std::filesystem::path mCurrentDirectory;
 
 		Ref<Texture2D> mFolderIcon;

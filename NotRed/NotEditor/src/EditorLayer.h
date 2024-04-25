@@ -31,8 +31,13 @@ namespace NR
         bool KeyPressed(KeyPressedEvent& e);
         bool MouseButtonPressed(MouseButtonPressedEvent& e);
 
+        void NewProject();
+        void OpenProject(const std::filesystem::path& path);
+        void SaveProject();
+
         void OpenScene();
         void OpenScene(const std::filesystem::path& path);
+
         void NewScene();
         void SaveSceneAs(); 
         void SaveScene();
@@ -46,7 +51,7 @@ namespace NR
         Ref<Scene> mEditorScene;
         std::filesystem::path mScenePath;
         SceneHierarchyPanel mSceneHierarchyPanel;
-        BrowserPanel mBrowserPanel;
+        Scope <BrowserPanel> mBrowserPanel;
 
         enum class SceneState
         {

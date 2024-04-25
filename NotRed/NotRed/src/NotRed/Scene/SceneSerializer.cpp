@@ -8,6 +8,7 @@
 #include "Components.h"
 #include "NotRed/Scripting/ScriptEngine.h"
 #include "NotRed/Core/UUID.h"
+#include "NotRed/Project/Project.h"
 
 namespace YAML
 {
@@ -470,7 +471,8 @@ namespace NR
                     if (scYaml["TexturePath"])
                     {
                         std::string texturePath = scYaml["TexturePath"].as<std::string>();
-                        sc.Texture = Texture2D::Create(texturePath);
+                        auto path = Project::GetAssetFileSystemPath(texturePath);
+                        sc.Texture = Texture2D::Create(path.string());
                     }
                 }
 

@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "FileSystem.h"
 
+#include <filesystem>
+
 #include "mono/jit/jit.h"
 
 namespace NR
