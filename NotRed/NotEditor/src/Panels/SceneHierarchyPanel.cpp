@@ -4,6 +4,8 @@
 #include <imgui/imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "NotRed/UI/ImGuiTools.h"
+
 #include "NotRed/Scripting/ScriptEngine.h"
 
 #include "NotRed/Scene/Components.h"
@@ -323,14 +325,12 @@ namespace NR
                 static char buffer[64];
                 strcpy_s(buffer, sizeof(buffer), component.ClassName.c_str());
 
-                if (!scriptClassExists)
-                {
-                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f));
-                }
+                UI::StyleColor textColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.3f, 1.0f), !scriptClassExists);
 
                 if (ImGui::InputText("Class", buffer, sizeof(buffer)))
                 {
                     component.ClassName = buffer;
+                    return;
                 }
 
                 bool sceneRunning = scene->IsRunning();
@@ -387,11 +387,6 @@ namespace NR
                         }
                     }
 
-                }
-
-                if (!scriptClassExists)
-                {
-                    ImGui::PopStyleColor();
                 }
             });
 

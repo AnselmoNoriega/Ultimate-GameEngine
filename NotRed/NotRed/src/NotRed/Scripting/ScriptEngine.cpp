@@ -137,7 +137,11 @@ namespace NR
         Scope<filewatch::FileWatch<std::string>> AppAssemblyFileWatcher;
         bool AssemblyReloadPending = false;
 
+#ifdef NR_DEBUG
         bool DebugEnabled = true;
+#else
+        bool DebugEnabled = false;
+#endif
 
         Scene* SceneContext = nullptr;
     };

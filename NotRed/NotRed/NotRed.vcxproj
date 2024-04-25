@@ -198,6 +198,7 @@
     <ClInclude Include="src\NotRed\Scene\ScriptableEntity.h" />
     <ClInclude Include="src\NotRed\Scripting\ScriptEngine.h" />
     <ClInclude Include="src\NotRed\Scripting\ScriptGlue.h" />
+    <ClInclude Include="src\NotRed\UI\ImGuiTools.h" />
     <ClInclude Include="src\NotRed\Utils\PlatformUtils.h" />
     <ClInclude Include="src\Platform\OpenGL\GLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\GLFramebuffer.h" />

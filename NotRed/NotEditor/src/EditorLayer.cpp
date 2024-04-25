@@ -45,9 +45,9 @@ namespace NR
             auto projectFilePath = commandLineArgs[1];
             OpenProject(projectFilePath);
         }
-        else
+        else if (!OpenProject())
         {
-            NewProject();
+            Application::Get().Close();
         }
 
         mEditorCamera = EditorCamera(30.0f, 16 / 9, 0.1f, 1000.0f);
@@ -179,11 +179,18 @@ namespace NR
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("New", "Ctrl+N"))
+                if (ImGui::MenuItem("Open Project...", "Ctrl+Alt+O"))
+                {
+                    OpenProject();
+                }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("New Scene", "Ctrl+N"))
                 {
                     NewScene();
                 }
-                if (ImGui::MenuItem("Open...", "Ctrl+O"))
+                if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
                 {
                     OpenScene();
                 }
@@ -195,6 +202,8 @@ namespace NR
                 {
                     SaveSceneAs();
                 }
+
+                ImGui::Separator();
 
                 if (ImGui::MenuItem("Exit"))
                 {
@@ -470,7 +479,11 @@ namespace NR
         }
         case KeyCode::O:
         {
-            if (ctrl)
+            if (ctrl && Input::IsKeyPressed(KeyCode::Left_Alt))
+            {
+                OpenProject();
+            }
+            else if (ctrl)
             {
                 OpenScene();
             }
@@ -558,6 +571,18 @@ namespace NR
     void EditorLayer::NewProject()
     {
         Project::New();
+    }
+
+    bool EditorLayer::OpenProject()
+    {
+        std::string filepath = FileDialogs::OpenFile("NotRed Project (*.nrproj)\0*.nrproj\0");
+        if (filepath.empty())
+        {
+            return false;
+        }
+
+        OpenProject(filepath);
+        return true;
     }
 
     void EditorLayer::OpenProject(const std::filesystem::path& path)

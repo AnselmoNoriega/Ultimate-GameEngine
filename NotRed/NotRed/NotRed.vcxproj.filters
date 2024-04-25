@@ -1511,6 +1511,7 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Project\Project.h" />
     <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
+    <ClInclude Include="src\NotRed\UI\ImGuiTools.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
