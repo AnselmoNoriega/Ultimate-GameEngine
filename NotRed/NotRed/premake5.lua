@@ -37,6 +37,8 @@ project "NotRed"
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.FileWatch}",
 		"%{IncludeDir.Glm}",
+		"%{IncludeDir.MsdfGen}",
+		"%{IncludeDir.MsdfAtlasGen}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.ImGui}",
@@ -53,6 +55,7 @@ project "NotRed"
 		"GLFW",
 		"Glad",
 		"ImGui",
+		"msdf-atlas-gen",
 		"yaml-cpp",
 		"opengl32.lib",
 

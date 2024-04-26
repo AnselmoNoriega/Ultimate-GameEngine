@@ -30,6 +30,7 @@ group "Dependencies"
 	include "NotRed/vendor/GLFW"
 	include "NotRed/vendor/glad"
 	include "NotRed/vendor/imgui"
+	include "NotRed/vendor/msdf-atlas-gen"
 	include "NotRed/vendor/yaml-cpp"
 group ""
 

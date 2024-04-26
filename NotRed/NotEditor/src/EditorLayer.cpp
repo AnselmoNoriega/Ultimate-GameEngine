@@ -13,11 +13,14 @@
 
 #include "NotRed/Math/Math.h"
 
+#include "NotRed/Renderer/Font.h"
+
 namespace NR
 {
     EditorLayer::EditorLayer()
         :Layer("EditorLayer")
     {
+        Font font("Assets/Fonts/Main/Baskervville-Regular.ttf");
     }
 
     void EditorLayer::Attach()

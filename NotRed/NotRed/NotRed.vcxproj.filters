@@ -22,6 +22,9 @@
     <Filter Include="src\NotRed\Math">
       <UniqueIdentifier>{01C30D27-6D4E-7BEB-765F-FEDFE269D7EB}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Project">
+      <UniqueIdentifier>{6E311A61-5A15-DBB6-C375-D509AF78C538}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
     </Filter>
@@ -30,6 +33,9 @@
     </Filter>
     <Filter Include="src\NotRed\Scripting">
       <UniqueIdentifier>{2AEC6F7B-167B-F944-BF99-0D40AB070AEB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\UI">
+      <UniqueIdentifier>{558752C8-C147-CEFE-8A82-177CF60113DB}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\Utils">
       <UniqueIdentifier>{88246109-741D-805B-9D4F-65E089A75F67}</UniqueIdentifier>
@@ -141,6 +147,12 @@
     <ClInclude Include="src\NotRed\Math\Math.h">
       <Filter>src\NotRed\Math</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Project\Project.h">
+      <Filter>src\NotRed\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h">
+      <Filter>src\NotRed\Project</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -218,6 +230,9 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Scripting\ScriptGlue.h">
       <Filter>src\NotRed\Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\UI\ImGuiTools.h">
+      <Filter>src\NotRed\UI</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Utils\PlatformUtils.h">
       <Filter>src\NotRed\Utils</Filter>
@@ -1509,9 +1524,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Project\Project.h" />
-    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
-    <ClInclude Include="src\NotRed\UI\ImGuiTools.h" />
+    <ClInclude Include="src\NotRed\Renderer\Font.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -1540,6 +1553,12 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Math\Math.cpp">
       <Filter>src\NotRed\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Project\Project.cpp">
+      <Filter>src\NotRed\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp">
+      <Filter>src\NotRed\Project</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\EditorCamera.cpp">
       <Filter>src\NotRed\Renderer</Filter>
@@ -1649,7 +1668,6 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Project\Project.cpp" />
-    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Font.cpp" />
   </ItemGroup>
 </Project>
