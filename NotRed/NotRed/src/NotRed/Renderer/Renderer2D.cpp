@@ -154,7 +154,7 @@ namespace NR
             sData.CircleVertexArray->SetIndexBuffer(indexBuffer);
             delete[] indices;
 
-            sData.EmptyTexture = Texture2D::Create(1, 1);
+            sData.EmptyTexture = Texture2D::Create(TextureSpecification());
             uint32_t emptyTextureData = 0xffffffff;
             sData.EmptyTexture->SetData(&emptyTextureData, sizeof(uint32_t));
         }

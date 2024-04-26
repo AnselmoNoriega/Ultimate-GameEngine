@@ -17,10 +17,13 @@
 
 namespace NR
 {
+    //Temporal
+    static Font* sFont;
+
     EditorLayer::EditorLayer()
         :Layer("EditorLayer")
     {
-        Font font("Assets/Fonts/Main/Baskervville-Regular.ttf");
+        sFont = new Font("Assets/Fonts/Main/Baskervville-Regular.ttf");
     }
 
     void EditorLayer::Attach()
@@ -80,7 +83,7 @@ namespace NR
             mFramebufferGame->Resize((uint32_t)mGameViewportSize.x, (uint32_t)mGameViewportSize.y);
             mActiveScene->ViewportResize((uint32_t)mGameViewportSize.x, (uint32_t)mGameViewportSize.y);
         }
-
+        
         {
             NR_PROFILE_SCOPE("Render Start");
             Renderer2D::ResetStats();
@@ -252,6 +255,7 @@ namespace NR
 
         ImGui::Begin("Settings");
         ImGui::Checkbox("Show physics colliders", &mShowPhysicsColliders);
+        ImGui::Image((ImTextureID)sFont->GetTextureAtlas()->GetRendererID(), { 512,512 }, { 0, 1 }, { 1, 0 });
         ImGui::End();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });

@@ -6,12 +6,12 @@
 
 namespace NR
 {
-    Ref<Texture2D> Texture2D::Create(uint32_t width, uint32_t height)
+    Ref<Texture2D> Texture2D::Create(const TextureSpecification& specification)
     {
         switch (Renderer::GetAPI())
         {
         case RendererAPI::API::None: NR_CORE_ASSERT(false, "Renderer API \"None\" is currently not supported!");
-        case RendererAPI::API::OpenGL: return CreateRef<GLTexture2D>(width, height);
+        case RendererAPI::API::OpenGL: return CreateRef<GLTexture2D>(specification);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RenderAPI!");

@@ -7,13 +7,44 @@
 
 namespace NR
 {
-    GLTexture2D::GLTexture2D(uint32_t width, uint32_t height)
-        :mWidth(width), mHeight(height)
+    namespace Utils
+    {
+        static GLenum ImageFormatToGLInternalFormat(ImageFormat format)
+        {
+            switch (format)
+            {
+            case ImageFormat::RGB8:  return GL_RGB8;
+            case ImageFormat::RGBA8: return GL_RGBA8;
+            default:
+            {
+                NR_CORE_ASSERT(false, "Invalid Format");
+                return 0;
+            }
+            }
+        }
+
+        static GLenum ImageFormatToGLDataFormat(ImageFormat format)
+        {
+            switch (format)
+            {
+            case ImageFormat::RGB8:  return GL_RGB;
+            case ImageFormat::RGBA8: return GL_RGBA;
+            default:
+            {
+                NR_CORE_ASSERT(false, "Invalid Format");
+                return 0;
+            }
+            }
+        }
+    }
+
+    GLTexture2D::GLTexture2D(const TextureSpecification& specification)
+        :mSpecification(specification), mWidth(mSpecification.Width), mHeight(mSpecification.Height)
     {
         NR_PROFILE_FUNCTION();
 
-        GLenum glFormat = GL_RGBA8;
-        mDataFormat = GL_RGBA;
+        GLenum glFormat = Utils::ImageFormatToGLInternalFormat(mSpecification.Format);
+        mDataFormat = Utils::ImageFormatToGLDataFormat(mSpecification.Format);
 
         glCreateTextures(GL_TEXTURE_2D, 1, &mID);
         glTextureStorage2D(mID, 1, glFormat, mWidth, mHeight);

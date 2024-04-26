@@ -7,9 +7,11 @@ namespace NR
     class GLTexture2D : public Texture2D
     {
     public:
-        GLTexture2D(uint32_t width, uint32_t height);
+        GLTexture2D(const TextureSpecification& specification);
         GLTexture2D(const std::string& path);
         ~GLTexture2D() override;
+
+        const TextureSpecification& GetSpecification() const override { return mSpecification; }
 
         uint32_t GetWidth() const override { return mWidth; }
         uint32_t GetHeight() const override { return mHeight; }
@@ -27,9 +29,11 @@ namespace NR
         }
 
     private:
-        uint32_t mWidth, mHeight;
+        TextureSpecification mSpecification;
+
         uint32_t mID;
         std::string mPath;
         uint32_t mDataFormat;
+        uint32_t mWidth, mHeight;
     };
 }
