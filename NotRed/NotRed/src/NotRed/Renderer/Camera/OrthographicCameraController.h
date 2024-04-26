@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Renderer/OrthographicCamera.h"
+#include "NotRed/Renderer/Camera/OrthographicCamera.h"
 
 #include "NotRed/Events/ApplicationEvent.h"
 #include "NotRed/Events/MouseEvent.h"

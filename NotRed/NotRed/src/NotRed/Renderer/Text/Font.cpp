@@ -8,15 +8,10 @@
 #include "FontGeometry.h"
 #include "GlyphGeometry.h"
 
+#include "MSDFData.h"
+
 namespace NR
 {
-    struct MSDFData
-    {
-        std::vector<msdf_atlas::GlyphGeometry> Glyphs;
-        msdf_atlas::FontGeometry FontGeometry;
-
-    };
-
     template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenFunc>
     static Ref<Texture2D> CreateAndCacheAtlas
     (
@@ -101,10 +96,50 @@ namespace NR
         atlasPacker.getDimensions(width, height);
         emSize = (float)atlasPacker.getScale();
 
+#define DEFAULT_ANGLE_THRESHOLD 3.0
+#define LCG_MULTIPLIER 6364136223846793005ull
+#define LCG_INCREMENT 1442695040888963407ull
+#define THREAD_COUNT 8
+
+        uint64_t coloringSeed = 0;
+        bool expensiveColoring = false;
+        if (expensiveColoring)
+        {
+            msdf_atlas::Workload(
+                [&glyphs = mData->Glyphs, &coloringSeed](int i, int threadNo) -> bool 
+                {
+                unsigned long long glyphSeed = (LCG_MULTIPLIER * (coloringSeed ^ i) + LCG_INCREMENT) * !!coloringSeed;
+                glyphs[i].edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+                return true;
+                }, 
+                mData->Glyphs.size()
+            ).finish(THREAD_COUNT);
+        }
+        else 
+        {
+            unsigned long long glyphSeed = coloringSeed;
+            for (msdf_atlas::GlyphGeometry& glyph : mData->Glyphs)
+            {
+                glyphSeed *= LCG_MULTIPLIER;
+                glyph.edgeColoring(msdfgen::edgeColoringInkTrap, DEFAULT_ANGLE_THRESHOLD, glyphSeed);
+            }
+        }
+
         mAtlas = CreateAndCacheAtlas<uint8_t, float, 3, msdf_atlas::msdfGenerator>("FirstFont", emSize, mData->Glyphs, mData->FontGeometry, width, height);
 
         msdfgen::destroyFont(font);
         msdfgen::deinitializeFreetype(ft);
+    }
+
+    Ref<Font> Font::GetDefault()
+    {
+        static Ref<Font> DefaultFont;
+        if (!DefaultFont)
+        {
+            DefaultFont = CreateRef<Font>("Assets/Fonts/Main/Baskervville-Regular.ttf");
+        }
+
+        return DefaultFont;
     }
 
     Font::~Font()

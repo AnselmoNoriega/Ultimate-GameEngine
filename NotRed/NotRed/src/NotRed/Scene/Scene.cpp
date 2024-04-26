@@ -95,10 +95,8 @@ namespace NR
         return newScene;
     }
 
-    void Scene::UpdateEditor(float dt, EditorCamera& camera)
+    void Scene::RenderScene()
     {
-        Renderer2D::BeginScene(camera);
-
         {
             auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
             for (auto entity : group)
@@ -117,8 +115,27 @@ namespace NR
                 Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, (int)entity);
             }
         }
+        {
+            Renderer2D::DrawString("NotRed", Font::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
+            Renderer2D::DrawString(
+                R"(
+                			// MSDF text shader
+                #type vertex
+                #version 450 core
+                layout(location = 0) in vec3 a_Position;
+                layout(location = 1) in vec4 a_Color;
+                layout(location = 2) in vec2 a_TexCoord;)", 
+                Font::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
+        }
 
         Renderer2D::EndScene();
+    }
+
+    void Scene::UpdateEditor(float dt, EditorCamera& camera)
+    {
+        Renderer2D::BeginScene(camera);
+
+        RenderScene();
     }
 
     void Scene::UpdatePlay(float dt)
@@ -144,26 +161,7 @@ namespace NR
         {
             Renderer2D::BeginScene(*mainCamera, cameraTransform);
 
-            {
-                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-                for (auto entity : group)
-                {
-                    auto&& [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-
-                    Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-                }
-            }
-            {
-                auto view = mRegistry.view<TransformComponent, CircleRendererComponent>();
-                for (auto entity : view)
-                {
-                    auto&& [transform, circle] = view.get<TransformComponent, CircleRendererComponent>(entity);
-
-                    Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness, (int)entity);
-                }
-            }
-
-            Renderer2D::EndScene();
+            RenderScene();
         }
     }
 

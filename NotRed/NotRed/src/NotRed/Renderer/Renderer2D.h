@@ -1,8 +1,9 @@
 #pragma once
 
-#include "OrthographicCamera.h"
-#include "Camera.h"
-#include "EditorCamera.h"
+#include "Camera/OrthographicCamera.h"
+#include "Camera/Camera.h"
+#include "Camera/EditorCamera.h"
+#include "Text/Font.h"
 
 namespace NR
 {
@@ -28,6 +29,7 @@ namespace NR
         static void DrawCircle(const glm::mat4& transform, const glm::vec4& color, float thickness, int entityID = -1);
         static void DrawLine(const glm::vec3& p0, glm::vec3& p1, const glm::vec4& color);
         static void DrawRect(const glm::mat4& transform, const glm::vec4& color);
+        static void DrawString(const std::string& string, Ref<Font> font, const glm::mat4& transform, const glm::vec4& color);
 
         static void SetLineWidth(float width);
 

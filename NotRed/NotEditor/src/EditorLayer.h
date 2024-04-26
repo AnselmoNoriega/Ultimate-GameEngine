@@ -4,7 +4,7 @@
 #include "Panels/SceneHierarchyPanel.h"
 #include "Panels/BrowserPanel.h"
 
-#include "NotRed/Renderer/EditorCamera.h"
+#include "NotRed/Renderer/Camera/EditorCamera.h"
 
 namespace NR
 {

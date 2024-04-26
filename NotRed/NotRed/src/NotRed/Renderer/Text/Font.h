@@ -16,6 +16,9 @@ namespace NR
 		~Font();
 
 		Ref<Texture2D> GetTextureAtlas() const { return mAtlas; }
+		const MSDFData* GetMSDFData() const { return mData; }
+
+		static Ref<Font> GetDefault();
 
 	private:
 		MSDFData* mData;

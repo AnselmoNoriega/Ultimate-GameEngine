@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Renderer/Camera.h"
+#include "NotRed/Renderer/Camera/Camera.h"
 
 namespace NR
 {

@@ -3,7 +3,7 @@
 #include "entt.hpp"
 
 #include "NotRed/Core/UUID.h"
-#include "NotRed/Renderer/EditorCamera.h"
+#include "NotRed/Renderer/Camera/EditorCamera.h"
 
 class b2World;
 
@@ -53,6 +53,8 @@ namespace NR
     private:
         template<typename T>
         void ComponentAdded(Entity entity, T& component);
+
+        void RenderScene();
 
     private:
         entt::registry mRegistry;

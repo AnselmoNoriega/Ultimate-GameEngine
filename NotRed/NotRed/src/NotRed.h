@@ -12,7 +12,7 @@
 
 #include "NotRed/Core/TimeStep.h"
 
-#include "NotRed/Renderer/OrthographicCameraController.h"
+#include "NotRed/Renderer/Camera/OrthographicCameraController.h"
 
 #include "NotRed/Core/Log.h"
 #include "NotRed/Core/Layer.h"
@@ -38,4 +38,4 @@
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"
 
-#include "NotRed/Renderer/OrthographicCamera.h"
+#include "NotRed/Renderer/Camera/OrthographicCamera.h"
