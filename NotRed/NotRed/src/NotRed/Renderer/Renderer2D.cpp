@@ -457,8 +457,8 @@ namespace NR
         sData.FontTextureAtlas = fontAtlas;
 
         double x = 0.0;
-        double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
         double y = 0.0;
+        double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
         float lineHeightOffset = 0.0f;
 
         for (size_t i = 0; i < string.size(); i++)
@@ -480,10 +480,10 @@ namespace NR
             if (!glyph)
             {
                 glyph = fontGeometry.getGlyph('?');
-            }
-            if (!glyph)
-            {
-                return;
+                if (!glyph)
+                {
+                    return;
+                }
             }
 
             if (character == '\t')
@@ -511,16 +511,15 @@ namespace NR
             texCoordMin *= glm::vec2(texWidth, texHeight);
             texCoordMax *= glm::vec2(texWidth, texHeight);
 
-            // render here
             sData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin.x, quadMin.y, 0.0f, 1.0f);
             sData.TextVertexBufferPtr->Color = color;
             sData.TextVertexBufferPtr->TexCoord = { texCoordMin.x, texCoordMin.y };
             sData.TextVertexBufferPtr->EntityID = 0; // TODO
             ++sData.TextVertexBufferPtr;
 
-            sData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
+            sData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
             sData.TextVertexBufferPtr->Color = color;
-            sData.TextVertexBufferPtr->TexCoord = { texCoordMin.x, texCoordMax.y };
+            sData.TextVertexBufferPtr->TexCoord = { texCoordMax.x, texCoordMin.y };
             sData.TextVertexBufferPtr->EntityID = 0; // TODO
             ++sData.TextVertexBufferPtr;
 
@@ -530,9 +529,9 @@ namespace NR
             sData.TextVertexBufferPtr->EntityID = 0; // TODO
             ++sData.TextVertexBufferPtr;
 
-            sData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMax.x, quadMin.y, 0.0f, 1.0f);
+            sData.TextVertexBufferPtr->Position = transform * glm::vec4(quadMin.x, quadMax.y, 0.0f, 1.0f);
             sData.TextVertexBufferPtr->Color = color;
-            sData.TextVertexBufferPtr->TexCoord = { texCoordMax.x, texCoordMin.y };
+            sData.TextVertexBufferPtr->TexCoord = { texCoordMin.x, texCoordMax.y };
             sData.TextVertexBufferPtr->EntityID = 0; // TODO
             ++sData.TextVertexBufferPtr;
 

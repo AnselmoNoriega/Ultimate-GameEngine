@@ -99,7 +99,7 @@ namespace NR
 
             if (mViewportFocused && mViewportHovered)
             {
-                mEditorCamera.Update(deltaTime);
+                mEditorCamera.Update(deltaTime, true);
             }
 
             if (mSceneState == SceneState::Play)
