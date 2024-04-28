@@ -2,6 +2,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "NotRed/UI/ImGuiTools.h"
@@ -243,9 +244,10 @@ namespace NR
             DisplayAddComponent<ScriptComponent>("Script");
             DisplayAddComponent<SpriteRendererComponent>("Sprite Renderer");
             DisplayAddComponent<CircleRendererComponent>("Circle Renderer");
+            DisplayAddComponent<TextComponent>("Text Component");
             DisplayAddComponent<Rigidbody2DComponent>("Rigidbody 2D");
-            DisplayAddComponentCollider<BoxCollider2DComponent>("Box Collider 2D");
-            DisplayAddComponentCollider<CircleCollider2DComponent>("Circle Collider 2D");
+            DisplayAddComponent<BoxCollider2DComponent>("Box Collider 2D");
+            DisplayAddComponent<CircleCollider2DComponent>("Circle Collider 2D");
 
             ImGui::EndPopup();
         }
@@ -401,6 +403,13 @@ namespace NR
                 ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f, 1.0f);
             });
 
+        DrawComponent<TextComponent>("Text Renderer", entity, [](TextComponent& component)
+            {
+                ImGui::InputTextMultiline("Text String", &component.TextString);
+                ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+                ImGui::DragFloat("Line Spacing", &component.LineSpacing, 0.025f);
+            });
+
         DrawComponent<Rigidbody2DComponent>("Rigidbody 2D", entity, [](Rigidbody2DComponent& component)
             {
                 const char* bodyTypeStrings[] = { "Static", "Kinematic", "Dynamic" };
@@ -436,20 +445,6 @@ namespace NR
     {
         if (!mSelectionContext.HasComponent<T>() && ImGui::MenuItem(entryName.c_str()))
         {
-            mSelectionContext.AddComponent<T>();
-            ImGui::CloseCurrentPopup();
-        }
-    }
-    template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentCollider(const std::string& entryName)
-    {
-        if (!mSelectionContext.HasComponent<T>() && ImGui::MenuItem(entryName.c_str()))
-        {
-            if (!mSelectionContext.HasComponent<Rigidbody2DComponent>())
-            {
-                mSelectionContext.AddComponent<Rigidbody2DComponent>();
-            }
-
             mSelectionContext.AddComponent<T>();
             ImGui::CloseCurrentPopup();
         }

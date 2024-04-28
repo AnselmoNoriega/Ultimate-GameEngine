@@ -9,6 +9,7 @@
 #include "SceneCamera.h"
 #include "NotRed/Core/UUID.h"
 #include "NotRed/Renderer/Texture.h"
+#include "NotRed/Renderer/Text/Font.h"
 
 namespace NR
 {
@@ -73,6 +74,14 @@ namespace NR
 
         CircleRendererComponent() = default;
         CircleRendererComponent(const CircleRendererComponent&) = default;
+    };
+
+    struct TextComponent
+    {
+        Ref<Font> TextFont = Font::GetDefault();
+        std::string TextString;
+        glm::vec4 Color{ 1.0f };
+        float LineSpacing = 0.0f;
     };
 
     struct CameraComponent
@@ -175,5 +184,5 @@ namespace NR
         ComponentGroup<TransformComponent, SpriteRendererComponent, 
         CircleRendererComponent, CameraComponent, NativeScriptComponent, 
         ScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, 
-        CircleCollider2DComponent>;
+        CircleCollider2DComponent, TextComponent>;
 }

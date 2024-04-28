@@ -116,16 +116,13 @@ namespace NR
             }
         }
         {
-            Renderer2D::DrawString("NotRed", Font::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
-            Renderer2D::DrawString(
-                R"(
-                			// MSDF text shader
-                #type vertex
-                #version 450 core
-                layout(location = 0) in vec3 a_Position;
-                layout(location = 1) in vec4 a_Color;
-                layout(location = 2) in vec2 a_TexCoord;)", 
-                Font::GetDefault(), glm::mat4(1.0f), glm::vec4(1.0f));
+            auto view = mRegistry.view<TransformComponent, TextComponent>();
+            for (auto entity : view)
+            {
+                auto&& [transform, tc] = view.get<TransformComponent, TextComponent>(entity);
+
+                Renderer2D::DrawString(transform.GetTransform(), tc, (int)entity);
+            }
         }
 
         Renderer2D::EndScene();
@@ -281,7 +278,7 @@ namespace NR
                 auto& box2D = entity.GetComponent<BoxCollider2DComponent>();
 
                 b2PolygonShape boxShape;
-                boxShape.SetAsBox(box2D.Size.x * transform.Scale.x, box2D.Size.y * transform.Scale.y);
+                boxShape.SetAsBox(box2D.Size.x * transform.Scale.x, box2D.Size.y * transform.Scale.y, b2Vec2(box2D.Offset.x, box2D.Offset.y), 0.0f);
 
                 b2FixtureDef fixtureDef;
                 fixtureDef.shape = &boxShape;
@@ -397,8 +394,23 @@ namespace NR
     void Scene::ComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent& component) {}
 
     template<>
-    void Scene::ComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component) {}
+    void Scene::ComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component) 
+    {
+        if (!entity.HasComponent<Rigidbody2DComponent>())
+        {
+            entity.AddComponent<Rigidbody2DComponent>();
+        }
+    }
 
     template<>
-    void Scene::ComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component) {}
+    void Scene::ComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent& component)
+    {
+        if (!entity.HasComponent<Rigidbody2DComponent>())
+        {
+            entity.AddComponent<Rigidbody2DComponent>();
+        }
+    }
+    
+    template<>
+    void Scene::ComponentAdded<TextComponent>(Entity entity, TextComponent& component) {}
 }

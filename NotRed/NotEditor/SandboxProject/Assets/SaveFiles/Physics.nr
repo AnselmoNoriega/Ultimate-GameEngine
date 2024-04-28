@@ -75,7 +75,7 @@ Entities:
       Radius: 0.5
   - Entity: 9147471346879783186
     TagComponent:
-      Tag: Object
+      Tag: Box
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0.596902609]
@@ -88,7 +88,7 @@ Entities:
           Data: 1.5
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
-      TexturePath: Textures\Image_Two.png
+      TexturePath: SandboxProject\Assets\Textures\Image_Two.png
     Rigidbody2DComponent:
       BodyType: Dynamic
       FixedRotation: false
@@ -99,3 +99,24 @@ Entities:
     BoxCollider2DComponent:
       Offset: [0, 0]
       Size: [0.5, 0.5]
+  - Entity: 3260826749618597917
+    TagComponent:
+      Tag: Text
+    TransformComponent:
+      Translation: [-3.85470414, 3.30259395, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    TextComponent:
+      TextString: "NotRed (text)\nD"
+      Color: [1, 1, 1, 1]
+      LineSpacing: 0
+    Rigidbody2DComponent:
+      BodyType: Dynamic
+      FixedRotation: false
+      Density: 1
+      Friction: 0.5
+      Restitution: 0.100000001
+      RestitutionThreshold: 0.5
+    BoxCollider2DComponent:
+      Offset: [1.20000005, 0.100000001]
+      Size: [3, 0.5]

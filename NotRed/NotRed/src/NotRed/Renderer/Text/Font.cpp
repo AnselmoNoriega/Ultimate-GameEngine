@@ -136,7 +136,7 @@ namespace NR
         static Ref<Font> DefaultFont;
         if (!DefaultFont)
         {
-            DefaultFont = CreateRef<Font>("Assets/Fonts/Main/Baskervville-Regular.ttf");
+            DefaultFont = CreateRef<Font>("Assets/Fonts/Roboto/Roboto-Black.ttf");
         }
 
         return DefaultFont;

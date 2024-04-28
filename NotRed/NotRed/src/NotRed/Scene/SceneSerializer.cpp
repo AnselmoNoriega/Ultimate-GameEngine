@@ -8,7 +8,6 @@
 #include "Components.h"
 #include "NotRed/Scripting/ScriptEngine.h"
 #include "NotRed/Core/UUID.h"
-#include "NotRed/Project/Project.h"
 
 namespace YAML
 {
@@ -295,6 +294,20 @@ namespace NR
             out << YAML::EndMap;
         }
 
+        if (entity.HasComponent<TextComponent>())
+        {
+            out << YAML::Key << "TextComponent";
+            out << YAML::BeginMap;
+
+            auto& textComponent = entity.GetComponent<TextComponent>();
+
+            out << YAML::Key << "TextString" << YAML::Value << textComponent.TextString;
+            out << YAML::Key << "Color" << YAML::Value << textComponent.Color;
+            out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.LineSpacing;
+
+            out << YAML::EndMap;
+        }
+
         if (entity.HasComponent<Rigidbody2DComponent>())
         {
             out << YAML::Key << "Rigidbody2DComponent";
@@ -471,8 +484,7 @@ namespace NR
                     if (scYaml["TexturePath"])
                     {
                         std::string texturePath = scYaml["TexturePath"].as<std::string>();
-                        auto path = Project::GetAssetFileSystemPath(texturePath);
-                        sc.Texture = Texture2D::Create(path.string());
+                        sc.Texture = Texture2D::Create(texturePath);
                     }
                 }
 
@@ -482,6 +494,15 @@ namespace NR
                     auto& crc = loadedEntity.AddComponent<CircleRendererComponent>();
                     crc.Color = circleRendererComponent["Color"].as<glm::vec4>();
                     crc.Thickness = circleRendererComponent["Thickness"].as<float>();
+                }
+
+                auto textComponent = entity["TextComponent"];
+                if (textComponent)
+                {
+                    auto& tc = loadedEntity.AddComponent<TextComponent>();
+                    tc.TextString = textComponent["TextString"].as<std::string>();
+                    tc.Color = textComponent["Color"].as<glm::vec4>();
+                    tc.LineSpacing = textComponent["LineSpacing"].as<float>();
                 }
 
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
