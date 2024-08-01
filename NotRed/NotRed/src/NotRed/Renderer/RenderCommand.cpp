@@ -5,5 +5,5 @@
 
 namespace NR
 {
-    RendererAPI* RenderCommand::sRendererAPI = new GLRendererAPI;
+    Ref<RendererAPI> RenderCommand::sRendererAPI = CreateRef<GLRendererAPI>();
 }

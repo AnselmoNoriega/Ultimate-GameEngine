@@ -28,6 +28,12 @@
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Renderer\Camera">
+      <UniqueIdentifier>{86B664ED-72C6-10BE-DB7F-75DCC7AEFF56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Renderer\Text">
+      <UniqueIdentifier>{A293272D-8EB8-76AD-B703-5C3DA38775CB}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Scene">
       <UniqueIdentifier>{45903309-3189-525B-5ABB-37E046133267}</UniqueIdentifier>
     </Filter>
@@ -157,10 +163,16 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera\Camera.h">
-      <Filter>src\NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer\Camera</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera\EditorCamera.h">
-      <Filter>src\NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCamera.h">
+      <Filter>src\NotRed\Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCameraController.h">
+      <Filter>src\NotRed\Renderer\Camera</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Framebuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
@@ -169,12 +181,6 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCamera.h">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCameraController.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h">
@@ -194,6 +200,12 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\SubTexture.h">
       <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Text\Font.h">
+      <Filter>src\NotRed\Renderer\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Text\MSDFData.h">
+      <Filter>src\NotRed\Renderer\Text</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>src\NotRed\Renderer</Filter>
@@ -1524,8 +1536,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\Text\Font.h" />
-    <ClInclude Include="src\NotRed\Renderer\Text\MSDFData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -1562,18 +1572,18 @@
       <Filter>src\NotRed\Project</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Camera\EditorCamera.cpp">
-      <Filter>src\NotRed\Renderer</Filter>
+      <Filter>src\NotRed\Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Camera\OrthographicCamera.cpp">
+      <Filter>src\NotRed\Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Camera\OrthographicCameraController.cpp">
+      <Filter>src\NotRed\Renderer\Camera</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\Camera\OrthographicCamera.cpp">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\Camera\OrthographicCameraController.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp">
@@ -1593,6 +1603,9 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Text\Font.cpp">
+      <Filter>src\NotRed\Renderer\Text</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
@@ -1669,6 +1682,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\Text\Font.cpp" />
   </ItemGroup>
 </Project>

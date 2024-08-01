@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 #include "Camera.h"
-#include "NotRed/Core/Timestep.h"
 #include "NotRed/Events/Event.h"
 #include "NotRed/Events/MouseEvent.h"
 

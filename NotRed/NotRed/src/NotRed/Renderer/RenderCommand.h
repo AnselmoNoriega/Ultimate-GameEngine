@@ -43,6 +43,6 @@ namespace NR
         }
 
     private:
-        static RendererAPI* sRendererAPI;
+        static Ref<RendererAPI> sRendererAPI;
     };
 }

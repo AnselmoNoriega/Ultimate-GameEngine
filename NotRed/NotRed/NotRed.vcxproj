@@ -147,7 +147,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Renderer\Text\Font.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
@@ -176,19 +175,20 @@
     <ClInclude Include="src\NotRed\Renderer\BufferLayout.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera\EditorCamera.h" />
+    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCamera.h" />
+    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCameraController.h" />
     <ClInclude Include="src\NotRed\Renderer\Framebuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\GraphicsContext.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCamera.h" />
-    <ClInclude Include="src\NotRed\Renderer\Camera\OrthographicCameraController.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\SubTexture.h" />
-    <ClInclude Include="src\NotRed\Renderer\Texture.h" />
+    <ClInclude Include="src\NotRed\Renderer\Text\Font.h" />
     <ClInclude Include="src\NotRed\Renderer\Text\MSDFData.h" />
+    <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
@@ -633,7 +633,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Renderer\Text\Font.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\FileSystem.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
@@ -646,16 +645,17 @@
     <ClCompile Include="src\NotRed\Project\Project.cpp" />
     <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera\EditorCamera.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera\OrthographicCamera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera\OrthographicCameraController.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Text\Font.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />

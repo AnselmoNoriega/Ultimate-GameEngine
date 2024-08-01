@@ -69,10 +69,6 @@ namespace NR
         {
             MouseRotate(delta);
         }
-        //else if (Input::IsMouseButtonPressed(MouseCode::ButtonLeft))
-        //{
-        //    MouseRotate(delta);
-        //}
 
         UpdateView();
     }
