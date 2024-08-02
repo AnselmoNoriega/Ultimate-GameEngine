@@ -1540,6 +1540,8 @@
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\AssetLoader.h" />
+    <ClInclude Include="src\NotRed\Scene\Components2D.h" />
+    <ClInclude Include="src\NotRed\Scene\Components3D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">

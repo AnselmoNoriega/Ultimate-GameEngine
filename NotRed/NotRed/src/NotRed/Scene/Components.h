@@ -6,10 +6,13 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+#include <string>
+
 #include "SceneCamera.h"
 #include "NotRed/Core/UUID.h"
-#include "NotRed/Renderer/Texture.h"
-#include "NotRed/Renderer/Text/Font.h"
+
+#include "Components2D.h"
+#include "Components3D.h"
 
 namespace NR
 {
@@ -56,44 +59,6 @@ namespace NR
         }
     };
 
-    struct SpriteRendererComponent
-    {
-        glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-        Ref<Texture2D> Texture;
-
-        SpriteRendererComponent() = default;
-        SpriteRendererComponent(const SpriteRendererComponent&) = default;
-        SpriteRendererComponent(const glm::vec4& color)
-            : Color(color) {};
-    };
-
-    struct CircleRendererComponent
-    {
-        glm::vec4 Color{ 1.0f, 1.0f, 1.0f, 1.0f };
-        float Thickness = 1.0f;
-
-        CircleRendererComponent() = default;
-        CircleRendererComponent(const CircleRendererComponent&) = default;
-    };
-
-    struct TextComponent
-    {
-        Ref<Font> TextFont = Font::GetDefault();
-        std::string TextString;
-        glm::vec4 Color{ 1.0f };
-        float LineSpacing = 0.0f;
-    };
-
-    struct CameraComponent
-    {
-        SceneCamera Camera;
-        bool IsPrimary = true;
-        bool HasFixedAspectRatio = false;
-
-        CameraComponent() = default;
-        CameraComponent(const CameraComponent&) = default;
-    };
-
     class ScriptableEntity;
     struct NativeScriptComponent
     {
@@ -137,52 +102,22 @@ namespace NR
         ScriptComponent(const ScriptComponent&) = default;
     };
 
-    struct Rigidbody2DComponent
+    struct CameraComponent
     {
-        enum class BodyType { Static, Kinematic, Dynamic };
+        SceneCamera Camera;
+        bool IsPrimary = true;
+        bool HasFixedAspectRatio = false;
 
-        BodyType Type = BodyType::Static;
-        bool FixedRotation = false;
-
-        void* RuntimeBody = nullptr;
-
-        float Density = 1.0f;
-        float Friction = 0.5f;
-        float Restitution = 0.1f;
-        float RestitutionThreshold = 0.5f;
-
-        Rigidbody2DComponent() = default;
-        Rigidbody2DComponent(const Rigidbody2DComponent&) = default;
-    };
-
-    struct BoxCollider2DComponent
-    {
-        glm::vec2 Offset = { 0.0f, 0.0f };
-        glm::vec2 Size = { 0.5f, 0.5f };
-
-        void* RuntimeFixture = nullptr;
-
-        BoxCollider2DComponent() = default;
-        BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
-    };
-
-    struct CircleCollider2DComponent
-    {
-        glm::vec2 Offset = { 0.0f, 0.0f };
-        float Radius = 0.5f;
-
-        void* RuntimeFixture = nullptr;
-
-        CircleCollider2DComponent() = default;
-        CircleCollider2DComponent(const CircleCollider2DComponent&) = default;
+        CameraComponent() = default;
+        CameraComponent(const CameraComponent&) = default;
     };
 
     template<typename... Component>
     struct ComponentGroup {};
 
-    using AllComponents = 
-        ComponentGroup<TransformComponent, SpriteRendererComponent, 
-        CircleRendererComponent, CameraComponent, NativeScriptComponent, 
-        ScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent, 
+    using AllComponents =
+        ComponentGroup<TransformComponent, SpriteRendererComponent,
+        CircleRendererComponent, CameraComponent, NativeScriptComponent,
+        ScriptComponent, Rigidbody2DComponent, BoxCollider2DComponent,
         CircleCollider2DComponent, TextComponent>;
 }

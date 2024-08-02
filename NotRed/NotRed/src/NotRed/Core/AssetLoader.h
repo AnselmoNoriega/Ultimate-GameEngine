@@ -3,10 +3,11 @@
 struct aiNode;
 struct aiScene;
 struct aiMesh;
-class Mesh;
 
 namespace NR
 {
+    class Mesh;
+
     class AssetLoader
     {
     public:

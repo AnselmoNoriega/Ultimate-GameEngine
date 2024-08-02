@@ -195,6 +195,8 @@
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
+    <ClInclude Include="src\NotRed\Scene\Components2D.h" />
+    <ClInclude Include="src\NotRed\Scene\Components3D.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
     <ClInclude Include="src\NotRed\Scene\Scene.h" />
     <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
