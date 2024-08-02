@@ -33,6 +33,7 @@ project "NotRed"
 	{
 		"src",
 		"vendor/spdlog/include",
+		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.FileWatch}",

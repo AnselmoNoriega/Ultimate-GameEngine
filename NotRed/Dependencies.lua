@@ -4,13 +4,14 @@
 --VULKAN_SDK = os.getenv("VULKAN_SDK")
 
 IncludeDir = {}
-IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/Box2D/include"
+IncludeDir["Assimp"] = "%{wks.location}/NotRed/vendor/assimp/include"
+IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/box2D/include"
 IncludeDir["Entt"] = "%{wks.location}/NotRed/vendor/entt/include"
 IncludeDir["FileWatch"] = "%{wks.location}/NotRed/vendor/filewatch"
 IncludeDir["GLFW"] = "%{wks.location}/NotRed/vendor/GLFW/include"
 IncludeDir["Glad"] = "%{wks.location}/NotRed/vendor/Glad/include"
 IncludeDir["Glm"] = "%{wks.location}/NotRed/vendor/glm"
-IncludeDir["ImGui"] = "%{wks.location}/NotRed/vendor/ImGui"
+IncludeDir["ImGui"] = "%{wks.location}/NotRed/vendor/imgui"
 IncludeDir["ImGuizmo"] = "%{wks.location}/NotRed/vendor/ImGuizmo"
 IncludeDir["Mono"] = "%{wks.location}/NotRed/vendor/mono/include"
 IncludeDir["Stb"] = "%{wks.location}/NotRed/vendor/stb_image"

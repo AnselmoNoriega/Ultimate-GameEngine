@@ -183,6 +183,9 @@
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Mesh.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -1584,6 +1587,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Mesh.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp">
