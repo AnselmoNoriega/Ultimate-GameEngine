@@ -1,6 +1,11 @@
 #pragma once
 
-class Mesh
+namespace NR
 {
-};
+    class Mesh
+    {
+    public:
 
+    private:
+    };
+}
