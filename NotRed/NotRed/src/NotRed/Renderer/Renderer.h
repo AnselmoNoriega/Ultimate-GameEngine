@@ -13,25 +13,35 @@ namespace NR
         static void Init();
         static void Shutdown();
 
-        static void OnWindowResize(uint32_t width, uint32_t height);
-
-        static void BeginScene(OrthographicCamera& camera);
+        static void BeginScene(const Camera& camera, glm::mat4 transform);
+        static void BeginScene(const EditorCamera& camera);
+        static void BeginScene(const OrthographicCamera& camera);
         static void EndScene();
 
-        static void Submit(
-            const Ref<Shader>& shader, 
-            const Ref<VertexArray>& vertexArray,
-            const glm::mat4& transform = glm::mat4(1.0f)
-        );
+        static void Flush();
+
+        static void DrawModel(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 
-    private:
-        struct SceneData
+        struct Statistics
         {
-            glm::mat4 ViewProjectionMatrix;
-        };
+            uint32_t DrawCalls = 0;
+            uint32_t QuadCount = 0;
 
-        static SceneData* sSceneData;
+            uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
+            uint32_t GetTotalIndexCount() const { return QuadCount * 6; }
+        };
+        static void ResetStats();
+        static Statistics GetStats();
+
+        static void SetMeshLayout(Ref<VertexArray> vertexArray, Ref<VertexBuffer> vertexBuffer, uint32_t verticesCount);
+        static void PackageVertices();
+
+    private:
+        static float GetTextureIndex(const Ref<Texture2D>& texture);
+
+        static void StartBatch();
+        static void NextBatch();
     };
 }

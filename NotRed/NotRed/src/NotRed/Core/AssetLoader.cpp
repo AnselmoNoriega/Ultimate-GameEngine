@@ -7,6 +7,11 @@
 
 #include "NotRed/Renderer/Mesh.h"
 
+#include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/VertexArray.h"
+#include "NotRed/Renderer/VertexBuffer.h"
+#include "NotRed/Renderer/IndexBuffer.h"
+
 namespace NR
 {
     bool AssetLoader::LoadModel(const std::string& filePath)
@@ -40,9 +45,27 @@ namespace NR
 
     Ref<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
     {
+        Ref<VertexArray> vertexArray;
+        Ref<VertexBuffer> vertexBuffer;
+
+        Renderer::SetMeshLayout(vertexArray, vertexBuffer, mesh->mNumVertices);
+
+        std::vector<uint32_t> indices;
+        for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+        {
+            aiFace face = mesh->mFaces[i];
+            for (unsigned int j = 0; j < face.mNumIndices; j++)
+            {
+                indices.push_back(face.mIndices[j]);
+            }
+        }
+        Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
+        vertexArray->SetIndexBuffer(indexBuffer);
+        
         std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
         std::vector<Texture> textures;
+
+        mesh->mNumVertices;
 
         for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
         {
@@ -75,16 +98,6 @@ namespace NR
             }
 
             vertices.push_back(vertex);
-        }
-
-        // Process indices
-        for (unsigned int i = 0; i < mesh->mNumFaces; i++) 
-        {
-            aiFace face = mesh->mFaces[i];
-            for (unsigned int j = 0; j < face.mNumIndices; j++) 
-            {
-                indices.push_back(face.mIndices[j]);
-            }
         }
 
         // Process material (textures)

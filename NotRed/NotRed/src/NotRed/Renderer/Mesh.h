@@ -7,5 +7,7 @@ namespace NR
     public:
 
     private:
+        Ref<VertexArray> mVertexArray;
+        Ref<VertexBuffer> mVertexBuffer;
     };
 }
