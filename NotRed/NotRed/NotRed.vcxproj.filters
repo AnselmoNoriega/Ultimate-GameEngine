@@ -90,6 +90,9 @@
     <ClInclude Include="src\NotRed\Core\Application.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\AssetLoader.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Buffer.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
@@ -223,6 +226,12 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Components.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Components2D.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Components3D.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Entity.h">
@@ -1539,12 +1548,12 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\AssetLoader.h" />
-    <ClInclude Include="src\NotRed\Scene\Components2D.h" />
-    <ClInclude Include="src\NotRed\Scene\Components3D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\AssetLoader.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\FileSystem.cpp">
@@ -1691,6 +1700,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\AssetLoader.cpp" />
   </ItemGroup>
 </Project>

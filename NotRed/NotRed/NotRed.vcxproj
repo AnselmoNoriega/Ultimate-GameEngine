@@ -147,9 +147,9 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Core\AssetLoader.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
+    <ClInclude Include="src\NotRed\Core\AssetLoader.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
     <ClInclude Include="src\NotRed\Core\Core.h" />
     <ClInclude Include="src\NotRed\Core\EntryPoint.h" />
@@ -637,8 +637,8 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Core\AssetLoader.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
+    <ClCompile Include="src\NotRed\Core\AssetLoader.cpp" />
     <ClCompile Include="src\NotRed\Core\FileSystem.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />

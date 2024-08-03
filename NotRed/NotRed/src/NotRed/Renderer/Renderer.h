@@ -36,7 +36,7 @@ namespace NR
         static Statistics GetStats();
 
         static void SetMeshLayout(Ref<VertexArray> vertexArray, Ref<VertexBuffer> vertexBuffer, uint32_t verticesCount);
-        static void PackageVertices();
+        static void PackageVertices(Ref<Mesh> model, glm::vec3 position, glm::vec2 texCoord);
 
     private:
         static float GetTextureIndex(const Ref<Texture2D>& texture);
