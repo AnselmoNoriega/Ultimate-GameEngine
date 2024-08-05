@@ -7,7 +7,7 @@
 
 namespace NR
 {
-	struct VertexSet
+	struct VertexData
 	{
 		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
 		glm::vec2 TexCoord = { 0.0f, 0.0f };
@@ -42,8 +42,8 @@ namespace NR
 		Ref<Shader> TextShader;
 
 		uint32_t IndexCount = 0;
-		QuadVertex* VertexBufferBase = nullptr;
-		QuadVertex* VertexBufferPtr = nullptr;
+		VertexData* VertexBufferBase = nullptr;
+		VertexData* VertexBufferPtr = nullptr;
 
 		float LineWidth = 2.0f;
 
@@ -73,7 +73,7 @@ namespace NR
 	{
 		vertexArray = VertexArray::Create();
 
-		vertexBuffer = VertexBuffer::Create(verticesCount * sizeof(QuadVertex));
+		vertexBuffer = VertexBuffer::Create(verticesCount * sizeof(VertexData));
 		vertexBuffer->SetLayout(
 			{
 				{ShaderDataType::Float3, "aPosition"},
@@ -89,7 +89,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNCTION();
 
-		VertexSet vertex;
+		VertexData vertex;
 
 		//if (sData.IndexCount >= Renderer2DStorage::MaxIndices)
 		//{
@@ -98,10 +98,10 @@ namespace NR
 
 		vertex.Position = position;
 		vertex.TexCoord = texCoord;
+		vertex.TexIndex = 0.0f;
+		//sData.VertexBufferPtr->EntityID = entityID;
 		const std::byte* rawData = reinterpret_cast<const std::byte*>(&vertex);
 
 		model->AddVertex(rawData, sizeof(vertex));
-		//sData.VertexBufferPtr->TexIndex = textureIndex;
-		//sData.VertexBufferPtr->EntityID = entityID;
 	}
 }

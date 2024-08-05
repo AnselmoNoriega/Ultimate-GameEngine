@@ -31,13 +31,13 @@ namespace NR
 
 	void AssetLoader::ProcessNode(aiNode* node, const aiScene* scene)
 	{
-		for (unsigned int i = 0; i < node->mNumMeshes; ++i)
+		for (int i = 0; i < node->mNumMeshes; ++i)
 		{
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 			ProcessMesh(mesh, scene);
 		}
 
-		for (unsigned int i = 0; i < node->mNumChildren; ++i)
+		for (int i = 0; i < node->mNumChildren; ++i)
 		{
 			ProcessNode(node->mChildren[i], scene);
 		}
@@ -53,10 +53,10 @@ namespace NR
 			Renderer::SetMeshLayout(vertexArray, vertexBuffer, mesh->mNumVertices);
 
 			std::vector<uint32_t> indices;
-			for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+			for (int i = 0; i < mesh->mNumFaces; i++)
 			{
 				aiFace face = mesh->mFaces[i];
-				for (unsigned int j = 0; j < face.mNumIndices; j++)
+				for (int j = 0; j < face.mNumIndices; j++)
 				{
 					indices.push_back(face.mIndices[j]);
 				}
@@ -64,10 +64,10 @@ namespace NR
 			Ref<IndexBuffer> indexBuffer = IndexBuffer::Create(indices.data(), indices.size());
 			vertexArray->SetIndexBuffer(indexBuffer);
 
-			model = CreateRef<Mesh>(vertexArray, vertexBuffer);
+			model = CreateRef<Mesh>(vertexArray, vertexBuffer, mesh->mNumVertices);
 		}
 
-		for (unsigned int i = 0; i < mesh->mNumVertices; ++i)
+		for (int i = 0; i < mesh->mNumVertices; ++i)
 		{
 			glm::vec3 position;
 
@@ -82,12 +82,14 @@ namespace NR
 			//	vector.z = mesh->mNormals[i].z;
 			//}
 
-			glm::vec2 vec = glm::vec2(0.0f, 0.0f);
+			glm::vec2 texCoord = glm::vec2(0.0f, 0.0f);
 			if (mesh->mTextureCoords[0])
 			{
-				vec.x = mesh->mTextureCoords[0][i].x;
-				vec.y = mesh->mTextureCoords[0][i].y;
+				texCoord.x = mesh->mTextureCoords[0][i].x;
+				texCoord.y = mesh->mTextureCoords[0][i].y;
 			}
+
+			Renderer::PackageVertices(model, position, texCoord);
 		}
 
 		// Process material (textures)

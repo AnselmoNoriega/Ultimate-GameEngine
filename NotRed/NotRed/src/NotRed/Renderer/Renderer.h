@@ -7,6 +7,8 @@
 
 namespace NR
 {
+    class Mesh;
+
     class Renderer
     {
     public:
@@ -40,7 +42,7 @@ namespace NR
 
     private:
         static float GetTextureIndex(const Ref<Texture2D>& texture);
-
+ 
         static void StartBatch();
         static void NextBatch();
     };
