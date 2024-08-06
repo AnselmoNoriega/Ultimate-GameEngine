@@ -25,6 +25,9 @@
     <Filter Include="..\NotRed\vendor\GLFW">
       <UniqueIdentifier>{98C54457-0432-0052-CD25-98AF395122BA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="..\NotRed\vendor\assimp">
+      <UniqueIdentifier>{B56F0D7B-21A7-5512-2AB1-B93596677C0B}</UniqueIdentifier>
+    </Filter>
     <Filter Include="..\NotRed\vendor\box2d">
       <UniqueIdentifier>{C70FDA41-B309-0394-9C76-99A4880F6900}</UniqueIdentifier>
     </Filter>
@@ -65,6 +68,9 @@
     </None>
     <None Include="..\..\NotRed\vendor\GLFW\premake5.lua">
       <Filter>..\NotRed\vendor\GLFW</Filter>
+    </None>
+    <None Include="..\..\NotRed\vendor\assimp\premake5.lua">
+      <Filter>..\NotRed\vendor\assimp</Filter>
     </None>
     <None Include="..\..\NotRed\vendor\box2d\premake5.lua">
       <Filter>..\NotRed\vendor\box2d</Filter>

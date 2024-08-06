@@ -52,6 +52,7 @@ project "NotRed"
 
 	links
 	{
+		"assimp",
 		"Box2D",
 		"GLFW",
 		"Glad",

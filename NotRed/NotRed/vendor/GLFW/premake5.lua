@@ -28,10 +28,9 @@ project "GLFW"
 	}
 
 	filter "system:linux"
-		pic "on"
+		pic "On"
 
 		systemversion "latest"
-		staticruntime "on"
 		
 		files
 		{
@@ -55,8 +54,7 @@ project "GLFW"
 		}
 
 	filter "system:macosx"
-		pic "on"
-		staticruntime "on"
+		pic "On"
 
 		files
 		{
@@ -79,7 +77,6 @@ project "GLFW"
 
 	filter "system:windows"
 		systemversion "latest"
-		staticruntime "on"
 
 		files
 		{
@@ -108,7 +105,7 @@ project "GLFW"
 	filter { "system:windows", "configurations:Debug-AS" }	
 		runtime "Debug"
 		symbols "on"
-		sanitize { "Address" }
+		--sanitize { "Address" }
 		flags { "NoRuntimeChecks", "NoIncrementalLink" }
 
 	filter "configurations:Release"
@@ -118,4 +115,4 @@ project "GLFW"
     filter "configurations:Dist"
 		runtime "Release"
 		optimize "speed"
-		symbols "off"
+        symbols "off"

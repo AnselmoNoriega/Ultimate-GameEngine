@@ -25,6 +25,9 @@
 #include "NotRed/Scene/ScriptableEntity.h"
 #include "NotRed/Scene/Components.h"
 
+//-------------Tools--------------------------
+#include "NotRed/Core/AssetLoader.h"
+
 //-------------Rendering--------------------------
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Renderer2D.h"

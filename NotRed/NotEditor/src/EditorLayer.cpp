@@ -30,6 +30,8 @@ namespace NR
     {
         NR_PROFILE_FUNCTION();
 
+        std::filesystem::path current_directory = std::filesystem::current_path();
+        AssetLoader::LoadModel("");
         mPlayIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PlayButton.png");
         mStopIcon = Texture2D::Create("Resources/Icons/ToolBarUI/StopButton.png");
         mPauseIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PauseButton.png");
