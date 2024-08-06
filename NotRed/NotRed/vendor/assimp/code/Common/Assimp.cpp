@@ -1287,13 +1287,3 @@ ASSIMP_API void aiQuaternionInterpolate(
 #   endif
 #endif
 
-// Ensure all symbols are linked correctly
-#if ASSIMP_NEEDS_STB_IMAGE
-    // Share stb_image's PNG loader with other importers/exporters instead of bringing our own copy.
-#   define STBI_ONLY_PNG
-#   ifdef ASSIMP_USE_STB_IMAGE_STATIC
-#       define STB_IMAGE_STATIC
-#   endif
-#   define STB_IMAGE_IMPLEMENTATION
-#   include "Common/StbCommon.h"
-#endif
