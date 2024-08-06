@@ -8,12 +8,19 @@
 namespace NR
 {
     class Mesh;
+    class Camera;
+    class EditorCamera;
+    class Texture2D;
 
     class Renderer
     {
     public:
         static void Init();
-        static void Shutdown();
+        static void Shutdown(); 
+        
+        static void OnWindowResize(uint32_t width, uint32_t height);
+
+        static void BeginScene(OrthographicCamera& camera);
 
         static void BeginScene(const Camera& camera, glm::mat4 transform);
         static void BeginScene(const EditorCamera& camera);
@@ -22,7 +29,7 @@ namespace NR
 
         static void Flush();
 
-        static void DrawModel(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
+        //static void DrawModel(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
 
         inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
 

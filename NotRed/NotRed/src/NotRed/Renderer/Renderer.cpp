@@ -17,7 +17,7 @@ namespace NR
 		int EntityID = -1;
 	};
 
-	struct Renderer2DStorage
+	struct RendererStorage
 	{
 		static const uint32_t MaxQuads = 20000;
 		static const uint32_t MaxVertices = MaxQuads * 4;
@@ -69,6 +69,15 @@ namespace NR
 		//Ref<UniformBuffer> CameraUniformBuffer;
 	};
 
+	void Renderer::ResetStats()
+	{
+	}
+
+	Renderer::Statistics Renderer::GetStats()
+	{
+		return Renderer::Statistics();
+	}
+
 	void Renderer::SetMeshLayout(Ref<VertexArray> vertexArray, Ref<VertexBuffer> vertexBuffer, uint32_t verticesCount)
 	{
 		vertexArray = VertexArray::Create();
@@ -103,5 +112,39 @@ namespace NR
 		const std::byte* rawData = reinterpret_cast<const std::byte*>(&vertex);
 
 		model->AddVertex(rawData, sizeof(vertex));
+	}
+	float Renderer::GetTextureIndex(const Ref<Texture2D>& texture)
+	{
+		return 0.0f;
+	}
+	void Renderer::StartBatch()
+	{
+	}
+	void Renderer::NextBatch()
+	{
+	}
+	void Renderer::Init()
+	{
+	}
+	void Renderer::Shutdown()
+	{
+	}
+	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
+	{
+	}
+	void Renderer::BeginScene(const Camera& camera, glm::mat4 transform)
+	{
+	}
+	void Renderer::BeginScene(const EditorCamera& camera)
+	{
+	}
+	void Renderer::BeginScene(const OrthographicCamera& camera)
+	{
+	}
+	void Renderer::EndScene()
+	{
+	}
+	void Renderer::Flush()
+	{
 	}
 }
