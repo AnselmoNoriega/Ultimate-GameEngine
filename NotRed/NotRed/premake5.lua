@@ -52,7 +52,7 @@ project "NotRed"
 
 	links
 	{
-		"assimp",
+		--"assimp-vc143-mtd",
 		"Box2D",
 		"GLFW",
 		"Glad",
