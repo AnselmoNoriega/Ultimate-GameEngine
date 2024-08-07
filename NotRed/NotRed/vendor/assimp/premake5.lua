@@ -1,44 +1,35 @@
 project "Assimp"
-    kind "StaticLib"
-    language "C++"
+	kind "StaticLib"
+	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
-	
+
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    files 
+	files
 	{
-        "include/assimp/**.h",
-        "include/assimp/**.hpp",
-        "code/**.h", 
-        "code/**.cpp", 
-        "code/**.hpp",
-        "contrib/**.cpp",
-        "contrib/**.h"
-        
-    }
+		"include/**.h",
+		"include/**.cpp"
+	}
 
 	includedirs
 	{
-		"include",
-		"src",
-		"code",
-        "contrib/zlib"
+		"include"
 	}
 
-    filter "configurations:Debug"
+	filter "system:windows"
+		systemversion "latest"
+
+	filter "configurations:Debug"
 		runtime "Debug"
-        defines { "ASSIMP_BUILD_DLL", "DEBUG" }
-        symbols "On"
+		symbols "on"
 
-    filter "configurations:Release"
+	filter "configurations:Release"
 		runtime "Release"
-        defines { "ASSIMP_BUILD_DLL", "NDEBUG" }
-        optimize "On"
+		optimize "on"
 
-    filter "configurations:Dist"
+	filter "configurations:Dist"
 		runtime "Release"
-        defines { "ASSIMP_BUILD_DLL", "NDEBUG" }
-        optimize "On"
-		symbols "off"
+		optimize "on"
+        symbols "off"
