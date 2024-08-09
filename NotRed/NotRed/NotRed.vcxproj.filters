@@ -52,6 +52,9 @@
     <Filter Include="src\Platform\OpenGL">
       <UniqueIdentifier>{35A49437-A105-7245-2A73-B8F796D3A804}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Platform\Vulkan">
+      <UniqueIdentifier>{81084748-ED69-2456-76D7-6A08E2375B15}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\Platform\Windows">
       <UniqueIdentifier>{5B054582-4794-CE4B-F0B2-E246DC20DFF1}</UniqueIdentifier>
     </Filter>
@@ -287,6 +290,9 @@
     </ClInclude>
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h">
       <Filter>src\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Platform\Vulkan\VkContext.h">
+      <Filter>src\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h">
       <Filter>src\Platform\Windows</Filter>
@@ -1548,7 +1554,6 @@
     <ClInclude Include="vendor\stb_image\stb_image.h">
       <Filter>vendor\stb_image</Filter>
     </ClInclude>
-    <ClInclude Include="src\Platform\Vulkan\VkContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -1683,6 +1688,9 @@
     <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp">
       <Filter>src\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\Platform\Vulkan\VkContext.cpp">
+      <Filter>src\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp">
       <Filter>src\Platform\Windows</Filter>
     </ClCompile>
@@ -1701,6 +1709,5 @@
     <ClCompile Include="vendor\stb_image\stb_image.cpp">
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
-    <ClCompile Include="src\Platform\Vulkan\VkContext.cpp" />
   </ItemGroup>
 </Project>

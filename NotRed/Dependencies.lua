@@ -18,27 +18,39 @@ IncludeDir["Stb"] = "%{wks.location}/NotRed/vendor/stb_image"
 IncludeDir["Yaml"] = "%{wks.location}/NotRed/vendor/yaml-cpp/include"
 IncludeDir["MsdfGen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdfgen"
 IncludeDir["MsdfAtlasGen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdf-atlas-gen"
---IncludeDir["Shaderc"] = "%{wks.location}/NotRed/vendor/shaderc/include"
---IncludeDir["SPIRV_Cross"] = "%{wks.location}/NotRed/vendor/SPIRV-Cross"
+IncludeDir["VulkanSDK"] = "%{wks.location}/NotRed/vendor/Vulkan/Include"
+IncludeDir["shaderc"] = "%{wks.location}/NotRed/vendor/shaderc/include"
+IncludeDir["SPIRV_Cross"] = "%{wks.location}/NotRed/vendor/SPIRV-Cross"
+
+---------Vulkan-----------------
 --IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+--------------------------------
 
 LibraryDir = {}
 
+LibraryDir["Assimp"] = "%{wks.location}/NotRed/vendor/assimp/lib"
 LibraryDir["Mono"] = "%{wks.location}/NotRed/vendor/mono/lib/%{cfg.buildcfg}"
 
+---------Vulkan-----------------
+LibraryDir["VulkanSDK"] = "%{wks.location}/NotRed/vendor/Vulkan/Lib"
+--------------------------------
+
 Library = {}
+Library["Assimp"] = "%{LibraryDir.Assimp}/assimp-vc143-mt.lib"
 Library["Mono"] = "%{LibraryDir.Mono}/libmono-static-sgen.lib"
 
---Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
+------Vulkan-----------
+Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 --Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"
 
---Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib"
---Library["SPIRV_Cross_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib"
---Library["SPIRV_Cross_GLSL_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib"
---Library["SPIRV_Tools_Debug"] = "%{LibraryDir.VulkanSDK}/SPIRV-Toolsd.lib"
---Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
---Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
---Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
+Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib"
+Library["SPIRV_Cross_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib"
+Library["SPIRV_Cross_GLSL_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib"
+Library["SPIRV_Tools_Debug"] = "%{LibraryDir.VulkanSDK}/SPIRV-Toolsd.lib"
+Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
+Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
+Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
+---------------------------
 
 Library["WinSock"] = "Ws2_32.lib"
 Library["WinMM"] = "Winmm.lib"
