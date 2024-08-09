@@ -6,6 +6,7 @@
 #include "NotRed/Events/KeyEvent.h"
 
 #include "Platform/OpenGL/GLContext.h"
+#include "Platform/Vulkan/VkContext.h"
 
 namespace NR
 {
@@ -42,10 +43,23 @@ namespace NR
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
+        if (!props.IsUsingOpenGL)
+        {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        }
+
         mWindow = glfwCreateWindow(props.Width, props.Height, mData.Tile.c_str(), nullptr, nullptr);
         ++sGLFWwindowCount;
 
-        mContext = new GLContext(mWindow);
+        if (!props.IsUsingOpenGL)
+        {
+            mContext = new VkContext(mWindow);
+        }
+        else
+        {
+            mContext = new GLContext(mWindow);
+        }
         mContext->Init();
 
         glfwSetWindowUserPointer(mWindow, &mData);

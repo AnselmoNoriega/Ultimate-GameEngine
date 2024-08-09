@@ -20,6 +20,7 @@ namespace NR
         ApplicationSpecification spec;
         spec.Name = "NotRed";
         spec.CommandLineArgs = args;
+        spec.RenderingAPI = AppRenderingAPI::OpenGL;
 
         return new NotEditor(spec);
     }

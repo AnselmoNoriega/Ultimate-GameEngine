@@ -11,7 +11,9 @@ namespace NR
     public:
         enum class API
         {
-            None = 0, OpenGL = 1
+            None, 
+            OpenGL,
+            Vulkan
         };
 
         virtual ~RendererAPI() = default;
@@ -29,6 +31,7 @@ namespace NR
         virtual void SetLineWidth(float width) = 0;
 
         inline static API GetAPI() { return sAPI; }
+        static Scope<RendererAPI> Create(RendererAPI::API api);
 
     private:
         static API sAPI;

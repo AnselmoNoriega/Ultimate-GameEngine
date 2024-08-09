@@ -7,8 +7,9 @@ namespace NR
     class RenderCommand
     {
     public:
-        inline static void Init()
+        inline static void Init(RendererAPI::API api)
         {
+            sRendererAPI = RendererAPI::Create(api);
             sRendererAPI->Init();
         }
 

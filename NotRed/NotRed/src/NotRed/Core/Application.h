@@ -26,11 +26,19 @@ namespace NR
         }
     };
 
+    enum class AppRenderingAPI
+    {
+        None,
+        OpenGL,
+        Vulkan
+    };
+
     struct ApplicationSpecification
     {
         std::string Name = "NotRed Application";
         std::string WorkingDirectory;
         AppCommandLineArgs CommandLineArgs;
+        AppRenderingAPI RenderingAPI = AppRenderingAPI::OpenGL;
     };
 
     class Application

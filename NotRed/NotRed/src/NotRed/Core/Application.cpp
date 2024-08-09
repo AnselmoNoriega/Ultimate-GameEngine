@@ -35,10 +35,10 @@ namespace NR
             std::filesystem::current_path(mSpecification.WorkingDirectory);
         }
 
-        mWindow = Window::Create(WindowProps(mSpecification.Name));
+        mWindow = Window::Create(WindowProps(mSpecification.Name, mSpecification.RenderingAPI == AppRenderingAPI::OpenGL));
         mWindow->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
-        Renderer::Init();
+        Renderer::Init((RendererAPI::API)mSpecification.RenderingAPI);
 
         mImGuiLayer = new ImGuiLayer();
         PushOverlay(mImGuiLayer);

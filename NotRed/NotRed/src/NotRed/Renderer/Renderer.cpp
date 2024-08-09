@@ -1,6 +1,7 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
+#include "NotRed/Renderer/Renderer2D.h"
 #include "Platform/OpenGL/GLShader.h"
 #include "Texture.h"
 #include "Mesh.h"
@@ -123,8 +124,12 @@ namespace NR
 	void Renderer::NextBatch()
 	{
 	}
-	void Renderer::Init()
+	void Renderer::Init(RendererAPI::API api)
 	{
+		NR_PROFILE_FUNCTION();
+
+		RenderCommand::Init(api);
+		Renderer2D::Init();
 	}
 	void Renderer::Shutdown()
 	{

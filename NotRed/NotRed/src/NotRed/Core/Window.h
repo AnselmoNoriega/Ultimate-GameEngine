@@ -12,12 +12,14 @@ namespace NR
         std::string Title;
         uint32_t Width;
         uint32_t Height;
+        bool IsUsingOpenGL;
 
         WindowProps(
             const std::string& title = "NotRed Engine",
+            bool isUsingOpenGL = true,
             uint32_t width = 1600,
-            uint32_t height = 900
-        ) : Title(title), Width(width), Height(height) {}
+            uint32_t height = 900 
+        ) : Title(title), Width(width), Height(height), IsUsingOpenGL(isUsingOpenGL) {}
     };
 
     class  Window
@@ -25,7 +27,7 @@ namespace NR
     public:
         using EventCallbackFn = std::function<void(Event&)>;
 
-        virtual ~Window() {}
+        virtual ~Window() = default;
 
         virtual void Update() = 0;
 

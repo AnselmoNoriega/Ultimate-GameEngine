@@ -15,7 +15,7 @@ namespace NR
     class Renderer
     {
     public:
-        static void Init();
+        static void Init(RendererAPI::API api);
         static void Shutdown(); 
         
         static void OnWindowResize(uint32_t width, uint32_t height);
