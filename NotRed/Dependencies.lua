@@ -18,16 +18,20 @@ IncludeDir["Stb"] = "%{wks.location}/NotRed/vendor/stb_image"
 IncludeDir["Yaml"] = "%{wks.location}/NotRed/vendor/yaml-cpp/include"
 IncludeDir["MsdfGen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdfgen"
 IncludeDir["MsdfAtlasGen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["VulkanSDK"] = "%{wks.location}/NotRed/vendor/Vulkan/Include"
 --IncludeDir["Shaderc"] = "%{wks.location}/NotRed/vendor/shaderc/include"
 --IncludeDir["SPIRV_Cross"] = "%{wks.location}/NotRed/vendor/SPIRV-Cross"
---IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
 
 LibraryDir = {}
 
+LibraryDir["Assimp"] = "%{wks.location}/NotRed/vendor/assimp/lib"
 LibraryDir["Mono"] = "%{wks.location}/NotRed/vendor/mono/lib/%{cfg.buildcfg}"
+LibraryDir["Vulkan"] = "%{wks.location}/NotRed/vendor/Vulkan/Lib"
 
 Library = {}
+Library["Assimp"] = "%{LibraryDir.Assimp}/assimp-vc143-mt.lib"
 Library["Mono"] = "%{LibraryDir.Mono}/libmono-static-sgen.lib"
+Library["Vulkan"] = "%{LibraryDir.Vulkan}/vulkan-1.lib"
 
 --Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
 --Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"

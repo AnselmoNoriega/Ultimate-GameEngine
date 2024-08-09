@@ -52,7 +52,6 @@ project "NotRed"
 
 	links
 	{
-		--"assimp-vc143-mtd",
 		"Box2D",
 		"GLFW",
 		"Glad",
@@ -61,7 +60,9 @@ project "NotRed"
 		"yaml-cpp",
 		"opengl32.lib",
 
-		"%{Library.Mono}",
+		"%{Library.Assimp}",
+		"%{Library.Mono}"
+		--"%{Library.Vulkan}"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
