@@ -65,6 +65,11 @@ project "NotRed"
 		--"%{Library.Vulkan}"
 	}
 
+	postbuildcommands 
+	{
+        'copy /y "%{prj.location}vendor\\assimp\\bin\\*.dll" "%{cfg.targetdir}"'
+    }
+
 	filter "files:vendor/ImGuizmo/**.cpp"
 	flags { "NoPCH" }
 
