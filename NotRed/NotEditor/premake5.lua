@@ -29,6 +29,11 @@ project "NotEditor"
 		"NotRed"
 	}
 
+	postbuildcommands 
+	{
+		'{COPY} "../NotRed/vendor/assimp/bin/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
+    }
+
 	filter "system:windows"
 		systemversion "latest"
 
