@@ -43,7 +43,7 @@ namespace NR
         switch (RendererAPI::GetAPI())
         {
         case RendererAPI::API::None: return nullptr;
-        case RendererAPI::API::OpenGL: return Ref<OpenGLTextureCube>::Create(format, width, height, data, properties);
+        case RendererAPI::API::OpenGL: return Ref<GLTextureCube>::Create(format, width, height, data, properties);
         //case RendererAPIType::Vulkan: return Ref<VkTextureCube>::Create(format, width, height, data);
         default:
         {

@@ -40,9 +40,9 @@ namespace NR
     class GLTextureCube : public TextureCube
     {
     public:
-        GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data);
-        GLTextureCube(const std::string& path);
-        ~GLTextureCube() override;
+        GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
+        GLTextureCube(const std::string& path, TextureProperties properties);
+        virtual ~GLTextureCube();
 
         virtual void Bind(uint32_t slot = 0) const;
 

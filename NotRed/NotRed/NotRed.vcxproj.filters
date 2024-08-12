@@ -1550,6 +1550,8 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Material.h" />
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -1703,5 +1705,7 @@
       <Filter>vendor\stb_image</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
   </ItemGroup>
 </Project>

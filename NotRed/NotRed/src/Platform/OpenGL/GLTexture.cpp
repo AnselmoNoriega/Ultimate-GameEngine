@@ -137,6 +137,27 @@ namespace NR
 	GLTextureCube::GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
 		: mWidth(width), mHeight(height), mFormat(format), mProperties(properties)
 	{
+		if (data)
+		{
+			uint32_t size = width * height * 4 * 6; // six layers
+			mLocalStorage = Buffer<void>::Copy(data, size);
+		}
+
+		uint32_t levels = Utils::CalculateMipCount(width, height);
+		Ref<GLTextureCube> instance = this;
+		Renderer::Submit([instance, levels]() mutable
+			{
+				glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &instance->m_RendererID);
+				glTextureStorage2D(instance->m_RendererID, levels, Utils::OpenGLImageInternalFormat(instance->m_Format), instance->m_Width, instance->m_Height);
+				if (instance->m_LocalStorage.Data)
+					glTextureSubImage3D(instance->m_RendererID, 0, 0, 0, 0, instance->m_Width, instance->m_Height, 6, Utils::OpenGLImageFormat(instance->m_Format), Utils::OpenGLFormatDataType(instance->m_Format), instance->m_LocalStorage.Data);
+
+				glTextureParameteri(instance->m_RendererID, GL_TEXTURE_MIN_FILTER, Utils::OpenGLSamplerFilter(instance->m_Properties.SamplerFilter, instance->m_Properties.GenerateMips));
+				glTextureParameteri(instance->m_RendererID, GL_TEXTURE_MAG_FILTER, Utils::OpenGLSamplerFilter(instance->m_Properties.SamplerFilter, false));
+				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, Utils::OpenGLSamplerWrap(instance->m_Properties.SamplerWrap));
+				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, Utils::OpenGLSamplerWrap(instance->m_Properties.SamplerWrap));
+				glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, Utils::OpenGLSamplerWrap(instance->m_Properties.SamplerWrap));
+			});
 	}
 
     GLTextureCube::GLTextureCube(const std::string& path, TextureProperties properties)

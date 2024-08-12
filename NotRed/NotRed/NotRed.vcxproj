@@ -185,9 +185,11 @@
     <ClInclude Include="src\NotRed\Renderer\Material.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\SubTexture.h" />
     <ClInclude Include="src\NotRed\Renderer\Text\Font.h" />
@@ -659,9 +661,11 @@
     <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RendererAPI.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SubTexture.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Text\Font.cpp" />

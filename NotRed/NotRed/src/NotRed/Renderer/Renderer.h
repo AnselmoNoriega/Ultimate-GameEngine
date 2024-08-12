@@ -1,56 +1,144 @@
 #pragma once
 
-#include "RenderCommand.h"
+#include "GraphicsContext.h"
+#include "RenderCommandQueue.h"
+#include "RenderPass.h"
+#include "RenderCommandBuffer.h"
+#include "Mesh.h"
+#include "UniformBufferSet.h"
 
-#include "Camera/OrthographicCamera.h"
-#include "Shader.h"
+#include "Hazel/Core/Application.h"
+
+#include "RendererCapabilities.h"
+
+#include "Hazel/Scene/Scene.h"
 
 namespace NR
 {
-    class Mesh;
-    class Camera;
-    class EditorCamera;
-    class Texture2D;
+	class ShaderLibrary;
 
-    class Renderer
-    {
-    public:
-        static void Init();
-        static void Shutdown(); 
-        
-        static void OnWindowResize(uint32_t width, uint32_t height);
+	struct RendererConfig
+	{
+		uint32_t FramesInFlight = 3;
 
-        static void BeginScene(OrthographicCamera& camera);
+		// "Experimental" features
+		bool ComputeEnvironmentMaps = true;
 
-        static void BeginScene(const Camera& camera, glm::mat4 transform);
-        static void BeginScene(const EditorCamera& camera);
-        static void BeginScene(const OrthographicCamera& camera);
-        static void EndScene();
+		// Tiering settings
+		uint32_t EnvironmentMapResolution = 1024;
+		uint32_t IrradianceMapComputeSamples = 512;
+	};
 
-        static void Flush();
+	class Renderer
+	{
+	public:
+		typedef void(*RenderCommandFn)(void*);
 
-        //static void DrawModel(const glm::mat4& transform, SpriteRendererComponent& src, int entityID);
+		static Ref<RendererContext> GetContext()
+		{
+			return Application::Get().GetWindow().GetRenderContext();
+		}
 
-        inline static RendererAPI::API GetAPI() { return RendererAPI::GetAPI(); }
+		static void Init();
+		static void Shutdown();
 
-        struct Statistics
-        {
-            uint32_t DrawCalls = 0;
-            uint32_t QuadCount = 0;
+		static RendererCapabilities& GetCapabilities();
 
-            uint32_t GetTotalVertexCount() const { return QuadCount * 4; }
-            uint32_t GetTotalIndexCount() const { return QuadCount * 6; }
-        };
-        static void ResetStats();
-        static Statistics GetStats();
+		static Ref<ShaderLibrary> GetShaderLibrary();
 
-        static void SetMeshLayout(Ref<VertexArray>& vertexArray, Ref<VertexBuffer>& vertexBuffer, uint32_t verticesCount);
-        static void PackageVertices(Ref<Mesh> model, glm::vec3 position, glm::vec2 texCoord);
+		template<typename FuncT>
+		static void Submit(FuncT&& func)
+		{
+			auto renderCmd = [](void* ptr) {
+				auto pFunc = (FuncT*)ptr;
+				(*pFunc)();
 
-    private:
-        static float GetTextureIndex(const Ref<Texture2D>& texture);
- 
-        static void StartBatch();
-        static void NextBatch();
-    };
+				// NOTE: Instead of destroying we could try and enforce all items to be trivally destructible
+				// however some items like uniforms which contain std::strings still exist for now
+				// static_assert(std::is_trivially_destructible_v<FuncT>, "FuncT must be trivially destructible");
+				pFunc->~FuncT();
+				};
+			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
+			new (storageBuffer) FuncT(std::forward<FuncT>(func));
+		}
+
+		template<typename FuncT>
+		static void SubmitResourceFree(FuncT&& func)
+		{
+			auto renderCmd = [](void* ptr) {
+				auto pFunc = (FuncT*)ptr;
+				(*pFunc)();
+
+				// NOTE: Instead of destroying we could try and enforce all items to be trivally destructible
+				// however some items like uniforms which contain std::strings still exist for now
+				// static_assert(std::is_trivially_destructible_v<FuncT>, "FuncT must be trivially destructible");
+				pFunc->~FuncT();
+				};
+
+			Submit([renderCmd, func]()
+				{
+					uint32_t index = Renderer::GetCurrentFrameIndex();
+					auto storageBuffer = GetRenderResourceReleaseQueue(index).Allocate(renderCmd, sizeof(func));
+					new (storageBuffer) FuncT(std::forward<FuncT>((FuncT&&)func));
+				});
+		}
+
+		/*static void* Submit(RenderCommandFn fn, unsigned int size)
+		{
+			return s_Instance->m_CommandQueue.Allocate(fn, size);
+		}*/
+
+		static void WaitAndRender();
+
+		// ~Actual~ Renderer here... TODO: remove confusion later
+		static void BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool clear = true);
+		static void EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer);
+
+		static void BeginFrame();
+		static void EndFrame();
+
+		static void SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow);
+		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
+		static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
+
+		static void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform);
+		static void RenderMeshWithMaterial(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms = Buffer());
+		static void RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform);
+		static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material);
+
+		static void SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
+
+		static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+
+		static Ref<Texture2D> GetWhiteTexture();
+		static Ref<TextureCube> GetBlackCubeTexture();
+		static Ref<Environment> GetEmptyEnvironment();
+
+		static void RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline);
+		static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);
+		static void OnShaderReloaded(size_t hash);
+
+		static uint32_t GetCurrentFrameIndex();
+
+		static RendererConfig& GetConfig();
+
+		static RenderCommandQueue& GetRenderResourceReleaseQueue(uint32_t index);
+	private:
+		static RenderCommandQueue& GetRenderCommandQueue();
+	};
+
+	namespace Utils {
+
+		inline void DumpGPUInfo()
+		{
+			auto& caps = Renderer::GetCapabilities();
+			NR_CORE_TRACE("GPU Info:");
+			NR_CORE_TRACE("  Vendor: {0}", caps.Vendor);
+			NR_CORE_TRACE("  Device: {0}", caps.Device);
+			NR_CORE_TRACE("  Version: {0}", caps.Version);
+		}
+
+	}
+
 }
