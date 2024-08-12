@@ -4,13 +4,13 @@
 
 #include "Framebuffer.h"
 
-#include "UniformBufferSet.h"
+#include "UniformBuffer.h"
 #include "StorageBufferSet.h"
 #include "Texture.h"
 #include "Pipeline.h"
 
-namespace Hazel {
-
+namespace NR
+{
 	struct RenderPassSpecification
 	{
 		Ref<Pipeline> Pipeline;
@@ -18,7 +18,7 @@ namespace Hazel {
 		glm::vec4 MarkerColor;
 	};
 
-	class RenderPass : public RefCounted
+	class RenderPass
 	{
 	public:
 		virtual ~RenderPass() = default;
@@ -26,7 +26,6 @@ namespace Hazel {
 		virtual RenderPassSpecification& GetSpecification() = 0;
 		virtual const RenderPassSpecification& GetSpecification() const = 0;
 
-		virtual void SetInput(std::string_view name, Ref<UniformBufferSet> uniformBufferSet) = 0;
 		virtual void SetInput(std::string_view name, Ref<UniformBuffer> uniformBuffer) = 0;
 
 		virtual void SetInput(std::string_view name, Ref<StorageBufferSet> storageBufferSet) = 0;

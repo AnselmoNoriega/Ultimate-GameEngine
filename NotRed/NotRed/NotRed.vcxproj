@@ -147,6 +147,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Platform\OpenGL\GLUniformBuffer.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\AssetLoader.h" />
@@ -216,7 +217,6 @@
     <ClInclude Include="src\Platform\OpenGL\GLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\GLShader.h" />
     <ClInclude Include="src\Platform\OpenGL\GLTexture.h" />
-    <ClInclude Include="src\Platform\OpenGL\GLUniformBuffer.h" />
     <ClInclude Include="src\Platform\OpenGL\GLVertexArray.h" />
     <ClInclude Include="src\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.h" />
@@ -641,6 +641,7 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Platform\OpenGL\GLUniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\AssetLoader.cpp" />
     <ClCompile Include="src\NotRed\Core\FileSystem.cpp" />
@@ -685,7 +686,6 @@
     <ClCompile Include="src\Platform\OpenGL\GLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLShader.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLTexture.cpp" />
-    <ClCompile Include="src\Platform\OpenGL\GLUniformBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLVertexArray.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsInput.cpp" />
