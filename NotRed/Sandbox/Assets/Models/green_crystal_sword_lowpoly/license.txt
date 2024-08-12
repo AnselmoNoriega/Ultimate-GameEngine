@@ -1,0 +1,11 @@
+Model Information:
+* title:	Green Crystal Sword (Lowpoly)
+* source:	https://sketchfab.com/3d-models/green-crystal-sword-lowpoly-9ac5fa64384c4f79826a26fc6f8a45d9
+* author:	Wang Sh D (https://sketchfab.com/WandShD)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Green Crystal Sword (Lowpoly)" (https://sketchfab.com/3d-models/green-crystal-sword-lowpoly-9ac5fa64384c4f79826a26fc6f8a45d9) by Wang Sh D (https://sketchfab.com/WandShD) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -17,8 +17,11 @@ namespace NR
 {
     bool AssetLoader::LoadModel(const std::string& filePath)
     {
+        static std::filesystem::path modelsDirectory = std::filesystem::current_path().parent_path() /
+            "Sandbox" / "Assets" / "Models";
+
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_FlipUVs);
+        const aiScene* scene = importer.ReadFile((modelsDirectory / filePath).string(), aiProcess_Triangulate | aiProcess_FlipUVs);
 
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
@@ -49,6 +52,31 @@ namespace NR
         Ref<Mesh> model;
 
         std::vector<Ref<Texture2D>> diffuseMaps;
+        //model.meshData.reserve(numMaterials);
+        for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
+        {
+            const aiMaterial* assimpMaterial = scene->mMaterials[i];
+            aiColor3D ambient, diffuse, emissive, specular;
+            ai_real specularPower = 1.0f;
+
+            assimpMaterial->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+            assimpMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+            assimpMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
+            assimpMaterial->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+            assimpMaterial->Get(AI_MATKEY_SHININESS, specularPower);
+
+            Model::MeterialData& materialData = model.meterialData.emplace_back();
+            materialData.material.ambient = ToColor(ambient);
+            materialData.material.diffuse = ToColor(diffuse);
+            materialData.material.emissive = ToColor(emissive);
+            materialData.material.specular = ToColor(specular);
+            materialData.material.power = (float)specularPower;
+
+            materialData.diffuseMapName = FindTexture(scene, assimpMaterial, aiTextureType_DIFFUSE, args, "_diff", materialIndex);
+            materialData.normalMapName = FindTexture(scene, assimpMaterial, aiTextureType_NORMALS, args, "_norm", materialIndex);
+            materialData.bumpMapName = FindTexture(scene, assimpMaterial, aiTextureType_DISPLACEMENT, args, "_bump", materialIndex);
+            materialData.specularMapName = FindTexture(scene, assimpMaterial, aiTextureType_SPECULAR, args, "_spec", materialIndex);
+        }
         if (mesh->mMaterialIndex >= 0)
         {
             aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
@@ -66,7 +94,6 @@ namespace NR
         {
             Ref<VertexArray> vertexArray;
             Ref<VertexBuffer> vertexBuffer;
-
             Renderer::SetMeshLayout(vertexArray, vertexBuffer, mesh->mNumVertices);
 
             std::vector<uint32_t> indices;

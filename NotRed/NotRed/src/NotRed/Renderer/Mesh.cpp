@@ -8,8 +8,8 @@
 namespace NR
 {
     Mesh::Mesh(
-        Ref<VertexArray> vertexArray, 
-        Ref<VertexBuffer> vertexBuffer, 
+        Ref<VertexArray>& vertexArray, 
+        Ref<VertexBuffer>& vertexBuffer, 
         std::vector<Ref<Texture2D>>& textures, 
         const uint32_t verticesCount
     )

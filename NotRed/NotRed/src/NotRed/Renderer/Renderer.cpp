@@ -1,6 +1,7 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
+#include "Renderer2D.h"
 #include "Platform/OpenGL/GLShader.h"
 #include "Texture.h"
 #include "Mesh.h"
@@ -78,18 +79,20 @@ namespace NR
 		return Renderer::Statistics();
 	}
 
-	void Renderer::SetMeshLayout(Ref<VertexArray> vertexArray, Ref<VertexBuffer> vertexBuffer, uint32_t verticesCount)
+	void Renderer::SetMeshLayout(Ref<VertexArray>& vertexArray, Ref<VertexBuffer>& vertexBuffer, uint32_t verticesCount)
 	{
 		vertexArray = VertexArray::Create();
 
 		vertexBuffer = VertexBuffer::Create(verticesCount * sizeof(VertexData));
 		vertexBuffer->SetLayout(
 			{
-				{ShaderDataType::Float3, "aPosition"},
-				{ShaderDataType::Float2, "aTexCoord"},
-				{ShaderDataType::Float4, "aColor"   },
-				{ShaderDataType::Float,  "aTexIndex"},
-				{ShaderDataType::Int,    "aEntityID"}
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float3, "a_Normal" },
+				{ ShaderDataType::Float3, "a_Tangent" },
+				{ ShaderDataType::Float3, "a_Binormal" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
+				{ ShaderDataType::Int4, "a_BoneIDs" },
+				{ ShaderDataType::Float4, "a_BoneWeights" }
 			});
 		vertexArray->AddVertexBuffer(vertexBuffer);
 	}
@@ -125,9 +128,12 @@ namespace NR
 	}
 	void Renderer::Init()
 	{
+		RenderCommand::Init();
+		Renderer2D::Init();
 	}
 	void Renderer::Shutdown()
 	{
+		Renderer2D::Shutdown();
 	}
 	void Renderer::OnWindowResize(uint32_t width, uint32_t height)
 	{

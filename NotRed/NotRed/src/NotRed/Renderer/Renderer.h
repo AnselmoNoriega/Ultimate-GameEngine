@@ -44,7 +44,7 @@ namespace NR
         static void ResetStats();
         static Statistics GetStats();
 
-        static void SetMeshLayout(Ref<VertexArray> vertexArray, Ref<VertexBuffer> vertexBuffer, uint32_t verticesCount);
+        static void SetMeshLayout(Ref<VertexArray>& vertexArray, Ref<VertexBuffer>& vertexBuffer, uint32_t verticesCount);
         static void PackageVertices(Ref<Mesh> model, glm::vec3 position, glm::vec2 texCoord);
 
     private:

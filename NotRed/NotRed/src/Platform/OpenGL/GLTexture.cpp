@@ -129,4 +129,40 @@ namespace NR
 
         glBindTextureUnit(slot, mID);
     }
+
+    //////////////////////////////////////////////////////////////
+    // TextureCube
+    /////////////////////////////////////////////////////////////
+
+	GLTextureCube::GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
+		: mWidth(width), mHeight(height), mFormat(format), mProperties(properties)
+	{
+	}
+
+    GLTextureCube::GLTextureCube(const std::string& path, TextureProperties properties)
+		: m_FilePath(path), m_Properties(properties)
+	{
+		NR_CORE_ASSERT(false, "Not supported yet!");
+	}
+
+    GLTextureCube::~GLTextureCube()
+	{
+		GLuint rendererID = m_RendererID;
+		Renderer::Submit([rendererID]() {
+			glDeleteTextures(1, &rendererID);
+			});
+	}
+
+	void GLTextureCube::Bind(uint32_t slot) const
+	{
+		Ref<const OpenGLTextureCube> instance = this;
+		Renderer::Submit([instance, slot]() {
+			glBindTextureUnit(slot, instance->m_RendererID);
+			});
+	}
+
+	uint32_t GLTextureCube::GetMipLevelCount() const
+	{
+		return Utils::CalculateMipCount(m_Width, m_Height);
+	}
 }

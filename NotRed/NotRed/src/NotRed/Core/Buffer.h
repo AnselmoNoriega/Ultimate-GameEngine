@@ -42,6 +42,14 @@ namespace NR
 			memcpy((void*)result.Data, (const void*)Data, Size * sizeof(T));
 			return result;
 		}
+
+		static Buffer<void> Copy(const void* data, uint32_t size)
+		{
+			Buffer<void> buffer;
+			buffer.Allocate(size);
+			memcpy(buffer.Data, data, size);
+			return buffer;
+		}
 	};
 
 	template<typename T>

@@ -4,7 +4,7 @@ namespace NR
 {
     enum class ShaderDataType : int8_t
     {
-        None, Float, Float2, Float3, Float4, Int, Mat3, Mat4
+        None, Float, Float2, Float3, Float4, Int, Int4, Mat3, Mat4
     };
 
     static uint32_t ShaderDataTypeSize(ShaderDataType type)
@@ -16,6 +16,7 @@ namespace NR
         case ShaderDataType::Float3:  return 4 * 3;
         case ShaderDataType::Float4:  return 4 * 4;
         case ShaderDataType::Int:     return 4;
+        case ShaderDataType::Int4:    return 4 * 4;
         case ShaderDataType::Mat3:    return 4 * 3 * 3;
         case ShaderDataType::Mat4:    return 4 * 4 * 4;
         default:
@@ -49,6 +50,7 @@ namespace NR
             case ShaderDataType::Float3:  return 3;
             case ShaderDataType::Float4:  return 4;
             case ShaderDataType::Int:     return 4;
+            case ShaderDataType::Int4:    return 4 * 4;
             case ShaderDataType::Mat3:    return 3 * 3;
             case ShaderDataType::Mat4:    return 4 * 4;
             default:
