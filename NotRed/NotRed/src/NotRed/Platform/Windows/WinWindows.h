@@ -27,6 +27,7 @@ namespace NR
 
     private:
         GLFWwindow* mWindow;
+        GLFWcursor* mMouseCursors[9] = { 0 };
 
         struct WindowData
         {

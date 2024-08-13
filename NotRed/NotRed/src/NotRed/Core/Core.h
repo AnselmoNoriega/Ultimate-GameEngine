@@ -29,3 +29,5 @@ namespace NR
 	#define NR_ASSERT(x, ...)
 	#define NR_CORE_ASSERT(x, ...)
 #endif
+
+#define NR_BIND_EVENT_FN(fn) std::bind(&##fn, this, std::placeholders::_1)

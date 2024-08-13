@@ -14,8 +14,12 @@ workspace "NotRed"
 
     IncludeDir = {}
     IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
+    IncludeDir["Glad"] = "NotRed/vendor/Glad/include"
+    IncludeDir["ImGui"] = "NotRed/vendor/ImGui"
     
     include "NotRed/vendor/GLFW"
+    include "NotRed/vendor/Glad"
+    include "NotRed/vendor/ImGui"
 
 project "NotRed"
     location "NotRed"
@@ -37,15 +41,20 @@ project "NotRed"
 	{
 		"%{prj.name}/src",
         "%{prj.name}/vendor",
-        "%{IncludeDir.GLFW}"
+        "%{IncludeDir.GLFW}",
+        "%{IncludeDir.Glad}",
+        "%{IncludeDir.ImGui}"
 	}
 
     links 
 	{ 
-		"GLFW"
+        "GLFW",
+        "Glad",
+        "ImGui",
     }
 
 	filter "system:windows"
+        systemversion "latest"
 		cppdialect "C++17"
         staticruntime "On"
 

@@ -7,8 +7,12 @@ namespace NR
 {
 #define BIND_EVENT_FN(fn) std::bind(&Application::##fn, this, std::placeholders::_1)
 
+    Application* Application::sInstance = nullptr;
+
     Application::Application()
     {
+        sInstance = this;
+
         mWindow = std::unique_ptr<Window>(Window::Create());
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
     }
@@ -21,11 +25,13 @@ namespace NR
     void Application::PushLayer(Layer* layer)
     {
         mLayerStack.PushLayer(layer);
+        layer->Attach();
     }
 
     void Application::PushOverlay(Layer* layer)
     {
         mLayerStack.PushOverlay(layer);
+        layer->Attach();
     }
 
     void Application::Run()

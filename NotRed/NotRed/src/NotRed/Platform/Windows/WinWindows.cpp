@@ -1,10 +1,14 @@
 #include "nrpch.h"
 #include "WinWindows.h"
 
+#include <glad/glad.h>
+
 #include "NotRed/Core/Events/ApplicationEvent.h"
 
 #include "NotRed/Core/Events/KeyEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
+
+#include <imgui.h>
 
 namespace NR
 {
@@ -48,6 +52,8 @@ namespace NR
 
         mWindow = glfwCreateWindow((uint32_t)props.Width, (uint32_t)props.Height, mData.Title.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(mWindow);
+        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        NR_CORE_ASSERT(status, "Failed to initialize Glad!");
         glfwSetWindowUserPointer(mWindow, &mData);
         SetVSync(true);
 
@@ -132,12 +138,26 @@ namespace NR
                 MouseMovedEvent winEvent((float)x, (float)y);
                 data.EventCallback(winEvent);
             });
+
+
+        mMouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mMouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        mMouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);  
+        mMouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        mMouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        mMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+        mMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+        mMouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     }
 
     void WinWindow::Update()
     {
         glfwPollEvents();
         glfwSwapBuffers(mWindow);
+
+        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+        glfwSetCursor(mWindow, mMouseCursors[imgui_cursor] ? mMouseCursors[imgui_cursor] : mMouseCursors[ImGuiMouseCursor_Arrow]);
+        glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     void WinWindow::SetVSync(bool enabled)

@@ -25,11 +25,17 @@ namespace NR
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* layer);
 
+        inline Window& GetWindow() { return *mWindow; }
+
+        static inline Application& Get() { return *sInstance; }
+
     private:
         bool OnWindowResize(WindowResizeEvent& e);
         bool OnWindowClose(WindowCloseEvent& e);
 
     private:
+        static Application* sInstance;
+
         std::unique_ptr<Window> mWindow;
         bool mRunning = true;
 

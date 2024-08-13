@@ -10,11 +10,20 @@
     <Filter Include="NotRed\Core\Events">
       <UniqueIdentifier>{ADFAAA51-99DE-6BA7-023F-66FAEE415629}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NotRed\Debug">
+      <UniqueIdentifier>{278704F5-13EA-9399-BC6F-CC4FA8B15F1C}</UniqueIdentifier>
+    </Filter>
     <Filter Include="NotRed\Platform">
       <UniqueIdentifier>{6547287C-D1D2-9540-DAE3-183546EEF140}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NotRed\Platform\OpenGL">
+      <UniqueIdentifier>{F90C8899-E506-B1EB-CE73-47FCBA0C1758}</UniqueIdentifier>
+    </Filter>
     <Filter Include="NotRed\Platform\Windows">
       <UniqueIdentifier>{9F86A522-0BBE-EDB9-14C8-51DD807E14B3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NotRed\Renderer">
+      <UniqueIdentifier>{B74E0557-23DA-721B-2CEB-F50F98F5CE1B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -37,6 +46,12 @@
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h">
       <Filter>NotRed\Core\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Layer.h">
+      <Filter>NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\LayerStack.h">
+      <Filter>NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Log.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
@@ -46,15 +61,21 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Debug\ImGuiLayer.h">
+      <Filter>NotRed\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\EntryPoint.h">
       <Filter>NotRed</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\ImGuiGLRenderer.h">
+      <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindows.h">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\LayerStack.h" />
-    <ClInclude Include="src\NotRed\Core\Layer.h" />
-    <ClInclude Include="src\NotRed\Debug\ImGuiLayer.h" />
+    <ClInclude Include="src\NotRed\Renderer\Renderer.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -64,18 +85,30 @@
     <ClCompile Include="src\NotRed\Core\Core.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Layer.cpp">
+      <Filter>NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\LayerStack.cpp">
+      <Filter>NotRed\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Core\Log.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Window.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Debug\ImGuiLayer.cpp">
+      <Filter>NotRed\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\OpenGL\ImGuiGLRenderer.cpp">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindows.cpp">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
-    <ClCompile Include="src\NotRed\Core\Layer.cpp" />
-    <ClCompile Include="src\NotRed\Debug\ImGuiLayer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
   </ItemGroup>
 </Project>
