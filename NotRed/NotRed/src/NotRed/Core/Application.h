@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/Core/Core.h"
+#include "NotRed/Core/Window.h"
 
 namespace NR
 {
@@ -11,6 +12,10 @@ namespace NR
 		virtual ~Application();
 
 		void Run();
+
+		virtual void Init() {}
+		virtual void Update() {}
+		virtual void Shutdown() {}
 	};
 
 	Application* CreateApplication();

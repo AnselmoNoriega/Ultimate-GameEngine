@@ -22,15 +22,15 @@ namespace NR
 }
 
 // Core Logging Macros
-#define NR_CORE_TRACE(...)	hz::Log::GetCoreLogger()->trace(__VA_ARGS__)
-#define NR_CORE_INFO(...)	hz::Log::GetCoreLogger()->info(__VA_ARGS__)
-#define NR_CORE_WARN(...)	hz::Log::GetCoreLogger()->warn(__VA_ARGS__)
-#define NR_CORE_ERROR(...)	hz::Log::GetCoreLogger()->error(__VA_ARGS__)
-#define NR_CORE_FATAL(...)	hz::Log::GetCoreLogger()->critical(__VA_ARGS__)
+#define NR_CORE_TRACE(...)	NR::Log::GetCoreLogger()->trace(__VA_ARGS__)
+#define NR_CORE_INFO(...)	NR::Log::GetCoreLogger()->info(__VA_ARGS__)
+#define NR_CORE_WARN(...)	NR::Log::GetCoreLogger()->warn(__VA_ARGS__)
+#define NR_CORE_ERROR(...)	NR::Log::GetCoreLogger()->error(__VA_ARGS__)
+#define NR_CORE_FATAL(...)	NR::Log::GetCoreLogger()->critical(__VA_ARGS__)
 
 // Client Logging Macros
-#define NR_TRACE(...)	hz::Log::GetClientLogger()->trace(__VA_ARGS__)
-#define NR_INFO(...)	hz::Log::GetClientLogger()->info(__VA_ARGS__)
-#define NR_WARN(...)	hz::Log::GetClientLogger()->warn(__VA_ARGS__)
-#define NR_ERROR(...)	hz::Log::GetClientLogger()->error(__VA_ARGS__)
-#define NR_FATAL(...)	hz::Log::GetClientLogger()->critical(__VA_ARGS__)
+#define NR_TRACE(...)	NR::Log::GetClientLogger()->trace(__VA_ARGS__)
+#define NR_INFO(...)	NR::Log::GetClientLogger()->info(__VA_ARGS__)
+#define NR_WARN(...)	NR::Log::GetClientLogger()->warn(__VA_ARGS__)
+#define NR_ERROR(...)	NR::Log::GetClientLogger()->error(__VA_ARGS__)
+#define NR_FATAL(...)	NR::Log::GetClientLogger()->critical(__VA_ARGS__)
