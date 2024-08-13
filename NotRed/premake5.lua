@@ -1,48 +1,121 @@
-include "./vendor/premake/premake_customization/solution_items.lua"
-include "Dependencies.lua"
-
 workspace "NotRed"
-	architecture "x86_64"
-	startproject "NotEditor"
+	architecture "x64"
+	targetdir "build"
 
-	configurations
+	configurations 
+	{ 
+		"Debug", 
+        "Release",
+        "Dist"
+    }
+
+local outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+project "NotRed"
+    location "NotRed"
+    kind "SharedLib"
+    language "C++"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files 
+	{ 
+		"%{prj.name}/**.h", 
+		"%{prj.name}/**.c", 
+		"%{prj.name}/**.hpp", 
+		"%{prj.name}/**.cpp" 
+    }
+
+    includedirs
 	{
-		"Debug",
-		"Release",
-		"Dist"
+		"%{prj.name}/src",
+		"%{prj.name}/vendor",
 	}
 
-	solution_items
-	{
-		".editorconfig"
+	filter "system:windows"
+		cppdialect "C++17"
+        staticruntime "On"
+
+		defines 
+		{ 
+            "NR_PLATFORM_WINDOWS",
+            "NOT_BUILD_BUILD_DLL",
+		}
+
+    filter "configurations:Debug"
+        defines "NR_DEBUG"
+        symbols "On"
+
+    filter "configurations:Release"
+        defines "NR_RELEASE"
+        optimize "On"
+
+    filter "configurations:Dist"
+        defines "NR_DIST"
+        optimize "On"
+
+    filter { "system:windows", "configurations:Release" }
+        buildoptions "/MT"
+
+project "Sandbox"
+    location "Sandbox"
+    kind "ConsoleApp"
+    language "C++"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	dependson 
+	{ 
+		"NotRed"
+    }
+
+	files 
+	{ 
+		"%{prj.name}/**.h", 
+		"%{prj.name}/**.c", 
+		"%{prj.name}/**.hpp", 
+		"%{prj.name}/**.cpp" 
 	}
 
-	flags
+	includedirs 
 	{
-		"MultiProcessorCompile"
-	}
+        "%{prj.name}/src",
+        "NotRed/src",
+        "NotRed/vendor",
+    }
 
-outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+	filter "system:windows"
+        cppdialect "C++17"
+        staticruntime "On"
 
-group "Dependencies"
-	include "vendor/premake"
-	include "NotRed/vendor/Box2D"
-	include "NotRed/vendor/GLFW"
-	include "NotRed/vendor/glad"
-	include "NotRed/vendor/imgui"
-	include "NotRed/vendor/msdf-atlas-gen"
-	include "NotRed/vendor/yaml-cpp"
-group ""
+		links 
+		{ 
+			"NotRed"
+		}
 
-group "Core"
-	include "NotRed"
-	include "NotRed-ScriptCore"
-group ""
+		defines 
+		{ 
+            "NR_PLATFORM_WINDOWS",
+		}
 
-group "Tools"
-	include "NotEditor"
-group ""
+        postbuildcommands
+        {
+            ("{COPY} ../bin/" .. outputdir .. "/NotRed/NotRed.dll %{cfg.targetdir}")
+        }
 
-group "Misc"
-	include "Sandbox"
-group ""
+    filter "configurations:Debug"
+        defines "NR_DEBUG"
+        symbols "On"
+
+    filter "configurations:Release"
+        defines "NR_RELEASE"
+        optimize "On"
+
+    filter "configurations:Dist"
+        defines "NR_DIST"
+        optimize "On"
+
+    filter { "system:windows", "configurations:Release" }
+        buildoptions "/MT"    
