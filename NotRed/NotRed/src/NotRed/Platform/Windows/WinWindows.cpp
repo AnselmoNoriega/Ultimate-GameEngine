@@ -40,7 +40,7 @@ namespace NR
 		if (!s_GLFWInitialized)
 		{
 			int success = glfwInit();
-			NR_ASSERT(success, "Could not intialize GLFW!");
+			HZ_CORE_ASSERT(success, "Could not intialize GLFW!");
 			glfwSetErrorCallback(GLFWErrorCallback);
 
 			s_GLFWInitialized = true;

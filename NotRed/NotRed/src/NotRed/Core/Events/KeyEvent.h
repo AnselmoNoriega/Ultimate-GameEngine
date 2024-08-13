@@ -2,6 +2,8 @@
 
 #include "Event.h"
 
+#include <sstream>
+
 namespace NR
 {
 	class NOT_RED_API KeyEvent : public Event
@@ -25,7 +27,15 @@ namespace NR
 
 		inline int GetRepeatCount() const { return mRepeatCount; }
 
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "KeyPressedEvent: " << mKeyCode << " (" << mRepeatCount << " repeats)";
+			return ss.str();
+		}
+
 		EVENT_CLASS_TYPE(KeyPressed)
+
 	private:
 		int mRepeatCount;
 	};
@@ -35,6 +45,14 @@ namespace NR
 	public:
 		KeyReleasedEvent(int keycode)
 			: KeyEvent(keycode) {}
+
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "KeyReleasedEvent: " << mKeyCode;
+			return ss.str();
+		}
 
 		EVENT_CLASS_TYPE(KeyReleased)
 	};
