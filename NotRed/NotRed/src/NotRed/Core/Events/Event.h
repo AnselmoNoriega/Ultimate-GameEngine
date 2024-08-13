@@ -7,16 +7,16 @@ namespace NR
 {
     enum class EventType
     {
-        None = 0,
-        WindowClosed, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
+        None,
+        WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
         AppTick, AppUpdate, AppRender,
         KeyPressed, KeyReleased,
-        MouseButtonPressed, MouseButtonReleased, MouseMoved
+        MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled
     };
 
     enum EventCategory
     {
-        None = 0,
+        None = (0 << 0),
         EventCategoryApplication = (1 << 0),
         EventCategoryInput = (1 << 1),
         EventCategoryKeyboard = (1 << 2),
@@ -36,6 +36,7 @@ namespace NR
         virtual EventType GetEventType() const = 0;
         virtual const char* GetName() const = 0;
         virtual int GetCategoryFlags() const = 0;
+        virtual std::string ToString() const { return GetName(); }
 
         inline bool IsInCategory(EventCategory category)
         {
@@ -72,4 +73,8 @@ namespace NR
         Event& mEvent;
     };
 
+    inline std::ostream& operator<<(std::ostream& os, const Event& e)
+    {
+        return os << e.ToString();
+    }
 }

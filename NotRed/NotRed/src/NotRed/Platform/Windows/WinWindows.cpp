@@ -1,6 +1,10 @@
 #include "WinWindows.h"
 
 #include "NotRed/Core/Log.h"
+#include "NotRed/Core/Events/ApplicationEvent.h"
+
+#include "NotRed/Core/Events/KeyEvent.h"
+#include "NotRed/Core/Events/MouseEvent.h"
 
 namespace NR
 {
@@ -52,12 +56,86 @@ namespace NR
 				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 				data.Width = width;
 				data.Height = height;
+
+				WindowResizeEvent winEvent((uint32_t)width, (uint32_t)height);
+				data.EventCallback(winEvent);
+			});
+
+		glfwSetWindowCloseCallback(mWindow, [](GLFWwindow* window)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				WindowCloseEvent winEvent;
+				data.EventCallback(winEvent);
+			});
+
+		glfwSetKeyCallback(mWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					KeyPressedEvent winEvent(key, 0);
+					data.EventCallback(winEvent);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					KeyReleasedEvent winEvent(key);
+					data.EventCallback(winEvent);
+					break;
+				}
+				case GLFW_REPEAT:
+				{
+					KeyPressedEvent winEvent(key, 1);
+					data.EventCallback(winEvent);
+					break;
+				}
+				}
+			});
+
+		glfwSetMouseButtonCallback(mWindow, [](GLFWwindow* window, int button, int action, int mods)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					MouseButtonPressedEvent winEvent(button);
+					data.EventCallback(winEvent);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					MouseButtonReleasedEvent winEvent(button);
+					data.EventCallback(winEvent);
+					break;
+				}
+				}
+			});
+
+		glfwSetScrollCallback(mWindow, [](GLFWwindow* window, double xOffset, double yOffset)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				MouseScrolledEvent winEvent((float)xOffset, (float)yOffset);
+				data.EventCallback(winEvent);
+			});
+
+		glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double x, double y)
+			{
+				auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+				MouseMovedEvent winEvent((float)x, (float)y);
+				data.EventCallback(winEvent);
 			});
 	}
 
 	void WinWindow::Update()
 	{
-		NR_CORE_INFO("Window size = {0}, {1}", GetWidth(), GetHeight());
 		glfwPollEvents();
 		glfwSwapBuffers(mWindow);
 	}
@@ -80,7 +158,6 @@ namespace NR
 	bool WinWindow::IsVSync() const
 	{
 		return mData.VSync;
-	}
 	}
 
 	void WinWindow::Shutdown()

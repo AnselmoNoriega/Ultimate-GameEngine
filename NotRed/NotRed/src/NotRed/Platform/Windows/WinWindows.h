@@ -17,7 +17,7 @@ namespace NR
         inline uint32_t GetWidth() const override { return mData.Width; }
         inline uint32_t GetHeight() const override { return mData.Height; }
 
-        inline void SetEventCallback(const EventCallbackFn& callback) override { mEventCallbackFn = callback; }
+        inline void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
         void SetVSync(bool enabled);
         bool IsVSync() const;
 
@@ -27,17 +27,16 @@ namespace NR
 
     private:
         GLFWwindow* mWindow;
-        EventCallbackFn mEventCallbackFn;
 
         struct WindowData
         {
             std::string Title;
             unsigned int Width, Height;
             bool VSync;
+
+            EventCallbackFn EventCallback;
         };
         WindowData mData;
-
-        EventCallbackFn mEventCallbackFn;
     };
 }
 

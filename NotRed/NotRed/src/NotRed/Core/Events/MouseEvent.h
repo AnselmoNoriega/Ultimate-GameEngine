@@ -2,23 +2,53 @@
 
 #include "Event.h"
 
+#include <sstream>
+
 namespace NR
 {
 	class NOT_RED_API MouseMovedEvent : public Event
 	{
 	public:
-		MouseMovedEvent(float x, float y, float dx, float dy)
-			: mMouseX(x), mMouseY(y), mMouseDX(x), mMouseDY(dy) {}
+		MouseMovedEvent(float x, float y)
+			: mMouseX(x), mMouseY(y) {}
 
 		inline float GetX() const { return mMouseX; }
 		inline float GetY() const { return mMouseY; }
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "MouseMovedEvent: " << mMouseX << ", " << mMouseY;
+			return ss.str();
+		}
 
 		EVENT_CLASS_TYPE(MouseMoved)
 			EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
 	private:
 		float mMouseX, mMouseY;
-		float mMouseDX, mMouseDY;
+	};
+
+	class NOT_RED_API MouseScrolledEvent : public Event
+	{
+	public:
+		MouseScrolledEvent(float xOffset, float yOffset)
+			: mXOffset(xOffset), mYOffset(yOffset) {}
+
+		inline float GetXOffset() const { return mXOffset; }
+		inline float GetYOffset() const { return mYOffset; }
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "MouseScrolledEvent: " << GetXOffset() << ", " << GetYOffset();
+			return ss.str();
+		}
+
+		EVENT_CLASS_TYPE(MouseScrolled)
+			EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
+	private:
+		float mXOffset, mYOffset;
 	};
 
 	class NOT_RED_API MouseButtonEvent : public Event
@@ -38,15 +68,17 @@ namespace NR
 	class NOT_RED_API MouseButtonPressedEvent : public MouseButtonEvent
 	{
 	public:
-		MouseButtonPressedEvent(int button, int repeatCount)
-			: MouseButtonEvent(button), mRepeatCount(repeatCount) {}
+		MouseButtonPressedEvent(int button)
+			: MouseButtonEvent(button) {}
 
-		inline int GetRepeatCount() const { return mRepeatCount; }
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "MouseButtonPressedEvent: " << mButton;
+			return ss.str();
+		}
 
 		EVENT_CLASS_TYPE(MouseButtonPressed)
-
-	private:
-		int mRepeatCount;
 	};
 
 	class NOT_RED_API MouseButtonReleasedEvent : public MouseButtonEvent
@@ -54,6 +86,13 @@ namespace NR
 	public:
 		MouseButtonReleasedEvent(int button)
 			: MouseButtonEvent(button) {}
+
+		std::string ToString() const override
+		{
+			std::stringstream ss;
+			ss << "MouseButtonReleasedEvent: " << mButton;
+			return ss.str();
+		}
 
 		EVENT_CLASS_TYPE(MouseButtonReleased)
 	};
