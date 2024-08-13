@@ -147,6 +147,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
+    <ClInclude Include="src\NotRed\Renderer\RendererCapabilities.h" />
+    <ClInclude Include="src\NotRed\Scene\Scene3D.h" />
+    <ClInclude Include="src\NotRed\Scene\SceneEnvironment.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLRenderPass.h" />
     <ClInclude Include="src\Platform\OpenGL\GLUniformBuffer.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
@@ -641,6 +646,11 @@
     <ClInclude Include="vendor\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Renderer\Camera\Camera.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
+    <ClCompile Include="src\NotRed\Scene\Scene3D.cpp" />
+    <ClCompile Include="src\NotRed\Scene\SceneEnvironment.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLRenderPass.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLUniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\AssetLoader.cpp" />

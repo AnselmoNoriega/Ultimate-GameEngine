@@ -1550,6 +1550,11 @@
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
     <ClInclude Include="src\Platform\OpenGL\GLUniformBuffer.h" />
+    <ClInclude Include="src\Platform\OpenGL\GLRenderPass.h" />
+    <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
+    <ClInclude Include="src\NotRed\Renderer\RendererCapabilities.h" />
+    <ClInclude Include="src\NotRed\Scene\Scene3D.h" />
+    <ClInclude Include="src\NotRed\Scene\SceneEnvironment.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -1703,5 +1708,10 @@
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\Platform\OpenGL\GLUniformBuffer.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\GLRenderPass.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
+    <ClCompile Include="src\NotRed\Scene\Scene3D.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Camera\Camera.cpp" />
+    <ClCompile Include="src\NotRed\Scene\SceneEnvironment.cpp" />
   </ItemGroup>
 </Project>
