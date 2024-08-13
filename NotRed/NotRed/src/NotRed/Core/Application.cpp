@@ -1,6 +1,7 @@
 #include "nrpch.h"
 #include "Application.h"
 
+#include "NotRed/Renderer/Renderer.h"
 #include <GLFW/glfw3.h>
 
 namespace NR
@@ -40,14 +41,12 @@ namespace NR
 
         while (mRunning)
         {
-            glClearColor(0, 0, 0, 1);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
             for (Layer* layer : mLayerStack)
             {
                 layer->Update();
             }
 
+            Renderer::Get().WaitAndRender();
             mWindow->Update();
         }
 

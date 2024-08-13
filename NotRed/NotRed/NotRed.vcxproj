@@ -147,6 +147,9 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommand.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
@@ -167,6 +170,8 @@
     <ClInclude Include="src\NotRed\Platform\Windows\WinInput.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
@@ -174,6 +179,7 @@
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
     <ClCompile Include="src\nrpch.cpp" />
