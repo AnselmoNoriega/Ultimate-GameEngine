@@ -1,8 +1,7 @@
+#include "nrpch.h"
 #include "Core.h"
 
 #include "Log.h"
-
-#include <Windows.h>
 
 #define NOT_RED_BUILD_ID "v0.1a"
 
@@ -31,13 +30,13 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		InitializeCore();
+		NR::InitializeCore();
 		break;
 	case DLL_THREAD_ATTACH:
 	case DLL_THREAD_DETACH:
 		break;
 	case DLL_PROCESS_DETACH:
-		ShutdownCore();
+		NR::ShutdownCore();
 		break;
 	}
 	return TRUE;

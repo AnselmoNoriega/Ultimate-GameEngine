@@ -2,6 +2,7 @@
 
 #include "NotRed/Core/Core.h"
 #include "NotRed/Core/Window.h"
+#include "NotRed/Core/LayerStack.h"
 
 #include "NotRed/Core/Events/ApplicationEvent.h"
 
@@ -21,6 +22,9 @@ namespace NR
 
         virtual void OnEvent(Event& event);
 
+        void PushLayer(Layer* layer);
+        void PushOverlay(Layer* layer);
+
     private:
         bool OnWindowResize(WindowResizeEvent& e);
         bool OnWindowClose(WindowCloseEvent& e);
@@ -28,6 +32,8 @@ namespace NR
     private:
         std::unique_ptr<Window> mWindow;
         bool mRunning = true;
+
+        LayerStack mLayerStack;
     };
 
     Application* CreateApplication();

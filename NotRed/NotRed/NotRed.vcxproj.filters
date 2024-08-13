@@ -52,6 +52,10 @@
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindows.h">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\LayerStack.h" />
+    <ClInclude Include="src\NotRed\Core\Layer.h" />
+    <ClInclude Include="src\NotRed\Debug\ImGuiLayer.h" />
+    <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -69,5 +73,9 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindows.cpp">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
+    <ClCompile Include="src\NotRed\Core\Layer.cpp" />
+    <ClCompile Include="src\NotRed\Debug\ImGuiLayer.cpp" />
+    <ClCompile Include="src\nrpch.cpp" />
   </ItemGroup>
 </Project>

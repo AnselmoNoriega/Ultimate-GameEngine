@@ -1,6 +1,5 @@
+#include "nrpch.h"
 #include "Log.h"
-
-#include <memory>
 
 namespace NR
 {

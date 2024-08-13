@@ -1,7 +1,6 @@
 #pragma once
 
-#include <functional>
-#include "NotRed/Core/Core.h"
+#include "nrpch.h"
 
 namespace NR
 {
@@ -43,8 +42,8 @@ namespace NR
             return GetCategoryFlags() & category;
         }
 
-    protected:
-        bool mHandled = false;
+    public:
+        bool Handled = false;
     };
 
     class EventDispatcher
@@ -63,7 +62,7 @@ namespace NR
         {
             if (mEvent.GetEventType() == T::GetStaticType())
             {
-                mEvent.mHandled = func(*(T*)&mEvent);
+                mEvent.Handled = func(*(T*)&mEvent);
                 return true;
             }
             return false;
