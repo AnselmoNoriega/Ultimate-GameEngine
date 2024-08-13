@@ -9,7 +9,13 @@ workspace "NotRed"
         "Dist"
     }
 
-local outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+    outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+    IncludeDir = {}
+    IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
+    
+    include "NotRed/vendor/GLFW"
 
 project "NotRed"
     location "NotRed"
@@ -21,17 +27,23 @@ project "NotRed"
 
 	files 
 	{ 
-		"%{prj.name}/**.h", 
-		"%{prj.name}/**.c", 
-		"%{prj.name}/**.hpp", 
-		"%{prj.name}/**.cpp" 
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.c", 
+		"%{prj.name}/src/**.hpp", 
+		"%{prj.name}/src/**.cpp" 
     }
 
     includedirs
 	{
 		"%{prj.name}/src",
-		"%{prj.name}/vendor",
+        "%{prj.name}/vendor",
+        "%{IncludeDir.GLFW}"
 	}
+
+    links 
+	{ 
+		"GLFW"
+    }
 
 	filter "system:windows"
 		cppdialect "C++17"
@@ -42,6 +54,11 @@ project "NotRed"
             "NR_PLATFORM_WINDOWS",
             "NOT_BUILD_BUILD_DLL",
 		}
+
+        postbuildcommands
+        {
+            ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox")
+        }
 
     filter "configurations:Debug"
         defines "NR_DEBUG"
@@ -73,10 +90,10 @@ project "Sandbox"
 
 	files 
 	{ 
-		"%{prj.name}/**.h", 
-		"%{prj.name}/**.c", 
-		"%{prj.name}/**.hpp", 
-		"%{prj.name}/**.cpp" 
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.c", 
+		"%{prj.name}/src/**.hpp", 
+		"%{prj.name}/src/**.cpp" 
 	}
 
 	includedirs 
@@ -99,11 +116,6 @@ project "Sandbox"
 		{ 
             "NR_PLATFORM_WINDOWS",
 		}
-
-        postbuildcommands
-        {
-            ("{COPY} ../bin/" .. outputdir .. "/NotRed/NotRed.dll %{cfg.targetdir}")
-        }
 
     filter "configurations:Debug"
         defines "NR_DEBUG"

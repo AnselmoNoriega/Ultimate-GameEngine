@@ -1,29 +1,43 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
+
 #include "NotRed/Core/Window.h"
 
 namespace NR
 {
-	class WinWindow : public Window
-	{
-	public:
-		WinWindow(const WindowProps& props);
-		virtual ~WinWindow();
+    class WinWindow : public Window
+    {
+    public:
+        WinWindow(const WindowProps& props);
+        ~WinWindow() override;
 
-		inline void SetEventCallback(const EventCallbackFn& callback) override { mEventCallbackFn = callback; }
+        void Update() override;
 
-		inline unsigned int GetWidth() const override { return mWidth; }
-		inline unsigned int GetHeight() const override { return mHeight; }
+        inline uint32_t GetWidth() const override { return mData.Width; }
+        inline uint32_t GetHeight() const override { return mData.Height; }
 
-	protected:
-		virtual void Init(const WindowProps& props) override;
-		virtual void Shutdown() override;
+        inline void SetEventCallback(const EventCallbackFn& callback) override { mEventCallbackFn = callback; }
+        void SetVSync(bool enabled);
+        bool IsVSync() const;
 
-	private:
-		std::string mTitle;
-		unsigned int mWidth, mHeight;
+    private:
+        void Init(const WindowProps& props);
+        void Shutdown();
 
-		EventCallbackFn mEventCallbackFn;
-	};
+    private:
+        GLFWwindow* mWindow;
+        EventCallbackFn mEventCallbackFn;
+
+        struct WindowData
+        {
+            std::string Title;
+            unsigned int Width, Height;
+            bool VSync;
+        };
+        WindowData mData;
+
+        EventCallbackFn mEventCallbackFn;
+    };
 }
 

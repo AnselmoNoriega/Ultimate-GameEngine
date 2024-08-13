@@ -5,18 +5,21 @@
 
 namespace NR
 {
-	class NOT_RED_API Application
-	{
-	public:
-		Application();
-		virtual ~Application();
+    class NOT_RED_API Application
+    {
+    public:
+        Application();
+        virtual ~Application();
 
-		void Run();
+        void Run();
 
-		virtual void Init() {}
-		virtual void Update() {}
-		virtual void Shutdown() {}
-	};
+        virtual void Init() {}
+        virtual void Update() {}
+        virtual void Shutdown() {}
 
-	Application* CreateApplication();
+    private:
+        std::unique_ptr<Window> mWindow;
+    };
+
+    Application* CreateApplication();
 }
