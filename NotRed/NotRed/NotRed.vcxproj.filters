@@ -49,9 +49,6 @@
     <ClInclude Include="src\NotRed\Core\Layer.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\LayerStack.h">
-      <Filter>NotRed\Core</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Log.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
@@ -61,22 +58,19 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Debug\ImGuiLayer.h">
-      <Filter>NotRed\Debug</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\EntryPoint.h">
       <Filter>NotRed</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\ImGuiGLRenderer.h">
-      <Filter>NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\Windows\WinWindows.h">
+    <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Renderer.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Core\Input.h" />
+    <ClInclude Include="src\NotRed\Platform\Windows\WinInput.h" />
+    <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -88,27 +82,21 @@
     <ClCompile Include="src\NotRed\Core\Layer.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\LayerStack.cpp">
-      <Filter>NotRed\Core</Filter>
-    </ClCompile>
     <ClCompile Include="src\NotRed\Core\Log.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Window.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Debug\ImGuiLayer.cpp">
-      <Filter>NotRed\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\ImGuiGLRenderer.cpp">
-      <Filter>NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Windows\WinWindows.cpp">
+    <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
   </ItemGroup>
 </Project>

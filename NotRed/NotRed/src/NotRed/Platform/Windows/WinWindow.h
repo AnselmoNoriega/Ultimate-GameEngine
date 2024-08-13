@@ -18,8 +18,10 @@ namespace NR
         inline uint32_t GetHeight() const override { return mData.Height; }
 
         inline void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
-        void SetVSync(bool enabled);
-        bool IsVSync() const;
+        void SetVSync(bool enabled) override;
+        bool IsVSync() const override;
+
+        inline void* GetNativeWindow() const override { return mWindow; }
 
     private:
         void Init(const WindowProps& props);
@@ -27,7 +29,7 @@ namespace NR
 
     private:
         GLFWwindow* mWindow;
-        GLFWcursor* mMouseCursors[9] = { 0 };
+        GLFWcursor* mImGuiMouseCursors[9] = { 0 };
 
         struct WindowData
         {

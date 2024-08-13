@@ -1,5 +1,5 @@
 #include "nrpch.h"
-#include "WinWindows.h"
+#include "WinWindow.h"
 
 #include <glad/glad.h>
 
@@ -102,6 +102,14 @@ namespace NR
                 }
             });
 
+        glfwSetCharCallback(mWindow, [](GLFWwindow* window, unsigned int codepoint)
+            {
+                auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+
+                KeyTypedEvent event((int)codepoint);
+                data.EventCallback(event);
+            });
+
         glfwSetMouseButtonCallback(mWindow, [](GLFWwindow* window, int button, int action, int mods)
             {
                 auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
@@ -140,14 +148,14 @@ namespace NR
             });
 
 
-        mMouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
-        mMouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-        mMouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);  
-        mMouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-        mMouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-        mMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
-        mMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
-        mMouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+        mImGuiMouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mImGuiMouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);  
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+        mImGuiMouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     }
 
     void WinWindow::Update()
@@ -156,7 +164,7 @@ namespace NR
         glfwSwapBuffers(mWindow);
 
         ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
-        glfwSetCursor(mWindow, mMouseCursors[imgui_cursor] ? mMouseCursors[imgui_cursor] : mMouseCursors[ImGuiMouseCursor_Arrow]);
+        glfwSetCursor(mWindow, mImGuiMouseCursors[imgui_cursor] ? mImGuiMouseCursors[imgui_cursor] : mImGuiMouseCursors[ImGuiMouseCursor_Arrow]);
         glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 

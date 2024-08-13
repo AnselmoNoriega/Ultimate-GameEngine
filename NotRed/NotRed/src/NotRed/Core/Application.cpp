@@ -40,8 +40,8 @@ namespace NR
 
         while (mRunning)
         {
-            glClearColor(1, 0, 1, 1);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             for (Layer* layer : mLayerStack)
             {

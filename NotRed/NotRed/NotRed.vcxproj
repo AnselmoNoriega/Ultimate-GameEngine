@@ -147,6 +147,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Core.h" />
@@ -154,30 +155,29 @@
     <ClInclude Include="src\NotRed\Core\Events\Event.h" />
     <ClInclude Include="src\NotRed\Core\Events\KeyEvent.h" />
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h" />
+    <ClInclude Include="src\NotRed\Core\Input.h" />
     <ClInclude Include="src\NotRed\Core\Layer.h" />
-    <ClInclude Include="src\NotRed\Core\LayerStack.h" />
     <ClInclude Include="src\NotRed\Core\Log.h" />
     <ClInclude Include="src\NotRed\Core\Platform.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
-    <ClInclude Include="src\NotRed\Debug\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\ImGuiGLRenderer.h" />
-    <ClInclude Include="src\NotRed\Platform\Windows\WinWindows.h" />
+    <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Platform\Windows\WinInput.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
-    <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
-    <ClCompile Include="src\NotRed\Debug\ImGuiLayer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\ImGuiGLRenderer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Windows\WinWindows.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
     <ClCompile Include="src\nrpch.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="vendor\GLFW\GLFW.vcxproj">
