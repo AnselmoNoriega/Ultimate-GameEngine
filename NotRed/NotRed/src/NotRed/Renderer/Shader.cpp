@@ -10,7 +10,7 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL: return new OpenGLShader(filepath);
+        case RendererAPIType::OpenGL: return new GLShader(filepath);
         default:
         {
             return nullptr;
