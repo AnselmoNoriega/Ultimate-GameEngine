@@ -175,6 +175,9 @@
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>

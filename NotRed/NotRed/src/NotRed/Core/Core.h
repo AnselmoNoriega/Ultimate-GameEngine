@@ -13,11 +13,7 @@ namespace NR
 #endif
 
 #ifdef NR_PLATFORM_WINDOWS
-	#ifdef NR_BUILD_DLL
-		#define NOT_RED_API __declspec(dllexport)
-	#else
-		#define NOT_RED_API __declspec(dllimport)
-	#endif
+	#define NOT_RED_API 
 #else
 	#error NotRed only supports Windows!
 #endif

@@ -15,6 +15,7 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
 IncludeDir["Glad"] = "NotRed/vendor/Glad/include"
 IncludeDir["ImGui"] = "NotRed/vendor/ImGui"
+IncludeDir["GLM"] = "NotRed/vendor/glm"
 
 include "NotRed/vendor/GLFW"
 include "NotRed/vendor/Glad"
@@ -22,8 +23,10 @@ include "NotRed/vendor/ImGui"
 
 project "NotRed"
     location "NotRed"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C++"
+    cppdialect "C++20"
+    staticruntime "on"
     
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -45,6 +48,7 @@ project "NotRed"
         "%{prj.name}/vendor",
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
+        "%{IncludeDir.GLM}",
         "%{IncludeDir.ImGui}"
     }
     
@@ -58,19 +62,12 @@ project "NotRed"
     
 	filter "system:windows"
         systemversion "latest"
-		cppdialect "C++20"
-        staticruntime "On"
         
 		defines 
 		{ 
             "NR_PLATFORM_WINDOWS",
             "NR_BUILD_DLL"
-		}
-			
-        postbuildcommands
-        {
-            ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/Sandbox")
-        }		
+		}		
 
     filter "configurations:Debug"
         defines "NR_DEBUG"
@@ -88,7 +85,8 @@ project "Sandbox"
     location "Sandbox"
     kind "ConsoleApp"
     language "C++"
-    systemversion "latest"
+    cppdialect "C++20"
+    staticruntime "on"
     
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -111,16 +109,11 @@ project "Sandbox"
         "%{prj.name}/src",
         "NotRed/src",
         "NotRed/vendor",
+        "%{IncludeDir.GLM}"
     }
 	
 	filter "system:windows"
-        cppdialect "C++20"
-        staticruntime "On"
-        
-		links 
-		{ 
-			"NotRed"
-		}
+        systemversion "latest"
         
 		defines 
 		{ 
@@ -129,12 +122,12 @@ project "Sandbox"
     
     filter "configurations:Debug"
         defines "NR_DEBUG"
-        symbols "On"
+        symbols "on"
                 
     filter "configurations:Release"
         defines "NR_RELEASE"
-        optimize "On"
+        optimize "on"
 
     filter "configurations:Dist"
         defines "NR_DIST"
-        optimize "On"
+        optimize "on"

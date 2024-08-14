@@ -2,6 +2,9 @@
 
 #include "NotRed/ImGui/ImGuiLayer.h"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 static void ImGuiShowHelpMarker(const char* desc)
 {
     ImGui::TextDisabled("(?)");
@@ -19,7 +22,7 @@ class EditorLayer : public NR::Layer
 {
 public:
     EditorLayer()
-        : mClearColor{ 0.2f, 0.3f, 0.8f, 1.0f }
+		: mClearColor{ 0.2f, 0.3f, 0.8f, 1.0f }, mTriangleColor{ 0.8f, 0.2f, 0.3f, 1.0f }
     {
     }
 
@@ -44,6 +47,8 @@ public:
 
 		mIB = std::unique_ptr<NR::IndexBuffer>(NR::IndexBuffer::Create());
 		mIB->SetData(indices, sizeof(indices));
+
+		mShader.reset(NR::Shader::Create("Assets/Shaders/Base"));
     }
 
     virtual void Detach() override
@@ -55,6 +60,11 @@ public:
 		using namespace NR;
 		Renderer::Clear(mClearColor[0], mClearColor[1], mClearColor[2], mClearColor[3]);
 
+		NR::UniformBufferDeclaration<sizeof(glm::vec4), 1> buffer;
+		buffer.Push("u_Color", mTriangleColor);
+		mShader->UploadUniformBuffer(buffer);
+
+		mShader->Bind();
 		mVB->Bind();
 		mIB->Bind();
 		Renderer::DrawIndexed(3);
@@ -62,12 +72,9 @@ public:
 
     virtual void ImGuiRender() override
     {
-		static bool show_demo_window = true;
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
-
 		ImGui::Begin("GameLayer");
 		ImGui::ColorEdit4("Clear Color", mClearColor);
+		ImGui::ColorEdit4("Triangle Color", glm::value_ptr(mTriangleColor));
 		ImGui::End();
 
 #if ENABLE_DOCKSPACE
@@ -150,9 +157,11 @@ public:
 
 private:
 	float mClearColor[4];
+	glm::vec4 mTriangleColor;
 
 	std::unique_ptr<NR::VertexBuffer> mVB;
 	std::unique_ptr<NR::IndexBuffer> mIB;
+	std::unique_ptr<NR::Shader> mShader;
 };
 
 class Sandbox : public NR::Application

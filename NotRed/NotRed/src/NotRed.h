@@ -16,6 +16,7 @@
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/Texture.h"
+#include "NotRed/Renderer/Shader.h"
 // ---------------------------------------------
 
 // ---Entry Point--------------
