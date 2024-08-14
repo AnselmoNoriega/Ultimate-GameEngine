@@ -8,8 +8,16 @@
 #include "NotRed/Core/Events/KeyEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
 
-#include "NotRed/Renderer/Renderer.h"
+#include "imgui/imgui.h"
 
-// ---Entry Point------------
+// --- NotRed Render API -----------------------
+#include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/FrameBuffer.h"
+#include "NotRed/Renderer/VertexBuffer.h"
+#include "NotRed/Renderer/IndexBuffer.h"
+#include "NotRed/Renderer/Texture.h"
+// ---------------------------------------------
+
+// ---Entry Point--------------
 #include "NotRed/EntryPoint.h"
-// --------------------------
+// ----------------------------

@@ -1,25 +1,26 @@
 #include "nrpch.h"
 #include "Renderer.h"
-#include "RenderCommand.h"
 
 namespace NR
 {
 	Renderer* Renderer::sInstance = new Renderer();
+	RendererAPIType RendererAPI::sCurrentRendererAPI = RendererAPIType::OpenGL;
 
 	void Renderer::Init()
 	{
-
+		NR_RENDER({ RendererAPI::Init(); });
 	}
 
 	void Renderer::Clear()
 	{
-		// HZ_RENDER(Clear());
+
 	}
 
 	void Renderer::Clear(float r, float g, float b, float a)
 	{
-		float params[4] = { r, g, b, a };
-		sInstance->mCommandQueue.SubmitCommand(RenderCommand::Clear, params, sizeof(float) * 4);
+		NR_RENDER_4(r, g, b, a, {
+			RendererAPI::Clear(r, g, b, a);
+			});
 	}
 
 	void Renderer::ClearMagenta()
@@ -30,6 +31,13 @@ namespace NR
 	void Renderer::SetClearColor(float r, float g, float b, float a)
 	{
 
+	}
+
+	void Renderer::DrawIndexed(uint32_t count)
+	{
+		NR_RENDER_1(count, {
+			RendererAPI::DrawIndexed(count);
+			});
 	}
 
 	void Renderer::WaitAndRender()

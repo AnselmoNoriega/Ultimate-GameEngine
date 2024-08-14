@@ -11,7 +11,7 @@ namespace NR
 	{
 		Log::Init();
 
-		NR_CORE_TRACE("Hazel Engine {}", HAZEL_BUILD_ID);
+		NR_CORE_TRACE("NotRed Engine {}", NOT_RED_BUILD_ID);
 		NR_CORE_TRACE("Initializing...");
 	}
 

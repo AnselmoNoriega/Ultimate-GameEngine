@@ -12,8 +12,11 @@ namespace NR
 		ImGuiLayer(const std::string& name);
 		~ImGuiLayer() override;
 
+		void Begin();
+		void End();
+
 		void Attach() override;
-		void Update() override;
+		void ImGuiRender() override;
 		void Detach() override;
 
 	private:

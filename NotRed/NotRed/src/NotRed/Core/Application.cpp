@@ -16,11 +16,27 @@ namespace NR
 
         mWindow = std::unique_ptr<Window>(Window::Create());
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+
+        mImGuiLayer = new ImGuiLayer("ImGui");
+        PushOverlay(mImGuiLayer);
+
+        Renderer::Init();
     }
 
     Application::~Application()
     {
 
+    }
+
+    void Application::RenderImGui()
+    {
+        mImGuiLayer->Begin();
+        for (Layer* layer : mLayerStack)
+        {
+            layer->ImGuiRender();
+        }
+
+        mImGuiLayer->End();
     }
 
     void Application::PushLayer(Layer* layer)
@@ -46,7 +62,11 @@ namespace NR
                 layer->Update();
             }
 
+            Application* app = this;
+            NR_RENDER_1(app, { app->RenderImGui(); });
+
             Renderer::Get().WaitAndRender();
+
             mWindow->Update();
         }
 

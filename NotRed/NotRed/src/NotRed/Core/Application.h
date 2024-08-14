@@ -6,6 +6,8 @@
 
 #include "NotRed/Core/Events/ApplicationEvent.h"
 
+#include "NotRed/ImGui/ImGuiLayer.h"
+
 namespace NR
 {
     class NOT_RED_API Application
@@ -19,6 +21,8 @@ namespace NR
         virtual void Init() {}
         virtual void Update() {}
         virtual void Shutdown() {}
+        
+        void RenderImGui();
 
         virtual void OnEvent(Event& event);
 
@@ -40,6 +44,7 @@ namespace NR
         bool mRunning = true;
 
         LayerStack mLayerStack;
+        ImGuiLayer* mImGuiLayer;
     };
 
     Application* CreateApplication();

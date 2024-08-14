@@ -17,47 +17,39 @@ namespace NR
 		delete[] mCommandBuffer;
 	}
 
-	void RenderCommandQueue::Submit(const RenderCommand& command)
+	void* RenderCommandQueue::Allocate(RenderCommandFn fn, uint32_t size)
 	{
-		auto ptr = mCommandBuffer;
+		*(RenderCommandFn*)mCommandBufferPtr = fn;
+		mCommandBufferPtr += sizeof(RenderCommandFn);
 
-		memcpy(mCommandBuffer, &command, sizeof(RenderCommand));
-		mCommandBufferPtr += sizeof(RenderCommand);
-		mRenderCommandCount++;
-	}
+		*(uint32_t*)mCommandBufferPtr = size;
+		mCommandBufferPtr += sizeof(uint32_t);
 
-	void RenderCommandQueue::SubmitCommand(RenderCommandFn fn, void* params, uint32_t size)
-	{
-		byte*& buffer = mCommandBufferPtr;
-		memcpy(buffer, &fn, sizeof(RenderCommandFn));
-		buffer += sizeof(RenderCommandFn);
-		memcpy(buffer, params, size);
-		buffer += size;
+		void* memory = mCommandBufferPtr;
+		mCommandBufferPtr += size;
 
-		auto totalSize = sizeof(RenderCommandFn) + size;
-		auto padding = totalSize % 16; // 16-byte alignment
-		buffer += padding;
-
-		mRenderCommandCount++;
+		++mCommandCount;
+		return memory;
 	}
 
 	void RenderCommandQueue::Execute()
 	{
-		NR_RENDER_TRACE("RenderCommandQueue::Execute -- {0} commands, {1} bytes", mRenderCommandCount, (mCommandBufferPtr - mCommandBuffer));
+		NR_RENDER_TRACE("RenderCommandQueue::Execute -- {0} commands, {1} bytes", mCommandCount, (mCommandBufferPtr - mCommandBuffer));
 
 		byte* buffer = mCommandBuffer;
 
-		for (int i = 0; i < mRenderCommandCount; i++)
+		for (uint32_t i = 0; i < mCommandCount; ++i)
 		{
-			RenderCommandFn fn = *(RenderCommandFn*)buffer;
+			RenderCommandFn function = *(RenderCommandFn*)buffer;
 			buffer += sizeof(RenderCommandFn);
-			buffer += (*fn)(buffer);
 
-			auto padding = (int)buffer % 16;
-			buffer += padding;
+			uint32_t size = *(uint32_t*)buffer;
+			buffer += sizeof(uint32_t);
+			function(buffer);
+			buffer += size;
 		}
 
 		mCommandBufferPtr = mCommandBuffer;
-		mRenderCommandCount = 0;
+		mCommandCount = 0;
 	}
 }

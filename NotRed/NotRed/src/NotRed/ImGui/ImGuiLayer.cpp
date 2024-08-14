@@ -10,6 +10,8 @@
 #include "NotRed/Core/Application.h"
 #include <GLFW/glfw3.h>
 
+#include "NotRed/Renderer/Renderer.h"
+
 namespace NR
 {
 	ImGuiLayer::ImGuiLayer()
@@ -60,16 +62,19 @@ namespace NR
 		ImGui_ImplOpenGL3_Init("#version 410");
 	}
 
-	void ImGuiLayer::Update()
+	void ImGuiLayer::Begin()
 	{
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+	}
 
-		static bool show_demo_window = true;
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
+	void ImGuiLayer::ImGuiRender()
+	{
+	}
 
+	void ImGuiLayer::End()
+	{
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
 		io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());

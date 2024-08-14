@@ -1,0 +1,21 @@
+#include "nrpch.h"
+#include "Texture.h"
+
+#include "NotRed/Renderer/RendererAPI.h"
+#include "NotRed/Platform/OpenGL/GLTexture.h"
+
+namespace NR
+{
+    Texture2D* Texture2D::Create(TextureFormat format, uint32_t width, uint32_t height)
+    {
+        switch (RendererAPI::Current())
+        {
+        case RendererAPIType::None: return nullptr;
+        case RendererAPIType::OpenGL: return new GLTexture2D(format, width, height);
+        default:
+        {
+            return nullptr;
+        }
+        }
+    }
+}
