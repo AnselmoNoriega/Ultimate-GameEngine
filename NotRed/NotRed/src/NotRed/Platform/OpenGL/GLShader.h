@@ -7,6 +7,8 @@ namespace NR
 {
 	class NOT_RED_API GLShader : public Shader
 	{
+		using ShaderInfo = std::pair<uint32_t, std::string>;
+
 	public:
 		GLShader(const std::string& filepath);
 

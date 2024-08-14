@@ -61,7 +61,7 @@ public:
 		Renderer::Clear(mClearColor[0], mClearColor[1], mClearColor[2], mClearColor[3]);
 
 		NR::UniformBufferDeclaration<sizeof(glm::vec4), 1> buffer;
-		buffer.Push("u_Color", mTriangleColor);
+		buffer.Push("uColor", mTriangleColor);
 		mShader->UploadUniformBuffer(buffer);
 
 		mShader->Bind();
