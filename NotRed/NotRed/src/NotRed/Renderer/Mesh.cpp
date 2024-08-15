@@ -8,6 +8,7 @@
 #include <assimp/LogStream.hpp>
 
 #include <glad/glad.h>
+#include <filesystem>
 
 namespace NR
 {
@@ -51,7 +52,10 @@ namespace NR
 
 		Assimp::Importer importer;
 
-		const aiScene* scene = importer.ReadFile(filename, ImportFlags);
+		static std::filesystem::path modelsDirectory = std::filesystem::current_path().parent_path() /
+			"Sandbox";
+
+		const aiScene* scene = importer.ReadFile((modelsDirectory / filename).string(), ImportFlags);
 		if (!scene || !scene->HasMeshes())
 			NR_CORE_ERROR("Failed to load mesh file: {0}", filename);
 

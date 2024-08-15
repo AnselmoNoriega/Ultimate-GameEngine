@@ -4,6 +4,7 @@
 #include "NotRed/Renderer/RendererAPI.h"
 #include "NotRed/Renderer/Renderer.h"
 
+#include <filesystem>
 #include <glad/glad.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -116,9 +117,11 @@ namespace NR
 	GLTextureCube::GLTextureCube(const std::string& path)
 		: mFilePath(path)
 	{
+		static std::filesystem::path modelsDirectory = std::filesystem::current_path().parent_path() /
+			"Sandbox" / path;
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(false);
-		mImageData = stbi_load(path.c_str(), &width, &height, &channels, STBI_rgb);
+		mImageData = stbi_load(modelsDirectory.string().c_str(), &width, &height, &channels, STBI_rgb);
 
 		mWidth = width;
 		mHeight = height;

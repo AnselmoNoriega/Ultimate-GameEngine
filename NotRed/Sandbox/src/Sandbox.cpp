@@ -40,7 +40,7 @@ public:
 		mSimplePBRShader.reset(NR::Shader::Create("Assets/Shaders/SimplePBR"));
 		mQuadShader.reset(NR::Shader::Create("Assets/Shaders/Quad"));
 		mHDRShader.reset(NR::Shader::Create("Assets/Shaders/HDR"));
-		mMesh.reset(new NR::Mesh("Assets/Meshes/Me.fbx"));
+		mMesh.reset(new NR::Mesh("Assets/Meshes/ZIS101Sport.fbx"));
 		mSphereMesh.reset(new NR::Mesh("Assets/Models/Sphere.fbx"));
 
 		// Editor
