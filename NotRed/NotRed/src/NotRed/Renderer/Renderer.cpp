@@ -33,10 +33,10 @@ namespace NR
 
 	}
 
-	void Renderer::DrawIndexed(uint32_t count, bool depthTest)
+	void Renderer::DrawIndexed(uint32_t count, bool depthTestActive)
 	{
-		NR_RENDER_2(count, depthTest, {
-			RendererAPI::DrawIndexed(count, depthTest);
+		NR_RENDER_2(count, depthTestActive, {
+			RendererAPI::DrawIndexed(count, depthTestActive);
 			});
 	}
 

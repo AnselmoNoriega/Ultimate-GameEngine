@@ -9,17 +9,17 @@
 
 namespace NR
 {
-	struct NOT_RED_API ShaderUniform
+	struct ShaderUniform
 	{
 
 	};
 
-	struct NOT_RED_API ShaderUniformCollection
+	struct ShaderUniformCollection
 	{
 
 	};
 
-	enum class NOT_RED_API UniformType
+	enum class UniformType
 	{
 		None,
 		Float, Float2, Float3, Float4,
@@ -27,14 +27,14 @@ namespace NR
 		Int32, Uint32
 	};
 
-	struct NOT_RED_API UniformDecl
+	struct UniformDecl
 	{
 		UniformType Type;
 		std::ptrdiff_t Offset;
 		std::string Name;
 	};
 
-	struct NOT_RED_API UniformBuffer
+	struct UniformBuffer
 	{
 		byte* Buffer;
 		std::vector<UniformDecl> Uniforms;
@@ -95,7 +95,7 @@ namespace NR
 		}
 	};
 
-	class NOT_RED_API Shader
+	class Shader
 	{
 	public:
 		virtual void Bind() = 0;

@@ -7,7 +7,7 @@
 
 namespace NR
 {
-	class NOT_RED_API Log
+	class Log
 	{
 	public:
 		static void Init();

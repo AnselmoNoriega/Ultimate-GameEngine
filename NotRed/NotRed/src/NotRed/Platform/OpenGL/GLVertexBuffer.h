@@ -4,7 +4,7 @@
 
 namespace NR
 {
-	class NOT_RED_API GLVertexBuffer : public VertexBuffer
+	class GLVertexBuffer : public VertexBuffer
 	{
 	public:
 		GLVertexBuffer(uint32_t size);

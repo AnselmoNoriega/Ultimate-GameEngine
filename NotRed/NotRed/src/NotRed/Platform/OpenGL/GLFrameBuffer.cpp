@@ -40,7 +40,6 @@ namespace NR
 			glGenTextures(1, &self->mColorAttachment);
 			glBindTexture(GL_TEXTURE_2D, self->mColorAttachment);
 
-			// TODO: Create Hazel texture object based on format here
 			if (self->mFormat == FrameBufferFormat::RGBA16F)
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, self->mWidth, self->mHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
@@ -55,15 +54,16 @@ namespace NR
 
 			glGenTextures(1, &self->mDepthAttachment);
 			glBindTexture(GL_TEXTURE_2D, self->mDepthAttachment);
-			glTexImage2D(
-				GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, self->mWidth, self->mHeight, 0,
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, self->mWidth, self->mHeight, 0,
 				GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
 			);
 
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, self->mDepthAttachment, 0);
 
 			if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			{
 				NR_CORE_ERROR("Framebuffer is incomplete!");
+			}
 
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			});

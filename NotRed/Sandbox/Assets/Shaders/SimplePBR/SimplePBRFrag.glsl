@@ -64,7 +64,7 @@ struct PBRParameters
 	float NdotV;
 };
 
-PBRParameters m_Params;
+PBRParameters mParams;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2
@@ -200,21 +200,21 @@ vec3 Lighting(vec3 F0)
 	{
 		vec3 Li = -lights.Direction;
 		vec3 Lradiance = lights.Radiance;
-		vec3 Lh = normalize(Li + m_Params.View);
+		vec3 Lh = normalize(Li + mParams.View);
 
 		// Calculate angles between surface normal and various light vectors.
-		float cosLi = max(0.0, dot(m_Params.Normal, Li));
-		float cosLh = max(0.0, dot(m_Params.Normal, Lh));
+		float cosLi = max(0.0, dot(mParams.Normal, Li));
+		float cosLh = max(0.0, dot(mParams.Normal, Lh));
 
-		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, m_Params.View)));
-		float D = ndfGGX(cosLh, m_Params.Roughness);
-		float G = gaSchlickGGX(cosLi, m_Params.NdotV, m_Params.Roughness);
+		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, mParams.View)));
+		float D = ndfGGX(cosLh, mParams.Roughness);
+		float G = gaSchlickGGX(cosLi, mParams.NdotV, mParams.Roughness);
 
-		vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
-		vec3 diffuseBRDF = kd * m_Params.Albedo;
+		vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
+		vec3 diffuseBRDF = kd * mParams.Albedo;
 
 		// Cook-Torrance
-		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * m_Params.NdotV);
+		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * mParams.NdotV);
 
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
 	}
@@ -223,23 +223,23 @@ vec3 Lighting(vec3 F0)
 
 vec3 IBL(vec3 F0, vec3 Lr)
 {
-	vec3 irradiance = texture(uEnvIrradianceTex, m_Params.Normal).rgb;
-	vec3 F = fresnelSchlickRoughness(F0, m_Params.NdotV, m_Params.Roughness);
-	vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
-	vec3 diffuseIBL = m_Params.Albedo * irradiance;
+	vec3 irradiance = texture(uEnvIrradianceTex, mParams.Normal).rgb;
+	vec3 F = fresnelSchlickRoughness(F0, mParams.NdotV, mParams.Roughness);
+	vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
+	vec3 diffuseIBL = mParams.Albedo * irradiance;
 
 	int uEnvRadianceTexLevels = textureQueryLevels(uEnvRadianceTex);
-	float NoV = clamp(m_Params.NdotV, 0.0, 1.0);
-	vec3 R = 2.0 * dot(m_Params.View, m_Params.Normal) * m_Params.Normal - m_Params.View;
+	float NoV = clamp(mParams.NdotV, 0.0, 1.0);
+	vec3 R = 2.0 * dot(mParams.View, mParams.Normal) * mParams.Normal - mParams.View;
 	vec3 specularIrradiance = vec3(0.0);
 
 	if (uRadiancePrefilter > 0.5)
-		specularIrradiance = PrefilterEnvMap(m_Params.Roughness * m_Params.Roughness, R) * uRadiancePrefilter;
+		specularIrradiance = PrefilterEnvMap(mParams.Roughness * mParams.Roughness, R) * uRadiancePrefilter;
 	else
-		specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), sqrt(m_Params.Roughness) * uEnvRadianceTexLevels).rgb * (1.0 - uRadiancePrefilter);
+		specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), sqrt(mParams.Roughness) * uEnvRadianceTexLevels).rgb * (1.0 - uRadiancePrefilter);
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
-	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(m_Params.NdotV, 1.0 - m_Params.Roughness)).rg;
+	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(mParams.NdotV, 1.0 - mParams.Roughness)).rg;
 	vec3 specularIBL = specularIrradiance * (F * specularBRDF.x + specularBRDF.y);
 
 	return kd * diffuseIBL + specularIBL;
@@ -248,27 +248,27 @@ vec3 IBL(vec3 F0, vec3 Lr)
 void main()
 {
 	// Standard PBR inputs
-	m_Params.Albedo = uAlbedoTexToggle > 0.5 ? texture(uAlbedoTexture, vsInput.TexCoord).rgb : uAlbedoColor; 
-	m_Params.Metalness = uMetalnessTexToggle > 0.5 ? texture(uMetalnessTexture, vsInput.TexCoord).r : uMetalness;
-	m_Params.Roughness = uRoughnessTexToggle > 0.5 ?  texture(uRoughnessTexture, vsInput.TexCoord).r : uRoughness;
-    m_Params.Roughness = max(m_Params.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
+	mParams.Albedo = uAlbedoTexToggle > 0.5 ? texture(uAlbedoTexture, vsInput.TexCoord).rgb : uAlbedoColor; 
+	mParams.Metalness = uMetalnessTexToggle > 0.5 ? texture(uMetalnessTexture, vsInput.TexCoord).r : uMetalness;
+	mParams.Roughness = uRoughnessTexToggle > 0.5 ?  texture(uRoughnessTexture, vsInput.TexCoord).r : uRoughness;
+    mParams.Roughness = max(mParams.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
 
 	// Normals (either from vertex or map)
-	m_Params.Normal = normalize(vsInput.Normal);
+	mParams.Normal = normalize(vsInput.Normal);
 	if (uNormalTexToggle > 0.5)
 	{
-		m_Params.Normal = normalize(2.0 * texture(uNormalTexture, vsInput.TexCoord).rgb - 1.0);
-		m_Params.Normal = normalize(vsInput.WorldNormals * m_Params.Normal);
+		mParams.Normal = normalize(2.0 * texture(uNormalTexture, vsInput.TexCoord).rgb - 1.0);
+		mParams.Normal = normalize(vsInput.WorldNormals * mParams.Normal);
 	}
 
-	m_Params.View = normalize(uCameraPosition - vsInput.WorldPosition);
-	m_Params.NdotV = max(dot(m_Params.Normal, m_Params.View), 0.0);
+	mParams.View = normalize(uCameraPosition - vsInput.WorldPosition);
+	mParams.NdotV = max(dot(mParams.Normal, mParams.View), 0.0);
 
 	// Specular reflection vector
-	vec3 Lr = 2.0 * m_Params.NdotV * m_Params.Normal - m_Params.View;
+	vec3 Lr = 2.0 * mParams.NdotV * mParams.Normal - mParams.View;
 
 	// Fresnel reflectance, metals use albedo
-	vec3 F0 = mix(Fdielectric, m_Params.Albedo, m_Params.Metalness);
+	vec3 F0 = mix(Fdielectric, mParams.Albedo, mParams.Metalness);
 
 	vec3 lightContribution = Lighting(F0);
 	vec3 iblContribution = IBL(F0, Lr);

@@ -5,7 +5,7 @@
 
 namespace NR
 {
-	class NOT_RED_API Renderer
+	class Renderer
 	{
 	public:
 		typedef void(*RenderCommandFn)(void*);
@@ -14,7 +14,7 @@ namespace NR
 		static void Clear(float r, float g, float b, float a = 1.0f);
 		static void SetClearColor(float r, float g, float b, float a);
 
-		static void DrawIndexed(uint32_t count, bool depthTest = true);
+		static void DrawIndexed(uint32_t count, bool depthTestActive = true);
 
 		static void ClearMagenta();
 

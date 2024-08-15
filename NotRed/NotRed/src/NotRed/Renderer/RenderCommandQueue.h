@@ -4,7 +4,7 @@
 
 namespace NR
 {
-	class NOT_RED_API RenderCommandQueue
+	class RenderCommandQueue
 	{
 	public:
 		typedef void(*RenderCommandFn)(void*);

@@ -4,7 +4,7 @@
 
 namespace NR
 {
-	class NOT_RED_API VertexBuffer
+	class VertexBuffer
 	{
 	public:
 		virtual ~VertexBuffer() {}

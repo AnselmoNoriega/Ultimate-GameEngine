@@ -10,7 +10,7 @@
 
 namespace NR
 {
-    class NOT_RED_API Application
+    class Application
     {
     public:
         Application();

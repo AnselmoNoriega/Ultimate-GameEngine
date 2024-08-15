@@ -6,7 +6,7 @@
 
 namespace NR
 {
-    class NOT_RED_API WindowCloseEvent : public Event
+    class WindowCloseEvent : public Event
     {
     public:
         WindowCloseEvent() = default;
@@ -15,7 +15,7 @@ namespace NR
             EVENT_CLASS_CATEGORY(EventCategoryApplication)
     };
 
-    class NOT_RED_API WindowResizeEvent : public Event
+    class WindowResizeEvent : public Event
     {
     public:
         WindowResizeEvent(unsigned int width, unsigned int height)
@@ -38,7 +38,7 @@ namespace NR
         unsigned int mWidth, mHeight;
     };
 
-    class NOT_RED_API AppTickEvent : public Event
+    class AppTickEvent : public Event
     {
     public:
         AppTickEvent() = default;
@@ -47,7 +47,7 @@ namespace NR
             EVENT_CLASS_CATEGORY(EventCategoryApplication)
     };
 
-    class NOT_RED_API AppUpdateEvent : public Event
+    class AppUpdateEvent : public Event
     {
     public:
         AppUpdateEvent() = default;
@@ -56,7 +56,7 @@ namespace NR
             EVENT_CLASS_CATEGORY(EventCategoryApplication)
     };
 
-    class NOT_RED_API AppRenderEvent : public Event
+    class AppRenderEvent : public Event
     {
     public:
         AppRenderEvent() = default;

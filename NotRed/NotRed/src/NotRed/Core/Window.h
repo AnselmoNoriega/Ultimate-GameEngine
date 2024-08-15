@@ -21,7 +21,7 @@ namespace NR
 		}
 	};
 
-	class NOT_RED_API Window
+	class Window
 	{
 	public:
 		using EventCallbackFn = std::function<void(Event&)>;

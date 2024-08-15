@@ -41,6 +41,7 @@ namespace NR
 		const std::vector<FrameBuffer*>& GetAll() const { return mPool; }
 
 		inline static FrameBufferPool* GetGlobal() { return sInstance; }
+
 	private:
 		std::vector<FrameBuffer*> mPool;
 

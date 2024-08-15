@@ -5,14 +5,14 @@
 
 namespace NR
 {
-	enum class NOT_RED_API TextureFormat
+	enum class TextureFormat
 	{
 		None,
 		RGB,
 		RGBA
 	};
 
-	class NOT_RED_API Texture
+	class Texture
 	{
 	public:
 		virtual ~Texture() {}
@@ -20,7 +20,7 @@ namespace NR
 		virtual RendererID GetRendererID() const = 0;
 	};
 
-	class NOT_RED_API Texture2D : public Texture
+	class Texture2D : public Texture
 	{
 	public:
 		static Texture2D* Create(TextureFormat format, uint32_t width, uint32_t height);

@@ -4,7 +4,7 @@
 
 namespace NR
 {
-	class NOT_RED_API GLIndexBuffer : public IndexBuffer
+	class GLIndexBuffer : public IndexBuffer
 	{
 	public:
 		GLIndexBuffer(uint32_t size);

@@ -7,7 +7,7 @@
 
 namespace NR
 {
-	class NOT_RED_API LayerStack
+	class LayerStack
 	{
 	public:
 		LayerStack();

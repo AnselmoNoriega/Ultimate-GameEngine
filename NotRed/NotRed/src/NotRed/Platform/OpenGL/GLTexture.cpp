@@ -6,6 +6,7 @@
 
 #include <filesystem>
 #include <glad/glad.h>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -133,16 +134,18 @@ namespace NR
 
 		std::array<unsigned char*, 6> faces;
 		for (size_t i = 0; i < faces.size(); ++i)
+		{
 			faces[i] = new unsigned char[faceWidth * faceHeight * 3]; // 3 BPP
+		}
 
 		int faceIndex = 0;
 
 		for (size_t i = 0; i < 4; ++i)
 		{
-			for (size_t y = 0; y < faceHeight; y++)
+			for (size_t y = 0; y < faceHeight; ++y)
 			{
 				size_t yOffset = y + faceHeight;
-				for (size_t x = 0; x < faceWidth; x++)
+				for (size_t x = 0; x < faceWidth; ++x)
 				{
 					size_t xOffset = x + i * faceWidth;
 					faces[faceIndex][(x + y * faceWidth) * 3 + 0] = mImageData[(xOffset + yOffset * mWidth) * 3 + 0];
@@ -150,19 +153,21 @@ namespace NR
 					faces[faceIndex][(x + y * faceWidth) * 3 + 2] = mImageData[(xOffset + yOffset * mWidth) * 3 + 2];
 				}
 			}
-			faceIndex++;
+			++faceIndex;
 		}
 
 		for (size_t i = 0; i < 3; ++i)
 		{
 			// Skip the middle one
 			if (i == 1)
+			{
 				continue;
+			}
 
-			for (size_t y = 0; y < faceHeight; y++)
+			for (size_t y = 0; y < faceHeight; ++y)
 			{
 				size_t yOffset = y + i * faceHeight;
-				for (size_t x = 0; x < faceWidth; x++)
+				for (size_t x = 0; x < faceWidth; ++x)
 				{
 					size_t xOffset = x + faceWidth;
 					faces[faceIndex][(x + y * faceWidth) * 3 + 0] = mImageData[(xOffset + yOffset * mWidth) * 3 + 0];

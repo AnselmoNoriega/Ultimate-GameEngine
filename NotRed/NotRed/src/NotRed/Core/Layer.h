@@ -4,7 +4,7 @@
 
 namespace NR
 {
-	class NOT_RED_API Layer
+	class Layer
 	{
 	public:
 		Layer(const std::string& name = "Layer");

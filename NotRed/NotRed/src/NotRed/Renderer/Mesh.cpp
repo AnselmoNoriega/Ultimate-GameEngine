@@ -57,7 +57,9 @@ namespace NR
 
 		const aiScene* scene = importer.ReadFile((modelsDirectory / filename).string(), ImportFlags);
 		if (!scene || !scene->HasMeshes())
+		{
 			NR_CORE_ERROR("Failed to load mesh file: {0}", filename);
+		}
 
 		aiMesh* mesh = scene->mMeshes[0];
 
@@ -66,8 +68,7 @@ namespace NR
 
 		mVertices.reserve(mesh->mNumVertices);
 
-		// Extract vertices from model
-		for (size_t i = 0; i < mVertices.capacity(); i++)
+		for (size_t i = 0; i < mVertices.capacity(); ++i)
 		{
 			Vertex vertex;
 			vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
@@ -80,16 +81,17 @@ namespace NR
 			}
 
 			if (mesh->HasTextureCoords(0))
+			{
 				vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+			}
 			mVertices.push_back(vertex);
 		}
 
 		mVertexBuffer.reset(VertexBuffer::Create());
 		mVertexBuffer->SetData(mVertices.data(), mVertices.size() * sizeof(Vertex));
 
-		// Extract indices from model
 		mIndices.reserve(mesh->mNumFaces);
-		for (size_t i = 0; i < mIndices.capacity(); i++)
+		for (size_t i = 0; i < mIndices.capacity(); ++i)
 		{
 			NR_CORE_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Must have 3 indices.");
 			mIndices.push_back({ mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] });
@@ -97,6 +99,7 @@ namespace NR
 
 		mIndexBuffer.reset(IndexBuffer::Create());
 		mIndexBuffer->SetData(mIndices.data(), mIndices.size() * sizeof(Index));
+		//TODO: do that for all meshes
 	}
 
 	Mesh::~Mesh()
@@ -105,7 +108,6 @@ namespace NR
 
 	void Mesh::Render()
 	{
-		// TODO: Sort this out
 		mVertexBuffer->Bind();
 		mIndexBuffer->Bind();
 		NR_RENDER_S({

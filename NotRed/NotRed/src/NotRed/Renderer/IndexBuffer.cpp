@@ -5,7 +5,7 @@
 
 namespace NR
 {
-    IndexBuffer* IndexBuffer::Create(unsigned int size)
+    IndexBuffer* IndexBuffer::Create(uint32_t size)
     {
         switch (RendererAPI::Current())
         {

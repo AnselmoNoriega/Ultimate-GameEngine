@@ -4,7 +4,7 @@ namespace NR
 {
 	using RendererID = uint32_t;
 
-	enum class NOT_RED_API RendererAPIType
+	enum class RendererAPIType
 	{
 		None,
 		OpenGL
@@ -20,7 +20,7 @@ namespace NR
 		float MaxAnisotropy;
 	};
 
-	class NOT_RED_API RendererAPI
+	class RendererAPI
 	{
 	public:
 		static void Init();
@@ -29,7 +29,7 @@ namespace NR
 		static void Clear(float r, float g, float b, float a);
 		static void SetClearColor(float r, float g, float b, float a);
 
-		static void DrawIndexed(unsigned int count, bool depthTest = true);
+		static void DrawIndexed(uint32_t count, bool depthTestActive = true);
 
 		static RenderAPICapabilities& GetCapabilities()
 		{

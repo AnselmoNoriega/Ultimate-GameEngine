@@ -20,7 +20,7 @@ namespace NR
 
 	FrameBufferPool* FrameBufferPool::sInstance = new FrameBufferPool;
 
-	FrameBufferPool::FrameBufferPool(uint32_t maxFBs /* = 32 */)
+	FrameBufferPool::FrameBufferPool(uint32_t maxFBs)
 	{
 
 	}

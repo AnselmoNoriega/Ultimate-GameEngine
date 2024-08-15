@@ -55,9 +55,9 @@ namespace NR
 		glClearColor(r, g, b, a);
 	}
 
-	void RendererAPI::DrawIndexed(uint32_t count, bool depthTest)
+	void RendererAPI::DrawIndexed(uint32_t count, bool depthTestActive)
 	{
-		if (depthTest)
+		if (depthTestActive)
 		{
 			glEnable(GL_DEPTH_TEST);
 		}

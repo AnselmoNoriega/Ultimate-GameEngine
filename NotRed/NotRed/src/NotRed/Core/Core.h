@@ -13,7 +13,7 @@ namespace NR
 #endif
 
 #ifdef NR_PLATFORM_WINDOWS
-	#define NOT_RED_API 
+	#define 
 #else
 	#error NotRed only supports Windows!
 #endif

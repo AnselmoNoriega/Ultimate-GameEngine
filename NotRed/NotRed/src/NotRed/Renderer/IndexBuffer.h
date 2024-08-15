@@ -4,7 +4,7 @@
 
 namespace NR
 {
-	class NOT_RED_API IndexBuffer
+	class IndexBuffer
 	{
 	public:
 		virtual ~IndexBuffer() {}
