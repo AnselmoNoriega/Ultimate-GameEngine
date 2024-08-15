@@ -12,12 +12,6 @@ namespace NR
 	#define NR_ENABLE_ASSERTS
 #endif
 
-#ifdef NR_PLATFORM_WINDOWS
-	#define 
-#else
-	#error NotRed only supports Windows!
-#endif
-
 #ifdef NR_ENABLE_ASSERTS
 	#define NR_ASSERT(x, ...) { if(!(x)) { NR_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }
 	#define NR_CORE_ASSERT(x, ...) { if(!(x)) { NR_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); __debugbreak(); } }

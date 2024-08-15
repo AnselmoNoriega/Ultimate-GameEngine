@@ -13,8 +13,7 @@ class EditorLayer : public NR::Layer
 {
 public:
     EditorLayer()
-        : mClearColor{ 0.1f, 0.1f, 0.1f, 1.0f }, mScene(Scene::Spheres),
-        mCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
+        : mScene(Scene::Spheres), mCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
     {
     }
 
@@ -88,7 +87,7 @@ public:
         auto viewProjection = mCamera.GetProjectionMatrix() * mCamera.GetViewMatrix();
 
         mFramebuffer->Bind();
-        Renderer::Clear(mClearColor[0], mClearColor[1], mClearColor[2], mClearColor[3]);
+        Renderer::Clear();
 
         NR::UniformBufferDeclaration<sizeof(mat4), 1> quadShaderUB;
         quadShaderUB.Push("uInverseVP", inverse(viewProjection));
@@ -187,6 +186,87 @@ public:
         mFinalPresentBuffer->Unbind();
     }
 
+    enum class PropertyFlag
+    {
+        None = 0, ColorProperty = 1
+    };
+
+    void Property(const std::string& name, bool& value)
+    {
+        ImGui::Text(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        std::string id = "##" + name;
+        ImGui::Checkbox(id.c_str(), &value);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+    }
+
+    void Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None)
+    {
+        ImGui::Text(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        std::string id = "##" + name;
+        ImGui::SliderFloat(id.c_str(), &value, min, max);
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+    }
+
+    void Property(const std::string& name, glm::vec3& value, PropertyFlag flags)
+    {
+        Property(name, value, -1.0f, 1.0f, flags);
+    }
+
+    void Property(const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None)
+    {
+        ImGui::Text(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        std::string id = "##" + name;
+        if ((int)flags & (int)PropertyFlag::ColorProperty)
+        {
+            ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+        }
+        else
+        {
+            ImGui::SliderFloat3(id.c_str(), glm::value_ptr(value), min, max);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+    }
+
+    void Property(const std::string& name, glm::vec4& value, PropertyFlag flags)
+    {
+        Property(name, value, -1.0f, 1.0f, flags);
+    }
+
+    void Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None)
+    {
+        ImGui::Text(name.c_str());
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        std::string id = "##" + name;
+        if ((int)flags & (int)PropertyFlag::ColorProperty)
+        {
+            ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+        }
+        else
+        {
+            ImGui::SliderFloat4(id.c_str(), glm::value_ptr(value), min, max);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+    }
+
     virtual void ImGuiRender() override
     {
         static bool p_open = true;
@@ -230,26 +310,28 @@ public:
         }
 
         // Editor Panel ------------------------------------------------------------------------------
-        ImGui::Begin("Settings");
+        ImGui::Begin("Model");
 
         ImGui::RadioButton("Spheres", (int*)&mScene, (int)Scene::Spheres);
         ImGui::SameLine();
         ImGui::RadioButton("Model", (int*)&mScene, (int)Scene::Model);
 
-        ImGui::ColorEdit4("Clear Color", mClearColor);
+        ImGui::Begin("Environment");
 
-        ImGui::SliderFloat3("Light Dir", glm::value_ptr(mLight.Direction), -1, 1);
-        ImGui::ColorEdit3("Light Radiance", glm::value_ptr(mLight.Radiance));
-        ImGui::SliderFloat("Light Multiplier", &mLightMultiplier, 0.0f, 5.0f);
-        ImGui::SliderFloat("Exposure", &mExposure, 0.0f, 10.0f);
-        auto cameraForward = mCamera.GetForwardDirection();
-        ImGui::Text("Camera Forward: %.2f, %.2f, %.2f", cameraForward.x, cameraForward.y, cameraForward.z);
+        ImGui::Columns(2);
+        ImGui::AlignTextToFramePadding();
 
-        ImGui::Separator();
+        Property("Light Direction", mLight.Direction);
+        Property("Light Radiance", mLight.Radiance, PropertyFlag::ColorProperty);
+        Property("Light Multiplier", mLightMultiplier, 0.0f, 5.0f);
+        Property("Exposure", mExposure, 0.0f, 5.0f);
 
-        ImGui::Text("Shader Parameters");
-        ImGui::Checkbox("Radiance Prefiltering", &mRadiancePrefilter);
-        ImGui::SliderFloat("Env Map Rotation", &mEnvMapRotation, -360.0f, 360.0f);
+        Property("Radiance Prefiltering", mRadiancePrefilter);
+        Property("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
+
+        ImGui::Columns(1);
+
+        ImGui::End();
 
         ImGui::Separator();
 
@@ -435,8 +517,6 @@ public:
     }
 
 private:
-    float mClearColor[4];
-
     std::unique_ptr<NR::Shader> mShader;
     std::unique_ptr<NR::Shader> mPBRShader;
     std::unique_ptr<NR::Shader> mSimplePBRShader;

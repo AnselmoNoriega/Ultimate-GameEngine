@@ -13,7 +13,9 @@ namespace NR
 
 	void Renderer::Clear()
 	{
-
+		NR_RENDER({
+			RendererAPI::Clear(0.0f, 0.0f, 0.0f, 1.0f);
+			});
 	}
 
 	void Renderer::Clear(float r, float g, float b, float a)

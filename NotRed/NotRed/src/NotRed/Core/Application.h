@@ -43,7 +43,7 @@ namespace NR
         static Application* sInstance;
 
         std::unique_ptr<Window> mWindow;
-        bool mRunning = true;
+        bool mRunning = true, mMinimized = false;
 
         LayerStack mLayerStack;
         ImGuiLayer* mImGuiLayer;

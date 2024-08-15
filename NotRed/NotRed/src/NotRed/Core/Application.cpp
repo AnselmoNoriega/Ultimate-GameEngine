@@ -72,15 +72,17 @@ namespace NR
 
         while (mRunning)
         {
-            for (Layer* layer : mLayerStack)
+            if (!mMinimized)
             {
-                layer->Update();
+                for (Layer* layer : mLayerStack)
+                {
+                    layer->Update();
+                }
+                Application* app = this;
+                NR_RENDER_1(app, { app->RenderImGui(); });
+
+                Renderer::Get().WaitAndRender();
             }
-
-            Application* app = this;
-            NR_RENDER_1(app, { app->RenderImGui(); });
-
-            Renderer::Get().WaitAndRender();
 
             mWindow->Update();
         }
@@ -107,6 +109,13 @@ namespace NR
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {
         int width = e.GetWidth(), height = e.GetHeight();
+        if (width == 0 || height == 0)
+        {
+            mMinimized = true;
+            return false;
+        }
+        mMinimized = false;
+
         NR_RENDER_2(width, height, { glViewport(0, 0, width, height); });
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)
@@ -125,7 +134,7 @@ namespace NR
 
     std::string Application::OpenFile(const std::string& filter) const
     {
-        OPENFILENAMEA ofn;       
+        OPENFILENAMEA ofn;
         CHAR szFile[260] = { 0 };
 
         // Initialize OPENFILENAME
