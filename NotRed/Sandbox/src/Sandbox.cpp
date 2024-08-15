@@ -47,8 +47,8 @@ public:
 		mCheckerboardTex.reset(NR::Texture2D::Create("Assets/Editor/Checkerboard.tga"));
 
 		// Environment
-		mEnvironmentCubeMap.reset(NR::TextureCube::Create("Assets/Textures/Environments/ArchesE_PineTree_Radiance.tga"));
-		mEnvironmentIrradiance.reset(NR::TextureCube::Create("Assets/Textures/Environments/ArchesE_PineTree_Irradiance.tga"));
+		mEnvironmentCubeMap.reset(NR::TextureCube::Create("Assets/Textures/Environments/Arches_E_PineTree_Radiance.tga"));
+		mEnvironmentIrradiance.reset(NR::TextureCube::Create("Assets/Textures/Environments/Arches_E_PineTree_Irradiance.tga"));
 		mBRDFLUT.reset(NR::Texture2D::Create("Assets/Textures/BRDF_LUT.tga"));
 
 		mFramebuffer.reset(NR::FrameBuffer::Create(1280, 720, NR::FrameBufferFormat::RGBA16F));
