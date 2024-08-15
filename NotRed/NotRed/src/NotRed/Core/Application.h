@@ -29,6 +29,8 @@ namespace NR
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* layer);
 
+        std::string OpenFile(const std::string& filter) const;
+
         inline Window& GetWindow() { return *mWindow; }
 
         static inline Application& Get() { return *sInstance; }

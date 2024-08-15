@@ -16,6 +16,8 @@ namespace NR
 		uint32_t GetSize() const  override { return mSize; }
 		RendererID GetRendererID() const  override { return mID; }
 
+		uint32_t GetCount() const override { return mSize / sizeof(uint32_t); }
+
 	private:
 		RendererID mID;
 		uint32_t mSize;

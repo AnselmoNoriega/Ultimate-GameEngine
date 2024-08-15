@@ -8,7 +8,7 @@ workspace "NotRed"
         "Release",
         "Dist"
     }
-    
+
 	startproject "Sandbox"
     
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -51,7 +51,9 @@ project "NotRed"
         "%{IncludeDir.GLFW}",
         "%{IncludeDir.Glad}",
         "%{IncludeDir.GLM}",
-        "%{IncludeDir.ImGui}"
+        "%{IncludeDir.ImGui}",
+        "%{prj.name}/vendor/assimp/include",
+        "%{prj.name}/vendor/stb_image"
     }
     
     links 
@@ -59,7 +61,8 @@ project "NotRed"
         "GLFW",
         "Glad",
         "ImGui",
-		"opengl32.lib"
+		"opengl32.lib",
+        "NotRed/vendor/assimp/win64/assimp.lib"
     }
     
 	filter "system:windows"
@@ -95,7 +98,8 @@ project "Sandbox"
 
 	links 
 	{ 
-		"NotRed"
+		"NotRed",
+        "NotRed/vendor/assimp/win64/assimp.lib"
     }
     
 	files 

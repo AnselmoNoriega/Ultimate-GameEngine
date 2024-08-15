@@ -1,11 +1,19 @@
 #include "nrpch.h"
 #include "GLShader.h"
 
+#include <string>
 #include <sstream>
 #include <limits>
 
 namespace NR
 {
+#define UNIFORM_LOGGING 0
+#if UNIFORM_LOGGING
+    #define NR_LOG_UNIFORM(...) NR_CORE_WARN(__VA_ARGS__)
+#else
+    #define NR_LOG_UNIFORM
+#endif
+
     GLShader::GLShader(const std::string& filepath)
     {
         mName = GetShaderName(filepath);
@@ -129,11 +137,23 @@ namespace NR
         {
             glDetachShader(program, shaders[i].first);
         }
+
+        UploadUniformInt("u_Texture", 0);
+
+        UploadUniformInt("uAlbedoTexture", 1);
+        UploadUniformInt("uNormalTexture", 2);
+        UploadUniformInt("uMetalnessTexture", 3);
+        UploadUniformInt("uRoughnessTexture", 4);
+
+        UploadUniformInt("uEnvRadianceTex", 10);
+        UploadUniformInt("uEnvIrradianceTex", 11);
+
+        UploadUniformInt("uBRDFLUTTexture", 15);
     }
 
     void GLShader::UploadUniformBuffer(const UniformBufferBase& uniformBuffer)
     {
-        for (unsigned int i = 0; i < uniformBuffer.GetUniformCount(); i++)
+        for (unsigned int i = 0; i < uniformBuffer.GetUniformCount(); ++i)
         {
             const UniformDecl& decl = uniformBuffer.GetUniforms()[i];
             switch (decl.Type)
@@ -146,6 +166,14 @@ namespace NR
                     self->UploadUniformFloat(name, value);
                     });
             }
+            case UniformType::Float3:
+            {
+                const std::string& name = decl.Name;
+                glm::vec3& values = *(glm::vec3*)(uniformBuffer.GetBuffer() + decl.Offset);
+                NR_RENDER_S2(name, values, {
+                    self->UploadUniformFloat3(name, values);
+                    });
+            }
             case UniformType::Float4:
             {
                 const std::string& name = decl.Name;
@@ -154,19 +182,111 @@ namespace NR
                     self->UploadUniformFloat4(name, values);
                     });
             }
+            case UniformType::Matrix4x4:
+            {
+                const std::string& name = decl.Name;
+                glm::mat4& values = *(glm::mat4*)(uniformBuffer.GetBuffer() + decl.Offset);
+                NR_RENDER_S2(name, values, {
+                    self->UploadUniformMat4(name, values);
+                    });
+            }
             }
         }
+    }
+
+    void GLShader::SetFloat(const std::string& name, float value)
+    {
+        NR_RENDER_S2(name, value, {
+            self->UploadUniformFloat(name, value);
+            });
+    }
+
+    void GLShader::SetMat4(const std::string& name, const glm::mat4& value)
+    {
+        NR_RENDER_S2(name, value, {
+            self->UploadUniformMat4(name, value);
+            });
+    }
+
+    void GLShader::UploadUniformInt(const std::string& name, int value)
+    {
+        glUseProgram(mID);
+        auto location = glGetUniformLocation(mID, name.c_str());
+        if (location != -1)
+            glUniform1i(location, value);
+        else
+            NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
     }
 
     void GLShader::UploadUniformFloat(const std::string& name, float value)
     {
         glUseProgram(mID);
-        glUniform1f(glGetUniformLocation(mID, name.c_str()), value);
+
+        auto location = glGetUniformLocation(mID, name.c_str());
+        if (location != -1)
+        {
+            glUniform1f(location, value);
+        }
+        else
+        {
+            NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
+        }
+    }
+
+    void GLShader::UploadUniformFloat2(const std::string& name, const glm::vec2& values)
+    {
+        glUseProgram(mID);
+        auto location = glGetUniformLocation(mID, name.c_str());
+        if (location != -1)
+        {
+            glUniform2f(location, values.x, values.y);
+        }
+        else
+        {
+            NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
+        }
+    }
+
+    void GLShader::UploadUniformFloat3(const std::string& name, const glm::vec3& values)
+    {
+        glUseProgram(mID);
+        auto location = glGetUniformLocation(mID, name.c_str());
+        if (location != -1)
+        {
+            glUniform3f(location, values.x, values.y, values.z);
+        }
+        else
+        {
+            NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
+        }
     }
 
     void GLShader::UploadUniformFloat4(const std::string& name, const glm::vec4& values)
     {
         glUseProgram(mID);
-        glUniform4f(glGetUniformLocation(mID, name.c_str()), values.x, values.y, values.z, values.w);
+
+        auto location = glGetUniformLocation(mID, name.c_str());
+        if (location != -1)
+        {
+            glUniform4f(location, values.x, values.y, values.z, values.w);
+        }
+        else
+        {
+            NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
+        }
+    }
+
+    void GLShader::UploadUniformMat4(const std::string& name, const glm::mat4& values)
+    {
+        glUseProgram(mID);
+        auto location = glGetUniformLocation(mID, name.c_str());
+        if (location != -1)
+        {
+            glUniformMatrix4fv(location, 1, GL_FALSE, (const float*)&values);
+        }
+        else
+        {
+            NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
+        }
     }
 }

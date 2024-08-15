@@ -49,6 +49,9 @@
     <ClInclude Include="src\NotRed\Core\Input.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\KeyCodes.h">
+      <Filter>NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Layer.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
@@ -91,10 +94,16 @@
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Camera.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Mesh.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h">
@@ -166,7 +175,16 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp">
       <Filter>NotRed\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Camera.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Mesh.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp">

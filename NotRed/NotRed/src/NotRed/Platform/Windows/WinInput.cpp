@@ -8,6 +8,8 @@
 
 namespace NR
 {
+	Input* Input::sInstance = new WindowsInput;
+
 	bool WindowsInput::IsKeyPressedImpl(int keycode)
 	{
 		auto& window = static_cast<WinWindow&>(Application::Get().GetWindow());

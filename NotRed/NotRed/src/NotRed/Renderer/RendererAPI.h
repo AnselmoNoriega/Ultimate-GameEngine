@@ -8,6 +8,16 @@ namespace NR
 	{
 		None,
 		OpenGL
+	}; 
+	
+	struct RenderAPICapabilities
+	{
+		std::string Vendor;
+		std::string Renderer;
+		std::string Version;
+
+		int MaxSamples;
+		float MaxAnisotropy;
 	};
 
 	class NOT_RED_API RendererAPI
@@ -19,7 +29,13 @@ namespace NR
 		static void Clear(float r, float g, float b, float a);
 		static void SetClearColor(float r, float g, float b, float a);
 
-		static void DrawIndexed(uint32_t count);
+		static void DrawIndexed(unsigned int count, bool depthTest = true);
+
+		static RenderAPICapabilities& GetCapabilities()
+		{
+			static RenderAPICapabilities capabilities;
+			return capabilities;
+		}
 
 		static RendererAPIType Current() { return sCurrentRendererAPI; }
 

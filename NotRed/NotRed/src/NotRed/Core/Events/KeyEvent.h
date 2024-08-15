@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Event.h"
+#include "NotRed/Core/KeyCodes.h"
 
 #include <sstream>
 

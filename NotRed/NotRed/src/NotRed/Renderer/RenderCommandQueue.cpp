@@ -34,8 +34,6 @@ namespace NR
 
 	void RenderCommandQueue::Execute()
 	{
-		NR_RENDER_TRACE("RenderCommandQueue::Execute -- {0} commands, {1} bytes", mCommandCount, (mCommandBufferPtr - mCommandBuffer));
-
 		byte* buffer = mCommandBuffer;
 
 		for (uint32_t i = 0; i < mCommandCount; ++i)

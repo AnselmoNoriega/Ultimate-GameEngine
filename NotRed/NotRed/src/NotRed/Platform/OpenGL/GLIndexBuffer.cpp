@@ -22,6 +22,8 @@ namespace NR
 
 	void GLIndexBuffer::SetData(void* buffer, uint32_t size, uint32_t offset)
 	{
+		mSize = size;
+
 		NR_RENDER_S3(buffer, size, offset, {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->mID);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, size, buffer, GL_STATIC_DRAW);

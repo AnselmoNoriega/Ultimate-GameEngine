@@ -18,4 +18,24 @@ namespace NR
         }
         }
     }
+
+	Texture2D* Texture2D::Create(const std::string& path, bool standardRGB)
+	{
+		switch (RendererAPI::Current())
+		{
+		case RendererAPIType::None: return nullptr;
+		case RendererAPIType::OpenGL: return new GLTexture2D(path, standardRGB);
+		}
+		return nullptr;
+	}
+
+	TextureCube* TextureCube::Create(const std::string& path)
+	{
+		switch (RendererAPI::Current())
+		{
+		case RendererAPIType::None: return nullptr;
+		case RendererAPIType::OpenGL: return new GLTextureCube(path);
+		}
+		return nullptr;
+	}
 }

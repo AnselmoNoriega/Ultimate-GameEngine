@@ -12,7 +12,7 @@ namespace NR
 
 		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
 		void Bind() const override;
-		 
+
 		uint32_t GetSize() const override { return mSize; }
 		RendererID GetRendererID() const override { return mID; }
 

@@ -5,11 +5,11 @@ namespace NR
 	class Input
 	{
 	public:
-		static bool IsKeyPressed(int keycode) { return sInstance->IsKeyPressed(keycode); }
+		static bool IsKeyPressed(int keycode) { return sInstance->IsKeyPressedImpl(keycode); }
 
-		inline static bool IsMouseButtonPressed(int button) { return sInstance->IsMouseButtonPressed(button); }
-		inline static float GetMouseX() { return sInstance->GetMouseX(); }
-		inline static float GetMouseY() { return sInstance->GetMouseY(); }
+		inline static bool IsMouseButtonPressed(int button) { return sInstance->IsMouseButtonPressedImpl(button); }
+		inline static float GetMouseX() { return sInstance->GetMouseXImpl(); }
+		inline static float GetMouseY() { return sInstance->GetMouseYImpl(); }
 
 	protected:
 		virtual bool IsKeyPressedImpl(int keycode) = 0;

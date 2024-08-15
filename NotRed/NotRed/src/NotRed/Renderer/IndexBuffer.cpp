@@ -5,14 +5,16 @@
 
 namespace NR
 {
-	IndexBuffer* IndexBuffer::Create(uint32_t size)
-	{
-		switch (RendererAPI::Current())
-		{
-		case RendererAPIType::None:    return nullptr;
-		case RendererAPIType::OpenGL:  return new GLIndexBuffer(size);
-		}
-		return nullptr;
-
-	}
+    IndexBuffer* IndexBuffer::Create(unsigned int size)
+    {
+        switch (RendererAPI::Current())
+        {
+        case RendererAPIType::None:    return nullptr;
+        case RendererAPIType::OpenGL:  return new GLIndexBuffer(size);
+        default:
+        {
+            return nullptr;
+        }
+        }
+    }
 }
