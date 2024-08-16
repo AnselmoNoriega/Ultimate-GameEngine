@@ -23,6 +23,7 @@ namespace NR
 
         mWindow = std::unique_ptr<Window>(Window::Create());
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        mWindow->SetVSync(false);
 
         mImGuiLayer = new ImGuiLayer("ImGui");
         PushOverlay(mImGuiLayer);
@@ -44,6 +45,7 @@ namespace NR
         ImGui::Text("Vendor: %s", caps.Vendor.c_str());
         ImGui::Text("Renderer: %s", caps.Renderer.c_str());
         ImGui::Text("Version: %s", caps.Version.c_str());
+        ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
         ImGui::End();
 
         for (Layer* layer : mLayerStack)
@@ -76,7 +78,7 @@ namespace NR
             {
                 for (Layer* layer : mLayerStack)
                 {
-                    layer->Update();
+                    layer->Update((float)mTimeFrame);
                 }
                 Application* app = this;
                 NR_RENDER_1(app, { app->RenderImGui(); });
@@ -85,6 +87,10 @@ namespace NR
             }
 
             mWindow->Update();
+
+            float time = GetTime();
+            mTimeFrame = time - mLastFrameTime;
+            mLastFrameTime = time;
         }
 
         Shutdown();
@@ -155,5 +161,10 @@ namespace NR
             return ofn.lpstrFile;
         }
         return std::string();
+    }
+
+    float Application::GetTime() const
+    {
+        return (float)glfwGetTime();
     }
 }

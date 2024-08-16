@@ -143,8 +143,11 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Renderer\Material.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
+    <ClInclude Include="src\NotRed\Core\Buffer.h" />
     <ClInclude Include="src\NotRed\Core\Core.h" />
     <ClInclude Include="src\NotRed\Core\Events\ApplicationEvent.h" />
     <ClInclude Include="src\NotRed\Core\Events\Event.h" />
@@ -156,6 +159,7 @@
     <ClInclude Include="src\NotRed\Core\LayerStack.h" />
     <ClInclude Include="src\NotRed\Core\Log.h" />
     <ClInclude Include="src\NotRed\Core\Platform.h" />
+    <ClInclude Include="src\NotRed\Core\TimeFrame.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
@@ -174,16 +178,20 @@
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
+    <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
+    <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />

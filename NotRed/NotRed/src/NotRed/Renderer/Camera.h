@@ -10,7 +10,7 @@ namespace NR
 		Camera(const glm::mat4& projectionMatrix);
 
 		void Focus();
-		void Update();
+		void Update(float dt);
 
 		inline float GetDistance() const { return mDistance; }
 		inline void SetDistance(float distance) { mDistance = distance; }

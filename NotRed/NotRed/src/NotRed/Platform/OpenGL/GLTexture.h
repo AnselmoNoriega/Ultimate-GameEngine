@@ -8,7 +8,7 @@ namespace NR
 	class GLTexture2D : public Texture2D
 	{
 	public:
-		GLTexture2D(TextureFormat format, uint32_t width, uint32_t height);
+		GLTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap);
 		GLTexture2D(const std::string& path, bool standardRGB);
 		~GLTexture2D() override;
 
@@ -18,6 +18,12 @@ namespace NR
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 
+		virtual void Lock() override;
+		virtual void Unlock() override;
+
+		virtual void Resize(uint32_t width, uint32_t height) override;
+		virtual Buffer GetWriteableBuffer() override;
+
 		const std::string& GetPath() const override { return mFilePath; }
 
 		RendererID GetRendererID() const override { return mID; }
@@ -25,9 +31,11 @@ namespace NR
 	private:
 		RendererID mID;
 
+		bool mLocked = false;
+
 		TextureFormat mFormat;
 		uint32_t mWidth, mHeight;
-		unsigned char* mImageData;
+		Buffer mImageData;
 
 		std::string mFilePath;
 	};
@@ -52,6 +60,7 @@ namespace NR
 		RendererID mID;
 
 		TextureFormat mFormat;
+		TextureWrap mWrap = TextureWrap::Clamp;
 		uint32_t mWidth, mHeight;
 		unsigned char* mImageData;
 

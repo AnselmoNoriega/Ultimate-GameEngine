@@ -5,15 +5,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/matrix_decompose.hpp>
+#define GLmENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 class EditorLayer : public NR::Layer
 {
 public:
     EditorLayer()
-        : mScene(Scene::Spheres), mCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
+        : mScene(Scene::Model), mCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
     {
     }
 
@@ -23,11 +22,16 @@ public:
 
     virtual void Attach() override
     {
+        using namespace glm;
+
         mSimplePBRShader.reset(NR::Shader::Create("Assets/Shaders/SimplePBR"));
         mQuadShader.reset(NR::Shader::Create("Assets/Shaders/Quad"));
         mHDRShader.reset(NR::Shader::Create("Assets/Shaders/HDR"));
-        mMesh.reset(new NR::Mesh("Assets/Meshes/ZIS101Sport.fbx"));
-        mSphereMesh.reset(new NR::Mesh("Assets/Models/Sphere.fbx"));
+        mGridShader.reset(NR::Shader::Create("assets/shaders/Grid.glsl"));
+        mMesh.reset(new NR::Mesh("assets/models/m1911/m1911.fbx"));
+
+        mSphereMesh.reset(new NR::Mesh("assets/models/Sphere1m.fbx"));
+        mPlaneMesh.reset(new NR::Mesh("assets/models/Plane1m.obj"));
 
         // Editor
         mCheckerboardTex.reset(NR::Texture2D::Create("Assets/Editor/Checkerboard.tga"));
@@ -40,8 +44,37 @@ public:
         mFramebuffer.reset(NR::FrameBuffer::Create(1280, 720, NR::FrameBufferFormat::RGBA16F));
         mFinalPresentBuffer.reset(NR::FrameBuffer::Create(1280, 720, NR::FrameBufferFormat::RGBA8));
 
+        mPBRMaterial.reset(new NR::Material(mSimplePBRShader));
+
+        float x = -4.0f;
+        float roughness = 0.0f;
+        for (int i = 0; i < 8; ++i)
+        {
+            NR::Ref<NR::MaterialInstance> mi(new NR::MaterialInstance(mPBRMaterial));
+            mi->Set("uMetalness", 1.0f);
+            mi->Set("uRoughness", roughness);
+            mi->Set("uModelMatrix", translate(mat4(1.0f), vec3(x, 0.0f, 0.0f)));
+            x += 1.1f;
+            roughness += 0.15f;
+            mMetalSphereMaterialInstances.push_back(mi);
+        }
+
+        x = -4.0f;
+        roughness = 0.0f;
+        for (int i = 0; i < 8; ++i)
+        {
+            NR::Ref<NR::MaterialInstance> mi(new NR::MaterialInstance(mPBRMaterial));
+            mi->Set("uMetalness", 0.0f);
+            mi->Set("uRoughness", roughness);
+            mi->Set("uModelMatrix", translate(mat4(1.0f), vec3(x, 1.2f, 0.0f)));
+            x += 1.1f;
+            roughness += 0.15f;
+            mDielectricSphereMaterialInstances.push_back(mi);
+        }
+
         // Create Quad
-        float x = -1, y = -1;
+        x = -1;
+        float y = -1;
         float width = 2, height = 2;
         struct QuadVertex
         {
@@ -68,7 +101,7 @@ public:
 
         uint32_t* indices = new uint32_t[6]{ 0, 1, 2, 2, 3, 0, };
         mIndexBuffer.reset(NR::IndexBuffer::Create());
-        mIndexBuffer->SetData(indices, 6 * sizeof(unsigned int));
+        mIndexBuffer->SetData(indices, 6 * sizeof(uint32_t));
 
         mLight.Direction = { -0.5f, -0.5f, 1.0f };
         mLight.Radiance = { 1.0f, 1.0f, 1.0f };
@@ -78,12 +111,12 @@ public:
     {
     }
 
-    virtual void Update() override
+    virtual void Update(float dt) override
     {
         using namespace NR;
         using namespace glm;
 
-        mCamera.Update();
+        mCamera.Update(dt);
         auto viewProjection = mCamera.GetProjectionMatrix() * mCamera.GetViewMatrix();
 
         mFramebuffer->Bind();
@@ -99,80 +132,87 @@ public:
         mIndexBuffer->Bind();
         Renderer::DrawIndexed(mIndexBuffer->GetCount(), false);
 
-        NR::UniformBufferDeclaration<sizeof(mat4) * 2 + sizeof(vec3) * 4 + sizeof(float) * 8, 14> simplePbrShaderUB;
-        simplePbrShaderUB.Push("uViewProjectionMatrix", viewProjection);
-        simplePbrShaderUB.Push("uModelMatrix", mat4(1.0f));
-        simplePbrShaderUB.Push("uAlbedoColor", mAlbedoInput.Color);
-        simplePbrShaderUB.Push("uMetalness", mMetalnessInput.Value);
-        simplePbrShaderUB.Push("uRoughness", mRoughnessInput.Value);
-        simplePbrShaderUB.Push("lights.Direction", mLight.Direction);
-        simplePbrShaderUB.Push("lights.Radiance", mLight.Radiance * mLightMultiplier);
-        simplePbrShaderUB.Push("uCameraPosition", mCamera.GetPosition());
-        simplePbrShaderUB.Push("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
-        simplePbrShaderUB.Push("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
-        simplePbrShaderUB.Push("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
-        simplePbrShaderUB.Push("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
-        simplePbrShaderUB.Push("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
-        simplePbrShaderUB.Push("uEnvMapRotation", mEnvMapRotation);
-        mSimplePBRShader->UploadUniformBuffer(simplePbrShaderUB);
+        mPBRMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
+        mPBRMaterial->Set("uMetalness", mMetalnessInput.Value);
+        mPBRMaterial->Set("uRoughness", mRoughnessInput.Value);
+        mPBRMaterial->Set("uViewProjectionMatrix", viewProjection);
+        mPBRMaterial->Set("uModelMatrix", scale(mat4(1.0f), vec3(mMeshScale)));
+        mPBRMaterial->Set("lights", mLight);
+        mPBRMaterial->Set("uCameraPosition", mCamera.GetPosition());
+        mPBRMaterial->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
+        mPBRMaterial->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
+        mPBRMaterial->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
+        mPBRMaterial->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
+        mPBRMaterial->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
+        mPBRMaterial->Set("uEnvMapRotation", mEnvMapRotation);
 
-        mEnvironmentCubeMap->Bind(10);
-        mEnvironmentIrradiance->Bind(11);
-        mBRDFLUT->Bind(15);
+#if 0
+        // Bind default texture unit
+        UploadUniformInt("uTexture", 0);
 
-        mSimplePBRShader->Bind();
+        // PBR shader textures
+        UploadUniformInt("uAlbedoTexture", 1);
+        UploadUniformInt("uNormalTexture", 2);
+        UploadUniformInt("uMetalnessTexture", 3);
+        UploadUniformInt("uRoughnessTexture", 4);
+
+        UploadUniformInt("uEnvRadianceTex", 10);
+        UploadUniformInt("uEnvIrradianceTex", 11);
+
+        UploadUniformInt("uBRDFLUTTexture", 15);
+#endif
+        mPBRMaterial->Set("uEnvRadianceTex", mEnvironmentCubeMap);
+        mPBRMaterial->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
+        mPBRMaterial->Set("uBRDFLUTTexture", mBRDFLUT);
+
         if (mAlbedoInput.TextureMap)
         {
-            mAlbedoInput.TextureMap->Bind(1);
+            mPBRMaterial->Set("uAlbedoTexture", mAlbedoInput.TextureMap);
         }
         if (mNormalInput.TextureMap)
         {
-            mNormalInput.TextureMap->Bind(2);
+            mPBRMaterial->Set("uNormalTexture", mNormalInput.TextureMap);
         }
         if (mMetalnessInput.TextureMap)
         {
-            mMetalnessInput.TextureMap->Bind(3);
+            mPBRMaterial->Set("uMetalnessTexture", mMetalnessInput.TextureMap);
         }
         if (mRoughnessInput.TextureMap)
         {
-            mRoughnessInput.TextureMap->Bind(4);
+            mPBRMaterial->Set("uRoughnessTexture", mRoughnessInput.TextureMap);
         }
 
         if (mScene == Scene::Spheres)
         {
             // Metals
-            float roughness = 0.0f;
-            float x = -88.0f;
             for (int i = 0; i < 8; i++)
             {
-                mSimplePBRShader->SetMat4("uModelMatrix", translate(mat4(1.0f), vec3(x, 0.0f, 0.0f)));
-                mSimplePBRShader->SetFloat("uRoughness", roughness);
-                mSimplePBRShader->SetFloat("uMetalness", 1.0f);
-                mSphereMesh->Render();
-
-                roughness += 0.15f;
-                x += 22.0f;
+                mMetalSphereMaterialInstances[i]->Bind();
+                mSphereMesh->Render(dt, mSimplePBRShader.get());
             }
 
             // Dielectrics
-            roughness = 0.0f;
-            x = -88.0f;
             for (int i = 0; i < 8; i++)
             {
-                mSimplePBRShader->SetMat4("uModelMatrix", translate(mat4(1.0f), vec3(x, 22.0f, 0.0f)));
-                mSimplePBRShader->SetFloat("uRoughness", roughness);
-                mSimplePBRShader->SetFloat("uMetalness", 0.0f);
-                mSphereMesh->Render();
-
-                roughness += 0.15f;
-                x += 22.0f;
+                mDielectricSphereMaterialInstances[i]->Bind();
+                mSphereMesh->Render(dt, mSimplePBRShader.get());
             }
 
         }
         else if (mScene == Scene::Model)
         {
-            mMesh->Render();
+            if (mMesh)
+            {
+                mPBRMaterial->Bind();
+                mMesh->Render(dt, mSimplePBRShader.get());
+            }
         }
+
+        mGridShader->Bind();
+        mGridShader->SetMat4("uMVP", viewProjection* glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
+        mGridShader->SetFloat("uScale", mGridScale);
+        mGridShader->SetFloat("uRes", mGridSize);
+        mPlaneMesh->Render(dt, mGridShader.get());
 
         mFramebuffer->Unbind();
 
@@ -326,6 +366,8 @@ public:
         Property("Light Multiplier", mLightMultiplier, 0.0f, 5.0f);
         Property("Exposure", mExposure, 0.0f, 5.0f);
 
+        Property("Mesh Scale", mMeshScale, 0.0f, 2.0f);
+
         Property("Radiance Prefiltering", mRadiancePrefilter);
         Property("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
 
@@ -406,7 +448,7 @@ public:
                 ImGui::Checkbox("Use##NormalMap", &mNormalInput.UseTexture);
             }
         }
-        {
+        { 
             // Metalness
             if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -510,6 +552,11 @@ public:
         }
 
         ImGui::End();
+
+        if (mMesh)
+        {
+            mMesh->OnImGuiRender();
+        }
     }
 
     virtual void OnEvent(NR::Event& event) override
@@ -517,19 +564,25 @@ public:
     }
 
 private:
-    std::unique_ptr<NR::Shader> mShader;
-    std::unique_ptr<NR::Shader> mPBRShader;
-    std::unique_ptr<NR::Shader> mSimplePBRShader;
-    std::unique_ptr<NR::Shader> mQuadShader;
-    std::unique_ptr<NR::Shader> mHDRShader;
-    std::unique_ptr<NR::Mesh> mMesh;
-    std::unique_ptr<NR::Mesh> mSphereMesh;
-    std::unique_ptr<NR::Texture2D> mBRDFLUT;
+    NR::Ref<NR::Shader> mSimplePBRShader;
+    NR::Scope<NR::Shader> mQuadShader;
+    NR::Scope<NR::Shader> mHDRShader;
+    NR::Scope<NR::Shader> mGridShader;
+    NR::Scope<NR::Mesh> mMesh;
+    NR::Scope<NR::Mesh> mSphereMesh, mPlaneMesh;
+    NR::Ref<NR::Texture2D> mBRDFLUT;
+
+    NR::Ref<NR::Material> mPBRMaterial;
+    std::vector<NR::Ref<NR::MaterialInstance>> mMetalSphereMaterialInstances;
+    std::vector<NR::Ref<NR::MaterialInstance>> mDielectricSphereMaterialInstances;
+
+    float mGridScale = 16.025f, mGridSize = 0.025f;
+    float mMeshScale = 1.0f;
 
     struct AlbedoInput
     {
         glm::vec3 Color = { 0.972f, 0.96f, 0.915f };
-        std::unique_ptr<NR::Texture2D> TextureMap;
+        NR::Ref<NR::Texture2D> TextureMap;
         bool SRGB = true;
         bool UseTexture = false;
     };
@@ -537,7 +590,7 @@ private:
 
     struct NormalInput
     {
-        std::unique_ptr<NR::Texture2D> TextureMap;
+        NR::Ref<NR::Texture2D> TextureMap;
         bool UseTexture = false;
     };
     NormalInput mNormalInput;
@@ -545,7 +598,7 @@ private:
     struct MetalnessInput
     {
         float Value = 1.0f;
-        std::unique_ptr<NR::Texture2D> TextureMap;
+        NR::Ref<NR::Texture2D> TextureMap;
         bool UseTexture = false;
     };
     MetalnessInput mMetalnessInput;
@@ -553,16 +606,16 @@ private:
     struct RoughnessInput
     {
         float Value = 0.5f;
-        std::unique_ptr<NR::Texture2D> TextureMap;
+        NR::Ref<NR::Texture2D> TextureMap;
         bool UseTexture = false;
     };
     RoughnessInput mRoughnessInput;
 
-    std::unique_ptr<NR::FrameBuffer> mFramebuffer, mFinalPresentBuffer;
+    NR::Ref<NR::FrameBuffer> mFramebuffer, mFinalPresentBuffer;
 
-    std::unique_ptr<NR::VertexBuffer> mVertexBuffer;
-    std::unique_ptr<NR::IndexBuffer> mIndexBuffer;
-    std::unique_ptr<NR::TextureCube> mEnvironmentCubeMap, mEnvironmentIrradiance;
+    NR::Ref<NR::VertexBuffer> mVertexBuffer;
+    NR::Ref<NR::IndexBuffer> mIndexBuffer;
+    NR::Ref<NR::TextureCube> mEnvironmentCubeMap, mEnvironmentIrradiance;
 
     NR::Camera mCamera;
 
@@ -588,7 +641,7 @@ private:
     Scene mScene;
 
     // Editor resources
-    std::unique_ptr<NR::Texture2D> mCheckerboardTex;
+    NR::Ref<NR::Texture2D> mCheckerboardTex;
 };
 
 class Sandbox : public NR::Application

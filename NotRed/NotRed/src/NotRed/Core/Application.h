@@ -2,6 +2,7 @@
 
 #include "NotRed/Core/Core.h"
 #include "NotRed/Core/Window.h"
+#include "NotRed/Renderer/TimeFrame.h"
 #include "NotRed/Core/LayerStack.h"
 
 #include "NotRed/Core/Events/ApplicationEvent.h"
@@ -19,7 +20,7 @@ namespace NR
         void Run();
 
         virtual void Init() {}
-        virtual void Update() {}
+        virtual void Update(float dt) {}
         virtual void Shutdown() {}
         
         void RenderImGui();
@@ -35,6 +36,8 @@ namespace NR
 
         static inline Application& Get() { return *sInstance; }
 
+        float GetTime() const;
+
     private:
         bool OnWindowResize(WindowResizeEvent& e);
         bool OnWindowClose(WindowCloseEvent& e);
@@ -47,6 +50,9 @@ namespace NR
 
         LayerStack mLayerStack;
         ImGuiLayer* mImGuiLayer;
+
+        TimeFrame mTimeStep;
+        float mLastFrameTime = 0.0f;
     };
 
     Application* CreateApplication();

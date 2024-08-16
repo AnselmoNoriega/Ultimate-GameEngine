@@ -6,6 +6,12 @@ layout(location = 2) in vec3 aTangent;
 layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
 
+layout(location = 5) in ivec4 aBoneIndices;
+layout(location = 6) in vec4 aBoneWeights;
+
+const int MAX_BONES = 100;
+uniform mat4 uBoneTransforms[100];
+
 uniform mat4 uViewProjectionMatrix;
 uniform mat4 uModelMatrix;
 
@@ -15,14 +21,23 @@ out VertexOutput
     vec3 Normal;
 	vec2 TexCoord;
 	mat3 WorldNormals;
-} vs_Output;
+	vec3 Binormal;
+} vsOutput;
 
 void main()
 {
-	vs_Output.WorldPosition = vec3(mat4(uModelMatrix) * vec4(aPosition, 1.0));
-    vs_Output.Normal = aNormal;
-	vs_Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	vs_Output.WorldNormals = mat3(uModelMatrix) * mat3(aTangent, aBinormal, aNormal);
+	mat4 boneTransform = uBoneTransforms[aBoneIndices[0]] * aBoneWeights[0];
+    boneTransform += uBoneTransforms[aBoneIndices[1]] * aBoneWeights[1];
+    boneTransform += uBoneTransforms[aBoneIndices[2]] * aBoneWeights[2];
+    boneTransform += uBoneTransforms[aBoneIndices[3]] * aBoneWeights[3];
 
-	gl_Position = uViewProjectionMatrix * uModelMatrix * vec4(aPosition, 1.0);
+	vec4 localPosition = boneTransform * vec4(aPosition, 1.0);
+
+	vsOutput.WorldPosition = vec3(uModelMatrix * boneTransform * vec4(aPosition, 1.0));
+    vsOutput.Normal = mat3(boneTransform) * aNormal;
+	vsOutput.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
+	vsOutput.WorldNormals = mat3(uModelMatrix) * mat3(aTangent, aBinormal, aNormal);
+	vsOutput.Binormal = mat3(boneTransform) * aBinormal;
+
+	gl_Position = uViewProjectionMatrix * uModelMatrix * localPosition;
 }

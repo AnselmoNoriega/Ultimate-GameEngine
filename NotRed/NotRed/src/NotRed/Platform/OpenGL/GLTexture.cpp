@@ -34,18 +34,19 @@ namespace NR
 
 	// Texture2D-----------------------------------------------------------------------
 
-	GLTexture2D::GLTexture2D(TextureFormat format, uint32_t width, uint32_t height)
-		: mFormat(format), mWidth(width), mHeight(height)
+	GLTexture2D::GLTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap)
+		: mFormat(format), mWidth(width), mHeight(height), mWrap(wrap)
 	{
 		auto self = this;
 		NR_RENDER_1(self, {
 			glGenTextures(1, &self->mID);
 			glBindTexture(GL_TEXTURE_2D, self->mID);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			GLenum wrapper = self->mWrap == TextureWrap::Clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapper);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapper);
 			glTextureParameterf(self->mID, GL_TEXTURE_MAX_ANISOTROPY, RendererAPI::GetCapabilities().MaxAnisotropy);
 
 			glTexImage2D(GL_TEXTURE_2D, 0, ToOpenGLTextureFormat(self->mFormat), self->mWidth, self->mHeight, 0, ToOpenGLTextureFormat(self->mFormat), GL_UNSIGNED_BYTE, nullptr);
@@ -60,7 +61,7 @@ namespace NR
 	{
 		int width, height, channels;
 		NR_CORE_INFO("Loading texture {0}, standardRGB={1}", path, standardRGB);
-		mImageData = stbi_load(path.c_str(), &width, &height, &channels, standardRGB ? STBI_rgb : STBI_rgb_alpha);
+		mImageData.Data = stbi_load(path.c_str(), &width, &height, &channels, standardRGB ? STBI_rgb : STBI_rgb_alpha);
 
 		mWidth = width;
 		mHeight = height;
@@ -76,7 +77,7 @@ namespace NR
 				glTextureParameteri(self->mID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 				glTextureParameteri(self->mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-				glTextureSubImage2D(self->mID, 0, 0, 0, self->mWidth, self->mHeight, GL_RGB, GL_UNSIGNED_BYTE, self->mImageData);
+				glTextureSubImage2D(self->mID, 0, 0, 0, self->mWidth, self->mHeight, GL_RGB, GL_UNSIGNED_BYTE, self->mImageData.Data);
 				glGenerateTextureMipmap(self->mID);
 			}
 			else
@@ -89,12 +90,12 @@ namespace NR
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-				glTexImage2D(GL_TEXTURE_2D, 0, ToOpenGLTextureFormat(self->mFormat), self->mWidth, self->mHeight, 0, standardRGB ? GL_SRGB8 : ToOpenGLTextureFormat(self->mFormat), GL_UNSIGNED_BYTE, self->mImageData);
+				glTexImage2D(GL_TEXTURE_2D, 0, ToOpenGLTextureFormat(self->mFormat), self->mWidth, self->mHeight, 0, standardRGB ? GL_SRGB8 : ToOpenGLTextureFormat(self->mFormat), GL_UNSIGNED_BYTE, self->mImageData.Data);
 				glGenerateMipmap(GL_TEXTURE_2D);
 
 				glBindTexture(GL_TEXTURE_2D, 0);
 			}
-			stbi_image_free(self->mImageData);
+			stbi_image_free(self->mImageData.Data);
 			});
 	}
 
@@ -112,6 +113,37 @@ namespace NR
 			glBindTextureUnit(slot, self->mID);
 			});
 	}
+
+	void GLTexture2D::Lock()
+	{
+		mLocked = true;
+	}
+
+	void GLTexture2D::Unlock()
+	{
+		mLocked = false;
+		NR_RENDER_S({
+			glTextureSubImage2D(self->mRendererID, 0, 0, 0, self->mWidth, self->mHeight, ToOpenGLTextureFormat(self->mFormat), GL_UNSIGNED_BYTE, self->mImageData.Data);
+			});
+	}
+
+	void GLTexture2D::Resize(uint32_t width, uint32_t height)
+	{
+		NR_CORE_ASSERT(mLocked, "Texture must be locked!");
+
+		mImageData.Allocate(width * height * Texture::GetBPP(mFormat));
+
+#if NR_DEBUG
+		mImageData.ZeroInitialize();
+#endif
+	}
+
+	Buffer GLTexture2D::GetWriteableBuffer()
+	{
+		NR_CORE_ASSERT(mLocked, "Texture must be locked!");
+		return mImageData;
+	}
+
 
 	// TextureCube-----------------------------------------------------------------------
 

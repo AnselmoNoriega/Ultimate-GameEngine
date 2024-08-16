@@ -125,6 +125,11 @@
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Core\Buffer.h" />
+    <ClInclude Include="src\NotRed\Core\TimeFrame.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
+    <ClInclude Include="src\NotRed\Renderer\Material.h" />
+    <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -203,5 +208,8 @@
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
+    <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
   </ItemGroup>
 </Project>

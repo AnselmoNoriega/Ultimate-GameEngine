@@ -10,6 +10,11 @@ namespace NR
 		if (severity != GL_DEBUG_SEVERITY_NOTIFICATION)
 		{
 			NR_CORE_ERROR("{0}", message);
+			NR_CORE_ASSERT(false);
+		}
+		else
+		{
+			NR_CORE_TRACE("{0}", message);
 		}
 	}
 
@@ -38,6 +43,13 @@ namespace NR
 
 		glGetIntegerv(GL_MAX_SAMPLES, &caps.MaxSamples);
 		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &caps.MaxAnisotropy);
+
+		GLenum error = glGetError();
+		while (error != GL_NO_ERROR)
+		{
+			NR_CORE_ERROR("OpenGL Error {0}", error);
+			error = glGetError();
+		}
 	}
 
 	void RendererAPI::Shutdown()
@@ -57,15 +69,17 @@ namespace NR
 
 	void RendererAPI::DrawIndexed(uint32_t count, bool depthTestActive)
 	{
-		if (depthTestActive)
-		{
-			glEnable(GL_DEPTH_TEST);
-		}
-		else
+		if (!depthTestActive)
 		{
 			glDisable(GL_DEPTH_TEST);
 		}
 
 		glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
+
+		if(!depthTestActive)
+		{
+			glEnable(GL_DEPTH_TEST);
+		}
+
 	}
 }

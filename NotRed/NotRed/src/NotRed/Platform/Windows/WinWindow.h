@@ -40,6 +40,8 @@ namespace NR
             EventCallbackFn EventCallback;
         };
         WindowData mData;
+
+        float mLastFrameTime = 0.0f;
     };
 }
 

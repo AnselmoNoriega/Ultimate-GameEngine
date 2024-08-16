@@ -20,6 +20,7 @@ in VertexOutput
     vec3 Normal;
 	vec2 TexCoord;
 	mat3 WorldNormals;
+	vec3 Binormal;
 } vsInput;
 
 layout(location=0) out vec4 color;

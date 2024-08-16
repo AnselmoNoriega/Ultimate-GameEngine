@@ -6,12 +6,12 @@
 
 namespace NR
 {
-    Texture2D* Texture2D::Create(TextureFormat format, uint32_t width, uint32_t height)
+    Texture2D* Texture2D::Create(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap)
     {
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL: return new GLTexture2D(format, width, height);
+        case RendererAPIType::OpenGL: return new GLTexture2D(format, width, height, wrap);
         default:
         {
             return nullptr;
@@ -37,5 +37,15 @@ namespace NR
 		case RendererAPIType::OpenGL: return new GLTextureCube(path);
 		}
 		return nullptr;
+	}
+
+	uint32_t Texture::GetBPP(TextureFormat format)
+	{
+		switch (format)
+		{
+		case TextureFormat::RGB:    return 3;
+		case TextureFormat::RGBA:   return 4;
+		}
+		return 0;
 	}
 }

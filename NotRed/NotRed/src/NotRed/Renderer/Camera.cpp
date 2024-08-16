@@ -17,11 +17,11 @@ namespace NR
 		: mProjectionMatrix(projectionMatrix)
 	{
 		// Sensible defaults
-		mPanSpeed = 0.0015f;
-		mRotationSpeed = 0.002f;
-		mZoomSpeed = 0.2f;
+		mPanSpeed = 0.15f;
+		mRotationSpeed = 0.3f;
+		mZoomSpeed = 1.0f;
 
-		mPosition = { -100, 100, 100 };
+		mPosition = { -5, 5, 5 };
 		mRotation = glm::vec3(90.0f, 0.0f, 0.0f);
 
 		mFocalPoint = glm::vec3(0.0f);
@@ -35,12 +35,13 @@ namespace NR
 	{
 	}
 
-	void Camera::Update()
+	void Camera::Update(float dt)
 	{
 		if (Input::IsKeyPressed(GLFW_KEY_LEFT_ALT))
 		{
 			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
 			glm::vec2 delta = mouse - mInitialMousePosition;
+			delta *= dt;
 			mInitialMousePosition = mouse;
 
 			if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE))
@@ -62,6 +63,8 @@ namespace NR
 		glm::quat orientation = GetOrientation();
 		mRotation = glm::eulerAngles(orientation) * (180.0f / (float)mPI);
 		mViewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 1)) * glm::toMat4(glm::conjugate(orientation)) * glm::translate(glm::mat4(1.0f), -mPosition);
+		mViewMatrix = glm::translate(glm::mat4(1.0f), mPosition) * glm::toMat4(orientation);
+		mViewMatrix = glm::inverse(mViewMatrix);
 	}
 
 	void Camera::MousePan(const glm::vec2& delta)
