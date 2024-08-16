@@ -5,7 +5,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define GLmENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 class EditorLayer : public NR::Layer
@@ -27,11 +26,11 @@ public:
         mSimplePBRShader.reset(NR::Shader::Create("Assets/Shaders/SimplePBR"));
         mQuadShader.reset(NR::Shader::Create("Assets/Shaders/Quad"));
         mHDRShader.reset(NR::Shader::Create("Assets/Shaders/HDR"));
-        mGridShader.reset(NR::Shader::Create("assets/shaders/Grid.glsl"));
-        mMesh.reset(new NR::Mesh("assets/models/m1911/m1911.fbx"));
+        mGridShader.reset(NR::Shader::Create("assets/shaders/Grid"));
+        mMesh.reset(new NR::Mesh("Assets/Models/RevolverMagnum/CHRgEgggffN13.fbx"));
 
-        mSphereMesh.reset(new NR::Mesh("assets/models/Sphere1m.fbx"));
-        mPlaneMesh.reset(new NR::Mesh("assets/models/Plane1m.obj"));
+        mSphereMesh.reset(new NR::Mesh("Assets/Models/Sphere.fbx"));
+        mPlaneMesh.reset(new NR::Mesh("Assets/Models/Plane1m.obj"));
 
         // Editor
         mCheckerboardTex.reset(NR::Texture2D::Create("Assets/Editor/Checkerboard.tga"));
@@ -555,7 +554,7 @@ public:
 
         if (mMesh)
         {
-            mMesh->OnImGuiRender();
+            mMesh->ImGuiRender();
         }
     }
 

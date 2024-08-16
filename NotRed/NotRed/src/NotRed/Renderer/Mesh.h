@@ -31,7 +31,7 @@ namespace NR
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
-			for (size_t i = 0; i < 4; i++)
+			for (size_t i = 0; i < 4; ++i)
 			{
 				if (Weights[i] == 0.0)
 				{
@@ -51,8 +51,6 @@ namespace NR
 	{
 		uint32_t V1, V2, V3;
 	};
-
-	static_assert(sizeof(Index) == 3 * sizeof(uint32_t));
 
 	struct BoneInfo
 	{
@@ -83,8 +81,7 @@ namespace NR
 				}
 			}
 
-			// should never get here - more bones than we have space for
-			NR_CORE_ASSERT(false, "Too many bones!");
+			NR_CORE_ASSERT(false, "Too many weights for a bone!");
 		}
 	};
 
@@ -93,8 +90,8 @@ namespace NR
 	public:
 		uint32_t BaseVertex;
 		uint32_t BaseIndex;
-		uint32_t MaterialIndex;
 		uint32_t IndexCount;
+		uint32_t MaterialIndex;
 	};
 
 	class Mesh
@@ -104,10 +101,11 @@ namespace NR
 		~Mesh();
 
 		void Render(float dt, Shader* shader);
-		void OnImGuiRender();
+		void ImGuiRender();
 		void DumpVertexBuffer();
 
 		inline const std::string& GetFilePath() const { return mFilePath; }
+
 	private:
 		void BoneTransform(float time);
 		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
@@ -119,6 +117,7 @@ namespace NR
 		glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim);
 		glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim);
 		glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim);
+
 	private:
 		std::vector<Submesh> mSubmeshes;
 

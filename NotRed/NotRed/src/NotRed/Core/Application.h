@@ -2,7 +2,7 @@
 
 #include "NotRed/Core/Core.h"
 #include "NotRed/Core/Window.h"
-#include "NotRed/Renderer/TimeFrame.h"
+#include "NotRed/Core/TimeFrame.h"
 #include "NotRed/Core/LayerStack.h"
 
 #include "NotRed/Core/Events/ApplicationEvent.h"
@@ -51,7 +51,7 @@ namespace NR
         LayerStack mLayerStack;
         ImGuiLayer* mImGuiLayer;
 
-        TimeFrame mTimeStep;
+        TimeFrame mTimeFrame;
         float mLastFrameTime = 0.0f;
     };
 

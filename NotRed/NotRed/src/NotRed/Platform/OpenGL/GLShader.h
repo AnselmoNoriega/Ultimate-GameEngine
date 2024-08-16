@@ -29,14 +29,18 @@ namespace NR
 		const std::string& GetName() const override { return mName; }
 
 	private:
-		std::string ParseFile(const std::string& filepath);
 		std::string GetShaderName(const std::string& filepath);
-		void Compile();
 
-		void Parse();/////////////////////////
-		void ParseUniform(const std::string& statement, ShaderDomain domain);////////////
-		void ParseUniformStruct(const std::string& block, ShaderDomain domain);//////////
+		void ParseFile(const std::string& filepath, std::string& output);
+		void Parse(std::string& source, ShaderDomain type);
+		void ParseUniform(const std::string& statement, ShaderDomain domain);
+		void ParseUniformStruct(const std::string& block, ShaderDomain domain);
+		
 		ShaderStruct* FindStruct(const std::string& name);
+
+		void Compile();
+		void ResolveUniforms();
+		void ValidateUniforms();
 
 		void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, Buffer buffer);
 		void ResolveAndSetUniforms(const Scope<GLShaderUniformBufferDeclaration>& decl, Buffer buffer);
@@ -65,6 +69,8 @@ namespace NR
 
 		void UploadUniformMat4(const std::string& name, const glm::mat4& value);
 
+		int32_t GetUniformLocation(const std::string& name) const;
+
 		inline const ShaderUniformBufferList& GetVSRendererUniforms() const override { return mVSRendererUniformBuffers; }
 		inline const ShaderUniformBufferList& GetPSRendererUniforms() const override { return mPSRendererUniformBuffers; }
 		inline const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const override { return *mVSMaterialUniformBuffer; }
@@ -73,7 +79,7 @@ namespace NR
 
 	private:
 		RendererID mID;
-		std::string mName;
+		std::string mName, mAssetPath;
 
 		std::unordered_map<uint32_t, std::string> mShaderSource;
 		bool mLoaded = false;

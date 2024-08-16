@@ -1,6 +1,7 @@
 #include "nrpch.h" 
 #include "Mesh.h"
 
+#include <filesystem>
 #include <glad/glad.h>
 
 #include <glm/ext/matrix_transform.hpp>
@@ -19,11 +20,11 @@
 
 namespace NR
 {
-	static const uint32_t s_MeshImportFlags =
-		aiProcess_CalcTangentSpace |        // Create binormals/tangents just in case
+	static const uint32_t sMeshImportFlags =
+		aiProcess_CalcTangentSpace |        // Create binormals/tangents
 		aiProcess_Triangulate |             // Make sure we're triangles
 		aiProcess_SortByPType |             // Split meshes by primitive type
-		aiProcess_GenNormals |              // Make sure we have legit normals
+		aiProcess_GenNormals |              // Make sure we have normals
 		aiProcess_GenUVCoords |             // Convert UVs if required 
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
 		aiProcess_ValidateDataStructure;    // Validation
@@ -65,9 +66,14 @@ namespace NR
 
 		mImporter = std::make_unique<Assimp::Importer>();
 
-		const aiScene* scene = mImporter->ReadFile(filename, s_MeshImportFlags);
+		static std::filesystem::path modelsDirectory = std::filesystem::current_path().parent_path() /
+			"Sandbox" / filename;
+
+		const aiScene* scene = mImporter->ReadFile(modelsDirectory.string(), sMeshImportFlags);
 		if (!scene || !scene->HasMeshes())
-			NR_CORE_ERROR("Failed to load mesh file: {0}", filename);
+		{
+			NR_CORE_ERROR("Failed to load mesh file: {0}", modelsDirectory.string());
+		}
 
 		mInverseTransform = glm::inverse(aiMatrix4x4ToGlm(scene->mRootNode->mTransformation));
 
@@ -75,7 +81,7 @@ namespace NR
 		uint32_t indexCount = 0;
 
 		mSubmeshes.reserve(scene->mNumMeshes);
-		for (size_t m = 0; m < scene->mNumMeshes; m++)
+		for (size_t m = 0; m < scene->mNumMeshes; ++m)
 		{
 			aiMesh* mesh = scene->mMeshes[m];
 
@@ -92,8 +98,7 @@ namespace NR
 			NR_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");
 			NR_CORE_ASSERT(mesh->HasNormals(), "Meshes require normals.");
 
-			// Vertices
-			for (size_t i = 0; i < mesh->mNumVertices; i++)
+			for (size_t i = 0; i < mesh->mNumVertices; ++i)
 			{
 				Vertex vertex;
 				vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
@@ -110,17 +115,15 @@ namespace NR
 				mVertices.push_back(vertex);
 			}
 
-			// Indices
-			for (size_t i = 0; i < mesh->mNumFaces; i++)
+			for (size_t i = 0; i < mesh->mNumFaces; ++i)
 			{
 				NR_CORE_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Must have 3 indices.");
 				mIndices.push_back({ mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] });
 			}
-
 		}
 
 		// Bones
-		for (size_t m = 0; m < scene->mNumMeshes; m++)
+		for (size_t m = 0; m < scene->mNumMeshes; ++m)
 		{
 			aiMesh* mesh = scene->mMeshes[m];
 			Submesh& submesh = mSubmeshes[m];
@@ -174,7 +177,9 @@ namespace NR
 		for (uint32_t i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++)
 		{
 			if (AnimationTime < (float)pNodeAnim->mPositionKeys[i + 1].mTime)
+			{
 				return i;
+			}
 		}
 
 		return 0;
@@ -188,7 +193,9 @@ namespace NR
 		for (uint32_t i = 0; i < pNodeAnim->mNumRotationKeys - 1; i++)
 		{
 			if (AnimationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime)
+			{
 				return i;
+			}
 		}
 
 		return 0;
@@ -202,7 +209,9 @@ namespace NR
 		for (uint32_t i = 0; i < pNodeAnim->mNumScalingKeys - 1; i++)
 		{
 			if (AnimationTime < (float)pNodeAnim->mScalingKeys[i + 1].mTime)
+			{
 				return i;
+			}
 		}
 
 		return 0;
@@ -213,23 +222,26 @@ namespace NR
 	{
 		if (nodeAnim->mNumPositionKeys == 1)
 		{
-			// No interpolation necessary for single value
 			auto v = nodeAnim->mPositionKeys[0].mValue;
 			return { v.x, v.y, v.z };
 		}
 
-		uint32_t PositionIndex = FindPosition(animationTime, nodeAnim);
-		uint32_t NextPositionIndex = (PositionIndex + 1);
-		NR_CORE_ASSERT(NextPositionIndex < nodeAnim->mNumPositionKeys);
-		float DeltaTime = (float)(nodeAnim->mPositionKeys[NextPositionIndex].mTime - nodeAnim->mPositionKeys[PositionIndex].mTime);
-		float Factor = (animationTime - (float)nodeAnim->mPositionKeys[PositionIndex].mTime) / DeltaTime;
-		if (Factor < 0.0f)
-			Factor = 0.0f;
-		NR_CORE_ASSERT(Factor <= 1.0f, "Factor must be below 1.0f");
-		const aiVector3D& Start = nodeAnim->mPositionKeys[PositionIndex].mValue;
-		const aiVector3D& End = nodeAnim->mPositionKeys[NextPositionIndex].mValue;
-		aiVector3D Delta = End - Start;
-		auto aiVec = Start + Factor * Delta;
+		uint32_t positionIndex = FindPosition(animationTime, nodeAnim);
+		uint32_t nextPositionIndex = (positionIndex + 1);
+		NR_CORE_ASSERT(nextPositionIndex < nodeAnim->mNumPositionKeys);
+
+		float deltaTime = (float)(nodeAnim->mPositionKeys[nextPositionIndex].mTime - nodeAnim->mPositionKeys[positionIndex].mTime);
+		float factor = (animationTime - (float)nodeAnim->mPositionKeys[positionIndex].mTime) / deltaTime;
+		if (factor < 0.0f)
+		{
+			factor = 0.0f;
+		}
+		NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
+
+		const aiVector3D& start = nodeAnim->mPositionKeys[positionIndex].mValue;
+		const aiVector3D& end = nodeAnim->mPositionKeys[nextPositionIndex].mValue;
+		aiVector3D delta = end - start;
+		auto aiVec = start + factor * delta;
 		return { aiVec.x, aiVec.y, aiVec.z };
 	}
 
@@ -238,23 +250,26 @@ namespace NR
 	{
 		if (nodeAnim->mNumRotationKeys == 1)
 		{
-			// No interpolation necessary for single value
 			auto v = nodeAnim->mRotationKeys[0].mValue;
 			return glm::quat(v.w, v.x, v.y, v.z);
 		}
 
-		uint32_t RotationIndex = FindRotation(animationTime, nodeAnim);
-		uint32_t NextRotationIndex = (RotationIndex + 1);
-		NR_CORE_ASSERT(NextRotationIndex < nodeAnim->mNumRotationKeys);
-		float DeltaTime = (float)(nodeAnim->mRotationKeys[NextRotationIndex].mTime - nodeAnim->mRotationKeys[RotationIndex].mTime);
-		float Factor = (animationTime - (float)nodeAnim->mRotationKeys[RotationIndex].mTime) / DeltaTime;
-		if (Factor < 0.0f)
-			Factor = 0.0f;
-		NR_CORE_ASSERT(Factor <= 1.0f, "Factor must be below 1.0f");
-		const aiQuaternion& StartRotationQ = nodeAnim->mRotationKeys[RotationIndex].mValue;
-		const aiQuaternion& EndRotationQ = nodeAnim->mRotationKeys[NextRotationIndex].mValue;
+		uint32_t rotationIndex = FindRotation(animationTime, nodeAnim);
+		uint32_t nextRotationIndex = (rotationIndex + 1);
+		NR_CORE_ASSERT(nextRotationIndex < nodeAnim->mNumRotationKeys);
+
+		float DeltaTime = (float)(nodeAnim->mRotationKeys[nextRotationIndex].mTime - nodeAnim->mRotationKeys[rotationIndex].mTime);
+		float factor = (animationTime - (float)nodeAnim->mRotationKeys[rotationIndex].mTime) / DeltaTime;
+		if (factor < 0.0f)
+		{
+			factor = 0.0f;
+		}
+		NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
+
+		const aiQuaternion& startRotationQ = nodeAnim->mRotationKeys[rotationIndex].mValue;
+		const aiQuaternion& endRotationQ = nodeAnim->mRotationKeys[nextRotationIndex].mValue;
 		auto q = aiQuaternion();
-		aiQuaternion::Interpolate(q, StartRotationQ, EndRotationQ, Factor);
+		aiQuaternion::Interpolate(q, startRotationQ, endRotationQ, factor);
 		q = q.Normalize();
 		return glm::quat(q.w, q.x, q.y, q.z);
 	}
@@ -264,7 +279,6 @@ namespace NR
 	{
 		if (nodeAnim->mNumScalingKeys == 1)
 		{
-			// No interpolation necessary for single value
 			auto v = nodeAnim->mScalingKeys[0].mValue;
 			return { v.x, v.y, v.z };
 		}
@@ -272,11 +286,15 @@ namespace NR
 		uint32_t index = FindScaling(animationTime, nodeAnim);
 		uint32_t nextIndex = (index + 1);
 		NR_CORE_ASSERT(nextIndex < nodeAnim->mNumScalingKeys);
+
 		float deltaTime = (float)(nodeAnim->mScalingKeys[nextIndex].mTime - nodeAnim->mScalingKeys[index].mTime);
 		float factor = (animationTime - (float)nodeAnim->mScalingKeys[index].mTime) / deltaTime;
 		if (factor < 0.0f)
+		{
 			factor = 0.0f;
+		}
 		NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
+
 		const auto& start = nodeAnim->mScalingKeys[index].mValue;
 		const auto& end = nodeAnim->mScalingKeys[nextIndex].mValue;
 		auto delta = end - start;
@@ -314,7 +332,9 @@ namespace NR
 		}
 
 		for (uint32_t i = 0; i < pNode->mNumChildren; i++)
+		{
 			ReadNodeHierarchy(AnimationTime, pNode->mChildren[i], transform);
+		}
 	}
 
 	const aiNodeAnim* Mesh::FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
@@ -332,8 +352,10 @@ namespace NR
 	{
 		ReadNodeHierarchy(time, mScene->mRootNode, glm::mat4(1.0f));
 		mBoneTransforms.resize(mBoneCount);
-		for (size_t i = 0; i < mBoneCount; i++)
+		for (size_t i = 0; i < mBoneCount; ++i)
+		{
 			mBoneTransforms[i] = mBoneInfo[i].FinalTransformation;
+		}
 	}
 
 	void Mesh::Render(float dt, Shader* shader)
@@ -348,13 +370,13 @@ namespace NR
 		}
 
 		if (mScene->mAnimations)
+		{
 			BoneTransform(mAnimationTime);
+		}
 
-		// TODO: Sort this out
 		mVertexBuffer->Bind();
 		mIndexBuffer->Bind();
 
-		// TODO: replace with render API calls
 		NR_RENDER_S1(shader, {
 			for (Submesh& submesh : self->mSubmeshes)
 			{
@@ -392,7 +414,7 @@ namespace NR
 			});
 	}
 
-	void Mesh::OnImGuiRender()
+	void Mesh::ImGuiRender()
 	{
 		ImGui::Begin("Mesh Debug");
 		if (ImGui::CollapsingHeader(mFilePath.c_str()))
@@ -400,7 +422,9 @@ namespace NR
 			if (ImGui::CollapsingHeader("Animation"))
 			{
 				if (ImGui::Button(mAnimationPlaying ? "Pause" : "Play"))
+				{
 					mAnimationPlaying = !mAnimationPlaying;
+				}
 
 				ImGui::SliderFloat("##AnimationTime", &mAnimationTime, 0.0f, (float)mScene->mAnimations[0]->mDuration);
 				ImGui::DragFloat("Time Scale", &mTimeMultiplier, 0.05f, 0.0f, 10.0f);

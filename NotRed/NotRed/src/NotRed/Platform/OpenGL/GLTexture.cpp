@@ -123,7 +123,7 @@ namespace NR
 	{
 		mLocked = false;
 		NR_RENDER_S({
-			glTextureSubImage2D(self->mRendererID, 0, 0, 0, self->mWidth, self->mHeight, ToOpenGLTextureFormat(self->mFormat), GL_UNSIGNED_BYTE, self->mImageData.Data);
+			glTextureSubImage2D(self->mID, 0, 0, 0, self->mWidth, self->mHeight, ToOpenGLTextureFormat(self->mFormat), GL_UNSIGNED_BYTE, self->mImageData.Data);
 			});
 	}
 

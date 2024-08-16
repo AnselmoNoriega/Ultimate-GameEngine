@@ -36,6 +36,7 @@ namespace NR
 		TextureFormat mFormat;
 		uint32_t mWidth, mHeight;
 		Buffer mImageData;
+		TextureWrap mWrap = TextureWrap::Clamp;
 
 		std::string mFilePath;
 	};

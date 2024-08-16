@@ -17,19 +17,145 @@ namespace NR
 #define NR_LOG_UNIFORM
 #endif
 
+#pragma region Utils
+
+    const char* FindToken(const char* str, const std::string& token)
+    {
+        const char* t = str;
+        while (t = strstr(t, token.c_str()))
+        {
+            bool left = str == t || isspace(t[-1]);
+            bool right = !t[token.size()] || isspace(t[token.size()]);
+            if (left && right)
+            {
+                return t;
+            }
+
+            t += token.size();
+        }
+        return nullptr;
+    }
+
+    const char* FindToken(const std::string& string, const std::string& token)
+    {
+        return FindToken(string.c_str(), token);
+    }
+
+    std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
+    {
+        size_t start = 0;
+        size_t end = string.find_first_of(delimiters);
+
+        std::vector<std::string> result;
+
+        while (end <= std::string::npos)
+        {
+            std::string token = string.substr(start, end - start);
+            if (!token.empty())
+            {
+                result.push_back(token);
+            }
+
+            if (end == std::string::npos)
+            {
+                break;
+            }
+
+            start = end + 1;
+            end = string.find_first_of(delimiters, start);
+        }
+
+        return result;
+    }
+
+    std::vector<std::string> SplitString(const std::string& string, const char delimiter)
+    {
+        return SplitString(string, std::string(1, delimiter));
+    }
+
+    std::vector<std::string> Tokenize(const std::string& string)
+    {
+        return SplitString(string, " \t\n");
+    }
+
+    std::vector<std::string> GetLines(const std::string& string)
+    {
+        return SplitString(string, "\n");
+    }
+
+    std::string GetBlock(const char* str, const char** outPosition)
+    {
+        const char* end = strstr(str, "}");
+        if (!end)
+        {
+            return str;
+        }
+
+        if (outPosition)
+        {
+            *outPosition = end;
+        }
+        uint32_t length = end - str + 1;
+        return std::string(str, length);
+    }
+
+    std::string GetStatement(const char* str, const char** outPosition)
+    {
+        const char* end = strstr(str, ";");
+        if (!end)
+        {
+            return str;
+        }
+
+        if (outPosition)
+        {
+            *outPosition = end;
+        }
+        uint32_t length = end - str + 1;
+        return std::string(str, length);
+    }
+
+    bool StartsWith(const std::string& string, const std::string& start)
+    {
+        return string.find(start) == 0;
+    }
+
+    static bool IsTypeStringResource(const std::string& type)
+    {
+        if (type == "sampler2D")		return true;
+        if (type == "samplerCube")		return true;
+        if (type == "sampler2DShadow")	return true;
+        return false;
+    }
+
+#pragma endregion
+
     GLShader::GLShader(const std::string& filepath)
     {
-        mName = GetShaderName(filepath);
-        mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), ParseFile(filepath + "/" + mName + "Vert.glsl") });
-        mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), ParseFile(filepath + "/" + mName + "Frag.glsl") });
+        mAssetPath = filepath;
         Reload();
-
-        Compile();
     }
 
     void GLShader::Reload()
     {
-        Parse();
+        mName = GetShaderName(mAssetPath);
+
+        mShaderSource.clear();
+
+        mResources.clear();
+        mStructs.clear();
+        mVSMaterialUniformBuffer.reset();
+        mPSMaterialUniformBuffer.reset();
+
+        std::string vert;
+        ParseFile(mAssetPath + "/" + mName + "Vert.glsl", vert);
+        Parse(vert, ShaderDomain::Vertex);
+        mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), vert });
+
+        std::string frag;
+        ParseFile(mAssetPath + "/" + mName + "Frag.glsl", frag);
+        Parse(frag, ShaderDomain::Pixel);
+        mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), frag });
 
         NR_RENDER_S({
             if (self->mID)
@@ -41,36 +167,16 @@ namespace NR
             self->ResolveUniforms();
             self->ValidateUniforms();
 
-            if (self->m_Loaded)
+            if (self->mLoaded)
             {
-                for (auto& callback : self->m_ShaderReloadedCallbacks)
+                for (auto& callback : self->mShaderReloadedCallbacks)
+                {
                     callback();
+                }
             }
 
-            self->m_Loaded = true;
+            self->mLoaded = true;
             });
-    }
-
-    std::string GLShader::ParseFile(const std::string& filepath)
-    {
-        std::ifstream in(filepath, std::ios::in | std::ios::binary);
-        std::string result;
-
-        if (in)
-        {
-            in.seekg(0, std::ios::end);
-            result.resize(in.tellg());
-            in.seekg(0, std::ios::beg);
-            in.read(&result[0], result.size());
-            in.close();
-
-        }
-        else
-        {
-            NR_CORE_ERROR("Could not open file \"{0}\"!", filepath);
-        }
-
-        return result;
     }
 
     std::string GLShader::GetShaderName(const std::string& filepath)
@@ -86,6 +192,83 @@ namespace NR
             NR_CORE_WARN("File is in wrong folder!");
             return filepath;
         }
+    }
+
+    void GLShader::ParseFile(const std::string& filepath, std::string& output)
+    {
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
+
+        if (in)
+        {
+            in.seekg(0, std::ios::end);
+            output.resize(in.tellg());
+            in.seekg(0, std::ios::beg);
+            in.read(&output[0], output.size());
+            in.close();
+        }
+        else
+        {
+            NR_CORE_ERROR("Could not open file \"{0}\"!", filepath);
+        }
+    }
+
+    void GLShader::Parse(std::string& source, ShaderDomain type)
+    {
+        const char* token;
+        const char* str;
+
+        str = source.c_str();
+        while (token = FindToken(str, "struct"))
+        {
+            ParseUniformStruct(GetBlock(token, &str), type);
+        }
+
+        str = source.c_str();
+        while (token = FindToken(str, "uniform"))
+        {
+            ParseUniform(GetStatement(token, &str), type);
+        }
+    }
+
+    void GLShader::ParseUniformStruct(const std::string& block, ShaderDomain domain)
+    {
+        std::vector<std::string> tokens = Tokenize(block);
+
+        uint32_t index = 0;
+        ++index; // struct
+        std::string name = tokens[index++];
+        ShaderStruct* uniformStruct = new ShaderStruct(name);
+        ++index; // {
+        while (index < tokens.size())
+        {
+            if (tokens[index] == "}")
+            {
+                break;
+            }
+
+            std::string type = tokens[index++];
+            std::string name = tokens[index++];
+
+            // Strip ; from name if present
+            if (const char* s = strstr(name.c_str(), ";"))
+            {
+                name = std::string(name.c_str(), s - name.c_str());
+            }
+
+            uint32_t count = 1;
+            const char* namestr = name.c_str();
+            if (const char* s = strstr(namestr, "["))
+            {
+                name = std::string(namestr, s - namestr);
+
+                const char* end = strstr(namestr, "]");
+                std::string c(s + 1, end - s);
+                count = atoi(c.c_str());
+            }
+            ShaderUniformDeclaration* field = new GLShaderUniformDeclaration(domain, GLShaderUniformDeclaration::StringToType(type), name, count);
+            uniformStruct->AddField(field);
+        }
+        mStructs.push_back(uniformStruct);
     }
 
     void GLShader::Compile()
@@ -157,262 +340,6 @@ namespace NR
         {
             glDetachShader(program, shaderID);
         }
-    }
-
-    void GLShader::Bind()
-    {
-        NR_RENDER_S({
-            glUseProgram(self->mID);
-            });
-    }
-
-    const char* FindToken(const char* str, const std::string& token)
-    {
-        const char* t = str;
-        while (t = strstr(t, token.c_str()))
-        {
-            bool left = str == t || isspace(t[-1]);
-            bool right = !t[token.size()] || isspace(t[token.size()]);
-            if (left && right)
-                return t;
-
-            t += token.size();
-        }
-        return nullptr;
-    }
-
-    const char* FindToken(const std::string& string, const std::string& token)
-    {
-        return FindToken(string.c_str(), token);
-    }
-
-    std::vector<std::string> SplitString(const std::string& string, const std::string& delimiters)
-    {
-        size_t start = 0;
-        size_t end = string.find_first_of(delimiters);
-
-        std::vector<std::string> result;
-
-        while (end <= std::string::npos)
-        {
-            std::string token = string.substr(start, end - start);
-            if (!token.empty())
-                result.push_back(token);
-
-            if (end == std::string::npos)
-                break;
-
-            start = end + 1;
-            end = string.find_first_of(delimiters, start);
-        }
-
-        return result;
-    }
-
-    std::vector<std::string> SplitString(const std::string& string, const char delimiter)
-    {
-        return SplitString(string, std::string(1, delimiter));
-    }
-
-    std::vector<std::string> Tokenize(const std::string& string)
-    {
-        return SplitString(string, " \t\n");
-    }
-
-    std::vector<std::string> GetLines(const std::string& string)
-    {
-        return SplitString(string, "\n");
-    }
-
-    std::string GetBlock(const char* str, const char** outPosition)
-    {
-        const char* end = strstr(str, "}");
-        if (!end)
-            return str;
-
-        if (outPosition)
-            *outPosition = end;
-        uint32_t length = end - str + 1;
-        return std::string(str, length);
-    }
-
-    std::string GetStatement(const char* str, const char** outPosition)
-    {
-        const char* end = strstr(str, ";");
-        if (!end)
-            return str;
-
-        if (outPosition)
-            *outPosition = end;
-        uint32_t length = end - str + 1;
-        return std::string(str, length);
-    }
-
-    bool StartsWith(const std::string& string, const std::string& start)
-    {
-        return string.find(start) == 0;
-    }
-
-
-    void GLShader::Parse()
-    {
-        const char* token;
-        const char* vstr;
-        const char* fstr;
-
-        mResources.clear();
-        mStructs.clear();
-        mVSMaterialUniformBuffer.reset();
-        mPSMaterialUniformBuffer.reset();
-
-        auto& vertexSource = mShaderSource[GL_VERTEX_SHADER];
-        auto& fragmentSource = mShaderSource[GL_FRAGMENT_SHADER];
-
-        // Vertex Shader
-        vstr = vertexSource.c_str();
-        while (token = FindToken(vstr, "struct"))
-            ParseUniformStruct(GetBlock(token, &vstr), ShaderDomain::Vertex);
-
-        vstr = vertexSource.c_str();
-        while (token = FindToken(vstr, "uniform"))
-            ParseUniform(GetStatement(token, &vstr), ShaderDomain::Vertex);
-
-        // Fragment Shader
-        fstr = fragmentSource.c_str();
-        while (token = FindToken(fstr, "struct"))
-            ParseUniformStruct(GetBlock(token, &fstr), ShaderDomain::Pixel);
-
-        fstr = fragmentSource.c_str();
-        while (token = FindToken(fstr, "uniform"))
-            ParseUniform(GetStatement(token, &fstr), ShaderDomain::Pixel);
-    }
-
-    static bool IsTypeStringResource(const std::string& type)
-    {
-        if (type == "sampler2D")		return true;
-        if (type == "samplerCube")		return true;
-        if (type == "sampler2DShadow")	return true;
-        return false;
-    }
-
-    ShaderStruct* GLShader::FindStruct(const std::string& name)
-    {
-        for (ShaderStruct* s : mStructs)
-        {
-            if (s->GetName() == name)
-                return s;
-        }
-        return nullptr;
-    }
-
-    void GLShader::ParseUniform(const std::string& statement, ShaderDomain domain)
-    {
-        std::vector<std::string> tokens = Tokenize(statement);
-        uint32_t index = 0;
-
-        index++; // "uniform"
-        std::string typeString = tokens[index++];
-        std::string name = tokens[index++];
-        // Strip ; from name if present
-        if (const char* s = strstr(name.c_str(), ";"))
-            name = std::string(name.c_str(), s - name.c_str());
-
-        std::string n(name);
-        int32_t count = 1;
-        const char* namestr = n.c_str();
-        if (const char* s = strstr(namestr, "["))
-        {
-            name = std::string(namestr, s - namestr);
-
-            const char* end = strstr(namestr, "]");
-            std::string c(s + 1, end - s);
-            count = atoi(c.c_str());
-        }
-
-        if (IsTypeStringResource(typeString))
-        {
-            ShaderResourceDeclaration* declaration = new GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
-            mResources.push_back(declaration);
-        }
-        else
-        {
-            GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString);
-            GLShaderUniformDeclaration* declaration = nullptr;
-
-            if (t == GLShaderUniformDeclaration::Type::NONE)
-            {
-                // Find struct
-                ShaderStruct* s = FindStruct(typeString);
-                NR_CORE_ASSERT(s, "");
-                declaration = new GLShaderUniformDeclaration(domain, s, name, count);
-            }
-            else
-            {
-                declaration = new GLShaderUniformDeclaration(domain, t, name, count);
-            }
-
-            if (StartsWith(name, "r_"))
-            {
-                if (domain == ShaderDomain::Vertex)
-                    ((GLShaderUniformBufferDeclaration*)mVSRendererUniformBuffers.front())->PushUniform(declaration);
-                else if (domain == ShaderDomain::Pixel)
-                    ((GLShaderUniformBufferDeclaration*)mPSRendererUniformBuffers.front())->PushUniform(declaration);
-            }
-            else
-            {
-                if (domain == ShaderDomain::Vertex)
-                {
-                    if (!mVSMaterialUniformBuffer)
-                        mVSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
-
-                    mVSMaterialUniformBuffer->PushUniform(declaration);
-                }
-                else if (domain == ShaderDomain::Pixel)
-                {
-                    if (!mPSMaterialUniformBuffer)
-                        mPSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
-
-                    mPSMaterialUniformBuffer->PushUniform(declaration);
-                }
-            }
-        }
-    }
-
-    void GLShader::ParseUniformStruct(const std::string& block, ShaderDomain domain)
-    {
-        std::vector<std::string> tokens = Tokenize(block);
-
-        uint32_t index = 0;
-        index++; // struct
-        std::string name = tokens[index++];
-        ShaderStruct* uniformStruct = new ShaderStruct(name);
-        index++; // {
-        while (index < tokens.size())
-        {
-            if (tokens[index] == "}")
-                break;
-
-            std::string type = tokens[index++];
-            std::string name = tokens[index++];
-
-            // Strip ; from name if present
-            if (const char* s = strstr(name.c_str(), ";"))
-                name = std::string(name.c_str(), s - name.c_str());
-
-            uint32_t count = 1;
-            const char* namestr = name.c_str();
-            if (const char* s = strstr(namestr, "["))
-            {
-                name = std::string(namestr, s - namestr);
-
-                const char* end = strstr(namestr, "]");
-                std::string c(s + 1, end - s);
-                count = atoi(c.c_str());
-            }
-            ShaderUniformDeclaration* field = new GLShaderUniformDeclaration(domain, GLShaderUniformDeclaration::StringToType(type), name, count);
-            uniformStruct->AddField(field);
-        }
-        mStructs.push_back(uniformStruct);
     }
 
     void GLShader::ResolveUniforms()
@@ -551,23 +478,118 @@ namespace NR
 
     }
 
+    void GLShader::Bind()
+    {
+        NR_RENDER_S({
+            glUseProgram(self->mID);
+            });
+    }
+
+    void GLShader::AddShaderReloadedCallback(const ShaderReloadedCallback& callback)
+    {
+        mShaderReloadedCallbacks.push_back(callback);
+    }
+
+    ShaderStruct* GLShader::FindStruct(const std::string& name)
+    {
+        for (ShaderStruct* s : mStructs)
+        {
+            if (s->GetName() == name)
+            {
+                return s;
+            }
+        }
+        return nullptr;
+    }
+
+    void GLShader::ParseUniform(const std::string& statement, ShaderDomain domain)
+    {
+        std::vector<std::string> tokens = Tokenize(statement);
+        uint32_t index = 0;
+
+        index++; // "uniform"
+        std::string typeString = tokens[index++];
+        std::string name = tokens[index++];
+        // Strip ; from name if present
+        if (const char* s = strstr(name.c_str(), ";"))
+        {
+            name = std::string(name.c_str(), s - name.c_str());
+        }
+
+        std::string n(name);
+        int32_t count = 1;
+        const char* namestr = n.c_str();
+        if (const char* s = strstr(namestr, "["))
+        {
+            name = std::string(namestr, s - namestr);
+
+            const char* end = strstr(namestr, "]");
+            std::string c(s + 1, end - s);
+            count = atoi(c.c_str());
+        }
+
+        if (IsTypeStringResource(typeString))
+        {
+            ShaderResourceDeclaration* declaration = new GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
+            mResources.push_back(declaration);
+        }
+        else
+        {
+            GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString);
+            GLShaderUniformDeclaration* declaration = nullptr;
+
+            if (t == GLShaderUniformDeclaration::Type::NONE)
+            {
+                // Find struct
+                ShaderStruct* s = FindStruct(typeString);
+                NR_CORE_ASSERT(s, "");
+                declaration = new GLShaderUniformDeclaration(domain, s, name, count);
+            }
+            else
+            {
+                declaration = new GLShaderUniformDeclaration(domain, t, name, count);
+            }
+
+            if (StartsWith(name, "r_"))
+            {
+                if (domain == ShaderDomain::Vertex)
+                {
+                    ((GLShaderUniformBufferDeclaration*)mVSRendererUniformBuffers.front())->PushUniform(declaration);
+                }
+                else if (domain == ShaderDomain::Pixel)
+                {
+                    ((GLShaderUniformBufferDeclaration*)mPSRendererUniformBuffers.front())->PushUniform(declaration);
+                }
+            }
+            else
+            {
+                if (domain == ShaderDomain::Vertex)
+                {
+                    if (!mVSMaterialUniformBuffer)
+                        mVSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
+
+                    mVSMaterialUniformBuffer->PushUniform(declaration);
+                }
+                else if (domain == ShaderDomain::Pixel)
+                {
+                    if (!mPSMaterialUniformBuffer)
+                        mPSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
+
+                    mPSMaterialUniformBuffer->PushUniform(declaration);
+                }
+            }
+        }
+    }
+
     int32_t GLShader::GetUniformLocation(const std::string& name) const
     {
         int32_t result = glGetUniformLocation(mID, name.c_str());
         if (result == -1)
+        {
             NR_CORE_WARN("Could not find uniform '{0}' in shader", name);
+        }
 
         return result;
-    }
-
-    GLenum GLShader::ShaderTypeFromString(const std::string& type)
-    {
-        if (type == "vertex")
-            return GL_VERTEX_SHADER;
-        if (type == "fragment" || type == "pixel")
-            return GL_FRAGMENT_SHADER;
-
-        return GL_NONE;
     }
 
     void GLShader::SetVSMaterialUniformBuffer(Buffer buffer)

@@ -3,6 +3,8 @@
 #include "NotRed/Core/Application.h"
 #include "NotRed/Core/Log.h"
 
+#include "NotRed/Core/TimeFrame.h"
+
 #include "NotRed/Core/Events/Event.h"
 #include "NotRed/Core/Events/ApplicationEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
@@ -19,7 +21,6 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Texture.h"
-#include "NotRed/Renderer/TimeFrame.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 // ---------------------------------------------
 

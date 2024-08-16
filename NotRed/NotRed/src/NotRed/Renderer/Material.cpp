@@ -30,7 +30,9 @@ namespace NR
 		AllocateStorage();
 
 		for (auto mi : mMaterialInstances)
+		{
 			mi->OnShaderReloaded();
+		}
 	}
 
 	ShaderUniformDeclaration* Material::FindUniformDeclaration(const std::string& name)
@@ -41,7 +43,9 @@ namespace NR
 			for (ShaderUniformDeclaration* uniform : declarations)
 			{
 				if (uniform->GetName() == name)
+				{
 					return uniform;
+				}
 			}
 		}
 
@@ -51,7 +55,9 @@ namespace NR
 			for (ShaderUniformDeclaration* uniform : declarations)
 			{
 				if (uniform->GetName() == name)
+				{
 					return uniform;
+				}
 			}
 		}
 		return nullptr;
@@ -63,7 +69,9 @@ namespace NR
 		for (ShaderResourceDeclaration* resource : resources)
 		{
 			if (resource->GetName() == name)
+			{
 				return resource;
+			}
 		}
 		return nullptr;
 	}
@@ -76,7 +84,7 @@ namespace NR
 		case ShaderDomain::Pixel:     return mPSUniformStorageBuffer;
 		}
 
-		HZ_CORE_ASSERT(false, "Invalid uniform declaration domain! Material does not support this shader type.");
+		NR_CORE_ASSERT(false, "Invalid uniform declaration domain! Material does not support this shader type.");
 		return mVSUniformStorageBuffer;
 	}
 
@@ -150,7 +158,7 @@ namespace NR
 		case ShaderDomain::Pixel:     return mPSUniformStorageBuffer;
 		}
 
-		HZ_CORE_ASSERT(false, "Invalid uniform declaration domain! Material does not support this shader type.");
+		NR_CORE_ASSERT(false, "Invalid uniform declaration domain! Material does not support this shader type.");
 		return mVSUniformStorageBuffer;
 	}
 

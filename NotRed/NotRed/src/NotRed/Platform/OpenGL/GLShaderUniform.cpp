@@ -4,7 +4,7 @@
 namespace NR
 {
 	GLShaderUniformDeclaration::GLShaderUniformDeclaration(ShaderDomain domain, Type type, const std::string& name, uint32_t count)
-		: mType(type), mStruct(nullptr), mDomain(domain)
+		: mStruct(nullptr), mType(type), mDomain(domain)
 	{
 		mName = name;
 		mCount = count;
@@ -93,7 +93,9 @@ namespace NR
 		for (ShaderUniformDeclaration* uniform : mUniforms)
 		{
 			if (uniform->GetName() == name)
+			{
 				return uniform;
+			}
 		}
 		return nullptr;
 	}

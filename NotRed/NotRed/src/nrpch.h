@@ -1,5 +1,7 @@
 #pragma once
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #ifdef NR_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif
