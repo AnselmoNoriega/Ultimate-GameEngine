@@ -17,11 +17,11 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
-    Application::Application()
+    Application::Application(const ApplicationProps& props)
     {
         sInstance = this;
 
-        mWindow = std::unique_ptr<Window>(Window::Create());
+        mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->SetVSync(false);
 

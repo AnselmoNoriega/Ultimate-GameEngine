@@ -67,7 +67,7 @@ namespace NR
         mImporter = std::make_unique<Assimp::Importer>();
 
         std::filesystem::path modelsDirectory = std::filesystem::current_path().parent_path() /
-            "Sandbox" / filename;
+            "NotEditor" / filename;
 
         const aiScene* scene = mImporter->ReadFile(modelsDirectory.string(), sMeshImportFlags);
         if (!scene || !scene->HasMeshes())

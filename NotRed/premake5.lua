@@ -62,7 +62,7 @@ project "NotRed"
         "Glad",
         "ImGui",
 		"opengl32.lib",
-        "NotRed/vendor/assimp/win64/assimp.lib"
+        "NotRed/vendor/assimp/bin/windows/Debug/assimp-vc143-mtd.lib"
     }
     
 	filter "system:windows"
@@ -86,8 +86,8 @@ project "NotRed"
         defines "NR_DIST"
         optimize "On"
 
-project "Sandbox"
-    location "Sandbox"
+project "NotEditor"
+    location "NotEditor"
     kind "ConsoleApp"
     language "C++"
     cppdialect "C++20"
@@ -99,7 +99,7 @@ project "Sandbox"
 	links 
 	{ 
 		"NotRed",
-        "NotRed/vendor/assimp/win64/assimp.lib"
+        "NotRed/vendor/assimp/bin/windows/Debug/assimp-vc143-mtd.lib"
     }
     
 	files 
@@ -137,3 +137,69 @@ project "Sandbox"
     filter "configurations:Dist"
         defines "NR_DIST"
         optimize "on"
+
+project "Sandbox"
+    location "Sandbox"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "on"
+
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    links 
+    { 
+        "NotRed"
+    }
+
+    files 
+    { 
+        "%{prj.name}/src/**.h", 
+        "%{prj.name}/src/**.c", 
+        "%{prj.name}/src/**.hpp", 
+        "%{prj.name}/src/**.cpp" 
+    }
+
+    includedirs 
+    {
+        "%{prj.name}/src",
+        "NotRed/src",
+        "NotRed/vendor",
+        "%{IncludeDir.glm}"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+
+        defines 
+        { 
+            "NR_PLATFORM_WINDOWS"
+        }
+
+    filter "configurations:Debug"
+        defines "NR_DEBUG"
+        symbols "on"
+
+        links
+        {
+            "NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib"
+        }
+
+    filter "configurations:Release"
+        defines "NR_RELEASE"
+        optimize "on"
+
+        links
+        {
+            "NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+        }
+
+    filter "configurations:Dist"
+        defines "NR_DIST"
+        optimize "on"
+
+        links
+        {
+            "NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+        }

@@ -151,7 +151,7 @@ namespace NR
 		: mFilePath(path)
 	{
 		static std::filesystem::path modelsDirectory = std::filesystem::current_path().parent_path() /
-			"Sandbox" / path;
+			"NotEditor" / path;
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(false);
 		mImageData = stbi_load(modelsDirectory.string().c_str(), &width, &height, &channels, STBI_rgb);

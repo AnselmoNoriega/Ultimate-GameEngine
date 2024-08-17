@@ -23,7 +23,3 @@
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 // ---------------------------------------------
-
-// ---Entry Point--------------
-#include "NotRed/EntryPoint.h"
-// ----------------------------

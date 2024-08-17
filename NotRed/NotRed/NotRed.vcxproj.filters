@@ -31,6 +31,9 @@
     <ClInclude Include="src\NotRed\Core\Application.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Buffer.h">
+      <Filter>NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Core.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
@@ -64,6 +67,9 @@
     <ClInclude Include="src\NotRed\Core\Platform.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\TimeFrame.h">
+      <Filter>NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
@@ -80,6 +86,9 @@
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h">
@@ -103,6 +112,9 @@
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Material.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Mesh.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
@@ -118,6 +130,9 @@
     <ClInclude Include="src\NotRed\Renderer\Shader.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
@@ -125,11 +140,6 @@
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Core\Buffer.h" />
-    <ClInclude Include="src\NotRed\Core\TimeFrame.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
-    <ClInclude Include="src\NotRed\Renderer\Material.h" />
-    <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -145,6 +155,9 @@
       <Filter>NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Log.cpp">
+      <Filter>NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\TimeFrame.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Window.cpp">
@@ -168,6 +181,9 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClCompile>
@@ -189,6 +205,9 @@
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Material.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
@@ -208,8 +227,5 @@
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
-    <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
   </ItemGroup>
 </Project>

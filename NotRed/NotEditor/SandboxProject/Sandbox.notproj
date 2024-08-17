@@ -1,5 +1,0 @@
-Project:
-  Name: FirstSandbox
-  StartScene: "SaveFiles/Physics.nr"
-  AssetDirectory: "Assets"
-  ScriptModulePath: "Scripts/Binaries/Sandbox.dll"

@@ -114,7 +114,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\assimp\win64\assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\assimp\bin\windows\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -139,12 +139,10 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\assimp\win64\assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\assimp\bin\windows\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Renderer\Material.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
@@ -166,6 +164,7 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinInput.h" />
@@ -173,6 +172,7 @@
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\Material.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
@@ -184,8 +184,6 @@
     <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
@@ -199,6 +197,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
@@ -206,6 +205,7 @@
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />

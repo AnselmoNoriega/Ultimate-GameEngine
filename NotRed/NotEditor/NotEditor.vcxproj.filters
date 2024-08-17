@@ -6,22 +6,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\EditorLayer.h" />
-    <ClInclude Include="src\Panels\BrowserPanel.h">
-      <Filter>Panels</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Panels\SceneHierarchyPanel.h">
-      <Filter>Panels</Filter>
-    </ClInclude>
+    <ClCompile Include="src\EditorLayer.cpp" />
+    <ClCompile Include="src\NotEditor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\EditorApp.cpp" />
-    <ClCompile Include="src\EditorLayer.cpp" />
-    <ClCompile Include="src\Panels\BrowserPanel.cpp">
-      <Filter>Panels</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Panels\SceneHierarchyPanel.cpp">
-      <Filter>Panels</Filter>
-    </ClCompile>
+    <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
 </Project>

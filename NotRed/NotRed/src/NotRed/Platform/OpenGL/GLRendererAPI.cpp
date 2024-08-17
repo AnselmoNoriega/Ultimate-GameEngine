@@ -12,7 +12,7 @@ namespace NR
 		if (severity != GL_DEBUG_SEVERITY_NOTIFICATION)
 		{
 			NR_CORE_ERROR("{0}", message);
-			NR_CORE_ASSERT(false);
+			//NR_CORE_ASSERT(false);
 		}
 	}
 

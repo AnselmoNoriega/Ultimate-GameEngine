@@ -1,84 +1,128 @@
 #pragma once
 
 #include "NotRed.h"
-#include "Panels/SceneHierarchyPanel.h"
-#include "Panels/BrowserPanel.h"
 
-#include "NotRed/Renderer/Camera/EditorCamera.h"
+#include "NotRed/ImGui/ImGuiLayer.h"
+#include "imgui/imgui_internal.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#define GLmENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
+#include <string>
 
 namespace NR
 {
-    class EditorLayer : public Layer
-    {
-    public:
-        EditorLayer();
-        ~EditorLayer() override = default;
+	class EditorLayer : public Layer
+	{
+	public:
+		enum class PropertyFlag
+		{
+			None, 
+			ColorProperty
+		};
 
-        void Attach();
-        void Detach();
+	public:
+		EditorLayer();
+		virtual ~EditorLayer();
 
-        void Update(float deltaTime) override;
-        void OnEvent(Event& myEvent) override;
-        void OverlayRender();
-        void ImGuiRender() override;
+		void Attach() override;
+		void Detach() override;
+		void Update(float dt) override;
 
-        void PlayScene();
-        void StopScene();
+		void ImGuiRender() override;
+		void OnEvent(Event& event) override;
 
-        void ToolbarUI();
+		// ImGui UI helpers
+		void Property(const std::string& name, bool& value);
+		void Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+		void Property(const std::string& name, glm::vec3& value, PropertyFlag flags);
+		void Property(const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+		void Property(const std::string& name, glm::vec4& value, PropertyFlag flags);
+		void Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+		
+	private:
+		Ref<Shader> mQuadShader;
+		Ref<Shader> mHDRShader;
+		Ref<Shader> mGridShader;
+		Ref<Mesh> mMesh;
+		Ref<Mesh> mSphereMesh, mPlaneMesh;
+		Ref<Texture2D> mBRDFLUT;
 
-    private:
-        bool KeyPressed(KeyPressedEvent& e);
-        bool MouseButtonPressed(MouseButtonPressedEvent& e);
+		Ref<MaterialInstance> mMeshMaterial;
+		Ref<MaterialInstance> mGridMaterial;
+		std::vector<Ref<MaterialInstance>> mMetalSphereMaterialInstances;
+		std::vector<Ref<MaterialInstance>> mDielectricSphereMaterialInstances;
 
-        void NewProject();
-        bool OpenProject();
-        void OpenProject(const std::filesystem::path& path);
-        void SaveProject();
+		float mGridScale = 16.025f, mGridSize = 0.025f;
+		float mMeshScale = 1.0f;
 
-        void OpenScene();
-        void OpenScene(const std::filesystem::path& path);
+		struct AlbedoInput
+		{
+			glm::vec3 Color = { 0.972f, 0.96f, 0.915f }; 
+			Ref<Texture2D> TextureMap;
+			bool SRGB = true;
+			bool UseTexture = false;
+		};
+		AlbedoInput mAlbedoInput;
 
-        void NewScene();
-        void SaveSceneAs(); 
-        void SaveScene();
-        
-        void SerializeScene(Ref<Scene> scene, const std::filesystem::path& path);
+		struct NormalInput
+		{
+			Ref<Texture2D> TextureMap;
+			bool UseTexture = false;
+		};
+		NormalInput mNormalInput;
 
-        void DuplicateEntity();
+		struct MetalnessInput
+		{
+			float Value = 1.0f;
+			Ref<Texture2D> TextureMap;
+			bool UseTexture = false;
+		};
+		MetalnessInput mMetalnessInput;
 
-    private:
-        Ref<Scene> mActiveScene;
-        Ref<Scene> mEditorScene;
-        std::filesystem::path mScenePath;
-        SceneHierarchyPanel mSceneHierarchyPanel;
-        Scope <BrowserPanel> mBrowserPanel;
+		struct RoughnessInput
+		{
+			float Value = 0.5f;
+			Ref<Texture2D> TextureMap;
+			bool UseTexture = false;
+		};
+		RoughnessInput mRoughnessInput;
 
-        enum class SceneState
-        {
-            Edit,
-            Play
-        };
-        SceneState mSceneState = SceneState::Edit;
+		std::unique_ptr<FrameBuffer> mFramebuffer, mFinalPresentBuffer;
 
-        EditorCamera mEditorCamera;
+		Ref<VertexBuffer> mVertexBuffer;
+		Ref<IndexBuffer> mIndexBuffer;
+		Ref<TextureCube> mEnvironmentCubeMap, mEnvironmentIrradiance;
 
-        Ref<Framebuffer> mFramebufferEditor;
-        Ref<Framebuffer> mFramebufferGame;
+		Camera mCamera;
 
-        Ref<Texture2D> mPlayIcon, mStopIcon, mPauseIcon;
+		struct Light
+		{
+			glm::vec3 Direction;
+			glm::vec3 Radiance;
+		};
+		Light mLight;
+		float mLightMultiplier = 0.3f;
 
-        glm::vec2 mGameViewportSize = { 0.0f, 0.0f };
-        glm::vec2 mEditorViewportSize = { 0.0f, 0.0f };
+		// PBR params
+		float mExposure = 1.0f;
 
-        bool mViewportFocused = false,
-            mViewportHovered = false;
+		bool mRadiancePrefilter = false;
 
-        glm::vec2 mViewportBounds[2];
+		float mEnvMapRotation = 0.0f;
 
-        int mGizmoType = -1;
-        bool mShowPhysicsColliders = false;
+		enum class Scene : uint32_t
+		{
+			Spheres, 
+			Model
+		};
+		Scene mScene;
 
-        Entity mHoveredEntity;
-    };
+		// Editor resources
+		Ref<Texture2D> mCheckerboardTex;
+	};
+
 }

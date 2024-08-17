@@ -1,717 +1,605 @@
 #include "EditorLayer.h"
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "NotRed/Math/Math.h"
-#include "NotRed/Utils/PlatformUtils.h"
-#include "NotRed/Scene/SceneSerializer.h"
-#include "NotRed/Scripting/ScriptEngine.h"
-
-#include "imgui/imgui.h"
-#include "ImGuizmo.h"
-
-#include "NotRed/Math/Math.h"
-
-#include "NotRed/Renderer/Text/Font.h"
-
 namespace NR
 {
-    //Temporal
-    static Ref<Font> sFont;
-
-    EditorLayer::EditorLayer()
-        :Layer("EditorLayer")
-    {
-        sFont = Font::GetDefault();
-    }
-
-    void EditorLayer::Attach()
-    {
-        NR_PROFILE_FUNCTION();
-
-        mPlayIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PlayButton.png");
-        mStopIcon = Texture2D::Create("Resources/Icons/ToolBarUI/StopButton.png");
-        mPauseIcon = Texture2D::Create("Resources/Icons/ToolBarUI/PauseButton.png");
-
-        FramebufferStruct fbSpecs;
-        fbSpecs.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
-        fbSpecs.Width = 1600;
-        fbSpecs.Height = 900;
-        mFramebufferEditor = Framebuffer::Create(fbSpecs);
-        mFramebufferGame = Framebuffer::Create(fbSpecs);
-
-        mEditorScene = CreateRef<Scene>();
-        mActiveScene = mEditorScene;
-        mSceneHierarchyPanel.SetContext(mActiveScene);
-
-        auto commandLineArgs = Application::Get().GetSpecification().CommandLineArgs;
-        if (commandLineArgs.Count > 1)
-        {
-            auto projectFilePath = commandLineArgs[1];
-            OpenProject(projectFilePath);
-        }
-        else if (!OpenProject())
-        {
-            Application::Get().Close();
-        }
-
-        mEditorCamera = EditorCamera(30.0f, 16 / 9, 0.1f, 1000.0f);
-        Renderer2D::SetLineWidth(4.0f);
-    }
-
-    void EditorLayer::Detach()
-    {
-    }
-
-    void EditorLayer::Update(float deltaTime)
-    {
-        NR_PROFILE_FUNCTION();
-
-        if (FramebufferStruct spec = mFramebufferEditor->GetSpecification();
-            mEditorViewportSize.x > 0.0f && mEditorViewportSize.y > 0.0f &&
-            (spec.Width != mEditorViewportSize.x || spec.Height != mEditorViewportSize.y))
-        {
-            mFramebufferEditor->Resize((uint32_t)mEditorViewportSize.x, (uint32_t)mEditorViewportSize.y);
-            mEditorCamera.SetViewportSize(mEditorViewportSize.x, mEditorViewportSize.y);
-        }
-
-        if (FramebufferStruct spec = mFramebufferGame->GetSpecification();
-            mGameViewportSize.x > 0.0f && mGameViewportSize.y > 0.0f &&
-            (spec.Width != mGameViewportSize.x || spec.Height != mGameViewportSize.y))
-        {
-            mFramebufferGame->Resize((uint32_t)mGameViewportSize.x, (uint32_t)mGameViewportSize.y);
-            mActiveScene->ViewportResize((uint32_t)mGameViewportSize.x, (uint32_t)mGameViewportSize.y);
-        }
-        
-        {
-            NR_PROFILE_SCOPE("Render Start");
-            Renderer2D::ResetStats();
-
-            mFramebufferEditor->Bind();
-            RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
-            RenderCommand::Clear();
-            mFramebufferEditor->ClearAttachment(1, -1);
-        }
-
-        {
-            NR_PROFILE_SCOPE("Rendering");
-
-            if (mViewportFocused && mViewportHovered)
-            {
-                mEditorCamera.Update(deltaTime, true);
-            }
-
-            if (mSceneState == SceneState::Play)
-            {
-                mActiveScene->UpdateRunTime(deltaTime);
-            }
-
-            mActiveScene->UpdateEditor(deltaTime, mEditorCamera);
-
-            auto [mx, my] = ImGui::GetMousePos();
-            mx -= mViewportBounds[0].x;
-            my -= mViewportBounds[0].y;
-            glm::vec2 viewportSize = mViewportBounds[1] - mViewportBounds[0];
-            my = viewportSize.y - my;
-
-            if (mx >= 0.0f && my >= 0.0f && mx < viewportSize.x && my < viewportSize.y)
-            {
-                int pixelData = mFramebufferEditor->GetPixel(1, mx, my);
-                mHoveredEntity = pixelData < -1 ? Entity() : Entity((entt::entity)pixelData, mActiveScene.get());
-            }
-
-            OverlayRender();
-            mFramebufferEditor->Unbind();
-
-            mFramebufferGame->Bind();
-            RenderCommand::SetClearColor({ 0.05f, 0.05f, 0.05f, 1 });
-            RenderCommand::Clear();
-            mFramebufferGame->ClearAttachment(1, -1);
-
-            mActiveScene->UpdatePlay(deltaTime);
-
-            mFramebufferGame->Unbind();
-        }
-    }
-
-    void EditorLayer::ImGuiRender()
-    {
-        NR_PROFILE_FUNCTION();
-
-        static bool dockspaceOpen = true;
-        static bool opt_fullscreen_persistant = true;
-        bool opt_fullscreen = opt_fullscreen_persistant;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
-        {
-            ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->Pos);
-            ImGui::SetNextWindowSize(viewport->Size);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive, 
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise 
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-        ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-        ImGui::PopStyleVar();
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
-        // DockSpace
-        ImGuiIO& io = ImGui::GetIO();
-        ImGuiStyle& style = ImGui::GetStyle();
-        float minWinSizeX = style.WindowMinSize.x;
-        style.WindowMinSize.x = 200.0f;
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
-        style.WindowMinSize.x = minWinSizeX;
-
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Open Project...", "Ctrl+Alt+O"))
-                {
-                    OpenProject();
-                }
-
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-                {
-                    NewScene();
-                }
-                if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
-                {
-                    OpenScene();
-                }
-                if (ImGui::MenuItem("Save", "Ctrl+S"))
-                {
-                    SaveScene();
-                }
-                if (ImGui::MenuItem("Save As...", "Ctrl+Shift+S"))
-                {
-                    SaveSceneAs();
-                }
-
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Exit"))
-                {
-                    Application::Get().Close();
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Script"))
-            {
-                if (ImGui::MenuItem("Reload assembly", "Ctrl+R"))
-                {
-                    ScriptEngine::ReloadAssembly();
-                }
-
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
-        }
-
-        mSceneHierarchyPanel.ImGuiRender();
-        mBrowserPanel->ImGuiRender();
-
-        ImGui::Begin("Stats");
-
-        std::string hoveredEntityName = "None";
-        if (mHoveredEntity)
-        {
-            hoveredEntityName = mHoveredEntity.GetComponent<TagComponent>().Tag;
-        }
-        ImGui::Text("Hovered Entity: %s", hoveredEntityName.c_str());
-
-        auto stats = Renderer2D::GetStats();
-        ImGui::Text("Renderer Stats:");
-        ImGui::Text("Draw Calls: %d", stats.DrawCalls);
-        ImGui::Text("Quads: %d", stats.QuadCount);
-        ImGui::Text("Vertices: %d", stats.GetTotalVertexCount());
-        ImGui::Text("Indices: %d", stats.GetTotalIndexCount());
-
-        ImGui::End();
-
-        ImGui::Begin("Settings");
-        ImGui::Checkbox("Show physics colliders", &mShowPhysicsColliders);
-        ImGui::Image((ImTextureID)sFont->GetTextureAtlas()->GetRendererID(), { 512,512 }, { 0, 1 }, { 1, 0 });
-        ImGui::End();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0,0 });
-        ImGui::Begin("Viewport Game");
-
-        ImVec2 vpGameSize = ImGui::GetContentRegionAvail();
-        mGameViewportSize = { vpGameSize.x, vpGameSize.y };
-
-        uint32_t gameTextureID = mFramebufferGame->GetTextureRendererID();
-        ImGui::Image((void*)gameTextureID, ImVec2{ mGameViewportSize.x, mGameViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
-
-        ImGui::End();
-        ImGui::PopStyleVar();
-
-        ToolbarUI();
-
-        ImGui::End();
-        ImGui::Begin("Viewport Editor");
-
-        auto minBound = ImGui::GetWindowContentRegionMin();
-        auto maxBound = ImGui::GetWindowContentRegionMax();
-        auto viewportOffset = ImGui::GetWindowPos();
-        mViewportBounds[0] = { minBound.x + viewportOffset.x, minBound.y + viewportOffset.y };
-        mViewportBounds[1] = { maxBound.x + viewportOffset.x, maxBound.y + viewportOffset.y };
-
-        ImVec2 vpSize = ImGui::GetContentRegionAvail();
-        mEditorViewportSize = { vpSize.x, vpSize.y };
-
-        mViewportFocused = ImGui::IsWindowFocused();
-        mViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetImGuiLayer()->SetEventsActive(!mViewportHovered);
-
-        uint32_t textureID = mFramebufferEditor->GetTextureRendererID();
-        ImGui::Image((void*)textureID, ImVec2{ mEditorViewportSize.x, mEditorViewportSize.y }, ImVec2{ 0,1 }, ImVec2{ 1,0 });
-
-        if (ImGui::BeginDragDropTarget())
-        {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-            {
-                const wchar_t* path = (const wchar_t*)payload->Data;
-                const wchar_t* fileExtension = wcsrchr(path, L'.');
-
-                if (!wcscmp(fileExtension, L".nr"))
-                {
-                    OpenScene(path);
-                }
-                else if (!wcscmp(fileExtension, L".png"))
-                {
-                    std::filesystem::path texturePath(path);
-
-                    if (mHoveredEntity && mHoveredEntity.HasComponent<SpriteRendererComponent>())
-                    {
-                        mHoveredEntity.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
-                    }
-                    else if (!mHoveredEntity)
-                    {
-                        auto entity = mActiveScene->CreateEntity();
-                        entity.AddComponent<SpriteRendererComponent>();
-                        entity.GetComponent<SpriteRendererComponent>().Texture = Texture2D::Create(texturePath.string());
-                    }
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }
-
-        Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
-        if (selectedEntity && mGizmoType >= 0)
-        {
-            ImGuizmo::SetOrthographic(false);
-            ImGuizmo::SetDrawlist();
-
-            ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
-
-            const glm::mat4& camProj = mEditorCamera.GetProjection();
-            glm::mat4 cameraView = mEditorCamera.GetViewMatrix();
-            auto& tc = selectedEntity.GetComponent<TransformComponent>();
-            glm::mat4 transform = tc.GetTransform();
-
-            bool snap = Input::IsKeyPressed(KeyCode::Left_Control);
-            float snapValue = mGizmoType != ImGuizmo::OPERATION::ROTATE ? 1.0f : 45.0f;
-
-            float snapValues[3] = { snapValue, snapValue, snapValue };
-
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(camProj),
-                (ImGuizmo::OPERATION)mGizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-                nullptr, snap ? snapValues : nullptr);
-
-            if (ImGuizmo::IsUsing())
-            {
-                glm::vec3 translation, rotation, scale;
-                Math::DecomposeTransform(transform, translation, rotation, scale);
-
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
-                tc.Translation = translation;
-                tc.Rotation += deltaRotation;
-                tc.Scale = scale;
-            }
-        }
-
-        ImGui::End();
-    }
-
-    void EditorLayer::ToolbarUI()
-    {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        auto& colors = ImGui::GetStyle().Colors;
-
-        const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
-        const auto& buttonActive = colors[ImGuiCol_ButtonActive];
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
-
-        ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-        float size = ImGui::GetWindowHeight() - 4.0f;
-        float iconOffset = mSceneState == SceneState::Edit ? (size * 0.5f) : size;
-        Ref<Texture2D> icon = mSceneState == SceneState::Edit ? mPlayIcon : mStopIcon;
-        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - iconOffset);
-
-        if (ImGui::ImageButton((ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
-        {
-            if (mSceneState == SceneState::Edit)
-            {
-                PlayScene();
-            }
-            else if (mSceneState == SceneState::Play)
-            {
-                StopScene();
-            }
-        }
-
-        if (mSceneState != SceneState::Edit)
-        {
-            Ref<Texture2D> pauseIcon = mActiveScene->IsPaused() ? mPlayIcon : mPauseIcon;
-
-            ImGui::SameLine();
-            if (ImGui::ImageButton((ImTextureID)pauseIcon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
-            {
-                mActiveScene->SetPaused(!mActiveScene->IsPaused());
-            }
-        }
-        ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor(3);
-        ImGui::End();
-    }
-
-    void EditorLayer::OnEvent(Event& myEvent)
-    {
-        mEditorCamera.OnEvent(myEvent);
-
-        EventDispatcher dispatch(myEvent);
-        dispatch.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::KeyPressed));
-        dispatch.Dispatch<MouseButtonPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::MouseButtonPressed));
-    }
-
-    void EditorLayer::OverlayRender()
-    {
-        Renderer2D::BeginScene(mEditorCamera);
-
-        if (mShowPhysicsColliders)
-        {
-            {
-                auto view = mActiveScene->GetAllEntitiesWith<TransformComponent, BoxCollider2DComponent>();
-                for (auto entity : view)
-                {
-                    auto&& [tc, bc2d] = view.get<TransformComponent, BoxCollider2DComponent>(entity);
-
-                    glm::vec3 scale = tc.Scale * glm::vec3(bc2d.Size * 2.0f, 1.0f);
-
-                    float rotation = tc.Rotation.z;
-                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), tc.Translation)
-                        * glm::rotate(glm::mat4(1.0f), rotation, glm::vec3(0.0f, 0.0f, 1.0f))
-                        * glm::translate(glm::mat4(1.0f), glm::vec3(bc2d.Offset, 0.001f))
-                        * glm::scale(glm::mat4(1.0f), scale);
-
-                    Renderer2D::DrawRect(transform, glm::vec4(0.0f, 1.0f, 0.2f, 1.0f));
-                }
-            }
-            {
-                auto view = mActiveScene->GetAllEntitiesWith<TransformComponent, CircleCollider2DComponent>();
-                for (auto entity : view)
-                {
-                    auto [tc, cc2d] = view.get<TransformComponent, CircleCollider2DComponent>(entity);
-
-                    glm::vec3 translation = tc.Translation + glm::vec3(cc2d.Offset.x, cc2d.Offset.y, 0.001f);
-                    float scale = tc.Scale.x * cc2d.Radius * 2.0f;
-
-                    glm::mat4 transform = glm::translate(glm::mat4(1.0f), translation)
-                        * glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, 1.0f));
-
-                    Renderer2D::DrawCircle(transform, glm::vec4(0.0f, 1.0f, 0.2f, 1.0f), 0.01f);
-                }
-            }
-        }
-
-        if (Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity())
-        {
-            TransformComponent transform = selectedEntity.GetComponent<TransformComponent>();
-
-            Renderer2D::DrawRect(transform.GetTransform(), glm::vec4(1, 0, 0, 1));
-        }
-
-        Renderer2D::EndScene();
-    }
-
-    bool EditorLayer::KeyPressed(KeyPressedEvent& e)
-    {
-        if (e.GetRepeatCount() > 0)
-        {
-            return false;
-        }
-
-        bool ctrl = Input::IsKeyPressed(KeyCode::Left_Control) || Input::IsKeyPressed(KeyCode::Right_Control);
-        bool shift = Input::IsKeyPressed(KeyCode::Left_Shift) || Input::IsKeyPressed(KeyCode::Right_Shift);
-
-        switch ((KeyCode)e.GetKeyCode())
-        {
-        case KeyCode::Delete:
-        {
-            if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
-            {
-                Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
-                if (selectedEntity)
-                {
-                    mSceneHierarchyPanel.SetSelectedEntity({});
-                    mActiveScene->RemoveEntity(selectedEntity);
-                }
-            }
-            break;
-        }
-
-        //Settings
-        case KeyCode::N:
-        {
-            if (ctrl)
-            {
-                NewScene();
-            }
-            break;
-        }
-        case KeyCode::O:
-        {
-            if (ctrl && Input::IsKeyPressed(KeyCode::Left_Alt))
-            {
-                OpenProject();
-            }
-            else if (ctrl)
-            {
-                OpenScene();
-            }
-            break;
-        }
-        case KeyCode::S:
-        {
-            if (ctrl)
-            {
-                if (shift)
-                {
-                    SaveSceneAs();
-                }
-                else
-                {
-                    SaveScene();
-                }
-            }
-            break;
-        }
-        case KeyCode::D:
-        {
-            if (ctrl)
-            {
-                DuplicateEntity();
-            }
-
-            break;
-        }
-
-        //Gizmos
-        case KeyCode::Q:
-        {
-            mGizmoType = -1;
-            break;
-        }case KeyCode::W:
-        {
-            mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
-            break;
-        }case KeyCode::E:
-        {
-            mGizmoType = ImGuizmo::OPERATION::SCALE;
-            break;
-        }case KeyCode::R:
-        {
-            if (ctrl)
-            {
-                ScriptEngine::ReloadAssembly();
-            }
-            else
-            {
-                mGizmoType = ImGuizmo::OPERATION::ROTATE;
-
-            }
-
-            break;
-        }
-        }
-
-        return false;
-    }
-
-    bool EditorLayer::MouseButtonPressed(MouseButtonPressedEvent& e)
-    {
-        if (e.GetMouseButton() == (int)MouseCode::ButtonLeft)
-        {
-            if (mViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(KeyCode::Left_Alt))
-            {
-                mSceneHierarchyPanel.SetSelectedEntity(mHoveredEntity);
-            }
-        }
-
-        return false;
-    }
-
-    void EditorLayer::DuplicateEntity()
-    {
-        Entity selectedEntity = mSceneHierarchyPanel.GetSelectedEntity();
-        if (selectedEntity)
-        {
-            Entity newEntity = mEditorScene->DuplicateEntity(selectedEntity);
-            mSceneHierarchyPanel.SetSelectedEntity(newEntity);
-        }
-    }
-
-    void EditorLayer::NewProject()
-    {
-        Project::New();
-    }
-
-    bool EditorLayer::OpenProject()
-    {
-        std::string filepath = FileDialogs::OpenFile("NotRed Project (*.nrproj)\0*.nrproj\0");
-        if (filepath.empty())
-        {
-            return false;
-        }
-
-        OpenProject(filepath);
-        return true;
-    }
-
-    void EditorLayer::OpenProject(const std::filesystem::path& path)
-    {
-        if (Project::Load(path))
-        {
-            ScriptEngine::Init();
-
-            auto startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().StartScene);
-            OpenScene(startScenePath);
-            mBrowserPanel = CreateScope<BrowserPanel>();
-        }
-    }
-
-    void EditorLayer::SaveProject()
-    {
-    }
-
-    void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path& path)
-    {
-        SceneSerializer serializer(scene);
-        serializer.Serialize(path.string());
-    }
-
-    void EditorLayer::OpenScene()
-    {
-        std::string filepath = FileDialogs::OpenFile("NotRed Scene (*.nr)\0*.nr\0");
-
-        if (!filepath.empty())
-        {
-            OpenScene(filepath);
-        }
-    }
-
-    void EditorLayer::OpenScene(const std::filesystem::path& path)
-    {
-        if (mSceneState != SceneState::Edit)
-        {
-            StopScene();
-        }
-
-        mEditorScene = CreateRef<Scene>();
-        SceneSerializer serializer(mEditorScene);
-        if (serializer.Deserialize(path.string()))
-        {
-            mSceneHierarchyPanel.SetContext(mEditorScene);
-
-            mActiveScene = mEditorScene;
-            mScenePath = path;
-        }
-    }
-
-    void EditorLayer::NewScene()
-    {
-        if (mSceneState != SceneState::Edit)
-        {
-            StopScene();
-        }
-
-        mEditorScene = CreateRef<Scene>();
-        mEditorScene->ViewportResize((uint32_t)mEditorViewportSize.x, (uint32_t)mEditorViewportSize.y);
-        mActiveScene = mEditorScene;
-        mSceneHierarchyPanel.SetContext(mEditorScene);
-        mScenePath = std::filesystem::path();
-    }
-
-    void EditorLayer::SaveSceneAs()
-    {
-        std::string filepath = FileDialogs::SaveFile("NotRed Scene (*.nr)\0*.nr\0");
-
-        if (!filepath.empty())
-        {
-            SceneSerializer serializer(mActiveScene);
-            serializer.Serialize(filepath);
-        }
-    }
-
-    void EditorLayer::SaveScene()
-    {
-        if (!mScenePath.empty())
-        {
-            SerializeScene(mActiveScene, mScenePath);
-        }
-        else
-        {
-            SaveSceneAs();
-        }
-    }
-
-    void EditorLayer::PlayScene()
-    {
-        mSceneState = SceneState::Play;
-
-        mActiveScene = Scene::Copy(mEditorScene);
-        mActiveScene->RuntimeStart();
-
-        mSceneHierarchyPanel.SetContext(mActiveScene);
-    }
-
-    void EditorLayer::StopScene()
-    {
-        mSceneState = SceneState::Edit;
-
-        mActiveScene->RuntimeStop();
-        mActiveScene = mEditorScene;
-
-        mSceneHierarchyPanel.SetContext(mEditorScene);
-    }
+	static void ImGuiShowHelpMarker(const char* desc)
+	{
+		ImGui::TextDisabled("(?)");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(desc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
+
+	EditorLayer::EditorLayer()
+		: mScene(Scene::Model), mCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
+	{
+	}
+
+	EditorLayer::~EditorLayer()
+	{
+	}
+
+	void EditorLayer::Attach()
+	{
+		using namespace glm;
+
+		mMesh.reset(new Mesh("Assets/Models/m1911/m1911.fbx"));
+		mMeshMaterial.reset(new MaterialInstance(mMesh->GetMaterial()));
+
+		mQuadShader = Shader::Create("Assets/Shaders/Quad");
+		mHDRShader = Shader::Create("Assets/Shaders/HDR");
+
+		mSphereMesh.reset(new Mesh("Assets/Models/Sphere1m.fbx"));
+		mPlaneMesh.reset(new Mesh("Assets/Models/Plane1m.obj"));
+
+		mGridShader = Shader::Create("Assets/Shaders/Grid");
+		mGridMaterial = MaterialInstance::Create(Material::Create(mGridShader));
+		mGridMaterial->Set("uScale", mGridScale);
+		mGridMaterial->Set("uRes", mGridSize);
+
+		// Editor
+		mCheckerboardTex.reset(Texture2D::Create("Assets/editor/Checkerboard.tga"));
+
+		// Environment
+		mEnvironmentCubeMap.reset(TextureCube::Create("Assets/Textures/Environments/Arches_E_PineTree_Radiance.tga"));
+		//mEnvironmentCubeMap.reset(TextureCube::Create("assets/textures/environments/DebugCubeMap.tga"));
+		mEnvironmentIrradiance.reset(TextureCube::Create("Assets/Textures/Environments/Arches_E_PineTree_Irradiance.tga"));
+		mBRDFLUT.reset(Texture2D::Create("Assets/Textures/BRDF_LUT.tga"));
+		
+		mFramebuffer.reset(FrameBuffer::Create(1280, 720, FrameBufferFormat::RGBA16F));
+		mFinalPresentBuffer.reset(FrameBuffer::Create(1280, 720, FrameBufferFormat::RGBA8));
+
+		float x = -4.0f;
+		float roughness = 0.0f;
+		for (int i = 0; i < 8; i++)
+		{
+			Ref<MaterialInstance> mi(new MaterialInstance(mSphereMesh->GetMaterial()));
+			mi->Set("uMetalness", 1.0f);
+			mi->Set("uRoughness", roughness);
+			mi->Set("uModelMatrix", translate(mat4(1.0f), vec3(x, 0.0f, 0.0f)));
+			x += 1.1f;
+			roughness += 0.15f;
+			mMetalSphereMaterialInstances.push_back(mi);
+		}
+
+		x = -4.0f;
+		roughness = 0.0f;
+		for (int i = 0; i < 8; i++)
+		{
+			Ref<MaterialInstance> mi(new MaterialInstance(mSphereMesh->GetMaterial()));
+			mi->Set("uMetalness", 0.0f);
+			mi->Set("uRoughness", roughness);
+			mi->Set("uModelMatrix", translate(mat4(1.0f), vec3(x, 1.2f, 0.0f)));
+			x += 1.1f;
+			roughness += 0.15f;
+			mDielectricSphereMaterialInstances.push_back(mi);
+		}
+
+		// Create Quad
+		x = -1;
+		float y = -1;
+		float width = 2, height = 2;
+		struct QuadVertex
+		{
+			glm::vec3 Position;
+			glm::vec2 TexCoord;
+		};
+
+		QuadVertex* data = new QuadVertex[4];
+
+		data[0].Position = glm::vec3(x, y, 0);
+		data[0].TexCoord = glm::vec2(0, 0);
+
+		data[1].Position = glm::vec3(x + width, y, 0);
+		data[1].TexCoord = glm::vec2(1, 0);
+
+		data[2].Position = glm::vec3(x + width, y + height, 0);
+		data[2].TexCoord = glm::vec2(1, 1);
+
+		data[3].Position = glm::vec3(x, y + height, 0);
+		data[3].TexCoord = glm::vec2(0, 1);
+
+		mVertexBuffer.reset(VertexBuffer::Create());
+		mVertexBuffer->SetData(data, 4 * sizeof(QuadVertex));
+
+		uint32_t* indices = new uint32_t[6]{ 0, 1, 2, 2, 3, 0, };
+		mIndexBuffer.reset(IndexBuffer::Create());
+		mIndexBuffer->SetData(indices, 6 * sizeof(uint32_t));
+
+		mLight.Direction = { -0.5f, -0.5f, 1.0f };
+		mLight.Radiance = { 1.0f, 1.0f, 1.0f };
+	}
+
+	void EditorLayer::Detach()
+	{
+	}
+
+	void EditorLayer::Update(float dt)
+	{
+		using namespace NR;
+		using namespace glm;
+
+		mCamera.Update(dt);
+		auto viewProjection = mCamera.GetProjectionMatrix() * mCamera.GetViewMatrix();
+
+		mFramebuffer->Bind();
+		Renderer::Clear();
+
+		mQuadShader->Bind();
+		mQuadShader->SetMat4("uInverseVP", inverse(viewProjection));
+		mEnvironmentIrradiance->Bind(0);
+		mVertexBuffer->Bind();
+		mIndexBuffer->Bind();
+		Renderer::DrawIndexed(mIndexBuffer->GetCount(), false);
+
+		mMeshMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
+		mMeshMaterial->Set("uMetalness", mMetalnessInput.Value);
+		mMeshMaterial->Set("uRoughness", mRoughnessInput.Value);
+		mMeshMaterial->Set("uViewProjectionMatrix", viewProjection);
+		mMeshMaterial->Set("uModelMatrix", scale(mat4(1.0f), vec3(mMeshScale)));
+		mMeshMaterial->Set("lights", mLight);
+		mMeshMaterial->Set("uCameraPosition", mCamera.GetPosition());
+		mMeshMaterial->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
+		mMeshMaterial->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
+		mMeshMaterial->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
+		mMeshMaterial->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
+		mMeshMaterial->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
+		mMeshMaterial->Set("uEnvMapRotation", mEnvMapRotation);
+
+#if 0
+		// Bind default texture unit
+		UploadUniformInt("uTexture", 0);
+
+		// PBR shader textures
+		UploadUniformInt("uAlbedoTexture", 1);
+		UploadUniformInt("uNormalTexture", 2);
+		UploadUniformInt("uMetalnessTexture", 3);
+		UploadUniformInt("uRoughnessTexture", 4);
+
+		UploadUniformInt("uEnvRadianceTex", 10);
+		UploadUniformInt("uEnvIrradianceTex", 11);
+
+		UploadUniformInt("uBRDFLUTTexture", 15);
+#endif
+		mMeshMaterial->Set("uEnvRadianceTex", mEnvironmentCubeMap);
+		mMeshMaterial->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
+		mMeshMaterial->Set("uBRDFLUTTexture", mBRDFLUT);
+
+		mSphereMesh->GetMaterial()->Set("uAlbedoColor", mAlbedoInput.Color);
+		mSphereMesh->GetMaterial()->Set("uMetalness", mMetalnessInput.Value);
+		mSphereMesh->GetMaterial()->Set("uRoughness", mRoughnessInput.Value);
+		mSphereMesh->GetMaterial()->Set("uViewProjectionMatrix", viewProjection);
+		mSphereMesh->GetMaterial()->Set("uModelMatrix", scale(mat4(1.0f), vec3(mMeshScale)));
+		mSphereMesh->GetMaterial()->Set("lights", mLight);
+		mSphereMesh->GetMaterial()->Set("uCameraPosition", mCamera.GetPosition());
+		mSphereMesh->GetMaterial()->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
+		mSphereMesh->GetMaterial()->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
+		mSphereMesh->GetMaterial()->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
+		mSphereMesh->GetMaterial()->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
+		mSphereMesh->GetMaterial()->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
+		mSphereMesh->GetMaterial()->Set("uEnvMapRotation", mEnvMapRotation);
+		mSphereMesh->GetMaterial()->Set("uEnvRadianceTex", mEnvironmentCubeMap);
+		mSphereMesh->GetMaterial()->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
+		mSphereMesh->GetMaterial()->Set("uBRDFLUTTexture", mBRDFLUT);
+
+		if (mAlbedoInput.TextureMap)
+		{
+			mMeshMaterial->Set("uAlbedoTexture", mAlbedoInput.TextureMap);
+		}
+		if (mNormalInput.TextureMap)
+		{
+			mMeshMaterial->Set("uNormalTexture", mNormalInput.TextureMap);
+		}
+		if (mMetalnessInput.TextureMap)
+		{
+			mMeshMaterial->Set("uMetalnessTexture", mMetalnessInput.TextureMap);
+		}
+		if (mRoughnessInput.TextureMap)
+		{
+			mMeshMaterial->Set("uRoughnessTexture", mRoughnessInput.TextureMap);
+		}
+
+		if (mScene == Scene::Spheres)
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				mSphereMesh->Render(dt, glm::mat4(1.0f), mMetalSphereMaterialInstances[i]);
+			}
+
+			for (int i = 0; i < 8; i++)
+			{
+				mSphereMesh->Render(dt, glm::mat4(1.0f), mDielectricSphereMaterialInstances[i]);
+			}
+		}
+		else if (mScene == Scene::Model)
+		{
+			if (mMesh)
+			{
+				mMesh->Render(dt, scale(mat4(1.0f), vec3(mMeshScale)), mMeshMaterial);
+			}
+		}
+
+		mGridMaterial->Set("uMVP", viewProjection * glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
+		mPlaneMesh->Render(dt, mGridMaterial);
+
+		mFramebuffer->Unbind();
+
+		mFinalPresentBuffer->Bind();
+		mHDRShader->Bind();
+		mHDRShader->SetFloat("uExposure", mExposure);
+		mFramebuffer->BindTexture();
+		mVertexBuffer->Bind();
+		mIndexBuffer->Bind();
+		Renderer::DrawIndexed(mIndexBuffer->GetCount(), false);
+		mFinalPresentBuffer->Unbind();
+	}
+
+	void EditorLayer::Property(const std::string& name, bool& value)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		ImGui::Checkbox(id.c_str(), &value);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	void EditorLayer::Property(const std::string& name, float& value, float min, float max, EditorLayer::PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		ImGui::SliderFloat(id.c_str(), &value, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	void EditorLayer::Property(const std::string& name, glm::vec3& value, EditorLayer::PropertyFlag flags)
+	{
+		Property(name, value, -1.0f, 1.0f, flags);
+	}
+
+	void EditorLayer::Property(const std::string& name, glm::vec3& value, float min, float max, EditorLayer::PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		if ((int)flags & (int)PropertyFlag::ColorProperty)
+			ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+		else
+			ImGui::SliderFloat3(id.c_str(), glm::value_ptr(value), min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	void EditorLayer::Property(const std::string& name, glm::vec4& value, EditorLayer::PropertyFlag flags)
+	{
+		Property(name, value, -1.0f, 1.0f, flags);
+	}
+
+	void EditorLayer::Property(const std::string& name, glm::vec4& value, float min, float max, EditorLayer::PropertyFlag flags)
+	{
+		ImGui::Text(name.c_str());
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + name;
+		if ((int)flags & (int)PropertyFlag::ColorProperty)
+			ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+		else
+			ImGui::SliderFloat4(id.c_str(), glm::value_ptr(value), min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
+	void EditorLayer::ImGuiRender()
+	{
+		static bool p_open = true;
+
+		static bool opt_fullscreen_persistant = true;
+		static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
+		bool opt_fullscreen = opt_fullscreen_persistant;
+
+		// We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+		// because it would be confusing to have two docking targets within each others.
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+		if (opt_fullscreen)
+		{
+			ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+			ImGui::SetNextWindowViewport(viewport->ID);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+			window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		}
+
+		// When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
+		ImGuiDockNodeFlags ImGuiDockNodeFlags_PassthruDockspace = ImGuiDockNodeFlags_NoSplit | ImGuiDockNodeFlags_NoResize | ImGuiDockNodeFlags_NoDockingInCentralNode;
+		if (opt_flags & ImGuiDockNodeFlags_PassthruDockspace)
+		{
+			window_flags |= ImGuiWindowFlags_NoBackground;
+		}
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+		ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+		ImGui::PopStyleVar();
+
+		if (opt_fullscreen)
+			ImGui::PopStyleVar(2);
+
+		// Dockspace
+		ImGuiIO& io = ImGui::GetIO();
+		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+		{
+			ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
+			ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+		}
+
+		// Editor Panel ------------------------------------------------------------------------------
+		ImGui::Begin("Model");
+		ImGui::RadioButton("Spheres", (int*)&mScene, (int)Scene::Spheres);
+		ImGui::SameLine();
+		ImGui::RadioButton("Model", (int*)&mScene, (int)Scene::Model);
+
+		ImGui::Begin("Environment");
+
+		ImGui::Columns(2);
+		ImGui::AlignTextToFramePadding();
+
+		Property("Light Direction", mLight.Direction);
+		Property("Light Radiance", mLight.Radiance, PropertyFlag::ColorProperty);
+		Property("Light Multiplier", mLightMultiplier, 0.0f, 5.0f);
+		Property("Exposure", mExposure, 0.0f, 5.0f);
+
+		Property("Mesh Scale", mMeshScale, 0.0f, 2.0f);
+
+		Property("Radiance Prefiltering", mRadiancePrefilter);
+		Property("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
+
+		ImGui::Columns(1);
+
+		ImGui::End();
+
+		ImGui::Separator();
+		{
+			ImGui::Text("Mesh");
+			std::string fullpath = mMesh ? mMesh->GetFilePath() : "None";
+			size_t found = fullpath.find_last_of("/\\");
+			std::string path = found != std::string::npos ? fullpath.substr(found + 1) : fullpath;
+			ImGui::Text(path.c_str()); ImGui::SameLine();
+			if (ImGui::Button("...##Mesh"))
+			{
+				std::string filename = Application::Get().OpenFile("");
+				if (filename != "")
+				{
+					mMesh.reset(new Mesh(filename));
+					mMeshMaterial.reset(new MaterialInstance(mMesh->GetMaterial()));
+				}
+			}
+		}
+		ImGui::Separator();
+
+		// Textures ------------------------------------------------------------------------------
+		{
+			// Albedo
+			if (ImGui::CollapsingHeader("Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+				ImGui::Image(mAlbedoInput.TextureMap ? (void*)mAlbedoInput.TextureMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+				ImGui::PopStyleVar();
+				if (ImGui::IsItemHovered())
+				{
+					if (mAlbedoInput.TextureMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(mAlbedoInput.TextureMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						ImGui::Image((void*)mAlbedoInput.TextureMap->GetRendererID(), ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked())
+					{
+						std::string filename = Application::Get().OpenFile("");
+						if (filename != "")
+							mAlbedoInput.TextureMap.reset(Texture2D::Create(filename, mAlbedoInput.SRGB));
+					}
+				}
+				ImGui::SameLine();
+				ImGui::BeginGroup();
+				ImGui::Checkbox("Use##AlbedoMap", &mAlbedoInput.UseTexture);
+				if (ImGui::Checkbox("sRGB##AlbedoMap", &mAlbedoInput.SRGB))
+				{
+					if (mAlbedoInput.TextureMap)
+						mAlbedoInput.TextureMap.reset(Texture2D::Create(mAlbedoInput.TextureMap->GetPath(), mAlbedoInput.SRGB));
+				}
+				ImGui::EndGroup();
+				ImGui::SameLine();
+				ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(mAlbedoInput.Color), ImGuiColorEditFlags_NoInputs);
+			}
+		}
+		{
+			// Normals
+			if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+				ImGui::Image(mNormalInput.TextureMap ? (void*)mNormalInput.TextureMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+				ImGui::PopStyleVar();
+				if (ImGui::IsItemHovered())
+				{
+					if (mNormalInput.TextureMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(mNormalInput.TextureMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						ImGui::Image((void*)mNormalInput.TextureMap->GetRendererID(), ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked())
+					{
+						std::string filename = Application::Get().OpenFile("");
+						if (filename != "")
+							mNormalInput.TextureMap.reset(Texture2D::Create(filename));
+					}
+				}
+				ImGui::SameLine();
+				ImGui::Checkbox("Use##NormalMap", &mNormalInput.UseTexture);
+			}
+		}
+		{
+			// Metalness
+			if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+				ImGui::Image(mMetalnessInput.TextureMap ? (void*)mMetalnessInput.TextureMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+				ImGui::PopStyleVar();
+				if (ImGui::IsItemHovered())
+				{
+					if (mMetalnessInput.TextureMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(mMetalnessInput.TextureMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						ImGui::Image((void*)mMetalnessInput.TextureMap->GetRendererID(), ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked())
+					{
+						std::string filename = Application::Get().OpenFile("");
+						if (filename != "")
+							mMetalnessInput.TextureMap.reset(Texture2D::Create(filename));
+					}
+				}
+				ImGui::SameLine();
+				ImGui::Checkbox("Use##MetalnessMap", &mMetalnessInput.UseTexture);
+				ImGui::SameLine();
+				ImGui::SliderFloat("Value##MetalnessInput", &mMetalnessInput.Value, 0.0f, 1.0f);
+			}
+		}
+		{
+			// Roughness
+			if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+				ImGui::Image(mRoughnessInput.TextureMap ? (void*)mRoughnessInput.TextureMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+				ImGui::PopStyleVar();
+				if (ImGui::IsItemHovered())
+				{
+					if (mRoughnessInput.TextureMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(mRoughnessInput.TextureMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						ImGui::Image((void*)mRoughnessInput.TextureMap->GetRendererID(), ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked())
+					{
+						std::string filename = Application::Get().OpenFile("");
+						if (filename != "")
+							mRoughnessInput.TextureMap.reset(Texture2D::Create(filename));
+					}
+				}
+				ImGui::SameLine();
+				ImGui::Checkbox("Use##RoughnessMap", &mRoughnessInput.UseTexture);
+				ImGui::SameLine();
+				ImGui::SliderFloat("Value##RoughnessInput", &mRoughnessInput.Value, 0.0f, 1.0f);
+			}
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Shaders"))
+		{
+			auto& shaders = Shader::sAllShaders;
+			for (auto& shader : shaders)
+			{
+				if (ImGui::TreeNode(shader->GetName().c_str()))
+				{
+					std::string buttonName = "Reload##" + shader->GetName();
+					if (ImGui::Button(buttonName.c_str()))
+						shader->Reload();
+					ImGui::TreePop();
+				}
+			}
+			ImGui::TreePop();
+		}
+
+
+		ImGui::End();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+		ImGui::Begin("Viewport");
+
+		auto viewportSize = ImGui::GetContentRegionAvail();
+		mFramebuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+		mFinalPresentBuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+		mCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
+		mCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+		ImGui::Image((void*)mFinalPresentBuffer->GetColorAttachmentRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
+		ImGui::End();
+		ImGui::PopStyleVar();
+
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("Docking"))
+			{
+				// Disabling fullscreen would allow the window to be moved to the front of other windows, 
+				// which we can't undo at the moment without finer window depth/z control.
+				//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+
+				if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 opt_flags ^= ImGuiDockNodeFlags_NoSplit;
+				if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
+				if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                opt_flags ^= ImGuiDockNodeFlags_NoResize;
+				if (ImGui::MenuItem("Flag: PassthruDockspace", "", (opt_flags & ImGuiDockNodeFlags_PassthruDockspace) != 0))       opt_flags ^= ImGuiDockNodeFlags_PassthruDockspace;
+				if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
+				ImGui::Separator();
+				if (ImGui::MenuItem("Close DockSpace", NULL, false, p_open != NULL))
+					p_open = false;
+				ImGui::EndMenu();
+			}
+			ImGuiShowHelpMarker(
+				"You can _always_ dock _any_ window into another by holding the SHIFT key while moving a window. Try it now!" "\n"
+				"This demo app has nothing to do with it!" "\n\n"
+				"This demo app only demonstrate the use of ImGui::DockSpace() which allows you to manually create a docking node _within_ another window. This is useful so you can decorate your main application window (e.g. with a menu bar)." "\n\n"
+				"ImGui::DockSpace() comes with one hard constraint: it needs to be submitted _before_ any window which may be docked into it. Therefore, if you use a dock spot as the central point of your application, you'll probably want it to be part of the very first window you are submitting to imgui every frame." "\n\n"
+				"(NB: because of this constraint, the implicit \"Debug\" window can not be docked into an explicit DockSpace() node, because that window is submitted as part of the NewFrame() call. An easy workaround is that you can create your own implicit \"Debug##2\" window after calling DockSpace() and leave it in the window stack for anyone to use.)"
+			);
+
+			ImGui::EndMenuBar();
+		}
+
+		ImGui::End();
+
+		if (mMesh)
+		{
+			mMesh->ImGuiRender();
+		}
+	}
+
+	void EditorLayer::OnEvent(Event& event)
+	{
+	}
+
+
 }
