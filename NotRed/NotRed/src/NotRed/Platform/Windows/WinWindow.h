@@ -22,6 +22,7 @@ namespace NR
         bool IsVSync() const override;
 
         inline void* GetNativeWindow() const override { return mWindow; }
+        std::pair<float, float> GetWindowPos() const override;
 
     private:
         void Init(const WindowProps& props);

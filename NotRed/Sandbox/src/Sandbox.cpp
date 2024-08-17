@@ -1,6 +1,7 @@
 #include "NotRed.h"
 
 #include "NotRed/ImGui/ImGuiLayer.h"
+#include "imgui/imgui_internal.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -23,14 +24,19 @@ public:
     {
         using namespace glm;
 
-        mSimplePBRShader.reset(NR::Shader::Create("Assets/Shaders/SimplePBR"));
-        mQuadShader.reset(NR::Shader::Create("Assets/Shaders/Quad"));
-        mHDRShader.reset(NR::Shader::Create("Assets/Shaders/HDR"));
-        mGridShader.reset(NR::Shader::Create("assets/shaders/Grid"));
-        mMesh.reset(new NR::Mesh("Assets/Models/RevolverMagnum/CHRgEgggffN13.fbx"));
+        mMesh.reset(new NR::Mesh("Assets/Models/RevolverMagnum/m1911.fbx"));
+        mMeshMaterial.reset(new NR::MaterialInstance(mMesh->GetMaterial()));
+
+        mQuadShader = NR::Shader::Create("Assets/Shaders/Quad");
+        mHDRShader = NR::Shader::Create("Assets/Shaders/HDR");
 
         mSphereMesh.reset(new NR::Mesh("Assets/Models/Sphere.fbx"));
-        mPlaneMesh.reset(new NR::Mesh("Assets/Models/Plane1m.obj"));
+        mPlaneMesh.reset(new NR::Mesh("Assets/Models/Plane1m.fbx"));
+
+        mGridShader = NR::Shader::Create("Assets/Shaders/Grid");
+        mGridMaterial = NR::MaterialInstance::Create(NR::Material::Create(mGridShader));
+        mGridMaterial->Set("uScale", mGridScale);
+        mGridMaterial->Set("uRes", mGridSize);
 
         // Editor
         mCheckerboardTex.reset(NR::Texture2D::Create("Assets/Editor/Checkerboard.tga"));
@@ -43,13 +49,11 @@ public:
         mFramebuffer.reset(NR::FrameBuffer::Create(1280, 720, NR::FrameBufferFormat::RGBA16F));
         mFinalPresentBuffer.reset(NR::FrameBuffer::Create(1280, 720, NR::FrameBufferFormat::RGBA8));
 
-        mPBRMaterial.reset(new NR::Material(mSimplePBRShader));
-
         float x = -4.0f;
         float roughness = 0.0f;
         for (int i = 0; i < 8; ++i)
         {
-            NR::Ref<NR::MaterialInstance> mi(new NR::MaterialInstance(mPBRMaterial));
+            NR::Ref<NR::MaterialInstance> mi(new NR::MaterialInstance(mSphereMesh->GetMaterial()));
             mi->Set("uMetalness", 1.0f);
             mi->Set("uRoughness", roughness);
             mi->Set("uModelMatrix", translate(mat4(1.0f), vec3(x, 0.0f, 0.0f)));
@@ -62,7 +66,7 @@ public:
         roughness = 0.0f;
         for (int i = 0; i < 8; ++i)
         {
-            NR::Ref<NR::MaterialInstance> mi(new NR::MaterialInstance(mPBRMaterial));
+            NR::Ref<NR::MaterialInstance> mi(new NR::MaterialInstance(mSphereMesh->GetMaterial()));
             mi->Set("uMetalness", 0.0f);
             mi->Set("uRoughness", roughness);
             mi->Set("uModelMatrix", translate(mat4(1.0f), vec3(x, 1.2f, 0.0f)));
@@ -131,19 +135,19 @@ public:
         mIndexBuffer->Bind();
         Renderer::DrawIndexed(mIndexBuffer->GetCount(), false);
 
-        mPBRMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
-        mPBRMaterial->Set("uMetalness", mMetalnessInput.Value);
-        mPBRMaterial->Set("uRoughness", mRoughnessInput.Value);
-        mPBRMaterial->Set("uViewProjectionMatrix", viewProjection);
-        mPBRMaterial->Set("uModelMatrix", scale(mat4(1.0f), vec3(mMeshScale)));
-        mPBRMaterial->Set("lights", mLight);
-        mPBRMaterial->Set("uCameraPosition", mCamera.GetPosition());
-        mPBRMaterial->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
-        mPBRMaterial->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
-        mPBRMaterial->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
-        mPBRMaterial->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
-        mPBRMaterial->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
-        mPBRMaterial->Set("uEnvMapRotation", mEnvMapRotation);
+        mMeshMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
+        mMeshMaterial->Set("uMetalness", mMetalnessInput.Value);
+        mMeshMaterial->Set("uRoughness", mRoughnessInput.Value);
+        mMeshMaterial->Set("uViewProjectionMatrix", viewProjection);
+        mMeshMaterial->Set("uModelMatrix", scale(mat4(1.0f), vec3(mMeshScale)));
+        mMeshMaterial->Set("lghts", mLight);
+        mMeshMaterial->Set("uCameraPosition", mCamera.GetPosition());
+        mMeshMaterial->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
+        mMeshMaterial->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
+        mMeshMaterial->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
+        mMeshMaterial->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
+        mMeshMaterial->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
+        mMeshMaterial->Set("uEnvMapRotation", mEnvMapRotation);
 
 #if 0
         // Bind default texture unit
@@ -160,41 +164,56 @@ public:
 
         UploadUniformInt("uBRDFLUTTexture", 15);
 #endif
-        mPBRMaterial->Set("uEnvRadianceTex", mEnvironmentCubeMap);
-        mPBRMaterial->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
-        mPBRMaterial->Set("uBRDFLUTTexture", mBRDFLUT);
+        mMeshMaterial->Set("uEnvRadianceTex", mEnvironmentCubeMap);
+        mMeshMaterial->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
+        mMeshMaterial->Set("uBRDFLUTTexture", mBRDFLUT);
+
+        mSphereMesh->GetMaterial()->Set("uAlbedoColor", mAlbedoInput.Color);
+        mSphereMesh->GetMaterial()->Set("uMetalness", mMetalnessInput.Value);
+        mSphereMesh->GetMaterial()->Set("uRoughness", mRoughnessInput.Value);
+        mSphereMesh->GetMaterial()->Set("uViewProjectionMatrix", viewProjection);
+        mSphereMesh->GetMaterial()->Set("uModelMatrix", scale(mat4(1.0f), vec3(mMeshScale)));
+        mSphereMesh->GetMaterial()->Set("lights", mLight);
+        mSphereMesh->GetMaterial()->Set("uCameraPosition", mCamera.GetPosition());
+        mSphereMesh->GetMaterial()->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
+        mSphereMesh->GetMaterial()->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
+        mSphereMesh->GetMaterial()->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
+        mSphereMesh->GetMaterial()->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
+        mSphereMesh->GetMaterial()->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
+        mSphereMesh->GetMaterial()->Set("uEnvMapRotation", mEnvMapRotation);
+        mSphereMesh->GetMaterial()->Set("uEnvRadianceTex", mEnvironmentCubeMap);
+        mSphereMesh->GetMaterial()->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
+        mSphereMesh->GetMaterial()->Set("uBRDFLUTTexture", mBRDFLUT);
 
         if (mAlbedoInput.TextureMap)
         {
-            mPBRMaterial->Set("uAlbedoTexture", mAlbedoInput.TextureMap);
+            mMeshMaterial->Set("uAlbedoTexture", mAlbedoInput.TextureMap);
         }
         if (mNormalInput.TextureMap)
         {
-            mPBRMaterial->Set("uNormalTexture", mNormalInput.TextureMap);
+            mMeshMaterial->Set("uNormalTexture", mNormalInput.TextureMap);
         }
         if (mMetalnessInput.TextureMap)
         {
-            mPBRMaterial->Set("uMetalnessTexture", mMetalnessInput.TextureMap);
+            mMeshMaterial->Set("uMetalnessTexture", mMetalnessInput.TextureMap);
         }
         if (mRoughnessInput.TextureMap)
         {
-            mPBRMaterial->Set("uRoughnessTexture", mRoughnessInput.TextureMap);
+            mMeshMaterial->Set("uRoughnessTexture", mRoughnessInput.TextureMap);
         }
 
         if (mScene == Scene::Spheres)
         {
             // Metals
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; ++i)
             {
-                mMetalSphereMaterialInstances[i]->Bind();
-                mSphereMesh->Render(dt, mSimplePBRShader.get());
+                mSphereMesh->Render(dt, glm::mat4(1.0f), mMetalSphereMaterialInstances[i]);
             }
 
             // Dielectrics
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; ++i)
             {
-                mDielectricSphereMaterialInstances[i]->Bind();
-                mSphereMesh->Render(dt, mSimplePBRShader.get());
+                mSphereMesh->Render(dt, glm::mat4(1.0f), mDielectricSphereMaterialInstances[i]);
             }
 
         }
@@ -202,16 +221,12 @@ public:
         {
             if (mMesh)
             {
-                mPBRMaterial->Bind();
-                mMesh->Render(dt, mSimplePBRShader.get());
+                mMesh->Render(dt, scale(mat4(1.0f), vec3(mMeshScale)), mMeshMaterial);
             }
         }
 
-        mGridShader->Bind();
-        mGridShader->SetMat4("uMVP", viewProjection* glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
-        mGridShader->SetFloat("uScale", mGridScale);
-        mGridShader->SetFloat("uRes", mGridSize);
-        mPlaneMesh->Render(dt, mGridShader.get());
+        mGridMaterial->Set("uMVP", viewProjection * glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
+        mPlaneMesh->Render(dt, mGridMaterial);
 
         mFramebuffer->Unbind();
 
@@ -375,6 +390,24 @@ public:
         ImGui::End();
 
         ImGui::Separator();
+        {
+            ImGui::Text("Mesh");
+            std::string fullpath = mMesh ? mMesh->GetFilePath() : "None";
+            size_t found = fullpath.find_last_of("/\\");
+            std::string path = found != std::string::npos ? fullpath.substr(found + 1) : fullpath;
+            ImGui::Text(path.c_str()); ImGui::SameLine();
+            if (ImGui::Button("...##Mesh"))
+            {
+                std::string filename = NR::Application::Get().OpenFile("");
+                if (filename != "")
+                {
+                    mMesh.reset(new NR::Mesh(filename));
+                    mMeshMaterial.reset(new NR::MaterialInstance(mMesh->GetMaterial()));
+                }
+            }
+        }
+
+        ImGui::Separator();
 
         // Textures ------------------------------------------------------------------------------
         {
@@ -524,6 +557,7 @@ public:
         mFramebuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         mFinalPresentBuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         mCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
+        mCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         ImGui::Image((void*)mFinalPresentBuffer->GetColorAttachmentRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
         ImGui::End();
         ImGui::PopStyleVar();
@@ -563,15 +597,15 @@ public:
     }
 
 private:
-    NR::Ref<NR::Shader> mSimplePBRShader;
-    NR::Scope<NR::Shader> mQuadShader;
-    NR::Scope<NR::Shader> mHDRShader;
-    NR::Scope<NR::Shader> mGridShader;
-    NR::Scope<NR::Mesh> mMesh;
-    NR::Scope<NR::Mesh> mSphereMesh, mPlaneMesh;
+    NR::Ref<NR::Shader> mQuadShader;
+    NR::Ref<NR::Shader> mHDRShader;
+    NR::Ref<NR::Shader> mGridShader;
+    NR::Ref<NR::Mesh> mMesh;
+    NR::Ref<NR::Mesh> mSphereMesh, mPlaneMesh;
     NR::Ref<NR::Texture2D> mBRDFLUT;
 
-    NR::Ref<NR::Material> mPBRMaterial;
+    NR::Ref<NR::MaterialInstance> mMeshMaterial;
+    NR::Ref<NR::MaterialInstance> mGridMaterial;
     std::vector<NR::Ref<NR::MaterialInstance>> mMetalSphereMaterialInstances;
     std::vector<NR::Ref<NR::MaterialInstance>> mDielectricSphereMaterialInstances;
 

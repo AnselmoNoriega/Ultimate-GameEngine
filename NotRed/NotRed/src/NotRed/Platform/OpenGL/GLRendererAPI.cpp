@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "NotRed/Renderer/RendererAPI.h"
 
+#include "NotRed/Renderer/Shader.h"
+
 #include <Glad/glad.h>
 
 namespace NR
@@ -12,15 +14,12 @@ namespace NR
 			NR_CORE_ERROR("{0}", message);
 			NR_CORE_ASSERT(false);
 		}
-		else
-		{
-			NR_CORE_TRACE("{0}", message);
-		}
 	}
 
 	void RendererAPI::Init()
 	{
 		glDebugMessageCallback(OpenGLLogMessage, nullptr);
+		glEnable(GL_DEBUG_OUTPUT);
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
 		uint32_t vao;
@@ -50,6 +49,12 @@ namespace NR
 			NR_CORE_ERROR("OpenGL Error {0}", error);
 			error = glGetError();
 		}
+
+		LoadRequiredAssets();
+	}
+
+	void RendererAPI::LoadRequiredAssets()
+	{
 	}
 
 	void RendererAPI::Shutdown()

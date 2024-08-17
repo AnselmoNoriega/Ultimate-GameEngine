@@ -78,7 +78,7 @@ namespace NR
 		inline const ShaderResourceList& GetResources() const override { return mResources; }
 
 	private:
-		RendererID mID;
+		RendererID mID = 0;
 		std::string mName, mAssetPath;
 
 		std::unordered_map<uint32_t, std::string> mShaderSource;

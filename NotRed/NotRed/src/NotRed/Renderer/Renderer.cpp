@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
+#include "Shader.h"
+
 namespace NR
 {
 	Renderer* Renderer::sInstance = new Renderer();
@@ -8,7 +10,12 @@ namespace NR
 
 	void Renderer::Init()
 	{
+		sInstance->mShaderLibrary = std::make_unique<ShaderLibrary>();
+
 		NR_RENDER({ RendererAPI::Init(); });
+
+		Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static");
+		Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim");
 	}
 
 	void Renderer::Clear()

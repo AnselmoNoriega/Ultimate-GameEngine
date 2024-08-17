@@ -102,7 +102,7 @@ namespace NR
 	public:
 		using ShaderReloadedCallback = std::function<void()>;
 
-		static Shader* Create(const std::string& filepath);
+		static Ref<Shader> Create(const std::string& filepath);
 
 		virtual void Bind() = 0;
 		virtual void Reload() = 0;
@@ -127,7 +127,23 @@ namespace NR
 		virtual const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const = 0;
 		virtual const ShaderUniformBufferDeclaration& GetPSMaterialUniformBuffer() const = 0;
 
-		static std::vector<Shader*> sAllShaders;
+		static std::vector<Ref<Shader>> sAllShaders;
+	};
+
+	class ShaderLibrary
+	{
+	public:
+		ShaderLibrary();
+		~ShaderLibrary();
+
+		void Add(const Ref<Shader>& shader);
+		void Load(const std::string& path);
+		void Load(const std::string& name, const std::string& path);
+
+		Ref<Shader>& Get(const std::string& name);
+
+	private:
+		std::unordered_map<std::string, Ref<Shader>> mShaders;
 	};
 
 }

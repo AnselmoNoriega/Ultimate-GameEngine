@@ -29,6 +29,7 @@ namespace NR
         PushOverlay(mImGuiLayer);
 
         Renderer::Init();
+        Renderer::Get().WaitAndRender();
     }
 
     Application::~Application()

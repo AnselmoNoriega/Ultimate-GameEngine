@@ -5,6 +5,8 @@
 
 namespace NR
 {
+	class ShaderLibrary;
+
 	class Renderer
 	{
 	public:
@@ -20,6 +22,8 @@ namespace NR
 
 		static void Init();
 
+		static const Scope<ShaderLibrary>& GetShaderLibrary() { return Get().mShaderLibrary; }
+
 		static void* Submit(RenderCommandFn fn, uint32_t size)
 		{
 			return sInstance->mCommandQueue.Allocate(fn, size);
@@ -33,6 +37,7 @@ namespace NR
 		static Renderer* sInstance;
 
 		RenderCommandQueue mCommandQueue;
+		Scope<ShaderLibrary> mShaderLibrary;
 	};
 }
 

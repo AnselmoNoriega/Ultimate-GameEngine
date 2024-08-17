@@ -89,7 +89,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\win64\assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\windows\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -147,6 +147,8 @@
   <ItemGroup>
     <None Include="Assets\Shaders\Grid\GridFrag.glsl" />
     <None Include="Assets\Shaders\Grid\GridVert.glsl" />
+    <None Include="Assets\Shaders\PBR_Static\PBR_StaticFrag.glsl" />
+    <None Include="Assets\Shaders\PBR_Static\PBR_StaticVert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

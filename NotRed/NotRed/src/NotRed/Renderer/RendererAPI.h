@@ -40,6 +40,9 @@ namespace NR
 		static RendererAPIType Current() { return sCurrentRendererAPI; }
 
 	private:
+		static void LoadRequiredAssets();
+
+	private:
 		static RendererAPIType sCurrentRendererAPI;
 	};
 }

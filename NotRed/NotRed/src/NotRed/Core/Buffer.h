@@ -25,7 +25,9 @@ namespace NR
 			Data = nullptr;
 
 			if (size == 0)
+			{
 				return;
+			}
 
 			Data = new byte[size];
 			Size = size;
@@ -34,7 +36,9 @@ namespace NR
 		void ZeroInitialize()
 		{
 			if (Data)
+			{
 				memset(Data, 0, Size);
+			}
 		}
 
 		void Write(byte* data, uint32_t size, uint32_t offset = 0)

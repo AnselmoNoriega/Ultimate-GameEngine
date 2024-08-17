@@ -11,8 +11,9 @@ namespace NR
 {
 	class Material
 	{
-		friend class MaterialInstance;
 	public:
+		static Ref<Material> Create(const Ref<Shader>& shader);
+
 		Material(const Ref<Shader>& shader);
 		virtual ~Material();
 
@@ -22,13 +23,20 @@ namespace NR
 		void Set(const std::string& name, const T& value)
 		{
 			auto decl = FindUniformDeclaration(name);
-			// NR_CORE_ASSERT(decl, "Could not find uniform with name '{0}'", name);
+
+			if (!decl)
+			{
+				return;
+			}
+
 			NR_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			buffer.Write((byte*)&value, decl->GetSize(), decl->GetOffset());
 
 			for (auto mi : mMaterialInstances)
-				mi->OnMaterialValueUpdated(decl);
+			{
+				mi->MaterialValueUpdated(decl);
+			}
 		}
 
 		void Set(const std::string& name, const Ref<Texture>& texture)
@@ -36,7 +44,9 @@ namespace NR
 			auto decl = FindResourceDeclaration(name);
 			uint32_t slot = decl->GetRegister();
 			if (mTextures.size() <= slot)
+			{
 				mTextures.resize((size_t)slot + 1);
+			}
 			mTextures[slot] = texture;
 		}
 
@@ -49,14 +59,19 @@ namespace NR
 		{
 			Set(name, (const Ref<Texture>&)texture);
 		}
+
+	private:
+		friend class MaterialInstance;
+
 	private:
 		void AllocateStorage();
-		void OnShaderReloaded();
+		void ShaderReloaded();
 		void BindTextures() const;
 
 		ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name);
 		ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
 		Buffer& GetUniformBufferTarget(ShaderUniformDeclaration* uniformDeclaration);
+
 	private:
 		Ref<Shader> mShader;
 		std::unordered_set<MaterialInstance*> mMaterialInstances;
@@ -70,8 +85,9 @@ namespace NR
 
 	class MaterialInstance
 	{
-		friend class Material;
 	public:
+		static Ref<MaterialInstance> Create(const Ref<Material>& material);
+
 		MaterialInstance(const Ref<Material>& material);
 		virtual ~MaterialInstance();
 
@@ -79,8 +95,12 @@ namespace NR
 		void Set(const std::string& name, const T& value)
 		{
 			auto decl = mMaterial->FindUniformDeclaration(name);
-			// NR_CORE_ASSERT(decl, "Could not find uniform with name '{0}'", name);
-			NR_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+
+			if (!decl)
+			{
+				return;
+			}
+
 			auto& buffer = GetUniformBufferTarget(decl);
 			buffer.Write((byte*)&value, decl->GetSize(), decl->GetOffset());
 
@@ -92,7 +112,9 @@ namespace NR
 			auto decl = mMaterial->FindResourceDeclaration(name);
 			uint32_t slot = decl->GetRegister();
 			if (mTextures.size() <= slot)
+			{
 				mTextures.resize((size_t)slot + 1);
+			}
 			mTextures[slot] = texture;
 		}
 
@@ -107,11 +129,16 @@ namespace NR
 		}
 
 		void Bind() const;
+
+	private:
+		friend class Material;
+		
 	private:
 		void AllocateStorage();
-		void OnShaderReloaded();
+		void ShaderReloaded();
 		Buffer& GetUniformBufferTarget(ShaderUniformDeclaration* uniformDeclaration);
-		void OnMaterialValueUpdated(ShaderUniformDeclaration* decl);
+		void MaterialValueUpdated(ShaderUniformDeclaration* decl);
+
 	private:
 		Ref<Material> mMaterial;
 

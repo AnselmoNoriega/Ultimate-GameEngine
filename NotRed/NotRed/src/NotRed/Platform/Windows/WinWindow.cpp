@@ -158,6 +158,13 @@ namespace NR
         mImGuiMouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     }
 
+    inline std::pair<float, float> WinWindow::GetWindowPos() const
+    {
+        int x, y;
+        glfwGetWindowPos(mWindow, &x, &y);
+        return { x, y };
+    }
+
     void WinWindow::Update()
     {
         glfwPollEvents();

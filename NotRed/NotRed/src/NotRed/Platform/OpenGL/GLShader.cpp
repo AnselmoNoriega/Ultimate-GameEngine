@@ -586,7 +586,7 @@ namespace NR
         int32_t result = glGetUniformLocation(mID, name.c_str());
         if (result == -1)
         {
-            NR_CORE_WARN("Could not find uniform '{0}' in shader", name);
+            NR_CORE_WARN("Could not find uniform '{0}' in the shader {1}", name, mName);
         }
 
         return result;

@@ -2,7 +2,6 @@
 
 layout(location = 0) out vec4 aColor;
 
-uniform sampler2D uTexture;
 uniform float uScale;
 uniform float uRes;
 

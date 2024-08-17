@@ -3,10 +3,15 @@
 
 namespace NR
 {
+	Ref<Material> Material::Create(const Ref<Shader>& shader)
+	{
+		return std::make_shared<Material>(shader);
+	}
+
 	Material::Material(const Ref<Shader>& shader)
 		: mShader(shader)
 	{
-		mShader->AddShaderReloadedCallback(std::bind(&Material::OnShaderReloaded, this));
+		mShader->AddShaderReloadedCallback(std::bind(&Material::ShaderReloaded, this));
 		AllocateStorage();
 	}
 
@@ -25,13 +30,13 @@ namespace NR
 		mPSUniformStorageBuffer.ZeroInitialize();
 	}
 
-	void Material::OnShaderReloaded()
+	void Material::ShaderReloaded()
 	{
 		AllocateStorage();
 
 		for (auto mi : mMaterialInstances)
 		{
-			mi->OnShaderReloaded();
+			mi->ShaderReloaded();
 		}
 	}
 
@@ -93,10 +98,14 @@ namespace NR
 		mShader->Bind();
 
 		if (mVSUniformStorageBuffer)
+		{
 			mShader->SetVSMaterialUniformBuffer(mVSUniformStorageBuffer);
+		}
 
 		if (mPSUniformStorageBuffer)
+		{
 			mShader->SetPSMaterialUniformBuffer(mPSUniformStorageBuffer);
+		}
 
 		BindTextures();
 	}
@@ -107,8 +116,17 @@ namespace NR
 		{
 			auto& texture = mTextures[i];
 			if (texture)
+			{
 				texture->Bind(i);
+			}
 		}
+	}
+
+	//Instance-------------------------------------------
+
+	Ref<MaterialInstance> MaterialInstance::Create(const Ref<Material>& material)
+	{
+		return std::make_shared<MaterialInstance>(material);
 	}
 
 	MaterialInstance::MaterialInstance(const Ref<Material>& material)
@@ -123,7 +141,7 @@ namespace NR
 		mMaterial->mMaterialInstances.erase(this);
 	}
 
-	void MaterialInstance::OnShaderReloaded()
+	void MaterialInstance::ShaderReloaded()
 	{
 		AllocateStorage();
 		mOverriddenValues.clear();
@@ -140,7 +158,7 @@ namespace NR
 		memcpy(mPSUniformStorageBuffer.Data, mMaterial->mPSUniformStorageBuffer.Data, psBuffer.GetSize());
 	}
 
-	void MaterialInstance::OnMaterialValueUpdated(ShaderUniformDeclaration* decl)
+	void MaterialInstance::MaterialValueUpdated(ShaderUniformDeclaration* decl)
 	{
 		if (mOverriddenValues.find(decl->GetName()) == mOverriddenValues.end())
 		{
@@ -165,17 +183,23 @@ namespace NR
 	void MaterialInstance::Bind() const
 	{
 		if (mVSUniformStorageBuffer)
+		{
 			mMaterial->mShader->SetVSMaterialUniformBuffer(mVSUniformStorageBuffer);
+		}
 
 		if (mPSUniformStorageBuffer)
+		{
 			mMaterial->mShader->SetPSMaterialUniformBuffer(mPSUniformStorageBuffer);
+		}
 
 		mMaterial->BindTextures();
 		for (size_t i = 0; i < mTextures.size(); i++)
 		{
 			auto& texture = mTextures[i];
 			if (texture)
+			{
 				texture->Bind(i);
+			}
 		}
 	}
 }
