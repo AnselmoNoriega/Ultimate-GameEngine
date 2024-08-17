@@ -13,6 +13,7 @@ namespace NR
 		{
 			NR_CORE_ERROR("{0}", message);
 			//NR_CORE_ASSERT(false);
+			//TODO
 		}
 	}
 
