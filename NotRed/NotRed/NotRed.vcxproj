@@ -143,6 +143,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h" />
@@ -188,6 +190,8 @@
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />

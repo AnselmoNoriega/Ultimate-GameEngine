@@ -7,7 +7,7 @@ namespace NR
 	class GLFrameBuffer : public FrameBuffer
 	{
 	public:
-		GLFrameBuffer(uint32_t width, uint32_t height, FrameBufferFormat format);
+		GLFrameBuffer(const FrameBufferSpecification& spec);
 		~GLFrameBuffer() override;
 
 		void Resize(uint32_t width, uint32_t height) override;
@@ -21,14 +21,11 @@ namespace NR
 		RendererID GetColorAttachmentRendererID() const { return mColorAttachment; }
 		RendererID GetDepthAttachmentRendererID() const { return mDepthAttachment; }
 
-		uint32_t GetWidth() const { return mWidth; }
-		uint32_t GetHeight() const { return mHeight; }
-		FrameBufferFormat GetFormat() const { return mFormat; }
+		const FrameBufferSpecification& GetSpecification() const override { return mSpecification; }
 
 	private:
 		RendererID mID = 0;
-		uint32_t mWidth, mHeight;
-		FrameBufferFormat mFormat;
+		FrameBufferSpecification mSpecification;
 
 		RendererID mColorAttachment, mDepthAttachment;
 	};

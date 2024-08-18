@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "NotRed/Renderer/RendererAPI.h"
 
 namespace NR
@@ -11,10 +13,20 @@ namespace NR
 		RGBA16F
 	};
 
+	struct FrameBufferSpecification
+	{
+		uint32_t Width = 1280;
+		uint32_t Height = 720;
+		glm::vec4 ClearColor;
+		FrameBufferFormat Format;
+
+		bool SwapChainTarget = false;
+	};
+
 	class FrameBuffer
 	{
 	public:
-		static FrameBuffer* Create(uint32_t width, uint32_t height, FrameBufferFormat format);
+		static Ref<FrameBuffer> Create(const FrameBufferSpecification& spec);
 
 		virtual ~FrameBuffer() {}
 		virtual void Bind() const = 0;
@@ -27,6 +39,8 @@ namespace NR
 		virtual RendererID GetRendererID() const = 0;
 		virtual RendererID GetColorAttachmentRendererID() const = 0;
 		virtual RendererID GetDepthAttachmentRendererID() const = 0;
+
+		virtual const FrameBufferSpecification& GetSpecification() const = 0;
 	};
 
 	class FrameBufferPool final
@@ -36,14 +50,14 @@ namespace NR
 		~FrameBufferPool();
 
 		std::weak_ptr<FrameBuffer> AllocateBuffer();
-		void Add(FrameBuffer* FrameBuffer);
+		void Add(std::weak_ptr<FrameBuffer> framebuffer);
 
-		const std::vector<FrameBuffer*>& GetAll() const { return mPool; }
+		const std::vector<std::weak_ptr<FrameBuffer>>& GetAll() const { return mPool; }
 
 		inline static FrameBufferPool* GetGlobal() { return sInstance; }
 
 	private:
-		std::vector<FrameBuffer*> mPool;
+		std::vector<std::weak_ptr<FrameBuffer>> mPool;
 
 		static FrameBufferPool* sInstance;
 	};

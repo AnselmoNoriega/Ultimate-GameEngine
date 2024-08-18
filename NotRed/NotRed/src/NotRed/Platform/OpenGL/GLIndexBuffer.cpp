@@ -3,6 +3,8 @@
 
 #include <Glad/glad.h>
 
+#include "NotRed/Renderer/Renderer.h"
+
 namespace NR
 {
 	GLIndexBuffer::GLIndexBuffer(void* data, uint32_t size)

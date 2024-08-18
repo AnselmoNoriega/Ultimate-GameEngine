@@ -53,4 +53,23 @@ namespace NR
 	{
 		sInstance->mCommandQueue.Execute();
 	}
+
+	void Renderer::IBeginRenderPass(const Ref<RenderPass>& renderPass)
+	{
+		mActiveRenderPass = renderPass;
+
+		renderPass->GetSpecification().TargetFrameBuffer->Bind();
+	}
+
+	void Renderer::IEndRenderPass()
+	{
+		NR_CORE_ASSERT(mActiveRenderPass, "No active render pass! Have you called Renderer::EndRenderPass twice?");
+		mActiveRenderPass->GetSpecification().TargetFrameBuffer->Unbind();
+		mActiveRenderPass = nullptr;
+	}
+
+	void Renderer::ISubmitMesh(const Ref<Mesh>& mesh)
+	{
+
+	}
 }

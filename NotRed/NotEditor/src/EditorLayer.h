@@ -52,6 +52,7 @@ namespace NR
 		Ref<Mesh> mMesh;
 		Ref<Mesh> mSphereMesh, mPlaneMesh;
 		Ref<Texture2D> mBRDFLUT;
+		Ref<RenderPass> mGeoPass, mCompositePass;
 
 		Ref<MaterialInstance> mMeshMaterial;
 		Ref<MaterialInstance> mGridMaterial;
@@ -92,8 +93,6 @@ namespace NR
 			bool UseTexture = false;
 		};
 		RoughnessInput mRoughnessInput;
-
-		std::unique_ptr<FrameBuffer> mFramebuffer, mFinalPresentBuffer;
 
 		Ref<VertexArray> mFullscreenQuadVertexArray;
 		Ref<TextureCube> mEnvironmentCubeMap, mEnvironmentIrradiance;

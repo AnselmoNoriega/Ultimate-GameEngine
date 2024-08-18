@@ -2,6 +2,9 @@
 
 #include "RenderCommandQueue.h"
 #include "RendererAPI.h"
+#include "RenderPass.h"
+
+#include "Mesh.h"
 
 namespace NR
 {
@@ -33,8 +36,22 @@ namespace NR
 
 		inline static Renderer& Get() { return *sInstance; }
 
+		static void BeginRenderPass(const Ref<RenderPass>& renderPass) { sInstance->IBeginRenderPass(renderPass); }
+		static void EndRenderPass() { sInstance->IEndRenderPass(); }
+
+		static void SubmitMesh(const Ref<Mesh>& mesh) { sInstance->ISubmitMesh(mesh); }
+
+	private:
+		void IBeginRenderPass(const Ref<RenderPass>& renderPass);
+		void IEndRenderPass();
+
+		void ISubmitMesh(const Ref<Mesh>& mesh);
+
 	private:
 		static Renderer* sInstance;
+
+	private:
+		Ref<RenderPass> mActiveRenderPass;
 
 		RenderCommandQueue mCommandQueue;
 		Scope<ShaderLibrary> mShaderLibrary;

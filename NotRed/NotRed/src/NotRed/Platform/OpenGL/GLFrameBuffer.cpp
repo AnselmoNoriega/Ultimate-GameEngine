@@ -6,10 +6,10 @@
 
 namespace NR
 {
-	GLFrameBuffer::GLFrameBuffer(uint32_t width, uint32_t height, FrameBufferFormat format)
-		: mWidth(width), mHeight(height), mFormat(format)
+	GLFrameBuffer::GLFrameBuffer(const FrameBufferSpecification& spec)
+		: mSpecification(spec)
 	{
-		Resize(width, height);
+		Resize(spec.Width, spec.Height);
 	}
 
 	GLFrameBuffer::~GLFrameBuffer()
@@ -21,11 +21,14 @@ namespace NR
 
 	void GLFrameBuffer::Resize(uint32_t width, uint32_t height)
 	{
-		if (mWidth == width && mHeight == height)
+		if (mSpecification.Width == width && mSpecification.Height == height)
+		{
 			return;
+		}
 
-		mWidth = width;
-		mHeight = height;
+		mSpecification.Width = width;
+		mSpecification.Height = height;
+
 		NR_RENDER_S({
 			if (self->mID)
 			{
@@ -40,13 +43,13 @@ namespace NR
 			glGenTextures(1, &self->mColorAttachment);
 			glBindTexture(GL_TEXTURE_2D, self->mColorAttachment);
 
-			if (self->mFormat == FrameBufferFormat::RGBA16F)
+			if (self->mSpecification.Format == FrameBufferFormat::RGBA16F)
 			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, self->mWidth, self->mHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, self->mSpecification.Width, self->mSpecification.Height, 0, GL_RGBA, GL_FLOAT, nullptr);
 			}
-			else if (self->mFormat == FrameBufferFormat::RGBA8)
+			else if (self->mSpecification.Format == FrameBufferFormat::RGBA8)
 			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self->mWidth, self->mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self->mSpecification.Width, self->mSpecification.Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 			}
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -54,7 +57,7 @@ namespace NR
 
 			glGenTextures(1, &self->mDepthAttachment);
 			glBindTexture(GL_TEXTURE_2D, self->mDepthAttachment);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, self->mWidth, self->mHeight, 0,
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, self->mSpecification.Width, self->mSpecification.Height, 0,
 				GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL
 			);
 
@@ -73,7 +76,7 @@ namespace NR
 	{
 		NR_RENDER_S({
 			glBindFramebuffer(GL_FRAMEBUFFER, self->mID);
-			glViewport(0, 0, self->mWidth, self->mHeight);
+			glViewport(0, 0, self->mSpecification.Width, self->mSpecification.Height);
 			});
 	}
 

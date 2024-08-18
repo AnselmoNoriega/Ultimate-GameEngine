@@ -18,7 +18,7 @@ namespace NR
 		const BufferLayout& GetLayout() const override { return mLayout; }
 		void SetLayout(const BufferLayout& layout) override { mLayout = layout; }
 
-		virtual uint32_t GetSize() const { return mSize; }
+		uint32_t GetSize() const override { return mSize; }
 
 		RendererID GetRendererID() const override { return mID; }
 

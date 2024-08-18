@@ -127,7 +127,10 @@ namespace NR
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)
         {
-            fb->Resize(width, height);
+            if (auto fbp = fb.lock())
+            {
+                fbp->Resize(width, height);
+            }
         }
 
         return false;

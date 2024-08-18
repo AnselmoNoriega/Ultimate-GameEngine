@@ -8,16 +8,16 @@ namespace NR
 	{
 	public:
 		GLVertexArray();
-		virtual ~GLVertexArray();
+		~GLVertexArray() override;
 
-		virtual void Bind() const override;
-		virtual void Unbind() const override;
+		void Bind() const override;
+		void Unbind() const override;
 
-		virtual void AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) override;
-		virtual void SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) override;
+		void AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) override;
+		void SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) override;
 
-		virtual const std::vector<std::shared_ptr<VertexBuffer>>& GetVertexBuffers() const { return mVertexBuffers; }
-		virtual const std::shared_ptr<IndexBuffer>& GetIndexBuffer() const { return mIndexBuffer; }
+		const std::vector<std::shared_ptr<VertexBuffer>>& GetVertexBuffers() const override { return mVertexBuffers; }
+		const std::shared_ptr<IndexBuffer>& GetIndexBuffer() const override { return mIndexBuffer; }
 
 	private:
 		RendererID mID = 0;

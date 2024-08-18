@@ -7,6 +7,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "NotRed/Renderer/Renderer.h"
+
 namespace NR
 {
 #define UNIFORMLOGGING 0
@@ -808,7 +810,7 @@ namespace NR
             });
     }
 
-    void GLShader::SetMat4FromRenderThread(const std::string& name, const glm::mat4& value)
+    void GLShader::SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind)
     {
         UploadUniformMat4(name, value);
     }

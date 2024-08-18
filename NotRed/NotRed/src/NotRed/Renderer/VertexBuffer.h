@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Renderer/Renderer.h"
+#include "RendererAPI.h"
 
 namespace NR
 {

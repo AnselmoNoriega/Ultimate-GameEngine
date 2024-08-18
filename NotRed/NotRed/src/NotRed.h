@@ -19,6 +19,7 @@
 #include "NotRed/Renderer/Material.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/RenderPass.h"
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/VertexArray.h"

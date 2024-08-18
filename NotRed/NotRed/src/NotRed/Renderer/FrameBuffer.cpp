@@ -5,14 +5,14 @@
 
 namespace NR
 {
-	FrameBuffer* FrameBuffer::Create(uint32_t width, uint32_t height, FrameBufferFormat format)
+	Ref<FrameBuffer> FrameBuffer::Create(const FrameBufferSpecification& spec)
 	{
-		NR::FrameBuffer* result = nullptr;
+		Ref<FrameBuffer> result = nullptr;
 
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None:		return nullptr;
-		case RendererAPIType::OpenGL:	result = new GLFrameBuffer(width, height, format);
+		case RendererAPIType::OpenGL:	result = std::make_shared<GLFrameBuffer>(spec);
 		}
 		FrameBufferPool::GetGlobal()->Add(result);
 		return result;
@@ -35,9 +35,9 @@ namespace NR
 		return std::weak_ptr<FrameBuffer>();
 	}
 
-	void FrameBufferPool::Add(FrameBuffer* FrameBuffer)
+	void FrameBufferPool::Add(std::weak_ptr<FrameBuffer> framebuffer)
 	{
-		mPool.push_back(FrameBuffer);
+		mPool.push_back(framebuffer);
 	}
 
 }

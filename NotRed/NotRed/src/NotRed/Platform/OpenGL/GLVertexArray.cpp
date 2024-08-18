@@ -3,6 +3,8 @@
 
 #include <glad/glad.h>
 
+#include "NotRed/Renderer/Renderer.h"
+
 namespace NR
 {
 	static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)

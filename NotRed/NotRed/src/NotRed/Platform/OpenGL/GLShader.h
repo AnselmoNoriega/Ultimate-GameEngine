@@ -24,7 +24,7 @@ namespace NR
 
 		void SetFloat(const std::string& name, float value) override;
 		void SetMat4(const std::string& name, const glm::mat4& value) override;
-		void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value) override;
+		void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind = true) override;
 
 		void AddShaderReloadedCallback(const ShaderReloadedCallback& callback) override;
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NotRed/Core/Core.h"
-#include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/RendererAPI.h"
 #include "NotRed/Core/Buffer.h"
 #include "NotRed/Renderer/ShaderUniform.h"
 
@@ -115,7 +115,7 @@ namespace NR
 
 		virtual void SetFloat(const std::string& name, float value) = 0;
 		virtual void SetMat4(const std::string& name, const glm::mat4& value) = 0;
-		virtual void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value) = 0;
+		virtual void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind = true) = 0;
 
 		virtual void AddShaderReloadedCallback(const ShaderReloadedCallback& callback) = 0;
 

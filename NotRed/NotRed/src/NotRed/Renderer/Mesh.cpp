@@ -18,6 +18,8 @@
 
 #include "imgui/imgui.h"
 
+#include "NotRed/Renderer/Renderer.h"
+
 namespace NR
 {
     static const uint32_t sMeshImportFlags =
@@ -476,10 +478,6 @@ namespace NR
                     }
                 }
 
-                if (!materialOverride)
-                {
-                    self->mMeshShader->SetMat4FromRenderThread("uModelMatrix", transform * submesh.Transform);
-                }
                 glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
             }
             });

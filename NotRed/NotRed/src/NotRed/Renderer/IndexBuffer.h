@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Renderer/Renderer.h"
+#include "RendererAPI.h"
 
 namespace NR
 {
@@ -9,7 +9,7 @@ namespace NR
 	public:
 		static Ref<IndexBuffer> Create(void* data, uint32_t size = 0);
 
-		virtual ~IndexBuffer() {}
+		virtual ~IndexBuffer() = default;
 
 		virtual void SetData(void* buffer, uint32_t size, uint32_t offset = 0) = 0;
 		virtual void Bind() const = 0;

@@ -97,9 +97,27 @@ namespace NR
 		//mEnvironmentCubeMap.reset(TextureCube::Create("assets/textures/environments/DebugCubeMap.tga"));
 		mEnvironmentIrradiance.reset(TextureCube::Create("Assets/Textures/Environments/Arches_E_PineTree_Irradiance.tga"));
 		mBRDFLUT.reset(Texture2D::Create("Assets/Textures/BRDF_LUT.tga"));
-		
-		mFramebuffer.reset(FrameBuffer::Create(1280, 720, FrameBufferFormat::RGBA16F));
-		mFinalPresentBuffer.reset(FrameBuffer::Create(1280, 720, FrameBufferFormat::RGBA8));
+
+		// Render Passes
+		FrameBufferSpecification geoFramebufferSpec;
+		geoFramebufferSpec.Width = 1280;
+		geoFramebufferSpec.Height = 720;
+		geoFramebufferSpec.Format = FrameBufferFormat::RGBA16F;
+		geoFramebufferSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+		RenderPassSpecification geoRenderPassSpec;
+		geoRenderPassSpec.TargetFrameBuffer = NR::FrameBuffer::Create(geoFramebufferSpec);
+		mGeoPass = RenderPass::Create(geoRenderPassSpec);
+
+		FrameBufferSpecification compFramebufferSpec;
+		compFramebufferSpec.Width = 1280;
+		compFramebufferSpec.Height = 720;
+		compFramebufferSpec.Format = FrameBufferFormat::RGBA8;
+		compFramebufferSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+		RenderPassSpecification compRenderPassSpec;
+		compRenderPassSpec.TargetFrameBuffer = NR::FrameBuffer::Create(compFramebufferSpec);
+		mCompositePass = RenderPass::Create(compRenderPassSpec);
 
 		float x = -4.0f;
 		float roughness = 0.0f;
@@ -183,7 +201,7 @@ namespace NR
 		mCamera.Update(dt);
 		auto viewProjection = mCamera.GetProjectionMatrix() * mCamera.GetViewMatrix();
 
-		mFramebuffer->Bind();
+		Renderer::BeginRenderPass(mGeoPass);
 		Renderer::Clear();
 
 		mQuadShader->Bind();
@@ -267,15 +285,15 @@ namespace NR
 		mGridMaterial->Set("uMVP", viewProjection * glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
 		mPlaneMesh->Render(dt, mGridMaterial);
 
-		mFramebuffer->Unbind();
+		Renderer::EndRenderPass();
 
-		mFinalPresentBuffer->Bind();
+		Renderer::BeginRenderPass(mCompositePass);
 		mHDRShader->Bind();
 		mHDRShader->SetFloat("uExposure", mExposure);
-		mFramebuffer->BindTexture();
+		mGeoPass->GetSpecification().TargetFrameBuffer->BindTexture();
 		mFullscreenQuadVertexArray->Bind();
 		Renderer::DrawIndexed(mFullscreenQuadVertexArray->GetIndexBuffer()->GetCount(), false);
-		mFinalPresentBuffer->Unbind();
+		Renderer::EndRenderPass();
 	}
 
 	void EditorLayer::Property(const std::string& name, bool& value)
@@ -591,11 +609,12 @@ namespace NR
 		ImGui::Begin("Viewport");
 
 		auto viewportSize = ImGui::GetContentRegionAvail();
-		mFramebuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-		mFinalPresentBuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+
+		mGeoPass->GetSpecification().TargetFrameBuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+		mCompositePass->GetSpecification().TargetFrameBuffer->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 		mCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
 		mCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-		ImGui::Image((void*)mFinalPresentBuffer->GetColorAttachmentRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
+		ImGui::Image((void*)mCompositePass->GetSpecification().TargetFrameBuffer->GetColorAttachmentRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
 
 		if (mGizmoType != -1)
 		{
