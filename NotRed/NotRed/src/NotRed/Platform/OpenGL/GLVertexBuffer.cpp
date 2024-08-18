@@ -5,11 +5,37 @@
 
 namespace NR
 {
-    GLVertexBuffer::GLVertexBuffer(uint32_t size)
-        : mID(0), mSize(size)
+    static GLenum OpenGLUsage(VertexBufferUsage usage)
+    {
+        switch (usage)
+        {
+        case VertexBufferUsage::Static:    return GL_STATIC_DRAW;
+        case VertexBufferUsage::Dynamic:   return GL_DYNAMIC_DRAW;
+        default:
+        {
+            NR_CORE_ASSERT(false, "Unknown vertex buffer usage");
+            return 0;
+        }
+        }
+    }
+
+    GLVertexBuffer::GLVertexBuffer(void* data, uint32_t size, VertexBufferUsage usage)
+        : mSize(size), mUsage(usage)
+    {
+        mLocalData = Buffer::Copy(data, size);
+
+        NR_RENDER_S({
+            glCreateBuffers(1, &self->mID);
+            glNamedBufferData(self->mID, self->mSize, self->mLocalData.Data, OpenGLUsage(self->mUsage));
+            });
+    }
+
+    GLVertexBuffer::GLVertexBuffer(uint32_t size, VertexBufferUsage usage)
+        : mSize(size), mUsage(usage)
     {
         NR_RENDER_S({
-            glGenBuffers(1, &self->mID);
+            glCreateBuffers(1, &self->mID);
+            glNamedBufferData(self->mID, self->mSize, nullptr, OpenGLUsage(self->mUsage));
             });
     }
 
@@ -20,13 +46,13 @@ namespace NR
             });
     }
 
-    void GLVertexBuffer::SetData(void* buffer, uint32_t size, uint32_t offset)
+    void GLVertexBuffer::SetData(void* data, uint32_t size, uint32_t offset)
     {
+        mLocalData = Buffer::Copy(data, size);
         mSize = size;
 
-        NR_RENDER_S3(buffer, size, offset, {
-            glBindBuffer(GL_ARRAY_BUFFER, self->mID);
-            glBufferData(GL_ARRAY_BUFFER, size, buffer, GL_STATIC_DRAW);
+        NR_RENDER_S1(offset, {
+            glNamedBufferSubData(self->mID, offset, self->mSize, self->mLocalData.Data);
             });
     }
 
@@ -34,12 +60,6 @@ namespace NR
     {
         NR_RENDER_S({
             glBindBuffer(GL_ARRAY_BUFFER, self->mID);
-
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (const void*)(3 * sizeof(float)));
             });
     }
 

@@ -103,6 +103,7 @@ namespace NR
 		using ShaderReloadedCallback = std::function<void()>;
 
 		static Ref<Shader> Create(const std::string& filepath);
+		Ref<Shader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc);
 
 		virtual void Bind() = 0;
 		virtual void Reload() = 0;

@@ -109,18 +109,15 @@ namespace NR
                     AnimatedVertex vertex;
                     vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                     vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-
                     if (mesh->HasTangentsAndBitangents())
                     {
                         vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
                         vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
                     }
-
                     if (mesh->HasTextureCoords(0))
                     {
                         vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
                     }
-
                     mAnimatedVertices.push_back(vertex);
                 }
             }
@@ -131,18 +128,15 @@ namespace NR
                     Vertex vertex;
                     vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                     vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-
                     if (mesh->HasTangentsAndBitangents())
                     {
                         vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
                         vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
                     }
-
                     if (mesh->HasTextureCoords(0))
                     {
                         vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
                     }
-
                     mStaticVertices.push_back(vertex);
                 }
             }
@@ -166,18 +160,16 @@ namespace NR
             {
                 aiMesh* mesh = scene->mMeshes[m];
                 Submesh& submesh = mSubmeshes[m];
-
                 for (size_t i = 0; i < mesh->mNumBones; i++)
                 {
                     aiBone* bone = mesh->mBones[i];
                     std::string boneName(bone->mName.data);
                     int boneIndex = 0;
-
                     if (mBoneMapping.find(boneName) == mBoneMapping.end())
                     {
                         // Allocate an index for a new bone
                         boneIndex = mBoneCount;
-                        mBoneCount++;
+                        ++mBoneCount;
                         BoneInfo bi;
                         mBoneInfo.push_back(bi);
                         mBoneInfo[boneIndex].BoneOffset = aiMatrix4x4ToGlm(bone->mOffsetMatrix);
@@ -188,7 +180,6 @@ namespace NR
                         NR_CORE_TRACE("Found existing bone in map");
                         boneIndex = mBoneMapping[boneName];
                     }
-
                     for (size_t j = 0; j < bone->mNumWeights; j++)
                     {
                         int VertexID = submesh.BaseVertex + bone->mWeights[j].mVertexId;
@@ -199,18 +190,36 @@ namespace NR
             }
         }
 
-        mVertexBuffer.reset(VertexBuffer::Create());
+        mVertexArray = VertexArray::Create();
         if (mIsAnimated)
         {
-            mVertexBuffer->SetData(mAnimatedVertices.data(), mAnimatedVertices.size() * sizeof(AnimatedVertex));
+            auto vb = VertexBuffer::Create(mAnimatedVertices.data(), mAnimatedVertices.size() * sizeof(AnimatedVertex));
+            vb->SetLayout({
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float3, "aNormal" },
+                { ShaderDataType::Float3, "aTangent" },
+                { ShaderDataType::Float3, "aBinormal" },
+                { ShaderDataType::Float2, "aTexCoord" },
+                { ShaderDataType::Int4,   "aBoneIDs" },
+                { ShaderDataType::Float4, "aBoneWeights" },
+                });
+            mVertexArray->AddVertexBuffer(vb);
         }
         else
         {
-            mVertexBuffer->SetData(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+            auto vb = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+            vb->SetLayout({
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float3, "aNormal" },
+                { ShaderDataType::Float3, "aTangent" },
+                { ShaderDataType::Float3, "aBinormal" },
+                { ShaderDataType::Float2, "aTexCoord" },
+                });
+            mVertexArray->AddVertexBuffer(vb);
         }
 
-        mIndexBuffer.reset(IndexBuffer::Create());
-        mIndexBuffer->SetData(mIndices.data(), mIndices.size() * sizeof(Index));
+        auto ib = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
+        mVertexArray->SetIndexBuffer(ib);
 
         mScene = scene;
     }
@@ -451,61 +460,20 @@ namespace NR
             materialInstance->Bind();
         }
 
-        // TODO: Sort this out
-        mVertexBuffer->Bind();
-        mIndexBuffer->Bind();
+        mVertexArray->Bind();
 
         bool materialOverride = !!materialInstance;
 
-        // TODO: replace with render API calls
         NR_RENDER_S2(transform, materialOverride, {
             for (Submesh& submesh : self->mSubmeshes)
             {
                 if (self->mIsAnimated)
                 {
-                    glEnableVertexAttribArray(0);
-                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, Position));
-
-                    glEnableVertexAttribArray(1);
-                    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, Normal));
-
-                    glEnableVertexAttribArray(2);
-                    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, Tangent));
-
-                    glEnableVertexAttribArray(3);
-                    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, Binormal));
-
-                    glEnableVertexAttribArray(4);
-                    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, Texcoord));
-
-                    glEnableVertexAttribArray(5);
-                    glVertexAttribIPointer(5, 4, GL_INT, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, IDs));
-
-                    glEnableVertexAttribArray(6);
-                    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(AnimatedVertex), (const void*)offsetof(AnimatedVertex, Weights));
-
                     for (size_t i = 0; i < self->mBoneTransforms.size(); i++)
                     {
                         std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
                         self->mMeshShader->SetMat4FromRenderThread(uniformName, self->mBoneTransforms[i]);
                     }
-                }
-                else
-                {
-                    glEnableVertexAttribArray(0);
-                    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Position));
-
-                    glEnableVertexAttribArray(1);
-                    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Normal));
-
-                    glEnableVertexAttribArray(2);
-                    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Tangent));
-
-                    glEnableVertexAttribArray(3);
-                    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Binormal));
-
-                    glEnableVertexAttribArray(4);
-                    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (const void*)offsetof(Vertex, Texcoord));
                 }
 
                 if (!materialOverride)

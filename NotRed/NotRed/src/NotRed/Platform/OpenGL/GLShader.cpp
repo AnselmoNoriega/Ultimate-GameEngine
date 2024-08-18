@@ -136,10 +136,33 @@ namespace NR
         Reload();
     }
 
+    Ref<GLShader> GLShader::CreateFromString(const std::string& vertSrc, const std::string& fragSrc)
+    {
+        Ref<GLShader> shader = std::make_shared<GLShader>();
+        shader->Load(vertSrc, fragSrc);
+        return shader;
+    }
+
     void GLShader::Reload()
     {
+        if (mAssetPath.empty())
+        {
+            NR_WARN("This shader can't be reloaded");
+            return;
+        }
+
         mName = GetShaderName(mAssetPath);
 
+        std::string vert;
+        ParseFile(mAssetPath + "/" + mName + "Vert.glsl", vert);
+        std::string frag;
+        ParseFile(mAssetPath + "/" + mName + "Frag.glsl", frag);
+
+        Load(vert, frag);
+    }
+
+    void GLShader::Load(const std::string& vertSrc, const std::string& fragSrc)
+    {
         mShaderSource.clear();
 
         mResources.clear();
@@ -147,15 +170,11 @@ namespace NR
         mVSMaterialUniformBuffer.reset();
         mPSMaterialUniformBuffer.reset();
 
-        std::string vert;
-        ParseFile(mAssetPath + "/" + mName + "Vert.glsl", vert);
-        Parse(vert, ShaderDomain::Vertex);
-        mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), vert });
+        Parse(vertSrc, ShaderDomain::Vertex);
+        mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), vertSrc });
 
-        std::string frag;
-        ParseFile(mAssetPath + "/" + mName + "Frag.glsl", frag);
-        Parse(frag, ShaderDomain::Pixel);
-        mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), frag });
+        Parse(fragSrc, ShaderDomain::Pixel);
+        mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), fragSrc });
 
         NR_RENDER_S({
             if (self->mID)
@@ -212,7 +231,7 @@ namespace NR
         }
     }
 
-    void GLShader::Parse(std::string& source, ShaderDomain type)
+    void GLShader::Parse(const std::string& source, ShaderDomain type)
     {
         const char* token;
         const char* str;

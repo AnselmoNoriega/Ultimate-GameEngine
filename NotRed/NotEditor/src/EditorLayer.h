@@ -93,8 +93,7 @@ namespace NR
 
 		std::unique_ptr<FrameBuffer> mFramebuffer, mFinalPresentBuffer;
 
-		Ref<VertexBuffer> mVertexBuffer;
-		Ref<IndexBuffer> mIndexBuffer;
+		Ref<VertexArray> mFullscreenQuadVertexArray;
 		Ref<TextureCube> mEnvironmentCubeMap, mEnvironmentIrradiance;
 
 		Camera mCamera;

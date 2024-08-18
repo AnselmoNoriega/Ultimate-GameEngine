@@ -21,6 +21,20 @@ namespace NR
         return result;
     }
 
+	Ref<Shader> Shader::CreateFromString(const std::string& vertSrc, const std::string& fragSrc)
+	{
+		Ref<Shader> result = nullptr;
+
+		switch (RendererAPI::Current())
+		{
+		case RendererAPIType::None: return nullptr;
+		case RendererAPIType::OpenGL: result = GLShader::CreateFromString(vertSrc, fragSrc);
+		}
+
+		sAllShaders.push_back(result);
+		return result;
+	}
+
 	ShaderLibrary::ShaderLibrary()
 	{
 	}

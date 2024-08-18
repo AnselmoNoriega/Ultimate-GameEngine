@@ -12,6 +12,8 @@ namespace NR
 	public:
 		typedef void(*RenderCommandFn)(void*);
 
+		static void Init();
+
 		static void Clear();
 		static void Clear(float r, float g, float b, float a = 1.0f);
 		static void SetClearColor(float r, float g, float b, float a);
@@ -19,8 +21,6 @@ namespace NR
 		static void DrawIndexed(uint32_t count, bool depthTestActive = true);
 
 		static void ClearMagenta();
-
-		static void Init();
 
 		static const Scope<ShaderLibrary>& GetShaderLibrary() { return Get().mShaderLibrary; }
 

@@ -104,12 +104,19 @@ namespace NR
 		data[3].Position = glm::vec3(x, y + height, 0);
 		data[3].TexCoord = glm::vec2(0, 1);
 
-		mVertexBuffer.reset(VertexBuffer::Create());
-		mVertexBuffer->SetData(data, 4 * sizeof(QuadVertex));
+		mFullscreenQuadVertexArray = VertexArray::Create();
+		auto quadVB = VertexBuffer::Create(data, 4 * sizeof(QuadVertex));
+		quadVB->SetLayout({
+			{ ShaderDataType::Float3, "aPosition" },
+			{ ShaderDataType::Float2, "aTexCoord" }
+			});
 
-		uint32_t* indices = new uint32_t[6]{ 0, 1, 2, 2, 3, 0, };
-		mIndexBuffer.reset(IndexBuffer::Create());
-		mIndexBuffer->SetData(indices, 6 * sizeof(uint32_t));
+		uint32_t indices[6] = { 0, 1, 2, 
+								2, 3, 0, };
+		auto quadIB = IndexBuffer::Create(indices, 6 * sizeof(uint32_t));
+
+		mFullscreenQuadVertexArray->AddVertexBuffer(quadVB);
+		mFullscreenQuadVertexArray->SetIndexBuffer(quadIB);
 
 		mLight.Direction = { -0.5f, -0.5f, 1.0f };
 		mLight.Radiance = { 1.0f, 1.0f, 1.0f };
@@ -133,9 +140,8 @@ namespace NR
 		mQuadShader->Bind();
 		mQuadShader->SetMat4("uInverseVP", inverse(viewProjection));
 		mEnvironmentIrradiance->Bind(0);
-		mVertexBuffer->Bind();
-		mIndexBuffer->Bind();
-		Renderer::DrawIndexed(mIndexBuffer->GetCount(), false);
+		mFullscreenQuadVertexArray->Bind();
+		Renderer::DrawIndexed(mFullscreenQuadVertexArray->GetIndexBuffer()->GetCount(), false);
 
 		mMeshMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
 		mMeshMaterial->Set("uMetalness", mMetalnessInput.Value);
@@ -151,21 +157,6 @@ namespace NR
 		mMeshMaterial->Set("uRoughnessTexToggle", mRoughnessInput.UseTexture ? 1.0f : 0.0f);
 		mMeshMaterial->Set("uEnvMapRotation", mEnvMapRotation);
 
-#if 0
-		// Bind default texture unit
-		UploadUniformInt("uTexture", 0);
-
-		// PBR shader textures
-		UploadUniformInt("uAlbedoTexture", 1);
-		UploadUniformInt("uNormalTexture", 2);
-		UploadUniformInt("uMetalnessTexture", 3);
-		UploadUniformInt("uRoughnessTexture", 4);
-
-		UploadUniformInt("uEnvRadianceTex", 10);
-		UploadUniformInt("uEnvIrradianceTex", 11);
-
-		UploadUniformInt("uBRDFLUTTexture", 15);
-#endif
 		mMeshMaterial->Set("uEnvRadianceTex", mEnvironmentCubeMap);
 		mMeshMaterial->Set("uEnvIrradianceTex", mEnvironmentIrradiance);
 		mMeshMaterial->Set("uBRDFLUTTexture", mBRDFLUT);
@@ -233,9 +224,8 @@ namespace NR
 		mHDRShader->Bind();
 		mHDRShader->SetFloat("uExposure", mExposure);
 		mFramebuffer->BindTexture();
-		mVertexBuffer->Bind();
-		mIndexBuffer->Bind();
-		Renderer::DrawIndexed(mIndexBuffer->GetCount(), false);
+		mFullscreenQuadVertexArray->Bind();
+		Renderer::DrawIndexed(mFullscreenQuadVertexArray->GetIndexBuffer()->GetCount(), false);
 		mFinalPresentBuffer->Unbind();
 	}
 
