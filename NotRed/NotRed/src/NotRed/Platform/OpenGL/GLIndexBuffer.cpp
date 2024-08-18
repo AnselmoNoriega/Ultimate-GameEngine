@@ -12,16 +12,16 @@ namespace NR
 	{
 		mLocalData = Buffer::Copy(data, size);
 
-		NR_RENDER_S({
-			glCreateBuffers(1, &self->mID);
-			glNamedBufferData(self->mID, self->mSize, self->mLocalData.Data, GL_STATIC_DRAW);
+		Renderer::Submit([this]() {
+			glCreateBuffers(1, &mID);
+			glNamedBufferData(mID, mSize, mLocalData.Data, GL_STATIC_DRAW);
 			});
 	}
 
 	GLIndexBuffer::~GLIndexBuffer()
 	{
-		NR_RENDER_S({
-			glDeleteBuffers(1, &self->mID);
+		Renderer::Submit([this]() {
+			glDeleteBuffers(1, &mID);
 			});
 	}
 
@@ -30,15 +30,15 @@ namespace NR
 		mLocalData = Buffer::Copy(data, size);
 		mSize = size;
 
-		NR_RENDER_S1(offset, {
-			glNamedBufferSubData(self->mID, offset, self->mSize, self->mLocalData.Data);
+		Renderer::Submit([this, offset]() {
+			glNamedBufferSubData(mID, offset, mSize, mLocalData.Data);
 			});
 	}
 
 	void GLIndexBuffer::Bind() const
 	{
-		NR_RENDER_S({
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self->mID);
+		Renderer::Submit([this]() {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mID);
 			});
 	}
 }

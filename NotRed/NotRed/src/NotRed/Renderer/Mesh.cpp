@@ -150,10 +150,7 @@ namespace NR
             }
         }
 
-        NR_CORE_TRACE("NODES:");
-        NR_CORE_TRACE("-----------------------------");
         TraverseNodes(scene->mRootNode);
-        NR_CORE_TRACE("-----------------------------");
 
         // Bones
         if (mIsAnimated)
@@ -275,14 +272,8 @@ namespace NR
         return 0;
     }
 
-    void Mesh::TraverseNodes(aiNode* node, int level)
+    void Mesh::TraverseNodes(aiNode* node)
     {
-        std::string levelText;
-        for (int i = 0; i < level; ++i)
-        {
-            levelText += "-";
-        }
-        NR_CORE_TRACE("{0}Node name: {1}", levelText, std::string(node->mName.data));
         for (uint32_t i = 0; i < node->mNumMeshes; i++)
         {
             uint32_t mesh = node->mMeshes[i];
@@ -291,8 +282,7 @@ namespace NR
 
         for (uint32_t i = 0; i < node->mNumChildren; i++)
         {
-            aiNode* child = node->mChildren[i];
-            TraverseNodes(child, level + 1);
+            TraverseNodes(node->mChildren[i]);
         }
     }
 
@@ -466,15 +456,15 @@ namespace NR
 
         bool materialOverride = !!materialInstance;
 
-        NR_RENDER_S2(transform, materialOverride, {
-            for (Submesh& submesh : self->mSubmeshes)
+        Renderer::Submit([=]() {
+            for (Submesh& submesh : mSubmeshes)
             {
-                if (self->mIsAnimated)
+                if (mIsAnimated)
                 {
-                    for (size_t i = 0; i < self->mBoneTransforms.size(); i++)
+                    for (size_t i = 0; i < mBoneTransforms.size(); i++)
                     {
                         std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
-                        self->mMeshShader->SetMat4FromRenderThread(uniformName, self->mBoneTransforms[i]);
+                        mMeshShader->SetMat4FromRenderThread(uniformName, mBoneTransforms[i]);
                     }
                 }
 

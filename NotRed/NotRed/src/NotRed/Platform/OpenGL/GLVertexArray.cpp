@@ -30,28 +30,28 @@ namespace NR
 
 	GLVertexArray::GLVertexArray()
 	{
-		NR_RENDER_S({
-			glCreateVertexArrays(1, &self->mID);
+		Renderer::Submit([this]() {
+			glCreateVertexArrays(1, &mID);
 			});
 	}
 
 	GLVertexArray::~GLVertexArray()
 	{
-		NR_RENDER_S({
-			glDeleteVertexArrays(1, &self->mID);
+		Renderer::Submit([this]() {
+			glDeleteVertexArrays(1, &mID);
 			});
 	}
 
 	void GLVertexArray::Bind() const
 	{
-		NR_RENDER_S({
-			glBindVertexArray(self->mID);
+		Renderer::Submit([this]() {
+			glBindVertexArray(mID);
 			});
 	}
 
 	void GLVertexArray::Unbind() const
 	{
-		NR_RENDER_S({
+		Renderer::Submit([this]() {
 			glBindVertexArray(0);
 			});
 	}
@@ -63,15 +63,15 @@ namespace NR
 		Bind();
 		vertexBuffer->Bind();
 
-		NR_RENDER_S1(vertexBuffer, {
+		Renderer::Submit([this, vertexBuffer]() {
 			const auto & layout = vertexBuffer->GetLayout();
 			for (const auto& element : layout)
 			{
 				auto glBaseType = ShaderDataTypeToOpenGLBaseType(element.Type);
-				glEnableVertexAttribArray(self->mVertexBufferIndex);
+				glEnableVertexAttribArray(mVertexBufferIndex);
 				if (glBaseType == GL_INT)
 				{
-					glVertexAttribIPointer(self->mVertexBufferIndex,
+					glVertexAttribIPointer(mVertexBufferIndex,
 						element.GetComponentCount(),
 						glBaseType,
 						layout.GetStride(),
@@ -79,14 +79,14 @@ namespace NR
 				}
 				else
 				{
-					glVertexAttribPointer(self->mVertexBufferIndex,
+					glVertexAttribPointer(mVertexBufferIndex,
 						element.GetComponentCount(),
 						glBaseType,
 						element.Normalized ? GL_TRUE : GL_FALSE,
 						layout.GetStride(),
 						(const void*)(intptr_t)element.Offset);
 				}
-				self->mVertexBufferIndex++;
+				mVertexBufferIndex++;
 			}
 			});
 		mVertexBuffers.push_back(vertexBuffer);

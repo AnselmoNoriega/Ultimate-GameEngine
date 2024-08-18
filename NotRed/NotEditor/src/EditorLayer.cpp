@@ -202,7 +202,6 @@ namespace NR
 		auto viewProjection = mCamera.GetProjectionMatrix() * mCamera.GetViewMatrix();
 
 		Renderer::BeginRenderPass(mGeoPass);
-		Renderer::Clear();
 
 		mQuadShader->Bind();
 		mQuadShader->SetMat4("uInverseVP", inverse(viewProjection));

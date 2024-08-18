@@ -82,7 +82,7 @@ namespace NR
                     layer->Update((float)mTimeFrame);
                 }
                 Application* app = this;
-                NR_RENDER_1(app, { app->RenderImGui(); });
+                Renderer::Submit([app]() { app->RenderImGui(); });
 
                 Renderer::Get().WaitAndRender();
             }
@@ -123,7 +123,7 @@ namespace NR
         }
         mMinimized = false;
 
-        NR_RENDER_2(width, height, { glViewport(0, 0, width, height); });
+        Renderer::Submit([=]() { glViewport(0, 0, width, height); });
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)
         {

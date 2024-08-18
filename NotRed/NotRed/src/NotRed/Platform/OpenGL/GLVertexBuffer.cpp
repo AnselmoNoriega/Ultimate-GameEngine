@@ -26,25 +26,25 @@ namespace NR
     {
         mLocalData = Buffer::Copy(data, size);
 
-        NR_RENDER_S({
-            glCreateBuffers(1, &self->mID);
-            glNamedBufferData(self->mID, self->mSize, self->mLocalData.Data, OpenGLUsage(self->mUsage));
+        Renderer::Submit([=]() {
+            glCreateBuffers(1, &mID);
+            glNamedBufferData(mID, mSize, mLocalData.Data, OpenGLUsage(mUsage));
             });
     }
 
     GLVertexBuffer::GLVertexBuffer(uint32_t size, VertexBufferUsage usage)
         : mSize(size), mUsage(usage)
     {
-        NR_RENDER_S({
-            glCreateBuffers(1, &self->mID);
-            glNamedBufferData(self->mID, self->mSize, nullptr, OpenGLUsage(self->mUsage));
+        Renderer::Submit([this]() {
+            glCreateBuffers(1, &mID);
+            glNamedBufferData(mID, mSize, nullptr, OpenGLUsage(mUsage));
             });
     }
 
     GLVertexBuffer::~GLVertexBuffer()
     {
-        NR_RENDER_S({
-            glDeleteBuffers(1, &self->mID);
+        Renderer::Submit([this]() {
+            glDeleteBuffers(1, &mID);
             });
     }
 
@@ -53,15 +53,15 @@ namespace NR
         mLocalData = Buffer::Copy(data, size);
         mSize = size;
 
-        NR_RENDER_S1(offset, {
-            glNamedBufferSubData(self->mID, offset, self->mSize, self->mLocalData.Data);
+        Renderer::Submit([this, offset]() {
+            glNamedBufferSubData(mID, offset, mSize, mLocalData.Data);
             });
     }
 
     void GLVertexBuffer::Bind() const
     {
-        NR_RENDER_S({
-            glBindBuffer(GL_ARRAY_BUFFER, self->mID);
+        Renderer::Submit([this]() {
+            glBindBuffer(GL_ARRAY_BUFFER, mID);
             });
     }
 

@@ -178,25 +178,25 @@ namespace NR
         Parse(fragSrc, ShaderDomain::Pixel);
         mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), fragSrc });
 
-        NR_RENDER_S({
-            if (self->mID)
+        Renderer::Submit([this](){
+            if (mID)
             {
-                glDeleteShader(self->mID);
+                glDeleteShader(mID);
             }
 
-            self->Compile();
-            self->ResolveUniforms();
-            self->ValidateUniforms();
+            Compile();
+            ResolveUniforms();
+            ValidateUniforms();
 
-            if (self->mLoaded)
+            if (mLoaded)
             {
-                for (auto& callback : self->mShaderReloadedCallbacks)
+                for (auto& callback : mShaderReloadedCallbacks)
                 {
                     callback();
                 }
             }
 
-            self->mLoaded = true;
+            mLoaded = true;
             });
     }
 
@@ -501,8 +501,8 @@ namespace NR
 
     void GLShader::Bind()
     {
-        NR_RENDER_S({
-            glUseProgram(self->mID);
+        Renderer::Submit([this](){
+            glUseProgram(mID);
             });
     }
 
@@ -615,17 +615,17 @@ namespace NR
 
     void GLShader::SetVSMaterialUniformBuffer(Buffer buffer)
     {
-        NR_RENDER_S1(buffer, {
-            glUseProgram(self->mID);
-            self->ResolveAndSetUniforms(self->mVSMaterialUniformBuffer, buffer);
+        Renderer::Submit([this, buffer]() {
+            glUseProgram(mID);
+            ResolveAndSetUniforms(mVSMaterialUniformBuffer, buffer);
             });
     }
 
     void GLShader::SetPSMaterialUniformBuffer(Buffer buffer)
     {
-        NR_RENDER_S1(buffer, {
-            glUseProgram(self->mID);
-            self->ResolveAndSetUniforms(self->mPSMaterialUniformBuffer, buffer);
+        Renderer::Submit([this, buffer]() {
+            glUseProgram(mID);
+            ResolveAndSetUniforms(mPSMaterialUniformBuffer, buffer);
             });
     }
 
@@ -764,32 +764,32 @@ namespace NR
             {
                 const std::string& name = decl.Name;
                 float value = *(float*)(uniformBuffer.GetBuffer() + decl.Offset);
-                NR_RENDER_S2(name, value, {
-                    self->UploadUniformFloat(name, value);
+                Renderer::Submit([=]() {
+                    UploadUniformFloat(name, value);
                     });
             }
             case UniformType::Float3:
             {
                 const std::string& name = decl.Name;
                 glm::vec3& values = *(glm::vec3*)(uniformBuffer.GetBuffer() + decl.Offset);
-                NR_RENDER_S2(name, values, {
-                    self->UploadUniformFloat3(name, values);
+                Renderer::Submit([=]() {
+                    UploadUniformFloat3(name, values);
                     });
             }
             case UniformType::Float4:
             {
                 const std::string& name = decl.Name;
                 glm::vec4& values = *(glm::vec4*)(uniformBuffer.GetBuffer() + decl.Offset);
-                NR_RENDER_S2(name, values, {
-                    self->UploadUniformFloat4(name, values);
+                Renderer::Submit([=]() {
+                    UploadUniformFloat4(name, values);
                     });
             }
             case UniformType::Matrix4x4:
             {
                 const std::string& name = decl.Name;
                 glm::mat4& values = *(glm::mat4*)(uniformBuffer.GetBuffer() + decl.Offset);
-                NR_RENDER_S2(name, values, {
-                    self->UploadUniformMat4(name, values);
+                Renderer::Submit([=]() {
+                    UploadUniformMat4(name, values);
                     });
             }
             }
@@ -798,21 +798,32 @@ namespace NR
 
     void GLShader::SetFloat(const std::string& name, float value)
     {
-        NR_RENDER_S2(name, value, {
-            self->UploadUniformFloat(name, value);
+        Renderer::Submit([=]() {
+            UploadUniformFloat(name, value);
             });
     }
 
     void GLShader::SetMat4(const std::string& name, const glm::mat4& value)
     {
-        NR_RENDER_S2(name, value, {
-            self->UploadUniformMat4(name, value);
+        Renderer::Submit([=]() {
+            UploadUniformMat4(name, value);
             });
     }
 
     void GLShader::SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind)
     {
-        UploadUniformMat4(name, value);
+        if (bind)
+        {
+            UploadUniformMat4(name, value);
+        }
+        else
+        {
+            int location = glGetUniformLocation(mID, name.c_str());
+            if (location != -1)
+            {
+                UploadUniformMat4(location, value);
+            }
+        }
     }
 
     void GLShader::UploadUniformInt(uint32_t location, int32_t value)

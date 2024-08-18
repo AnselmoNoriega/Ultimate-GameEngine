@@ -16,8 +16,8 @@ namespace NR
 		void Execute();
 
 	private:
-		unsigned char* mCommandBuffer;
-		unsigned char* mCommandBufferPtr;
+		uint8_t* mCommandBuffer;
+		uint8_t* mCommandBufferPtr;
 		uint32_t mCommandCount = 0;
 	};
 }

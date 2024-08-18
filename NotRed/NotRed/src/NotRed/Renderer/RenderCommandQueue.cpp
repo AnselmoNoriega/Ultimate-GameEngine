@@ -7,7 +7,7 @@ namespace NR
 {
 	RenderCommandQueue::RenderCommandQueue()
 	{
-		mCommandBuffer = new unsigned char[10 * 1024 * 1024]; // 10mb buffer
+		mCommandBuffer = new uint8_t[10 * 1024 * 1024];
 		mCommandBufferPtr = mCommandBuffer;
 		memset(mCommandBuffer, 0, 10 * 1024 * 1024);
 	}
