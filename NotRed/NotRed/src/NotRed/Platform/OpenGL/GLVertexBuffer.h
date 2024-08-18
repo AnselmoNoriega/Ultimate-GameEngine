@@ -1,23 +1,33 @@
 #pragma once
 
 #include "NotRed/Renderer/VertexBuffer.h"
+#include "NotRed/Core/Buffer.h"
 
 namespace NR
 {
 	class GLVertexBuffer : public VertexBuffer
 	{
 	public:
-		GLVertexBuffer(uint32_t size);
+		GLVertexBuffer(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);
+		GLVertexBuffer(uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);
 		~GLVertexBuffer() override;
 
-		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
+		void SetData(void* data, uint32_t size, uint32_t offset = 0) override;
 		void Bind() const override;
 
-		uint32_t GetSize() const override { return mSize; }
+		const BufferLayout& GetLayout() const override { return mLayout; }
+		void SetLayout(const BufferLayout& layout) override { mLayout = layout; }
+
+		virtual uint32_t GetSize() const { return mSize; }
+
 		RendererID GetRendererID() const override { return mID; }
 
 	private:
-		RendererID mID;
+		RendererID mID = 0;
 		uint32_t mSize;
+		VertexBufferUsage mUsage;
+		BufferLayout mLayout;
+
+		Buffer mLocalData;
 	};
 }

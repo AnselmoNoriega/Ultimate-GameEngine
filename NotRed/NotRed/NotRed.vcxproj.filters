@@ -140,6 +140,8 @@
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -227,5 +229,7 @@
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp" />
   </ItemGroup>
 </Project>
