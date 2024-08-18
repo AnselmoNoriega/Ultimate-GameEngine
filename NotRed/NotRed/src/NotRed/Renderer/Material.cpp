@@ -182,6 +182,8 @@ namespace NR
 
 	void MaterialInstance::Bind() const
 	{
+		mMaterial->mShader->Bind();
+
 		if (mVSUniformStorageBuffer)
 		{
 			mMaterial->mShader->SetVSMaterialUniformBuffer(mVSUniformStorageBuffer);

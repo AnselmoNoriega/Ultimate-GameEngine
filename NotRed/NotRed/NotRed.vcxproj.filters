@@ -142,6 +142,8 @@
     <ClInclude Include="src\nrpch.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h" />
+    <ClInclude Include="src\NotRed\Core\Assert.h" />
+    <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -231,5 +233,6 @@
     <ClCompile Include="src\nrpch.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
   </ItemGroup>
 </Project>

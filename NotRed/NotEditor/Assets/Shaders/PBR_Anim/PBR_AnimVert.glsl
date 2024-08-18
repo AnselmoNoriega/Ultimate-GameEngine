@@ -9,11 +9,11 @@ layout(location = 4) in vec2 aTexCoord;
 layout(location = 5) in ivec4 aBoneIndices;
 layout(location = 6) in vec4 aBoneWeights;
 
-const int MAX_BONES = 100;
-uniform mat4 uBoneTransforms[100];
-
 uniform mat4 uViewProjectionMatrix;
 uniform mat4 uModelMatrix;
+
+const int MAXBONES = 100;
+uniform mat4 uBoneTransforms[100];
 
 out VertexOutput
 {
@@ -26,7 +26,7 @@ out VertexOutput
 
 void main()
 {
-	mat4 boneTransform = uBoneTransforms[aBoneIndices[0]] * aBoneWeights[0];
+    mat4 boneTransform = uBoneTransforms[aBoneIndices[0]] * aBoneWeights[0];
     boneTransform += uBoneTransforms[aBoneIndices[1]] * aBoneWeights[1];
     boneTransform += uBoneTransforms[aBoneIndices[2]] * aBoneWeights[2];
     boneTransform += uBoneTransforms[aBoneIndices[3]] * aBoneWeights[3];

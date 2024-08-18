@@ -8,8 +8,7 @@ const int LightCount = 1;
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
 
-struct Light 
-{
+struct Light {
 	vec3 Direction;
 	vec3 Radiance;
 };
@@ -128,7 +127,7 @@ vec3 fresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
 // The following code (from Unreal Engine 4's paper) shows how to filter the environment map
 // for different roughnesses. This is mean to be computed offline and stored in cube map mips,
 // so turning this on online will cause poor performance
-float RadicalInverse_VdC(uint bits) 
+float RadicalInverseVdC(uint bits) 
 {
     bits = (bits << 16u) | (bits >> 16u);
     bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
@@ -140,7 +139,7 @@ float RadicalInverse_VdC(uint bits)
 
 vec2 Hammersley(uint i, uint N)
 {
-    return vec2(float(i)/float(N), RadicalInverse_VdC(i));
+    return vec2(float(i)/float(N), RadicalInverseVdC(i));
 }
 
 vec3 ImportanceSampleGGX(vec2 Xi, float Roughness, vec3 N)
@@ -264,7 +263,7 @@ void main()
 
 	mParams.View = normalize(uCameraPosition - vsInput.WorldPosition);
 	mParams.NdotV = max(dot(mParams.Normal, mParams.View), 0.0);
-
+		
 	// Specular reflection vector
 	vec3 Lr = 2.0 * mParams.NdotV * mParams.Normal - mParams.View;
 
