@@ -94,7 +94,7 @@ namespace NR
                 {
                     for (size_t i = 0; i < mesh->mBoneTransforms.size(); i++)
                     {
-                        std::string uniformName = std::string("u_BoneTransforms[") + std::to_string(i) + std::string("]");
+                        std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
                         mesh->mMeshShader->SetMat4FromRenderThread(uniformName, mesh->mBoneTransforms[i]);
                     }
                 }

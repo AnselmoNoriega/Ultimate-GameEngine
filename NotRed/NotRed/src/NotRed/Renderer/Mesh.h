@@ -115,8 +115,7 @@ namespace NR
 		~Mesh();
 
 
-		void Render(float dt, Ref<MaterialInstance> materialInstance = Ref<MaterialInstance>());
-		void Render(float dt, const glm::mat4& transform = glm::mat4(1.0f), Ref<MaterialInstance> materialInstance = Ref<MaterialInstance>());
+		void Update(float dt);
 		void ImGuiRender();
 		void DumpVertexBuffer();
 

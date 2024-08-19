@@ -426,12 +426,7 @@ namespace NR
         }
     }
 
-    void Mesh::Render(float dt, Ref<MaterialInstance> materialInstance)
-    {
-        Render(dt, glm::mat4(1.0f), materialInstance);
-    }
-
-    void Mesh::Render(float dt, const glm::mat4& transform, Ref<MaterialInstance> materialInstance)
+    void Mesh::Update(float dt)
     {
         if (mIsAnimated)
         {
@@ -446,31 +441,6 @@ namespace NR
 
             BoneTransform(mAnimationTime);
         }
-
-        if (materialInstance)
-        {
-            materialInstance->Bind();
-        }
-
-        mVertexArray->Bind();
-
-        bool materialOverride = !!materialInstance;
-
-        Renderer::Submit([=]() {
-            for (Submesh& submesh : mSubmeshes)
-            {
-                if (mIsAnimated)
-                {
-                    for (size_t i = 0; i < mBoneTransforms.size(); i++)
-                    {
-                        std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
-                        mMeshShader->SetMat4FromRenderThread(uniformName, mBoneTransforms[i]);
-                    }
-                }
-
-                glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
-            }
-            });
     }
     
     void Mesh::ImGuiRender()

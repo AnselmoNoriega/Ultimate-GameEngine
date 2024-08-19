@@ -201,6 +201,8 @@ namespace NR
 		mCamera.Update(dt);
 		auto viewProjection = mCamera.GetProjectionMatrix() * mCamera.GetViewMatrix();
 
+		mMesh->Update(dt);
+
 		Renderer::BeginRenderPass(mGeoPass);
 
 		mQuadShader->Bind();
@@ -263,26 +265,26 @@ namespace NR
 
 		if (mScene == Scene::Spheres)
 		{
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < 8; ++i)
 			{
-				mSphereMesh->Render(dt, glm::mat4(1.0f), mMetalSphereMaterialInstances[i]);
+				Renderer::SubmitMesh(mSphereMesh, glm::mat4(1.0f), mMetalSphereMaterialInstances[i]);
 			}
 
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < 8; ++i)
 			{
-				mSphereMesh->Render(dt, glm::mat4(1.0f), mDielectricSphereMaterialInstances[i]);
+				Renderer::SubmitMesh(mSphereMesh, glm::mat4(1.0f), mDielectricSphereMaterialInstances[i]);
 			}
 		}
 		else if (mScene == Scene::Model)
 		{
 			if (mMesh)
 			{
-				mMesh->Render(dt, mTransform, mMeshMaterial);
+				Renderer::SubmitMesh(mMesh, mTransform, mMeshMaterial);
 			}
 		}
 
 		mGridMaterial->Set("uMVP", viewProjection * glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
-		mPlaneMesh->Render(dt, mGridMaterial);
+		Renderer::SubmitMesh(mPlaneMesh, glm::mat4(1.0f), mGridMaterial);
 
 		Renderer::EndRenderPass();
 
