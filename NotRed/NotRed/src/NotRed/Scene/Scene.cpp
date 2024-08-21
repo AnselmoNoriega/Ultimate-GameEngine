@@ -14,7 +14,9 @@ namespace NR
 	Scene::~Scene()
 	{
 		for (Entity* entity : mEntities)
+		{
 			delete entity;
+		}
 	}
 
 	void Scene::Init()
@@ -26,8 +28,6 @@ namespace NR
 
 	void Scene::Update(float dt)
 	{
-		mCamera.Update(dt);
-
 		mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
 
 		for (auto entity : mEntities)
@@ -47,6 +47,11 @@ namespace NR
 		}
 
 		SceneRenderer::EndScene();
+	}
+
+	void Scene::OnEvent(Event& e)
+	{
+		mCamera.OnEvent(e);
 	}
 
 	void Scene::SetCamera(const Camera& camera)
@@ -71,9 +76,9 @@ namespace NR
 		mEntities.push_back(entity);
 	}
 
-	Entity* Scene::CreateEntity()
+	Entity* Scene::CreateEntity(const std::string& name)
 	{
-		Entity* entity = new Entity();
+		Entity* entity = new Entity(name);
 		AddEntity(entity);
 		return entity;
 	}

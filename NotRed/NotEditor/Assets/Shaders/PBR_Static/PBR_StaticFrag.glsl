@@ -225,7 +225,7 @@ vec3 Lighting(vec3 F0)
 vec3 IBL(vec3 F0, vec3 Lr)
 {
 	vec3 irradiance = texture(uEnvIrradianceTex, mParams.Normal).rgb;
-	vec3 F = fresnelSchlickRoughness(F0, mParams.NdotV, mParams.Roughness);
+	vec3 F = fresnelSchlick(F0, mParams.NdotV);
 	vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
 	vec3 diffuseIBL = mParams.Albedo * irradiance;
 
@@ -270,5 +270,6 @@ void main()
 	vec3 lightContribution = Lighting(F0);
 	vec3 iblContribution = IBL(F0, Lr);
 
-	color = vec4(lightContribution + iblContribution, 1.0);
+	//color = vec4(lightContribution + iblContribution, 1.0);
+	color = vec4(iblContribution, 1.0);
 }

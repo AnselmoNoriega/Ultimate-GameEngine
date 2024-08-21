@@ -22,7 +22,7 @@ out VertexOutput
 void main()
 {
 	vsOutput.WorldPosition = vec3(uTransform * vec4(aPosition, 1.0));
-    vsOutput.Normal = aNormal;
+    vsOutput.Normal = mat3(uTransform) * aNormal;
 	vsOutput.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
 	vsOutput.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
 	vsOutput.WorldTransform = mat3(uTransform);

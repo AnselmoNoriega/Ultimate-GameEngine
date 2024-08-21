@@ -44,10 +44,11 @@ namespace NR
 			glTextureParameterf(mID, GL_TEXTURE_MAX_ANISOTROPY, RendererAPI::GetCapabilities().MaxAnisotropy);
 
 			glTexImage2D(GL_TEXTURE_2D, 0, ToOpenGLTextureFormat(mFormat), mWidth, mHeight, 0, ToOpenGLTextureFormat(mFormat), GL_UNSIGNED_BYTE, nullptr);
-			glGenerateMipmap(GL_TEXTURE_2D);
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 			});
+
+		mImageData.Allocate(width* height* Texture::GetBPP(mFormat));
 	}
 
 	GLTexture2D::GLTexture2D(const std::string& path, bool standardRGB)

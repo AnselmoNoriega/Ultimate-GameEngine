@@ -135,11 +135,19 @@ namespace NR
             }
             else
             {
+                submesh.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+                submesh.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
                 for (size_t i = 0; i < mesh->mNumVertices; ++i)
                 {
                     Vertex vertex;
                     vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                     vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+                    submesh.Min.x = glm::min(vertex.Position.x, submesh.Min.x);
+                    submesh.Min.y = glm::min(vertex.Position.y, submesh.Min.y);
+                    submesh.Min.z = glm::min(vertex.Position.z, submesh.Min.z);
+                    submesh.Max.x = glm::max(vertex.Position.x, submesh.Max.x);
+                    submesh.Max.y = glm::max(vertex.Position.y, submesh.Max.y);
+                    submesh.Max.z = glm::max(vertex.Position.z, submesh.Max.z);
                     if (mesh->HasTangentsAndBitangents())
                     {
                         vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
@@ -165,7 +173,7 @@ namespace NR
         // Bones
         if (mIsAnimated)
         {
-            for (size_t m = 0; m < scene->mNumMeshes; m++)
+            for (size_t m = 0; m < scene->mNumMeshes; ++m)
             {
                 aiMesh* mesh = scene->mMeshes[m];
                 Submesh& submesh = mSubmeshes[m];
@@ -222,7 +230,6 @@ namespace NR
 
                 if (aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS)
                 {
-                    // TODO: Temp - this should be handled by Hazel's filesystem
                     std::filesystem::path path = modelsDirectory;
                     auto parentPath = path.parent_path();
                     parentPath /= std::string(aiTexPath.data);
@@ -247,7 +254,87 @@ namespace NR
                 {
                     mi->Set("uAlbedoTexToggle", 0.0f);
                     mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
+
+                    NR_CORE_TRACE("Mesh has no albedo map");
                 }
+
+                // Normal maps
+                mi->Set("uNormalTexToggle", 0.0f);
+                if (aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS)
+                {
+                    std::filesystem::path path = filename;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath);
+                    if (texture->Loaded())
+                    {
+                        NR_CORE_TRACE("  Normal map path = {0}", texturePath);
+                        mi->Set("uNormalTexture", texture);
+                        mi->Set("uNormalTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                    }
+                }
+                else
+                {
+                    NR_CORE_TRACE("Mesh has no normal map");
+                }
+
+                // Roughness map
+                if (aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS)
+                {
+                    std::filesystem::path path = filename;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath);
+                    if (texture->Loaded())
+                    {
+                        NR_CORE_TRACE("  Roughness map path = {0}", texturePath);
+                        mi->Set("uRoughnessTexture", texture);
+                        mi->Set("uRoughnessTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                    }
+                }
+                else
+                {
+                    NR_CORE_TRACE("Mesh has no roughness texture");
+                }
+
+                // Metalness map
+                if (aiMaterial->Get("$raw.ReflectionFactor|file", aiPTI_String, 0, aiTexPath) == AI_SUCCESS)
+                {
+                    std::filesystem::path path = filename;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath);
+                    if (texture->Loaded())
+                    {
+                        NR_CORE_TRACE("  Metalness map path = {0}", texturePath);
+                        mi->Set("uMetalnessTexture", texture);
+                        mi->Set("uMetalnessTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                    }
+                }
+                else
+                {
+                    NR_CORE_TRACE("Mesh has no metalness texture");
+                }
+
+                continue;
 
                 for (uint32_t i = 0; i < aiMaterial->mNumProperties; ++i)
                 {
@@ -326,74 +413,6 @@ namespace NR
                                 mi->Set("uMetalnessTexToggle", 1.0f);
                             }
                         }
-                    }
-                }
-
-
-                // Normal maps
-                if (aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS)
-                {
-                    std::filesystem::path path = filename;
-                    auto parentPath = path.parent_path();
-                    parentPath /= std::string(aiTexPath.data);
-                    std::string texturePath = parentPath.string();
-
-                    auto texture = Texture2D::Create(texturePath);
-                    if (texture->Loaded())
-                    {
-                        NR_CORE_TRACE("  Normal map path = {0}", texturePath);
-                        mi->Set("uNormalTexture", texture);
-                        mi->Set("uNormalTexToggle", 1.0f);
-                    }
-                    else
-                    {
-                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
-                    }
-                }
-
-                // Roughness map
-                if (aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS)
-                {
-                    std::filesystem::path path = filename;
-                    auto parentPath = path.parent_path();
-                    parentPath /= std::string(aiTexPath.data);
-                    std::string texturePath = parentPath.string();
-
-                    auto texture = Texture2D::Create(texturePath);
-                    if (texture->Loaded())
-                    {
-                        NR_CORE_TRACE("  Roughness map path = {0}", texturePath);
-                        mi->Set("uRoughnessTexture", texture);
-                        mi->Set("uRoughnessTexToggle", 1.0f);
-                    }
-                    else
-                    {
-                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
-                        mi->Set("uRoughnessTexToggle", 1.0f);
-                        mi->Set("uRoughness", 0.5f);
-                    }
-                }
-
-                // Metalness map
-                if (aiMaterial->Get("$raw.ReflectionFactor|file", aiPTI_String, 0, aiTexPath) == AI_SUCCESS)
-                {
-                    std::filesystem::path path = filename;
-                    auto parentPath = path.parent_path();
-                    parentPath /= std::string(aiTexPath.data);
-                    std::string texturePath = parentPath.string();
-
-                    auto texture = Texture2D::Create(texturePath);
-                    if (texture->Loaded())
-                    {
-                        NR_CORE_TRACE("  Metalness map path = {0}", texturePath);
-                        mi->Set("uMetalnessTexture", texture);
-                        mi->Set("uMetalnessTexToggle", 1.0f);
-                    }
-                    else
-                    {
-                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
-                        mi->Set("uMetalness", 0.5f);
-                        mi->Set("uMetalnessTexToggle", 1.0f);
                     }
                 }
             }

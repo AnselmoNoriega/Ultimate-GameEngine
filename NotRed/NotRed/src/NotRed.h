@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/Core/Application.h"
+#include "NotRed/Core/Input.h"
 #include "NotRed/Core/Log.h"
 
 #include "NotRed/Core/TimeFrame.h"

@@ -32,6 +32,11 @@ namespace NR
 
 		Buffer GetWriteableBuffer() override;
 
+		bool operator==(const Texture& other) const override
+		{
+			return mID == ((GLTexture2D&)other).mID;
+		}
+
 	private:
 		RendererID mID;
 
@@ -65,6 +70,11 @@ namespace NR
 		uint32_t GetMipLevelCount() const override;
 
 		const std::string& GetPath() const override { return mFilePath; }
+
+		bool operator==(const Texture& other) const override
+		{
+			return mID == ((GLTextureCube&)other).mID;
+		}
 
 	private:
 		RendererID mID;

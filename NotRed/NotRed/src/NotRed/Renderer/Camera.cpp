@@ -62,6 +62,19 @@ namespace NR
 		mViewMatrix = glm::inverse(mViewMatrix);
 	}
 
+	void Camera::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<MouseScrolledEvent>(NR_BIND_EVENT_FN(Camera::MouseScroll));
+	}
+
+	bool Camera::MouseScroll(MouseScrolledEvent& e)
+	{
+		float delta = e.GetYOffset() * 0.1f;
+		MouseZoom(delta);
+		return false;
+	}
+
 	std::pair<float, float> Camera::PanSpeed() const
 	{
 		float x = std::min(mViewportWidth / 1000.0f, 2.4f);

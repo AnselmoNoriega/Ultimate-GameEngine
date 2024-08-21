@@ -19,6 +19,7 @@ namespace NR
 		uint32_t Height = 720;
 		glm::vec4 ClearColor;
 		FrameBufferFormat Format;
+		uint32_t Samples = 1;
 
 		bool SwapChainTarget = false;
 	};

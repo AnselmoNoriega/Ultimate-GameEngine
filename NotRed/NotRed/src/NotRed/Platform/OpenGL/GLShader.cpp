@@ -125,6 +125,7 @@ namespace NR
     static bool IsTypeStringResource(const std::string& type)
     {
         if (type == "sampler2D")		return true;
+        if (type == "sampler2DMS")		return true;
         if (type == "samplerCube")		return true;
         if (type == "sampler2DShadow")	return true;
         return false;
@@ -193,10 +194,10 @@ namespace NR
             mShaderSource.insert({ glCreateShader(GL_COMPUTE_SHADER), computeSrc });
         }
 
-        Renderer::Submit([this]() {
+        Renderer::Submit([=]() {
             if (mID)
             {
-                glDeleteShader(mID);
+                glDeleteProgram(mID);
             }
 
             Compile();
@@ -818,6 +819,13 @@ namespace NR
         }
     }
 
+    void GLShader::SetInt(const std::string& name, int value)
+    {
+        Renderer::Submit([=]() {
+            UploadUniformInt(name, value);
+            });
+    }
+
     void GLShader::SetFloat(const std::string& name, float value)
     {
         Renderer::Submit([=]() {
@@ -846,6 +854,13 @@ namespace NR
                 UploadUniformMat4(location, value);
             }
         }
+    }
+
+    void GLShader::SetIntArray(const std::string& name, int* values, uint32_t size)
+    {
+        Renderer::Submit([=]() {
+            UploadUniformIntArray(name, values, size);
+            });
     }
 
     void GLShader::UploadUniformInt(uint32_t location, int32_t value)
@@ -911,7 +926,7 @@ namespace NR
         glUniform1i(location, value);
     }
 
-    void GLShader::UploadUniformIntArray(const std::string& name, int32_t* values, int32_t count)
+    void GLShader::UploadUniformIntArray(const std::string& name, int32_t* values, uint32_t count)
     {
         int32_t location = GetUniformLocation(name);
         glUniform1iv(location, count, values);

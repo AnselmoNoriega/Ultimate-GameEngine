@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "NotRed/Core/Events/MouseEvent.h"
 
 namespace NR
 {
@@ -12,6 +13,7 @@ namespace NR
 
 		void Focus();
 		void Update(float dt);
+		void OnEvent(Event& e);
 
 		inline float GetDistance() const { return mDistance; }
 		inline void SetDistance(float distance) { mDistance = distance; }
@@ -25,6 +27,7 @@ namespace NR
 
 		const glm::mat4& GetProjectionMatrix() const { return mProjectionMatrix; }
 		const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
+		const glm::mat4& GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
 
 		glm::vec3 GetUpDirection();
 		glm::vec3 GetRightDirection();
@@ -35,6 +38,8 @@ namespace NR
 		float& GetExposure() { return mExposure; }
 
 	private:
+		bool MouseScroll(MouseScrolledEvent& e);
+
 		void MousePan(const glm::vec2& delta);
 		void MouseRotate(const glm::vec2& delta);
 		void MouseZoom(float delta);

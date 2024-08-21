@@ -4,6 +4,13 @@ namespace NR
 {
 	using RendererID = uint32_t;
 
+	enum class PrimitiveType
+	{
+		None, 
+		Lines,
+		Triangles
+	};
+
 	enum class RendererAPIType
 	{
 		None,
@@ -16,8 +23,9 @@ namespace NR
 		std::string Renderer;
 		std::string Version;
 
-		int MaxSamples;
-		float MaxAnisotropy;
+		int MaxSamples = 0;
+		float MaxAnisotropy = 0.0f;
+		int MaxTextureUnits = 0;
 	};
 
 	class RendererAPI
@@ -29,7 +37,8 @@ namespace NR
 		static void Clear(float r, float g, float b, float a);
 		static void SetClearColor(float r, float g, float b, float a);
 
-		static void DrawIndexed(uint32_t count, bool depthTestActive = true);
+		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true);
+		static void SetLineThickness(float thickness);
 
 		static RenderAPICapabilities& GetCapabilities()
 		{

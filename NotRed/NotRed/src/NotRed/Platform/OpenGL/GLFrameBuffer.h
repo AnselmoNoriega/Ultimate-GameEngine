@@ -27,6 +27,6 @@ namespace NR
 		RendererID mID = 0;
 		FrameBufferSpecification mSpecification;
 
-		RendererID mColorAttachment, mDepthAttachment;
+		RendererID mColorAttachment = 0, mDepthAttachment = 0;
 	};
 }

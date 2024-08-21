@@ -6,6 +6,12 @@
 
 namespace NR
 {
+	struct SceneRendererOptions
+	{
+		bool ShowGrid = true;
+		bool ShowBoundingBoxes = false;
+	};
+
 	class SceneRenderer
 	{
 	public:
@@ -20,9 +26,13 @@ namespace NR
 
 		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
 
+		static SceneRendererOptions& GetOptions();
+
 		static Ref<Texture2D> GetFinalColorBuffer();
 
 		static uint32_t GetFinalColorBufferRendererID();
+
+		static Ref<RenderPass> GetFinalRenderPass();
 
 	private:
 		static void FlushDrawList();

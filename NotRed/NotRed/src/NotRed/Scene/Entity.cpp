@@ -3,8 +3,8 @@
 
 namespace NR
 {
-	Entity::Entity()
-		: mTransform(1.0f)
+	Entity::Entity(const std::string& name)
+		: mName(name), mTransform(1.0f)
 	{
 
 	}

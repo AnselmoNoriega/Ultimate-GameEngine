@@ -49,7 +49,7 @@ namespace NR
 			}
 		}
 
-		void Write(byte* data, uint32_t size, uint32_t offset = 0)
+		void Write(void* data, uint32_t size, uint32_t offset = 0)
 		{
 			NR_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
 			memcpy(Data + offset, data, size);

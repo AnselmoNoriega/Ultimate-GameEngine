@@ -106,6 +106,7 @@ namespace NR
 		uint32_t MaterialIndex;
 
 		glm::mat4 Transform;
+		glm::vec3 Min, Max;
 	};
 
 	class Mesh

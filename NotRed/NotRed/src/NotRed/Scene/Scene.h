@@ -22,6 +22,7 @@ namespace NR
 		void Init();
 
 		void Update(float dt);
+		void OnEvent(Event& e);
 
 		void SetCamera(const Camera& camera);
 		Camera& GetCamera() { return mCamera; }
@@ -32,7 +33,7 @@ namespace NR
 		float& GetSkyboxLod() { return mSkyboxLod; }
 
 		void AddEntity(Entity* entity);
-		Entity* CreateEntity();
+		Entity* CreateEntity(const std::string& name = "Entity");
 
 	private:
 		std::string mDebugName;

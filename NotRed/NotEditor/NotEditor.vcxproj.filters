@@ -16,5 +16,9 @@
     <None Include="Assets\Shaders\EnvironmentIrradiance\EnvironmentIrradianceComp.glsl" />
     <None Include="Assets\Shaders\EnvironmentMipFilter\EnvironmentMipFilterComp.glsl" />
     <None Include="Assets\Shaders\EquirectangularToCubeMap\EquirectangularToCubeMapComp.glsl" />
+    <None Include="Assets\Shaders\Renderer2D\Renderer2DVert.glsl" />
+    <None Include="Assets\Shaders\Renderer2D\Renderer2DFrag.glsl" />
+    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_LineVert.glsl" />
+    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_LineFrag.glsl" />
   </ItemGroup>
 </Project>

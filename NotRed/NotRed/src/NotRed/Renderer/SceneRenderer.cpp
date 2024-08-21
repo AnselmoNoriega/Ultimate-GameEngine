@@ -1,11 +1,13 @@
 #include "nrpch.h"
 #include "SceneRenderer.h"
 
-#include "Renderer.h"
-
 #include <glad/glad.h>
 
 #include <glm/gtc/matrix_transform.hpp>
+
+#include "Renderer.h"
+
+#include "Renderer2D.h"
 
 namespace NR
 {
@@ -35,8 +37,9 @@ namespace NR
         };
         std::vector<DrawCommand> DrawList;
 
-        // Grid
         Ref<MaterialInstance> GridMaterial;
+
+        SceneRendererOptions Options;
     };
 
     static SceneRendererData sData;
@@ -47,6 +50,7 @@ namespace NR
         geoFrameBufferSpec.Width = 1280;
         geoFrameBufferSpec.Height = 720;
         geoFrameBufferSpec.Format = FrameBufferFormat::RGBA16F;
+        geoFrameBufferSpec.Samples = 8;
         geoFrameBufferSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 
         RenderPassSpecification geoRenderPassSpec;
@@ -102,11 +106,11 @@ namespace NR
 
     void SceneRenderer::SubmitEntity(Entity* entity)
     {
-        // TODO: Culling, sorting, etc.
-
         auto mesh = entity->GetMesh();
         if (!mesh)
+        {
             return;
+        }
 
         sData.DrawList.push_back({ mesh, entity->GetMaterial(), entity->GetTransform() });
     }
@@ -177,6 +181,7 @@ namespace NR
             {
                 glBindImageTexture(0, irradianceMap->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
                 glDispatchCompute(irradianceMap->GetWidth() / 32, irradianceMap->GetHeight() / 32, 6);
+                glGenerateTextureMipmap(irradianceMap->GetRendererID());
             });
 
         return { envFiltered, irradianceMap };
@@ -186,7 +191,7 @@ namespace NR
     {
         Renderer::BeginRenderPass(sData.GeoPass);
 
-        auto viewProjection = sData.SceneData.SceneCamera.GetProjectionMatrix() * sData.SceneData.SceneCamera.GetViewMatrix();
+        auto viewProjection = sData.SceneData.SceneCamera.GetViewProjection();
 
         // Skybox
         auto skyboxShader = sData.SceneData.SkyboxMaterial->GetShader();
@@ -210,8 +215,21 @@ namespace NR
         }
 
         // Grid
-        sData.GridMaterial->Set("uViewProjection", viewProjection);
-        Renderer::SubmitQuad(sData.GridMaterial, glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
+        if (GetOptions().ShowGrid)
+        {
+            sData.GridMaterial->Set("uViewProjection", viewProjection);
+            Renderer::SubmitQuad(sData.GridMaterial, glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(16.0f)));
+        }
+
+        if (GetOptions().ShowBoundingBoxes)
+        {
+            Renderer2D::BeginScene(viewProjection);
+            for (auto& dc : sData.DrawList)
+            {
+                Renderer::DrawAABB(dc.Mesh);
+            }
+            Renderer2D::EndScene();
+        }
 
         Renderer::EndRenderPass();
     }
@@ -221,6 +239,7 @@ namespace NR
         Renderer::BeginRenderPass(sData.CompositePass);
         sData.CompositeShader->Bind();
         sData.CompositeShader->SetFloat("uExposure", sData.SceneData.SceneCamera.GetExposure());
+        sData.CompositeShader->SetInt("uTextureSamples", sData.GeoPass->GetSpecification().TargetFrameBuffer->GetSpecification().Samples);
         sData.GeoPass->GetSpecification().TargetFrameBuffer->BindTexture();
         Renderer::SubmitFullScreenQuad(nullptr);
         Renderer::EndRenderPass();
@@ -237,9 +256,13 @@ namespace NR
         sData.SceneData = {};
     }
 
+    SceneRendererOptions& SceneRenderer::GetOptions()
+    {
+        return sData.Options;
+    }
+
     Ref<Texture2D> SceneRenderer::GetFinalColorBuffer()
     {
-        // return sData.CompositePass->GetSpecification().TargetFrameBuffer;
         NR_CORE_ASSERT(false, "Not implemented");
         return nullptr;
     }
@@ -247,6 +270,11 @@ namespace NR
     uint32_t SceneRenderer::GetFinalColorBufferRendererID()
     {
         return sData.CompositePass->GetSpecification().TargetFrameBuffer->GetColorAttachmentRendererID();
+    }
+
+    Ref<RenderPass> SceneRenderer::GetFinalRenderPass()
+    {
+        return sData.CompositePass;
     }
 
 }

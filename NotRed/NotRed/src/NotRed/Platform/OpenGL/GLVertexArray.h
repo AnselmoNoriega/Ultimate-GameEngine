@@ -19,6 +19,8 @@ namespace NR
 		const std::vector<std::shared_ptr<VertexBuffer>>& GetVertexBuffers() const override { return mVertexBuffers; }
 		const std::shared_ptr<IndexBuffer>& GetIndexBuffer() const override { return mIndexBuffer; }
 
+		RendererID GetRendererID() const override { return mID; };
+
 	private:
 		RendererID mID = 0;
 		uint32_t mVertexBufferIndex = 0;

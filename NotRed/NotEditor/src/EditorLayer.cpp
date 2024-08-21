@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include "NotRed/ImGui/ImGuizmo.h"
+#include "NotRed/Renderer/Renderer2D.h"
 
 namespace NR
 {
@@ -86,10 +87,15 @@ namespace NR
 
 			mMeshEntity = mScene->CreateEntity();
 
-			auto mesh = CreateRef<Mesh>("Assets/Models/m1911/m1911.fbx");
+			auto mesh = CreateRef<Mesh>("Assets/Meshes/TestScene.fbx");
 			mMeshEntity->SetMesh(mesh);
 
 			mMeshMaterial = mesh->GetMaterial();
+
+			auto secondEntity = mScene->CreateEntity("Gun Entity");
+			secondEntity->Transform() = glm::translate(glm::mat4(1.0f), { 5, 5, 5 }) * glm::scale(glm::mat4(1.0f), { 10, 10, 10 });
+			mesh = CreateRef<Mesh>("Assets/Models/m1911/m1911.fbx");
+			secondEntity->SetMesh(mesh);
 		}
 		// Sphere Scene
 		{
@@ -142,7 +148,7 @@ namespace NR
 		mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mActiveScene);
 
 		mPlaneMesh.reset(new Mesh("Assets/Models/Plane1m.obj"));
-		mCheckerboardTex = Texture2D::Create("assets/editor/Checkerboard.tga");
+		mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
 
 		mLight.Direction = { -0.5f, -0.5f, 1.0f };
 		mLight.Radiance = { 1.0f, 1.0f, 1.0f };
@@ -193,10 +199,25 @@ namespace NR
 			mMeshMaterial->Set("uRoughnessTexture", mRoughnessInput.TextureMap);
 		}
 
+		if (mAllowViewportCameraEvents)
+		{
+			mScene->GetCamera().Update(dt);
+		}
+
 		mActiveScene->Update(dt);
+
+		if (mDrawOnTopBoundingBoxes)
+		{
+			NR::Renderer::BeginRenderPass(NR::SceneRenderer::GetFinalRenderPass(), false);
+			auto viewProj = mScene->GetCamera().GetViewProjection();
+			NR::Renderer2D::BeginScene(viewProj, false);
+			Renderer::DrawAABB(mMeshEntity->GetMesh());
+			NR::Renderer2D::EndScene();
+			NR::Renderer::EndRenderPass();
+		}
 	}
 
-	void EditorLayer::Property(const std::string& name, bool& value)
+	bool EditorLayer::Property(const std::string& name, bool& value)
 	{
 		ImGui::Text(name.c_str());
 		ImGui::NextColumn();
@@ -204,9 +225,12 @@ namespace NR
 
 		std::string id = "##" + name;
 		ImGui::Checkbox(id.c_str(), &value);
+		bool result = ImGui::Checkbox(id.c_str(), &value);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
+
+		return result;
 	}
 
 	void EditorLayer::Property(const std::string& name, float& value, float min, float max, EditorLayer::PropertyFlag flags)
@@ -362,6 +386,15 @@ namespace NR
 
 		Property("Radiance Prefiltering", mRadiancePrefilter);
 		Property("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
+
+		if (Property("Show Bounding Boxes", mUIShowBoundingBoxes))
+		{
+			ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+		}
+		if (mUIShowBoundingBoxes && Property("On Top", mUIShowBoundingBoxesOnTop))
+		{
+			ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+		}
 
 		ImGui::Columns(1);
 
@@ -553,6 +586,12 @@ namespace NR
 		mActiveScene->GetCamera().SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 		ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
 
+		static int counter = 0;
+		auto windowSize = ImGui::GetWindowSize();
+		ImVec2 minBound = ImGui::GetWindowPos();
+		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+		mAllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
 		if (mGizmoType != -1)
 		{
 			float rw = (float)ImGui::GetWindowWidth();
@@ -600,9 +639,20 @@ namespace NR
 		ImGui::End();
 	}
 
-	void EditorLayer::OnEvent(Event& event)
+	void EditorLayer::ShowBoundingBoxes(bool show, bool onTop)
 	{
-		EventDispatcher dispatcher(event);
+		SceneRenderer::GetOptions().ShowBoundingBoxes = show && !onTop;
+		mDrawOnTopBoundingBoxes = show && onTop;
+	}
+
+	void EditorLayer::OnEvent(Event& e)
+	{
+		if (mAllowViewportCameraEvents)
+		{
+			mScene->GetCamera().OnEvent(e);
+		}
+
+		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::OnKeyPressedEvent));
 	}
 
@@ -614,6 +664,23 @@ namespace NR
 		case NR_KEY_W: mGizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
 		case NR_KEY_E: mGizmoType = ImGuizmo::OPERATION::ROTATE; break;
 		case NR_KEY_R: mGizmoType = ImGuizmo::OPERATION::SCALE; break;
+		case NR_KEY_G:
+		{
+			if (NR::Input::IsKeyPressed(NR_KEY_LEFT_CONTROL))
+			{
+				SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
+			}
+			break;
+		}
+		case NR_KEY_B:
+		{
+			if (NR::Input::IsKeyPressed(NR_KEY_LEFT_CONTROL))
+			{
+				mUIShowBoundingBoxes = !mUIShowBoundingBoxes;
+				ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+			}
+			break;
+		}
 		default: return false;
 		}
 	}
