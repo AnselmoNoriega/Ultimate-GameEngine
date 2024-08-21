@@ -56,7 +56,6 @@ namespace NR
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         NR_CORE_ASSERT(status, "Failed to initialize Glad!");
         glfwSetWindowUserPointer(mWindow, &mData);
-        SetVSync(true);
 
         glfwSetWindowSizeCallback(mWindow, [](GLFWwindow* window, int width, int height)
             {
