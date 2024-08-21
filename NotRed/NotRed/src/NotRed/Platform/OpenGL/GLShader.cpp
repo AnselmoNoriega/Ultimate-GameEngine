@@ -155,15 +155,22 @@ namespace NR
 
         mName = GetShaderName(mAssetPath);
 
-        std::string vert;
-        ParseFile(mAssetPath + "/" + mName + "Vert.glsl", vert);
-        std::string frag;
-        ParseFile(mAssetPath + "/" + mName + "Frag.glsl", frag);
+        std::string compute = "";
+        ParseFile(mAssetPath + "/" + mName + "Comp.glsl", compute, true);
 
-        Load(vert, frag);
+        std::string vert;
+        std::string frag;
+
+        if (compute == "")
+        {
+            ParseFile(mAssetPath + "/" + mName + "Vert.glsl", vert);
+            ParseFile(mAssetPath + "/" + mName + "Frag.glsl", frag);
+        }
+
+        Load(vert, frag, compute);
     }
 
-    void GLShader::Load(const std::string& vertSrc, const std::string& fragSrc)
+    void GLShader::Load(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc)
     {
         mShaderSource.clear();
 
@@ -172,21 +179,32 @@ namespace NR
         mVSMaterialUniformBuffer.reset();
         mPSMaterialUniformBuffer.reset();
 
-        Parse(vertSrc, ShaderDomain::Vertex);
-        mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), vertSrc });
+        if (computeSrc == "")
+        {
+            Parse(vertSrc, ShaderDomain::Vertex);
+            mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), vertSrc });
 
-        Parse(fragSrc, ShaderDomain::Pixel);
-        mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), fragSrc });
+            Parse(fragSrc, ShaderDomain::Pixel);
+            mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), fragSrc });
+        }
+        else
+        {
+            mIsCompute = true;
+            mShaderSource.insert({ glCreateShader(GL_COMPUTE_SHADER), computeSrc });
+        }
 
-        Renderer::Submit([this](){
+        Renderer::Submit([this]() {
             if (mID)
             {
                 glDeleteShader(mID);
             }
 
             Compile();
-            ResolveUniforms();
-            ValidateUniforms();
+            if (!mIsCompute)
+            {
+                ResolveUniforms();
+                ValidateUniforms();
+            }
 
             if (mLoaded)
             {
@@ -215,7 +233,7 @@ namespace NR
         }
     }
 
-    void GLShader::ParseFile(const std::string& filepath, std::string& output)
+    void GLShader::ParseFile(const std::string& filepath, std::string& output, bool isCompute)
     {
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
 
@@ -227,9 +245,9 @@ namespace NR
             in.read(&output[0], output.size());
             in.close();
         }
-        else
+        else if (!isCompute)
         {
-            NR_CORE_ERROR("Could not open file \"{0}\"!", filepath);
+            NR_CORE_ASSERT(false, "Could not open file");
         }
     }
 
@@ -367,18 +385,18 @@ namespace NR
     {
         glUseProgram(mID);
 
-        for (size_t i = 0; i < mVSRendererUniformBuffers.size(); i++)
+        for (size_t i = 0; i < mVSRendererUniformBuffers.size(); ++i)
         {
             GLShaderUniformBufferDeclaration* decl = (GLShaderUniformBufferDeclaration*)mVSRendererUniformBuffers[i];
             const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-            for (size_t j = 0; j < uniforms.size(); j++)
+            for (size_t j = 0; j < uniforms.size(); ++j)
             {
                 GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
                 if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
                 {
                     const ShaderStruct& s = uniform->GetShaderUniformStruct();
                     const auto& fields = s.GetFields();
-                    for (size_t k = 0; k < fields.size(); k++)
+                    for (size_t k = 0; k < fields.size(); ++k)
                     {
                         GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
                         field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
@@ -391,18 +409,18 @@ namespace NR
             }
         }
 
-        for (size_t i = 0; i < mPSRendererUniformBuffers.size(); i++)
+        for (size_t i = 0; i < mPSRendererUniformBuffers.size(); ++i)
         {
             GLShaderUniformBufferDeclaration* decl = (GLShaderUniformBufferDeclaration*)mPSRendererUniformBuffers[i];
             const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-            for (size_t j = 0; j < uniforms.size(); j++)
+            for (size_t j = 0; j < uniforms.size(); ++j)
             {
                 GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
                 if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
                 {
                     const ShaderStruct& s = uniform->GetShaderUniformStruct();
                     const auto& fields = s.GetFields();
-                    for (size_t k = 0; k < fields.size(); k++)
+                    for (size_t k = 0; k < fields.size(); ++k)
                     {
                         GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
                         field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
@@ -420,14 +438,14 @@ namespace NR
             if (decl)
             {
                 const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-                for (size_t j = 0; j < uniforms.size(); j++)
+                for (size_t j = 0; j < uniforms.size(); ++j)
                 {
                     GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
                     if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
                     {
                         const ShaderStruct& s = uniform->GetShaderUniformStruct();
                         const auto& fields = s.GetFields();
-                        for (size_t k = 0; k < fields.size(); k++)
+                        for (size_t k = 0; k < fields.size(); ++k)
                         {
                             GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
                             field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
@@ -446,14 +464,14 @@ namespace NR
             if (decl)
             {
                 const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-                for (size_t j = 0; j < uniforms.size(); j++)
+                for (size_t j = 0; j < uniforms.size(); ++j)
                 {
                     GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
                     if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
                     {
                         const ShaderStruct& s = uniform->GetShaderUniformStruct();
                         const auto& fields = s.GetFields();
-                        for (size_t k = 0; k < fields.size(); k++)
+                        for (size_t k = 0; k < fields.size(); ++k)
                         {
                             GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
                             field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
@@ -468,7 +486,7 @@ namespace NR
         }
 
         uint32_t sampler = 0;
-        for (size_t i = 0; i < mResources.size(); i++)
+        for (size_t i = 0; i < mResources.size(); ++i)
         {
             GLShaderResourceDeclaration* resource = (GLShaderResourceDeclaration*)mResources[i];
             int32_t location = GetUniformLocation(resource->mName);
@@ -501,7 +519,7 @@ namespace NR
 
     void GLShader::Bind()
     {
-        Renderer::Submit([this](){
+        Renderer::Submit([this]() {
             glUseProgram(mID);
             });
     }
@@ -587,14 +605,18 @@ namespace NR
                 if (domain == ShaderDomain::Vertex)
                 {
                     if (!mVSMaterialUniformBuffer)
+                    {
                         mVSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
+                    }
 
                     mVSMaterialUniformBuffer->PushUniform(declaration);
                 }
                 else if (domain == ShaderDomain::Pixel)
                 {
                     if (!mPSMaterialUniformBuffer)
+                    {
                         mPSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
+                    }
 
                     mPSMaterialUniformBuffer->PushUniform(declaration);
                 }
@@ -632,7 +654,7 @@ namespace NR
     void GLShader::ResolveAndSetUniforms(const Scope<GLShaderUniformBufferDeclaration>& decl, Buffer buffer)
     {
         const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-        for (size_t i = 0; i < uniforms.size(); i++)
+        for (size_t i = 0; i < uniforms.size(); ++i)
         {
             GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[i];
             if (uniform->IsArray())
@@ -875,7 +897,7 @@ namespace NR
     {
         const ShaderStruct& s = uniform->GetShaderUniformStruct();
         const auto& fields = s.GetFields();
-        for (size_t k = 0; k < fields.size(); k++)
+        for (size_t k = 0; k < fields.size(); ++k)
         {
             GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
             ResolveAndSetUniformField(*field, buffer, offset);

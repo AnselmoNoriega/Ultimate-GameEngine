@@ -231,12 +231,8 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	int uEnvRadianceTexLevels = textureQueryLevels(uEnvRadianceTex);
 	float NoV = clamp(mParams.NdotV, 0.0, 1.0);
 	vec3 R = 2.0 * dot(mParams.View, mParams.Normal) * mParams.Normal - mParams.View;
-	vec3 specularIrradiance = vec3(0.0);
 
-	if (uRadiancePrefilter > 0.5)
-		specularIrradiance = PrefilterEnvMap(mParams.Roughness * mParams.Roughness, R) * uRadiancePrefilter;
-	else
-		specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), sqrt(mParams.Roughness) * uEnvRadianceTexLevels).rgb * (1.0 - uRadiancePrefilter);
+	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), (mParams.Roughness * mParams.Roughness) * uEnvRadianceTexLevels).rgb;
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
 	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(mParams.NdotV, 1.0 - mParams.Roughness)).rg;
@@ -270,7 +266,7 @@ void main()
 	// Fresnel reflectance, metals use albedo
 	vec3 F0 = mix(Fdielectric, mParams.Albedo, mParams.Metalness);
 
-	vec3 lightContribution = Lighting(F0);
+	vec3 lightContribution = vec3(0.0);
 	vec3 iblContribution = IBL(F0, Lr);
 
 	color = vec4(lightContribution + iblContribution, 1.0);

@@ -34,7 +34,7 @@ namespace NR
 	{
 		if (Input::IsKeyPressed(GLFW_KEY_LEFT_ALT))
 		{
-			const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
+			const glm::vec2& mouse{ Input::GetMousePositionX(), Input::GetMousePositionY() };
 			glm::vec2 delta = mouse - mInitialMousePosition;
 			delta *= dt;
 			mInitialMousePosition = mouse;

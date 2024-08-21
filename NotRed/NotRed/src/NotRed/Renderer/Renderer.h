@@ -25,7 +25,7 @@ namespace NR
 
 		static void ClearMagenta();
 
-		static const Scope<ShaderLibrary>& GetShaderLibrary() { return Get().mShaderLibrary; }
+		static const Scope<ShaderLibrary>& GetShaderLibrary();
 
 		template<typename FuncT>
 		static void Submit(FuncT&& func)
@@ -35,32 +35,20 @@ namespace NR
 				(*pFunc)();
 				pFunc->~FuncT();
 				};
-			auto storageBuffer = sInstance->mCommandQueue.Allocate(renderCmd, sizeof(func));
+			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
 			new (storageBuffer) FuncT(std::forward<FuncT>(func));
 		}
 
-		void WaitAndRender();
+		static void WaitAndRender();
 
-		inline static Renderer& Get() { return *sInstance; }
+		static void BeginRenderPass(const Ref<RenderPass>& renderPass);
+		static void EndRenderPass();
 
-		static void BeginRenderPass(const Ref<RenderPass>& renderPass) { sInstance->IBeginRenderPass(renderPass); }
-		static void EndRenderPass() { sInstance->IEndRenderPass(); }
-
-		static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform, const Ref<MaterialInstance>& overrideMaterial = nullptr) { sInstance->ISubmitMesh(mesh, transform, overrideMaterial); }
-
-	private:
-		void IBeginRenderPass(const Ref<RenderPass>& renderPass);
-		void IEndRenderPass();
-
-		void ISubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform, const Ref<MaterialInstance>& overrideMaterial);
+		static void SubmitQuad(const Ref<MaterialInstance>& material, const glm::mat4& transform = glm::mat4(1.0f));
+		static void SubmitFullScreenQuad(const Ref<MaterialInstance>& material);
+		static void SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform, const Ref<MaterialInstance>& overrideMaterial = nullptr);
 
 	private:
-		static Renderer* sInstance;
-
-	private:
-		Ref<RenderPass> mActiveRenderPass;
-
-		RenderCommandQueue mCommandQueue;
-		Scope<ShaderLibrary> mShaderLibrary;
+		static RenderCommandQueue& GetRenderCommandQueue();
 	};
 }

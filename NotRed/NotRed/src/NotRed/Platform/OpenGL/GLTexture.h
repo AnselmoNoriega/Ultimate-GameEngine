@@ -14,24 +14,30 @@ namespace NR
 
 		void Bind(uint32_t slot = 0) const override;
 
+		uint32_t GetMipLevelCount() const override;
+
+		void Lock() override;
+		void Unlock() override;
+
+		void Resize(uint32_t width, uint32_t height) override;
+
+		RendererID GetRendererID() const override { return mID; }
+		const std::string& GetPath() const override { return mFilePath; }
+
+		bool Loaded() const override { return mLoaded; }
+
 		TextureFormat GetFormat() const override { return mFormat; }
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 
-		virtual void Lock() override;
-		virtual void Unlock() override;
-
-		virtual void Resize(uint32_t width, uint32_t height) override;
-		virtual Buffer GetWriteableBuffer() override;
-
-		const std::string& GetPath() const override { return mFilePath; }
-
-		RendererID GetRendererID() const override { return mID; }
+		Buffer GetWriteableBuffer() override;
 
 	private:
 		RendererID mID;
 
 		bool mLocked = false;
+		bool mIsHDR = false;
+		bool mLoaded = false;
 
 		TextureFormat mFormat;
 		uint32_t mWidth, mHeight;
@@ -44,18 +50,21 @@ namespace NR
 	class GLTextureCube : public TextureCube
 	{
 	public:
+		GLTextureCube(TextureFormat format, uint32_t width, uint32_t height);
 		GLTextureCube(const std::string& path);
-		virtual ~GLTextureCube() override;
+		~GLTextureCube() override;
 
 		void Bind(uint32_t slot = 0) const override;
+
+		RendererID GetRendererID() const override { return mID; }
 
 		TextureFormat GetFormat() const override { return mFormat; }
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 
-		const std::string& GetPath() const override { return mFilePath; }
+		uint32_t GetMipLevelCount() const override;
 
-		RendererID GetRendererID() const override { return mID; }
+		const std::string& GetPath() const override { return mFilePath; }
 
 	private:
 		RendererID mID;

@@ -13,6 +13,8 @@
 
 #include <string>
 
+#include "NotRed/Editor/SceneHierarchyPanel.h"
+
 namespace NR
 {
 	class EditorLayer : public Layer
@@ -40,27 +42,31 @@ namespace NR
 		// ImGui UI helpers
 		void Property(const std::string& name, bool& value);
 		void Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
+		void Property(const std::string& name, glm::vec2& value, PropertyFlag flags);
+		void Property(const std::string& name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
 		void Property(const std::string& name, glm::vec3& value, PropertyFlag flags);
 		void Property(const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
 		void Property(const std::string& name, glm::vec4& value, PropertyFlag flags);
 		void Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
 		
 	private:
-		Ref<Shader> mQuadShader;
-		Ref<Shader> mHDRShader;
-		Ref<Shader> mGridShader;
-		Ref<Mesh> mMesh;
-		Ref<Mesh> mSphereMesh, mPlaneMesh;
-		Ref<Texture2D> mBRDFLUT;
-		Ref<RenderPass> mGeoPass, mCompositePass;
+		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 
-		Ref<MaterialInstance> mMeshMaterial;
-		Ref<MaterialInstance> mGridMaterial;
+		Ref<Scene> mScene;
+		Ref<Scene> mSphereScene;
+		Ref<Scene> mActiveScene;
+
+		Entity* mMeshEntity = nullptr;
+
+		Ref<Shader> mBrushShader;
+		Ref<Mesh> mPlaneMesh;
+		Ref<Material> mSphereBaseMaterial;
+
+		Ref<Material> mMeshMaterial;
 		std::vector<Ref<MaterialInstance>> mMetalSphereMaterialInstances;
 		std::vector<Ref<MaterialInstance>> mDielectricSphereMaterialInstances;
 
 		float mGridScale = 16.025f, mGridSize = 0.025f;
-		float mMeshScale = 1.0f;
 
 		struct AlbedoInput
 		{
@@ -88,16 +94,11 @@ namespace NR
 
 		struct RoughnessInput
 		{
-			float Value = 0.5f;
+			float Value = 0.2f;
 			Ref<Texture2D> TextureMap;
 			bool UseTexture = false;
 		};
 		RoughnessInput mRoughnessInput;
-
-		Ref<VertexArray> mFullscreenQuadVertexArray;
-		Ref<TextureCube> mEnvironmentCubeMap, mEnvironmentIrradiance;
-
-		Camera mCamera;
 
 		struct Light
 		{
@@ -107,25 +108,21 @@ namespace NR
 		Light mLight;
 		float mLightMultiplier = 0.3f;
 
-		// PBR params
-		float mExposure = 1.0f;
-
 		bool mRadiancePrefilter = false;
 
 		float mEnvMapRotation = 0.0f;
 
-		enum class Scene : uint32_t
+		enum class SceneType : uint32_t
 		{
 			Spheres, 
 			Model
 		};
-		Scene mScene;
+		SceneType mSceneType;
 
 		// Editor resources
 		Ref<Texture2D> mCheckerboardTex;
 
 		int mGizmoType = -1;
-		glm::mat4 mTransform;
 	};
 
 }

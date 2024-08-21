@@ -13,6 +13,9 @@ namespace NR
 	{
 		mShader->AddShaderReloadedCallback(std::bind(&Material::ShaderReloaded, this));
 		AllocateStorage();
+
+		mMaterialFlags |= (uint32_t)MaterialFlag::DepthTest;
+		mMaterialFlags |= (uint32_t)MaterialFlag::Blend;
 	}
 
 	Material::~Material()
@@ -21,13 +24,19 @@ namespace NR
 
 	void Material::AllocateStorage()
 	{
-		const auto& vsBuffer = mShader->GetVSMaterialUniformBuffer();
-		mVSUniformStorageBuffer.Allocate(vsBuffer.GetSize());
-		mVSUniformStorageBuffer.ZeroInitialize();
+		if (mShader->HasVSMaterialUniformBuffer())
+		{
+			const auto& vsBuffer = mShader->GetVSMaterialUniformBuffer();
+			mVSUniformStorageBuffer.Allocate(vsBuffer.GetSize());
+			mVSUniformStorageBuffer.ZeroInitialize();
+		}
 
-		const auto& psBuffer = mShader->GetPSMaterialUniformBuffer();
-		mPSUniformStorageBuffer.Allocate(psBuffer.GetSize());
-		mPSUniformStorageBuffer.ZeroInitialize();
+		if (mShader->HasPSMaterialUniformBuffer())
+		{
+			const auto& psBuffer = mShader->GetPSMaterialUniformBuffer();
+			mPSUniformStorageBuffer.Allocate(psBuffer.GetSize());
+			mPSUniformStorageBuffer.ZeroInitialize();
+		}
 	}
 
 	void Material::ShaderReloaded()
@@ -112,7 +121,7 @@ namespace NR
 
 	void Material::BindTextures() const
 	{
-		for (size_t i = 0; i < mTextures.size(); i++)
+		for (size_t i = 0; i < mTextures.size(); ++i)
 		{
 			auto& texture = mTextures[i];
 			if (texture)
@@ -149,13 +158,31 @@ namespace NR
 
 	void MaterialInstance::AllocateStorage()
 	{
-		const auto& vsBuffer = mMaterial->mShader->GetVSMaterialUniformBuffer();
-		mVSUniformStorageBuffer.Allocate(vsBuffer.GetSize());
-		memcpy(mVSUniformStorageBuffer.Data, mMaterial->mVSUniformStorageBuffer.Data, vsBuffer.GetSize());
+		if (mMaterial->mShader->HasVSMaterialUniformBuffer())
+		{
+			const auto& vsBuffer = mMaterial->mShader->GetVSMaterialUniformBuffer();
+			mVSUniformStorageBuffer.Allocate(vsBuffer.GetSize());
+			memcpy(mVSUniformStorageBuffer.Data, mMaterial->mVSUniformStorageBuffer.Data, vsBuffer.GetSize());
+		}
 
-		const auto& psBuffer = mMaterial->mShader->GetPSMaterialUniformBuffer();
-		mPSUniformStorageBuffer.Allocate(psBuffer.GetSize());
-		memcpy(mPSUniformStorageBuffer.Data, mMaterial->mPSUniformStorageBuffer.Data, psBuffer.GetSize());
+		if (mMaterial->mShader->HasPSMaterialUniformBuffer())
+		{
+			const auto& psBuffer = mMaterial->mShader->GetPSMaterialUniformBuffer();
+			mPSUniformStorageBuffer.Allocate(psBuffer.GetSize());
+			memcpy(mPSUniformStorageBuffer.Data, mMaterial->mPSUniformStorageBuffer.Data, psBuffer.GetSize());
+		}
+	}
+
+	void MaterialInstance::ModifyFlags(MaterialFlag flag, bool addFlag)
+	{
+		if (addFlag)
+		{
+			mMaterial->mMaterialFlags |= (uint32_t)flag;
+		}
+		else
+		{
+			mMaterial->mMaterialFlags &= ~(uint32_t)flag;
+		}
 	}
 
 	void MaterialInstance::MaterialValueUpdated(ShaderUniformDeclaration* decl)
@@ -195,7 +222,7 @@ namespace NR
 		}
 
 		mMaterial->BindTextures();
-		for (size_t i = 0; i < mTextures.size(); i++)
+		for (size_t i = 0; i < mTextures.size(); ++i)
 		{
 			auto& texture = mTextures[i];
 			if (texture)

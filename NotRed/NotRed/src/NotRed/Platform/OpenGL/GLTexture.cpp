@@ -18,18 +18,13 @@ namespace NR
 		{
 		case NR::TextureFormat::RGB:     return GL_RGB;
 		case NR::TextureFormat::RGBA:    return GL_RGBA;
-		}
-		return 0;
-	}
-
-	static int CalculateMipMapCount(int width, int height)
-	{
-		int levels = 1;
-		while ((width | height) >> levels) 
+		case NR::TextureFormat::Float16: return GL_RGBA16F;
+		default:
 		{
-			++levels;
+			NR_CORE_ASSERT(false, "Unknown texture format!");
+			return 0;
 		}
-		return levels;
+		}
 	}
 
 	// Texture2D-----------------------------------------------------------------------
@@ -59,19 +54,32 @@ namespace NR
 		: mFilePath(path)
 	{
 		int width, height, channels;
-		NR_CORE_INFO("Loading texture {0}, standardRGB={1}", path, standardRGB);
-		mImageData.Data = stbi_load(path.c_str(), &width, &height, &channels, standardRGB ? STBI_rgb : STBI_rgb_alpha);
+		if (stbi_is_hdr(path.c_str()))
+		{
+			NR_CORE_INFO("Loading HDR texture {0}, srgb = {1}", path, standardRGB);
+			mImageData.Data = (byte*)stbi_loadf(path.c_str(), &width, &height, &channels, 0);
+			NR_CORE_ASSERT(mImageData.Data, "Could not read image!");
+			mIsHDR = true;
+			mFormat = TextureFormat::Float16;
+		}
+		else
+		{
+			NR_CORE_INFO("Loading texture {0}, srgb = {1}", path, standardRGB);
+			mImageData.Data = stbi_load(path.c_str(), &width, &height, &channels, standardRGB ? STBI_rgb : STBI_rgb_alpha);
+			NR_CORE_ASSERT(mImageData.Data, "Could not read image!");
+			mFormat = TextureFormat::RGBA;
+		}
+
+		mLoaded = mImageData.Data != nullptr;
 
 		mWidth = width;
 		mHeight = height;
-		mFormat = TextureFormat::RGBA;
 
-		Renderer::Submit([this, standardRGB](){
+		Renderer::Submit([=](){
 			if (standardRGB)
 			{
 				glCreateTextures(GL_TEXTURE_2D, 1, &mID);
-				int levels = CalculateMipMapCount(mWidth, mHeight);
-				NR_CORE_INFO("Creating standardRGB texture width {0} mips", levels);
+				int levels = Texture::CalculateMipMapCount(mWidth, mHeight);
 				glTextureStorage2D(mID, levels, GL_SRGB8, mWidth, mHeight);
 				glTextureParameteri(mID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 				glTextureParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -88,8 +96,12 @@ namespace NR
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-				glTexImage2D(GL_TEXTURE_2D, 0, ToOpenGLTextureFormat(mFormat), mWidth, mHeight, 0, standardRGB ? GL_SRGB8 : ToOpenGLTextureFormat(mFormat), GL_UNSIGNED_BYTE, mImageData.Data);
+				GLenum internalFormat = ToOpenGLTextureFormat(mFormat);
+				GLenum format = standardRGB ? GL_SRGB8 : (mIsHDR ? GL_RGB : ToOpenGLTextureFormat(mFormat)); // HDR = GL_RGB for now
+				GLenum type = internalFormat == GL_RGBA16F ? GL_FLOAT : GL_UNSIGNED_BYTE;
+				glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mWidth, mHeight, 0, format, type, mImageData.Data); 
 				glGenerateMipmap(GL_TEXTURE_2D);
 
 				glBindTexture(GL_TEXTURE_2D, 0);
@@ -142,9 +154,33 @@ namespace NR
 		return mImageData;
 	}
 
+	uint32_t GLTexture2D::GetMipLevelCount() const
+	{
+		return Texture::CalculateMipMapCount(mWidth, mHeight);
+	}
+
 
 	// TextureCube-----------------------------------------------------------------------
 
+	GLTextureCube::GLTextureCube(TextureFormat format, uint32_t width, uint32_t height)
+	{
+		mWidth = width;
+		mHeight = height;
+		mFormat = format;
+
+		uint32_t levels = Texture::CalculateMipMapCount(width, height);
+
+		Renderer::Submit([=]() {
+			glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &mID);
+			glTextureStorage2D(mID, levels, ToOpenGLTextureFormat(mFormat), width, height);
+			glTextureParameteri(mID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+			glTextureParameteri(mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			});
+	}
+	
 	GLTextureCube::GLTextureCube(const std::string& path)
 		: mFilePath(path)
 	{
@@ -216,6 +252,7 @@ namespace NR
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 			glTextureParameterf(mID, GL_TEXTURE_MAX_ANISOTROPY, RendererAPI::GetCapabilities().MaxAnisotropy);
 
 			auto format = ToOpenGLTextureFormat(mFormat);
@@ -256,4 +293,8 @@ namespace NR
 			});
 	}
 
+	uint32_t GLTextureCube::GetMipLevelCount() const
+	{
+		return Texture::CalculateMipMapCount(mWidth, mHeight);
+	}
 }

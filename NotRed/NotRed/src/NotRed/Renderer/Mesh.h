@@ -83,7 +83,7 @@ namespace NR
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
-			for (size_t i = 0; i < 4; i++)
+			for (size_t i = 0; i < 4; ++i)
 			{
 				if (Weights[i] == 0.0)
 				{
@@ -116,18 +116,19 @@ namespace NR
 
 
 		void Update(float dt);
-		void ImGuiRender();
 		void DumpVertexBuffer();
 
-		inline const std::string& GetFilePath() const { return mFilePath; }
+		const std::string& GetFilePath() const { return mFilePath; }
 
-		inline Ref<Shader> GetMeshShader() { return mMeshShader; }
-		inline Ref<Material> GetMaterial() { return mMaterial; }
+		Ref<Shader> GetMeshShader() { return mMeshShader; }
+		Ref<Material> GetMaterial() { return mBaseMaterial; }
+		std::vector<Ref<MaterialInstance>> GetMaterials() { return mMaterials; }
+		const std::vector<Ref<Texture2D>>& GetTextures() const { return mTextures; }
 
 	private:
 		void BoneTransform(float time);
 		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
-		void TraverseNodes(aiNode* node);
+		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
 
 		const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName);
 		uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
@@ -158,7 +159,10 @@ namespace NR
 
 		// Materials
 		Ref<Shader> mMeshShader;
-		Ref<Material> mMaterial;
+		Ref<Material> mBaseMaterial;
+		std::vector<Ref<Texture2D>> mTextures;
+		std::vector<Ref<Texture2D>> mNormalMaps;
+		std::vector<Ref<MaterialInstance>> mMaterials;
 
 		// Animation
 		bool mIsAnimated = false;
@@ -170,5 +174,6 @@ namespace NR
 		std::string mFilePath;
 
 		friend class Renderer;
+		friend class SceneHierarchyPanel;
 	};
 }

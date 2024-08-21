@@ -15,6 +15,8 @@ namespace NR
 		static Ref<GLShader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc);
 
 		void Bind() override;
+		RendererID GetRendererID() const override { return mID; }
+
 		void Reload() override;
 
 		void UploadUniformBuffer(const UniformBufferBase& uniformBuffer) override;
@@ -31,11 +33,11 @@ namespace NR
 		const std::string& GetName() const override { return mName; }
 
 	private:
-		void Load(const std::string& vertSrc, const std::string& fragSrc);
+		void Load(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc = "");
 
 		std::string GetShaderName(const std::string& filepath);
 
-		void ParseFile(const std::string& filepath, std::string& output);
+		void ParseFile(const std::string& filepath, std::string& output, bool isCompute = false);
 		void Parse(const std::string& source, ShaderDomain type);
 		void ParseUniform(const std::string& statement, ShaderDomain domain);
 		void ParseUniformStruct(const std::string& block, ShaderDomain domain);
@@ -77,12 +79,14 @@ namespace NR
 		void UploadUniformMat4(const std::string& name, const glm::mat4& value);
 
 		void UploadUniformStruct(GLShaderUniformDeclaration* uniform, byte* buffer, uint32_t offset);
-
-		inline const ShaderUniformBufferList& GetVSRendererUniforms() const override { return mVSRendererUniformBuffers; }
-		inline const ShaderUniformBufferList& GetPSRendererUniforms() const override { return mPSRendererUniformBuffers; }
-		inline const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const override { return *mVSMaterialUniformBuffer; }
-		inline const ShaderUniformBufferDeclaration& GetPSMaterialUniformBuffer() const override { return *mPSMaterialUniformBuffer; }
-		inline const ShaderResourceList& GetResources() const override { return mResources; }
+		
+		const ShaderUniformBufferList& GetVSRendererUniforms() const override { return mVSRendererUniformBuffers; }
+		const ShaderUniformBufferList& GetPSRendererUniforms() const override { return mPSRendererUniformBuffers; }
+		bool HasVSMaterialUniformBuffer() const override { return (bool)mVSMaterialUniformBuffer; }
+		bool HasPSMaterialUniformBuffer() const override { return (bool)mPSMaterialUniformBuffer; }
+		const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const override { return *mVSMaterialUniformBuffer; }
+		const ShaderUniformBufferDeclaration& GetPSMaterialUniformBuffer() const override { return *mPSMaterialUniformBuffer; }
+		const ShaderResourceList& GetResources() const override { return mResources; }
 
 	private:
 		RendererID mID = 0;
@@ -90,6 +94,7 @@ namespace NR
 
 		std::unordered_map<uint32_t, std::string> mShaderSource;
 		bool mLoaded = false;
+		bool mIsCompute = false;
 
 		std::vector<ShaderReloadedCallback> mShaderReloadedCallbacks;
 

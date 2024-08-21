@@ -9,6 +9,7 @@
 
 #define GLmENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -48,15 +49,25 @@ namespace NR
         }
     };
 
-    static glm::mat4 aiMatrix4x4ToGlm(const aiMatrix4x4& from)
+    static std::string LevelToSpaces(uint32_t level)
     {
-        glm::mat4 to;
+        std::string result = "";
+        for (uint32_t i = 0; i < level; ++i)
+        {
+            result += "--";
+        }
+        return result;
+    }
+
+    glm::mat4 AssimpMat4ToMat4(const aiMatrix4x4& matrix)
+    {
+        glm::mat4 result;
         //the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
-        to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
-        to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
-        to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
-        to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
-        return to;
+        result[0][0] = matrix.a1; result[1][0] = matrix.a2; result[2][0] = matrix.a3; result[3][0] = matrix.a4;
+        result[0][1] = matrix.b1; result[1][1] = matrix.b2; result[2][1] = matrix.b3; result[3][1] = matrix.b4;
+        result[0][2] = matrix.c1; result[1][2] = matrix.c2; result[2][2] = matrix.c3; result[3][2] = matrix.c4;
+        result[0][3] = matrix.d1; result[1][3] = matrix.d2; result[2][3] = matrix.d3; result[3][3] = matrix.d4;
+        return result;
     }
 
     Mesh::Mesh(const std::string& filename)
@@ -79,9 +90,8 @@ namespace NR
 
         mIsAnimated = scene->mAnimations != nullptr;
         mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
-        mMaterial.reset(new NR::Material(mMeshShader));
-
-        mInverseTransform = glm::inverse(aiMatrix4x4ToGlm(scene->mRootNode->mTransformation));
+        mBaseMaterial = CreateRef<Material>(mMeshShader);
+        mInverseTransform = glm::inverse(AssimpMat4ToMat4(scene->mRootNode->mTransformation));
 
         uint32_t vertexCount = 0;
         uint32_t indexCount = 0;
@@ -106,7 +116,7 @@ namespace NR
 
             if (mIsAnimated)
             {
-                for (size_t i = 0; i < mesh->mNumVertices; i++)
+                for (size_t i = 0; i < mesh->mNumVertices; ++i)
                 {
                     AnimatedVertex vertex;
                     vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
@@ -125,7 +135,7 @@ namespace NR
             }
             else
             {
-                for (size_t i = 0; i < mesh->mNumVertices; i++)
+                for (size_t i = 0; i < mesh->mNumVertices; ++i)
                 {
                     Vertex vertex;
                     vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
@@ -159,7 +169,7 @@ namespace NR
             {
                 aiMesh* mesh = scene->mMeshes[m];
                 Submesh& submesh = mSubmeshes[m];
-                for (size_t i = 0; i < mesh->mNumBones; i++)
+                for (size_t i = 0; i < mesh->mNumBones; ++i)
                 {
                     aiBone* bone = mesh->mBones[i];
                     std::string boneName(bone->mName.data);
@@ -171,7 +181,7 @@ namespace NR
                         ++mBoneCount;
                         BoneInfo bi;
                         mBoneInfo.push_back(bi);
-                        mBoneInfo[boneIndex].BoneOffset = aiMatrix4x4ToGlm(bone->mOffsetMatrix);
+                        mBoneInfo[boneIndex].BoneOffset = AssimpMat4ToMat4(bone->mOffsetMatrix);
                         mBoneMapping[boneName] = boneIndex;
                     }
                     else
@@ -184,6 +194,206 @@ namespace NR
                         int VertexID = submesh.BaseVertex + bone->mWeights[j].mVertexId;
                         float Weight = bone->mWeights[j].mWeight;
                         mAnimatedVertices[VertexID].AddBoneData(boneIndex, Weight);
+                    }
+                }
+            }
+        }
+
+        if (scene->HasMaterials())
+        {
+            mTextures.resize(scene->mNumMaterials);
+            mMaterials.resize(scene->mNumMaterials);
+            for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
+            {
+                auto aiMaterial = scene->mMaterials[i];
+                auto aiMaterialName = aiMaterial->GetName();
+
+                auto mi = CreateRef<MaterialInstance>(mBaseMaterial);
+                mMaterials[i] = mi;
+
+                NR_CORE_INFO("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
+                aiString aiTexPath;
+                uint32_t textureCount = aiMaterial->GetTextureCount(aiTextureType_DIFFUSE);
+                NR_CORE_TRACE("  TextureCount = {0}", textureCount);
+
+                aiColor3D aiColor;
+                aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
+                NR_CORE_TRACE("COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b);
+
+                if (aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS)
+                {
+                    // TODO: Temp - this should be handled by Hazel's filesystem
+                    std::filesystem::path path = modelsDirectory;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath, true);
+                    if (texture->Loaded())
+                    {
+                        mTextures[i] = texture;
+                        NR_CORE_TRACE("  Texture Path = {0}", texturePath);
+                        mi->Set("uAlbedoTexture", mTextures[i]);
+                        mi->Set("uAlbedoTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                        //mi->Set("uAlbedoTexToggle", 0.0f);
+                        mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
+                    }
+                }
+                else
+                {
+                    mi->Set("uAlbedoTexToggle", 0.0f);
+                    mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
+                }
+
+                for (uint32_t i = 0; i < aiMaterial->mNumProperties; ++i)
+                {
+                    auto prop = aiMaterial->mProperties[i];
+                    NR_CORE_TRACE("Material Property:");
+                    NR_CORE_TRACE("  Name = {0}", prop->mKey.data);
+
+                    switch (prop->mSemantic)
+                    {
+                    case aiTextureType_NONE:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_NONE");
+                        break;
+                    case aiTextureType_DIFFUSE:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_DIFFUSE");
+                        break;
+                    case aiTextureType_SPECULAR:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_SPECULAR");
+                        break;
+                    case aiTextureType_AMBIENT:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_AMBIENT");
+                        break;
+                    case aiTextureType_EMISSIVE:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_EMISSIVE");
+                        break;
+                    case aiTextureType_HEIGHT:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_HEIGHT");
+                        break;
+                    case aiTextureType_NORMALS:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_NORMALS");
+                        break;
+                    case aiTextureType_SHININESS:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_SHININESS");
+                        break;
+                    case aiTextureType_OPACITY:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_OPACITY");
+                        break;
+                    case aiTextureType_DISPLACEMENT:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_DISPLACEMENT");
+                        break;
+                    case aiTextureType_LIGHTMAP:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_LIGHTMAP");
+                        break;
+                    case aiTextureType_REFLECTION:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_REFLECTION");
+                        break;
+                    case aiTextureType_UNKNOWN:
+                        NR_CORE_TRACE("  Semantic = aiTextureType_UNKNOWN");
+                        break;
+                    }
+
+                    if (prop->mType == aiPTI_String)
+                    {
+                        uint32_t strLength = *(uint32_t*)prop->mData;
+                        std::string str(prop->mData + 4, strLength);
+                        NR_CORE_TRACE("  Value = {0}", str);
+
+                        std::string key = prop->mKey.data;
+                        if (key == "$raw.ReflectionFactor|file")
+                        {
+                            std::filesystem::path path = modelsDirectory;
+                            auto parentPath = path.parent_path();
+                            parentPath /= str;
+                            std::string texturePath = parentPath.string();
+
+                            auto texture = Texture2D::Create(texturePath);
+                            if (texture->Loaded())
+                            {
+                                NR_CORE_TRACE("  Metalness map path = {0}", texturePath);
+                                mi->Set("uMetalnessTexture", texture);
+                                mi->Set("uMetalnessTexToggle", 1.0f);
+                            }
+                            else
+                            {
+                                NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                                mi->Set("uMetalness", 0.5f);
+                                mi->Set("uMetalnessTexToggle", 1.0f);
+                            }
+                        }
+                    }
+                }
+
+
+                // Normal maps
+                if (aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS)
+                {
+                    std::filesystem::path path = filename;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath);
+                    if (texture->Loaded())
+                    {
+                        NR_CORE_TRACE("  Normal map path = {0}", texturePath);
+                        mi->Set("uNormalTexture", texture);
+                        mi->Set("uNormalTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                    }
+                }
+
+                // Roughness map
+                if (aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS)
+                {
+                    std::filesystem::path path = filename;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath);
+                    if (texture->Loaded())
+                    {
+                        NR_CORE_TRACE("  Roughness map path = {0}", texturePath);
+                        mi->Set("uRoughnessTexture", texture);
+                        mi->Set("uRoughnessTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                        mi->Set("uRoughnessTexToggle", 1.0f);
+                        mi->Set("uRoughness", 0.5f);
+                    }
+                }
+
+                // Metalness map
+                if (aiMaterial->Get("$raw.ReflectionFactor|file", aiPTI_String, 0, aiTexPath) == AI_SUCCESS)
+                {
+                    std::filesystem::path path = filename;
+                    auto parentPath = path.parent_path();
+                    parentPath /= std::string(aiTexPath.data);
+                    std::string texturePath = parentPath.string();
+
+                    auto texture = Texture2D::Create(texturePath);
+                    if (texture->Loaded())
+                    {
+                        NR_CORE_TRACE("  Metalness map path = {0}", texturePath);
+                        mi->Set("uMetalnessTexture", texture);
+                        mi->Set("uMetalnessTexToggle", 1.0f);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                        mi->Set("uMetalness", 0.5f);
+                        mi->Set("uMetalnessTexToggle", 1.0f);
                     }
                 }
             }
@@ -229,7 +439,7 @@ namespace NR
 
     uint32_t Mesh::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
     {
-        for (uint32_t i = 0; i < pNodeAnim->mNumPositionKeys - 1; i++)
+        for (uint32_t i = 0; i < pNodeAnim->mNumPositionKeys - 1; ++i)
         {
             if (AnimationTime < (float)pNodeAnim->mPositionKeys[i + 1].mTime)
             {
@@ -245,7 +455,7 @@ namespace NR
     {
         NR_CORE_ASSERT(pNodeAnim->mNumRotationKeys > 0);
 
-        for (uint32_t i = 0; i < pNodeAnim->mNumRotationKeys - 1; i++)
+        for (uint32_t i = 0; i < pNodeAnim->mNumRotationKeys - 1; ++i)
         {
             if (AnimationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime)
             {
@@ -261,7 +471,7 @@ namespace NR
     {
         NR_CORE_ASSERT(pNodeAnim->mNumScalingKeys > 0);
 
-        for (uint32_t i = 0; i < pNodeAnim->mNumScalingKeys - 1; i++)
+        for (uint32_t i = 0; i < pNodeAnim->mNumScalingKeys - 1; ++i)
         {
             if (AnimationTime < (float)pNodeAnim->mScalingKeys[i + 1].mTime)
             {
@@ -272,17 +482,18 @@ namespace NR
         return 0;
     }
 
-    void Mesh::TraverseNodes(aiNode* node)
+    void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
     {
-        for (uint32_t i = 0; i < node->mNumMeshes; i++)
+        glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
+        for (uint32_t i = 0; i < node->mNumMeshes; ++i)
         {
             uint32_t mesh = node->mMeshes[i];
-            mSubmeshes[mesh].Transform = aiMatrix4x4ToGlm(node->mTransformation);
+            mSubmeshes[mesh].Transform = transform;
         }
 
-        for (uint32_t i = 0; i < node->mNumChildren; i++)
+        for (uint32_t i = 0; i < node->mNumChildren; ++i)
         {
-            TraverseNodes(node->mChildren[i]);
+            TraverseNodes(node->mChildren[i], transform, level + 1);
         }
     }
 
@@ -370,11 +581,11 @@ namespace NR
         return { aiVec.x, aiVec.y, aiVec.z };
     }
 
-    void Mesh::ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform)
+    void Mesh::ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& parentTransform)
     {
         std::string name(pNode->mName.data);
         const aiAnimation* animation = mScene->mAnimations[0];
-        glm::mat4 nodeTransform(aiMatrix4x4ToGlm(pNode->mTransformation));
+        glm::mat4 nodeTransform(AssimpMat4ToMat4(pNode->mTransformation));
         const aiNodeAnim* nodeAnim = FindNodeAnim(animation, name);
 
         if (nodeAnim)
@@ -391,7 +602,7 @@ namespace NR
             nodeTransform = translationMatrix * rotationMatrix * scaleMatrix;
         }
 
-        glm::mat4 transform = ParentTransform * nodeTransform;
+        glm::mat4 transform = parentTransform * nodeTransform;
 
         if (mBoneMapping.find(name) != mBoneMapping.end())
         {
@@ -399,7 +610,7 @@ namespace NR
             mBoneInfo[BoneIndex].FinalTransformation = mInverseTransform * transform * mBoneInfo[BoneIndex].BoneOffset;
         }
 
-        for (uint32_t i = 0; i < pNode->mNumChildren; i++)
+        for (uint32_t i = 0; i < pNode->mNumChildren; ++i)
         {
             ReadNodeHierarchy(AnimationTime, pNode->mChildren[i], transform);
         }
@@ -407,7 +618,7 @@ namespace NR
 
     const aiNodeAnim* Mesh::FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
     {
-        for (uint32_t i = 0; i < animation->mNumChannels; i++)
+        for (uint32_t i = 0; i < animation->mNumChannels; ++i)
         {
             const aiNodeAnim* nodeAnim = animation->mChannels[i];
             if (std::string(nodeAnim->mNodeName.data) == nodeName)
@@ -442,37 +653,15 @@ namespace NR
             BoneTransform(mAnimationTime);
         }
     }
-    
-    void Mesh::ImGuiRender()
-    {
-        ImGui::Begin("Mesh Debug");
-        if (ImGui::CollapsingHeader(mFilePath.c_str()))
-        {
-            if (mIsAnimated)
-            {
-                if (ImGui::CollapsingHeader("Animation"))
-                {
-                    if (ImGui::Button(mAnimationPlaying ? "Pause" : "Play"))
-                        mAnimationPlaying = !mAnimationPlaying;
-
-                    ImGui::SliderFloat("##AnimationTime", &mAnimationTime, 0.0f, (float)mScene->mAnimations[0]->mDuration);
-                    ImGui::DragFloat("Time Scale", &mTimeMultiplier, 0.05f, 0.0f, 10.0f);
-                }
-            }
-        }
-
-        ImGui::End();
-    }
 
     void Mesh::DumpVertexBuffer()
     {
-        // TODO: Convert to ImGui
         NR_CORE_TRACE("------------------------------------------------------");
         NR_CORE_TRACE("Vertex Buffer Dump");
         NR_CORE_TRACE("Mesh: {0}", mFilePath);
         if (mIsAnimated)
         {
-            for (size_t i = 0; i < mAnimatedVertices.size(); i++)
+            for (size_t i = 0; i < mAnimatedVertices.size(); ++i)
             {
                 auto& vertex = mAnimatedVertices[i];
                 NR_CORE_TRACE("Vertex: {0}", i);
@@ -486,7 +675,7 @@ namespace NR
         }
         else
         {
-            for (size_t i = 0; i < mStaticVertices.size(); i++)
+            for (size_t i = 0; i < mStaticVertices.size(); ++i)
             {
                 auto& vertex = mStaticVertices[i];
                 NR_CORE_TRACE("Vertex: {0}", i);

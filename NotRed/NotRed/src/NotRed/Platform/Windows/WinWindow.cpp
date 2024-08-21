@@ -52,6 +52,7 @@ namespace NR
 
         mWindow = glfwCreateWindow((uint32_t)props.Width, (uint32_t)props.Height, mData.Title.c_str(), nullptr, nullptr);
         glfwMakeContextCurrent(mWindow);
+        glfwMaximizeWindow(mWindow);
         int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         NR_CORE_ASSERT(status, "Failed to initialize Glad!");
         glfwSetWindowUserPointer(mWindow, &mData);

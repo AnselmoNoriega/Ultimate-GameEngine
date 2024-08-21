@@ -7,6 +7,7 @@ namespace NR
 	class Camera
 	{
 	public:
+		Camera() = default;
 		Camera(const glm::mat4& projectionMatrix);
 
 		void Focus();
@@ -18,6 +19,10 @@ namespace NR
 		inline void SetProjectionMatrix(const glm::mat4& projectionMatrix) { mProjectionMatrix = projectionMatrix; }
 		inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
 
+		std::pair<float, float> PanSpeed() const;
+		float RotationSpeed() const;
+		float ZoomSpeed() const;
+
 		const glm::mat4& GetProjectionMatrix() const { return mProjectionMatrix; }
 		const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
 
@@ -26,9 +31,8 @@ namespace NR
 		glm::vec3 GetForwardDirection();
 		const glm::vec3& GetPosition() const { return mPosition; }
 
-		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed() const;
-		float ZoomSpeed() const;
+		float GetExposure() const { return mExposure; }
+		float& GetExposure() { return mExposure; }
 
 	private:
 		void MousePan(const glm::vec2& delta);
@@ -51,5 +55,7 @@ namespace NR
 		float mDistance;
 
 		float mPitch, mYaw;
+
+		float mExposure = 0.8f;
 	};
 }

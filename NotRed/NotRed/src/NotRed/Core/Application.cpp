@@ -29,7 +29,7 @@ namespace NR
         PushOverlay(mImGuiLayer);
 
         Renderer::Init();
-        Renderer::Get().WaitAndRender();
+        Renderer::WaitAndRender();
     }
 
     Application::~Application()
@@ -84,7 +84,7 @@ namespace NR
                 Application* app = this;
                 Renderer::Submit([app]() { app->RenderImGui(); });
 
-                Renderer::Get().WaitAndRender();
+                Renderer::WaitAndRender();
             }
 
             mWindow->Update();

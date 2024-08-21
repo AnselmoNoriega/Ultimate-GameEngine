@@ -106,6 +106,7 @@ namespace NR
 		Ref<Shader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc);
 
 		virtual void Bind() = 0;
+		virtual RendererID GetRendererID() const = 0;
 		virtual void Reload() = 0;
 
 		virtual void UploadUniformBuffer(const UniformBufferBase& uniformBuffer) = 0;
@@ -125,6 +126,8 @@ namespace NR
 
 		virtual const ShaderUniformBufferList& GetVSRendererUniforms() const = 0;
 		virtual const ShaderUniformBufferList& GetPSRendererUniforms() const = 0;
+		virtual bool HasVSMaterialUniformBuffer() const = 0;
+		virtual bool HasPSMaterialUniformBuffer() const = 0;
 		virtual const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const = 0;
 		virtual const ShaderUniformBufferDeclaration& GetPSMaterialUniformBuffer() const = 0;
 

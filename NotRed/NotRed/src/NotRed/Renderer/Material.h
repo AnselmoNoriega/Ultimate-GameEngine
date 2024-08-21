@@ -9,6 +9,13 @@
 
 namespace NR
 {
+enum class MaterialFlag
+	{
+		None = (1 << 0),
+		DepthTest = (1 << 1),
+		Blend = (1 << 2)
+	};
+
 	class Material
 	{
 	public:
@@ -18,6 +25,9 @@ namespace NR
 		virtual ~Material();
 
 		void Bind() const;
+
+		uint32_t GetFlags() const { return mMaterialFlags; }
+		void SetFlag(MaterialFlag flag) { mMaterialFlags |= (uint32_t)flag; }
 
 		template <typename T>
 		void Set(const std::string& name, const T& value)
@@ -80,7 +90,7 @@ namespace NR
 		Buffer mPSUniformStorageBuffer;
 		std::vector<Ref<Texture>> mTextures;
 
-		int32_t mRenderFlags = 0;
+		uint32_t mMaterialFlags;
 	};
 
 	class MaterialInstance
@@ -95,9 +105,9 @@ namespace NR
 		void Set(const std::string& name, const T& value)
 		{
 			auto decl = mMaterial->FindUniformDeclaration(name);
-
 			if (!decl)
 			{
+				NR_CORE_WARN("Cannot find material property: ", name);
 				return;
 			}
 
@@ -110,6 +120,12 @@ namespace NR
 		void Set(const std::string& name, const Ref<Texture>& texture)
 		{
 			auto decl = mMaterial->FindResourceDeclaration(name);
+			if (!decl)
+			{
+				NR_CORE_WARN("Cannot find material property: ", name);
+				return;
+			}
+
 			uint32_t slot = decl->GetRegister();
 			if (mTextures.size() <= slot)
 			{
@@ -129,6 +145,12 @@ namespace NR
 		}
 
 		void Bind() const;
+
+		uint32_t GetFlags() const { return mMaterial->mMaterialFlags; }
+		bool IsFlagActive(MaterialFlag flag) const { return (uint32_t)flag & mMaterial->mMaterialFlags; }
+		void ModifyFlags(MaterialFlag flag, bool addFlag = true);
+
+		Ref<Shader >GetShader() { return mMaterial->mShader; }
 
 	private:
 		friend class Material;
