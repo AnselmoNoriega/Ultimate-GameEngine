@@ -135,12 +135,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bind/Debug/assimp-vc143-mtd.lib"
+			"NotRed/vendor/assimp/bind/Debug/assimp-vc141-mtd.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Debug/assimp-vc143-mtd.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/assimp/bind/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"'
 		}
 				
 	filter "configurations:Release"
@@ -149,12 +149,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bind/Release/assimp-vc143-mt.lib"
+			"NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -163,10 +163,10 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bind/Release/assimp-vc143-mt.lib"
+			"NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc143-mtd.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"'
 		}
