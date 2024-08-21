@@ -10,5 +10,6 @@ namespace NR
 
 		static float GetMousePositionX();
 		static float GetMousePositionY();
+		static std::pair<float, float> GetMousePosition();
 	};
 }

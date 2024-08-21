@@ -26,21 +26,22 @@ namespace NR
 
 	float Input::GetMousePositionX()
 	{
-		auto& window = static_cast<WinWindow&>(Application::Get().GetWindow());
-
-		double xpos, ypos;
-		glfwGetCursorPos(static_cast<GLFWwindow*>(window.GetNativeWindow()), &xpos, &ypos);
-
-		return (float)xpos;
+		auto [x, y] = GetMousePosition();
+		return (float)x;
 	}
 
 	float Input::GetMousePositionY()
 	{
+		auto [x, y] = GetMousePosition();
+		return (float)y;
+	}
+
+	std::pair<float, float> Input::GetMousePosition()
+	{
 		auto& window = static_cast<WinWindow&>(Application::Get().GetWindow());
 
-		double xpos, ypos;
-		glfwGetCursorPos(static_cast<GLFWwindow*>(window.GetNativeWindow()), &xpos, &ypos);
-
-		return (float)ypos;
+		double x, y;
+		glfwGetCursorPos(static_cast<GLFWwindow*>(window.GetNativeWindow()), &x, &y);
+		return { (float)x, (float)y };
 	}
 }

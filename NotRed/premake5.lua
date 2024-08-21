@@ -5,103 +5,37 @@ workspace "NotRed"
 	configurations 
 	{ 
 		"Debug", 
-        "Release",
-        "Dist"
-    }
+		"Release",
+		"Dist"
+	}
 
-	startproject "Sandbox"
-    
+	startproject "NotEditor"
+	
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 IncludeDir = {}
 IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
-IncludeDir["Glad"] = "NotRed/vendor/Glad/include"
-IncludeDir["ImGui"] = "NotRed/vendor/ImGui"
+IncludeDir["Glad"] = "NotRed/vendor/glad/include"
+IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 IncludeDir["GLM"] = "NotRed/vendor/glm"
 
 include "NotRed/vendor/GLFW"
-include "NotRed/vendor/Glad"
-include "NotRed/vendor/ImGui"
+include "NotRed/vendor/glad"
+include "NotRed/vendor/imgui"
 
 project "NotRed"
-    location "NotRed"
-    kind "StaticLib"
-    language "C++"
-    cppdialect "C++20"
-    staticruntime "on"
-    
+	location "NotRed"
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "on"
+
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    pchheader "nrpch.h"
-    pchsource "NotRed/src/nrpch.cpp"
+	pchheader "nrpch.h"
+	pchsource "NotRed/src/nrpch.cpp"
 
-	files 
-	{ 
-		"%{prj.name}/src/**.h", 
-		"%{prj.name}/src/**.c", 
-		"%{prj.name}/src/**.hpp", 
-		"%{prj.name}/src/**.cpp" 
-    }
-
-    includedirs
-	{
-		"%{prj.name}/src",
-        "%{prj.name}/vendor",
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.Glad}",
-        "%{IncludeDir.GLM}",
-        "%{IncludeDir.ImGui}",
-        "%{prj.name}/vendor/assimp/include",
-        "%{prj.name}/vendor/stb_image"
-    }
-    
-    links 
-	{ 
-        "GLFW",
-        "Glad",
-        "ImGui",
-		"opengl32.lib",
-        "NotRed/vendor/assimp/bin/windows/Debug/assimp-vc143-mtd.lib"
-    }
-    
-	filter "system:windows"
-        systemversion "latest"
-        
-		defines 
-		{ 
-            "NR_PLATFORM_WINDOWS",
-            "NR_BUILD_DLL"
-		}		
-
-    filter "configurations:Debug"
-        defines "NR_DEBUG"
-        symbols "On"
-                
-    filter "configurations:Release"
-        defines "NR_RELEASE"
-        optimize "On"
-
-    filter "configurations:Dist"
-        defines "NR_DIST"
-        optimize "On"
-
-project "NotEditor"
-    location "NotEditor"
-    kind "ConsoleApp"
-    language "C++"
-    cppdialect "C++20"
-    staticruntime "on"
-    
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
-
-	links 
-	{ 
-		"NotRed",
-        "NotRed/vendor/assimp/bin/windows/Debug/assimp-vc143-mtd.lib"
-    }
-    
 	files 
 	{ 
 		"%{prj.name}/src/**.h", 
@@ -109,97 +43,130 @@ project "NotEditor"
 		"%{prj.name}/src/**.hpp", 
 		"%{prj.name}/src/**.cpp" 
 	}
-    
-	includedirs 
+
+	includedirs
 	{
-        "%{prj.name}/src",
-        "NotRed/src",
-        "NotRed/vendor",
-        "%{IncludeDir.GLM}"
-    }
+		"%{prj.name}/src",
+		"%{prj.name}/vendor",
+		"%{IncludeDir.GLFW}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.GLM}",
+		"%{IncludeDir.ImGui}",
+		"%{prj.name}/vendor/assimp/include",
+		"%{prj.name}/vendor/stb_image"
+	}
+	
+	links 
+	{ 
+		"GLFW",
+		"Glad",
+		"ImGui",
+		"opengl32.lib"
+	}
 	
 	filter "system:windows"
-        systemversion "latest"
-        
+		systemversion "latest"
+		
 		defines 
 		{ 
-            "NR_PLATFORM_WINDOWS"
+			"NR_PLATFORM_WINDOWS",
+			"NR_BUILD_DLL"
 		}
-    
-    filter "configurations:Debug"
-        defines "NR_DEBUG"
-        symbols "on"
-                
-    filter "configurations:Release"
-        defines "NR_RELEASE"
-        optimize "on"
 
-    filter "configurations:Dist"
-        defines "NR_DIST"
-        optimize "on"
+	filter "configurations:Debug"
+		defines "NR_DEBUG"
+		symbols "On"
+				
+	filter "configurations:Release"
+		defines "NR_RELEASE"
+		optimize "On"
 
-project "Sandbox"
-    location "Sandbox"
-    kind "ConsoleApp"
-    language "C++"
-    cppdialect "C++20"
-    staticruntime "on"
+	filter "configurations:Dist"
+		defines "NR_DIST"
+		optimize "On"
 
-    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+project "NotEditor"
+	location "NotEditor"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "on"
+	
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
-    links 
-    { 
-        "NotRed"
-    }
+	links 
+	{ 
+		"NotRed"
+	}
+	
+	files 
+	{ 
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.c", 
+		"%{prj.name}/src/**.hpp", 
+		"%{prj.name}/src/**.cpp" 
+	}
+	
+	includedirs 
+	{
+		"%{prj.name}/src",
+		"NotRed/src",
+		"NotRed/vendor",
+		"%{IncludeDir.GLM}"
+	}
 
-    files 
-    { 
-        "%{prj.name}/src/**.h", 
-        "%{prj.name}/src/**.c", 
-        "%{prj.name}/src/**.hpp", 
-        "%{prj.name}/src/**.cpp" 
-    }
+	postbuildcommands 
+	{
+		'{COPY} "../NotEditor/Assets" "%{cfg.targetdir}/Assets"'
+	}
+	
+	filter "system:windows"
+		systemversion "latest"
+				
+		defines 
+		{ 
+			"NR_PLATFORM_WINDOWS"
+		}
+	
+	filter "configurations:Debug"
+		defines "NR_DEBUG"
+		symbols "on"
 
-    includedirs 
-    {
-        "%{prj.name}/src",
-        "NotRed/src",
-        "NotRed/vendor",
-        "%{IncludeDir.glm}"
-    }
+		links
+		{
+			"NotRed/vendor/assimp/bind/Debug/assimp-vc143-mtd.lib"
+		}
 
-    filter "system:windows"
-        systemversion "latest"
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bind/Debug/assimp-vc143-mtd.dll" "%{cfg.targetdir}"'
+		}
+				
+	filter "configurations:Release"
+		defines "NR_RELEASE"
+		optimize "on"
 
-        defines 
-        { 
-            "NR_PLATFORM_WINDOWS"
-        }
+		links
+		{
+			"NotRed/vendor/assimp/bind/Release/assimp-vc143-mt.lib"
+		}
 
-    filter "configurations:Debug"
-        defines "NR_DEBUG"
-        symbols "on"
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"'
+		}
 
-        links
-        {
-            "NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib"
-        }
+	filter "configurations:Dist"
+		defines "NR_DIST"
+		optimize "on"
 
-    filter "configurations:Release"
-        defines "NR_RELEASE"
-        optimize "on"
+		links
+		{
+			"NotRed/vendor/assimp/bind/Release/assimp-vc143-mt.lib"
+		}
 
-        links
-        {
-            "NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
-        }
-
-    filter "configurations:Dist"
-        defines "NR_DIST"
-        optimize "on"
-
-        links
-        {
-            "NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
-        }
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc143-mtd.dll" "%{cfg.targetdir}"'
+		}

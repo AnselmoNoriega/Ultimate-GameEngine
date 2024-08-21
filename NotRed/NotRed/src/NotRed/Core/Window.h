@@ -32,6 +32,7 @@ namespace NR
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+		virtual std::pair<uint32_t, uint32_t> GetSize() const = 0;
 
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void SetVSync(bool enabled) = 0;

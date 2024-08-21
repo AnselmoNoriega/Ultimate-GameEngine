@@ -11,6 +11,7 @@ const vec3 Fdielectric = vec3(0.04);
 struct Light {
 	vec3 Direction;
 	vec3 Radiance;
+	float Multiplier;
 };
 
 in VertexOutput
@@ -200,7 +201,7 @@ vec3 Lighting(vec3 F0)
 	for(int i = 0; i < LightCount; i++)
 	{
 		vec3 Li = -lights.Direction;
-		vec3 Lradiance = lights.Radiance;
+		vec3 Lradiance = lights.Radiance * lights.Multiplier;
 		vec3 Lh = normalize(Li + mParams.View);
 
 		// Calculate angles between surface normal and various light vectors.
@@ -225,7 +226,7 @@ vec3 Lighting(vec3 F0)
 vec3 IBL(vec3 F0, vec3 Lr)
 {
 	vec3 irradiance = texture(uEnvIrradianceTex, mParams.Normal).rgb;
-	vec3 F = fresnelSchlick(F0, mParams.NdotV);
+	vec3 F = fresnelSchlickRoughness(F0, mParams.NdotV, mParams.Roughness);
 	vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
 	vec3 diffuseIBL = mParams.Albedo * irradiance;
 
@@ -233,7 +234,7 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	float NoV = clamp(mParams.NdotV, 0.0, 1.0);
 	vec3 R = 2.0 * dot(mParams.View, mParams.Normal) * mParams.Normal - mParams.View;
 	
-	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), (mParams.Roughness * mParams.Roughness) * uEnvRadianceTexLevels).rgb;
+	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), (mParams.Roughness) * uEnvRadianceTexLevels).rgb;
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
 	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(mParams.NdotV, 1.0 - mParams.Roughness)).rg;
@@ -270,6 +271,5 @@ void main()
 	vec3 lightContribution = Lighting(F0);
 	vec3 iblContribution = IBL(F0, Lr);
 
-	//color = vec4(lightContribution + iblContribution, 1.0);
-	color = vec4(iblContribution, 1.0);
+	color = vec4(lightContribution + iblContribution, 1.0);
 }

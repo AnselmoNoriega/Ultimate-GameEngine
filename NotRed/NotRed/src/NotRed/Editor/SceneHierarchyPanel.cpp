@@ -130,11 +130,6 @@ namespace NR
     {
         glm::mat4 localTransform = AssimpMat4ToMat4(node->mTransformation);
         glm::mat4 transform = parentTransform * localTransform;
-        for (uint32_t i = 0; i < node->mNumMeshes; i++)
-        {
-            uint32_t meshIndex = node->mMeshes[i];
-            mesh->mSubmeshes[meshIndex].Transform = transform;
-        }
 
         if (ImGui::TreeNode(node->mName.C_Str()))
         {

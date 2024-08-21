@@ -150,8 +150,11 @@ namespace NR
 		mPlaneMesh.reset(new Mesh("Assets/Models/Plane1m.obj"));
 		mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
 
-		mLight.Direction = { -0.5f, -0.5f, 1.0f };
-		mLight.Radiance = { 1.0f, 1.0f, 1.0f };
+		auto& light = mScene->GetLight();
+		light.Direction = { -0.5f, -0.5f, 1.0f };
+		light.Radiance = { 1.0f, 1.0f, 1.0f };
+
+		mCurrentlySelectedTransform = &mMeshEntity->Transform();
 	}
 
 	void EditorLayer::Detach()
@@ -166,7 +169,6 @@ namespace NR
 		mMeshMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
 		mMeshMaterial->Set("uMetalness", mMetalnessInput.Value);
 		mMeshMaterial->Set("uRoughness", mRoughnessInput.Value);
-		mMeshMaterial->Set("lights", mLight);
 		mMeshMaterial->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
 		mMeshMaterial->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
 		mMeshMaterial->Set("uMetalnessTexToggle", mMetalnessInput.UseTexture ? 1.0f : 0.0f);
@@ -174,7 +176,7 @@ namespace NR
 		mMeshMaterial->Set("uEnvMapRotation", mEnvMapRotation);
 
 		mSphereBaseMaterial->Set("uAlbedoColor", mAlbedoInput.Color);
-		mSphereBaseMaterial->Set("lights", mLight);
+		mSphereBaseMaterial->Set("lights", mScene->GetLight());
 		mSphereBaseMaterial->Set("uRadiancePrefilter", mRadiancePrefilter ? 1.0f : 0.0f);
 		mSphereBaseMaterial->Set("uAlbedoTexToggle", mAlbedoInput.UseTexture ? 1.0f : 0.0f);
 		mSphereBaseMaterial->Set("uNormalTexToggle", mNormalInput.UseTexture ? 1.0f : 0.0f);
@@ -211,7 +213,18 @@ namespace NR
 			NR::Renderer::BeginRenderPass(NR::SceneRenderer::GetFinalRenderPass(), false);
 			auto viewProj = mScene->GetCamera().GetViewProjection();
 			NR::Renderer2D::BeginScene(viewProj, false);
-			Renderer::DrawAABB(mMeshEntity->GetMesh());
+			Renderer::DrawAABB(mMeshEntity->GetMesh(), mMeshEntity->Transform());
+			NR::Renderer2D::EndScene();
+			NR::Renderer::EndRenderPass();
+		}
+
+		if (mSelectedSubmeshes.size())
+		{
+			NR::Renderer::BeginRenderPass(NR::SceneRenderer::GetFinalRenderPass(), false);
+			auto viewProj = mScene->GetCamera().GetViewProjection();
+			NR::Renderer2D::BeginScene(viewProj, false);
+			auto& submesh = mSelectedSubmeshes[0];
+			Renderer::DrawAABB(submesh.Mesh->BoundingBox, mMeshEntity->GetTransform() * submesh.Mesh->Transform);
 			NR::Renderer2D::EndScene();
 			NR::Renderer::EndRenderPass();
 		}
@@ -298,9 +311,13 @@ namespace NR
 
 		std::string id = "##" + name;
 		if ((int)flags & (int)PropertyFlag::ColorProperty)
+		{
 			ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
+		}
 		else
+		{
 			ImGui::SliderFloat4(id.c_str(), glm::value_ptr(value), min, max);
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -379,9 +396,10 @@ namespace NR
 		ImGui::Columns(2);
 		ImGui::AlignTextToFramePadding();
 
-		Property("Light Direction", mLight.Direction);
-		Property("Light Radiance", mLight.Radiance, PropertyFlag::ColorProperty);
-		Property("Light Multiplier", mLightMultiplier, 0.0f, 5.0f);
+		auto& light = mScene->GetLight();
+		Property("Light Direction", light.Direction);
+		Property("Light Radiance", light.Radiance, PropertyFlag::ColorProperty);
+		Property("Light Multiplier", light.Multiplier, 0.0f, 5.0f);
 		Property("Exposure", mActiveScene->GetCamera().GetExposure(), 0.0f, 5.0f);
 
 		Property("Radiance Prefiltering", mRadiancePrefilter);
@@ -579,6 +597,7 @@ namespace NR
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 		ImGui::Begin("Viewport");
 
+		auto viewportOffset = ImGui::GetCursorPos();
 		auto viewportSize = ImGui::GetContentRegionAvail();
 
 		SceneRenderer::SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
@@ -589,17 +608,30 @@ namespace NR
 		static int counter = 0;
 		auto windowSize = ImGui::GetWindowSize();
 		ImVec2 minBound = ImGui::GetWindowPos();
+		minBound.x += viewportOffset.x;
+		minBound.y += viewportOffset.y;
+
 		ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
+		mViewportBounds[0] = { minBound.x, minBound.y };
+		mViewportBounds[1] = { maxBound.x, maxBound.y };
 		mAllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
-		if (mGizmoType != -1)
+		if (mGizmoType != -1 && mCurrentlySelectedTransform)
 		{
 			float rw = (float)ImGui::GetWindowWidth();
 			float rh = (float)ImGui::GetWindowHeight();
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, rw, rh);
-			ImGuizmo::Manipulate(glm::value_ptr(mActiveScene->GetCamera().GetViewMatrix()), glm::value_ptr(mActiveScene->GetCamera().GetProjectionMatrix()), (ImGuizmo::OPERATION)mGizmoType, ImGuizmo::LOCAL, glm::value_ptr(mMeshEntity->Transform()));
+
+			bool snap = Input::IsKeyPressed(NR_KEY_LEFT_CONTROL);
+			ImGuizmo::Manipulate(glm::value_ptr(mActiveScene->GetCamera().GetViewMatrix() * mMeshEntity->Transform()),
+				glm::value_ptr(mActiveScene->GetCamera().GetProjectionMatrix()),
+				(ImGuizmo::OPERATION)mGizmoType,
+				ImGuizmo::LOCAL,
+				glm::value_ptr(*mCurrentlySelectedTransform),
+				nullptr,
+				snap ? &mSnapValue : nullptr);
 		}
 		
 		ImGui::End();
@@ -609,18 +641,29 @@ namespace NR
 		{
 			if (ImGui::BeginMenu("Docking"))
 			{
-				// Disabling fullscreen would allow the window to be moved to the front of other windows, 
-				// which we can't undo at the moment without finer window depth/z control.
-				//ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen_persistant);
+				if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 
+				{
+					opt_flags ^= ImGuiDockNodeFlags_NoSplit;
+				}
+				if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  
+				{
+					opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
+				}
+				if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                
+				{
+					opt_flags ^= ImGuiDockNodeFlags_NoResize;
+				}
+				if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          
+				{
+					opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
+				}
 
-				if (ImGui::MenuItem("Flag: NoSplit", "", (opt_flags & ImGuiDockNodeFlags_NoSplit) != 0))                 opt_flags ^= ImGuiDockNodeFlags_NoSplit;
-				if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (opt_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0))  opt_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode;
-				if (ImGui::MenuItem("Flag: NoResize", "", (opt_flags & ImGuiDockNodeFlags_NoResize) != 0))                opt_flags ^= ImGuiDockNodeFlags_NoResize;
-				//if (ImGui::MenuItem("Flag: PassthruDockspace", "", (opt_flags & ImGuiDockNodeFlags_PassthruDockspace) != 0))       opt_flags ^= ImGuiDockNodeFlags_PassthruDockspace;
-				if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (opt_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0))          opt_flags ^= ImGuiDockNodeFlags_AutoHideTabBar;
 				ImGui::Separator();
-				if (ImGui::MenuItem("Close DockSpace", NULL, false, p_open != NULL))
+				
+				if (ImGui::MenuItem("Close DockSpace", NULL, false, p_open != NULL)) 
+				{
 					p_open = false;
+				}
 				ImGui::EndMenu();
 			}
 			ImGuiShowHelpMarker(
@@ -654,6 +697,7 @@ namespace NR
 
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::OnKeyPressedEvent));
+		dispatcher.Dispatch<MouseButtonPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
 	}
 
 	bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
@@ -683,5 +727,84 @@ namespace NR
 		}
 		default: return false;
 		}
+	}
+
+	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+	{
+		auto [mx, my] = Input::GetMousePosition();
+		if (e.GetMouseButton() == NR_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(NR_KEY_LEFT_ALT) && !ImGuizmo::IsOver())
+		{
+			auto [mouseX, mouseY] = GetMouseViewportSpace();
+			if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
+			{
+				auto [origin, direction] = CastRay(mouseX, mouseY);
+
+				mSelectedSubmeshes.clear();
+				auto mesh = mMeshEntity->GetMesh();
+				auto& submeshes = mesh->GetSubmeshes();
+				constexpr float lastT = std::numeric_limits<float>::max();
+				for (uint32_t i = 0; i < submeshes.size(); ++i)
+				{
+					auto& submesh = submeshes[i];
+					Ray ray = {
+						glm::inverse(mMeshEntity->GetTransform() * submesh.Transform) * glm::vec4(origin, 1.0f),
+						glm::inverse(glm::mat3(mMeshEntity->GetTransform()) * glm::mat3(submesh.Transform)) * direction
+					};
+
+					float t;
+					bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
+					if (intersects)
+					{
+						const auto& triangleCache = mesh->GetTriangleCache(i);
+						for (const auto& triangle : triangleCache)
+						{
+							if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
+							{
+								NR_WARN("INTERSECTION: {0}, t = {1}", submesh.NodeName, t);
+								mSelectedSubmeshes.push_back({ &submesh, t });
+								break;
+							}
+						}
+					}
+				}
+				std::sort(mSelectedSubmeshes.begin(), mSelectedSubmeshes.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
+
+				if (mSelectedSubmeshes.size())
+				{
+					mCurrentlySelectedTransform = &mSelectedSubmeshes[0].Mesh->Transform;
+				}
+				else
+				{
+					mCurrentlySelectedTransform = &mMeshEntity->Transform();
+				}
+
+			}
+		}
+		return false;
+	}
+
+	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
+	{
+		auto [mx, my] = ImGui::GetMousePos(); // Input::GetMousePosition();
+		mx -= mViewportBounds[0].x;
+		my -= mViewportBounds[0].y;
+		auto viewportWidth = mViewportBounds[1].x - mViewportBounds[0].x;
+		auto viewportHeight = mViewportBounds[1].y - mViewportBounds[0].y;
+
+		return { (mx / viewportWidth) * 2.0f - 1.0f, ((my / viewportHeight) * 2.0f - 1.0f) * -1.0f };
+	}
+
+	std::pair<glm::vec3, glm::vec3> EditorLayer::CastRay(float mx, float my)
+	{
+		glm::vec4 mouseClipPos = { mx, my, -1.0f, 1.0f };
+
+		auto inverseProj = glm::inverse(mScene->GetCamera().GetProjectionMatrix());
+		auto inverseView = glm::inverse(glm::mat3(mScene->GetCamera().GetViewMatrix()));
+
+		glm::vec4 ray = inverseProj * mouseClipPos;
+		glm::vec3 rayPos = mScene->GetCamera().GetPosition();
+		glm::vec3 rayDir = inverseView * glm::vec3(ray);
+
+		return { rayPos, rayDir };
 	}
 }

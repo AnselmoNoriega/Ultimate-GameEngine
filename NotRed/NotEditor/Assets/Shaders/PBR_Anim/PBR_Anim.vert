@@ -34,7 +34,7 @@ void main()
 	vec4 localPosition = boneTransform * vec4(aPosition, 1.0);
 
 	vsOutput.WorldPosition = vec3(uTransform * boneTransform * vec4(aPosition, 1.0));
-    vsOutput.Normal = mat3(boneTransform) * aNormal;
+    vsOutput.Normal = mat3(uTransform) * mat3(boneTransform) * aNormal;
 	vsOutput.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
 	vsOutput.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
 	vsOutput.Binormal = mat3(boneTransform) * aBinormal;

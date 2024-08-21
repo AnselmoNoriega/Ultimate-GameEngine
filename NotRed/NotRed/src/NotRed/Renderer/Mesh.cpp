@@ -23,6 +23,14 @@
 
 namespace NR
 {
+
+#define MESH_DEBUG_LOG 1
+    #if MESH_DEBUG_LOG
+        #define NR_MESH_LOG(...) NR_CORE_TRACE(__VA_ARGS__)
+    #else
+        #define NR_MESH_LOG(...)
+#endif
+
     static const uint32_t sMeshImportFlags =
         aiProcess_CalcTangentSpace |        // Create binormals/tangents
         aiProcess_Triangulate |             // Make sure we're triangles
@@ -75,7 +83,7 @@ namespace NR
     {
         LogStream::Initialize();
 
-        NR_CORE_INFO("Loading mesh: {0}", filename.c_str());
+        NR_MESH_LOG("Loading mesh: {0}", filename.c_str());
 
         mImporter = std::make_unique<Assimp::Importer>();
 
@@ -87,6 +95,8 @@ namespace NR
         {
             NR_CORE_ERROR("Failed to load mesh file: {0}", modelsDirectory.string());
         }
+        
+        mScene = scene;
 
         mIsAnimated = scene->mAnimations != nullptr;
         mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
@@ -106,6 +116,7 @@ namespace NR
             submesh.BaseIndex = indexCount;
             submesh.MaterialIndex = mesh->mMaterialIndex;
             submesh.IndexCount = mesh->mNumFaces * 3;
+            submesh.MeshName = mesh->mName.C_Str();
 
             vertexCount += mesh->mNumVertices;
             indexCount += submesh.IndexCount;
@@ -134,19 +145,20 @@ namespace NR
             }
             else
             {
-                submesh.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
-                submesh.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+                auto& aabb = submesh.BoundingBox;
+                aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+                aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
                 for (size_t i = 0; i < mesh->mNumVertices; ++i)
                 {
                     Vertex vertex;
                     vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
                     vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-                    submesh.Min.x = glm::min(vertex.Position.x, submesh.Min.x);
-                    submesh.Min.y = glm::min(vertex.Position.y, submesh.Min.y);
-                    submesh.Min.z = glm::min(vertex.Position.z, submesh.Min.z);
-                    submesh.Max.x = glm::max(vertex.Position.x, submesh.Max.x);
-                    submesh.Max.y = glm::max(vertex.Position.y, submesh.Max.y);
-                    submesh.Max.z = glm::max(vertex.Position.z, submesh.Max.z);
+                    aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
+                    aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
+                    aabb.Min.z = glm::min(vertex.Position.z, aabb.Min.z);
+                    aabb.Max.x = glm::max(vertex.Position.x, aabb.Max.x);
+                    aabb.Max.y = glm::max(vertex.Position.y, aabb.Max.y);
+                    aabb.Max.z = glm::max(vertex.Position.z, aabb.Max.z);
                     if (mesh->HasTangentsAndBitangents())
                     {
                         vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
@@ -163,7 +175,13 @@ namespace NR
             for (size_t i = 0; i < mesh->mNumFaces; ++i)
             {
                 NR_CORE_ASSERT(mesh->mFaces[i].mNumIndices == 3, "Must have 3 indices.");
-                mIndices.push_back({ mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] });
+                Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
+                mIndices.push_back(index);
+
+                if (!mIsAnimated)
+                {
+                    mTriangleCache[m].emplace_back(mStaticVertices[index.V1 + submesh.BaseVertex], mStaticVertices[index.V2 + submesh.BaseVertex], mStaticVertices[index.V3 + submesh.BaseVertex]);
+                }
             }
         }
 
@@ -193,7 +211,7 @@ namespace NR
                     }
                     else
                     {
-                        NR_CORE_TRACE("Found existing bone in map");
+                        NR_MESH_LOG("Found existing bone in map");
                         boneIndex = mBoneMapping[boneName];
                     }
                     for (size_t j = 0; j < bone->mNumWeights; j++)
@@ -218,43 +236,48 @@ namespace NR
                 auto mi = CreateRef<MaterialInstance>(mBaseMaterial);
                 mMaterials[i] = mi;
 
-                NR_CORE_INFO("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
+                NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
                 aiString aiTexPath;
                 uint32_t textureCount = aiMaterial->GetTextureCount(aiTextureType_DIFFUSE);
-                NR_CORE_TRACE("  TextureCount = {0}", textureCount);
+                NR_MESH_LOG("  TextureCount = {0}", textureCount);
 
                 aiColor3D aiColor;
                 aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
-                NR_CORE_TRACE("COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b);
 
-                if (aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS)
+                float shininess, metalness;
+                aiMaterial->Get(AI_MATKEY_SHININESS, shininess);
+                aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metalness);
+
+                float roughness = 1.0f - glm::sqrt(shininess / 100.0f);
+                NR_MESH_LOG("    COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b);
+                NR_MESH_LOG("    ROUGHNESS = {0}", roughness);
+                bool hasAlbedoMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS;
+                if (hasAlbedoMap)
                 {
                     std::filesystem::path path = modelsDirectory;
                     auto parentPath = path.parent_path();
                     parentPath /= std::string(aiTexPath.data);
                     std::string texturePath = parentPath.string();
 
+                    NR_MESH_LOG("    Albedo map path = {0}", texturePath);
                     auto texture = Texture2D::Create(texturePath, true);
                     if (texture->Loaded())
                     {
                         mTextures[i] = texture;
-                        NR_CORE_TRACE("  Texture Path = {0}", texturePath);
+                        NR_MESH_LOG("  Texture Path = {0}", texturePath);
                         mi->Set("uAlbedoTexture", mTextures[i]);
                         mi->Set("uAlbedoTexToggle", 1.0f);
                     }
                     else
                     {
                         NR_CORE_ERROR("Could not load texture: {0}", texturePath);
-                        //mi->Set("uAlbedoTexToggle", 0.0f);
                         mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
                     }
                 }
                 else
                 {
-                    mi->Set("uAlbedoTexToggle", 0.0f);
                     mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
-
-                    NR_CORE_TRACE("Mesh has no albedo map");
+                    NR_MESH_LOG("    No albedo map");
                 }
 
                 // Normal maps
@@ -266,21 +289,21 @@ namespace NR
                     parentPath /= std::string(aiTexPath.data);
                     std::string texturePath = parentPath.string();
 
+                    NR_MESH_LOG("    Normal map path = {0}", texturePath);
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
-                        NR_CORE_TRACE("  Normal map path = {0}", texturePath);
                         mi->Set("uNormalTexture", texture);
                         mi->Set("uNormalTexToggle", 1.0f);
                     }
                     else
                     {
-                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                        NR_CORE_ERROR("  Could not load normal map");
                     }
                 }
                 else
                 {
-                    NR_CORE_TRACE("Mesh has no normal map");
+                    NR_MESH_LOG("   Mesh has no normal map");
                 }
 
                 // Roughness map
@@ -291,21 +314,22 @@ namespace NR
                     parentPath /= std::string(aiTexPath.data);
                     std::string texturePath = parentPath.string();
 
+                    NR_MESH_LOG("    Roughness map path = {0}", texturePath);
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
-                        NR_CORE_TRACE("  Roughness map path = {0}", texturePath);
                         mi->Set("uRoughnessTexture", texture);
                         mi->Set("uRoughnessTexToggle", 1.0f);
                     }
                     else
                     {
-                        NR_CORE_ERROR("Could not load texture: {0}", texturePath);
+                        NR_CORE_ERROR("    Could not load roughness map}");
                     }
                 }
                 else
                 {
-                    NR_CORE_TRACE("Mesh has no roughness texture");
+                    NR_MESH_LOG("    No roughness map");
+                    mi->Set("uRoughness", roughness);
                 }
 
                 // Metalness map
@@ -319,7 +343,7 @@ namespace NR
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
-                        NR_CORE_TRACE("  Metalness map path = {0}", texturePath);
+                        NR_MESH_LOG("  Metalness map path = {0}", texturePath);
                         mi->Set("uMetalnessTexture", texture);
                         mi->Set("uMetalnessTexToggle", 1.0f);
                     }
@@ -330,91 +354,109 @@ namespace NR
                 }
                 else
                 {
-                    NR_CORE_TRACE("Mesh has no metalness texture");
+                    NR_MESH_LOG("    No metalness texture");
+                    mi->Set("uMetalness", metalness);
                 }
 
-                continue;
-
+                bool metalnessTextureFound = false;
                 for (uint32_t i = 0; i < aiMaterial->mNumProperties; ++i)
                 {
                     auto prop = aiMaterial->mProperties[i];
-                    NR_CORE_TRACE("Material Property:");
-                    NR_CORE_TRACE("  Name = {0}", prop->mKey.data);
+
+#if DEBUG_PRINT_ALL_PROPS
+                    NR_MESH_LOG("Material Property:");
+                    NR_MESH_LOG("  Name = {0}", prop->mKey.data);
+                    // HZ_MESH_LOG("  Type = {0}", prop->mType);
+                    // HZ_MESH_LOG("  Size = {0}", prop->mDataLength);
+                    float data = *(float*)prop->mData;
+                    NR_MESH_LOG("  Value = {0}", data);
 
                     switch (prop->mSemantic)
                     {
                     case aiTextureType_NONE:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_NONE");
+                        NR_MESH_LOG("  Semantic = aiTextureType_NONE");
                         break;
                     case aiTextureType_DIFFUSE:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_DIFFUSE");
+                        NR_MESH_LOG("  Semantic = aiTextureType_DIFFUSE");
                         break;
                     case aiTextureType_SPECULAR:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_SPECULAR");
+                        NR_MESH_LOG("  Semantic = aiTextureType_SPECULAR");
                         break;
                     case aiTextureType_AMBIENT:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_AMBIENT");
+                        NR_MESH_LOG("  Semantic = aiTextureType_AMBIENT");
                         break;
                     case aiTextureType_EMISSIVE:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_EMISSIVE");
+                        NR_MESH_LOG("  Semantic = aiTextureType_EMISSIVE");
                         break;
                     case aiTextureType_HEIGHT:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_HEIGHT");
+                        NR_MESH_LOG("  Semantic = aiTextureType_HEIGHT");
                         break;
                     case aiTextureType_NORMALS:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_NORMALS");
+                        NR_MESH_LOG("  Semantic = aiTextureType_NORMALS");
                         break;
                     case aiTextureType_SHININESS:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_SHININESS");
+                        NR_MESH_LOG("  Semantic = aiTextureType_SHININESS");
                         break;
                     case aiTextureType_OPACITY:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_OPACITY");
+                        NR_MESH_LOG("  Semantic = aiTextureType_OPACITY");
                         break;
                     case aiTextureType_DISPLACEMENT:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_DISPLACEMENT");
+                        NR_MESH_LOG("  Semantic = aiTextureType_DISPLACEMENT");
                         break;
                     case aiTextureType_LIGHTMAP:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_LIGHTMAP");
+                        NR_MESH_LOG("  Semantic = aiTextureType_LIGHTMAP");
                         break;
                     case aiTextureType_REFLECTION:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_REFLECTION");
+                        NR_MESH_LOG("  Semantic = aiTextureType_REFLECTION");
                         break;
                     case aiTextureType_UNKNOWN:
-                        NR_CORE_TRACE("  Semantic = aiTextureType_UNKNOWN");
+                        NR_MESH_LOG("  Semantic = aiTextureType_UNKNOWN");
                         break;
                     }
+#endif
 
                     if (prop->mType == aiPTI_String)
                     {
                         uint32_t strLength = *(uint32_t*)prop->mData;
                         std::string str(prop->mData + 4, strLength);
-                        NR_CORE_TRACE("  Value = {0}", str);
 
                         std::string key = prop->mKey.data;
                         if (key == "$raw.ReflectionFactor|file")
                         {
+                            metalnessTextureFound = true;
                             std::filesystem::path path = modelsDirectory;
                             auto parentPath = path.parent_path();
                             parentPath /= str;
                             std::string texturePath = parentPath.string();
 
+                            NR_MESH_LOG("    Metalness map path = {0}", texturePath);
                             auto texture = Texture2D::Create(texturePath);
                             if (texture->Loaded())
                             {
-                                NR_CORE_TRACE("  Metalness map path = {0}", texturePath);
                                 mi->Set("uMetalnessTexture", texture);
                                 mi->Set("uMetalnessTexToggle", 1.0f);
                             }
                             else
                             {
-                                NR_CORE_ERROR("Could not load texture: {0}", texturePath);
-                                mi->Set("uMetalness", 0.5f);
-                                mi->Set("uMetalnessTexToggle", 1.0f);
+                                NR_CORE_ERROR("    Could not load Metalness texture");
+                                mi->Set("uMetalness", metalness);
+                                mi->Set("uMetalnessTexToggle", 0.0f);
                             }
+                            break;
                         }
                     }
                 }
+
+                if (!metalnessTextureFound)
+                {
+                    NR_MESH_LOG("    No metalness map");
+
+                    mi->Set("uMetalness", metalness);
+                    mi->Set("uMetalnessTexToggle", 0.0f);
+                }
             }
+
+            NR_MESH_LOG("------------------------");
         }
 
         mVertexArray = VertexArray::Create();
@@ -447,8 +489,6 @@ namespace NR
 
         auto ib = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
         mVertexArray->SetIndexBuffer(ib);
-
-        mScene = scene;
     }
 
     Mesh::~Mesh()
@@ -506,7 +546,9 @@ namespace NR
         for (uint32_t i = 0; i < node->mNumMeshes; ++i)
         {
             uint32_t mesh = node->mMeshes[i];
-            mSubmeshes[mesh].Transform = transform;
+            auto& submesh = mSubmeshes[mesh];
+            submesh.NodeName = node->mName.C_Str();
+            submesh.Transform = transform;
         }
 
         for (uint32_t i = 0; i < node->mNumChildren; ++i)
@@ -676,21 +718,21 @@ namespace NR
 
     void Mesh::DumpVertexBuffer()
     {
-        NR_CORE_TRACE("------------------------------------------------------");
-        NR_CORE_TRACE("Vertex Buffer Dump");
-        NR_CORE_TRACE("Mesh: {0}", mFilePath);
+        NR_MESH_LOG("------------------------------------------------------");
+        NR_MESH_LOG("Vertex Buffer Dump");
+        NR_MESH_LOG("Mesh: {0}", mFilePath);
         if (mIsAnimated)
         {
             for (size_t i = 0; i < mAnimatedVertices.size(); ++i)
             {
                 auto& vertex = mAnimatedVertices[i];
-                NR_CORE_TRACE("Vertex: {0}", i);
-                NR_CORE_TRACE("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
-                NR_CORE_TRACE("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
-                NR_CORE_TRACE("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
-                NR_CORE_TRACE("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
-                NR_CORE_TRACE("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
-                NR_CORE_TRACE("--");
+                NR_MESH_LOG("Vertex: {0}", i);
+                NR_MESH_LOG("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
+                NR_MESH_LOG("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
+                NR_MESH_LOG("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
+                NR_MESH_LOG("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
+                NR_MESH_LOG("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
+                NR_MESH_LOG("--");
             }
         }
         else
@@ -698,16 +740,16 @@ namespace NR
             for (size_t i = 0; i < mStaticVertices.size(); ++i)
             {
                 auto& vertex = mStaticVertices[i];
-                NR_CORE_TRACE("Vertex: {0}", i);
-                NR_CORE_TRACE("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
-                NR_CORE_TRACE("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
-                NR_CORE_TRACE("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
-                NR_CORE_TRACE("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
-                NR_CORE_TRACE("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
-                NR_CORE_TRACE("--");
+                NR_MESH_LOG("Vertex: {0}", i);
+                NR_MESH_LOG("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
+                NR_MESH_LOG("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
+                NR_MESH_LOG("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
+                NR_MESH_LOG("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
+                NR_MESH_LOG("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
+                NR_MESH_LOG("--");
             }
         }
-        NR_CORE_TRACE("------------------------------------------------------");
+        NR_MESH_LOG("------------------------------------------------------");
     }
 
 }

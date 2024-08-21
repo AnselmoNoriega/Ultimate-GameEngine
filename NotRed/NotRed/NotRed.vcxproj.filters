@@ -10,6 +10,12 @@
     <Filter Include="NotRed\Core\Events">
       <UniqueIdentifier>{ADFAAA51-99DE-6BA7-023F-66FAEE415629}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NotRed\Core\Math">
+      <UniqueIdentifier>{626D4FD1-4E66-6E23-7798-53A863F04D2F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NotRed\Editor">
+      <UniqueIdentifier>{0750DC97-7310-58CE-3C4B-A14BA8CA9CAA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="NotRed\ImGui">
       <UniqueIdentifier>{DBF162F5-C754-F299-70DA-2A505C1CBE1C}</UniqueIdentifier>
     </Filter>
@@ -25,10 +31,16 @@
     <Filter Include="NotRed\Renderer">
       <UniqueIdentifier>{B74E0557-23DA-721B-2CEB-F50F98F5CE1B}</UniqueIdentifier>
     </Filter>
+    <Filter Include="NotRed\Scene">
+      <UniqueIdentifier>{CEE912F6-BA4C-A29A-63D2-DA504F146E1D}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h">
+      <Filter>NotRed\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Assert.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\Buffer.h">
@@ -64,6 +76,15 @@
     <ClInclude Include="src\NotRed\Core\Log.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Math\AABB.h">
+      <Filter>NotRed\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Math\Matrix4x4.h">
+      <Filter>NotRed\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Math\Ray.h">
+      <Filter>NotRed\Core\Math</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Platform.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
@@ -73,16 +94,25 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h">
+      <Filter>NotRed\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\EntryPoint.h">
       <Filter>NotRed</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
       <Filter>NotRed\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h">
+      <Filter>NotRed\ImGui</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h">
@@ -92,6 +122,9 @@
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
@@ -118,10 +151,19 @@
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\RenderPass.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Renderer.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Renderer2D.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Shader.h">
@@ -133,22 +175,19 @@
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\VertexArray.h">
+      <Filter>NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
       <Filter>NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Entity.h">
+      <Filter>NotRed\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Scene.h">
+      <Filter>NotRed\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\nrpch.h" />
-    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h" />
-    <ClInclude Include="src\NotRed\Core\Assert.h" />
-    <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h" />
-    <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
-    <ClInclude Include="src\NotRed\Core\Math\Matrix4x4.h" />
-    <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
-    <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h" />
-    <ClInclude Include="src\NotRed\Scene\Entity.h" />
-    <ClInclude Include="src\NotRed\Scene\Scene.h" />
-    <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -166,11 +205,17 @@
     <ClCompile Include="src\NotRed\Core\Log.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Math\Matrix4x4.cpp">
+      <Filter>NotRed\Core\Math</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp">
       <Filter>NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Window.cpp">
       <Filter>NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp">
+      <Filter>NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp">
       <Filter>NotRed\ImGui</Filter>
@@ -178,10 +223,16 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp">
       <Filter>NotRed\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
+      <Filter>NotRed\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRendererAPI.cpp">
@@ -194,6 +245,9 @@
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp">
+      <Filter>NotRed\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp">
       <Filter>NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp">
@@ -223,7 +277,16 @@
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
@@ -232,20 +295,18 @@
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp">
+      <Filter>NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
       <Filter>NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\Entity.cpp">
+      <Filter>NotRed\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\Scene.cpp">
+      <Filter>NotRed\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp" />
-    <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
-    <ClCompile Include="src\NotRed\Core\Math\Matrix4x4.cpp" />
-    <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
-    <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
-    <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
   </ItemGroup>
 </Project>

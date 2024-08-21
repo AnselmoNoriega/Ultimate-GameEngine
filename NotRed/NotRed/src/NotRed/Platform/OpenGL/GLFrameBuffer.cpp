@@ -9,7 +9,7 @@ namespace NR
     GLFrameBuffer::GLFrameBuffer(const FrameBufferSpecification& spec)
         : mSpecification(spec)
     {
-        Resize(spec.Width, spec.Height);
+        Resize(spec.Width, spec.Height, true);
     }
 
     GLFrameBuffer::~GLFrameBuffer()
@@ -19,9 +19,9 @@ namespace NR
             });
     }
 
-    void GLFrameBuffer::Resize(uint32_t width, uint32_t height)
+    void GLFrameBuffer::Resize(uint32_t width, uint32_t height, bool forceRecreate)
     {
-        if (mSpecification.Width == width && mSpecification.Height == height)
+        if (!forceRecreate && mSpecification.Width == width && mSpecification.Height == height)
         {
             return;
         }
@@ -52,7 +52,6 @@ namespace NR
                 }
                 else if (mSpecification.Format == FrameBufferFormat::RGBA8)
                 {
-                    // glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGBA8, mSpecification.Width, mSpecification.Height, GL_TRUE);
                     glTexStorage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, mSpecification.Samples, GL_RGBA8, mSpecification.Width, mSpecification.Height, GL_FALSE);
                 }
                 glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);

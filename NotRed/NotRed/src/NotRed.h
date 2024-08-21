@@ -11,6 +11,9 @@
 #include "NotRed/Core/Events/MouseEvent.h"
 #include "NotRed/Core/Events/KeyEvent.h"
 
+#include "NotRed/Core/Math/AABB.h"
+#include "NotRed/Core/Math/Ray.h"
+
 #include "imgui/imgui.h"
 
 // --- NotRed Render API -----------------------

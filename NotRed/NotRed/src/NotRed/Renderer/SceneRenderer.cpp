@@ -21,6 +21,7 @@ namespace NR
             // Resources
             Ref<MaterialInstance> SkyboxMaterial;
             Environment SceneEnvironment;
+            Light ActiveLight;
         } SceneData;
 
         Ref<Texture2D> BRDFLUT;
@@ -93,6 +94,7 @@ namespace NR
         sData.SceneData.SceneCamera = scene->mCamera;
         sData.SceneData.SkyboxMaterial = scene->mSkyboxMaterial;
         sData.SceneData.SceneEnvironment = scene->mEnvironment;
+        sData.SceneData.ActiveLight = scene->mLight;
     }
 
     void SceneRenderer::EndScene()
@@ -196,7 +198,6 @@ namespace NR
         // Skybox
         auto skyboxShader = sData.SceneData.SkyboxMaterial->GetShader();
         sData.SceneData.SkyboxMaterial->Set("uInverseVP", glm::inverse(viewProjection));
-        // sData.SceneInfo.EnvironmentIrradianceMap->Bind(0);
         Renderer::SubmitFullScreenQuad(sData.SceneData.SkyboxMaterial);
 
         // Render entities
@@ -209,6 +210,8 @@ namespace NR
             baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment.RadianceMap);
             baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment.IrradianceMap);
             baseMaterial->Set("uBRDFLUTTexture", sData.BRDFLUT);
+
+            baseMaterial->Set("lights", sData.SceneData.ActiveLight);
 
             auto overrideMaterial = nullptr; // dc.Material;
             Renderer::SubmitMesh(dc.Mesh, dc.Transform, overrideMaterial);
@@ -226,7 +229,7 @@ namespace NR
             Renderer2D::BeginScene(viewProjection);
             for (auto& dc : sData.DrawList)
             {
-                Renderer::DrawAABB(dc.Mesh);
+                Renderer::DrawAABB(dc.Mesh, dc.Transform);
             }
             Renderer2D::EndScene();
         }

@@ -9,6 +9,8 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Material.h"
 
+#include "NotRed/Core/Math/AABB.h"
+
 struct aiNode;
 struct aiAnimation;
 struct aiNodeAnim;
@@ -97,6 +99,14 @@ namespace NR
 		}
 	};
 
+	struct Triangle
+	{
+		Vertex V0, V1, V2;
+
+		Triangle(const Vertex& v0, const Vertex& v1, const Vertex& v2)
+			: V0(v0), V1(v1), V2(v2) {}
+	};
+
 	class Submesh
 	{
 	public:
@@ -106,7 +116,9 @@ namespace NR
 		uint32_t MaterialIndex;
 
 		glm::mat4 Transform;
-		glm::vec3 Min, Max;
+		AABB BoundingBox;
+
+		std::string NodeName, MeshName;
 	};
 
 	class Mesh
@@ -115,16 +127,20 @@ namespace NR
 		Mesh(const std::string& filename);
 		~Mesh();
 
-
 		void Update(float dt);
 		void DumpVertexBuffer();
 
 		const std::string& GetFilePath() const { return mFilePath; }
 
+		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
+		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
+
 		Ref<Shader> GetMeshShader() { return mMeshShader; }
 		Ref<Material> GetMaterial() { return mBaseMaterial; }
 		std::vector<Ref<MaterialInstance>> GetMaterials() { return mMaterials; }
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return mTextures; }
+
+		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }
 
 	private:
 		void BoneTransform(float time);
@@ -164,6 +180,8 @@ namespace NR
 		std::vector<Ref<Texture2D>> mTextures;
 		std::vector<Ref<Texture2D>> mNormalMaps;
 		std::vector<Ref<MaterialInstance>> mMaterials;
+
+		std::unordered_map<uint32_t, std::vector<Triangle>> mTriangleCache;
 
 		// Animation
 		bool mIsAnimated = false;

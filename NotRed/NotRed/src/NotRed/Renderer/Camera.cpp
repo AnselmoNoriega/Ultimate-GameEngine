@@ -9,21 +9,34 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#define mPI 3.14159f
+#define M_PI 3.14159f
 
 namespace NR
 {
 	Camera::Camera(const glm::mat4& projectionMatrix)
 		: mProjectionMatrix(projectionMatrix)
 	{
-		mPosition = { -5, 5, 5 };
 		mRotation = glm::vec3(90.0f, 0.0f, 0.0f);
 
 		mFocalPoint = glm::vec3(0.0f);
-		mDistance = glm::distance(mPosition, mFocalPoint);
 
-		mYaw = 3.0f * (float)mPI / 4.0f;
-		mPitch = mPI / 4.0f;
+		glm::vec3 position = { -5, 5, 5 };
+		mDistance = glm::distance(position, mFocalPoint);
+
+		mYaw = 3.0f * (float)M_PI / 4.0f;
+		mPitch = M_PI / 4.0f;
+
+		UpdateCameraView();
+	}
+
+	void Camera::UpdateCameraView()
+	{
+		mPosition = CalculatePosition();
+
+		glm::quat orientation = GetOrientation();
+		mRotation = glm::eulerAngles(orientation) * (180.0f / (float)M_PI);
+		mViewMatrix = glm::translate(glm::mat4(1.0f), mPosition) * glm::toMat4(orientation);
+		mViewMatrix = glm::inverse(mViewMatrix);
 	}
 
 	void Camera::Focus()
@@ -53,13 +66,7 @@ namespace NR
 			}
 		}
 
-		mPosition = CalculatePosition();
-
-		glm::quat orientation = GetOrientation();
-		mRotation = glm::eulerAngles(orientation) * (180.0f / (float)mPI);
-		mViewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 1)) * glm::toMat4(glm::conjugate(orientation)) * glm::translate(glm::mat4(1.0f), -mPosition);
-		mViewMatrix = glm::translate(glm::mat4(1.0f), mPosition) * glm::toMat4(orientation);
-		mViewMatrix = glm::inverse(mViewMatrix);
+		UpdateCameraView();
 	}
 
 	void Camera::OnEvent(Event& e)

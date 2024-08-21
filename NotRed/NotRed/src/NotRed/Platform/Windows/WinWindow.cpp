@@ -157,6 +157,13 @@ namespace NR
         mImGuiMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
         mImGuiMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
         mImGuiMouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+
+        {
+            int width, height;
+            glfwGetWindowSize(mWindow, &width, &height);
+            mData.Width = width;
+            mData.Height = height;
+        }
     }
 
     inline std::pair<float, float> WinWindow::GetWindowPos() const

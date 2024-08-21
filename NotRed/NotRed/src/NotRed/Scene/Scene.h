@@ -13,6 +13,13 @@ namespace NR
 		static Environment Load(const std::string& filepath);
 	};
 
+	struct Light
+	{
+		glm::vec3 Direction;
+		glm::vec3 Radiance;
+		float Multiplier = 1.0f;
+	};
+
 	class Scene
 	{
 	public:
@@ -32,6 +39,8 @@ namespace NR
 
 		float& GetSkyboxLod() { return mSkyboxLod; }
 
+		Light& GetLight() { return mLight; }
+
 		void AddEntity(Entity* entity);
 		Entity* CreateEntity(const std::string& name = "Entity");
 
@@ -39,6 +48,9 @@ namespace NR
 		std::string mDebugName;
 		std::vector<Entity*> mEntities;
 		Camera mCamera;
+
+		Light mLight;
+		float mLightMultiplier = 0.3f;
 
 		Environment mEnvironment;
 		Ref<TextureCube> mSkyboxTexture;

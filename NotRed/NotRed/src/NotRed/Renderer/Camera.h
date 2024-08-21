@@ -38,6 +38,8 @@ namespace NR
 		float& GetExposure() { return mExposure; }
 
 	private:
+		void UpdateCameraView();
+
 		bool MouseScroll(MouseScrolledEvent& e);
 
 		void MousePan(const glm::vec2& delta);

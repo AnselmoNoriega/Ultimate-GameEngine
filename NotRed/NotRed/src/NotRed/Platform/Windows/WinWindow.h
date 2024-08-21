@@ -23,6 +23,7 @@ namespace NR
 
         inline void* GetNativeWindow() const override { return mWindow; }
         std::pair<float, float> GetWindowPos() const override;
+        virtual std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
 
     private:
         void Init(const WindowProps& props);
@@ -35,7 +36,7 @@ namespace NR
         struct WindowData
         {
             std::string Title;
-            unsigned int Width, Height;
+            uint32_t Width, Height;
             bool VSync;
 
             EventCallbackFn EventCallback;

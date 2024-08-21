@@ -89,8 +89,12 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\windows\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bind\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST "..\NotEditor\Assets"\ (xcopy /Q /E /Y /I "..\NotEditor\Assets" "..\bin\Debug-windows-x86_64\NotEditor\Assets" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotEditor\Assets" "..\bin\Debug-windows-x86_64\NotEditor\Assets" &gt; nul)
+IF EXIST "..\NotRed\vendor\assimp\bind\Debug\assimp-vc143-mtd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bind\Debug\assimp-vc143-mtd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bind\Debug\assimp-vc143-mtd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -111,8 +115,12 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\windows\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST "..\NotEditor\Assets"\ (xcopy /Q /E /Y /I "..\NotEditor\Assets" "..\bin\Release-windows-x86_64\NotEditor\Assets" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotEditor\Assets" "..\bin\Release-windows-x86_64\NotEditor\Assets" &gt; nul)
+IF EXIST "..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mt.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
     <ClCompile>
@@ -133,8 +141,12 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\windows\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>IF EXIST "..\NotEditor\Assets"\ (xcopy /Q /E /Y /I "..\NotEditor\Assets" "..\bin\Dist-windows-x86_64\NotEditor\Assets" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotEditor\Assets" "..\bin\Dist-windows-x86_64\NotEditor\Assets" &gt; nul)
+IF EXIST "..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mtd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mtd.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bind\Release\assimp-vc143-mtd.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\EditorLayer.h" />
@@ -147,15 +159,6 @@
     <ProjectReference Include="..\NotRed\NotRed.vcxproj">
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Shaders\EnvironmentIrradiance\EnvironmentIrradianceComp.glsl" />
-    <None Include="Assets\Shaders\EnvironmentMipFilter\EnvironmentMipFilterComp.glsl" />
-    <None Include="Assets\Shaders\EquirectangularToCubeMap\EquirectangularToCubeMap.comp" />
-    <None Include="Assets\Shaders\Renderer2D\Renderer2D.frag" />
-    <None Include="Assets\Shaders\Renderer2D\Renderer2D.vert" />
-    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_Line.frag" />
-    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_Line.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
