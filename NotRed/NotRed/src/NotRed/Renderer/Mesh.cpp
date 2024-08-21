@@ -101,12 +101,11 @@ namespace NR
         {
             aiMesh* mesh = scene->mMeshes[m];
 
-            Submesh submesh;
+            Submesh& submesh = mSubmeshes.emplace_back();
             submesh.BaseVertex = vertexCount;
             submesh.BaseIndex = indexCount;
             submesh.MaterialIndex = mesh->mMaterialIndex;
             submesh.IndexCount = mesh->mNumFaces * 3;
-            mSubmeshes.push_back(submesh);
 
             vertexCount += mesh->mNumVertices;
             indexCount += submesh.IndexCount;
@@ -641,7 +640,9 @@ namespace NR
         {
             const aiNodeAnim* nodeAnim = animation->mChannels[i];
             if (std::string(nodeAnim->mNodeName.data) == nodeName)
+            {
                 return nodeAnim;
+            }
         }
         return nullptr;
     }

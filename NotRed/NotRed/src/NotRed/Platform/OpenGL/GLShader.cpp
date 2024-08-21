@@ -157,15 +157,15 @@ namespace NR
         mName = GetShaderName(mAssetPath);
 
         std::string compute = "";
-        ParseFile(mAssetPath + "/" + mName + "Comp.glsl", compute, true);
+        ParseFile(mAssetPath + "/" + mName + ".comp", compute, true);
 
         std::string vert;
         std::string frag;
 
         if (compute == "")
         {
-            ParseFile(mAssetPath + "/" + mName + "Vert.glsl", vert);
-            ParseFile(mAssetPath + "/" + mName + "Frag.glsl", frag);
+            ParseFile(mAssetPath + "/" + mName + ".vert", vert);
+            ParseFile(mAssetPath + "/" + mName + ".frag", frag);
         }
 
         Load(vert, frag, compute);
