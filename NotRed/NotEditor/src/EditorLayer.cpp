@@ -109,7 +109,7 @@ namespace NR
 
 			float x = -4.0f;
 			float roughness = 0.0f;
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < 8; ++i)
 			{
 				auto sphereEntity = mSphereScene->CreateEntity();
 
@@ -127,7 +127,7 @@ namespace NR
 
 			x = -4.0f;
 			roughness = 0.0f;
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < 8; ++i)
 			{
 				auto sphereEntity = mSphereScene->CreateEntity();
 

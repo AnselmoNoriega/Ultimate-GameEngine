@@ -118,7 +118,7 @@ namespace NR
 		sData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
 
 		// Lines
-		sData.LineShader = Shader::Create("assets/shaders/Renderer2D_Line");
+		sData.LineShader = Shader::Create("Assets/Shaders/Renderer2D_Line");
 		sData.LineVertexArray = VertexArray::Create();
 
 		sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxLineVertices * sizeof(LineVertex));
@@ -151,7 +151,7 @@ namespace NR
 		sData.DepthTest = depthTest;
 
 		sData.TextureShader->Bind();
-		sData.TextureShader->SetMat4("u_ViewProjection", viewProj);
+		sData.TextureShader->SetMat4("uViewProjection", viewProj);
 
 		sData.QuadIndexCount = 0;
 		sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
