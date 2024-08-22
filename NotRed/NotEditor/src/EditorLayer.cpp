@@ -76,7 +76,7 @@ namespace NR
 
 		using namespace glm;
 
-		auto environment = Environment::Load("Assets/Env/birchwood_4k.hdr");
+		auto environment = Environment::Load("Assets/Env/HDR_blue_nebulae-1.hdr");
 
 		// Model Scene
 		{
