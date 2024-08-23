@@ -39,8 +39,8 @@ namespace NR
 
 		void InitClassMethods(MonoImage* image)
 		{
-			InitMethod = GetMethod(image, FullName + ":Init()");
-			UpdateMethod = GetMethod(image, FullName + ":Update(single)");
+			InitMethod = GetMethod(image, ClassName + ":Init()");
+			UpdateMethod = GetMethod(image, ClassName + ":Update(single)");
 		}
 	};
 
@@ -175,13 +175,13 @@ namespace NR
 		MonoMethodDesc* desc = mono_method_desc_new(methodDesc.c_str(), NULL);
 		if (!desc)
 		{
-			std::cout << "mono_method_desc_new failed" << std::endl;
+			std::cout << "mono_method_desc_new "<< methodDesc << " failed" << std::endl;
 		}
 
 		MonoMethod* method = mono_method_desc_search_in_image(desc, image);
 		if (!method)
 		{
-			std::cout << "mono_method_desc_search_in_image failed" << std::endl;
+			std::cout << "mono_method_desc_search_in_image " << methodDesc << " failed" << std::endl;
 		}
 
 		return method;

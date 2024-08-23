@@ -93,7 +93,7 @@ namespace NR
 
 			mMeshMaterial = mesh->GetMaterial();
 
-			mMeshEntity.AddComponent<ScriptComponent>("Example.Script");
+			mMeshEntity.AddComponent<ScriptComponent>("Script");
 
 			// Test Sandbox
 			auto mapGenerator = mScene->CreateEntity("Map Generator");

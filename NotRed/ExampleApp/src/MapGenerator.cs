@@ -59,12 +59,12 @@ namespace Example
             material.Set("uAlbedoTexture", texture);
         }
 
-        void OnCreate()
+        void Init()
         {
             GenerateMap();
         }
 
-        void OnUpdate(float ts)
+        void Update(float ts)
         {
 
         }
