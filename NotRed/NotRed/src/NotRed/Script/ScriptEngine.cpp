@@ -24,7 +24,7 @@ namespace NR
 
 	static ScriptModuleFieldMap sPublicFields;
 
-	static MonoMethod* GetFunction(MonoImage* image, const std::string& methodDesc);
+	static MonoMethod* GetMethod(MonoImage* image, const std::string& methodDesc);
 
 	struct EntityScriptClass
 	{
@@ -39,8 +39,8 @@ namespace NR
 
 		void InitClassMethods(MonoImage* image)
 		{
-			InitMethod = GetFunction(image, FullName + ":Init()");
-			UpdateMethod = GetFunction(image, FullName + ":Update(single)");
+			InitMethod = GetMethod(image, FullName + ":Init()");
+			UpdateMethod = GetMethod(image, FullName + ":Update(single)");
 		}
 	};
 
@@ -111,11 +111,11 @@ namespace NR
 
 	static void InitMono()
 	{
-		mono_set_assembliespath("mono/lib");
+		mono_set_assemblies_path("mono/lib");
 		// mono_jit_set_trace_options("--verbose");
-		auto domain = mono_jit_init("Hazel");
+		auto domain = mono_jit_init("NotRed");
 
-		char* name = (char*)"HazelRuntime";
+		char* name = (char*)"NotRedRuntime";
 		sMonoDomain = mono_domain_create_appdomain(name, nullptr);
 	}
 
@@ -148,7 +148,7 @@ namespace NR
 
 	static MonoClass* GetClass(MonoImage* image, const EntityScriptClass& scriptClass)
 	{
-		MonoClass* monoClass = mono_classfrom_name(image, scriptClass.NamespaceName.c_str(), scriptClass.ClassName.c_str());
+		MonoClass* monoClass = mono_class_from_name(image, scriptClass.NamespaceName.c_str(), scriptClass.ClassName.c_str());
 		if (!monoClass)
 		{
 			std::cout << "mono_classfrom_name failed" << std::endl;
@@ -198,7 +198,7 @@ namespace NR
 	{
 		MonoMethod* iter;
 		void* ptr = 0;
-		while ((iter = mono_classget_methods(monoClass, &ptr)) != NULL)
+		while ((iter = mono_class_get_methods(monoClass, &ptr)) != NULL)
 		{
 			printf("--------------------------------\n");
 			const char* name = mono_method_get_name(iter);
@@ -216,7 +216,7 @@ namespace NR
 	{
 		MonoProperty* iter;
 		void* ptr = 0;
-		while ((iter = mono_classget_properties(monoClass, &ptr)) != NULL)
+		while ((iter = mono_class_get_properties(monoClass, &ptr)) != NULL)
 		{
 			printf("--------------------------------\n");
 			const char* name = mono_property_get_name(iter);
@@ -331,40 +331,42 @@ namespace NR
 		entityInstance.ScriptClass = &scriptClass;
 		entityInstance.Handle = Instantiate(scriptClass);
 
-		MonoProperty* entityIDPropery = mono_classget_property_from_name(scriptClass.Class, "EntityID");
+		MonoProperty* entityIDPropery = mono_class_get_property_from_name(scriptClass.Class, "EntityID");
 		mono_property_get_get_method(entityIDPropery);
 		MonoMethod* entityIDSetMethod = mono_property_get_set_method(entityIDPropery);
 		void* param[] = { &entityID };
 		CallMethod(entityInstance.GetInstance(), entityIDSetMethod, param);
 
-		MonoProperty* sceneIDPropery = mono_classget_property_from_name(scriptClass.Class, "SceneID");
+		MonoProperty* sceneIDPropery = mono_class_get_property_from_name(scriptClass.Class, "SceneID");
 		mono_property_get_get_method(sceneIDPropery);
 		MonoMethod* sceneIDSetMethod = mono_property_get_set_method(sceneIDPropery);
 		param[0] = { &sceneID };
 		CallMethod(entityInstance.GetInstance(), sceneIDSetMethod, param);
 
-		if (scriptClass.CreateFunction)
+		if (scriptClass.InitMethod)
 		{
-			CallMethod(entityInstance.GetInstance(), scriptClass.CreateFunction);
+			CallMethod(entityInstance.GetInstance(), scriptClass.InitMethod);
 		}
 
 		// Retrieve public fields
 		{
 			MonoClassField* iter;
 			void* ptr = 0;
-			while ((iter = mono_classget_fields(scriptClass.Class, &ptr)) != NULL)
+			while ((iter = mono_class_get_fields(scriptClass.Class, &ptr)) != NULL)
 			{
 				const char* name = mono_field_get_name(iter);
 				uint32_t flags = mono_field_get_flags(iter);
 				if (flags & MONO_FIELD_ATTR_PUBLIC == 0)
+				{
 					continue;
+				}
 
 				MonoType* fieldType = mono_field_get_type(iter);
-				FieldType fieldType = GetFieldType(fieldType);
+				FieldType NotRedFieldType = GetFieldType(fieldType);
 
-				MonoCustomAttrInfo* attr = mono_custom_attrsfrom_field(scriptClass.Class, iter);
+				MonoCustomAttrInfo* attr = mono_custom_attrs_from_field(scriptClass.Class, iter);
 
-				auto& publicField = sPublicFields[script.ModuleName].emplace_back(name, fieldType);
+				auto& publicField = sPublicFields[script.ModuleName].emplace_back(name, NotRedFieldType);
 				publicField.mEntityInstance = &entityInstance;
 				publicField.mMonoClassField = iter;
 			}

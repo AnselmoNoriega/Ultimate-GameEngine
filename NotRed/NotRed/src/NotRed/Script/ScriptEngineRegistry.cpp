@@ -16,11 +16,11 @@ namespace NR {
 	std::unordered_map<MonoType*, std::function<bool(Entity&)>> sHasComponentFuncs;
 	std::unordered_map<MonoType*, std::function<void(Entity&)>> sCreateComponentFuncs;
 
-	extern MonoImage* s_CoreAssemblyImage;
+	extern MonoImage* sCoreAssemblyImage;
 
 #define Component_RegisterType(Type) \
 	{\
-		MonoType* type = mono_reflection_type_from_name("NR." #Type, s_CoreAssemblyImage);\
+		MonoType* type = mono_reflection_type_from_name((char*)"NR." #Type, sCoreAssemblyImage);\
 		if (type) {\
 			uint32_t id = mono_type_get_type(type);\
 			sHasComponentFuncs[type] = [](Entity& entity) { return entity.HasComponent<Type>(); };\

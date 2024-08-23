@@ -11,7 +11,7 @@ namespace NR
 	class Entity
 	{
 	public:
-		Entity() = delete;
+		Entity() = default;
 		Entity(entt::entity handle, Scene* scene)
 			: mEntityHandle(handle), mScene(scene) {}
 
@@ -26,13 +26,14 @@ namespace NR
 		template<typename T>
 		T& GetComponent()
 		{
+			NR_CORE_ASSERT(HasComponent<T>(), "This Entity does not have this component!");
 			return mScene->mRegistry.get<T>(mEntityHandle);
 		}
 
 		template<typename T>
 		bool HasComponent()
 		{
-			return mScene->mRegistry.has<T>(mEntityHandle);
+			return mScene->mRegistry.all_of<T>(mEntityHandle);
 		}
 
 		glm::mat4& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
@@ -55,7 +56,7 @@ namespace NR
 		Entity(const std::string& name);
 
 	private:
-		entt::entity mEntityHandle;
+		entt::entity mEntityHandle{ entt::null };
 		Scene* mScene = nullptr;
 
 		friend class Scene;

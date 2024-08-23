@@ -18,8 +18,8 @@
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <Optimize>false</Optimize>
-    <OutputPath>..\NotEditor\Resources\Scripts\</OutputPath>
-    <BaseIntermediateOutputPath>..\NotEditor\Resources\Scripts\Intermediates\Debug\</BaseIntermediateOutputPath>
+    <OutputPath>..\bin\Debug-windows-x86_64\NotRed-ScriptCore\</OutputPath>
+    <BaseIntermediateOutputPath>..\bin-int\Debug-windows-x86_64\NotRed-ScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
     <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -29,9 +29,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <Optimize>true</Optimize>
-    <OutputPath>..\NotEditor\Resources\Scripts\</OutputPath>
-    <BaseIntermediateOutputPath>..\NotEditor\Resources\Scripts\Intermediates\Release\</BaseIntermediateOutputPath>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Release-windows-x86_64\NotRed-ScriptCore\</OutputPath>
+    <BaseIntermediateOutputPath>..\bin-int\Release-windows-x86_64\NotRed-ScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
     <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -39,11 +39,11 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Dist|x64' ">
     <PlatformTarget>x64</PlatformTarget>
-    <DebugType>none</DebugType>
-    <DebugSymbols>false</DebugSymbols>
-    <Optimize>true</Optimize>
-    <OutputPath>..\NotEditor\Resources\Scripts\</OutputPath>
-    <BaseIntermediateOutputPath>..\NotEditor\Resources\Scripts\Intermediates\Dist\</BaseIntermediateOutputPath>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\Dist-windows-x86_64\NotRed-ScriptCore\</OutputPath>
+    <BaseIntermediateOutputPath>..\bin-int\Dist-windows-x86_64\NotRed-ScriptCore\</BaseIntermediateOutputPath>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)</IntermediateOutputPath>
     <DefineConstants></DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -56,13 +56,21 @@
   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Dist|x64' ">
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Source\NotRed\Input.cs" />
-    <Compile Include="Source\NotRed\InternalCalls.cs" />
-    <Compile Include="Source\NotRed\KeyCode.cs" />
-    <Compile Include="Source\NotRed\Scene\Components.cs" />
-    <Compile Include="Source\NotRed\Scene\Entity.cs" />
-    <Compile Include="Source\NotRed\Vector2.cs" />
-    <Compile Include="Source\NotRed\Vector3.cs" />
+    <Compile Include="src\NotRed\Entity.cs" />
+    <Compile Include="src\NotRed\Input.cs" />
+    <Compile Include="src\NotRed\KeyCodes.cs" />
+    <Compile Include="src\NotRed\Math\Matrix4.cs" />
+    <Compile Include="src\NotRed\Math\Noise.cs" />
+    <Compile Include="src\NotRed\Math\Vector2.cs" />
+    <Compile Include="src\NotRed\Math\Vector3.cs" />
+    <Compile Include="src\NotRed\Math\Vector4.cs" />
+    <Compile Include="src\NotRed\Renderer\Color.cs" />
+    <Compile Include="src\NotRed\Renderer\Material.cs" />
+    <Compile Include="src\NotRed\Renderer\Mesh.cs" />
+    <Compile Include="src\NotRed\Renderer\MeshFactory.cs" />
+    <Compile Include="src\NotRed\Renderer\Texture2D.cs" />
+    <Compile Include="src\NotRed\Scene\Component.cs" />
+    <Compile Include="src\NotRed\SpriteRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

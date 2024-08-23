@@ -36,7 +36,8 @@ namespace NR
         ImGui::Begin("Scene Hierarchy");
 
         uint32_t entityCount = 0, meshCount = 0;
-        mContext->mRegistry.each([&](auto entity)
+        auto view = mContext->mRegistry.view<TagComponent>();
+        view.each([&](entt::entity entity, auto& name)
             {
                 DrawEntityNode(Entity(entity, mContext.Raw()));
             });
@@ -99,7 +100,7 @@ namespace NR
         const char* name = "Entity";
         name = entity.GetComponent<TagComponent>().Tag.c_str();
 
-        ImGuiTreeNodeFlags node_flags = (entity == mSelectionContext ? ImGuiTreeNodeFlagsSelected : 0) | ImGuiTreeNodeFlagsOpenOnArrow;
+        ImGuiTreeNodeFlags node_flags = (entity == mSelectionContext ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         bool opened = ImGui::TreeNodeEx((void*)(uint32_t)entity, node_flags, name);
         if (ImGui::IsItemClicked())
         {
@@ -120,7 +121,7 @@ namespace NR
         {
             if (entity.HasComponent<MeshComponent>())
             {
-                auto mesh = entity.GetComponent<MeshComponent>().Mesh;
+                auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
             }
 
             ImGui::TreePop();
@@ -399,9 +400,9 @@ namespace NR
             if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Mesh"))
             {
                 ImGui::BeginDisabled(true);
-                if (mc.Mesh)
+                if (mc.MeshObj)
                 {
-                    ImGui::InputText("File Path", (char*)mc.Mesh->GetFilePath().c_str(), 256);
+                    ImGui::InputText("File Path", (char*)mc.MeshObj->GetFilePath().c_str(), 256);
                 }
                 else
                 {
@@ -485,7 +486,7 @@ namespace NR
                 EndPropertyGrid();
                 if (ImGui::Button("Run Script"))
                 {
-                    ScriptEngine::OnCreateEntity(entity);
+                    ScriptEngine::CreateEntity(entity);
                 }
                 ImGui::TreePop();
             }

@@ -1,5 +1,7 @@
 # Binaries
 **/bin/
+!NotRed/vendor/assimp/bin
+!NotRed/vendor/mono/bin
 bin-int/
 Intermediates/
 

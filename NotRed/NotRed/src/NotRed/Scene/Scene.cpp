@@ -43,10 +43,10 @@ namespace NR
         mRegistry.on_construct<TransformComponent>().connect<&TransformConstruct>();
         mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
 
-        mSceneEntity = m_Registry.create();
+        mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
-        sActiveScenes[m_SceneID] = this;
+        sActiveScenes[mSceneID] = this;
 
         Init();
     }
@@ -73,13 +73,13 @@ namespace NR
             for (auto entity : view)
             {
                 auto& comp = view.get<CameraComponent>(entity);
-                camera = &comp.Camera;
+                camera = &comp.CameraObj;
                 break;
             }
         }
 
         NR_CORE_ASSERT(camera, "Scene does not contain any cameras!");
-        camera->OnUpdate(dt);
+        camera->Update(dt);
 
         {
             auto view = mRegistry.view<ScriptComponent>();
@@ -102,11 +102,10 @@ namespace NR
         for (auto entity : group)
         {
             auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
-            if (meshComponent.Mesh)
+            if (meshComponent.MeshObj)
             {
-                meshComponent.Mesh->OnUpdate(ts);
+                meshComponent.MeshObj->Update(dt);
 
-                // TODO: Should we render (logically)
                 SceneRenderer::SubmitMesh(meshComponent, transformComponent, nullptr);
             }
         }
@@ -137,7 +136,7 @@ namespace NR
         mSkyboxMaterial->Set("uTexture", skybox);
     }
 
-    Entity* Scene::CreateEntity(const std::string& name)
+    Entity Scene::CreateEntity(const std::string& name)
     {
         auto entity = Entity{ mRegistry.create(), this };
         entity.AddComponent<TransformComponent>(glm::mat4(1.0f));

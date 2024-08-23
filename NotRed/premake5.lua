@@ -80,7 +80,7 @@ project "NotRed"
 		"%{LibraryDir.Mono}"
 	}
 	
-	filter "files:%{prj.name}/vendor/FastNoise/**.cpp"
+	filter "files:NotRed/vendor/FastNoise/**.cpp"
    	flags { "NoPCH" }
 
 	filter "system:windows"
@@ -153,7 +153,7 @@ project "NotEditor"
 
 	postbuildcommands 
 	{
-		'{COPY} "../NotEditor/assets" "%{cfg.targetdir}/assets"'
+		'{COPY} "../NotEditor/Assets" "%{cfg.targetdir}/Assets"'
 	}
 	
 	filter "system:windows"
@@ -170,12 +170,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bind/Debug/assimp-vc141-mtd.lib"
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 				
@@ -185,12 +185,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 
@@ -200,12 +200,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 group ""
@@ -216,7 +216,7 @@ project "ExampleApp"
 	kind "SharedLib"
 	language "C#"
 
-	targetdir ("NotEditor/assets/scripts")
+	targetdir ("NotEditor/Assets/Scripts")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
 	files 

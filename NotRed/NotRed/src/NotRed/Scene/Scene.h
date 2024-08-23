@@ -4,7 +4,7 @@
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Material.h"
 
-#include "entt/entt.hpp"
+#include "entt.hpp"
 
 namespace NR
 {
