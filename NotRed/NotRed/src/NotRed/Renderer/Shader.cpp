@@ -14,7 +14,7 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL: result = std::make_shared<GLShader>(filepath);
+		case RendererAPIType::OpenGL: result = Ref<GLShader>::Create(filepath);
         }
 
         sAllShaders.push_back(result);
@@ -64,9 +64,9 @@ namespace NR
 		mShaders[name] = Ref<Shader>(Shader::Create(path));
 	}
 
-	Ref<Shader>& ShaderLibrary::Get(const std::string& name)
+	const Ref<Shader>& ShaderLibrary::Get(const std::string& name) const
 	{
 		NR_CORE_ASSERT(mShaders.find(name) != mShaders.end());
-		return mShaders[name];
+		return mShaders.at(name);
 	}
 }

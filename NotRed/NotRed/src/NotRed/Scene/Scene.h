@@ -1,7 +1,10 @@
 #pragma once
 
-#include "Entity.h"
 #include "NotRed/Renderer/Camera.h"
+#include "NotRed/Renderer/Texture.h"
+#include "NotRed/Renderer/Material.h"
+
+#include "entt/entt.hpp"
 
 namespace NR
 {
@@ -20,7 +23,9 @@ namespace NR
 		float Multiplier = 1.0f;
 	};
 
-	class Scene
+	class Entity;
+
+	class Scene : public RefCounted
 	{
 	public:
 		Scene(const std::string& debugName = "Scene");
@@ -31,9 +36,6 @@ namespace NR
 		void Update(float dt);
 		void OnEvent(Event& e);
 
-		void SetCamera(const Camera& camera);
-		Camera& GetCamera() { return mCamera; }
-
 		void SetEnvironment(const Environment& environment);
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
@@ -41,13 +43,21 @@ namespace NR
 
 		Light& GetLight() { return mLight; }
 
-		void AddEntity(Entity* entity);
-		Entity* CreateEntity(const std::string& name = "Entity");
+		Entity CreateEntity(const std::string& name = "Entity");
+		void DestroyEntity(Entity entity);
+
+		template<typename T>
+		auto GetAllEntitiesWith()
+		{
+			return mRegistry.view<T>();
+		}
 
 	private:
+		uint32_t mSceneID;
+		entt::entity mSceneEntity;
+		entt::registry mRegistry;
+
 		std::string mDebugName;
-		std::vector<Entity*> mEntities;
-		Camera mCamera;
 
 		Light mLight;
 		float mLightMultiplier = 0.3f;
@@ -58,6 +68,7 @@ namespace NR
 
 		float mSkyboxLod = 1.0f;
 
+		friend class Entity;
 		friend class SceneRenderer;
 		friend class SceneHierarchyPanel;
 	};

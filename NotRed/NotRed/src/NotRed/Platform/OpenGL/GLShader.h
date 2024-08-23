@@ -26,6 +26,7 @@ namespace NR
 
 		void SetInt(const std::string& name, int value) override;
 		void SetFloat(const std::string& name, float value) override;
+		void SetFloat3(const std::string& name, const glm::vec3& value) override;
 		void SetMat4(const std::string& name, const glm::mat4& value) override;
 		void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind = true) override;
 		void SetIntArray(const std::string& name, int* values, uint32_t size) override;
@@ -52,7 +53,7 @@ namespace NR
 		void ValidateUniforms();
 
 		void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, Buffer buffer);
-		void ResolveAndSetUniforms(const Scope<GLShaderUniformBufferDeclaration>& decl, Buffer buffer);
+		void ResolveAndSetUniforms(const Ref<GLShaderUniformBufferDeclaration>& decl, Buffer buffer);
 		void ResolveAndSetUniformArray(GLShaderUniformDeclaration* uniform, Buffer buffer);
 		void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, byte* data, int32_t offset);
 
@@ -102,8 +103,8 @@ namespace NR
 
 		ShaderUniformBufferList mVSRendererUniformBuffers;
 		ShaderUniformBufferList mPSRendererUniformBuffers;
-		Scope<GLShaderUniformBufferDeclaration> mVSMaterialUniformBuffer;
-		Scope<GLShaderUniformBufferDeclaration> mPSMaterialUniformBuffer;
+		Ref<GLShaderUniformBufferDeclaration> mVSMaterialUniformBuffer;
+		Ref<GLShaderUniformBufferDeclaration> mPSMaterialUniformBuffer;
 		ShaderResourceList mResources;
 		ShaderStructList mStructs;
 	};

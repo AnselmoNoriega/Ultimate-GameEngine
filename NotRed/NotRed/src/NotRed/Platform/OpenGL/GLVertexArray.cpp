@@ -44,34 +44,37 @@ namespace NR
 
 	void GLVertexArray::Bind() const
 	{
-		Renderer::Submit([this]() {
-			glBindVertexArray(mID);
+		Ref<const GLVertexArray> instance = this;
+		Renderer::Submit([instance]() {
+			glBindVertexArray(instance->mID);
 			});
 	}
 
 	void GLVertexArray::Unbind() const
 	{
-		Renderer::Submit([this]() {
+		Ref<const GLVertexArray> instance = this;
+		Renderer::Submit([instance]() {
 			glBindVertexArray(0);
 			});
 	}
 
-	void GLVertexArray::AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer)
+	void GLVertexArray::AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer)
 	{
 		NR_CORE_ASSERT(vertexBuffer->GetLayout().GetElements().size(), "Vertex Buffer has no layout!");
 
 		Bind();
 		vertexBuffer->Bind();
 
-		Renderer::Submit([this, vertexBuffer]() {
+		Ref<GLVertexArray> instance = this;
+		Renderer::Submit([instance, vertexBuffer]() mutable {
 			const auto & layout = vertexBuffer->GetLayout();
 			for (const auto& element : layout)
 			{
 				auto glBaseType = ShaderDataTypeToOpenGLBaseType(element.Type);
-				glEnableVertexAttribArray(mVertexBufferIndex);
+				glEnableVertexAttribArray(instance->mVertexBufferIndex);
 				if (glBaseType == GL_INT)
 				{
-					glVertexAttribIPointer(mVertexBufferIndex,
+					glVertexAttribIPointer(instance->mVertexBufferIndex,
 						element.GetComponentCount(),
 						glBaseType,
 						layout.GetStride(),
@@ -79,20 +82,20 @@ namespace NR
 				}
 				else
 				{
-					glVertexAttribPointer(mVertexBufferIndex,
+					glVertexAttribPointer(instance->mVertexBufferIndex,
 						element.GetComponentCount(),
 						glBaseType,
 						element.Normalized ? GL_TRUE : GL_FALSE,
 						layout.GetStride(),
 						(const void*)(intptr_t)element.Offset);
 				}
-				mVertexBufferIndex++;
+				instance->mVertexBufferIndex++;
 			}
 			});
 		mVertexBuffers.push_back(vertexBuffer);
 	}
 
-	void GLVertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer)
+	void GLVertexArray::SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer)
 	{
 		Bind();
 		indexBuffer->Bind();

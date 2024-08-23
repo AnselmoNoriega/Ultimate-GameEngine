@@ -11,7 +11,7 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL: return CreateRef<GLTexture2D>(format, width, height, wrap);
+        case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(format, width, height, wrap);
         default:
         {
             return nullptr;
@@ -24,7 +24,7 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return CreateRef<GLTexture2D>(path, standardRGB);
+		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(path, standardRGB);
 		default:
 		{
 			return nullptr;
@@ -37,7 +37,7 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return CreateRef<GLTextureCube>(format, width, height);
+		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(format, width, height);
 		default:
 		{
 			return nullptr;
@@ -50,7 +50,7 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return CreateRef<GLTextureCube>(path);
+		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(path);
 		default:
 		{
 			return nullptr;

@@ -119,7 +119,7 @@ namespace NR
         Dynamic
     };
 
-    class VertexBuffer
+    class VertexBuffer : public RefCounted
     {
     public:
         static Ref<VertexBuffer> Create(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);

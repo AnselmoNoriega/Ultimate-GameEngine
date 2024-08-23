@@ -188,6 +188,10 @@
       <Filter>NotRed\Scene</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="src\NotRed\Core\Math\Noise.h" />
+    <ClInclude Include="src\NotRed\Core\Ref.h" />
+    <ClInclude Include="src\NotRed\Core\Timer.h" />
+    <ClInclude Include="src\NotRed\Scene\Components.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -308,5 +312,6 @@
       <Filter>NotRed\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
+    <ClCompile Include="src\NotRed\Core\Math\Noise.cpp" />
   </ItemGroup>
 </Project>

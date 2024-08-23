@@ -152,6 +152,7 @@
     <ClInclude Include="src\NotRed\Core\Events\Event.h" />
     <ClInclude Include="src\NotRed\Core\Events\KeyEvent.h" />
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h" />
+    <ClInclude Include="src\NotRed\Core\Ref.h" />
     <ClInclude Include="src\NotRed\Core\Input.h" />
     <ClInclude Include="src\NotRed\Core\KeyCodes.h" />
     <ClInclude Include="src\NotRed\Core\Layer.h" />
@@ -159,9 +160,11 @@
     <ClInclude Include="src\NotRed\Core\Log.h" />
     <ClInclude Include="src\NotRed\Core\Math\AABB.h" />
     <ClInclude Include="src\NotRed\Core\Math\Matrix4x4.h" />
+    <ClInclude Include="src\NotRed\Core\Math\Noise.h" />
     <ClInclude Include="src\NotRed\Core\Math\Ray.h" />
     <ClInclude Include="src\NotRed\Core\Platform.h" />
     <ClInclude Include="src\NotRed\Core\TimeFrame.h" />
+    <ClInclude Include="src\NotRed\Core\Timer.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
@@ -192,6 +195,7 @@
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
+    <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
     <ClInclude Include="src\NotRed\Scene\Scene.h" />
     <ClInclude Include="src\nrpch.h" />
@@ -203,6 +207,7 @@
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
     <ClCompile Include="src\NotRed\Core\Math\Matrix4x4.cpp" />
+    <ClCompile Include="src\NotRed\Core\Math\Noise.cpp" />
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />

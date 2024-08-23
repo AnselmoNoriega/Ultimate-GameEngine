@@ -4,10 +4,11 @@
 
 namespace NR
 {
-	class IndexBuffer
+	class IndexBuffer : public RefCounted
 	{
 	public:
 		static Ref<IndexBuffer> Create(void* data, uint32_t size = 0);
+		static Ref<IndexBuffer> Create(uint32_t size);
 
 		virtual ~IndexBuffer() = default;
 

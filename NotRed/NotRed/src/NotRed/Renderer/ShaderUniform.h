@@ -13,7 +13,7 @@ namespace NR
 		None, Vertex, Pixel
 	};
 
-	class ShaderUniformDeclaration
+	class ShaderUniformDeclaration : public RefCounted
 	{
 	public:
 		virtual const std::string& GetName() const = 0;

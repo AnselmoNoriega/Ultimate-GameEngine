@@ -100,7 +100,7 @@ namespace NR
 
         mIsAnimated = scene->mAnimations != nullptr;
         mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
-        mBaseMaterial = CreateRef<Material>(mMeshShader);
+        mBaseMaterial = Ref<Material>::Create(mMeshShader);
         mInverseTransform = glm::inverse(AssimpMat4ToMat4(scene->mRootNode->mTransformation));
 
         uint32_t vertexCount = 0;
@@ -233,7 +233,7 @@ namespace NR
                 auto aiMaterial = scene->mMaterials[i];
                 auto aiMaterialName = aiMaterial->GetName();
 
-                auto mi = CreateRef<MaterialInstance>(mBaseMaterial);
+                auto mi = Ref<MaterialInstance>::Create(mBaseMaterial);
                 mMaterials[i] = mi;
 
                 NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
@@ -247,6 +247,8 @@ namespace NR
                 float shininess, metalness;
                 aiMaterial->Get(AI_MATKEY_SHININESS, shininess);
                 aiMaterial->Get(AI_MATKEY_REFLECTIVITY, metalness);
+
+                metalness = 0.0f;
 
                 float roughness = 1.0f - glm::sqrt(shininess / 100.0f);
                 NR_MESH_LOG("    COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b);

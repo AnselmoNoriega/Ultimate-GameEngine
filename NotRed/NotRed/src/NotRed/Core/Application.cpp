@@ -7,6 +7,8 @@
 
 #include <imgui/imgui.h>
 
+#include "NotRed/Script/ScriptEngine.h"
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <Windows.h>
@@ -27,6 +29,8 @@ namespace NR
 
         mImGuiLayer = new ImGuiLayer("ImGui");
         PushOverlay(mImGuiLayer);
+
+        ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
 
         Renderer::Init();
         Renderer::WaitAndRender();
@@ -127,10 +131,7 @@ namespace NR
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)
         {
-            if (auto fbp = fb.lock())
-            {
-                fbp->Resize(width, height);
-            }
+            fb->Resize(width, height);
         }
 
         return false;

@@ -8,6 +8,7 @@ namespace NR
 	class GLIndexBuffer : public IndexBuffer
 	{
 	public:
+		GLIndexBuffer(uint32_t size);
 		GLIndexBuffer(void* data, uint32_t size);
 		~GLIndexBuffer() override;
 

@@ -83,19 +83,19 @@ namespace NR
                 {
                 case GLFW_PRESS:
                 {
-                    KeyPressedEvent winEvent(key, 0);
+                    KeyPressedEvent winEvent((KeyCode)key, 0);
                     data.EventCallback(winEvent);
                     break;
                 }
                 case GLFW_RELEASE:
                 {
-                    KeyReleasedEvent winEvent(key);
+                    KeyReleasedEvent winEvent((KeyCode)key);
                     data.EventCallback(winEvent);
                     break;
                 }
                 case GLFW_REPEAT:
                 {
-                    KeyPressedEvent winEvent(key, 1);
+                    KeyPressedEvent winEvent((KeyCode)key, 1);
                     data.EventCallback(winEvent);
                     break;
                 }
@@ -106,7 +106,7 @@ namespace NR
             {
                 auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 
-                KeyTypedEvent event((int)codepoint);
+                KeyTypedEvent event((KeyCode)codepoint);
                 data.EventCallback(event);
             });
 

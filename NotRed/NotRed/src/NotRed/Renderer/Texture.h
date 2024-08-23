@@ -21,7 +21,7 @@ namespace NR
 		Repeat
 	};
 
-	class Texture
+	class Texture : public RefCounted
 	{
 	public:
 		virtual ~Texture() {}

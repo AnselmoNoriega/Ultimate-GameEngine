@@ -25,13 +25,17 @@ namespace NR
 		float RotationSpeed() const;
 		float ZoomSpeed() const;
 
+		float GetPitch() const { return mPitch; }
+		float GetYaw() const { return mYaw; }
+
 		const glm::mat4& GetProjectionMatrix() const { return mProjectionMatrix; }
 		const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
-		const glm::mat4& GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
+		glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
 
 		glm::vec3 GetUpDirection();
 		glm::vec3 GetRightDirection();
 		glm::vec3 GetForwardDirection();
+		glm::quat GetOrientation() const;
 		const glm::vec3& GetPosition() const { return mPosition; }
 
 		float GetExposure() const { return mExposure; }
@@ -47,7 +51,6 @@ namespace NR
 		void MouseZoom(float delta);
 
 		glm::vec3 CalculatePosition();
-		glm::quat GetOrientation();
 
 	private:
 		glm::mat4 mProjectionMatrix, mViewMatrix;

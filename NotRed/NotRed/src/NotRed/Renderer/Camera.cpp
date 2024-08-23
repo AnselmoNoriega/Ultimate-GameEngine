@@ -45,7 +45,7 @@ namespace NR
 
 	void Camera::Update(float dt)
 	{
-		if (Input::IsKeyPressed(GLFW_KEY_LEFT_ALT))
+		if (Input::IsKeyPressed(KeyCode::LeftAlt))
 		{
 			const glm::vec2& mouse{ Input::GetMousePositionX(), Input::GetMousePositionY() };
 			glm::vec2 delta = mouse - mInitialMousePosition;
@@ -91,11 +91,6 @@ namespace NR
 		float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
 
 		return { xFactor, yFactor };
-	}
-
-	float Camera::RotationSpeed() const
-	{
-		return 0.8f;
 	}
 
 	float Camera::ZoomSpeed() const
@@ -151,8 +146,13 @@ namespace NR
 		return mFocalPoint - GetForwardDirection() * mDistance;
 	}
 
-	glm::quat Camera::GetOrientation()
+	glm::quat Camera::GetOrientation() const
 	{
 		return glm::quat(glm::vec3(-mPitch, -mYaw, 0.0f));
+	}
+
+	float Camera::RotationSpeed() const
+	{
+		return 0.8f;
 	}
 }

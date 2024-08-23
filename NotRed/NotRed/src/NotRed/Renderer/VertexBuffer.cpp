@@ -9,7 +9,7 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None:    return nullptr;
-		case RendererAPIType::OpenGL:  return std::make_shared<GLVertexBuffer>(data, size, usage);
+		case RendererAPIType::OpenGL:  return Ref<GLVertexBuffer>::Create(data, size, usage);
 		default:
 		{
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -23,7 +23,7 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None:    return nullptr;
-		case RendererAPIType::OpenGL:  return std::make_shared<GLVertexBuffer>(size, usage);
+		case RendererAPIType::OpenGL:  return Ref<GLVertexBuffer>::Create(size, usage);
 		default:
 		{
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");

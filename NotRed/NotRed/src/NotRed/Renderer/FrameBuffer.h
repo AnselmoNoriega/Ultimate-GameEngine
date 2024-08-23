@@ -24,7 +24,7 @@ namespace NR
 		bool SwapChainTarget = false;
 	};
 
-	class FrameBuffer
+	class FrameBuffer : public RefCounted
 	{
 	public:
 		static Ref<FrameBuffer> Create(const FrameBufferSpecification& spec);
@@ -51,14 +51,15 @@ namespace NR
 		~FrameBufferPool();
 
 		std::weak_ptr<FrameBuffer> AllocateBuffer();
-		void Add(std::weak_ptr<FrameBuffer> framebuffer);
+		void Add(const Ref<FrameBuffer>& framebuffer);
 
-		const std::vector<std::weak_ptr<FrameBuffer>>& GetAll() const { return mPool; }
+		std::vector<Ref<FrameBuffer>>& GetAll() { return mPool; }
+		const std::vector<Ref<FrameBuffer>>& GetAll() const { return mPool; }
 
 		inline static FrameBufferPool* GetGlobal() { return sInstance; }
 
 	private:
-		std::vector<std::weak_ptr<FrameBuffer>> mPool;
+		std::vector<Ref<FrameBuffer>> mPool;
 
 		static FrameBufferPool* sInstance;
 	};

@@ -13,16 +13,26 @@ workspace "NotRed"
 	
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
+-- Include directories relative to root folder (solution directory)
 IncludeDir = {}
-IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
+IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
+IncludeDir["FastNoise"] = "NotRed/vendor/FastNoise"
 IncludeDir["Glad"] = "NotRed/vendor/glad/include"
+IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
+IncludeDir["Glm"] = "NotRed/vendor/glm"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
-IncludeDir["GLM"] = "NotRed/vendor/glm"
+IncludeDir["Mono"] = "NotRed/vendor/mono/include"
 
+LibraryDir = {}
+LibraryDir["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
+
+group "Dependencies"
 include "NotRed/vendor/GLFW"
-include "NotRed/vendor/glad"
-include "NotRed/vendor/imgui"
+include "NotRed/vendor/Glad"
+include "NotRed/vendor/ImGui"
+group ""
 
+group "Core"
 project "NotRed"
 	location "NotRed"
 	kind "StaticLib"
@@ -41,7 +51,9 @@ project "NotRed"
 		"%{prj.name}/src/**.h", 
 		"%{prj.name}/src/**.c", 
 		"%{prj.name}/src/**.hpp", 
-		"%{prj.name}/src/**.cpp" 
+		"%{prj.name}/src/**.cpp",
+
+		"%{prj.name}/vendor/FastNoise/**.cpp"
 	}
 
 	includedirs
@@ -50,8 +62,11 @@ project "NotRed"
 		"%{prj.name}/vendor",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.GLM}",
+		"%{IncludeDir.Glm}",
 		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Entt}",
+		"%{IncludeDir.Mono}",
+		"%{IncludeDir.FastNoise}",
 		"%{prj.name}/vendor/assimp/include",
 		"%{prj.name}/vendor/stb_image"
 	}
@@ -61,9 +76,13 @@ project "NotRed"
 		"GLFW",
 		"Glad",
 		"ImGui",
-		"opengl32.lib"
+		"opengl32.lib",
+		"%{LibraryDir.Mono}"
 	}
 	
+	filter "files:%{prj.name}/vendor/FastNoise/**.cpp"
+   	flags { "NoPCH" }
+
 	filter "system:windows"
 		systemversion "latest"
 		
@@ -85,6 +104,21 @@ project "NotRed"
 		defines "NR_DIST"
 		optimize "On"
 
+project "NotRed-ScriptCore"
+	location "NotRed-ScriptCore"
+	kind "SharedLib"
+	language "C#"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files 
+	{
+		"%{prj.name}/src/**.cs", 
+	}
+group ""
+
+group "Tools"
 project "NotEditor"
 	location "NotEditor"
 	kind "ConsoleApp"
@@ -113,12 +147,13 @@ project "NotEditor"
 		"%{prj.name}/src",
 		"NotRed/src",
 		"NotRed/vendor",
-		"%{IncludeDir.GLM}"
+		"%{IncludeDir.Entt}",
+		"%{IncludeDir.Glm}"
 	}
 
 	postbuildcommands 
 	{
-		'{COPY} "../NotEditor/Assets" "%{cfg.targetdir}/Assets"'
+		'{COPY} "../NotEditor/assets" "%{cfg.targetdir}/assets"'
 	}
 	
 	filter "system:windows"
@@ -140,7 +175,8 @@ project "NotEditor"
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/assimp/bind/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 				
 	filter "configurations:Release"
@@ -154,7 +190,8 @@ project "NotEditor"
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -168,5 +205,27 @@ project "NotEditor"
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/assimp/bind/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
+group ""
+
+group "Examples"
+project "ExampleApp"
+	location "ExampleApp"
+	kind "SharedLib"
+	language "C#"
+
+	targetdir ("NotEditor/assets/scripts")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files 
+	{
+		"%{prj.name}/src/**.cs", 
+	}
+
+	links
+	{
+		"NotRed-ScriptCore"
+	}
+group ""

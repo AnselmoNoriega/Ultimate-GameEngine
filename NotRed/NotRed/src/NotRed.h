@@ -5,6 +5,7 @@
 #include "NotRed/Core/Log.h"
 
 #include "NotRed/Core/TimeFrame.h"
+#include "NotRed/Core/Timer.h"
 
 #include "NotRed/Core/Events/Event.h"
 #include "NotRed/Core/Events/ApplicationEvent.h"
@@ -34,3 +35,4 @@
 // Scenes----------------------------------
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Scene/Scene.h"
+#include "NotRed/Scene/Components.h"

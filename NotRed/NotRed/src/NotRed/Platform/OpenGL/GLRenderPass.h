@@ -8,8 +8,9 @@ namespace NR
 	{
 	public:
 		GLRenderPass(const RenderPassSpecification& spec);
-		virtual ~GLRenderPass();
+		~GLRenderPass() override;
 
+		RenderPassSpecification& GetSpecification() override { return mSpecification; }
 		const RenderPassSpecification& GetSpecification() const override { return mSpecification; }
 
 	private:

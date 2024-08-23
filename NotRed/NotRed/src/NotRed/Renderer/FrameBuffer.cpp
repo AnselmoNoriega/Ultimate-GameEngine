@@ -12,7 +12,7 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None:		return nullptr;
-		case RendererAPIType::OpenGL:	result = std::make_shared<GLFrameBuffer>(spec);
+		case RendererAPIType::OpenGL:	result = Ref<GLFrameBuffer>::Create(spec);
 		}
 		FrameBufferPool::GetGlobal()->Add(result);
 		return result;
@@ -35,7 +35,7 @@ namespace NR
 		return std::weak_ptr<FrameBuffer>();
 	}
 
-	void FrameBufferPool::Add(std::weak_ptr<FrameBuffer> framebuffer)
+	void FrameBufferPool::Add(const Ref<FrameBuffer>& framebuffer)
 	{
 		mPool.push_back(framebuffer);
 	}

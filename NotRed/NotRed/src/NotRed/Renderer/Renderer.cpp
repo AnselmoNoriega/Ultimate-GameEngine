@@ -17,7 +17,7 @@ namespace NR
     {
         Ref<RenderPass> mActiveRenderPass;
         RenderCommandQueue mCommandQueue;
-        Scope<ShaderLibrary> mShaderLibrary;
+        Ref<ShaderLibrary> mShaderLibrary;
         Ref<VertexArray> mFullscreenQuadVertexArray;
     };
 
@@ -25,7 +25,7 @@ namespace NR
 
     void Renderer::Init()
     {
-        sData.mShaderLibrary = std::make_unique<ShaderLibrary>();
+        sData.mShaderLibrary = Ref<ShaderLibrary>::Create();
 
         Renderer::Submit([]() { RendererAPI::Init(); });
 
@@ -74,7 +74,7 @@ namespace NR
         Renderer2D::Init();
     }
 
-    const Scope<ShaderLibrary>& Renderer::GetShaderLibrary()
+    Ref<ShaderLibrary> Renderer::GetShaderLibrary()
     {
         return sData.mShaderLibrary;
     }
@@ -122,7 +122,7 @@ namespace NR
         sData.mCommandQueue.Execute();
     }
 
-    void Renderer::BeginRenderPass(const Ref<RenderPass>& renderPass, bool clear)
+    void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
@@ -145,7 +145,7 @@ namespace NR
         sData.mActiveRenderPass = nullptr;
     }
 
-    void Renderer::SubmitQuad(const Ref<MaterialInstance>& material, const glm::mat4& transform)
+    void Renderer::SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform)
     {
         bool depthTest = true;
         if (material)
@@ -161,7 +161,7 @@ namespace NR
         Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
     }
 
-    void Renderer::SubmitFullScreenQuad(const Ref<MaterialInstance>& material)
+    void Renderer::SubmitFullScreenQuad(Ref<MaterialInstance> material)
     {
         bool depthTest = true;
         if (material)
@@ -174,7 +174,7 @@ namespace NR
         Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
     }
 
-    void Renderer::SubmitMesh(const Ref<Mesh>& mesh, const glm::mat4& transform, const Ref<MaterialInstance>& overrideMaterial)
+    void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
     {
         mesh->mVertexArray->Bind();
 
@@ -211,7 +211,7 @@ namespace NR
         }
     }
 
-    void Renderer::DrawAABB(const Ref<Mesh>& mesh, const glm::mat4& transform, const glm::vec4& color)
+    void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
     {
         for (Submesh& submesh : mesh->mSubmeshes)
         {

@@ -141,7 +141,7 @@ namespace NR
 
     Ref<GLShader> GLShader::CreateFromString(const std::string& vertSrc, const std::string& fragSrc)
     {
-        Ref<GLShader> shader = std::make_shared<GLShader>();
+        Ref<GLShader> shader = Ref<GLShader>::Create();
         shader->Load(vertSrc, fragSrc);
         return shader;
     }
@@ -177,8 +177,8 @@ namespace NR
 
         mResources.clear();
         mStructs.clear();
-        mVSMaterialUniformBuffer.reset();
-        mPSMaterialUniformBuffer.reset();
+        mVSMaterialUniformBuffer.Reset();
+        mPSMaterialUniformBuffer.Reset();
 
         if (computeSrc == "")
         {
@@ -520,8 +520,9 @@ namespace NR
 
     void GLShader::Bind()
     {
-        Renderer::Submit([this]() {
-            glUseProgram(mID);
+        Ref<const GLShader> instance = this;
+        Renderer::Submit([instance]() {
+            glUseProgram(instance->mID);
             });
     }
 
@@ -607,7 +608,7 @@ namespace NR
                 {
                     if (!mVSMaterialUniformBuffer)
                     {
-                        mVSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
+                        mVSMaterialUniformBuffer.Reset(new GLShaderUniformBufferDeclaration("", domain));
                     }
 
                     mVSMaterialUniformBuffer->PushUniform(declaration);
@@ -616,7 +617,7 @@ namespace NR
                 {
                     if (!mPSMaterialUniformBuffer)
                     {
-                        mPSMaterialUniformBuffer.reset(new GLShaderUniformBufferDeclaration("", domain));
+                        mPSMaterialUniformBuffer.Reset(new GLShaderUniformBufferDeclaration("", domain));
                     }
 
                     mPSMaterialUniformBuffer->PushUniform(declaration);
@@ -652,7 +653,7 @@ namespace NR
             });
     }
 
-    void GLShader::ResolveAndSetUniforms(const Scope<GLShaderUniformBufferDeclaration>& decl, Buffer buffer)
+    void GLShader::ResolveAndSetUniforms(const Ref<GLShaderUniformBufferDeclaration>& decl, Buffer buffer)
     {
         const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
         for (size_t i = 0; i < uniforms.size(); ++i)
@@ -830,6 +831,13 @@ namespace NR
     {
         Renderer::Submit([=]() {
             UploadUniformFloat(name, value);
+            });
+    }
+
+    void GLShader::SetFloat3(const std::string& name, const glm::vec3& value)
+    {
+        Renderer::Submit([=]() {
+            UploadUniformFloat3(name, value);
             });
     }
 

@@ -1,91 +1,158 @@
 #include "nrpch.h"
 #include "Scene.h"
 
+#include "Entity.h"
+#include "Components.h"
+
+#include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Renderer/SceneRenderer.h"
+#include "NotRed/Script/ScriptEngine.h"
 
 namespace NR
 {
-	Scene::Scene(const std::string& debugName)
-		: mDebugName(debugName)
-	{
-		Init();
-	}
+    std::unordered_map<uint32_t, Scene*> sActiveScenes;
 
-	Scene::~Scene()
-	{
-		for (Entity* entity : mEntities)
-		{
-			delete entity;
-		}
-	}
+    struct SceneComponent
+    {
+        uint32_t SceneID;
+    };
 
-	void Scene::Init()
-	{
-		auto skyboxShader = Shader::Create("Assets/Shaders/Skybox");
-		mSkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
-		mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
-	}
+    static uint32_t sSceneIDCounter = 0;
 
-	void Scene::Update(float dt)
-	{
-		mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
+    void TransformConstruct(entt::registry& registry, entt::entity entity)
+    {
 
-		for (auto entity : mEntities)
-		{
-			auto mesh = entity->GetMesh();
-			if (mesh)
-			{
-				mesh->Update(dt);
-			}
-		}
+    }
 
-		SceneRenderer::BeginScene(this);
+    void ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        auto view = registry.view<SceneComponent>();
+        uint32_t sceneID = 0;
+        for (auto entity : view)
+        {
+            auto& scene = registry.get<SceneComponent>(entity);
+            sceneID = scene.SceneID;
+        }
 
-		for (auto entity : mEntities)
-		{
-			SceneRenderer::SubmitEntity(entity);
-		}
+        ScriptEngine::InitEntity(registry.get<ScriptComponent>(entity), (uint32_t)entity, sceneID);
+    }
 
-		SceneRenderer::EndScene();
-	}
+    Scene::Scene(const std::string& debugName)
+        : mDebugName(debugName), mSceneID(++sSceneIDCounter)
+    {
+        mRegistry.on_construct<TransformComponent>().connect<&TransformConstruct>();
+        mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
 
-	void Scene::OnEvent(Event& e)
-	{
-		mCamera.OnEvent(e);
-	}
+        mSceneEntity = m_Registry.create();
+        mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
-	void Scene::SetCamera(const Camera& camera)
-	{
-		mCamera = camera;
-	}
+        sActiveScenes[m_SceneID] = this;
 
-	void Scene::SetEnvironment(const Environment& environment)
-	{
-		mEnvironment = environment;
-		SetSkybox(environment.RadianceMap);
-	}
+        Init();
+    }
 
-	void Scene::SetSkybox(const Ref<TextureCube>& skybox)
-	{
-		mSkyboxTexture = skybox;
-		mSkyboxMaterial->Set("uTexture", skybox);
-	}
+    Scene::~Scene()
+    {
+        mRegistry.clear();
 
-	void Scene::AddEntity(Entity* entity)
-	{
-		mEntities.push_back(entity);
-	}
+        sActiveScenes.erase(mSceneID);
+    }
 
-	Entity* Scene::CreateEntity(const std::string& name)
-	{
-		Entity* entity = new Entity(name);
-		AddEntity(entity);
-		return entity;
-	}
+    void Scene::Init()
+    {
+        auto skyboxShader = Shader::Create("Assets/Shaders/Skybox");
+        mSkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
+        mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
+    }
 
-	Environment Environment::Load(const std::string& filepath)
-	{
-		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(filepath);
-		return { radiance, irradiance };
-	}
+    void Scene::Update(float dt)
+    {
+        Camera* camera = nullptr;
+        {
+            auto view = mRegistry.view<CameraComponent>();
+            for (auto entity : view)
+            {
+                auto& comp = view.get<CameraComponent>(entity);
+                camera = &comp.Camera;
+                break;
+            }
+        }
+
+        NR_CORE_ASSERT(camera, "Scene does not contain any cameras!");
+        camera->OnUpdate(dt);
+
+        {
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto entity : view)
+            {
+                ScriptEngine::UpdateEntity((uint32_t)entity, dt);
+            }
+        }
+
+        mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
+
+        auto entities = mRegistry.view<MeshComponent>();
+        for (auto entity : entities)
+        {
+            auto& meshComponent = mRegistry.get<MeshComponent>(entity);
+        }
+
+        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
+        SceneRenderer::BeginScene(this, *camera);
+        for (auto entity : group)
+        {
+            auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
+            if (meshComponent.Mesh)
+            {
+                meshComponent.Mesh->OnUpdate(ts);
+
+                // TODO: Should we render (logically)
+                SceneRenderer::SubmitMesh(meshComponent, transformComponent, nullptr);
+            }
+        }
+
+        SceneRenderer::EndScene();
+    }
+
+    void Scene::OnEvent(Event& e)
+    {
+        auto view = mRegistry.view<CameraComponent>();
+        for (auto entity : view)
+        {
+            auto& comp = view.get<CameraComponent>(entity);
+            comp.CameraObj.OnEvent(e);
+            break;
+        }
+    }
+
+    void Scene::SetEnvironment(const Environment& environment)
+    {
+        mEnvironment = environment;
+        SetSkybox(environment.RadianceMap);
+    }
+
+    void Scene::SetSkybox(const Ref<TextureCube>& skybox)
+    {
+        mSkyboxTexture = skybox;
+        mSkyboxMaterial->Set("uTexture", skybox);
+    }
+
+    Entity* Scene::CreateEntity(const std::string& name)
+    {
+        auto entity = Entity{ mRegistry.create(), this };
+        entity.AddComponent<TransformComponent>(glm::mat4(1.0f));
+        entity.AddComponent<TagComponent>(name);
+        return entity;
+    }
+
+    void Scene::DestroyEntity(Entity entity)
+    {
+        mRegistry.destroy(entity.mEntityHandle);
+    }
+
+    Environment Environment::Load(const std::string& filepath)
+    {
+        auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(filepath);
+        return { radiance, irradiance };
+    }
 }

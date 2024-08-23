@@ -10,7 +10,21 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None:    return nullptr;
-        case RendererAPIType::OpenGL:  return std::make_shared<GLIndexBuffer>(data, size);
+        case RendererAPIType::OpenGL:  return Ref<GLIndexBuffer>::Create(data, size);
+        default:
+        {
+            NR_CORE_ASSERT(false, "Unknown RendererAPI");
+            return nullptr;
+        }
+        }
+    }
+
+    Ref<IndexBuffer> IndexBuffer::Create(uint32_t size)
+    {
+        switch (RendererAPI::Current())
+        {
+        case RendererAPIType::None:    return nullptr;
+        case RendererAPIType::OpenGL:  return Ref<GLIndexBuffer>::Create(size);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

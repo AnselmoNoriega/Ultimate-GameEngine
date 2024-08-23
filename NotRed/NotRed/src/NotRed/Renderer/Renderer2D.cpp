@@ -229,6 +229,81 @@ namespace NR
 
 	}
 
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color)
+	{
+		constexpr size_t quadVertexCount = 4;
+		const float textureIndex = 0.0f;
+		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+		const float tilingFactor = 1.0f;
+
+		if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
+		{
+			FlushAndReset();
+		}
+
+		for (size_t i = 0; i < quadVertexCount; ++i)
+		{
+			sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
+			sData.QuadVertexBufferPtr->Color = color;
+			sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+			sData.QuadVertexBufferPtr->TexIndex = textureIndex;
+			sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			++sData.QuadVertexBufferPtr;
+		}
+
+		sData.QuadIndexCount += 6;
+
+		++sData.Stats.QuadCount;
+	}
+
+	void Renderer2D::DrawQuad(const glm::mat4& transform, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+	{
+		constexpr size_t quadVertexCount = 4;
+		constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+		constexpr glm::vec2 textureCoords[] = { { 0.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f } };
+
+		if (sData.QuadIndexCount >= Renderer2DData::MaxIndices)
+		{
+			FlushAndReset();
+		}
+
+		float textureIndex = 0.0f;
+		for (uint32_t i = 1; i < sData.TextureSlotIndex; ++i)
+		{
+			if (*sData.TextureSlots[i].Raw() == *texture.Raw())
+			{
+				textureIndex = (float)i;
+				break;
+			}
+		}
+
+		if (textureIndex == 0.0f)
+		{
+			if (sData.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+			{
+				FlushAndReset();
+			}
+
+			textureIndex = (float)sData.TextureSlotIndex;
+			sData.TextureSlots[sData.TextureSlotIndex] = texture;
+			++sData.TextureSlotIndex;
+		}
+
+		for (size_t i = 0; i < quadVertexCount; i++)
+		{
+			sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
+			sData.QuadVertexBufferPtr->Color = color;
+			sData.QuadVertexBufferPtr->TexCoord = textureCoords[i];
+			sData.QuadVertexBufferPtr->TexIndex = textureIndex;
+			sData.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+			++sData.QuadVertexBufferPtr;
+		}
+
+		sData.QuadIndexCount += 6;
+
+		++sData.Stats.QuadCount;
+	}
+
 	void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color)
 	{
 		DrawQuad({ position.x, position.y, 0.0f }, size, color);
@@ -297,7 +372,7 @@ namespace NR
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < sData.TextureSlotIndex; ++i)
 		{
-			if (*sData.TextureSlots[i].get() == *texture.get())
+			if (*sData.TextureSlots[i].Raw() == *texture.Raw())
 			{
 				textureIndex = (float)i;
 				break;
@@ -416,7 +491,7 @@ namespace NR
 		float textureIndex = 0.0f;
 		for (uint32_t i = 1; i < sData.TextureSlotIndex; ++i)
 		{
-			if (*sData.TextureSlots[i].get() == *texture.get())
+			if (*sData.TextureSlots[i].Raw() == *texture.Raw())
 			{
 				textureIndex = (float)i;
 				break;

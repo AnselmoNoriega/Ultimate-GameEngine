@@ -16,7 +16,7 @@ enum class MaterialFlag
 		Blend = (1 << 2)
 	};
 
-	class Material
+	class Material : public RefCounted
 	{
 	public:
 		static Ref<Material> Create(const Ref<Shader>& shader);
@@ -24,7 +24,7 @@ enum class MaterialFlag
 		Material(const Ref<Shader>& shader);
 		virtual ~Material();
 
-		void Bind() const;
+		void Bind();
 
 		uint32_t GetFlags() const { return mMaterialFlags; }
 		void SetFlag(MaterialFlag flag) { mMaterialFlags |= (uint32_t)flag; }
@@ -76,7 +76,7 @@ enum class MaterialFlag
 	private:
 		void AllocateStorage();
 		void ShaderReloaded();
-		void BindTextures() const;
+		void BindTextures();
 
 		ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name);
 		ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
@@ -93,7 +93,7 @@ enum class MaterialFlag
 		uint32_t mMaterialFlags;
 	};
 
-	class MaterialInstance
+	class MaterialInstance : public RefCounted
 	{
 	public:
 		static Ref<MaterialInstance> Create(const Ref<Material>& material);
@@ -144,7 +144,7 @@ enum class MaterialFlag
 			Set(name, (const Ref<Texture>&)texture);
 		}
 
-		void Bind() const;
+		void Bind();
 
 		uint32_t GetFlags() const { return mMaterial->mMaterialFlags; }
 		bool IsFlagActive(MaterialFlag flag) const { return (uint32_t)flag & mMaterial->mMaterialFlags; }

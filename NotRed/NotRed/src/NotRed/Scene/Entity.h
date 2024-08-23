@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+#include "Scene.h"
+#include "Components.h"
 #include "NotRed/Renderer/Mesh.h"
 
 namespace NR
@@ -10,29 +12,54 @@ namespace NR
 	{
 	public:
 		Entity() = delete;
-		~Entity();
+		Entity(entt::entity handle, Scene* scene)
+			: mEntityHandle(handle), mScene(scene) {}
 
-		void SetMesh(const Ref<Mesh>& mesh) { mMesh = mesh; }
-		Ref<Mesh> GetMesh() { return mMesh; }
+		~Entity() = default;
 
-		void SetMaterial(const Ref<MaterialInstance>& material) { mMaterial = material; }
-		Ref<MaterialInstance> GetMaterial() { return mMaterial; }
+		template<typename T, typename... Args>
+		T& AddComponent(Args&&... args)
+		{
+			return mScene->mRegistry.emplace<T>(mEntityHandle, std::forward<Args>(args)...);
+		}
 
-		const std::string& GetName() const { return mName; }
-		const glm::mat4& GetTransform() const { return mTransform; }
-		glm::mat4& Transform() { return mTransform; }
+		template<typename T>
+		T& GetComponent()
+		{
+			return mScene->mRegistry.get<T>(mEntityHandle);
+		}
+
+		template<typename T>
+		bool HasComponent()
+		{
+			return mScene->mRegistry.has<T>(mEntityHandle);
+		}
+
+		glm::mat4& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
+		const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
+
+		operator uint32_t () const { return (uint32_t)mEntityHandle; }
+		operator bool() const { return (uint32_t)mEntityHandle && mScene; }
+
+		bool operator==(const Entity& other) const
+		{
+			return mEntityHandle == other.mEntityHandle && mScene == other.mScene;
+		}
+
+		bool operator!=(const Entity& other) const
+		{
+			return !(*this == other);
+		}
 
 	private:
 		Entity(const std::string& name);
 
 	private:
-		std::string mName;
-		glm::mat4 mTransform;
-
-		Ref<Mesh> mMesh;
-		Ref<MaterialInstance> mMaterial;
+		entt::entity mEntityHandle;
+		Scene* mScene = nullptr;
 
 		friend class Scene;
+		friend class ScriptEngine;
 	};
 
 }

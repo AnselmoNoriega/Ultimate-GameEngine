@@ -85,13 +85,13 @@ namespace NR
         sData.CompositePass->GetSpecification().TargetFrameBuffer->Resize(width, height);
     }
 
-    void SceneRenderer::BeginScene(const Scene* scene)
+    void SceneRenderer::BeginScene(const Scene* scene, const Camera& camera)
     {
         NR_CORE_ASSERT(!sData.ActiveScene, "");
 
         sData.ActiveScene = scene;
 
-        sData.SceneData.SceneCamera = scene->mCamera;
+        sData.SceneData.SceneCamera = camera;
         sData.SceneData.SkyboxMaterial = scene->mSkyboxMaterial;
         sData.SceneData.SceneEnvironment = scene->mEnvironment;
         sData.SceneData.ActiveLight = scene->mLight;
@@ -106,15 +106,9 @@ namespace NR
         FlushDrawList();
     }
 
-    void SceneRenderer::SubmitEntity(Entity* entity)
+    void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
     {
-        auto mesh = entity->GetMesh();
-        if (!mesh)
-        {
-            return;
-        }
-
-        sData.DrawList.push_back({ mesh, entity->GetMaterial(), entity->GetTransform() });
+        sData.DrawList.push_back({ mesh, overrideMaterial, transform });
     }
 
     static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;

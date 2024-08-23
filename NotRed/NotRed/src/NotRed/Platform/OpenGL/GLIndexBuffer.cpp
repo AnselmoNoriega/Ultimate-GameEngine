@@ -12,9 +12,20 @@ namespace NR
 	{
 		mLocalData = Buffer::Copy(data, size);
 
-		Renderer::Submit([this]() {
-			glCreateBuffers(1, &mID);
-			glNamedBufferData(mID, mSize, mLocalData.Data, GL_STATIC_DRAW);
+		Ref<GLIndexBuffer> instance = this;
+		Renderer::Submit([instance]() mutable {
+			glCreateBuffers(1, &instance->mID);
+			glNamedBufferData(instance->mID, instance->mSize, instance->mLocalData.Data, GL_STATIC_DRAW);
+			});
+	}
+
+	GLIndexBuffer::GLIndexBuffer(uint32_t size)
+		: mSize(size)
+	{
+		Ref<GLIndexBuffer> instance = this;
+		Renderer::Submit([instance]() mutable {
+			glCreateBuffers(1, &instance->mID);
+			glNamedBufferData(instance->mID, instance->mSize, nullptr, GL_DYNAMIC_DRAW);
 			});
 	}
 
@@ -30,8 +41,9 @@ namespace NR
 		mLocalData = Buffer::Copy(data, size);
 		mSize = size;
 
-		Renderer::Submit([this, offset]() {
-			glNamedBufferSubData(mID, offset, mSize, mLocalData.Data);
+		Ref<GLIndexBuffer> instance = this;
+		Renderer::Submit([instance, offset]() {
+			glNamedBufferSubData(instance->mID, offset, instance->mSize, instance->mLocalData.Data);
 			});
 	}
 

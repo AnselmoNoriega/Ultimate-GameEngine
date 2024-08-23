@@ -5,7 +5,7 @@ namespace NR
 {
 	Ref<Material> Material::Create(const Ref<Shader>& shader)
 	{
-		return std::make_shared<Material>(shader);
+		return Ref<Material>::Create(shader);
 	}
 
 	Material::Material(const Ref<Shader>& shader)
@@ -102,7 +102,7 @@ namespace NR
 		return mVSUniformStorageBuffer;
 	}
 
-	void Material::Bind() const
+	void Material::Bind()
 	{
 		mShader->Bind();
 
@@ -119,7 +119,7 @@ namespace NR
 		BindTextures();
 	}
 
-	void Material::BindTextures() const
+	void Material::BindTextures()
 	{
 		for (size_t i = 0; i < mTextures.size(); ++i)
 		{
@@ -135,7 +135,7 @@ namespace NR
 
 	Ref<MaterialInstance> MaterialInstance::Create(const Ref<Material>& material)
 	{
-		return std::make_shared<MaterialInstance>(material);
+		return Ref<MaterialInstance>::Create(material);
 	}
 
 	MaterialInstance::MaterialInstance(const Ref<Material>& material)
@@ -207,7 +207,7 @@ namespace NR
 		return mVSUniformStorageBuffer;
 	}
 
-	void MaterialInstance::Bind() const
+	void MaterialInstance::Bind()
 	{
 		mMaterial->mShader->Bind();
 
