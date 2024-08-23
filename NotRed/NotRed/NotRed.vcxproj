@@ -198,6 +198,9 @@
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
     <ClInclude Include="src\NotRed\Scene\Scene.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptEngine.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
     <ClInclude Include="src\nrpch.h" />
   </ItemGroup>
   <ItemGroup>
@@ -241,6 +244,9 @@
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
+    <ClCompile Include="src\NotRed\Script\ScriptEngine.cpp" />
+    <ClCompile Include="src\NotRed\Script\ScriptEngineRegistry.cpp" />
+    <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

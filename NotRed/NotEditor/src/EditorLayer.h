@@ -56,6 +56,15 @@ namespace NR
 		std::pair<float, float> GetMouseViewportSpace();
 		std::pair<glm::vec3, glm::vec3> CastRay(float mx, float my);
 
+		struct SelectedSubmesh
+		{
+			Entity EntityObj;
+			Submesh* Mesh;
+			float Distance;
+		};
+		void Selected(const SelectedSubmesh& selectionContext);
+		Ray CastMouseRay();
+
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 
@@ -63,17 +72,15 @@ namespace NR
 		Ref<Scene> mSphereScene;
 		Ref<Scene> mActiveScene;
 
-		Entity* mMeshEntity = nullptr;
+		Entity mMeshEntity;
+		Entity mCameraEntity;
 
 		Ref<Shader> mBrushShader;
-		Ref<Mesh> mPlaneMesh;
 		Ref<Material> mSphereBaseMaterial;
 
 		Ref<Material> mMeshMaterial;
 		std::vector<Ref<MaterialInstance>> mMetalSphereMaterialInstances;
 		std::vector<Ref<MaterialInstance>> mDielectricSphereMaterialInstances;
-
-		float mGridScale = 16.025f, mGridSize = 0.025f;
 
 		struct AlbedoInput
 		{
@@ -131,12 +138,16 @@ namespace NR
 		bool mUIShowBoundingBoxes = false;
 		bool mUIShowBoundingBoxesOnTop = false;
 
-		struct SelectedSubmesh
+		enum class SelectionMode
 		{
-			Submesh* Mesh;
-			float Distance;
+			None, 
+			Entity,
+			SubMesh
 		};
-		std::vector<SelectedSubmesh> mSelectedSubmeshes;
+
+		SelectionMode mSelectionMode = SelectionMode::Entity;
+		std::vector<SelectedSubmesh> mSelectionContext;
+		glm::mat4* mRelativeTransform = nullptr;
 		glm::mat4* mCurrentlySelectedTransform = nullptr;
 	};
 

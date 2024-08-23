@@ -80,31 +80,34 @@ namespace NR
 
 		// Model Scene
 		{
-			mScene = CreateRef<Scene>("Model Scene");
-			mScene->SetCamera(Camera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f)));
+			mScene = Ref<Scene>::Create("Model Scene");
+			mCameraEntity = mScene->CreateEntity("Camera");
+			mCameraEntity.AddComponent<CameraComponent>(Camera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f)));
 
 			mScene->SetEnvironment(environment);
 
 			mMeshEntity = mScene->CreateEntity();
 
-			auto mesh = CreateRef<Mesh>("Assets/Meshes/TestScene.fbx");
-			mMeshEntity->SetMesh(mesh);
+			auto mesh = Ref<Mesh>::Create("Assets/Meshes/TestScene.fbx");
+			mMeshEntity.AddComponent<MeshComponent>(mesh);
 
 			mMeshMaterial = mesh->GetMaterial();
 
-			auto secondEntity = mScene->CreateEntity("Gun Entity");
-			secondEntity->Transform() = glm::translate(glm::mat4(1.0f), { 5, 5, 5 }) * glm::scale(glm::mat4(1.0f), { 10, 10, 10 });
-			mesh = CreateRef<Mesh>("Assets/Models/m1911/m1911.fbx");
-			secondEntity->SetMesh(mesh);
+			mMeshEntity.AddComponent<ScriptComponent>("Example.Script");
+
+			// Test Sandbox
+			auto mapGenerator = mScene->CreateEntity("Map Generator");
+			mapGenerator.AddComponent<ScriptComponent>("Example.MapGenerator");
 		}
 		// Sphere Scene
 		{
-			mSphereScene = CreateRef<Scene>("PBR Sphere Scene");
-			mSphereScene->SetCamera(Camera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f)));
+			mSphereScene = Ref<Scene>::Create("PBR Sphere Scene");
+			auto cameraEntity = mSphereScene->CreateEntity("Camera");
+			cameraEntity.AddComponent<CameraComponent>(Camera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f)));
 
 			mSphereScene->SetEnvironment(environment);
 
-			auto sphereMesh = CreateRef<Mesh>("Assets/Models/Sphere1m.fbx");
+			auto sphereMesh = Ref<Mesh>::Create("Assets/Models/Sphere1m.fbx");
 			mSphereBaseMaterial = sphereMesh->GetMaterial();
 
 			float x = -4.0f;
@@ -113,16 +116,12 @@ namespace NR
 			{
 				auto sphereEntity = mSphereScene->CreateEntity();
 
-				Ref<MaterialInstance> mi = CreateRef<MaterialInstance>(mSphereBaseMaterial);
+				Ref<MaterialInstance> mi = Ref<MaterialInstance>::Create(mSphereBaseMaterial);
 				mi->Set("uMetalness", 1.0f);
 				mi->Set("uRoughness", roughness);
 				x += 1.1f;
 				roughness += 0.15f;
 				mMetalSphereMaterialInstances.push_back(mi);
-
-				sphereEntity->SetMesh(sphereMesh);
-				sphereEntity->SetMaterial(mi);
-				sphereEntity->Transform() = translate(mat4(1.0f), vec3(x, 0.0f, 0.0f));
 			}
 
 			x = -4.0f;
@@ -137,24 +136,19 @@ namespace NR
 				x += 1.1f;
 				roughness += 0.15f;
 				mDielectricSphereMaterialInstances.push_back(mi);
-
-				sphereEntity->SetMesh(sphereMesh);
-				sphereEntity->SetMaterial(mi);
-				sphereEntity->Transform() = translate(mat4(1.0f), vec3(x, 1.2f, 0.0f));
 			}
 		}
 
 		mActiveScene = mScene;
 		mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mActiveScene);
 
-		mPlaneMesh.reset(new Mesh("Assets/Models/Plane1m.obj"));
 		mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
 
 		auto& light = mScene->GetLight();
 		light.Direction = { -0.5f, -0.5f, 1.0f };
 		light.Radiance = { 1.0f, 1.0f, 1.0f };
 
-		mCurrentlySelectedTransform = &mMeshEntity->Transform();
+		mCurrentlySelectedTransform = &mMeshEntity.Transform();
 	}
 
 	void EditorLayer::Detach()
@@ -201,30 +195,28 @@ namespace NR
 			mMeshMaterial->Set("uRoughnessTexture", mRoughnessInput.TextureMap);
 		}
 
-		if (mAllowViewportCameraEvents)
-		{
-			mScene->GetCamera().Update(dt);
-		}
-
 		mActiveScene->Update(dt);
 
 		if (mDrawOnTopBoundingBoxes)
 		{
 			NR::Renderer::BeginRenderPass(NR::SceneRenderer::GetFinalRenderPass(), false);
-			auto viewProj = mScene->GetCamera().GetViewProjection();
+			auto viewProj = mCameraEntity.GetComponent<CameraComponent>().CameraObj.GetViewProjection();
+
 			NR::Renderer2D::BeginScene(viewProj, false);
-			Renderer::DrawAABB(mMeshEntity->GetMesh(), mMeshEntity->Transform());
+			Renderer::DrawAABB(mMeshEntity.GetComponent<MeshComponent>(), mMeshEntity.GetComponent<TransformComponent>());
 			NR::Renderer2D::EndScene();
 			NR::Renderer::EndRenderPass();
 		}
 
-		if (mSelectedSubmeshes.size())
+		if (mSelectionContext.size())
 		{
+			auto& selection = mSelectionContext[0];
+
 			NR::Renderer::BeginRenderPass(NR::SceneRenderer::GetFinalRenderPass(), false);
-			auto viewProj = mScene->GetCamera().GetViewProjection();
+			auto viewProj = mCameraEntity.GetComponent<CameraComponent>().CameraObj.GetViewProjection();
 			NR::Renderer2D::BeginScene(viewProj, false);
-			auto& submesh = mSelectedSubmeshes[0];
-			Renderer::DrawAABB(submesh.Mesh->BoundingBox, mMeshEntity->GetTransform() * submesh.Mesh->Transform);
+			glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
+			Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.EntityObj.GetComponent<TransformComponent>().Transform * selection.Mesh->Transform, color);
 			NR::Renderer2D::EndScene();
 			NR::Renderer::EndRenderPass();
 		}
@@ -400,7 +392,7 @@ namespace NR
 		Property("Light Direction", light.Direction);
 		Property("Light Radiance", light.Radiance, PropertyFlag::ColorProperty);
 		Property("Light Multiplier", light.Multiplier, 0.0f, 5.0f);
-		Property("Exposure", mActiveScene->GetCamera().GetExposure(), 0.0f, 5.0f);
+		Property("Exposure", mCameraEntity.GetComponent<CameraComponent>().CameraObj.GetExposure(), 0.0f, 5.0f);
 
 		Property("Radiance Prefiltering", mRadiancePrefilter);
 		Property("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
@@ -414,6 +406,12 @@ namespace NR
 			ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
 		}
 
+		const char* label = (mSelectionMode == SelectionMode::Entity) ? "Entity" : "Mesh";
+		if (ImGui::Button(label))
+		{
+			mSelectionMode = (mSelectionMode == SelectionMode::Entity) ? SelectionMode::SubMesh : SelectionMode::Entity;
+		}
+
 		ImGui::Columns(1);
 
 		ImGui::End();
@@ -421,8 +419,8 @@ namespace NR
 		ImGui::Separator();
 		{
 			ImGui::Text("Mesh");
-			auto mesh = mMeshEntity->GetMesh();
-			std::string fullpath = mesh ? mesh->GetFilePath() : "None";
+			auto meshComponent = mMeshEntity.GetComponent<MeshComponent>();
+			std::string fullpath = meshComponent.MeshObj ? meshComponent.MeshObj->GetFilePath() : "None";
 			size_t found = fullpath.find_last_of("/\\");
 			std::string path = found != std::string::npos ? fullpath.substr(found + 1) : fullpath;
 			ImGui::Text(path.c_str()); ImGui::SameLine();
@@ -431,8 +429,8 @@ namespace NR
 				std::string filename = Application::Get().OpenFile("");
 				if (filename != "")
 				{
-					auto newMesh = CreateRef<Mesh>(filename);
-					mMeshEntity->SetMesh(newMesh);
+					auto newMesh = Ref<Mesh>::Create(filename);
+					meshComponent.MeshObj = newMesh;
 				}
 			}
 		}
@@ -601,8 +599,8 @@ namespace NR
 		auto viewportSize = ImGui::GetContentRegionAvail();
 
 		SceneRenderer::SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-		mActiveScene->GetCamera().SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
-		mActiveScene->GetCamera().SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+		mCameraEntity.GetComponent<CameraComponent>().CameraObj.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
+		mCameraEntity.GetComponent<CameraComponent>().CameraObj.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 		ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
 
 		static int counter = 0;
@@ -616,22 +614,44 @@ namespace NR
 		mViewportBounds[1] = { maxBound.x, maxBound.y };
 		mAllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
-		if (mGizmoType != -1 && mCurrentlySelectedTransform)
+		if (mGizmoType != -1 && mSelectionContext.size())
 		{
+			auto& selection = mSelectionContext[0];
+
 			float rw = (float)ImGui::GetWindowWidth();
 			float rh = (float)ImGui::GetWindowHeight();
 			ImGuizmo::SetOrthographic(false);
 			ImGuizmo::SetDrawlist();
 			ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, rw, rh);
 
+			auto& camera = mCameraEntity.GetComponent<CameraComponent>().CameraObj;
 			bool snap = Input::IsKeyPressed(NR_KEY_LEFT_CONTROL);
-			ImGuizmo::Manipulate(glm::value_ptr(mActiveScene->GetCamera().GetViewMatrix() * mMeshEntity->Transform()),
-				glm::value_ptr(mActiveScene->GetCamera().GetProjectionMatrix()),
-				(ImGuizmo::OPERATION)mGizmoType,
-				ImGuizmo::LOCAL,
-				glm::value_ptr(*mCurrentlySelectedTransform),
-				nullptr,
-				snap ? &mSnapValue : nullptr);
+
+			auto& entityTransform = selection.EntityObj.Transform();
+			float snapValue[3] = { mSnapValue, mSnapValue, mSnapValue };
+			if (mSelectionMode == SelectionMode::Entity)
+			{
+				ImGuizmo::Manipulate(glm::value_ptr(camera.GetViewMatrix()),
+					glm::value_ptr(camera.GetProjectionMatrix()),
+					(ImGuizmo::OPERATION)mGizmoType,
+					ImGuizmo::LOCAL,
+					glm::value_ptr(entityTransform),
+					nullptr,
+					snap ? snapValue : nullptr);
+			}
+			else
+			{
+				glm::mat4 transformBase = entityTransform * selection.Mesh->Transform;
+				ImGuizmo::Manipulate(glm::value_ptr(camera.GetViewMatrix()),
+					glm::value_ptr(camera.GetProjectionMatrix()),
+					(ImGuizmo::OPERATION)mGizmoType,
+					ImGuizmo::LOCAL,
+					glm::value_ptr(transformBase),
+					nullptr,
+					snap ? snapValue : nullptr);
+
+				selection.Mesh->Transform = glm::inverse(entityTransform) * transformBase;
+			}
 		}
 		
 		ImGui::End();
@@ -690,10 +710,7 @@ namespace NR
 
 	void EditorLayer::OnEvent(Event& e)
 	{
-		if (mAllowViewportCameraEvents)
-		{
-			mScene->GetCamera().OnEvent(e);
-		}
+		mScene->OnEvent(e);
 
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::OnKeyPressedEvent));
@@ -704,11 +721,11 @@ namespace NR
 	{
 		switch (e.GetKeyCode())
 		{
-		case NR_KEY_Q: mGizmoType = -1; break;
-		case NR_KEY_W: mGizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
-		case NR_KEY_E: mGizmoType = ImGuizmo::OPERATION::ROTATE; break;
-		case NR_KEY_R: mGizmoType = ImGuizmo::OPERATION::SCALE; break;
-		case NR_KEY_G:
+		case KeyCode::Q: mGizmoType = -1; break;
+		case KeyCode::W: mGizmoType = ImGuizmo::OPERATION::TRANSLATE; break;
+		case KeyCode::E: mGizmoType = ImGuizmo::OPERATION::ROTATE; break;
+		case KeyCode::R: mGizmoType = ImGuizmo::OPERATION::SCALE; break;
+		case KeyCode::G:
 		{
 			if (NR::Input::IsKeyPressed(NR_KEY_LEFT_CONTROL))
 			{
@@ -716,7 +733,7 @@ namespace NR
 			}
 			break;
 		}
-		case NR_KEY_B:
+		case KeyCode::B:
 		{
 			if (NR::Input::IsKeyPressed(NR_KEY_LEFT_CONTROL))
 			{
@@ -732,52 +749,57 @@ namespace NR
 	bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
 	{
 		auto [mx, my] = Input::GetMousePosition();
-		if (e.GetMouseButton() == NR_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(NR_KEY_LEFT_ALT) && !ImGuizmo::IsOver())
+		if (e.GetMouseButton() == NR_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(KeyCode::LeftAlt) && !ImGuizmo::IsOver())
 		{
 			auto [mouseX, mouseY] = GetMouseViewportSpace();
 			if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
 			{
 				auto [origin, direction] = CastRay(mouseX, mouseY);
 
-				mSelectedSubmeshes.clear();
-				auto mesh = mMeshEntity->GetMesh();
-				auto& submeshes = mesh->GetSubmeshes();
-				constexpr float lastT = std::numeric_limits<float>::max();
-				for (uint32_t i = 0; i < submeshes.size(); ++i)
+				mSelectionContext.clear();
+				auto meshEntities = mScene->GetAllEntitiesWith<MeshComponent>();
+				for (auto e : meshEntities)
 				{
-					auto& submesh = submeshes[i];
-					Ray ray = {
-						glm::inverse(mMeshEntity->GetTransform() * submesh.Transform) * glm::vec4(origin, 1.0f),
-						glm::inverse(glm::mat3(mMeshEntity->GetTransform()) * glm::mat3(submesh.Transform)) * direction
-					};
-
-					float t;
-					bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
-					if (intersects)
+					Entity entity = { e, mScene.Raw() };
+					auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
+					if (!mesh)
 					{
-						const auto& triangleCache = mesh->GetTriangleCache(i);
-						for (const auto& triangle : triangleCache)
+						continue;
+					}
+
+					auto& submeshes = mesh->GetSubmeshes();
+					constexpr float lastT = std::numeric_limits<float>::max();
+					for (uint32_t i = 0; i < submeshes.size(); ++i)
+					{
+						auto& submesh = submeshes[i];
+						Ray ray = {
+							glm::inverse(entity.Transform() * submesh.Transform) * glm::vec4(origin, 1.0f),
+							glm::inverse(glm::mat3(entity.Transform()) * glm::mat3(submesh.Transform)) * direction
+						};
+
+						float t;
+						bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
+						if (intersects)
 						{
-							if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
+							const auto& triangleCache = mesh->GetTriangleCache(i);
+							for (const auto& triangle : triangleCache)
 							{
-								NR_WARN("INTERSECTION: {0}, t = {1}", submesh.NodeName, t);
-								mSelectedSubmeshes.push_back({ &submesh, t });
-								break;
+								if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
+								{
+									NR_WARN("INTERSECTION: {0}, t = {1}", submesh.NodeName, t);
+									mSelectionContext.push_back({ entity, &submesh, t });
+									break;
+								}
 							}
 						}
 					}
 				}
-				std::sort(mSelectedSubmeshes.begin(), mSelectedSubmeshes.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
 
-				if (mSelectedSubmeshes.size())
+				std::sort(mSelectionContext.begin(), mSelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
+				if (mSelectionContext.size())
 				{
-					mCurrentlySelectedTransform = &mSelectedSubmeshes[0].Mesh->Transform;
+					Selected(mSelectionContext[0]);
 				}
-				else
-				{
-					mCurrentlySelectedTransform = &mMeshEntity->Transform();
-				}
-
 			}
 		}
 		return false;
@@ -785,7 +807,7 @@ namespace NR
 
 	std::pair<float, float> EditorLayer::GetMouseViewportSpace()
 	{
-		auto [mx, my] = ImGui::GetMousePos(); // Input::GetMousePosition();
+		auto [mx, my] = ImGui::GetMousePos();
 		mx -= mViewportBounds[0].x;
 		my -= mViewportBounds[0].y;
 		auto viewportWidth = mViewportBounds[1].x - mViewportBounds[0].x;
@@ -798,13 +820,29 @@ namespace NR
 	{
 		glm::vec4 mouseClipPos = { mx, my, -1.0f, 1.0f };
 
-		auto inverseProj = glm::inverse(mScene->GetCamera().GetProjectionMatrix());
-		auto inverseView = glm::inverse(glm::mat3(mScene->GetCamera().GetViewMatrix()));
+		auto inverseProj = glm::inverse(mCameraEntity.GetComponent<CameraComponent>().CameraObj.GetProjectionMatrix());
+		auto inverseView = glm::inverse(glm::mat3(mCameraEntity.GetComponent<CameraComponent>().CameraObj.GetViewMatrix()));
 
 		glm::vec4 ray = inverseProj * mouseClipPos;
-		glm::vec3 rayPos = mScene->GetCamera().GetPosition();
+		glm::vec3 rayPos = mCameraEntity.GetComponent<CameraComponent>().CameraObj.GetPosition();
 		glm::vec3 rayDir = inverseView * glm::vec3(ray);
 
 		return { rayPos, rayDir };
+	}
+
+	void EditorLayer::Selected(const SelectedSubmesh& selectionContext)
+	{
+		mSceneHierarchyPanel->SetSelected(selectionContext.EntityObj);
+	}
+
+	Ray EditorLayer::CastMouseRay()
+	{
+		auto [mouseX, mouseY] = GetMouseViewportSpace();
+		if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
+		{
+			auto [origin, direction] = CastRay(mouseX, mouseY);
+			return Ray(origin, direction);
+		}
+		return Ray::Zero();
 	}
 }

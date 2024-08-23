@@ -192,6 +192,9 @@
     <ClInclude Include="src\NotRed\Core\Ref.h" />
     <ClInclude Include="src\NotRed\Core\Timer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptEngine.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -313,5 +316,8 @@
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp" />
     <ClCompile Include="src\NotRed\Core\Math\Noise.cpp" />
+    <ClCompile Include="src\NotRed\Script\ScriptEngine.cpp" />
+    <ClCompile Include="src\NotRed\Script\ScriptEngineRegistry.cpp" />
+    <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
   </ItemGroup>
 </Project>
