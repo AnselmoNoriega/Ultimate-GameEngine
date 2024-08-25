@@ -30,7 +30,6 @@ group "Dependencies"
 include "NotRed/vendor/GLFW"
 include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
-include "NotRed/vendor/yaml-cpp"
 group ""
 
 group "Core"
