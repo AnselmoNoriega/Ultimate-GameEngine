@@ -13,12 +13,7 @@
     <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\EnvironmentIrradiance\EnvironmentIrradianceComp.glsl" />
-    <None Include="Assets\Shaders\EnvironmentMipFilter\EnvironmentMipFilterComp.glsl" />
-    <None Include="Assets\Shaders\EquirectangularToCubeMap\EquirectangularToCubeMap.comp" />
-    <None Include="Assets\Shaders\Renderer2D\Renderer2D.vert" />
-    <None Include="Assets\Shaders\Renderer2D\Renderer2D.frag" />
-    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_Line.vert" />
-    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_Line.frag" />
+    <None Include="Assets\Shaders\Outline\Outline.vert" />
+    <None Include="Assets\Shaders\Outline\Outline.frag" />
   </ItemGroup>
 </Project>

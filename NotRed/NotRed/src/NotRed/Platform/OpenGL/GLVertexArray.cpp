@@ -37,8 +37,9 @@ namespace NR
 
 	GLVertexArray::~GLVertexArray()
 	{
-		Renderer::Submit([this]() {
-			glDeleteVertexArrays(1, &mID);
+		GLuint rendererID = mID;
+		Renderer::Submit([rendererID]() {
+			glDeleteVertexArrays(1, &rendererID);
 			});
 	}
 

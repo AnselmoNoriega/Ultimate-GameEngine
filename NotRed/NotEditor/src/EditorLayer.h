@@ -2,18 +2,19 @@
 
 #include "NotRed.h"
 
-#include "NotRed/ImGui/ImGuiLayer.h"
-#include "imgui/imgui_internal.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define GLmENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 #include <string>
 
+#include "NotRed/ImGui/ImGuiLayer.h"
+#include "imgui/imgui_internal.h"
+
 #include "NotRed/Editor/SceneHierarchyPanel.h"
+#include "NotRed/Editor/EditorCamera.h"
 
 namespace NR
 {
@@ -51,6 +52,7 @@ namespace NR
 		void Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
 
 		void ShowBoundingBoxes(bool show, bool onTop = false);
+		void SelectEntity(Entity entity);
 
 	private:
 		std::pair<float, float> GetMouseViewportSpace();
@@ -59,21 +61,24 @@ namespace NR
 		struct SelectedSubmesh
 		{
 			Entity EntityObj;
-			Submesh* Mesh;
-			float Distance;
+			Submesh* Mesh = nullptr;
+			float Distance = 0.0f;
 		};
+
 		void Selected(const SelectedSubmesh& selectionContext);
+		void EntityDeleted(Entity e);
 		Ray CastMouseRay();
+
+		void ScenePlay();
+		void SceneStop();
 
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 
-		Ref<Scene> mScene;
-		Ref<Scene> mSphereScene;
 		Ref<Scene> mActiveScene;
+		Ref<Scene> mRuntimeScene, mEditorScene;
 
-		Entity mMeshEntity;
-		Entity mCameraEntity;
+		EditorCamera mEditorCamera;
 
 		Ref<Shader> mBrushShader;
 		Ref<Material> mSphereBaseMaterial;
@@ -127,6 +132,7 @@ namespace NR
 
 		// Editor resources
 		Ref<Texture2D> mCheckerboardTex;
+		Ref<Texture2D> mPlayButtonTex;
 
 		glm::vec2 mViewportBounds[2];
 		float mSnapValue = 0.5f;
@@ -137,6 +143,17 @@ namespace NR
 
 		bool mUIShowBoundingBoxes = false;
 		bool mUIShowBoundingBoxesOnTop = false;
+
+		bool mViewportPanelMouseOver = false;
+		bool mViewportPanelFocused = false;
+
+		enum class SceneState
+		{
+			Edit,
+			Play,
+			Pause
+		};
+		SceneState mSceneState = SceneState::Edit;
 
 		enum class SelectionMode
 		{

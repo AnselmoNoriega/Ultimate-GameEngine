@@ -39,7 +39,8 @@ namespace NR
 		glm::mat4& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
 		const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
 
-		operator uint32_t () const { return (uint32_t)mEntityHandle; }
+		operator uint32_t() const { return (uint32_t)mEntityHandle; }
+		operator entt::entity() const { return mEntityHandle; }
 		operator bool() const { return (uint32_t)mEntityHandle && mScene; }
 
 		bool operator==(const Entity& other) const
@@ -52,6 +53,9 @@ namespace NR
 			return !(*this == other);
 		}
 
+		UUID GetID() { return GetComponent<IDComponent>().ID; }
+		UUID GetSceneID() { return mScene->GetID(); }
+
 	private:
 		Entity(const std::string& name);
 
@@ -60,6 +64,7 @@ namespace NR
 		Scene* mScene = nullptr;
 
 		friend class Scene;
+		friend class SceneSerializer;
 		friend class ScriptEngine;
 	};
 

@@ -3,6 +3,7 @@
 
 #include <imgui.h>
 
+#include "NotRed/Core/Application.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Script/ScriptEngine.h"
 #include <assimp/scene.h>
@@ -24,6 +25,17 @@ namespace NR
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene)
     {
         mContext = scene;
+        mSelectionContext = {};
+        if (mSelectionContext && false)
+        {
+            // Try and find same entity in new scene
+            auto& entityMap = mContext->GetEntityMap();
+            UUID selectedEntityID = mSelectionContext.GetID();
+            if (entityMap.find(selectedEntityID) != entityMap.end())
+            {
+                mSelectionContext = entityMap.at(selectedEntityID);
+            }
+        }
     }
 
     void SceneHierarchyPanel::SetSelected(Entity entity)
@@ -35,42 +47,73 @@ namespace NR
     {
         ImGui::Begin("Scene Hierarchy");
 
-        uint32_t entityCount = 0, meshCount = 0;
-        auto view = mContext->mRegistry.view<TagComponent>();
-        view.each([&](entt::entity entity, auto& name)
-            {
-                DrawEntityNode(Entity(entity, mContext.Raw()));
-            });
-
-        if (ImGui::BeginPopupContextWindow(0, 1))
+        if (mContext)
         {
-            if (ImGui::MenuItem("Create Empty Entity"))
+            uint32_t entityCount = 0, meshCount = 0;
+            auto view = mContext->mRegistry.view<IDComponent>();
+            view.each([&](entt::entity entity, auto id)
+                {
+                    DrawEntityNode(Entity(entity, mContext.Raw()));
+                });
+
+            if (ImGui::BeginPopupContextWindow(0, 1))
             {
-                mContext->CreateEntity("Empty Entity");
+                if (ImGui::MenuItem("Create Empty Entity"))
+                {
+                    mContext->CreateEntity("Empty Entity");
+                }
+                ImGui::EndPopup();
             }
-            ImGui::EndPopup();
-        }
 
-        ImGui::End();
+            ImGui::End();
 
-        ImGui::Begin("Properties");
+            ImGui::Begin("Properties");
 
-        if (mSelectionContext)
-        {
-            DrawComponents(mSelectionContext);
-            /*auto mesh = mSelectionContext;
+            if (mSelectionContext)
             {
-                auto [translation, rotation, scale] = GetTransformDecomposition(transform);
-                ImGui::Text("World Transform");
-                ImGui::Text("  Translation: %.2f, %.2f, %.2f", translation.x, translation.y, translation.z);
-                ImGui::Text("  Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
+                DrawComponents(mSelectionContext);
+                if (ImGui::Button("Add Component"))
+                {
+                    ImGui::OpenPopup("AddComponentPanel");
+                }
+
+                if (ImGui::BeginPopup("AddComponentPanel"))
+                {
+                    if (!mSelectionContext.HasComponent<CameraComponent>())
+                    {
+                        if (ImGui::Button("Camera"))
+                        {
+                            mSelectionContext.AddComponent<CameraComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<MeshComponent>())
+                    {
+                        if (ImGui::Button("Mesh"))
+                        {
+                            mSelectionContext.AddComponent<MeshComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<ScriptComponent>())
+                    {
+                        if (ImGui::Button("Script"))
+                        {
+                            mSelectionContext.AddComponent<ScriptComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<SpriteRendererComponent>())
+                    {
+                        if (ImGui::Button("Sprite Renderer"))
+                        {
+                            mSelectionContext.AddComponent<SpriteRendererComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    ImGui::EndPopup();
+                }
             }
-            {
-                auto [translation, rotation, scale] = GetTransformDecomposition(localTransform);
-                ImGui::Text("Local Transform");
-                ImGui::Text("  Translation: %.2f, %.2f, %.2f", translation.x, translation.y, translation.z);
-                ImGui::Text("  Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
-            }*/
         }
 
         ImGui::End();
@@ -105,6 +148,10 @@ namespace NR
         if (ImGui::IsItemClicked())
         {
             mSelectionContext = entity;
+            if (mSelectionChangedCallback)
+            {
+                mSelectionChangedCallback(mSelectionContext);
+            }
         }
 
         bool entityDeleted = false;
@@ -134,6 +181,7 @@ namespace NR
             {
                 mSelectionContext = {};
             }
+            mEntityDeletedCallback(entity);
         }
     }
 
@@ -214,7 +262,7 @@ namespace NR
         ImGui::Columns(2);
     }
 
-    static bool Property(const char* label, std::string& value)
+    static bool Property(const char* label, std::string& value, bool error = false)
     {
         bool modified = false;
 
@@ -229,10 +277,21 @@ namespace NR
         sIDBuffer[1] = '#';
         memset(sIDBuffer + 2, 0, 14);
         itoa(sCounter++, sIDBuffer + 2, 16);
+
+        if (error)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 2.0f));
+        }
+
         if (ImGui::InputText(sIDBuffer, buffer, 256))
         {
             value = buffer;
             modified = true;
+        }
+
+        if (error)
+        {
+            ImGui::PopStyleColor();
         }
 
         ImGui::PopItemWidth();
@@ -329,6 +388,53 @@ namespace NR
         return modified;
     }
 
+
+    static bool Property(const char* label, glm::vec3& value, float delta = 0.1f)
+    {
+        bool modified = false;
+
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        itoa(sCounter++, sIDBuffer + 2, 16);
+        if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
+        {
+            modified = true;
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return modified;
+    }
+
+    static bool Property(const char* label, glm::vec4& value, float delta = 0.1f)
+    {
+        bool modified = false;
+
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        itoa(sCounter++, sIDBuffer + 2, 16);
+        if (ImGui::DragFloat4(sIDBuffer, glm::value_ptr(value), delta))
+        {
+            modified = true;
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return modified;
+    }
+
     static void EndPropertyGrid()
     {
         ImGui::Columns(1);
@@ -338,6 +444,8 @@ namespace NR
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
         ImGui::AlignTextToFramePadding();
+
+        auto id = entity.GetComponent<IDComponent>().ID;
 
         {
             auto& tag = entity.GetComponent<TagComponent>().Tag;
@@ -350,22 +458,40 @@ namespace NR
             }
         }
 
+        ImGui::SameLine();
+        ImGui::TextDisabled("%llx", id);
+
         ImGui::Separator();
 
         {
             auto& tc = entity.GetComponent<TransformComponent>();
-            if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(MeshComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Transform"))
+            if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Transform"))
             {
-                auto [translation, rotation, scale] = GetTransformDecomposition(tc);
+                auto [translation, rotationQuat, scale] = GetTransformDecomposition(tc);
+                glm::vec3 rotation = glm::degrees(glm::eulerAngles(rotationQuat));
 
                 ImGui::Columns(2);
                 ImGui::Text("Translation");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
 
+                bool updateTransform = false;
+
                 if (ImGui::DragFloat3("##translation", glm::value_ptr(translation), 0.25f))
                 {
-                    tc.Transform[3] = glm::vec4(translation, 1.0f);
+                    updateTransform = true;
+                }
+
+                ImGui::PopItemWidth();
+                ImGui::NextColumn();
+
+                ImGui::Text("Rotation");
+                ImGui::NextColumn();
+                ImGui::PushItemWidth(-1);
+
+                if (ImGui::DragFloat3("##rotation", glm::value_ptr(rotation), 0.25f))
+                {
+                    updateTransform = true;
                 }
 
                 ImGui::PopItemWidth();
@@ -377,7 +503,7 @@ namespace NR
 
                 if (ImGui::DragFloat3("##scale", glm::value_ptr(scale), 0.25f))
                 {
-
+                    updateTransform = true;
                 }
 
                 ImGui::PopItemWidth();
@@ -385,8 +511,13 @@ namespace NR
 
                 ImGui::Columns(1);
 
-                // ImGui::Text("Translation: %.2f, %.2f, %.2f", translation.x, translation.y, translation.z);
-                // ImGui::Text("Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
+                if (updateTransform)
+                {
+                    tc.Transform = glm::translate(glm::mat4(1.0f), translation) *
+                        glm::toMat4(glm::quat(glm::radians(rotation))) *
+                        glm::scale(glm::mat4(1.0f), scale);
+                }
+
                 ImGui::TreePop();
             }
         }
@@ -399,15 +530,35 @@ namespace NR
             auto& mc = entity.GetComponent<MeshComponent>();
             if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Mesh"))
             {
-                ImGui::BeginDisabled(true);
+                ImGui::Columns(3);
+                ImGui::SetColumnWidth(0, 100);
+                ImGui::SetColumnWidth(1, 300);
+                ImGui::SetColumnWidth(2, 40);
+                ImGui::Text("File Path");
+                ImGui::NextColumn();
+                ImGui::PushItemWidth(-1);
+                ImGui::BeginDisabled(true)
+                    ;
                 if (mc.MeshObj)
                 {
-                    ImGui::InputText("File Path", (char*)mc.MeshObj->GetFilePath().c_str(), 256);
+                    ImGui::InputText("##meshfilepath", (char*)mc.MeshObj->GetFilePath().c_str(), 256);
                 }
                 else
                 {
-                    ImGui::InputText("File Path", (char*)"Null", 256);
+                    ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
                 }
+                ImGui::PopItemWidth();
+                ImGui::NextColumn();
+                if (ImGui::Button("...##openmesh"))
+                {
+                    std::string file = Application::Get().OpenFile();
+                    if (!file.empty())
+                    {
+                        mc.MeshObj = Ref<Mesh>::Create(file);
+                    }
+                }
+                ImGui::NextColumn();
+                ImGui::Columns(1);
                 ImGui::EndDisabled();
                 ImGui::TreePop();
             }
@@ -419,6 +570,69 @@ namespace NR
             auto& cc = entity.GetComponent<CameraComponent>();
             if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(CameraComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Camera"))
             {
+                const char* projTypeStrings[] = { "Perspective", "Orthographic" };
+                const char* currentProj = projTypeStrings[(int)cc.CameraObj.GetProjectionType()];
+                if (ImGui::BeginCombo("Projection", currentProj))
+                {
+                    for (int type = 0; type < 2; ++type)
+                    {
+                        bool is_selected = (currentProj == projTypeStrings[type]);
+                        if (ImGui::Selectable(projTypeStrings[type], is_selected))
+                        {
+                            currentProj = projTypeStrings[type];
+                            cc.CameraObj.SetProjectionType((SceneCamera::ProjectionType)type);
+                        }
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                BeginPropertyGrid();
+                if (cc.CameraObj.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+                {
+                    float verticalFOV = cc.CameraObj.GetPerspectiveVerticalFOV();
+                    if (Property("Vertical FOV", verticalFOV))
+                    {
+                        cc.CameraObj.SetPerspectiveVerticalFOV(verticalFOV);
+                    }
+
+                    float nearClip = cc.CameraObj.GetPerspectiveNearClip();
+                    if (Property("Near Clip", nearClip))
+                    {
+                        cc.CameraObj.SetPerspectiveNearClip(nearClip);
+                    }
+                    ImGui::SameLine();
+                    float farClip = cc.CameraObj.GetPerspectiveFarClip();
+                    if (Property("Far Clip", farClip))
+                    {
+                        cc.CameraObj.SetPerspectiveFarClip(farClip);
+                    }
+                }
+
+                // Orthographic parameters
+                else if (cc.CameraObj.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
+                {
+                    float orthoSize = cc.CameraObj.GetOrthographicSize();
+                    if (Property("Size", orthoSize))
+                    {
+                        cc.CameraObj.SetOrthographicSize(orthoSize);
+                    }
+
+                    float nearClip = cc.CameraObj.GetOrthographicNearClip();
+                    if (Property("Near Clip", nearClip))
+                    {
+                        cc.CameraObj.SetOrthographicNearClip(nearClip);
+                    }
+                    ImGui::SameLine();
+                    float farClip = cc.CameraObj.GetOrthographicFarClip();
+                    if (Property("Far Clip", farClip))
+                    {
+                        cc.CameraObj.SetOrthographicFarClip(farClip);
+                    }
+                }
+
+                EndPropertyGrid();
                 ImGui::TreePop();
             }
             ImGui::Separator();
@@ -441,57 +655,129 @@ namespace NR
             if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(ScriptComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Script"))
             {
                 BeginPropertyGrid();
-                Property("Module Name", sc.ModuleName.c_str());
+                std::string oldName = sc.ModuleName;
+                if (Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName)))
+                {
+                    if (ScriptEngine::ModuleExists(oldName))
+                    {
+                        ScriptEngine::ShutdownScriptEntity(entity, oldName);
+                    }
+
+                    if (ScriptEngine::ModuleExists(sc.ModuleName))
+                    {
+                        ScriptEngine::InitScriptEntity(entity);
+                    }
+                }
 
                 // Public Fields
-                auto& fieldMap = ScriptEngine::GetFieldMap();
-                if (fieldMap.find(sc.ModuleName) != fieldMap.end())
+                if (ScriptEngine::ModuleExists(sc.ModuleName))
                 {
-                    auto& publicFields = fieldMap.at(sc.ModuleName);
-                    for (auto& field : publicFields)
+                    EntityInstanceData& entityInstanceData = ScriptEngine::GetEntityInstanceData(entity.GetSceneID(), id);
+                    auto& moduleFieldMap = entityInstanceData.ModuleFieldMap;
+                    if (moduleFieldMap.find(sc.ModuleName) != moduleFieldMap.end())
                     {
-                        switch (field.Type)
+                        auto& publicFields = moduleFieldMap.at(sc.ModuleName);
+                        for (auto& [name, field] : publicFields)
                         {
-                        case FieldType::Int:
-                        {
-                            int value = field.GetValue<int>();
-                            if (Property(field.Name.c_str(), value))
+                            bool isRuntime = mContext->mIsPlaying && field.IsRuntimeAvailable();
+                            switch (field.Type)
                             {
-                                field.SetValue(value);
+                            case FieldType::Int:
+                            {
+                                int value = isRuntime ? field.GetValue<int>() : field.GetStoredValue<int>();
+                                if (Property(field.Name.c_str(), value))
+                                {
+                                    if (isRuntime)
+                                    {
+                                        field.SetValue(value);
+                                    }
+                                    else
+                                    {
+                                        field.SetStoredValue(value);
+                                    }
+                                }
+                                break;
                             }
                             break;
-                        }
-                        case FieldType::Float:
-                        {
-                            float value = field.GetValue<float>();
-                            if (Property(field.Name.c_str(), value, 0.2f))
+                            case FieldType::Float:
                             {
-                                field.SetValue(value);
+                                float value = isRuntime ? field.GetValue<float>() : field.GetStoredValue<float>();
+                                if (Property(field.Name.c_str(), value, 0.2f))
+                                {
+                                    if (isRuntime)
+                                    {
+                                        field.SetValue(value);
+                                    }
+                                    else
+                                    {
+                                        field.SetStoredValue(value);
+                                    }
+                                }
+                                break;
                             }
-                            break;
-                        }
-                        case FieldType::Vec2:
-                        {
-                            glm::vec2 value = field.GetValue<glm::vec2>();
-                            if (Property(field.Name.c_str(), value, 0.2f))
+                            case FieldType::Vec2:
                             {
-                                field.SetValue(value);
+                                glm::vec2 value = isRuntime ? field.GetValue<glm::vec2>() : field.GetStoredValue<glm::vec2>();
+                                if (Property(field.Name.c_str(), value, 0.2f))
+                                {
+                                    if (isRuntime)
+                                    {
+                                        field.SetValue(value);
+                                    }
+                                    else
+                                    {
+                                        field.SetStoredValue(value);
+                                    }
+                                }
+                                break;
                             }
-                            break;
-                        }
+                            case FieldType::Vec3:
+                            {
+                                glm::vec3 value = isRuntime ? field.GetValue<glm::vec3>() : field.GetStoredValue<glm::vec3>();
+                                if (Property(field.Name.c_str(), value, 0.2f))
+                                {
+                                    if (isRuntime)
+                                    {
+                                        field.SetValue(value);
+                                    }
+                                    else
+                                    {
+                                        field.SetStoredValue(value);
+                                    }
+                                }
+                                break;
+                            }
+                            case FieldType::Vec4:
+                            {
+                                glm::vec4 value = isRuntime ? field.GetValue<glm::vec4>() : field.GetStoredValue<glm::vec4>();
+                                if (Property(field.Name.c_str(), value, 0.2f))
+                                {
+                                    if (isRuntime)
+                                    {
+                                        field.SetValue(value);
+                                    }
+                                    else
+                                    {
+                                        field.SetStoredValue(value);
+                                    }
+                                }
+                                break;
+                            }
+                            }
                         }
                     }
                 }
 
                 EndPropertyGrid();
+#if TODO
                 if (ImGui::Button("Run Script"))
                 {
                     ScriptEngine::CreateEntity(entity);
                 }
+#endif
                 ImGui::TreePop();
             }
             ImGui::Separator();
         }
-
     }
 }

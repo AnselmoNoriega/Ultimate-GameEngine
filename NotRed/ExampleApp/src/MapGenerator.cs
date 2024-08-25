@@ -20,6 +20,8 @@ namespace Example
         public Vector2 Offset = new Vector2(13.4f, 6.26f);
         public float NoiseScale = 0.5f;
 
+        public float Speed = 0.0f;
+
         public void GenerateMap()
         {
             //float[,] noiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale);
@@ -64,11 +66,17 @@ namespace Example
             GenerateMap();
         }
 
-        void Update(float ts)
+        void Update(float dt)
         {
-
+            Matrix4 transform = GetTransform();
+            Vector3 translation = transform.Translation;
+            translation.y += dt * Speed;
+            if (Input.IsKeyPressed(KeyCode.Space))
+            {
+                translation.y -= 10.0f;
+            }
+            transform.Translation = translation;
+            SetTransform(transform);
         }
-
-
     }
 }

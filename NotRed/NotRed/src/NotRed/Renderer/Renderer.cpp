@@ -181,7 +181,7 @@ namespace NR
         const auto& materials = mesh->GetMaterials();
         for (Submesh& submesh : mesh->mSubmeshes)
         {
-            auto material = materials[submesh.MaterialIndex];
+            auto material = overrideMaterial ? overrideMaterial : materials[submesh.MaterialIndex];
             auto shader = material->GetShader();
             material->Bind();
 

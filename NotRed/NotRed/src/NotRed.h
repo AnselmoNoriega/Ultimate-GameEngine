@@ -35,4 +35,6 @@
 // Scenes----------------------------------
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Scene/Scene.h"
+#include "NotRed/Scene/SceneCamera.h"
+#include "NotRed/Scene/SceneSerializer.h"
 #include "NotRed/Scene/Components.h"

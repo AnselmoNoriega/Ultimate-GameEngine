@@ -36,7 +36,8 @@ namespace NR
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* layer);
 
-        std::string OpenFile(const std::string& filter) const;
+        std::string OpenFile(const char* filter = "All\0*.*\0") const;
+        std::string SaveFile(const char* filter = "All\0*.*\0") const;
 
         inline Window& GetWindow() { return *mWindow; }
 

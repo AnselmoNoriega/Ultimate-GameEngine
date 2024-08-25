@@ -14,7 +14,6 @@
 
 namespace NR
 {
-    extern std::unordered_map<uint32_t, Scene*> sActiveScenes;
     extern std::unordered_map<MonoType*, std::function<bool(Entity&)>> sHasComponentFuncs;
     extern std::unordered_map<MonoType*, std::function<void(Entity&)>> sCreateComponentFuncs;
 }
@@ -54,63 +53,75 @@ namespace NR::Script
     // Entity //////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
 
-    void NR_Entity_GetTransform(uint32_t sceneID, uint32_t entityID, glm::mat4* outTransform)
+    void NR_Entity_GetTransform(uint64_t entityID, glm::mat4* outTransform)
     {
-        NR_CORE_ASSERT(sActiveScenes.find(sceneID) != sActiveScenes.end(), "Invalid Scene ID!");
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Scene* scene = sActiveScenes[sceneID];
-        Entity entity((entt::entity)entityID, scene);
+        Entity entity = entityMap.at(entityID);
         auto& transformComponent = entity.GetComponent<TransformComponent>();
         memcpy(outTransform, glm::value_ptr(transformComponent.Transform), sizeof(glm::mat4));
     }
 
-    void NR_Entity_SetTransform(uint32_t sceneID, uint32_t entityID, glm::mat4* inTransform)
+    void NR_Entity_SetTransform(uint64_t entityID, glm::mat4* inTransform)
     {
-        NR_CORE_ASSERT(sActiveScenes.find(sceneID) != sActiveScenes.end(), "Invalid Scene ID!");
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Scene* scene = sActiveScenes[sceneID];
-        Entity entity((entt::entity)entityID, scene);
+        Entity entity = entityMap.at(entityID);
         auto& transformComponent = entity.GetComponent<TransformComponent>();
         memcpy(glm::value_ptr(transformComponent.Transform), inTransform, sizeof(glm::mat4));
     }
 
-    void NR_Entity_CreateComponent(uint32_t sceneID, uint32_t entityID, void* type)
+    void NR_Entity_CreateComponent(uint64_t entityID, void* type)
     {
-        NR_CORE_ASSERT(sActiveScenes.find(sceneID) != sActiveScenes.end(), "Invalid Scene ID!");
-        MonoType* monoType = mono_reflection_type_get_type((MonoReflectionType*)type);
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Scene* scene = sActiveScenes[sceneID];
-        Entity entity((entt::entity)entityID, scene);
+        Entity entity = entityMap.at(entityID);
+        MonoType* monoType = mono_reflection_type_get_type((MonoReflectionType*)type);
         sCreateComponentFuncs[monoType](entity);
     }
 
-    bool NR_Entity_HasComponent(uint32_t sceneID, uint32_t entityID, void* type)
+    bool NR_Entity_HasComponent(uint64_t entityID, void* type)
     {
-        NR_CORE_ASSERT(sActiveScenes.find(sceneID) != sActiveScenes.end(), "Invalid Scene ID!");
-        MonoType* monoType = mono_reflection_type_get_type((MonoReflectionType*)type);
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Scene* scene = sActiveScenes[sceneID];
-        Entity entity((entt::entity)entityID, scene);
+        Entity entity = entityMap.at(entityID);
+        MonoType* monoType = mono_reflection_type_get_type((MonoReflectionType*)type);
         bool result = sHasComponentFuncs[monoType](entity);
         return result;
     }
 
-    void* NR_MeshComponent_GetMesh(uint32_t sceneID, uint32_t entityID)
+    void* NR_MeshComponent_GetMesh(uint64_t entityID)
     {
-        NR_CORE_ASSERT(sActiveScenes.find(sceneID) != sActiveScenes.end(), "Invalid Scene ID!");
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Scene* scene = sActiveScenes[sceneID];
-        Entity entity((entt::entity)entityID, scene);
+        Entity entity = entityMap.at(entityID);
         auto& meshComponent = entity.GetComponent<MeshComponent>();
         return new Ref<Mesh>(meshComponent.MeshObj);
     }
 
-    void NR_MeshComponent_SetMesh(uint32_t sceneID, uint32_t entityID, Ref<Mesh>* inMesh)
+    void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh)
     {
-        NR_CORE_ASSERT(sActiveScenes.find(sceneID) != sActiveScenes.end(), "Invalid Scene ID!");
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Scene* scene = sActiveScenes[sceneID];
-        Entity entity((entt::entity)entityID, scene);
+        Entity entity = entityMap.at(entityID);
         auto& meshComponent = entity.GetComponent<MeshComponent>();
         meshComponent.MeshObj = inMesh ? *inMesh : nullptr;
     }

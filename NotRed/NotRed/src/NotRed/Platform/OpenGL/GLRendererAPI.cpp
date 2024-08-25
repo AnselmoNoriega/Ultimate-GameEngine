@@ -52,6 +52,7 @@ namespace NR
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glEnable(GL_MULTISAMPLE);
+        glEnable(GL_STENCIL_TEST);
 
         auto& caps = RendererAPI::GetCapabilities();
 
@@ -85,7 +86,7 @@ namespace NR
     void RendererAPI::Clear(float r, float g, float b, float a)
     {
         glClearColor(r, g, b, a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
     void RendererAPI::SetClearColor(float r, float g, float b, float a)

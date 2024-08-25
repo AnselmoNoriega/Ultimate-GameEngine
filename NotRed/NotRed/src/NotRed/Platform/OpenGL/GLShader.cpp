@@ -244,12 +244,12 @@ namespace NR
             output.resize(in.tellg());
             in.seekg(0, std::ios::beg);
             in.read(&output[0], output.size());
-            in.close();
         }
         else if (!isCompute)
         {
             NR_CORE_ASSERT(false, "Could not open file");
         }
+        in.close();
     }
 
     void GLShader::Parse(const std::string& source, ShaderDomain type)

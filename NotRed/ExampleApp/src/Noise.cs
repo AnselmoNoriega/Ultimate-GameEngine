@@ -42,16 +42,16 @@ namespace Example
             float halfHeight = mapHeight / 2f;
 
 
-            for (int y = 0; y < mapHeight; y++)
+            for (int y = 0; y < mapHeight; ++y)
             {
-                for (int x = 0; x < mapWidth; x++)
+                for (int x = 0; x < mapWidth; ++x)
                 {
 
                     float amplitude = 1;
                     float frequency = 1;
                     float noiseHeight = 0;
 
-                    for (int i = 0; i < octaves; i++)
+                    for (int i = 0; i < octaves; ++i)
                     {
                         float sampleX = (x - halfWidth) / scale * frequency + octaveOffsets[i].x;
                         float sampleY = (y - halfHeight) / scale * frequency + octaveOffsets[i].y;
@@ -75,9 +75,9 @@ namespace Example
                 }
             }
 
-            for (int y = 0; y < mapHeight; y++)
+            for (int y = 0; y < mapHeight; ++y)
             {
-                for (int x = 0; x < mapWidth; x++)
+                for (int x = 0; x < mapWidth; ++x)
                 {
                     noiseMap[x, y] = InverseLerp(minNoiseHeight, maxNoiseHeight, noiseMap[x, y]);
                 }

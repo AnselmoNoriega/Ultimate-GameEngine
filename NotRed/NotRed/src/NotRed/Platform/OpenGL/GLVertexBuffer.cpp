@@ -26,25 +26,30 @@ namespace NR
     {
         mLocalData = Buffer::Copy(data, size);
 
-        Renderer::Submit([=]() {
-            glCreateBuffers(1, &mID);
-            glNamedBufferData(mID, mSize, mLocalData.Data, OpenGLUsage(mUsage));
+        Ref<GLVertexBuffer> instance = this;
+        Renderer::Submit([instance]() mutable
+            {
+                glCreateBuffers(1, &instance->mID);
+                glNamedBufferData(instance->mID, instance->mSize, instance->mLocalData.Data, OpenGLUsage(instance->mUsage));
             });
     }
 
     GLVertexBuffer::GLVertexBuffer(uint32_t size, VertexBufferUsage usage)
         : mSize(size), mUsage(usage)
     {
-        Renderer::Submit([this]() {
-            glCreateBuffers(1, &mID);
-            glNamedBufferData(mID, mSize, nullptr, OpenGLUsage(mUsage));
+        Ref<GLVertexBuffer> instance = this;
+        Renderer::Submit([instance]() mutable
+            {
+                glCreateBuffers(1, &instance->mID);
+                glNamedBufferData(instance->mID, instance->mSize, nullptr, OpenGLUsage(instance->mUsage));
             });
     }
 
     GLVertexBuffer::~GLVertexBuffer()
     {
-        Renderer::Submit([this]() {
-            glDeleteBuffers(1, &mID);
+        GLuint rendererID = mID;
+        Renderer::Submit([rendererID]() {
+            glDeleteBuffers(1, &rendererID);
             });
     }
 
@@ -53,15 +58,17 @@ namespace NR
         mLocalData = Buffer::Copy(data, size);
         mSize = size;
 
-        Renderer::Submit([this, offset]() {
-            glNamedBufferSubData(mID, offset, mSize, mLocalData.Data);
+        Ref<GLVertexBuffer> instance = this;
+        Renderer::Submit([instance, offset]() {
+            glNamedBufferSubData(instance->mID, offset, instance->mSize, instance->mLocalData.Data);
             });
     }
 
     void GLVertexBuffer::Bind() const
     {
-        Renderer::Submit([this]() {
-            glBindBuffer(GL_ARRAY_BUFFER, mID);
+        Ref<const GLVertexBuffer> instance = this;
+        Renderer::Submit([instance]() {
+            glBindBuffer(GL_ARRAY_BUFFER, instance->mID);
             });
     }
 

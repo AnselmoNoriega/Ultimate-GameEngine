@@ -16,6 +16,9 @@ namespace NR
 		void SetSelected(Entity entity);
 
 		void ImGuiRender();
+
+		void SetSelectionChangedCallback(const std::function<void(Entity)>& func) { mSelectionChangedCallback = func; }
+		void SetEntityDeletedCallback(const std::function<void(Entity)>& func) { mEntityDeletedCallback = func; }
 		
 	private:
 		void DrawEntityNode(Entity entity);
@@ -26,5 +29,7 @@ namespace NR
 	private:
 		Ref<Scene> mContext;
 		Entity mSelectionContext;
+
+		std::function<void(Entity)> mSelectionChangedCallback, mEntityDeletedCallback;
 	};
 }

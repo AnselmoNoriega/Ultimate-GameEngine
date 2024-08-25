@@ -30,6 +30,7 @@ group "Dependencies"
 include "NotRed/vendor/GLFW"
 include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
+include "NotRed/vendor/yaml-cpp"
 group ""
 
 group "Core"
@@ -53,7 +54,11 @@ project "NotRed"
 		"%{prj.name}/src/**.hpp", 
 		"%{prj.name}/src/**.cpp",
 
-		"%{prj.name}/vendor/FastNoise/**.cpp"
+		"%{prj.name}/vendor/FastNoise/**.cpp",
+
+		"%{prj.name}/vendor/yaml-cpp/src/**.cpp",
+		"%{prj.name}/vendor/yaml-cpp/src/**.h",
+		"%{prj.name}/vendor/yaml-cpp/include/**.h"
 	}
 
 	includedirs
@@ -68,7 +73,8 @@ project "NotRed"
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.FastNoise}",
 		"%{prj.name}/vendor/assimp/include",
-		"%{prj.name}/vendor/stb_image"
+		"%{prj.name}/vendor/stb_image",
+		"%{prj.name}/vendor/yaml-cpp/include"
 	}
 	
 	links 
@@ -80,7 +86,7 @@ project "NotRed"
 		"%{LibraryDir.Mono}"
 	}
 	
-	filter "files:NotRed/vendor/FastNoise/**.cpp"
+	filter "files:NotRed/vendor/FastNoise/**.cpp or files:NotRed/vendor/yaml-cpp/src/**.cpp"
    	flags { "NoPCH" }
 
 	filter "system:windows"
@@ -210,7 +216,17 @@ project "NotEditor"
 		}
 group ""
 
-group "Examples"
+workspace "Sandbox"
+	architecture "x64"
+	targetdir "build"
+
+	configurations 
+	{ 
+		"Debug", 
+		"Release",
+		"Dist"
+	}
+
 project "ExampleApp"
 	location "ExampleApp"
 	kind "SharedLib"
@@ -228,4 +244,3 @@ project "ExampleApp"
 	{
 		"NotRed-ScriptCore"
 	}
-group ""

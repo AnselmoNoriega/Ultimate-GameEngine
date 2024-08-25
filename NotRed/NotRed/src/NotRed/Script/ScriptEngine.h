@@ -23,40 +23,86 @@ namespace NR
 		Vec2, Vec3, Vec4
 	};
 
-	struct EntityInstance;
+	const char* FieldTypeToString(FieldType type);
+
+	struct EntityScriptClass;
+	struct EntityInstance
+	{
+		EntityScriptClass* ScriptClass = nullptr;
+
+		uint32_t Handle = 0;
+		Scene* SceneInstance = nullptr;
+
+		MonoObject* GetInstance();
+	};
 
 	struct PublicField
 	{
 		std::string Name;
 		FieldType Type;
+		
+		PublicField(const std::string& name, FieldType type);
+		PublicField(const PublicField&) = delete;
+		PublicField(PublicField&& other);
+		~PublicField();
 
-		PublicField(const std::string& name, FieldType type)
-			: Name(name), Type(type) {}
+		void CopyStoredValueToRuntime();
+		bool IsRuntimeAvailable() const;
+
+		template<typename T>
+		T GetStoredValue() const
+		{
+			T value;
+			GetStoredValue_Internal(&value);
+			return value;
+		}
+
+		template<typename T>
+		void SetStoredValue(T value) const
+		{
+			SetStoredValue_Internal(&value);
+		}
 
 		template<typename T>
 		T GetValue() const
 		{
 			T value;
-			GetValue_Internal(&value);
+			GetRuntimeValue_Internal(&value);
 			return value;
 		}
 
 		template<typename T>
 		void SetValue(T value) const
 		{
-			SetValue_Internal(&value);
+			SetRuntimeValue_Internal(&value);
 		}
+
+		void SetStoredValueRaw(void* src);
+
+	private:
+		uint8_t* AllocateBuffer(FieldType type);
+		void SetStoredValue_Internal(void* value) const;
+		void GetStoredValue_Internal(void* outValue) const;
+		void SetRuntimeValue_Internal(void* value) const;
+		void GetRuntimeValue_Internal(void* outValue) const;
+
 	private:
 		EntityInstance* mEntityInstance;
 		MonoClassField* mMonoClassField;
-
-		void SetValue_Internal(void* value) const;
-		void GetValue_Internal(void* outValue) const;
+		uint8_t* mStoredValueBuffer = nullptr;
 
 		friend class ScriptEngine;
 	};
 
-	using ScriptModuleFieldMap = std::unordered_map<std::string, std::vector<PublicField>>;
+	using ScriptModuleFieldMap = std::unordered_map<std::string, std::unordered_map<std::string, PublicField>>;
+
+	struct EntityInstanceData
+	{
+		EntityInstance Instance;
+		ScriptModuleFieldMap ModuleFieldMap;
+	};
+
+	using EntityInstanceMap = std::unordered_map<UUID, std::unordered_map<UUID, EntityInstanceData>>;
 
 	class ScriptEngine
 	{
@@ -64,11 +110,31 @@ namespace NR
 		static void Init(const std::string& assemblyPath);
 		static void Shutdown();
 
+		static void SceneDestruct(UUID sceneID);
+
+		static void LoadRuntimeAssembly(const std::string& path);
+		static void ReloadAssembly(const std::string& path);
+
+		static void SetSceneContext(const Ref<Scene>& scene);
+		static const Ref<Scene>& GetCurrentSceneContext();
+
+		static void CopyEntityScriptData(UUID dst, UUID src);
+
 		static void CreateEntity(Entity entity);
 
-		static void InitEntity(ScriptComponent& script, uint32_t entityID, uint32_t sceneID);
-		static void UpdateEntity(uint32_t entityID, float dt);
+		static void CreateEntity(UUID sceneID, UUID entityID);
+		static void UpdateEntity(UUID sceneID, UUID entityID, float dt);
 
-		static const ScriptModuleFieldMap& GetFieldMap();
+		static void ScriptComponentDestroyed(UUID sceneID, UUID entityID);
+
+		static bool ModuleExists(const std::string& moduleName);
+		static void InitScriptEntity(Entity entity);
+		static void ShutdownScriptEntity(Entity entity, const std::string& moduleName);
+		static void InstantiateEntityClass(Entity entity);
+
+		static EntityInstanceMap& GetEntityInstanceMap();
+		static EntityInstanceData& GetEntityInstanceData(UUID sceneID, UUID entityID);
+
+		static void ImGuiRender();
 	};
 }

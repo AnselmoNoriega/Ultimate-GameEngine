@@ -19,13 +19,13 @@ namespace NR::Script
     bool NR_Input_IsKeyPressed(KeyCode key);
 
     // Entity
-    void NR_Entity_CreateComponent(uint32_t sceneID, uint32_t entityID, void* type);
-    bool NR_Entity_HasComponent(uint32_t sceneID, uint32_t entityID, void* type);
-    void NR_Entity_GetTransform(uint32_t sceneID, uint32_t entityID, glm::mat4* outTransform);
-    void NR_Entity_SetTransform(uint32_t sceneID, uint32_t entityID, glm::mat4* inTransform);
+    void NR_Entity_CreateComponent(uint64_t entityID, void* type);
+    bool NR_Entity_HasComponent(uint64_t entityID, void* type);
+    void NR_Entity_GetTransform(uint64_t entityID, glm::mat4* outTransform);
+    void NR_Entity_SetTransform(uint64_t entityID, glm::mat4* inTransform);
 
-    void* NR_MeshComponent_GetMesh(uint32_t sceneID, uint32_t entityID);
-    void NR_MeshComponent_SetMesh(uint32_t sceneID, uint32_t entityID, Ref<Mesh>* inMesh);
+    void* NR_MeshComponent_GetMesh(uint64_t entityID);
+    void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
     // Renderer
     // Texture2D
