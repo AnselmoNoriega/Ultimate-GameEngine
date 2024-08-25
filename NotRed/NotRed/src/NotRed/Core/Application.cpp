@@ -182,6 +182,24 @@ namespace NR
 
         if (GetSaveFileNameA(&ofn) == TRUE)
         {
+            const char* ext = strrchr(filter, '.');
+            if (ext != nullptr)
+            {
+                std::string filePath = ofn.lpstrFile;
+                std::string extension = ext;
+
+                if (filePath.find(extension) == std::string::npos)
+                {
+                    filePath += extension;
+                }
+
+                return filePath;
+            }
+
+            return ofn.lpstrFile;
+        }
+        if (GetSaveFileNameA(&ofn) == TRUE)
+        {
             return ofn.lpstrFile;
         }
         return std::string();
