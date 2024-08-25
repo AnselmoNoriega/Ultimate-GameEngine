@@ -4,6 +4,8 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <mono/jit/jit.h>
 
+#include <box2d/box2d.h>
+
 #include "NotRed/Core/Math/Noise.h"
 
 #include "NotRed/Scene/Scene.h"
@@ -126,6 +128,20 @@ namespace NR::Script
         meshComponent.MeshObj = inMesh ? *inMesh : nullptr;
     }
 
+    void NR_RigidBody2DComponent_ApplyLinearImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        body->ApplyLinearImpulse(*(const b2Vec2*)impulse, body->GetWorldCenter() + *(const b2Vec2*)offset, wake);
+    }
+
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)
     {
         return new Ref<Mesh>(new Mesh(mono_string_to_utf8(filepath)));
@@ -209,6 +225,12 @@ namespace NR::Script
     {
         Ref<Material>& instance = *(Ref<Material>*)_this;
         instance->Set(mono_string_to_utf8(uniform), *texture);
+    }
+
+    void NR_MaterialInstance_SetVector4(Ref<MaterialInstance>* _this, MonoString* uniform, glm::vec4* value)
+    {
+        Ref<MaterialInstance>& instance = *(Ref<MaterialInstance>*)_this;
+        instance->Set(mono_string_to_utf8(uniform), *value);
     }
 
     void NR_MaterialInstance_Destructor(Ref<MaterialInstance>* _this)

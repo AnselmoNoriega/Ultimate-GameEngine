@@ -27,6 +27,8 @@ namespace NR::Script
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
+    void NR_RigidBody2DComponent_ApplyLinearImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
+
     // Renderer
     // Texture2D
     void* NR_Texture2D_Constructor(uint32_t width, uint32_t height);
@@ -41,6 +43,7 @@ namespace NR::Script
     void NR_MaterialInstance_Destructor(Ref<MaterialInstance>* _this);
     void NR_MaterialInstance_SetFloat(Ref<MaterialInstance>* _this, MonoString* uniform, float value);
     void NR_MaterialInstance_SetVector3(Ref<MaterialInstance>* _this, MonoString* uniform, glm::vec3* value);
+    void NR_MaterialInstance_SetVector4(Ref<MaterialInstance>* _this, MonoString* uniform, glm::vec4* value);
     void NR_MaterialInstance_SetTexture(Ref<MaterialInstance>* _this, MonoString* uniform, Ref<Texture2D>* texture);
 
     // Mesh

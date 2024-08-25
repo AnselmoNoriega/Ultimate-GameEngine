@@ -45,6 +45,9 @@ namespace NR
 
         float GetTime() const;
 
+        static const char* GetConfigurationName();
+        static const char* GetPlatformName();
+
     private:
         bool OnWindowResize(WindowResizeEvent& e);
         bool OnWindowClose(WindowCloseEvent& e);

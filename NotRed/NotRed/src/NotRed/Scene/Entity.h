@@ -36,6 +36,12 @@ namespace NR
 			return mScene->mRegistry.all_of<T>(mEntityHandle);
 		}
 
+		template<typename T>
+		void RemoveComponent()
+		{
+			mScene->mRegistry.remove<T>(mEntityHandle);
+		}
+
 		glm::mat4& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
 		const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
 

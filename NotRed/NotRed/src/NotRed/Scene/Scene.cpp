@@ -1,6 +1,15 @@
 #include "nrpch.h"
 #include "Scene.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <box2d/box2d.h>
+
+#include "NotRed/Core/Input.h"
+
 #include "Entity.h"
 #include "Components.h"
 
@@ -15,6 +24,11 @@ namespace NR
     struct SceneComponent
     {
         UUID SceneID;
+    };
+
+    struct Box2DWorldComponent
+    {
+        std::unique_ptr<b2World> World;
     };
 
     void ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
@@ -36,9 +50,12 @@ namespace NR
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
+        mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
+
         sActiveScenes[mSceneID] = this;
 
         Init();
+        SetEnvironment(Environment::Load("Assets/Env/HDR_blue_nebulae-1.hdr"));
     }
 
     Scene::~Scene()
@@ -56,6 +73,16 @@ namespace NR
         mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
     }
 
+    static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
+    {
+        glm::vec3 scale, translation, skew;
+        glm::vec4 perspective;
+        glm::quat orientation;
+        glm::decompose(transform, scale, orientation, translation, skew, perspective);
+
+        return { translation, orientation, scale };
+    }
+
     void Scene::Update(float dt)
     {
         {
@@ -68,6 +95,30 @@ namespace NR
                 {
                     ScriptEngine::UpdateEntity(mSceneID, entityID, dt);
                 }
+            }
+        }
+        {
+            auto sceneView = mRegistry.view<Box2DWorldComponent>();
+            auto& box2DWorld = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
+            int32_t velocityIterations = 6;
+            int32_t positionIterations = 2;
+            box2DWorld->Step(dt, velocityIterations, positionIterations);
+
+            auto view = mRegistry.view<RigidBody2DComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+                auto& rb2d = e.GetComponent<RigidBody2DComponent>();
+                b2Body* body = static_cast<b2Body*>(rb2d.RuntimeBody);
+
+                auto& position = body->GetPosition();
+                auto [translation, rotationQuat, scale] = GetTransformDecomposition(transform);
+                glm::vec3 rotation = glm::eulerAngles(rotationQuat);
+
+                transform = glm::translate(glm::mat4(1.0f), { position.x, position.y, transform[3].z }) *
+                    glm::toMat4(glm::quat({ rotation.x, rotation.y, body->GetAngle() })) *
+                    glm::scale(glm::mat4(1.0f), scale);
             }
         }
     }
@@ -139,13 +190,98 @@ namespace NR
     {
         ScriptEngine::SetSceneContext(this);
 
-        auto view = mRegistry.view<ScriptComponent>();
-        for (auto entity : view)
         {
-            Entity e = { entity, this };
-            if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto entity : view)
             {
-                ScriptEngine::InstantiateEntityClass(e);
+                Entity e = { entity, this };
+                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                    ScriptEngine::InstantiateEntityClass(e);
+            }
+        }
+
+        // Box2D physics
+        auto sceneView = mRegistry.view<Box2DWorldComponent>();
+        auto& world = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
+        {
+            auto view = mRegistry.view<RigidBody2DComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+                auto& rigidBody2D = mRegistry.get<RigidBody2DComponent>(entity);
+
+                b2BodyDef bodyDef;
+                if (rigidBody2D.BodyType == RigidBody2DComponent::Type::Static)
+                {
+                    bodyDef.type = b2_staticBody;
+                }
+                else if (rigidBody2D.BodyType == RigidBody2DComponent::Type::Dynamic)
+                {
+                    bodyDef.type = b2_dynamicBody;
+                }
+                else if (rigidBody2D.BodyType == RigidBody2DComponent::Type::Kinematic)
+                {
+                    bodyDef.type = b2_kinematicBody;
+                }
+                bodyDef.position.Set(transform[3].x, transform[3].y);
+
+                auto [translation, rotationQuat, scale] = GetTransformDecomposition(transform);
+                glm::vec3 rotation = glm::eulerAngles(rotationQuat);
+                bodyDef.angle = rotation.z;
+                rigidBody2D.RuntimeBody = world->CreateBody(&bodyDef);
+            }
+        }
+
+        {
+            auto view = mRegistry.view<BoxCollider2DComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& boxCollider2D = mRegistry.get<BoxCollider2DComponent>(entity);
+                if (e.HasComponent<RigidBody2DComponent>())
+                {
+                    auto& rigidBody2D = e.GetComponent<RigidBody2DComponent>();
+                    NR_CORE_ASSERT(rigidBody2D.RuntimeBody);
+                    b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
+
+                    b2PolygonShape polygonShape;
+                    polygonShape.SetAsBox(boxCollider2D.Size.x, boxCollider2D.Size.y);
+
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &polygonShape;
+                    fixtureDef.density = 1.0f;
+                    fixtureDef.friction = 1.0f;
+                    body->CreateFixture(&fixtureDef);
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<CircleCollider2DComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& circleCollider2D = mRegistry.get<CircleCollider2DComponent>(entity);
+                if (e.HasComponent<RigidBody2DComponent>())
+                {
+                    auto& rigidBody2D = e.GetComponent<RigidBody2DComponent>();
+                    NR_CORE_ASSERT(rigidBody2D.RuntimeBody);
+                    b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
+
+                    b2CircleShape circleShape;
+                    circleShape.m_radius = circleCollider2D.Radius;
+
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &circleShape;
+                    fixtureDef.density = 1.0f;
+                    fixtureDef.friction = 1.0f;
+                    body->CreateFixture(&fixtureDef);
+                }
             }
         }
 
@@ -258,6 +394,9 @@ namespace NR
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<RigidBody2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<BoxCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<CircleCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     // Copy to runtime
@@ -286,12 +425,17 @@ namespace NR
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<RigidBody2DComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<BoxCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<CircleCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
 
         const auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetID()) != entityInstanceMap.end())
         {
             ScriptEngine::CopyEntityScriptData(target->GetID(), mSceneID);
         }
+
+        target->SetPhysics2DGravity(GetPhysics2DGravity());
     }
 
     Ref<Scene> Scene::GetScene(UUID uuid)
@@ -302,6 +446,16 @@ namespace NR
         }
 
         return {};
+    }
+
+    float Scene::GetPhysics2DGravity() const
+    {
+        return mRegistry.get<Box2DWorldComponent>(mSceneEntity).World->GetGravity().y;
+    }
+
+    void Scene::SetPhysics2DGravity(float gravity)
+    {
+        mRegistry.get<Box2DWorldComponent>(mSceneEntity).World->SetGravity({ 0.0f, gravity });
     }
 
 

@@ -209,4 +209,10 @@ namespace NR
     void WinWindow::Shutdown()
     {
     }
+
+    void WinWindow::SetTitle(const std::string& title)
+    {
+        mData.Title = title;
+        glfwSetWindowTitle(mWindow, mData.Title.c_str());
+    }
 }

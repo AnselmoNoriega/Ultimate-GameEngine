@@ -15,6 +15,7 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
+IncludeDir["Box2D"] = "NotRed/vendor/box2D/include"
 IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
 IncludeDir["FastNoise"] = "NotRed/vendor/FastNoise"
 IncludeDir["Glad"] = "NotRed/vendor/glad/include"
@@ -30,6 +31,7 @@ group "Dependencies"
 include "NotRed/vendor/GLFW"
 include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
+include "NotRed/vendor/Box2D"
 group ""
 
 group "Core"
@@ -38,7 +40,7 @@ project "NotRed"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -64,6 +66,7 @@ project "NotRed"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/vendor",
+		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.Glm}",
@@ -78,6 +81,7 @@ project "NotRed"
 	
 	links 
 	{ 
+		"Box2D",
 		"GLFW",
 		"Glad",
 		"ImGui",
@@ -129,7 +133,7 @@ project "NotEditor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "on"
+	staticruntime "off"
 	
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -215,6 +219,7 @@ project "NotEditor"
 		}
 group ""
 
+group "External"
 workspace "Sandbox"
 	architecture "x64"
 	targetdir "build"
@@ -243,3 +248,4 @@ project "ExampleApp"
 	{
 		"NotRed-ScriptCore"
 	}
+group ""

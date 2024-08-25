@@ -76,10 +76,10 @@ namespace NR
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern IntPtr GetMesh_Native(ulong entityID);
+        internal static extern IntPtr GetMesh_Native(ulong entityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void SetMesh_Native(ulong entityID, IntPtr unmanagedInstance);
+        internal static extern void SetMesh_Native(ulong entityID, IntPtr unmanagedInstance);
 
     }
 
@@ -96,5 +96,16 @@ namespace NR
     public class SpriteRendererComponent : Component
     {
         // TODO
+    }
+
+    public class RigidBody2DComponent : Component
+    {
+        public void ApplyImpulse(Vector2 impulse, Vector2 offset, bool wake)
+        {
+            ApplyLinearImpulse_Native(Entity.ID, ref impulse, ref offset, wake);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void ApplyLinearImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
     }
 }

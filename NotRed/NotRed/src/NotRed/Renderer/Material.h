@@ -98,7 +98,7 @@ enum class MaterialFlag
 	public:
 		static Ref<MaterialInstance> Create(const Ref<Material>& material);
 
-		MaterialInstance(const Ref<Material>& material);
+		MaterialInstance(const Ref<Material>& material, const std::string& name = "");
 		virtual ~MaterialInstance();
 
 		template <typename T>
@@ -146,11 +146,13 @@ enum class MaterialFlag
 
 		void Bind();
 
+		const std::string& GetName() const { return mName; }
+
 		uint32_t GetFlags() const { return mMaterial->mMaterialFlags; }
 		bool IsFlagActive(MaterialFlag flag) const { return (uint32_t)flag & mMaterial->mMaterialFlags; }
 		void ModifyFlags(MaterialFlag flag, bool addFlag = true);
 
-		Ref<Shader >GetShader() { return mMaterial->mShader; }
+		Ref<Shader >GetShader() const { return mMaterial->mShader; }
 
 	private:
 		friend class Material;
@@ -162,6 +164,8 @@ enum class MaterialFlag
 		void MaterialValueUpdated(ShaderUniformDeclaration* decl);
 
 	private:
+		std::string mName;
+
 		Ref<Material> mMaterial;
 
 		Buffer mVSUniformStorageBuffer;

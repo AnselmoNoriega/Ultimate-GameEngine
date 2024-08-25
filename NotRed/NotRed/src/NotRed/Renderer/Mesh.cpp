@@ -233,7 +233,7 @@ namespace NR
                 auto aiMaterial = scene->mMaterials[i];
                 auto aiMaterialName = aiMaterial->GetName();
 
-                auto mi = Ref<MaterialInstance>::Create(mBaseMaterial);
+                auto mi = Ref<MaterialInstance>::Create(mBaseMaterial, aiMaterialName.data);
                 mMaterials[i] = mi;
 
                 NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
@@ -573,11 +573,8 @@ namespace NR
 
         float deltaTime = (float)(nodeAnim->mPositionKeys[nextPositionIndex].mTime - nodeAnim->mPositionKeys[positionIndex].mTime);
         float factor = (animationTime - (float)nodeAnim->mPositionKeys[positionIndex].mTime) / deltaTime;
-        if (factor < 0.0f)
-        {
-            factor = 0.0f;
-        }
         NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
+        factor = glm::clamp(factor, 0.0f, 1.0f);
 
         const aiVector3D& start = nodeAnim->mPositionKeys[positionIndex].mValue;
         const aiVector3D& end = nodeAnim->mPositionKeys[nextPositionIndex].mValue;
@@ -601,11 +598,8 @@ namespace NR
 
         float DeltaTime = (float)(nodeAnim->mRotationKeys[nextRotationIndex].mTime - nodeAnim->mRotationKeys[rotationIndex].mTime);
         float factor = (animationTime - (float)nodeAnim->mRotationKeys[rotationIndex].mTime) / DeltaTime;
-        if (factor < 0.0f)
-        {
-            factor = 0.0f;
-        }
         NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
+        factor = glm::clamp(factor, 0.0f, 1.0f);
 
         const aiQuaternion& startRotationQ = nodeAnim->mRotationKeys[rotationIndex].mValue;
         const aiQuaternion& endRotationQ = nodeAnim->mRotationKeys[nextRotationIndex].mValue;
@@ -630,11 +624,8 @@ namespace NR
 
         float deltaTime = (float)(nodeAnim->mScalingKeys[nextIndex].mTime - nodeAnim->mScalingKeys[index].mTime);
         float factor = (animationTime - (float)nodeAnim->mScalingKeys[index].mTime) / deltaTime;
-        if (factor < 0.0f)
-        {
-            factor = 0.0f;
-        }
         NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
+        factor = glm::clamp(factor, 0.0f, 1.0f);
 
         const auto& start = nodeAnim->mScalingKeys[index].mValue;
         const auto& end = nodeAnim->mScalingKeys[nextIndex].mValue;

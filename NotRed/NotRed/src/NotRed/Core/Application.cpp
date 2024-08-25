@@ -191,4 +191,26 @@ namespace NR
     {
         return (float)glfwGetTime();
     }
+
+    const char* Application::GetConfigurationName()
+    {
+#if defined(NR_DEBUG)
+        return "Debug";
+#elif defined(NR_RELEASE)
+        return "Release";
+#elif defined(NR_DIST)
+        return "Dist";
+#else
+#error Undefined configuration?
+#endif
+    }
+
+    const char* Application::GetPlatformName()
+    {
+#if defined(NR_PLATFORM_WINDOWS)
+        return "Windows x64";
+#else
+#error Undefined platform?
+#endif
+    }
 }

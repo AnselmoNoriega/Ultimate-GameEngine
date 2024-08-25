@@ -80,6 +80,9 @@ namespace NR
 
 		static Ref<Scene> GetScene(UUID uuid);
 
+		float GetPhysics2DGravity() const;
+		void SetPhysics2DGravity(float gravity);
+
 		void SetSelectedEntity(entt::entity entity) { mSelectedEntity = entity; }
 
 	private:

@@ -138,8 +138,8 @@ namespace NR
 		return Ref<MaterialInstance>::Create(material);
 	}
 
-	MaterialInstance::MaterialInstance(const Ref<Material>& material)
-		: mMaterial(material)
+	MaterialInstance::MaterialInstance(const Ref<Material>& material, const std::string& name)
+		: mMaterial(material), mName(name)
 	{
 		mMaterial->mMaterialInstances.insert(this);
 		AllocateStorage();

@@ -60,7 +60,7 @@ namespace NR
             {
                 if (ImGui::MenuItem("Create Empty Entity"))
                 {
-                    mContext->CreateEntity("Empty Entity");
+                    mContext->CreateEntity("Entity");
                 }
                 ImGui::EndPopup();
             }
@@ -108,6 +108,42 @@ namespace NR
                         if (ImGui::Button("Sprite Renderer"))
                         {
                             mSelectionContext.AddComponent<SpriteRendererComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<RigidBody2DComponent>())
+                    {
+                        if (ImGui::Button("Rigidbody 2D"))
+                        {
+                            mSelectionContext.AddComponent<RigidBody2DComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<BoxCollider2DComponent>())
+                    {
+                        if (ImGui::Button("Box Collider 2D"))
+                        {
+                            mSelectionContext.AddComponent<BoxCollider2DComponent>();
+
+                            if (!mSelectionContext.HasComponent<RigidBody2DComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBody2DComponent>();
+                            }
+
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<CircleCollider2DComponent>())
+                    {
+                        if (ImGui::Button("Circle Collider 2D"))
+                        {
+                            mSelectionContext.AddComponent<CircleCollider2DComponent>();
+
+                            if (!mSelectionContext.HasComponent<RigidBody2DComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBody2DComponent>();
+                            }
+
                             ImGui::CloseCurrentPopup();
                         }
                     }
@@ -441,6 +477,52 @@ namespace NR
         PopID();
     }
 
+    template<typename T, typename UIFunction>
+    static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+    {
+        if (entity.HasComponent<T>())
+        {
+            bool removeComponent = false;
+
+            auto& component = entity.GetComponent<T>();
+            bool open = ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(T).hash_code()), ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap, name.c_str());
+            ImGui::SameLine();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+            if (ImGui::Button("+"))
+            {
+                ImGui::OpenPopup("ComponentSettings");
+            }
+
+            ImGui::PopStyleColor();
+            ImGui::PopStyleColor();
+
+            if (ImGui::BeginPopup("ComponentSettings"))
+            {
+                if (ImGui::MenuItem("Remove component"))
+                {
+                    removeComponent = true;
+                }
+
+                ImGui::EndPopup();
+            }
+
+            if (open)
+            {
+                uiFunction(component);
+                ImGui::NextColumn();
+                ImGui::Columns(1);
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+
+            if (removeComponent)
+            {
+                entity.RemoveComponent<T>();
+            }
+        }
+    }
+
     void SceneHierarchyPanel::DrawComponents(Entity entity)
     {
         ImGui::AlignTextToFramePadding();
@@ -524,11 +606,7 @@ namespace NR
 
         ImGui::Separator();
 
-
-        if (entity.HasComponent<MeshComponent>())
-        {
-            auto& mc = entity.GetComponent<MeshComponent>();
-            if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Mesh"))
+        DrawComponent<MeshComponent>("Mesh", entity, [](MeshComponent& mc)
             {
                 ImGui::Columns(3);
                 ImGui::SetColumnWidth(0, 100);
@@ -537,11 +615,9 @@ namespace NR
                 ImGui::Text("File Path");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-                ImGui::BeginDisabled(true)
-                    ;
                 if (mc.MeshObj)
                 {
-                    ImGui::InputText("##meshfilepath", (char*)mc.MeshObj->GetFilePath().c_str(), 256);
+                    ImGui::InputText("##meshfilepath", (char*)mc.MeshObj->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
                 }
                 else
                 {
@@ -551,39 +627,35 @@ namespace NR
                 ImGui::NextColumn();
                 if (ImGui::Button("...##openmesh"))
                 {
+
                     std::string file = Application::Get().OpenFile();
                     if (!file.empty())
                     {
                         mc.MeshObj = Ref<Mesh>::Create(file);
                     }
                 }
-                ImGui::NextColumn();
-                ImGui::Columns(1);
-                ImGui::EndDisabled();
-                ImGui::TreePop();
-            }
-            ImGui::Separator();
-        }
+                ImGui::Separator();
+            });
 
-        if (entity.HasComponent<CameraComponent>())
-        {
-            auto& cc = entity.GetComponent<CameraComponent>();
-            if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(CameraComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Camera"))
+        DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
             {
                 const char* projTypeStrings[] = { "Perspective", "Orthographic" };
                 const char* currentProj = projTypeStrings[(int)cc.CameraObj.GetProjectionType()];
                 if (ImGui::BeginCombo("Projection", currentProj))
                 {
+
                     for (int type = 0; type < 2; ++type)
                     {
-                        bool is_selected = (currentProj == projTypeStrings[type]);
-                        if (ImGui::Selectable(projTypeStrings[type], is_selected))
+                        bool isSelected = (currentProj == projTypeStrings[type]);
+                        if (ImGui::Selectable(projTypeStrings[type], isSelected))
                         {
                             currentProj = projTypeStrings[type];
                             cc.CameraObj.SetProjectionType((SceneCamera::ProjectionType)type);
                         }
-                        if (is_selected)
+                        if (isSelected)
+                        {
                             ImGui::SetItemDefaultFocus();
+                        }
                     }
                     ImGui::EndCombo();
                 }
@@ -609,8 +681,6 @@ namespace NR
                         cc.CameraObj.SetPerspectiveFarClip(farClip);
                     }
                 }
-
-                // Orthographic parameters
                 else if (cc.CameraObj.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
                 {
                     float orthoSize = cc.CameraObj.GetOrthographicSize();
@@ -631,32 +701,18 @@ namespace NR
                         cc.CameraObj.SetOrthographicFarClip(farClip);
                     }
                 }
-
                 EndPropertyGrid();
-                ImGui::TreePop();
-            }
-            ImGui::Separator();
-        }
+            });
 
-        if (entity.HasComponent<SpriteRendererComponent>())
-        {
-            auto& src = entity.GetComponent<SpriteRendererComponent>();
-            if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(SpriteRendererComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Sprite Renderer"))
+        DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& mc)
             {
+            });
 
-                ImGui::TreePop();
-            }
-            ImGui::Separator();
-        }
-
-        if (entity.HasComponent<ScriptComponent>())
-        {
-            auto& sc = entity.GetComponent<ScriptComponent>();
-            if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(ScriptComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Script"))
+        DrawComponent<ScriptComponent>("Script", entity, [=](ScriptComponent& sc) mutable
             {
                 BeginPropertyGrid();
                 std::string oldName = sc.ModuleName;
-                if (Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName)))
+                if (Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName))) // TODO: no live edit
                 {
                     if (ScriptEngine::ModuleExists(oldName))
                     {
@@ -698,7 +754,6 @@ namespace NR
                                 }
                                 break;
                             }
-                            break;
                             case FieldType::Float:
                             {
                                 float value = isRuntime ? field.GetValue<float>() : field.GetStoredValue<float>();
@@ -772,12 +827,60 @@ namespace NR
 #if TODO
                 if (ImGui::Button("Run Script"))
                 {
-                    ScriptEngine::CreateEntity(entity);
+                    ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-                ImGui::TreePop();
-            }
-            ImGui::Separator();
-        }
+            });
+
+        DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
+            {
+                // Rigidbody2D Type
+                const char* rb2dTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+                const char* currentType = rb2dTypeStrings[(int)rb2dc.BodyType];
+                if (ImGui::BeginCombo("Type", currentType))
+                {
+                    for (int type = 0; type < 3; ++type)
+                    {
+                        bool isSelected = (currentType == rb2dTypeStrings[type]);
+                        if (ImGui::Selectable(rb2dTypeStrings[type], isSelected))
+                        {
+                            currentType = rb2dTypeStrings[type];
+                            rb2dc.BodyType = (RigidBody2DComponent::Type)type;
+                        }
+                        if (isSelected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+
+                if (rb2dc.BodyType == RigidBody2DComponent::Type::Dynamic)
+                {
+                    BeginPropertyGrid();
+                    Property("Mass", rb2dc.Mass);
+                    EndPropertyGrid();
+                }
+            });
+
+        DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& bc2dc)
+            {
+                BeginPropertyGrid();
+
+                Property("Offset", bc2dc.Offset);
+                Property("Size", bc2dc.Size);
+
+                EndPropertyGrid();
+            });
+
+        DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](CircleCollider2DComponent& cc2dc)
+            {
+                BeginPropertyGrid();
+
+                Property("Offset", cc2dc.Offset);
+                Property("Radius", cc2dc.Radius);
+
+                EndPropertyGrid();
+            });
     }
 }
