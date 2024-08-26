@@ -20,6 +20,7 @@ namespace NR
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
+			NR_CORE_ASSERT(!HasComponent<T>(), "Entity already has component!");
 			return mScene->mRegistry.emplace<T>(mEntityHandle, std::forward<Args>(args)...);
 		}
 
@@ -39,6 +40,7 @@ namespace NR
 		template<typename T>
 		void RemoveComponent()
 		{
+			NR_CORE_ASSERT(HasComponent<T>(), "This Entity does not have this component!");
 			mScene->mRegistry.remove<T>(mEntityHandle);
 		}
 

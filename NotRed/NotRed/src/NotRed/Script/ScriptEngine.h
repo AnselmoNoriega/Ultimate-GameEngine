@@ -125,6 +125,11 @@ namespace NR
 		static void CreateEntity(UUID sceneID, UUID entityID);
 		static void UpdateEntity(UUID sceneID, UUID entityID, float dt);
 
+		static void Collision2DBegin(Entity entity);
+		static void Collision2DBegin(UUID sceneID, UUID entityID);
+		static void Collision2DEnd(Entity entity);
+		static void Collision2DEnd(UUID sceneID, UUID entityID);
+
 		static void ScriptComponentDestroyed(UUID sceneID, UUID entityID);
 
 		static bool ModuleExists(const std::string& moduleName);

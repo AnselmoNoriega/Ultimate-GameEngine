@@ -66,6 +66,7 @@ namespace NR
 		void DestroyEntity(Entity entity);
 
 		Entity GetMainCameraEntity();
+		Entity FindEntityByTag(const std::string& tag);
 
 		template<typename T>
 		auto GetAllEntitiesWith()
@@ -104,6 +105,8 @@ namespace NR
 
 		entt::entity mSelectedEntity;
 
+		Entity* mPhysicsBodyEntityBuffer = nullptr;
+
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;
 
@@ -113,5 +116,6 @@ namespace NR
 		friend class SceneHierarchyPanel;
 
 		friend void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
+		friend void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
 	};
 }

@@ -34,11 +34,6 @@ enum class MaterialFlag
 		{
 			auto decl = FindUniformDeclaration(name);
 
-			if (!decl)
-			{
-				return;
-			}
-
 			NR_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
 			auto& buffer = GetUniformBufferTarget(decl);
 			buffer.Write((byte*)&value, decl->GetSize(), decl->GetOffset());
@@ -68,6 +63,24 @@ enum class MaterialFlag
 		void Set(const std::string& name, const Ref<TextureCube>& texture)
 		{
 			Set(name, (const Ref<Texture>&)texture);
+		}
+
+		template<typename T>
+		T& Get(const std::string& name)
+		{
+			auto decl = FindUniformDeclaration(name);
+			NR_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			auto& buffer = GetUniformBufferTarget(decl);
+			return buffer.Read<T>(decl->GetOffset());
+		}
+
+		template<typename T>
+		Ref<T> GetResource(const std::string& name)
+		{
+			auto decl = FindResourceDeclaration(name);
+			uint32_t slot = decl->GetRegister();
+			NR_CORE_ASSERT(slot < mTextures.size(), "Texture slot is invalid!");
+			return mTextures[slot];
 		}
 
 	private:
@@ -144,6 +157,43 @@ enum class MaterialFlag
 			Set(name, (const Ref<Texture>&)texture);
 		}
 
+		template<typename T>
+		T& Get(const std::string& name)
+		{
+			auto decl = mMaterial->FindUniformDeclaration(name);
+			NR_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			auto& buffer = GetUniformBufferTarget(decl);
+			return buffer.Read<T>(decl->GetOffset());
+		}
+
+		template<typename T>
+		Ref<T> GetResource(const std::string& name)
+		{
+			auto decl = mMaterial->FindResourceDeclaration(name);
+			NR_CORE_ASSERT(decl, "Could not find uniform with name 'x'");
+			uint32_t slot = decl->GetRegister();
+			NR_CORE_ASSERT(slot < mTextures.size(), "Texture slot is invalid!");
+			return Ref<T>(mTextures[slot]);
+		}
+
+		template<typename T>
+		Ref<T> TryGetResource(const std::string& name)
+		{
+			auto decl = mMaterial->FindResourceDeclaration(name);
+			if (!decl)
+			{
+				return nullptr;
+			}
+
+			uint32_t slot = decl->GetRegister();
+			if (slot >= mTextures.size())
+			{
+				return nullptr;
+			}
+
+			return Ref<T>(mTextures[slot]);
+		}
+
 		void Bind();
 
 		const std::string& GetName() const { return mName; }
@@ -152,7 +202,7 @@ enum class MaterialFlag
 		bool IsFlagActive(MaterialFlag flag) const { return (uint32_t)flag & mMaterial->mMaterialFlags; }
 		void ModifyFlags(MaterialFlag flag, bool addFlag = true);
 
-		Ref<Shader >GetShader() const { return mMaterial->mShader; }
+		Ref<Shader> GetShader() const { return mMaterial->mShader; }
 
 	private:
 		friend class Material;
@@ -172,7 +222,6 @@ enum class MaterialFlag
 		Buffer mPSUniformStorageBuffer;
 		std::vector<Ref<Texture>> mTextures;
 
-		// TODO: This is temporary; come up with a proper system to track overrides
 		std::unordered_set<std::string> mOverriddenValues;
 	};
 

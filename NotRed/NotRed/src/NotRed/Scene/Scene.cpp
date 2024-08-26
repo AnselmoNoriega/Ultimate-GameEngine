@@ -29,9 +29,60 @@ namespace NR
     struct Box2DWorldComponent
     {
         std::unique_ptr<b2World> World;
+    }; 
+    
+    class ContactListener : public b2ContactListener
+    {
+    public:
+        virtual void BeginContact(b2Contact* contact) override
+        {
+            Entity& a = *(Entity*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
+            Entity& b = *(Entity*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
+
+            if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
+            {
+                ScriptEngine::Collision2DBegin(a);
+            }
+
+            if (b.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(b.GetComponent<ScriptComponent>().ModuleName))
+            {
+                ScriptEngine::Collision2DBegin(b);
+            }
+        }
+
+        /// Called when two fixtures cease to touch.
+        virtual void EndContact(b2Contact* contact) override
+        {
+            Entity& a = *(Entity*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
+            Entity& b = *(Entity*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
+
+            if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
+            {
+                ScriptEngine::Collision2DEnd(a);
+            }
+
+            if (b.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(b.GetComponent<ScriptComponent>().ModuleName))
+            {
+                ScriptEngine::Collision2DEnd(b);
+            }
+        }
+
+        virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override
+        {
+            B2_NOT_USED(contact);
+            B2_NOT_USED(oldManifold);
+        }
+
+        virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override
+        {
+            B2_NOT_USED(contact);
+            B2_NOT_USED(impulse);
+        }
     };
 
-    void ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
+    static ContactListener s_Box2DContactListener;
+
+    static void ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
     {
         auto sceneView = registry.view<SceneComponent>();
         UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
@@ -42,15 +93,28 @@ namespace NR
         ScriptEngine::InitScriptEntity(scene->mEntityIDMap.at(entityID));
     }
 
+    static void ScriptComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        auto sceneView = registry.view<SceneComponent>();
+        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
+
+        Scene* scene = sActiveScenes[sceneID];
+
+        auto entityID = registry.get<IDComponent>(entity).ID;
+        ScriptEngine::ScriptComponentDestroyed(sceneID, entityID);
+    }
+
     Scene::Scene(const std::string& debugName)
         : mDebugName(debugName)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
+        mRegistry.on_destroy<ScriptComponent>().connect<&ScriptComponentDestroy>();
 
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
-        mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
+        Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
+        b2dWorld.World->SetContactListener(&s_Box2DContactListener);
 
         sActiveScenes[mSceneID] = this;
 
@@ -60,6 +124,8 @@ namespace NR
 
     Scene::~Scene()
     {
+        mRegistry.on_destroy<ScriptComponent>().disconnect();
+
         mRegistry.clear();
         sActiveScenes.erase(mSceneID);
 
@@ -163,7 +229,7 @@ namespace NR
         SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix() });
         for (auto entity : group)
         {
-            auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
+            auto&& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
             if (meshComponent.MeshObj)
             {
                 meshComponent.MeshObj->Update(dt);
@@ -174,7 +240,7 @@ namespace NR
                 }
                 else
                 {
-                    SceneRenderer::SubmitMesh(meshComponent, transformComponent, nullptr);
+                    SceneRenderer::SubmitMesh(meshComponent, transformComponent);
                 }
             }
         }
@@ -205,9 +271,12 @@ namespace NR
         auto& world = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
         {
             auto view = mRegistry.view<RigidBody2DComponent>();
+            mPhysicsBodyEntityBuffer = new Entity[view.size()];
+            uint32_t physicsBodyEntityBufferIndex = 0;
             for (auto entity : view)
             {
                 Entity e = { entity, this };
+                UUID entityID = e.GetComponent<IDComponent>().ID;
                 auto& transform = e.Transform();
                 auto& rigidBody2D = mRegistry.get<RigidBody2DComponent>(entity);
 
@@ -229,7 +298,13 @@ namespace NR
                 auto [translation, rotationQuat, scale] = GetTransformDecomposition(transform);
                 glm::vec3 rotation = glm::eulerAngles(rotationQuat);
                 bodyDef.angle = rotation.z;
-                rigidBody2D.RuntimeBody = world->CreateBody(&bodyDef);
+
+                b2Body* body = world->CreateBody(&bodyDef);
+                body->SetFixedRotation(rigidBody2D.FixedRotation);
+                Entity* entityStorage = &mPhysicsBodyEntityBuffer[physicsBodyEntityBufferIndex++];
+                *entityStorage = e;
+                body->GetUserData().pointer = (uintptr_t)entityStorage;
+                rigidBody2D.RuntimeBody = body;
             }
         }
 
@@ -252,8 +327,8 @@ namespace NR
 
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &polygonShape;
-                    fixtureDef.density = 1.0f;
-                    fixtureDef.friction = 1.0f;
+                    fixtureDef.density = boxCollider2D.Density;
+                    fixtureDef.friction = boxCollider2D.Friction;
                     body->CreateFixture(&fixtureDef);
                 }
             }
@@ -278,8 +353,8 @@ namespace NR
 
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &circleShape;
-                    fixtureDef.density = 1.0f;
-                    fixtureDef.friction = 1.0f;
+                    fixtureDef.density = circleCollider2D.Density;
+                    fixtureDef.friction = circleCollider2D.Friction;
                     body->CreateFixture(&fixtureDef);
                 }
             }
@@ -290,6 +365,7 @@ namespace NR
 
     void Scene::RuntimeStop()
     {
+        delete[] mPhysicsBodyEntityBuffer;
         mIsPlaying = false;
     }
 
@@ -399,7 +475,21 @@ namespace NR
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
-    // Copy to runtime
+    Entity Scene::FindEntityByTag(const std::string& tag)
+    {
+        auto view = mRegistry.view<TagComponent>();
+        for (auto entity : view)
+        {
+            const auto& canditate = view.get<TagComponent>(entity).Tag;
+            if (canditate == tag)
+            {
+                return Entity(entity, this);
+            }
+        }
+
+        return Entity{};
+    }
+
     void Scene::CopyTo(Ref<Scene>& target)
     {
         target->mLight = mLight;

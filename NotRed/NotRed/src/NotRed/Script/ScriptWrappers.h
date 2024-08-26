@@ -23,11 +23,14 @@ namespace NR::Script
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);
     void NR_Entity_GetTransform(uint64_t entityID, glm::mat4* outTransform);
     void NR_Entity_SetTransform(uint64_t entityID, glm::mat4* inTransform);
+    uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
     void NR_RigidBody2DComponent_ApplyLinearImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
+    void NR_RigidBody2DComponent_GetLinearVelocity(uint64_t entityID, glm::vec2* outVelocity);
+    void NR_RigidBody2DComponent_SetLinearVelocity(uint64_t entityID, glm::vec2* velocity);
 
     // Renderer
     // Texture2D

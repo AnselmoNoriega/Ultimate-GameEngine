@@ -355,6 +355,27 @@ namespace NR
         ImGui::NextColumn();
     }
 
+    static bool Property(const char* label, bool& value)
+    {
+        bool modified = false;
+
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        itoa(sCounter++, sIDBuffer + 2, 16);
+        if (ImGui::Checkbox(sIDBuffer, &value))
+            modified = true;
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return modified;
+    }
+
     static bool Property(const char* label, int& value)
     {
         bool modified = false;
@@ -858,7 +879,7 @@ namespace NR
                 if (rb2dc.BodyType == RigidBody2DComponent::Type::Dynamic)
                 {
                     BeginPropertyGrid();
-                    Property("Mass", rb2dc.Mass);
+                    Property("Fixed Rotation", rb2dc.FixedRotation);
                     EndPropertyGrid();
                 }
             });
@@ -869,6 +890,8 @@ namespace NR
 
                 Property("Offset", bc2dc.Offset);
                 Property("Size", bc2dc.Size);
+                Property("Density", bc2dc.Density);
+                Property("Friction", bc2dc.Friction);
 
                 EndPropertyGrid();
             });
@@ -879,6 +902,8 @@ namespace NR
 
                 Property("Offset", cc2dc.Offset);
                 Property("Radius", cc2dc.Radius);
+                Property("Density", cc2dc.Density);
+                Property("Friction", cc2dc.Friction);
 
                 EndPropertyGrid();
             });

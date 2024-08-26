@@ -47,14 +47,14 @@ namespace NR
 		template<typename T2>
 		Ref(const Ref<T2>& other)
 		{
-			mInstance = other.mInstance;
+			mInstance = (T*)other.mInstance;
 			IncRef();
 		}
 
 		template<typename T2>
 		Ref(Ref<T2>&& other)
 		{
-			mInstance = other.mInstance;
+			mInstance = (T*)other.mInstance;
 			other.mInstance = nullptr;
 		}
 

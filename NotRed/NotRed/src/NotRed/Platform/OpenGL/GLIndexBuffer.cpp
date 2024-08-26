@@ -31,8 +31,9 @@ namespace NR
 
 	GLIndexBuffer::~GLIndexBuffer()
 	{
-		Renderer::Submit([this]() {
-			glDeleteBuffers(1, &mID);
+		GLuint rendererID = mID;
+		Renderer::Submit([rendererID]() {
+			glDeleteBuffers(1, &rendererID);
 			});
 	}
 
@@ -49,8 +50,9 @@ namespace NR
 
 	void GLIndexBuffer::Bind() const
 	{
-		Renderer::Submit([this]() {
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mID);
+		Ref<const GLIndexBuffer> instance = this;
+		Renderer::Submit([instance]() {
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, instance->mID);
 			});
 	}
 }

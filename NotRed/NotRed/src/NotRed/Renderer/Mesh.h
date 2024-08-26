@@ -137,7 +137,7 @@ namespace NR
 
 		Ref<Shader> GetMeshShader() { return mMeshShader; }
 		Ref<Material> GetMaterial() { return mBaseMaterial; }
-		std::vector<Ref<MaterialInstance>> GetMaterials() { return mMaterials; }
+		std::vector<Ref<MaterialInstance>>& GetMaterials() { return mMaterials; }
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return mTextures; }
 
 		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }

@@ -56,6 +56,10 @@ namespace NR
 		void ShowBoundingBoxes(bool show, bool onTop = false);
 		void SelectEntity(Entity entity);
 
+		void OpenScene();
+		void SaveScene();
+		void SaveSceneAs();
+
 	private:
 		std::pair<float, float> GetMouseViewportSpace();
 		std::pair<glm::vec3, glm::vec3> CastRay(float mx, float my);
@@ -76,11 +80,14 @@ namespace NR
 
 		void UpdateWindowTitle(const std::string& sceneName);
 
+		float GetSnapValue();
+
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 
 		Ref<Scene> mRuntimeScene, mEditorScene;
-		bool mReloadScriptOnPlay = false;
+		std::string mSceneFilePath;
+		bool mReloadScriptOnPlay = true;
 
 		EditorCamera mEditorCamera;
 
@@ -98,14 +105,12 @@ namespace NR
 			bool SRGB = true;
 			bool UseTexture = false;
 		};
-		AlbedoInput mAlbedoInput;
 
 		struct NormalInput
 		{
 			Ref<Texture2D> TextureMap;
 			bool UseTexture = false;
 		};
-		NormalInput mNormalInput;
 
 		struct MetalnessInput
 		{
@@ -113,7 +118,6 @@ namespace NR
 			Ref<Texture2D> TextureMap;
 			bool UseTexture = false;
 		};
-		MetalnessInput mMetalnessInput;
 
 		struct RoughnessInput
 		{
@@ -121,7 +125,6 @@ namespace NR
 			Ref<Texture2D> TextureMap;
 			bool UseTexture = false;
 		};
-		RoughnessInput mRoughnessInput;
 
 		bool mRadiancePrefilter = false;
 
@@ -140,6 +143,7 @@ namespace NR
 
 		glm::vec2 mViewportBounds[2];
 		float mSnapValue = 0.5f;
+		float mRotationSnapValue = 45.0f;
 
 		int mGizmoType = -1;
 		bool mAllowViewportCameraEvents = false;
