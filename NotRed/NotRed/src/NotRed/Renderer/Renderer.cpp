@@ -18,7 +18,10 @@ namespace NR
         Ref<RenderPass> mActiveRenderPass;
         RenderCommandQueue mCommandQueue;
         Ref<ShaderLibrary> mShaderLibrary;
-        Ref<VertexArray> mFullscreenQuadVertexArray;
+
+        Ref<VertexBuffer> mFullscreenQuadVertexBuffer;
+        Ref<IndexBuffer> mFullscreenQuadIndexBuffer;
+        Ref<Pipeline> mFullscreenQuadPipeline;
     };
 
     static RendererData sData;
@@ -58,18 +61,16 @@ namespace NR
         data[3].Position = glm::vec3(x, y + height, 0.1f);
         data[3].TexCoord = glm::vec2(0, 1);
 
-        sData.mFullscreenQuadVertexArray = VertexArray::Create();
-        auto quadVB = VertexBuffer::Create(data, 4 * sizeof(QuadVertex));
-        quadVB->SetLayout({
+        PipelineSpecification pipelineSpecification;
+        pipelineSpecification.Layout = {
             { ShaderDataType::Float3, "a_Position" },
             { ShaderDataType::Float2, "a_TexCoord" }
-            });
+        };
+        sData.mFullscreenQuadPipeline = Pipeline::Create(pipelineSpecification);
 
+        sData.mFullscreenQuadVertexBuffer = VertexBuffer::Create(data, 4 * sizeof(QuadVertex));
         uint32_t indices[6] = { 0, 1, 2, 2, 3, 0, };
-        auto quadIB = IndexBuffer::Create(indices, 6 * sizeof(uint32_t));
-
-        sData.mFullscreenQuadVertexArray->AddVertexBuffer(quadVB);
-        sData.mFullscreenQuadVertexArray->SetIndexBuffer(quadIB);
+        sData.mFullscreenQuadIndexBuffer = IndexBuffer::Create(indices, 6 * sizeof(uint32_t));
 
         Renderer2D::Init();
     }
@@ -157,7 +158,9 @@ namespace NR
             shader->SetMat4("uTransform", transform);
         }
 
-        sData.mFullscreenQuadVertexArray->Bind();
+        sData.mFullscreenQuadVertexBuffer->Bind();
+        sData.mFullscreenQuadPipeline->Bind();
+        sData.mFullscreenQuadIndexBuffer->Bind();
         Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
     }
 
@@ -170,15 +173,19 @@ namespace NR
             depthTest = material->IsFlagActive(MaterialFlag::DepthTest);
         }
 
-        sData.mFullscreenQuadVertexArray->Bind();
+        sData.mFullscreenQuadVertexBuffer->Bind();
+        sData.mFullscreenQuadPipeline->Bind();
+        sData.mFullscreenQuadIndexBuffer->Bind();
         Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
     }
 
     void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
     {
-        mesh->mVertexArray->Bind();
+        mesh->mVertexBuffer->Bind();
+        mesh->mPipeline->Bind();
+        mesh->mIndexBuffer->Bind();
 
-        const auto& materials = mesh->GetMaterials();
+        auto& materials = mesh->GetMaterials();
         for (Submesh& submesh : mesh->mSubmeshes)
         {
             auto material = overrideMaterial ? overrideMaterial : materials[submesh.MaterialIndex];
@@ -206,7 +213,7 @@ namespace NR
                         glDisable(GL_DEPTH_TEST);
                     }
 
-                    glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t)* submesh.BaseIndex), submesh.BaseVertex);
+                    glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
                 });
         }
     }

@@ -23,12 +23,12 @@
 #include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/Material.h"
 #include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Renderer/Pipeline.h"
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/RenderPass.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Texture.h"
-#include "NotRed/Renderer/VertexArray.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 // ---------------------------------------------
 

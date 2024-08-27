@@ -1,0 +1,17 @@
+Scene: Scene Name
+Environment:
+  AssetPath: Assets/Env/HDR_blue_nebulae-1.hdr
+  Light:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 16157517336804139931
+    TagComponent:
+      Tag: Entity
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [1, 0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      AssetPath: C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Assets\Meshes\TestScene.fbx

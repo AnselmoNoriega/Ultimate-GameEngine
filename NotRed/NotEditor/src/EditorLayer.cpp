@@ -116,7 +116,13 @@ namespace NR
     {
         mSelectionContext.clear();
         mSceneState = SceneState::Play;
-        mRuntimeScene = Ref <Scene>::Create();
+
+        if (mReloadScriptOnPlay)
+        {
+            ScriptEngine::ReloadAssembly("Assets/Scripts/ExampleApp.dll");
+        }
+
+        mRuntimeScene = Ref<Scene>::Create();
         mEditorScene->CopyTo(mRuntimeScene);
 
         mRuntimeScene->RuntimeStart();
@@ -127,11 +133,6 @@ namespace NR
     {
         mRuntimeScene->RuntimeStop();
         mSceneState = SceneState::Edit;
-
-        if (mReloadScriptOnPlay)
-        {
-            ScriptEngine::ReloadAssembly("Assets/Scripts/ExampleApp.dll");
-        }
 
         mRuntimeScene = nullptr;
 
@@ -369,7 +370,7 @@ namespace NR
     void EditorLayer::OpenScene()
     {
         auto& app = Application::Get();
-        std::string filepath = app.OpenFile("Hazel Scene (*.hsc)\0*.hsc\0");
+        std::string filepath = app.OpenFile("NotRed Scene (*.nsc)\0*.nsc\0");
         if (!filepath.empty())
         {
             Ref<Scene> newScene = Ref<Scene>::Create();
@@ -397,7 +398,7 @@ namespace NR
     void EditorLayer::SaveSceneAs()
     {
         auto& app = Application::Get();
-        std::string filepath = app.SaveFile("Hazel Scene (*.hsc)\0*.hsc\0");
+        std::string filepath = app.SaveFile("NotRed Scene (*.nsc)\0*.nsc\0");
         if (!filepath.empty())
         {
             SceneSerializer serializer(mEditorScene);

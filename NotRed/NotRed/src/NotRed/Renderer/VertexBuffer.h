@@ -36,7 +36,7 @@ namespace NR
         }
     }
 
-    struct BufferElement
+    struct VertexBufferElement
     {
         ShaderDataType Type;
         std::string Name;
@@ -44,9 +44,9 @@ namespace NR
         uint32_t Offset;
         bool Normalized;
 
-        BufferElement() = default;
+        VertexBufferElement() = default;
 
-        BufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
+        VertexBufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
             : Type(type), Name(name), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(normalized)
         {
         }
@@ -75,24 +75,24 @@ namespace NR
         }
     };
 
-    class BufferLayout
+    class VertexBufferLayout
     {
     public:
-        BufferLayout() {}
+        VertexBufferLayout() {}
 
-        BufferLayout(const std::initializer_list<BufferElement>& elements)
+        VertexBufferLayout(const std::initializer_list<VertexBufferElement>& elements)
             : mElements(elements)
         {
             CalculateOffsetsAndStride();
         }
 
         inline uint32_t GetStride() const { return mStride; }
-        inline const std::vector<BufferElement>& GetElements() const { return mElements; }
+        inline const std::vector<VertexBufferElement>& GetElements() const { return mElements; }
 
-        std::vector<BufferElement>::iterator begin() { return mElements.begin(); }
-        std::vector<BufferElement>::iterator end() { return mElements.end(); }
-        std::vector<BufferElement>::const_iterator begin() const { return mElements.begin(); }
-        std::vector<BufferElement>::const_iterator end() const { return mElements.end(); }
+        std::vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
+        std::vector<VertexBufferElement>::iterator end() { return mElements.end(); }
+        std::vector<VertexBufferElement>::const_iterator begin() const { return mElements.begin(); }
+        std::vector<VertexBufferElement>::const_iterator end() const { return mElements.end(); }
 
     private:
         void CalculateOffsetsAndStride()
@@ -108,7 +108,7 @@ namespace NR
         }
 
     private:
-        std::vector<BufferElement> mElements;
+        std::vector<VertexBufferElement> mElements;
         uint32_t mStride = 0;
     };
 
@@ -130,8 +130,8 @@ namespace NR
         virtual void SetData(void* data, uint32_t size, uint32_t offset = 0) = 0;
         virtual void Bind() const = 0;
 
-        virtual const BufferLayout& GetLayout() const = 0;
-        virtual void SetLayout(const BufferLayout& layout) = 0;
+        virtual const VertexBufferLayout& GetLayout() const = 0;
+        virtual void SetLayout(const VertexBufferLayout& layout) = 0;
 
         virtual uint32_t GetSize() const = 0;
         virtual RendererID GetRendererID() const = 0;

@@ -177,7 +177,7 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h">
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
@@ -228,7 +228,7 @@
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\VertexArray.h">
+    <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
@@ -506,7 +506,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp">
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp">
@@ -554,7 +554,7 @@
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp">
+    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">

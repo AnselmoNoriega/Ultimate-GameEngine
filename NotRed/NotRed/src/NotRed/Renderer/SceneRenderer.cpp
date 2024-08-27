@@ -56,7 +56,7 @@ namespace NR
         geoFrameBufferSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
 
         RenderPassSpecification geoRenderPassSpec;
-        geoRenderPassSpec.TargetFrameBuffer = NR::FrameBuffer::Create(geoFrameBufferSpec);
+        geoRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(geoFrameBufferSpec);
         sData.GeoPass = RenderPass::Create(geoRenderPassSpec);
 
         FrameBufferSpecification compFrameBufferSpec;
@@ -66,7 +66,7 @@ namespace NR
         compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
 
         RenderPassSpecification compRenderPassSpec;
-        compRenderPassSpec.TargetFrameBuffer = NR::FrameBuffer::Create(compFrameBufferSpec);
+        compRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(compFrameBufferSpec);
         sData.CompositePass = RenderPass::Create(compRenderPassSpec);
 
         sData.CompositeShader = Shader::Create("Assets/Shaders/HDR");
@@ -241,8 +241,6 @@ namespace NR
             Renderer::SubmitMesh(dc.Mesh, dc.Transform, overrideMaterial);
         }
 
-
-
         if (outline)
         {
             Renderer::Submit([]()
@@ -251,18 +249,17 @@ namespace NR
                     glStencilMask(0xff);
                 });
         }
+
         for (auto& dc : sData.SelectedMeshDrawList)
         {
             auto baseMaterial = dc.Mesh->GetMaterial();
             baseMaterial->Set("uViewProjectionMatrix", viewProjection);
             baseMaterial->Set("uCameraPosition", cameraPosition);
 
-            // Environment (TODO: don't do this per mesh)
             baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment.RadianceMap);
             baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment.IrradianceMap);
             baseMaterial->Set("uBRDFLUTTexture", sData.BRDFLUT);
 
-            // Set lights (TODO: move to light environment and don't do per mesh)
             baseMaterial->Set("lights", sData.SceneData.ActiveLight);
 
             auto overrideMaterial = nullptr; // dc.Material;

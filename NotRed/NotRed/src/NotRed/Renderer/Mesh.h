@@ -3,7 +3,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-#include "NotRed/Renderer/VertexArray.h"
+#include "NotRed/Renderer/Pipeline.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/Shader.h"
@@ -165,7 +165,9 @@ namespace NR
 		uint32_t mBoneCount = 0;
 		std::vector<BoneInfo> mBoneInfo;
 
-		Ref<VertexArray> mVertexArray;
+		Ref<Pipeline> mPipeline;
+		Ref<VertexBuffer> mVertexBuffer;
+		Ref<IndexBuffer> mIndexBuffer;
 
 		std::vector<Vertex> mStaticVertices;
 		std::vector<AnimatedVertex> mAnimatedVertices;

@@ -20,6 +20,7 @@
 #include "imgui/imgui.h"
 
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/VertexBuffer.h"
 
 namespace NR
 {
@@ -466,11 +467,11 @@ namespace NR
             NR_MESH_LOG("------------------------");
         }
 
-        mVertexArray = VertexArray::Create();
+        VertexBufferLayout vertexLayout;
         if (mIsAnimated)
         {
-            auto vb = VertexBuffer::Create(mAnimatedVertices.data(), mAnimatedVertices.size() * sizeof(AnimatedVertex));
-            vb->SetLayout({
+            mVertexBuffer = VertexBuffer::Create(mAnimatedVertices.data(), mAnimatedVertices.size() * sizeof(AnimatedVertex));
+            vertexLayout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
                 { ShaderDataType::Float3, "aTangent" },
@@ -478,24 +479,25 @@ namespace NR
                 { ShaderDataType::Float2, "aTexCoord" },
                 { ShaderDataType::Int4,   "aBoneIDs" },
                 { ShaderDataType::Float4, "aBoneWeights" },
-                });
-            mVertexArray->AddVertexBuffer(vb);
+                };
         }
         else
         {
-            auto vb = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
-            vb->SetLayout({
+            mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+            vertexLayout= {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
                 { ShaderDataType::Float3, "aTangent" },
                 { ShaderDataType::Float3, "aBinormal" },
                 { ShaderDataType::Float2, "aTexCoord" },
-                });
-            mVertexArray->AddVertexBuffer(vb);
+                };
         }
 
-        auto ib = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
-        mVertexArray->SetIndexBuffer(ib);
+        mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
+
+        PipelineSpecification pipelineSpecification;
+        pipelineSpecification.Layout = vertexLayout;
+        mPipeline = Pipeline::Create(pipelineSpecification);
     }
 
     Mesh::~Mesh()

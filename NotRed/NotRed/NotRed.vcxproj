@@ -178,7 +178,7 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexArray.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
@@ -195,7 +195,7 @@
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
-    <ClInclude Include="src\NotRed\Renderer\VertexArray.h" />
+    <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
@@ -289,7 +289,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexArray.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
@@ -305,7 +305,7 @@
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\VertexArray.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />

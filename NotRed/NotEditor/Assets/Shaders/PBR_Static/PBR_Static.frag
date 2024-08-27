@@ -11,6 +11,7 @@ const vec3 Fdielectric = vec3(0.04);
 struct Light {
 	vec3 Direction;
 	vec3 Radiance;
+	float Multiplier;
 };
 
 in VertexOutput
@@ -19,6 +20,7 @@ in VertexOutput
     vec3 Normal;
 	vec2 TexCoord;
 	mat3 WorldNormals;
+	mat3 WorldTransform;
 	vec3 Binormal;
 } vsInput;
 
@@ -199,7 +201,7 @@ vec3 Lighting(vec3 F0)
 	for(int i = 0; i < LightCount; i++)
 	{
 		vec3 Li = -lights.Direction;
-		vec3 Lradiance = lights.Radiance;
+		vec3 Lradiance = lights.Radiance * lights.Multiplier;
 		vec3 Lh = normalize(Li + mParams.View);
 
 		// Calculate angles between surface normal and various light vectors.
@@ -231,12 +233,7 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	int uEnvRadianceTexLevels = textureQueryLevels(uEnvRadianceTex);
 	float NoV = clamp(mParams.NdotV, 0.0, 1.0);
 	vec3 R = 2.0 * dot(mParams.View, mParams.Normal) * mParams.Normal - mParams.View;
-	vec3 specularIrradiance = vec3(0.0);
-
-	if (uRadiancePrefilter > 0.5)
-		specularIrradiance = PrefilterEnvMap(mParams.Roughness * mParams.Roughness, R) * uRadiancePrefilter;
-	else
-		specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), sqrt(mParams.Roughness) * uEnvRadianceTexLevels).rgb * (1.0 - uRadiancePrefilter);
+	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uEnvMapRotation, Lr), (mParams.Roughness) * uEnvRadianceTexLevels).rgb;
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
 	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(mParams.NdotV, 1.0 - mParams.Roughness)).rg;

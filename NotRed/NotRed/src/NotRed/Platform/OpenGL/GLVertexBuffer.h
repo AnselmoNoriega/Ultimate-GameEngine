@@ -15,8 +15,8 @@ namespace NR
 		void SetData(void* data, uint32_t size, uint32_t offset = 0) override;
 		void Bind() const override;
 
-		const BufferLayout& GetLayout() const override { return mLayout; }
-		void SetLayout(const BufferLayout& layout) override { mLayout = layout; }
+		const VertexBufferLayout& GetLayout() const override { return mLayout; }
+		void SetLayout(const VertexBufferLayout& layout) override { mLayout = layout; }
 
 		uint32_t GetSize() const override { return mSize; }
 
@@ -26,7 +26,7 @@ namespace NR
 		RendererID mID = 0;
 		uint32_t mSize;
 		VertexBufferUsage mUsage;
-		BufferLayout mLayout;
+		VertexBufferLayout mLayout;
 
 		Buffer mLocalData;
 	};

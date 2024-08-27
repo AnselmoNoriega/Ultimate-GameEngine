@@ -10,9 +10,9 @@ layout(location = 5) in ivec4 aBoneIndices;
 layout(location = 6) in vec4 aBoneWeights;
 
 uniform mat4 uViewProjectionMatrix;
-uniform mat4 uModelMatrix;
+uniform mat4 uTransform;
 
-const int MAX_BONES = 100;
+const int MAXBONES = 100;
 uniform mat4 uBoneTransforms[100];
 
 out VertexOutput
@@ -33,11 +33,11 @@ void main()
 
 	vec4 localPosition = boneTransform * vec4(aPosition, 1.0);
 
-	vsOutput.WorldPosition = vec3(uModelMatrix * boneTransform * vec4(aPosition, 1.0));
-    vsOutput.Normal = mat3(boneTransform) * aNormal;
+	vsOutput.WorldPosition = vec3(uTransform * boneTransform * vec4(aPosition, 1.0));
+    vsOutput.Normal = mat3(uTransform) * mat3(boneTransform) * aNormal;
 	vsOutput.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	vsOutput.WorldNormals = mat3(uModelMatrix) * mat3(aTangent, aBinormal, aNormal);
+	vsOutput.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
 	vsOutput.Binormal = mat3(boneTransform) * aBinormal;
 
-	gl_Position = uViewProjectionMatrix * uModelMatrix * localPosition;
+	gl_Position = uViewProjectionMatrix * uTransform * localPosition;
 }

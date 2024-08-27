@@ -7,7 +7,7 @@ layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
 
 uniform mat4 uViewProjectionMatrix;
-uniform mat4 uModelMatrix;
+uniform mat4 uTransform;
 
 out VertexOutput
 {
@@ -15,16 +15,18 @@ out VertexOutput
     vec3 Normal;
 	vec2 TexCoord;
 	mat3 WorldNormals;
+	mat3 WorldTransform;
 	vec3 Binormal;
 } vsOutput;
 
 void main()
 {
-	vsOutput.WorldPosition = vec3(uModelMatrix * vec4(aPosition, 1.0));
-    vsOutput.Normal = aNormal;
+	vsOutput.WorldPosition = vec3(uTransform * vec4(aPosition, 1.0));
+    vsOutput.Normal = mat3(uTransform) * aNormal;
 	vsOutput.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	vsOutput.WorldNormals = mat3(uModelMatrix) * mat3(aTangent, aBinormal, aNormal);
+	vsOutput.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
+	vsOutput.WorldTransform = mat3(uTransform);
 	vsOutput.Binormal = aBinormal;
 
-	gl_Position = uViewProjectionMatrix * uModelMatrix * vec4(aPosition, 1.0);
+	gl_Position = uViewProjectionMatrix * uTransform * vec4(aPosition, 1.0);
 }
