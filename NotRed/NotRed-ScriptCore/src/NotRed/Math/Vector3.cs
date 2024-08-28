@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace NR
 {
@@ -39,6 +33,23 @@ namespace NR
             x = vector.x;
             y = vector.y;
             z = vector.z;
+        }
+
+        public void Clamp(Vector3 min, Vector3 max)
+        {
+            x = Mathf.Clamp(x, min.x, max.x);
+            y = Mathf.Clamp(y, min.y, max.y);
+            z = Mathf.Clamp(z, min.z, max.z);
+        }
+
+        public static Vector3 operator *(Vector3 left, float scalar)
+        {
+            return new Vector3(left.x * scalar, left.y * scalar, left.z * scalar);
+        }
+
+        public static Vector3 operator *(float scalar, Vector3 right)
+        {
+            return new Vector3(scalar * right.x, scalar * right.y, scalar * right.z);
         }
 
         public Vector2 xy

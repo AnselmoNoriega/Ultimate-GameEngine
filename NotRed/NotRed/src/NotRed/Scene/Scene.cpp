@@ -40,9 +40,9 @@ namespace NR
     struct Box2DWorldComponent
     {
         std::unique_ptr<b2World> World;
-    }; 
-    
-    class ContactListener : public b2ContactListener
+    };
+
+    class ContactListener2D : public b2ContactListener
     {
     public:
         virtual void BeginContact(b2Contact* contact) override
@@ -91,7 +91,74 @@ namespace NR
         }
     };
 
-    static ContactListener s_Box2DContactListener;
+    class ContactListener3D : public physx::PxSimulationEventCallback
+    {
+    public:
+        virtual void onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count) override
+        {
+            PX_UNUSED(constraints);
+            PX_UNUSED(count);
+        }
+
+        virtual void onWake(physx::PxActor** actors, physx::PxU32 count) override
+        {
+            PX_UNUSED(actors);
+            PX_UNUSED(count);
+        }
+
+        virtual void onSleep(physx::PxActor** actors, physx::PxU32 count) override
+        {
+            PX_UNUSED(actors);
+            PX_UNUSED(count);
+        }
+
+        virtual void onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs) override
+        {
+            Entity& a = *(Entity*)pairHeader.actors[0]->userData;
+            Entity& b = *(Entity*)pairHeader.actors[1]->userData;
+
+            if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
+            {
+                if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
+                {
+                    ScriptEngine::CollisionBegin(a);
+                }
+
+                if (b.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(b.GetComponent<ScriptComponent>().ModuleName))
+                {
+                    ScriptEngine::CollisionBegin(b);
+                }
+            }
+            else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
+            {
+                if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
+                {
+                    ScriptEngine::CollisionEnd(a);
+                }
+
+                if (b.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(b.GetComponent<ScriptComponent>().ModuleName))
+                {
+                    ScriptEngine::CollisionEnd(b);
+                }
+            }
+        }
+
+        virtual void onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count) override
+        {
+            PX_UNUSED(pairs);
+            PX_UNUSED(count);
+        }
+
+        virtual void onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) override
+        {
+            PX_UNUSED(bodyBuffer);
+            PX_UNUSED(poseBuffer);
+            PX_UNUSED(count);
+        }
+    };
+
+    static ContactListener2D sBox2DContactListener;
+    static ContactListener3D sPhysicsContactListener;
 
     static void ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
     {
@@ -125,12 +192,14 @@ namespace NR
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
         Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
-        b2dWorld.World->SetContactListener(&s_Box2DContactListener);
+        b2dWorld.World->SetContactListener(&sBox2DContactListener);
 
         sActiveScenes[mSceneID] = this;
 
         physx::PxSceneDesc sceneDesc = PhysicsManager::CreateSceneDesc();
-        sceneDesc.gravity = physx::PxVec3(0.0F, -9.8F, 0.0F);
+        sceneDesc.gravity = physx::PxVec3(0.0f, -9.8F, 0.0f);
+        sceneDesc.simulationEventCallback = &sPhysicsContactListener;
+
         PhysicsSceneComponent& physxWorld = mRegistry.emplace<PhysicsSceneComponent>(mSceneEntity, PhysicsManager::CreateScene(sceneDesc));
         NR_CORE_ASSERT(physxWorld.World);
 
@@ -161,7 +230,7 @@ namespace NR
         mRegistry.get<PhysicsSceneComponent>(mSceneEntity).World->release();
     }
 
-    static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
+    static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
     {
         glm::vec3 scale, translation, skew;
         glm::vec4 perspective;
@@ -201,7 +270,7 @@ namespace NR
                 b2Body* body = static_cast<b2Body*>(rb2d.RuntimeBody);
 
                 auto& position = body->GetPosition();
-                auto [translation, rotationQuat, scale] = GetTransformDecomposition(transform);
+                auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
                 glm::vec3 rotation = glm::eulerAngles(rotationQuat);
 
                 transform = glm::translate(glm::mat4(1.0f), { position.x, position.y, transform[3].z }) *
@@ -210,8 +279,46 @@ namespace NR
             }
         }
 
-        auto physxView = mRegistry.view<PhysicsSceneComponent>();
-        physx::PxScene* physxScene = mRegistry.get<PhysicsSceneComponent>(physxView.front()).World;
+        auto physicsView = mRegistry.view<PhysicsSceneComponent>();
+        physx::PxScene* physicsScene = mRegistry.get<PhysicsSceneComponent>(physicsView.front()).World;
+        constexpr float stepSize = 0.016666660f;
+        physicsScene->simulate(stepSize);
+        physicsScene->fetchResults(true);
+
+        {
+            auto view = mRegistry.view<RigidBodyComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+
+                auto& transform = e.Transform();
+                RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
+                physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
+
+                if (rb.BodyType == RigidBodyComponent::Type::Dynamic)
+                {
+                    const physx::PxVec3& position = actor->getGlobalPose().p;
+                    const physx::PxQuat& physicsBodyRotation = actor->getGlobalPose().q;
+
+                    auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
+                    glm::vec3 rotation = glm::eulerAngles(rotationQuat);
+
+                    float xAngle, yAngle, zAngle;
+                    physx::PxVec3 axis;
+                    physicsBodyRotation.toRadiansAndUnitAxis(xAngle, axis);
+                    physicsBodyRotation.toRadiansAndUnitAxis(yAngle, axis);
+                    physicsBodyRotation.toRadiansAndUnitAxis(zAngle, axis);
+
+                    transform = glm::translate(glm::mat4(1.0f), { position.x, position.y, position.z }) *
+                        glm::toMat4(glm::quat({ xAngle, yAngle, zAngle })) *
+                        glm::scale(glm::mat4(1.0f), scale);
+                }
+                else if (rb.BodyType == RigidBodyComponent::Type::Static)
+                {
+                    actor->setGlobalPose(PhysicsManager::CreatePose(transform));
+                }
+            }
+        }
     }
 
     void Scene::RenderRuntime(float dt)
@@ -296,7 +403,7 @@ namespace NR
         auto& world = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
         {
             auto view = mRegistry.view<RigidBody2DComponent>();
-            mPhysicsBodyEntityBuffer = new Entity[view.size()];
+            mPhysics2DBodyEntityBuffer = new Entity[view.size()];
             uint32_t physicsBodyEntityBufferIndex = 0;
             for (auto entity : view)
             {
@@ -320,13 +427,13 @@ namespace NR
                 }
                 bodyDef.position.Set(transform[3].x, transform[3].y);
 
-                auto [translation, rotationQuat, scale] = GetTransformDecomposition(transform);
+                auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
                 glm::vec3 rotation = glm::eulerAngles(rotationQuat);
                 bodyDef.angle = rotation.z;
 
                 b2Body* body = world->CreateBody(&bodyDef);
                 body->SetFixedRotation(rigidBody2D.FixedRotation);
-                Entity* entityStorage = &mPhysicsBodyEntityBuffer[physicsBodyEntityBufferIndex++];
+                Entity* entityStorage = &mPhysics2DBodyEntityBuffer[physicsBodyEntityBufferIndex++];
                 *entityStorage = e;
                 body->GetUserData().pointer = (uintptr_t)entityStorage;
                 rigidBody2D.RuntimeBody = body;
@@ -385,6 +492,134 @@ namespace NR
             }
         }
 
+
+        {
+            auto physxView = mRegistry.view<PhysicsSceneComponent>();
+            physx::PxScene* physxWorld = mRegistry.get<PhysicsSceneComponent>(physxView.front()).World;
+
+            auto view = mRegistry.view<RigidBodyComponent>();
+            mPhysics3DBodyEntityBuffer = new Entity[view.size()];
+            uint32_t physicsBodyEntityBufferIndex = 0;
+
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                UUID entityID = e.GetComponent<IDComponent>().ID;
+                auto& transform = e.Transform();
+                auto& rigidbody = mRegistry.get<RigidBodyComponent>(entity);
+
+                physx::PxRigidActor* actor = PhysicsManager::AddActor(physxWorld, rigidbody, transform);
+                NR_CORE_ASSERT(actor);
+
+                Entity* entityStorage = &mPhysics3DBodyEntityBuffer[physicsBodyEntityBufferIndex++];
+                *entityStorage = e;
+                actor->userData = (void*)entityStorage;
+
+                rigidbody.RuntimeActor = actor;
+            }
+        }
+
+        {
+            auto view = mRegistry.view<BoxColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& boxCollider = mRegistry.get<BoxColliderComponent>(entity);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    auto& rigidBody = e.GetComponent<RigidBodyComponent>();
+                    auto& physicsMaterial = e.GetComponent<PhysicsMaterialComponent>();
+                    NR_CORE_ASSERT(rigidBody.RuntimeActor);
+                    physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rigidBody.RuntimeActor);
+
+                    physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(boxCollider.Size.x / 2.0f, boxCollider.Size.y / 2.0f, boxCollider.Size.z / 2.0f);
+                    physx::PxMaterial* material = PhysicsManager::CreateMaterial(physicsMaterial.StaticFriction, physicsMaterial.DynamicFriction, physicsMaterial.Bounciness);
+                    physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, boxGeometry, *material);
+                    shape->setLocalPose(PhysicsManager::CreatePose(glm::translate(glm::mat4(1.0f), boxCollider.Offset)));
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<SphereColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& sphereCollider = mRegistry.get<SphereColliderComponent>(entity);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    auto& rigidBody = e.GetComponent<RigidBodyComponent>();
+                    auto& physicsMaterial = e.GetComponent<PhysicsMaterialComponent>();
+                    NR_CORE_ASSERT(rigidBody.RuntimeActor);
+                    physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rigidBody.RuntimeActor);
+
+                    physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(sphereCollider.Radius);
+                    physx::PxMaterial* material = PhysicsManager::CreateMaterial(physicsMaterial.StaticFriction, physicsMaterial.DynamicFriction, physicsMaterial.Bounciness);
+                    physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, sphereGeometry, *material);
+                    shape->setLocalPose(PhysicsManager::CreatePose(glm::translate(glm::mat4(1.0f), sphereCollider.Offset)));
+
+                    physx::PxRigidDynamic* rigidBodyActor = actor->is<physx::PxRigidDynamic>();
+
+                    if (rigidBodyActor)
+                    {
+                        rigidBodyActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, true);
+                        rigidBodyActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, true);
+                        rigidBodyActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, true);
+                    }
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<CapsuleColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& capsuleCollider = mRegistry.get<CapsuleColliderComponent>(entity);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    auto& rigidBody = e.GetComponent<RigidBodyComponent>();
+                    auto& physicsMaterial = e.GetComponent<PhysicsMaterialComponent>();
+                    NR_CORE_ASSERT(rigidBody.RuntimeActor);
+                    physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rigidBody.RuntimeActor);
+
+                    physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(capsuleCollider.Radius, capsuleCollider.Height / 2.0f);
+                    physx::PxMaterial* material = PhysicsManager::CreateMaterial(physicsMaterial.StaticFriction, physicsMaterial.DynamicFriction, physicsMaterial.Bounciness);
+                    physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor, capsuleGeometry, *material);
+                    //shape->setLocalPose(PhysicsManager::CreatePose(glm::translate(glm::mat4(1.0f), capsuleCollider.Offset)));
+
+                    shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
+                }
+            }
+        }
+
+        // Setup Collision Filters
+        {
+            auto view = mRegistry.view<RigidBodyComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& rigidBody = e.GetComponent<RigidBodyComponent>();
+                NR_CORE_ASSERT(rigidBody.RuntimeActor);
+                physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rigidBody.RuntimeActor);
+
+                if (rigidBody.BodyType == RigidBodyComponent::Type::Static)
+                {
+                    PhysicsManager::SetCollisionFilters(actor, (uint32_t)FilterGroup::Static, (uint32_t)FilterGroup::All);
+                }
+                else if (rigidBody.BodyType == RigidBodyComponent::Type::Dynamic)
+                {
+                    PhysicsManager::SetCollisionFilters(actor, (uint32_t)FilterGroup::Dynamic, (uint32_t)FilterGroup::All);
+                }
+            }
+        }
+
         mIsPlaying = true;
     }
 
@@ -393,7 +628,8 @@ namespace NR
         auto physxView = mRegistry.view<PhysicsSceneComponent>();
         mRegistry.get<PhysicsSceneComponent>(mSceneEntity).World->release();
 
-        delete[] mPhysicsBodyEntityBuffer;
+        delete[] mPhysics3DBodyEntityBuffer;
+        delete[] mPhysics2DBodyEntityBuffer;
         mIsPlaying = false;
     }
 
@@ -501,6 +737,10 @@ namespace NR
         CopyComponentIfExists<RigidBody2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     Entity Scene::FindEntityByTag(const std::string& tag)
@@ -546,6 +786,10 @@ namespace NR
         CopyComponent<RigidBody2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         const auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetID()) != entityInstanceMap.end())

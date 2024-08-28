@@ -40,6 +40,9 @@ namespace NR {
 		Component_RegisterType(SpriteRendererComponent);
 		Component_RegisterType(RigidBody2DComponent);
 		Component_RegisterType(BoxCollider2DComponent);
+		Component_RegisterType(RigidBodyComponent);
+		Component_RegisterType(BoxColliderComponent);
+		Component_RegisterType(SphereColliderComponent);
 	}
 
 	void ScriptEngineRegistry::RegisterAll()
@@ -52,6 +55,9 @@ namespace NR {
 		mono_add_internal_call("NR.Entity::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
 		mono_add_internal_call("NR.Entity::CreateComponent_Native", NR::Script::NR_Entity_CreateComponent);
 		mono_add_internal_call("NR.Entity::HasComponent_Native", NR::Script::NR_Entity_HasComponent);
+		mono_add_internal_call("NR.Entity::GetForwardDirection_Native", NR::Script::NR_Entity_GetForwardDirection);
+		mono_add_internal_call("NR.Entity::GetRightDirection_Native", NR::Script::NR_Entity_GetRightDirection);
+		mono_add_internal_call("NR.Entity::GetUpDirection_Native", NR::Script::NR_Entity_GetUpDirection);
 
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
 
@@ -83,6 +89,11 @@ namespace NR {
 		mono_add_internal_call("NR.RigidBody2DComponent::ApplyImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyLinearImpulse);
 		mono_add_internal_call("NR.RigidBody2DComponent::GetVelocity_Native", NR::Script::NR_RigidBody2DComponent_GetLinearVelocity);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetVelocity_Native", NR::Script::NR_RigidBody2DComponent_SetLinearVelocity);
+
+		mono_add_internal_call("NR.RigidBodyComponent::AddForce_Native", NR::Script::NR_RigidBodyComponent_AddForce);
+		mono_add_internal_call("NR.RigidBodyComponent::AddTorque_Native", NR::Script::NR_RigidBodyComponent_AddTorque);
+		mono_add_internal_call("NR.RigidBodyComponent::GetLinearVelocity_Native", NR::Script::NR_RigidBodyComponent_GetLinearVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::SetLinearVelocity_Native", NR::Script::NR_RigidBodyComponent_SetLinearVelocity);
 
 		mono_add_internal_call("NR.MeshFactory::CreatePlane_Native", NR::Script::NR_MeshFactory_CreatePlane);
 	}

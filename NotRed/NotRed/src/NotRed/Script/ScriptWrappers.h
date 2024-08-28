@@ -2,6 +2,7 @@
 
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Core/KeyCodes.h"
+#include "NotRed/Physics/PhysicsManager.h"
 
 #include <glm/glm.hpp>
 
@@ -25,12 +26,21 @@ namespace NR::Script
     void NR_Entity_SetTransform(uint64_t entityID, glm::mat4* inTransform);
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
 
+    void NR_Entity_GetForwardDirection(uint64_t entityID, glm::vec3* outForward);
+    void NR_Entity_GetRightDirection(uint64_t entityID, glm::vec3* outRight);
+    void NR_Entity_GetUpDirection(uint64_t entityID, glm::vec3* outUp);
+
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
     void NR_RigidBody2DComponent_ApplyLinearImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
     void NR_RigidBody2DComponent_GetLinearVelocity(uint64_t entityID, glm::vec2* outVelocity);
     void NR_RigidBody2DComponent_SetLinearVelocity(uint64_t entityID, glm::vec2* velocity);
+
+    void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode foceMode);
+    void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
+    void NR_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity);
+    void NR_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* velocity);
 
     // Renderer
     // Texture2D

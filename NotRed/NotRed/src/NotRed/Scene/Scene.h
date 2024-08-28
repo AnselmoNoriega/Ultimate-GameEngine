@@ -106,7 +106,8 @@ namespace NR
 
 		entt::entity mSelectedEntity;
 
-		Entity* mPhysicsBodyEntityBuffer = nullptr;
+		Entity* mPhysics3DBodyEntityBuffer = nullptr;
+		Entity* mPhysics2DBodyEntityBuffer = nullptr;
 
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;

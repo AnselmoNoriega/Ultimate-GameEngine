@@ -43,6 +43,8 @@ namespace NR
         MonoMethod* DestroyMethod = nullptr;
         MonoMethod* UpdateMethod = nullptr;
 
+        MonoMethod* CollisionBeginMethod = nullptr;
+        MonoMethod* CollisionEndMethod = nullptr;
         MonoMethod* Collision2DBeginMethod = nullptr;
         MonoMethod* Collision2DEndMethod = nullptr;
 
@@ -51,6 +53,8 @@ namespace NR
             InitMethod = GetMethod(image, ClassName + ":Init()");
             UpdateMethod = GetMethod(image, ClassName + ":Update(single)");
 
+            CollisionBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionBegin(single)");
+            CollisionEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionEnd(single)");
             Collision2DBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DBegin(single)");
             Collision2DEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DEnd(single)");
         }
@@ -402,6 +406,38 @@ namespace NR
             float value = 5.0f;
             void* args[] = { &value };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->Collision2DEndMethod, args);
+        }
+    }
+
+    void ScriptEngine::CollisionBegin(Entity entity)
+    {
+        CollisionBegin(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
+    }
+
+    void ScriptEngine::CollisionBegin(UUID sceneID, UUID entityID)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        if (entityInstance.ScriptClass->CollisionBeginMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->CollisionBeginMethod, args);
+        }
+    }
+
+    void ScriptEngine::CollisionEnd(Entity entity)
+    {
+        CollisionEnd(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
+    }
+
+    void ScriptEngine::CollisionEnd(UUID sceneID, UUID entityID)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        if (entityInstance.ScriptClass->CollisionEndMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->CollisionEndMethod, args);
         }
     }
 

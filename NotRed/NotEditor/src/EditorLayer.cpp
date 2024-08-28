@@ -105,7 +105,7 @@ namespace NR
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
 
         SceneSerializer serializer(mEditorScene);
-        serializer.Deserialize("Assets/Scenes/Physics2DTest.nsc");
+        //serializer.Deserialize("Assets/Scenes/Test.nsc");
     }
 
     void EditorLayer::Detach()

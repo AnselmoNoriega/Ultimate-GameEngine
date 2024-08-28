@@ -147,6 +147,50 @@ namespace NR
                             ImGui::CloseCurrentPopup();
                         }
                     }
+                    if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                    {
+                        if (ImGui::Button("Rigidbody"))
+                        {
+                            mSelectionContext.AddComponent<RigidBodyComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+                    {
+                        if (ImGui::Button("Physics Material"))
+                        {
+                            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            mSelectionContext.AddComponent<PhysicsMaterialComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<BoxColliderComponent>())
+                    {
+                        if (ImGui::Button("Box Collider"))
+                        {
+                            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            mSelectionContext.AddComponent<BoxColliderComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
+                    if (!mSelectionContext.HasComponent<SphereColliderComponent>())
+                    {
+                        if (ImGui::Button("Sphere Collider"))
+                        {
+                            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            mSelectionContext.AddComponent<SphereColliderComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
                     ImGui::EndPopup();
                 }
             }
