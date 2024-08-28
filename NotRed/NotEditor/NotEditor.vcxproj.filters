@@ -12,8 +12,4 @@
   <ItemGroup>
     <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Shaders\Outline\Outline.vert" />
-    <None Include="Assets\Shaders\Outline\Outline.frag" />
-  </ItemGroup>
 </Project>

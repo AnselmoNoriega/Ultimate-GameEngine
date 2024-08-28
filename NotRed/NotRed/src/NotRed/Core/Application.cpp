@@ -2,8 +2,8 @@
 #include "Application.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 #include <Windows.h>
 
 #include <imgui/imgui.h>
@@ -155,7 +155,6 @@ namespace NR
         OPENFILENAMEA ofn;
         CHAR szFile[260] = { 0 };
 
-        // Initialize OPENFILENAME
         ZeroMemory(&ofn, sizeof(OPENFILENAME));
         ofn.lStructSize = sizeof(OPENFILENAME);
         ofn.hwndOwner = glfwGetWin32Window((GLFWwindow*)mWindow->GetNativeWindow());

@@ -60,7 +60,7 @@ project "NotRed"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "off"
+	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -107,7 +107,7 @@ project "NotRed"
 		"Glad",
 		"ImGui",
 		"opengl32.lib",
-		"%{LibraryDir.mono}",
+		"%{LibraryDir.Mono}",
 		--"%{LibraryDir.PhysX_LowLevel}",
 		--"%{LibraryDir.PhysX_LowLevelAABB}",
 		--"%{LibraryDir.PhysX_LowLevelDynamics}",
@@ -139,15 +139,15 @@ project "NotRed"
 
 	filter "configurations:Debug"
 		defines "NR_DEBUG"
-		symbols "On"
+		symbols "on"
 				
 	filter "configurations:Release"
 		defines "NR_RELEASE"
-		optimize "On"
+		optimize "on"
 
 	filter "configurations:Dist"
 		defines "NR_DIST"
-		optimize "On"
+		optimize "on"
 
 project "NotRed-ScriptCore"
 	location "NotRed-ScriptCore"
@@ -169,7 +169,7 @@ project "NotEditor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "off"
+	staticruntime "on"
 	
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")

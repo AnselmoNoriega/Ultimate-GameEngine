@@ -81,7 +81,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -91,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -106,7 +106,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -117,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -132,7 +132,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -143,7 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
