@@ -183,4 +183,18 @@ namespace NR
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
     };
+
+    struct MeshColliderComponent
+    {
+        Ref<Mesh> CollisionMesh;
+
+        MeshColliderComponent() = default;
+        MeshColliderComponent(const MeshColliderComponent& other) = default;
+        MeshColliderComponent(const Ref<Mesh>& mesh)
+            : CollisionMesh(mesh)
+        {
+        }
+
+        operator Ref<Mesh>() { return CollisionMesh; }
+    };
 }

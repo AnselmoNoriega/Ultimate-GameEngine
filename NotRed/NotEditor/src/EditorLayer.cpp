@@ -915,7 +915,12 @@ namespace NR
         SelectedSubmesh selection;
         if (entity.HasComponent<MeshComponent>())
         {
-            selection.Mesh = &entity.GetComponent<MeshComponent>().MeshObj->GetSubmeshes()[0];
+            auto& meshComp = entity.GetComponent<MeshComponent>();
+
+            if (meshComp.MeshObj)
+            {
+                selection.Mesh = &meshComp.MeshObj->GetSubmeshes()[0];
+            }
         }
         selection.EntityObj = entity;
         mSelectionContext.clear();

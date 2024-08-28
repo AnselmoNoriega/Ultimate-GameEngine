@@ -129,6 +129,30 @@ namespace NR
         return sPXPhysicsFactory->createMaterial(staticFriction, dynamicFriction, restitution);
     }
 
+    physx::PxConvexMesh* PhysicsManager::CreateMeshCollider(const Ref<Mesh>& mesh)
+    {
+        const auto& vertices = mesh->GetStaticVertices();
+        const auto& indices = mesh->GetIndices();
+
+        physx::PxTolerancesScale scale;
+        physx::PxCookingParams params(scale);
+
+        physx::PxConvexMeshDesc convexDesc;
+        convexDesc.points.count = vertices.size();
+        convexDesc.points.stride = sizeof(Vertex);
+        convexDesc.points.data = vertices.data();
+        convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+        const physx::PxConvexMeshDesc desc = convexDesc;
+
+        physx::PxDefaultMemoryOutputStream buf;
+        if (!PxCookConvexMesh(params, desc, buf))
+        {
+            return nullptr;
+        }
+        physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+        return sPXPhysicsFactory->createConvexMesh(input);
+    }
+
     physx::PxTransform PhysicsManager::CreatePose(const glm::mat4& transform)
     {
         auto [translation, rotationQuat, scale] = DecomposeTransform(transform);

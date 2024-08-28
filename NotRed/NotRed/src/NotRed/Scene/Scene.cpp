@@ -599,7 +599,31 @@ namespace NR
             }
         }
 
-        // Setup Collision Filters
+        {
+            auto view = mRegistry.view<MeshColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& meshCollider = mRegistry.get<MeshColliderComponent>(entity);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    auto& rigidBody = e.GetComponent<RigidBodyComponent>();
+                    auto& physicsMaterial = e.GetComponent<PhysicsMaterialComponent>();
+                    NR_CORE_ASSERT(rigidBody.RuntimeActor);
+                    physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rigidBody.RuntimeActor);
+
+                    physx::PxConvexMesh* triangleMesh = PhysicsManager::CreateMeshCollider(meshCollider);
+                    NR_CORE_ASSERT(triangleMesh);
+
+                    physx::PxConvexMeshGeometry triangleGeometry = physx::PxConvexMeshGeometry(triangleMesh);
+                    physx::PxMaterial* material = PhysicsManager::CreateMaterial(physicsMaterial.StaticFriction, physicsMaterial.DynamicFriction, physicsMaterial.Bounciness);
+                    physx::PxRigidActorExt::createExclusiveShape(*actor, triangleGeometry, *material);
+                }
+            }
+        }
+
         {
             auto view = mRegistry.view<RigidBodyComponent>();
             for (auto entity : view)
@@ -741,6 +765,7 @@ namespace NR
         CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     Entity Scene::FindEntityByTag(const std::string& tag)
@@ -790,6 +815,7 @@ namespace NR
         CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<MeshColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         const auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetID()) != entityInstanceMap.end())

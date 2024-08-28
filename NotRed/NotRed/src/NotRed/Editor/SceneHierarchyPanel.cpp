@@ -191,6 +191,18 @@ namespace NR
                             ImGui::CloseCurrentPopup();
                         }
                     }
+                    if (!mSelectionContext.HasComponent<MeshColliderComponent>())
+                    {
+                        if (ImGui::Button("Mesh Collider"))
+                        {
+                            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            mSelectionContext.AddComponent<MeshColliderComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
                     ImGui::EndPopup();
                 }
             }
@@ -777,7 +789,7 @@ namespace NR
             {
                 BeginPropertyGrid();
                 std::string oldName = sc.ModuleName;
-                if (Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName))) // TODO: no live edit
+                if (Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName)))
                 {
                     if (ScriptEngine::ModuleExists(oldName))
                     {
@@ -950,6 +962,109 @@ namespace NR
                 Property("Friction", cc2dc.Friction);
 
                 EndPropertyGrid();
+            });
+
+        DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
+            {
+                const char* rbTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+                const char* currentType = rbTypeStrings[(int)rbc.BodyType];
+                if (ImGui::BeginCombo("Type", currentType))
+                {
+                    for (int type = 0; type < 3; type++)
+                    {
+                        bool is_selected = (currentType == rbTypeStrings[type]);
+                        if (ImGui::Selectable(rbTypeStrings[type], is_selected))
+                        {
+                            currentType = rbTypeStrings[type];
+                            rbc.BodyType = (RigidBodyComponent::Type)type;
+                        }
+                        if (is_selected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+
+                if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+                {
+                    BeginPropertyGrid();
+                    Property("Mass", rbc.Mass);
+
+                    if (ImGui::TreeNode("RigidBodyConstraints", "Constraints"))
+                    {
+                        Property("Position: X", rbc.LockPositionX);
+                        Property("Position: Y", rbc.LockPositionY);
+                        Property("Position: Z", rbc.LockPositionZ);
+
+                        Property("Rotation: X", rbc.LockRotationX);
+                        Property("Rotation: Y", rbc.LockRotationY);
+                        Property("Rotation: Z", rbc.LockRotationZ);
+
+                        ImGui::TreePop();
+                    }
+
+                    EndPropertyGrid();
+                }
+            });
+
+        DrawComponent<PhysicsMaterialComponent>("Physics Material", entity, [](PhysicsMaterialComponent& pmc)
+            {
+                BeginPropertyGrid();
+
+                Property("Static Friction", pmc.StaticFriction);
+                Property("Dynamic Friction", pmc.DynamicFriction);
+                Property("Bounciness", pmc.Bounciness);
+
+                EndPropertyGrid();
+            });
+
+        DrawComponent<BoxColliderComponent>("Box Collider", entity, [](BoxColliderComponent& bcc)
+            {
+                BeginPropertyGrid();
+
+                Property("Size", bcc.Size);
+                //Property("Offset", bcc.Offset);
+
+                EndPropertyGrid();
+            });
+
+        DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](SphereColliderComponent& scc)
+            {
+                BeginPropertyGrid();
+
+                Property("Radius", scc.Radius);
+
+                EndPropertyGrid();
+            });
+
+        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [](MeshColliderComponent& mc)
+            {
+                ImGui::Columns(3);
+                ImGui::SetColumnWidth(0, 100);
+                ImGui::SetColumnWidth(1, 300);
+                ImGui::SetColumnWidth(2, 40);
+                ImGui::Text("File Path");
+                ImGui::NextColumn();
+                ImGui::PushItemWidth(-1);
+                if (mc.CollisionMesh)
+                {
+                    ImGui::InputText("##meshfilepath", (char*)mc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                }
+                else
+                {
+                    ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+                }
+                ImGui::PopItemWidth();
+                ImGui::NextColumn();
+                if (ImGui::Button("...##openmesh"))
+                {
+                    std::string file = Application::Get().OpenFile();
+                    if (!file.empty())
+                    {
+                        mc.CollisionMesh = Ref<Mesh>::Create(file);
+                    }
+                }
             });
     }
 }

@@ -32,6 +32,7 @@ namespace NR
 		static physx::PxScene* CreateScene(const physx::PxSceneDesc& sceneDesc);
 		static physx::PxRigidActor* AddActor(physx::PxScene* scene, const RigidBodyComponent& rigidbody, const glm::mat4& transform);
 		static physx::PxMaterial* CreateMaterial(float staticFriction, float dynamicFriction, float restitution);
+		static physx::PxConvexMesh* CreateMeshCollider(const Ref<Mesh>& mesh);
 
 		static physx::PxTransform CreatePose(const glm::mat4& transform);
 
