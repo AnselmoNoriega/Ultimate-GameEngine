@@ -123,4 +123,12 @@ namespace NR
 		CircleCollider2DComponent() = default;
 		CircleCollider2DComponent(const CircleCollider2DComponent& other) = default;
 	};
+
+	struct SphereColliderComponent
+	{
+		float Radius;
+
+		SphereColliderComponent() = default;
+		SphereColliderComponent(const SphereColliderComponent& other) = default;
+	};
 }

@@ -1,17 +1,17 @@
 #include "nrpch.h"
 #include "Application.h"
 
-#include "NotRed/Renderer/Renderer.h"
-#include "NotRed/Renderer/Framebuffer.h"
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 #include <GLFW/glfw3.h>
+#include <Windows.h>
 
 #include <imgui/imgui.h>
 
+#include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/Framebuffer.h"
 #include "NotRed/Script/ScriptEngine.h"
-
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-#include <Windows.h>
+#include "NotRed/Physics/PhysicsManager.h"
 
 namespace NR
 {
@@ -31,6 +31,7 @@ namespace NR
         PushOverlay(mImGuiLayer);
 
         ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
+        PhysicsManager::Init();
 
         Renderer::Init();
         Renderer::WaitAndRender();
@@ -38,6 +39,12 @@ namespace NR
 
     Application::~Application()
     {
+        for (Layer* layer : mLayerStack)
+        {
+            layer->Detach();
+        }
+
+        PhysicsManager::Shutdown();
         ScriptEngine::Shutdown();
     }
 

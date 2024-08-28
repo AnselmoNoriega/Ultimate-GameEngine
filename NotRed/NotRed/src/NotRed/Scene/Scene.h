@@ -40,6 +40,7 @@ namespace NR
 		~Scene();
 
 		void Init();
+		void Shutdown();
 
 		void Update(float dt);
 		void RenderRuntime(float dt);

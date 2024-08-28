@@ -8,6 +8,8 @@
 
 #include <box2d/box2d.h>
 
+#include "NotRed/Physics/PhysicsManager.h"
+
 #include "NotRed/Core/Input.h"
 
 #include "Entity.h"
@@ -21,9 +23,18 @@ namespace NR
 {
     std::unordered_map<UUID, Scene*> sActiveScenes;
 
+    static physx::PxDefaultErrorCallback sPXErrorCallback;
+    static physx::PxDefaultAllocator sPXAllocator;
+    static physx::PxFoundation* sPXFoundation;
+
     struct SceneComponent
     {
         UUID SceneID;
+    };
+
+    struct PhysicsSceneComponent
+    {
+        physx::PxScene* World;
     };
 
     struct Box2DWorldComponent
@@ -118,6 +129,11 @@ namespace NR
 
         sActiveScenes[mSceneID] = this;
 
+        physx::PxSceneDesc sceneDesc = PhysicsManager::CreateSceneDesc();
+        sceneDesc.gravity = physx::PxVec3(0.0F, -9.8F, 0.0F);
+        PhysicsSceneComponent& physxWorld = mRegistry.emplace<PhysicsSceneComponent>(mSceneEntity, PhysicsManager::CreateScene(sceneDesc));
+        NR_CORE_ASSERT(physxWorld.World);
+
         Init();
         SetEnvironment(Environment::Load("Assets/Env/HDR_blue_nebulae-1.hdr"));
     }
@@ -137,6 +153,12 @@ namespace NR
         auto skyboxShader = Shader::Create("Assets/Shaders/Skybox");
         mSkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
         mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
+    }
+
+    void Scene::Shutdown()
+    {
+        auto physxView = mRegistry.view<PhysicsSceneComponent>();
+        mRegistry.get<PhysicsSceneComponent>(mSceneEntity).World->release();
     }
 
     static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
@@ -187,6 +209,9 @@ namespace NR
                     glm::scale(glm::mat4(1.0f), scale);
             }
         }
+
+        auto physxView = mRegistry.view<PhysicsSceneComponent>();
+        physx::PxScene* physxScene = mRegistry.get<PhysicsSceneComponent>(physxView.front()).World;
     }
 
     void Scene::RenderRuntime(float dt)
@@ -365,6 +390,9 @@ namespace NR
 
     void Scene::RuntimeStop()
     {
+        auto physxView = mRegistry.view<PhysicsSceneComponent>();
+        mRegistry.get<PhysicsSceneComponent>(mSceneEntity).World->release();
+
         delete[] mPhysicsBodyEntityBuffer;
         mIsPlaying = false;
     }

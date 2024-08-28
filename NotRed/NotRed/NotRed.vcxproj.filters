@@ -22,6 +22,9 @@
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Physics">
+      <UniqueIdentifier>{9A90804A-8674-41A0-EFD4-3BF3DBD72B22}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Platform">
       <UniqueIdentifier>{7C6E9096-E8CF-6DA4-713D-B456DD9DA463}</UniqueIdentifier>
     </Filter>
@@ -159,10 +162,16 @@
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\PhysicsManager.h">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h">
+      <Filter>src\NotRed\Platform\OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h">
@@ -175,9 +184,6 @@
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
@@ -199,6 +205,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Mesh.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h">
@@ -226,9 +235,6 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
@@ -485,10 +491,16 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp">
+      <Filter>src\NotRed\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp">
@@ -504,9 +516,6 @@
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp">
@@ -533,6 +542,9 @@
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -552,9 +564,6 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">

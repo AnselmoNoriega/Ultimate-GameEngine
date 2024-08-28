@@ -76,11 +76,13 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;PX_PHYSX_STATIC_LIB;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -89,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -97,14 +99,15 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;PX_PHYSX_STATIC_LIB;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -114,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -122,14 +125,15 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;PX_PHYSX_STATIC_LIB;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
@@ -139,7 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -172,13 +176,14 @@
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsManager.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
@@ -186,6 +191,7 @@
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Material.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
+    <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
@@ -195,7 +201,6 @@
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
-    <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
@@ -282,14 +287,15 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRendererAPI.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
@@ -298,6 +304,7 @@
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
@@ -305,7 +312,6 @@
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />

@@ -110,6 +110,7 @@ namespace NR
 
     void EditorLayer::Detach()
     {
+        mEditorScene->Shutdown();
     }
 
     void EditorLayer::ScenePlay()
