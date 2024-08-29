@@ -966,11 +966,11 @@ namespace NR
 
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
             {
-                const char* rbTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
+                const char* rbTypeStrings[] = { "Static", "Dynamic" };
                 const char* currentType = rbTypeStrings[(int)rbc.BodyType];
                 if (ImGui::BeginCombo("Type", currentType))
                 {
-                    for (int type = 0; type < 3; type++)
+                    for (int type = 0; type < 2; ++type)
                     {
                         bool is_selected = (currentType == rbTypeStrings[type]);
                         if (ImGui::Selectable(rbTypeStrings[type], is_selected))
@@ -990,9 +990,12 @@ namespace NR
                 {
                     BeginPropertyGrid();
                     Property("Mass", rbc.Mass);
+                    Property("Is Kinematic", rbc.IsKinematic);
+                    EndPropertyGrid();
 
                     if (ImGui::TreeNode("RigidBodyConstraints", "Constraints"))
                     {
+                        BeginPropertyGrid();
                         Property("Position: X", rbc.LockPositionX);
                         Property("Position: Y", rbc.LockPositionY);
                         Property("Position: Z", rbc.LockPositionZ);
@@ -1000,11 +1003,10 @@ namespace NR
                         Property("Rotation: X", rbc.LockRotationX);
                         Property("Rotation: Y", rbc.LockRotationY);
                         Property("Rotation: Z", rbc.LockRotationZ);
+                        EndPropertyGrid();
 
                         ImGui::TreePop();
                     }
-
-                    EndPropertyGrid();
                 }
             });
 

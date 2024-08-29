@@ -1,8 +1,6 @@
 #pragma once
 
-#include <PxPhysicsAPI.h>
-
-#include "NotRed/Scene/Components.h"
+#include "NotRed/Scene/Entity.h"
 
 namespace NR
 {
@@ -22,27 +20,25 @@ namespace NR
 		All = Static | Dynamic | Kinematic
 	};
 
+	struct SceneParams
+	{
+		glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
+	};
+
 	class PhysicsManager
 	{
 	public:
 		static void Init();
 		static void Shutdown();
 
-		static physx::PxSceneDesc CreateSceneDesc();
-		static physx::PxScene* CreateScene(const physx::PxSceneDesc& sceneDesc);
-		static physx::PxRigidActor* AddActor(physx::PxScene* scene, const RigidBodyComponent& rigidbody, const glm::mat4& transform);
-		static physx::PxMaterial* CreateMaterial(float staticFriction, float dynamicFriction, float restitution);
-		static physx::PxConvexMesh* CreateMeshCollider(const Ref<Mesh>& mesh);
+		static void CreateScene(const SceneParams& params);
+		static void CreateActor(Entity e, int entityCount);
 
-		static physx::PxTransform CreatePose(const glm::mat4& transform);
+		static void Simulate();
 
-		static void SetCollisionFilters(physx::PxRigidActor* actor, uint32_t filterGroup, uint32_t filterMask);
+		static void DestroyScene();
 
-	private:
-		static physx::PxDefaultErrorCallback sPXErrorCallback;
-		static physx::PxDefaultAllocator sPXAllocator;
-		static physx::PxFoundation* sPXFoundation;
-		static physx::PxPhysics* sPXPhysicsFactory;
-		static physx::PxPvd* sPXPvd;
+		static void ConnectVisualDebugger();
+		static void DisconnectVisualDebugger();
 	};
 }

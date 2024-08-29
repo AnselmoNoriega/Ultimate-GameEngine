@@ -55,9 +55,10 @@ namespace NR {
 		mono_add_internal_call("NR.Entity::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
 		mono_add_internal_call("NR.Entity::CreateComponent_Native", NR::Script::NR_Entity_CreateComponent);
 		mono_add_internal_call("NR.Entity::HasComponent_Native", NR::Script::NR_Entity_HasComponent);
-		mono_add_internal_call("NR.Entity::GetForwardDirection_Native", NR::Script::NR_Entity_GetForwardDirection);
-		mono_add_internal_call("NR.Entity::GetRightDirection_Native", NR::Script::NR_Entity_GetRightDirection);
-		mono_add_internal_call("NR.Entity::GetUpDirection_Native", NR::Script::NR_Entity_GetUpDirection);
+
+		mono_add_internal_call("NR.TransformComponent::GetTransform_Native", NR::Script::NR_Entity_GetTransform);
+		mono_add_internal_call("NR.TransformComponent::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
+		mono_add_internal_call("NR.TransformComponent::GetRelativeDirection_Native", NR::Script::NR_TransformComponent_GetRelativeDirection);
 
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
 

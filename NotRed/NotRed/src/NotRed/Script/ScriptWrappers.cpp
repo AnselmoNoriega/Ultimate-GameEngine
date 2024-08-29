@@ -10,6 +10,8 @@
 
 #include <box2d/box2d.h>
 
+#include <PxPhysicsAPI.h>
+
 #include "NotRed/Core/Math/Noise.h"
 
 #include "NotRed/Scene/Scene.h"
@@ -130,7 +132,7 @@ namespace NR::Script
         return 0;
     }
 
-    void NR_Entity_GetForwardDirection(uint64_t entityID, glm::vec3* outForward)
+    void NR_TransformComponent_GetRelativeDirection(uint64_t entityID, glm::vec3* outDirection, glm::vec3* inAbsoluteDirection)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -141,35 +143,7 @@ namespace NR::Script
         auto& transformComponent = entity.GetComponent<TransformComponent>();
 
         auto [position, rotation, scale] = DecomposeTransform(transformComponent.Transform);
-        *outForward = glm::rotate(glm::inverse(glm::normalize(rotation)), glm::vec3(0, 0, -1));
-    }
-
-    void NR_Entity_GetRightDirection(uint64_t entityID, glm::vec3* outRight)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        auto& transformComponent = entity.GetComponent<TransformComponent>();
-
-        auto [position, rotation, scale] = DecomposeTransform(transformComponent.Transform);
-        *outRight = glm::rotate(glm::inverse(glm::normalize(rotation)), glm::vec3(1, 0, 0));
-    }
-
-    void NR_Entity_GetUpDirection(uint64_t entityID, glm::vec3* outUp)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        auto& transformComponent = entity.GetComponent<TransformComponent>();
-
-        auto [position, rotation, scale] = DecomposeTransform(transformComponent.Transform);
-        *outUp = glm::rotate(glm::inverse(glm::normalize(rotation)), glm::vec3(0, 1, 0));
+        *outDirection = glm::rotate(glm::inverse(glm::normalize(rotation)), *inAbsoluteDirection);
     }
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID)
@@ -249,13 +223,16 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+
+        if (component.IsKinematic)
+        {
+            NR_CORE_WARN("Cannot add a force to a kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+
         physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
         physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-
-        // We don't want to assert since scripts might want to be able to switch
-        // between a static and dynamic actor at runtime
-        if (!dynamicActor)
-            return;
+        NR_CORE_ASSERT(dynamicActor);
 
         NR_CORE_ASSERT(force);
         dynamicActor->addForce({ force->x, force->y, force->z }, (physx::PxForceMode::Enum)forceMode);
@@ -271,15 +248,17 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+
+        if (component.IsKinematic)
+        {
+            NR_CORE_WARN("Cannot add torque to a kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+
         physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
         physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
+        NR_CORE_ASSERT(dynamicActor && torque);
 
-        // We don't want to assert since scripts might want to be able to switch
-        // between a static and dynamic actor at runtime
-        if (!dynamicActor)
-            return;
-
-        NR_CORE_ASSERT(torque);
         dynamicActor->addTorque({ torque->x, torque->y, torque->z }, (physx::PxForceMode::Enum)forceMode);
     }
 
@@ -293,13 +272,10 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+
         physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
         physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-
-        // We don't want to assert since scripts might want to be able to switch
-        // between a static and dynamic actor at runtime
-        if (!dynamicActor)
-            return;
+        NR_CORE_ASSERT(dynamicActor);
 
         NR_CORE_ASSERT(outVelocity);
         physx::PxVec3 velocity = dynamicActor->getLinearVelocity();
@@ -316,13 +292,10 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+
         physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
         physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-
-        // We don't want to assert since scripts might want to be able to switch
-        // between a static and dynamic actor at runtime
-        if (!dynamicActor)
-            return;
+        NR_CORE_ASSERT(dynamicActor);
 
         NR_CORE_ASSERT(velocity);
         dynamicActor->setLinearVelocity({ velocity->x, velocity->y, velocity->z });

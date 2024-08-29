@@ -135,6 +135,8 @@ namespace NR
 		static void CollisionEnd(Entity entity);
 		static void CollisionEnd(UUID sceneID, UUID entityID);
 
+		static bool IsEntityModuleValid(Entity entity);
+
 		static void ScriptComponentDestroyed(UUID sceneID, UUID entityID);
 
 		static bool ModuleExists(const std::string& moduleName);

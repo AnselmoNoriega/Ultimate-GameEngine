@@ -25,10 +25,8 @@ namespace NR::Script
     void NR_Entity_GetTransform(uint64_t entityID, glm::mat4* outTransform);
     void NR_Entity_SetTransform(uint64_t entityID, glm::mat4* inTransform);
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
-
-    void NR_Entity_GetForwardDirection(uint64_t entityID, glm::vec3* outForward);
-    void NR_Entity_GetRightDirection(uint64_t entityID, glm::vec3* outRight);
-    void NR_Entity_GetUpDirection(uint64_t entityID, glm::vec3* outUp);
+    
+	void NR_TransformComponent_GetRelativeDirection(uint64_t entityID, glm::vec3* outDirection, glm::vec3* inAbsoluteDirection);
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);

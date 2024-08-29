@@ -1,0 +1,173 @@
+#include "nrpch.h"
+#include "PhysicsWrappers.h"
+
+#include "PhysicsManager.h"
+
+#ifdef NR_DEBUG
+	#define PHYSX_DEBUGGER 1
+#endif
+
+namespace NR
+{
+	static physx::PxDefaultErrorCallback sErrorCallback;
+	static physx::PxDefaultAllocator sAllocator;
+	static physx::PxFoundation* sFoundation;
+	static physx::PxPhysics* sPhysics;
+	static physx::PxPvd* sVisualDebugger;
+
+	static physx::PxSimulationFilterShader sFilterShader = physx::PxDefaultSimulationFilterShader;
+
+	static ContactListener sContactListener;
+
+	physx::PxScene* PhysicsWrappers::CreateScene(const SceneParams& sceneParams)
+	{
+		physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
+
+		sceneDesc.gravity = ToPhysicsVector(sceneParams.Gravity);
+		sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
+		sceneDesc.filterShader = FilterShader;
+		sceneDesc.simulationEventCallback = &sContactListener;
+
+		NR_CORE_ASSERT(sceneDesc.isValid());
+		return sPhysics->createScene(sceneDesc);
+	}
+
+	physx::PxRigidActor* PhysicsWrappers::CreateActor(const RigidBodyComponent& rigidbody, const glm::mat4& transform)
+	{
+		physx::PxRigidActor* actor = nullptr;
+
+		if (rigidbody.BodyType == RigidBodyComponent::Type::Static)
+		{
+			actor = sPhysics->createRigidStatic(ToPhysicsTransform(transform));
+		}
+		else if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
+		{
+			physx::PxRigidDynamic* dynamicActor = sPhysics->createRigidDynamic(ToPhysicsTransform(transform));
+
+			dynamicActor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, rigidbody.IsKinematic);
+
+			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, rigidbody.LockPositionX);
+			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, rigidbody.LockPositionY);
+			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, rigidbody.LockPositionZ);
+			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, rigidbody.LockRotationX);
+			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, rigidbody.LockRotationY);
+			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, rigidbody.LockRotationZ);
+
+			physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, rigidbody.Mass);
+			actor = dynamicActor;
+		}
+
+		return actor;
+	}
+
+	void PhysicsWrappers::SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t actorGroup, uint32_t filters)
+	{
+		physx::PxFilterData filterData;
+		filterData.word0 = actorGroup;
+		filterData.word1 = filters;
+
+		const physx::PxU32 numShapes = actor.getNbShapes();
+
+		physx::PxShape** shapes = (physx::PxShape**)sAllocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
+		actor.getShapes(shapes, numShapes);
+
+		for (physx::PxU32 i = 0; i < numShapes; ++i)
+		{
+			shapes[i]->setSimulationFilterData(filterData);
+		}
+
+		sAllocator.deallocate(shapes);
+	}
+
+	void PhysicsWrappers::AddBoxCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const BoxColliderComponent& collider)
+	{
+		physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(collider.Size.x / 2.0F, collider.Size.y / 2.0F, collider.Size.z / 2.0F);
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, boxGeometry, material);
+		shape->setLocalPose(ToPhysicsTransform(glm::translate(glm::mat4(1.0F), collider.Offset)));
+	}
+
+	void PhysicsWrappers::AddSphereCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const SphereColliderComponent& collider)
+	{
+		physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(collider.Radius);
+		physx::PxRigidActorExt::createExclusiveShape(actor, sphereGeometry, material);
+	}
+
+	void PhysicsWrappers::AddCapsuleCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const CapsuleColliderComponent& collider)
+	{
+		physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(collider.Radius, collider.Height / 2.0F);
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, capsuleGeometry, material);
+		shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
+	}
+
+	void PhysicsWrappers::AddMeshCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const MeshColliderComponent& collider)
+	{
+		const auto& vertices = collider.CollisionMesh->GetStaticVertices();
+		const auto& indices = collider.CollisionMesh->GetIndices();
+
+		physx::PxConvexMeshDesc convexDesc;
+		convexDesc.points.count = vertices.size();
+		convexDesc.points.stride = sizeof(Vertex);
+		convexDesc.points.data = vertices.data();
+		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+
+		physx::PxTolerancesScale sc;
+		physx::PxCookingParams params(sc);
+
+		physx::PxDefaultMemoryOutputStream buf;
+		physx::PxConvexMeshCookingResult::Enum result;
+		if (!PxCookConvexMesh(params, convexDesc, buf, &result))
+		{
+			NR_CORE_ASSERT(false);
+		}
+
+		physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+		physx::PxConvexMesh* mesh = sPhysics->createConvexMesh(input);
+		physx::PxConvexMeshGeometry triangleGeometry = physx::PxConvexMeshGeometry(mesh);
+		triangleGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+		physx::PxRigidActorExt::createExclusiveShape(actor, triangleGeometry, material);
+	}
+
+	physx::PxMaterial* PhysicsWrappers::CreateMaterial(const PhysicsMaterialComponent& material)
+	{
+		return sPhysics->createMaterial(material.StaticFriction, material.DynamicFriction, material.Bounciness);
+	}
+
+	void PhysicsWrappers::Initialize()
+	{
+		NR_CORE_ASSERT(!sFoundation, "PhysicsWrappers::Initializer shouldn't be called more than once!");
+
+		sFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, sAllocator, sErrorCallback);
+		NR_CORE_ASSERT(sFoundation, "PxCreateFoundation Failed!");
+
+#if PHYSX_DEBUGGER
+		sVisualDebugger = PxCreatePvd(*sFoundation);
+		ConnectVisualDebugger();
+#endif
+
+		sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, physx::PxTolerancesScale(), true, sVisualDebugger);
+		NR_CORE_ASSERT(sPhysics, "PxCreatePhysics Failed!");
+	}
+
+	void PhysicsWrappers::Shutdown()
+	{
+		sPhysics->release();
+		sFoundation->release();
+	}
+
+	void PhysicsWrappers::ConnectVisualDebugger()
+	{
+#if PHYSX_DEBUGGER
+		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10);
+		sVisualDebugger->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
+#endif
+	}
+
+	void PhysicsWrappers::DisconnectVisualDebugger()
+	{
+#if PHYSX_DEBUGGER
+		if (sVisualDebugger->isConnected(false))
+			sVisualDebugger->disconnect();
+#endif
+	}
+
+}

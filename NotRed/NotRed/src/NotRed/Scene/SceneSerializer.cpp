@@ -353,6 +353,7 @@ namespace NR
             auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
             out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
             out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
+            out << YAML::Key << "IsKinematic" << YAML::Value << rigidbodyComponent.IsKinematic;
 
             out << YAML::Key << "Constraints";
             out << YAML::BeginMap; // Constraints
@@ -666,13 +667,15 @@ namespace NR
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();
+                    component.IsKinematic = rigidBodyComponent["IsKinematic"].as<bool>();
 
-                    component.LockPositionX = rigidBodyComponent["LockPositionX"].as<bool>();
-                    component.LockPositionY = rigidBodyComponent["LockPositionY"].as<bool>();
-                    component.LockPositionZ = rigidBodyComponent["LockPositionZ"].as<bool>();
-                    component.LockRotationX = rigidBodyComponent["LockRotationX"].as<bool>();
-                    component.LockRotationY = rigidBodyComponent["LockRotationY"].as<bool>();
-                    component.LockRotationZ = rigidBodyComponent["LockRotationZ"].as<bool>();
+                    component.LockPositionX = rigidBodyComponent["Constraints"]["LockPositionX"].as<bool>();
+                    component.LockPositionY = rigidBodyComponent["Constraints"]["LockPositionY"].as<bool>();
+                    component.LockPositionZ = rigidBodyComponent["Constraints"]["LockPositionZ"].as<bool>();
+
+                    component.LockRotationX = rigidBodyComponent["Constraints"]["LockRotationX"].as<bool>();
+                    component.LockRotationY = rigidBodyComponent["Constraints"]["LockRotationY"].as<bool>();
+                    component.LockRotationZ = rigidBodyComponent["Constraints"]["LockRotationZ"].as<bool>();
                 }
 
                 auto physicsMaterialComponent = entity["PhysicsMaterialComponent"];

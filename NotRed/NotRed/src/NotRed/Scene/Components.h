@@ -126,10 +126,11 @@ namespace NR
 
     struct RigidBodyComponent
     {
-        enum class Type { Static, Dynamic, Kinematic };
+        enum class Type { Static, Dynamic };
 
         Type BodyType;
-        float Mass = 1.0F;
+        float Mass = 1.0f;
+        bool IsKinematic = false;
 
         bool LockPositionX = false;
         bool LockRotationX = false;
@@ -159,7 +160,7 @@ namespace NR
     struct BoxColliderComponent
     {
         glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
-        glm::vec3 Offset = { 0.0f, 0.0F, 0.0f };
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
@@ -168,7 +169,7 @@ namespace NR
     struct SphereColliderComponent
     {
         float Radius;
-        glm::vec3 Offset = { 0.0f, 0.0F, 0.0f };
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
@@ -178,7 +179,7 @@ namespace NR
     {
         float Radius = 0.5f;
         float Height = 1.0f;
-        glm::vec3 Offset = { 0.0f, 0.0F, 0.0f };
+        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;

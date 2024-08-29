@@ -36,11 +36,10 @@ namespace NR
 	class Scene : public RefCounted
 	{
 	public:
-		Scene(const std::string& debugName = "Scene");
+		Scene(const std::string& debugName = "Scene", bool isEditorScene = false);
 		~Scene();
 
 		void Init();
-		void Shutdown();
 
 		void Update(float dt);
 		void RenderRuntime(float dt);
@@ -106,7 +105,6 @@ namespace NR
 
 		entt::entity mSelectedEntity;
 
-		Entity* mPhysics3DBodyEntityBuffer = nullptr;
 		Entity* mPhysics2DBodyEntityBuffer = nullptr;
 
 		float mSkyboxLod = 1.0f;

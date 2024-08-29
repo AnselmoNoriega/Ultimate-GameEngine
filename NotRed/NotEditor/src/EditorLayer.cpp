@@ -11,6 +11,8 @@
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
 
+#include "NotRed/Physics/PhysicsManager.h"
+
 namespace NR
 {
     static void ImGuiShowHelpMarker(const char* desc)
@@ -97,7 +99,7 @@ namespace NR
         mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
         mPlayButtonTex = Texture2D::Create("Assets/Editor/PlayButton.png");
 
-        mEditorScene = Ref<Scene>::Create();
+        mEditorScene = Ref<Scene>::Create("TestScene", true);
         UpdateWindowTitle("Scene");
         ScriptEngine::SetSceneContext(mEditorScene);
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
@@ -110,7 +112,7 @@ namespace NR
 
     void EditorLayer::Detach()
     {
-        mEditorScene->Shutdown();
+
     }
 
     void EditorLayer::ScenePlay()
@@ -691,6 +693,16 @@ namespace NR
                 }
 
                 ImGui::MenuItem("Reload assembly on play", nullptr, &mReloadScriptOnPlay);
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Debug"))
+            {
+                if (ImGui::MenuItem("Connect To Debugger"))
+                {
+                    PhysicsManager::ConnectVisualDebugger();
+                }
+
                 ImGui::EndMenu();
             }
 

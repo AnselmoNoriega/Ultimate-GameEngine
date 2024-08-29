@@ -441,6 +441,11 @@ namespace NR
         }
     }
 
+    bool ScriptEngine::IsEntityModuleValid(Entity entity)
+    {
+        return entity.HasComponent<ScriptComponent>() && ModuleExists(entity.GetComponent<ScriptComponent>().ModuleName);
+    }
+
     void ScriptEngine::ScriptComponentDestroyed(UUID sceneID, UUID entityID)
     {
         NR_CORE_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end());

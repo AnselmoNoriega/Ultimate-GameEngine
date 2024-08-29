@@ -444,6 +444,8 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -689,5 +691,7 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp" />
   </ItemGroup>
 </Project>

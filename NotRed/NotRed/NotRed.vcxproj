@@ -177,6 +177,8 @@
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsManager.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h" />
@@ -288,6 +290,8 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />
