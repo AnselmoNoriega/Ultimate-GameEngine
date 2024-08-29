@@ -1,10 +1,12 @@
 #include "nrpch.h"
 #include "PhysicsWrappers.h"
 
+#include <glm/gtx/rotate_vector.hpp>
+
 #include "PhysicsManager.h"
 
 #ifdef NR_DEBUG
-	#define PHYSX_DEBUGGER 1
+	#define PHYSX_DEBUGGER 0
 #endif
 
 namespace NR
@@ -13,7 +15,7 @@ namespace NR
 	static physx::PxDefaultAllocator sAllocator;
 	static physx::PxFoundation* sFoundation;
 	static physx::PxPhysics* sPhysics;
-	static physx::PxPvd* sVisualDebugger;
+	static physx::PxPvd* sVisualDebugger = nullptr;
 
 	static physx::PxSimulationFilterShader sFilterShader = physx::PxDefaultSimulationFilterShader;
 
@@ -60,11 +62,25 @@ namespace NR
 		return actor;
 	}
 
-	void PhysicsWrappers::SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t actorGroup, uint32_t filters)
+	void PhysicsWrappers::SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t physicsLayer)
 	{
+		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayerInfo(physicsLayer);
+
+		uint32_t collisionBitField = 0;
+
+		for (const auto& collisionLayerInfo : PhysicsLayerManager::GetLayerCollisions(physicsLayer))
+		{
+			collisionBitField |= collisionLayerInfo.BitValue;
+		}
+
+		if (collisionBitField == 0)
+		{
+			return;
+		}
+
 		physx::PxFilterData filterData;
-		filterData.word0 = actorGroup;
-		filterData.word1 = filters;
+		filterData.word0 = layerInfo.BitValue;
+		filterData.word1 = collisionBitField;
 
 		const physx::PxU32 numShapes = actor.getNbShapes();
 
@@ -109,7 +125,7 @@ namespace NR
 
 		if (size.x != 0.0f)
 		{
-			colliderRadius *= size.x;
+			colliderRadius *= (size.x / 2.0f);
 		}
 
 		physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(colliderRadius);
@@ -151,8 +167,7 @@ namespace NR
 
 	physx::PxConvexMesh* PhysicsWrappers::CreateConvexMesh(MeshColliderComponent & collider)
 	{
-		const auto& vertices = collider.CollisionMesh->GetStaticVertices();
-		const auto& indices = collider.CollisionMesh->GetIndices();
+		std::vector<Vertex> vertices = collider.CollisionMesh->GetStaticVertices();
 
 		physx::PxConvexMeshDesc convexDesc;
 		convexDesc.points.count = vertices.size();
@@ -206,7 +221,7 @@ namespace NR
 				uint32_t vI0 = vertCounter;
 				for (uint32_t vI = 0; vI < polygon.mNbVerts; ++vI)
 				{
-					collisionVertices[vertCounter].Position = FromPhysicsVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]);
+					collisionVertices[vertCounter].Position = glm::rotate(FromPhysicsVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]), glm::radians(90.0F), { 1, 0, 0 });
 					++vertCounter;
 				}
 

@@ -46,6 +46,20 @@ namespace NR
             }
         }
 
+        public Vector3 Rotation
+        {
+            get
+            {
+                GetRotation_Native(Entity.ID, out Vector3 rotation);
+                return rotation;
+            }
+
+            set
+            {
+                SetRotation_Native(Entity.ID, ref value);
+            }
+        }
+
         public Vector3 Forward
         {
             get
@@ -80,7 +94,10 @@ namespace NR
         internal static extern void SetTransform_Native(ulong entityID, ref Matrix4 result);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetRelativeDirection_Native(ulong entityID, out Vector3 result, ref Vector3 direction);
-
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRotation_Native(ulong entityID, out Vector3 result);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRotation_Native(ulong entityID, ref Vector3 rotation);
     }
 
     public class MeshComponent : Component
@@ -140,6 +157,11 @@ namespace NR
             SetLinearVelocity_Native(Entity.ID, ref velocity);
         }
 
+        public void Rotate(Vector3 rotation)
+        {
+            Rotate_Native(Entity.ID, ref rotation);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void ApplyLinearImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
 
@@ -147,6 +169,8 @@ namespace NR
         internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector2 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector2 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Rotate_Native(ulong entityID, ref Vector3 rotation);
     }
 
     public class BoxCollider2DComponent : Component

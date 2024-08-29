@@ -6,11 +6,6 @@
 
 namespace NR
 {
-	static physx::PxScene* sScene;
-	static std::vector<Entity> sSimulatedEntities;
-	static Entity* sEntityStorageBuffer;
-	static int sEntityStorageBufferPosition;
-
 	static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
 	{
 		glm::vec3 scale, translation, skew;
@@ -21,13 +16,141 @@ namespace NR
 		return { translation, orientation, scale };
 	}
 
+	static std::vector<std::string> sLayerNames;
+	static uint32_t sLastLayerID = 0;
+
+	uint32_t PhysicsLayerManager::AddLayer(const std::string& name)
+	{
+		PhysicsLayer layer = { sLastLayerID, name, (1 << sLastLayerID) };
+		sLayers[sLastLayerID] = layer;
+		++sLastLayerID;
+		sLayerNames.push_back(name);
+
+		SetLayerCollision(layer.ID, layer.ID, true);
+
+		return layer.ID;
+	}
+
+	void PhysicsLayerManager::RemoveLayer(uint32_t layerId)
+	{
+		if (sLayers.find(layerId) != sLayers.end())
+		{
+			for (std::vector<std::string>::iterator it = sLayerNames.begin(); it != sLayerNames.end(); ++it)
+			{
+				if (*it == sLayers[layerId].Name)
+				{
+					sLayerNames.erase(it--);
+				}
+			}
+
+			sLayers.erase(layerId);
+		}
+	}
+
+	void PhysicsLayerManager::SetLayerCollision(uint32_t layerId, uint32_t otherLayer, bool collides)
+	{
+		if (sLayerCollisions.find(layerId) == sLayerCollisions.end())
+		{
+			sLayerCollisions[layerId] = std::vector<PhysicsLayer>();
+			sLayerCollisions[layerId].reserve(1);
+		}
+
+		if (sLayerCollisions.find(otherLayer) == sLayerCollisions.end())
+		{
+			sLayerCollisions[otherLayer] = std::vector<PhysicsLayer>();
+			sLayerCollisions[otherLayer].reserve(1);
+		}
+
+		if (collides)
+		{
+			sLayerCollisions[layerId].push_back(GetLayerInfo(otherLayer));
+			sLayerCollisions[otherLayer].push_back(GetLayerInfo(layerId));
+		}
+		else
+		{
+			for (std::vector<PhysicsLayer>::iterator it = sLayerCollisions[layerId].begin(); it != sLayerCollisions[layerId].end(); ++it)
+			{
+				if (it->ID == otherLayer)
+				{
+					sLayerCollisions[layerId].erase(it--);
+				}
+			}
+
+			for (std::vector<PhysicsLayer>::iterator it = sLayerCollisions[otherLayer].begin(); it != sLayerCollisions[otherLayer].end(); ++it)
+			{
+				if (it->ID == layerId)
+				{
+					sLayerCollisions[otherLayer].erase(it--);
+				}
+			}
+		}
+	}
+
+	const std::vector<PhysicsLayer>& PhysicsLayerManager::GetLayerCollisions(uint32_t layerId)
+	{
+		NR_CORE_ASSERT(sLayerCollisions.find(layerId) != sLayerCollisions.end());
+		return sLayerCollisions[layerId];
+	}
+
+	const PhysicsLayer& PhysicsLayerManager::GetLayerInfo(uint32_t layerId)
+	{
+		NR_CORE_ASSERT(sLayers.find(layerId) != sLayers.end());
+		return sLayers[layerId];
+	}
+
+	const PhysicsLayer& PhysicsLayerManager::GetLayerInfo(const std::string& layerName)
+	{
+		for (const auto& kv : sLayers)
+		{
+			if (kv.second.Name == layerName)
+			{
+				return kv.second;
+			}
+		}
+
+		return {};
+	}
+
+	const std::vector<std::string>& PhysicsLayerManager::GetLayerNames()
+	{
+		return sLayerNames;
+	}
+
+	void PhysicsLayerManager::ClearLayers()
+	{
+		sLayers.clear();
+		sLayerCollisions.clear();
+		sLastLayerID = 0;
+		sLayerNames.clear();
+	}
+
+	void PhysicsLayerManager::Init()
+	{
+		AddLayer("Default");
+	}
+
+	void PhysicsLayerManager::Shutdown()
+	{
+	}
+
+	std::unordered_map<uint32_t, PhysicsLayer> PhysicsLayerManager::sLayers;
+	std::unordered_map<uint32_t, std::vector<PhysicsLayer>> PhysicsLayerManager::sLayerCollisions;
+
+	static physx::PxScene* sScene;
+	static std::vector<Entity> sSimulatedEntities;
+	static Entity* sEntityStorageBuffer;
+	static int sEntityStorageBufferPosition;
+	static float sSimulationTime = 0.0f;
+
 	void PhysicsManager::Init()
 	{
 		PhysicsWrappers::Initialize();
+		PhysicsLayerManager::Init();
 	}
 
 	void PhysicsManager::Shutdown()
 	{
+		PhysicsLayerManager::Shutdown();
 		PhysicsWrappers::Shutdown();
 	}
 
@@ -69,7 +192,9 @@ namespace NR
 		// Physics Material
 		physx::PxMaterial* material = PhysicsWrappers::CreateMaterial(e.GetComponent<PhysicsMaterialComponent>());
 
-		auto [translation, rotationQuat, scale] = DecomposeTransform(e.Transform());
+
+		const auto& transform = e.Transform();
+		auto [translation, rotation, scale] = DecomposeTransform(transform);
 
 		// Add all colliders
 		if (e.HasComponent<BoxColliderComponent>())
@@ -97,29 +222,31 @@ namespace NR
 		}
 
 		// Set collision filters
-		if (rigidbody.BodyType == RigidBodyComponent::Type::Static)
-		{
-			PhysicsWrappers::SetCollisionFilters(*actor, (uint32_t)FilterGroup::Static, (uint32_t)FilterGroup::All);
-		}
-		else if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
-		{
-			PhysicsWrappers::SetCollisionFilters(*actor, (uint32_t)FilterGroup::Dynamic, (uint32_t)FilterGroup::All);
-		}
+		PhysicsWrappers::SetCollisionFilters(*actor, rigidbody.Layer);
 
 		sScene->addActor(*actor);
 	}
 
-	void PhysicsManager::Simulate()
+	void PhysicsManager::Simulate(float dt)
 	{
-		constexpr float stepSize = 0.016666660f;
+		constexpr float stepSize = 1.0f / 50.0f;
+		sSimulationTime += dt;
+
+		if (sSimulationTime < stepSize)
+		{
+			return;
+		}
+
+		sSimulationTime -= stepSize;
+
 		sScene->simulate(stepSize);
 		sScene->fetchResults(true);
 
 		for (Entity& e : sSimulatedEntities)
 		{
 			auto& transform = e.Transform();
-			// TODO: Come up with a better solution for scale
-			auto [p, r, scale] = DecomposeTransform(transform);
+
+			auto [translation, rotation, scale] = DecomposeTransform(transform);
 			RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
 			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
 

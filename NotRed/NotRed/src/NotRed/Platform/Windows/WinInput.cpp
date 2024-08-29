@@ -44,4 +44,16 @@ namespace NR
 		glfwGetCursorPos(static_cast<GLFWwindow*>(window.GetNativeWindow()), &x, &y);
 		return { (float)x, (float)y };
 	}
+
+	void Input::SetCursorMode(CursorMode mode)
+	{
+		auto& window = static_cast<WinWindow&>(Application::Get().GetWindow());
+		glfwSetInputMode(static_cast<GLFWwindow*>(window.GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_NORMAL + (int)mode);
+	}
+
+	CursorMode Input::GetCursorMode()
+	{
+		auto& window = static_cast<WinWindow&>(Application::Get().GetWindow());
+		return (CursorMode)(glfwGetInputMode(static_cast<GLFWwindow*>(window.GetNativeWindow()), GLFW_CURSOR) - GLFW_CURSOR_NORMAL);
+	}
 }

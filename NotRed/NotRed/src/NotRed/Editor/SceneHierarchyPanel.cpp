@@ -11,6 +11,7 @@
 
 #include "NotRed/Core/Application.h"
 #include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Script/ScriptEngine.h"
 
 #include "NotRed/Physics/PhysicsWrappers.h"
@@ -929,7 +930,10 @@ namespace NR
                 // Rigidbody2D Type
                 const char* rb2dTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
                 const char* currentType = rb2dTypeStrings[(int)rb2dc.BodyType];
-                if (ImGui::BeginCombo("Type", currentType))
+
+                ImGui::TextUnformatted("Type");
+                ImGui::SameLine();
+                if (ImGui::BeginCombo("##TypeSelection", currentType))
                 {
                     for (int type = 0; type < 3; ++type)
                     {
@@ -987,13 +991,35 @@ namespace NR
                 {
                     for (int type = 0; type < 2; ++type)
                     {
-                        bool is_selected = (currentType == rbTypeStrings[type]);
-                        if (ImGui::Selectable(rbTypeStrings[type], is_selected))
+                        bool isSelected = (currentType == rbTypeStrings[type]);
+                        if (ImGui::Selectable(rbTypeStrings[type], isSelected))
                         {
                             currentType = rbTypeStrings[type];
                             rbc.BodyType = (RigidBodyComponent::Type)type;
                         }
-                        if (is_selected)
+                        if (isSelected)
+                        {
+                            ImGui::SetItemDefaultFocus();
+                        }
+                    }
+                    ImGui::EndCombo();
+                }
+
+                const std::vector<std::string>& layerNames = PhysicsLayerManager::GetLayerNames();
+                const char* currentLayer = layerNames[rbc.Layer].c_str();
+                ImGui::TextUnformatted("Layer");
+                ImGui::SameLine();
+                if (ImGui::BeginCombo("##LayerSelection", currentLayer))
+                {
+                    for (uint32_t layer = 0; layer < PhysicsLayerManager::GetLayerCount(); ++layer)
+                    {
+                        bool isSelected = (currentLayer == layerNames[layer]);
+                        if (ImGui::Selectable(layerNames[layer].c_str(), isSelected))
+                        {
+                            currentLayer = layerNames[layer].c_str();
+                            rbc.Layer = layer;
+                        }
+                        if (isSelected)
                         {
                             ImGui::SetItemDefaultFocus();
                         }

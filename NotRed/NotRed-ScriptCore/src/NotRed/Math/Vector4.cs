@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace NR
 {
-    [StructLayout(LayoutKind.Explicit)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct Vector4
     {
-        [FieldOffset(0)] public float x;
-        [FieldOffset(4)] public float y;
-        [FieldOffset(8)] public float z;
-        [FieldOffset(12)] public float w;
+        public float x;
+        public float y;
+        public float z;
+        public float w;
 
         public Vector4(float scalar)
         {

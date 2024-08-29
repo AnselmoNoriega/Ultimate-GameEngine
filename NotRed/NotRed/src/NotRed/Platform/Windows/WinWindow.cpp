@@ -179,7 +179,6 @@ namespace NR
 
         ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
         glfwSetCursor(mWindow, mImGuiMouseCursors[imgui_cursor] ? mImGuiMouseCursors[imgui_cursor] : mImGuiMouseCursors[ImGuiMouseCursor_Arrow]);
-        glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
         float time = glfwGetTime();
         float delta = time - mLastFrameTime;

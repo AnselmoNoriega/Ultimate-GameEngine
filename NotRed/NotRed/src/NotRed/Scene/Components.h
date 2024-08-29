@@ -131,6 +131,7 @@ namespace NR
         Type BodyType;
         float Mass = 1.0f;
         bool IsKinematic = false;
+        uint32_t Layer = 0;
 
         bool LockPositionX = false;
         bool LockRotationX = false;

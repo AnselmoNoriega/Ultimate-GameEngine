@@ -5,20 +5,21 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include <imgui.h>
+
 #include <glm/gtc/type_ptr.hpp>
 #include <mono/jit/jit.h>
 
 #include <box2d/box2d.h>
 
 #include <PxPhysicsAPI.h>
+#include "NotRed/Physics/PhysicsUtil.h"
 
 #include "NotRed/Core/Math/Noise.h"
 
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Scene/Components.h"
-
-#include "NotRed/Core/Input.h"
 
 namespace NR
 {
@@ -143,7 +144,52 @@ namespace NR::Script
         auto& transformComponent = entity.GetComponent<TransformComponent>();
 
         auto [position, rotation, scale] = DecomposeTransform(transformComponent.Transform);
-        *outDirection = glm::rotate(glm::inverse(glm::normalize(rotation)), *inAbsoluteDirection);
+        *outDirection = glm::rotate(glm::normalize(rotation), *inAbsoluteDirection);
+    }
+
+    void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        auto& transformComponent = entity.GetComponent<TransformComponent>();
+        auto [position, rotationQuat, scale] = DecomposeTransform(transformComponent.Transform);
+        *outRotation = glm::degrees(glm::eulerAngles(rotationQuat));
+    }
+
+    void NR_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        glm::mat4& transform = entity.Transform();
+
+        auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
+        transform = glm::translate(glm::mat4(1.0f), translation) *
+            glm::toMat4(glm::quat(glm::radians(*inRotation))) *
+            glm::scale(glm::mat4(1.0f), scale);
+    }
+
+    void NR_Input_GetMousePosition(glm::vec2* outPosition)
+    {
+        auto [x, y] = Input::GetMousePosition();
+        *outPosition = { x, y };
+    }
+
+    void NR_Input_SetCursorMode(CursorMode mode)
+    {
+        Input::SetCursorMode(mode);
+    }
+
+    CursorMode NR_Input_GetCursorMode()
+    {
+        return Input::GetCursorMode();
     }
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID)
@@ -299,6 +345,28 @@ namespace NR::Script
 
         NR_CORE_ASSERT(velocity);
         dynamicActor->setLinearVelocity({ velocity->x, velocity->y, velocity->z });
+    }
+
+    void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+
+        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
+        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
+        NR_CORE_ASSERT(dynamicActor);
+
+        physx::PxTransform transform = dynamicActor->getGlobalPose();
+        transform.q *= (physx::PxQuat(glm::radians(rotation->x), { 1.0f, 0.0f, 0.0f })
+            * physx::PxQuat(glm::radians(rotation->y), { 0.0f, 1.0f, 0.0f })
+            * physx::PxQuat(glm::radians(rotation->z), { 0.0f, 0.0f, 1.0f }));
+        dynamicActor->setGlobalPose(transform);
     }
 
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)

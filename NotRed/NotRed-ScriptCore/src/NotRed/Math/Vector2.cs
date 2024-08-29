@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
 
 namespace NR
 {
@@ -32,27 +27,22 @@ namespace NR
 
         public void Clamp(Vector2 min, Vector2 max)
         {
-            if (x < min.x)
-            {
-                x = min.x;
-            }
-            if (x > max.x)
-            {
-                x = max.x;
-            }
-            if (y < min.y)
-            {
-                y = min.y;
-            }
-            if (y > max.y)
-            {
-                y = max.y;
-            }
+            x = Mathf.Clamp(x, min.x, max.x);
+            y = Mathf.Clamp(y, min.y, max.y);
+        }
+
+        public static Vector2 operator -(Vector2 left, Vector2 right)
+        {
+            return new Vector2(left.x - right.x, left.y - right.y);
         }
 
         public static Vector2 operator -(Vector2 vector)
         {
             return new Vector2(-vector.x, -vector.y);
+        }
+        public override string ToString()
+        {
+            return "(" + x + ", " + y + ")";
         }
     }
 }

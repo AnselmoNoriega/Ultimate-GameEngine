@@ -1,10 +1,13 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace NR
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct Vector3
     {
+        public static Vector3 zero = new Vector3(0, 0, 0);
+
         internal static Vector3 Forward = new Vector3(0, 0, -1);
         internal static Vector3 Right = new Vector3(1, 0, 0);
         internal static Vector3 Up = new Vector3(0, 1, 0);
@@ -54,6 +57,46 @@ namespace NR
         public static Vector3 operator *(float scalar, Vector3 right)
         {
             return new Vector3(scalar * right.x, scalar * right.y, scalar * right.z);
+        }
+
+        public static Vector3 operator +(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.x + right.x, left.y + right.y, left.z + right.z);
+        }
+
+        public static Vector3 operator -(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
+        }
+
+        public static Vector3 operator /(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.x / right.x, left.y / right.y, left.z / right.z);
+        }
+
+        public static Vector3 operator /(Vector3 left, float scalar)
+        {
+            return new Vector3(left.x / scalar, left.y / scalar, left.z / scalar);
+        }
+
+        public static Vector3 operator -(Vector3 vector)
+        {
+            return new Vector3(-vector.x, -vector.y, -vector.z);
+        }
+
+        public static Vector3 Cos(Vector3 vector)
+        {
+            return new Vector3((float)Math.Cos(vector.x), (float)Math.Cos(vector.y), (float)Math.Cos(vector.z));
+        }
+
+        public static Vector3 Sin(Vector3 vector)
+        {
+            return new Vector3((float)Math.Sin(vector.x), (float)Math.Sin(vector.y), (float)Math.Sin(vector.z));
+        }
+
+        public override string ToString()
+        {
+            return "(" + x + ", " + y + ", " + z + ")";
         }
 
         public Vector2 xy

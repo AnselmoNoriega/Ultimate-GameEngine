@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NotRed/Script/ScriptEngine.h"
-#include "NotRed/Core/KeyCodes.h"
+#include "NotRed/Core/Input.h"
 #include "NotRed/Physics/PhysicsManager.h"
 
 #include <glm/glm.hpp>
@@ -18,6 +18,9 @@ namespace NR::Script
 
     // Input
     bool NR_Input_IsKeyPressed(KeyCode key);
+    void NR_Input_GetMousePosition(glm::vec2* outPosition);
+    void NR_Input_SetCursorMode(CursorMode mode);
+    CursorMode NR_Input_GetCursorMode();
 
     // Entity
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
@@ -27,6 +30,8 @@ namespace NR::Script
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
     
 	void NR_TransformComponent_GetRelativeDirection(uint64_t entityID, glm::vec3* outDirection, glm::vec3* inAbsoluteDirection);
+    void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation);
+    void NR_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation);
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
@@ -39,6 +44,7 @@ namespace NR::Script
     void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
     void NR_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity);
     void NR_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* velocity);
+    void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation);
 
     // Renderer
     // Texture2D

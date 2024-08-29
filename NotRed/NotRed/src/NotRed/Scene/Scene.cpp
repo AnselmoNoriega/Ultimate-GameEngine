@@ -193,7 +193,7 @@ namespace NR
             }
         }
 
-        PhysicsManager::Simulate();
+        PhysicsManager::Simulate(dt);
     }
 
     void Scene::RenderRuntime(float dt)
@@ -546,6 +546,7 @@ namespace NR
         CopyComponentIfExists<PhysicsMaterialComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
@@ -596,6 +597,7 @@ namespace NR
         CopyComponent<PhysicsMaterialComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshColliderComponent>(target->mRegistry, mRegistry, enttMap);
 
         const auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();

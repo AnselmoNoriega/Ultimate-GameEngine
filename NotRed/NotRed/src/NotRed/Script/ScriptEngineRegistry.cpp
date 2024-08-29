@@ -59,6 +59,8 @@ namespace NR {
 		mono_add_internal_call("NR.TransformComponent::GetTransform_Native", NR::Script::NR_Entity_GetTransform);
 		mono_add_internal_call("NR.TransformComponent::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
 		mono_add_internal_call("NR.TransformComponent::GetRelativeDirection_Native", NR::Script::NR_TransformComponent_GetRelativeDirection);
+		mono_add_internal_call("NR.TransformComponent::GetRotation_Native", NR::Script::NR_TransformComponent_GetRotation);
+		mono_add_internal_call("NR.TransformComponent::SetRotation_Native", NR::Script::NR_TransformComponent_SetRotation);
 
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
 
@@ -66,6 +68,9 @@ namespace NR {
 		mono_add_internal_call("NR.MeshComponent::SetMesh_Native", NR::Script::NR_MeshComponent_SetMesh);
 
 		mono_add_internal_call("NR.Input::IsKeyPressed_Native", NR::Script::NR_Input_IsKeyPressed);
+		mono_add_internal_call("NR.Input::GetMousePosition_Native", NR::Script::NR_Input_GetMousePosition);
+		mono_add_internal_call("NR.Input::SetCursorMode_Native", NR::Script::NR_Input_SetCursorMode);
+		mono_add_internal_call("NR.Input::GetCursorMode_Native", NR::Script::NR_Input_GetCursorMode);
 
 		mono_add_internal_call("NR.Texture2D::Constructor_Native", NR::Script::NR_Texture2D_Constructor);
 		mono_add_internal_call("NR.Texture2D::Destructor_Native", NR::Script::NR_Texture2D_Destructor);
@@ -90,6 +95,7 @@ namespace NR {
 		mono_add_internal_call("NR.RigidBody2DComponent::ApplyImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyLinearImpulse);
 		mono_add_internal_call("NR.RigidBody2DComponent::GetVelocity_Native", NR::Script::NR_RigidBody2DComponent_GetLinearVelocity);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetVelocity_Native", NR::Script::NR_RigidBody2DComponent_SetLinearVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::Rotate_Native", NR::Script::NR_RigidBodyComponent_Rotate);
 
 		mono_add_internal_call("NR.RigidBodyComponent::AddForce_Native", NR::Script::NR_RigidBodyComponent_AddForce);
 		mono_add_internal_call("NR.RigidBodyComponent::AddTorque_Native", NR::Script::NR_RigidBodyComponent_AddTorque);

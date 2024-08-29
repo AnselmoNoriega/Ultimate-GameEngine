@@ -65,6 +65,7 @@
     <Compile Include="src\NotRed\Math\Mathf.cs" />
     <Compile Include="src\NotRed\Math\Matrix4.cs" />
     <Compile Include="src\NotRed\Math\Noise.cs" />
+    <Compile Include="src\NotRed\Math\Quaternion.cs" />
     <Compile Include="src\NotRed\Math\Vector2.cs" />
     <Compile Include="src\NotRed\Math\Vector3.cs" />
     <Compile Include="src\NotRed\Math\Vector4.cs" />
