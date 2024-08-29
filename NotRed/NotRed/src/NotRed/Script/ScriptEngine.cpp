@@ -39,24 +39,30 @@ namespace NR
         std::string NamespaceName;
 
         MonoClass* Class = nullptr;
+        MonoMethod* Constructor = nullptr;
         MonoMethod* InitMethod = nullptr;
         MonoMethod* DestroyMethod = nullptr;
         MonoMethod* UpdateMethod = nullptr;
 
-        MonoMethod* CollisionBeginMethod = nullptr;
-        MonoMethod* CollisionEndMethod = nullptr;
         MonoMethod* Collision2DBeginMethod = nullptr;
         MonoMethod* Collision2DEndMethod = nullptr;
+        MonoMethod* CollisionBeginMethod = nullptr;
+        MonoMethod* CollisionEndMethod = nullptr;
+		MonoMethod* TriggerBeginMethod = nullptr;
+		MonoMethod* TriggerEndMethod = nullptr;
 
         void InitClassMethods(MonoImage* image)
         {
+            Constructor = GetMethod(sCoreAssemblyImage, "NR.Entity:.ctor(ulong)");
             InitMethod = GetMethod(image, ClassName + ":Init()");
             UpdateMethod = GetMethod(image, ClassName + ":Update(single)");
 
-            CollisionBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionBegin(single)");
-            CollisionEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionEnd(single)");
             Collision2DBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DBegin(single)");
             Collision2DEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DEnd(single)");
+            CollisionBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionBegin(single)");
+            CollisionEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionEnd(single)");
+            TriggerBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:OnTriggerBegin(single)");
+            TriggerEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:OnTriggerEnd(single)");
         }
     };
 
@@ -441,6 +447,28 @@ namespace NR
         }
     }
 
+    void ScriptEngine::TriggerBegin(UUID sceneID, UUID entityID)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        if (entityInstance.ScriptClass->TriggerBeginMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->TriggerBeginMethod, args);
+        }
+    }
+
+    void ScriptEngine::TriggerEnd(UUID sceneID, UUID entityID)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        if (entityInstance.ScriptClass->TriggerEndMethod)
+        {
+            float value = 5.0f;
+            void* args[] = { &value };
+            CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->TriggerEndMethod, args);
+        }
+    }
+
     bool ScriptEngine::IsEntityModuleValid(Entity entity)
     {
         return entity.HasComponent<ScriptComponent>() && ModuleExists(entity.GetComponent<ScriptComponent>().ModuleName);
@@ -604,11 +632,8 @@ namespace NR
         NR_CORE_ASSERT(entityInstance.ScriptClass);
         entityInstance.Handle = Instantiate(*entityInstance.ScriptClass);
 
-        MonoProperty* entityIDPropery = mono_class_get_property_from_name(entityInstance.ScriptClass->Class, "ID");
-        mono_property_get_get_method(entityIDPropery);
-        MonoMethod* entityIDSetMethod = mono_property_get_set_method(entityIDPropery);
         void* param[] = { &id };
-        CallMethod(entityInstance.GetInstance(), entityIDSetMethod, param);
+		CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->Constructor, param);
 
         // Set all public fields to appropriate values
         ScriptModuleFieldMap& moduleFieldMap = entityInstanceData.ModuleFieldMap;
@@ -619,7 +644,7 @@ namespace NR
                 field.CopyStoredValueToRuntime();
         }
 
-        // Call OnCreate function (if exists)
+        // Call Create function (if exists)
         CreateEntity(entity);
     }
 

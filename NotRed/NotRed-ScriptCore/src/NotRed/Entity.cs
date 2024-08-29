@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace NR
@@ -10,8 +9,12 @@ namespace NR
 
         private Action<float> _collision2DBeginCallbacks;
         private Action<float> _collision2DEndCallbacks;
+
         private Action<float> _collisionBeginCallbacks;
         private Action<float> _collisionEndCallbacks;
+
+        private Action<float> _triggerBeginCallbacks;
+        private Action<float> _triggerEndCallbacks;
 
         protected Entity() { ID = 0; }
 
@@ -86,6 +89,16 @@ namespace NR
             _collisionEndCallbacks += callback;
         }
 
+        public void AddTriggerBeginCallback(Action<float> callback)
+        {
+            _triggerBeginCallbacks += callback;
+        }
+
+        public void AddTriggerEndCallback(Action<float> callback)
+        {
+            _triggerEndCallbacks += callback;
+        }
+
         private void CollisionBegin(float data)
         {
             if (_collisionBeginCallbacks != null)
@@ -110,6 +123,22 @@ namespace NR
         private void Collision2DEnd(float data)
         {
             _collision2DEndCallbacks.Invoke(data);
+        }
+
+        private void TriggerBegin(float data)
+        {
+            if (_triggerBeginCallbacks != null)
+            { 
+                _triggerBeginCallbacks.Invoke(data); 
+            }
+        }
+
+        private void TriggerEnd(float data)
+        {
+            if (_triggerEndCallbacks != null)
+            {
+                _triggerEndCallbacks.Invoke(data);
+            }
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]

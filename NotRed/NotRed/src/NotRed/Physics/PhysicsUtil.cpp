@@ -135,7 +135,31 @@ namespace NR
 
 	void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
 	{
-		PX_UNUSED(pairs);
+		Entity& a = *(Entity*)pairs->triggerActor->userData;
+		Entity& b = *(Entity*)pairs->otherActor->userData;
+
+		if (pairs->status & physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+		{
+			if (ScriptEngine::IsEntityModuleValid(a)) 
+			{
+				ScriptEngine::TriggerBegin(a.GetSceneID(), a.GetID());
+			}
+			if (ScriptEngine::IsEntityModuleValid(b)) 
+			{
+				ScriptEngine::TriggerBegin(b.GetSceneID(), b.GetID());
+			}
+		}
+		else if (pairs->status & physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
+		{
+			if (ScriptEngine::IsEntityModuleValid(a)) 
+			{
+				ScriptEngine::TriggerEnd(a.GetSceneID(), a.GetID());
+			}
+			if (ScriptEngine::IsEntityModuleValid(b)) 
+			{
+				ScriptEngine::TriggerEnd(b.GetSceneID(), b.GetID());
+			}
+		}
 		PX_UNUSED(count);
 	}
 

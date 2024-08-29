@@ -135,6 +135,9 @@ namespace NR
 		static void CollisionEnd(Entity entity);
 		static void CollisionEnd(UUID sceneID, UUID entityID);
 
+		static void TriggerBegin(UUID sceneID, UUID entityID);
+		static void TriggerEnd(UUID sceneID, UUID entityID);
+
 		static bool IsEntityModuleValid(Entity entity);
 
 		static void ScriptComponentDestroyed(UUID sceneID, UUID entityID);

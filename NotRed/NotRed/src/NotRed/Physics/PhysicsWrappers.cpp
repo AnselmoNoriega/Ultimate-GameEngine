@@ -83,19 +83,25 @@ namespace NR
 	{
 		physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(collider.Size.x / 2.0F, collider.Size.y / 2.0F, collider.Size.z / 2.0F);
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, boxGeometry, material);
+		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
 		shape->setLocalPose(ToPhysicsTransform(glm::translate(glm::mat4(1.0F), collider.Offset)));
 	}
 
 	void PhysicsWrappers::AddSphereCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const SphereColliderComponent& collider)
 	{
 		physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(collider.Radius);
-		physx::PxRigidActorExt::createExclusiveShape(actor, sphereGeometry, material);
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, sphereGeometry, material);
+		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
 	}
 
 	void PhysicsWrappers::AddCapsuleCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const CapsuleColliderComponent& collider)
 	{
 		physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(collider.Radius, collider.Height / 2.0F);
 		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, capsuleGeometry, material);
+		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
 		shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
 	}
 
@@ -124,7 +130,9 @@ namespace NR
 		physx::PxConvexMesh* mesh = sPhysics->createConvexMesh(input);
 		physx::PxConvexMeshGeometry triangleGeometry = physx::PxConvexMeshGeometry(mesh);
 		triangleGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
-		physx::PxRigidActorExt::createExclusiveShape(actor, triangleGeometry, material);
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, triangleGeometry, material);
+		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
 	}
 
 	physx::PxMaterial* PhysicsWrappers::CreateMaterial(const PhysicsMaterialComponent& material)

@@ -191,6 +191,18 @@ namespace NR
                             ImGui::CloseCurrentPopup();
                         }
                     }
+                    if (!mSelectionContext.HasComponent<CapsuleColliderComponent>())
+                    {
+                        if (ImGui::Button("Capsule Collider"))
+                        {
+                            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                            {
+                                mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            mSelectionContext.AddComponent<CapsuleColliderComponent>();
+                            ImGui::CloseCurrentPopup();
+                        }
+                    }
                     if (!mSelectionContext.HasComponent<MeshColliderComponent>())
                     {
                         if (ImGui::Button("Mesh Collider"))
@@ -1026,7 +1038,7 @@ namespace NR
                 BeginPropertyGrid();
 
                 Property("Size", bcc.Size);
-                //Property("Offset", bcc.Offset);
+                Property("Is Trigger", bcc.IsTrigger);
 
                 EndPropertyGrid();
             });
@@ -1036,11 +1048,23 @@ namespace NR
                 BeginPropertyGrid();
 
                 Property("Radius", scc.Radius);
+                Property("Is Trigger", scc.IsTrigger);
 
                 EndPropertyGrid();
             });
 
-        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [](MeshColliderComponent& mc)
+        DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [](CapsuleColliderComponent& ccc)
+            {
+                BeginPropertyGrid();
+
+                Property("Radius", ccc.Radius);
+                Property("Height", ccc.Height);
+                Property("Is Trigger", ccc.IsTrigger);
+
+                EndPropertyGrid();
+            });
+
+        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [](MeshColliderComponent& mcc)
             {
                 ImGui::Columns(3);
                 ImGui::SetColumnWidth(0, 100);
@@ -1049,9 +1073,9 @@ namespace NR
                 ImGui::Text("File Path");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
-                if (mc.CollisionMesh)
+                if (mcc.CollisionMesh)
                 {
-                    ImGui::InputText("##meshfilepath", (char*)mc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                    ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
                 }
                 else
                 {
@@ -1064,9 +1088,11 @@ namespace NR
                     std::string file = Application::Get().OpenFile();
                     if (!file.empty())
                     {
-                        mc.CollisionMesh = Ref<Mesh>::Create(file);
+                        mcc.CollisionMesh = Ref<Mesh>::Create(file);
                     }
                 }
+
+                Property("Is Trigger", mcc.IsTrigger);
             });
     }
 }

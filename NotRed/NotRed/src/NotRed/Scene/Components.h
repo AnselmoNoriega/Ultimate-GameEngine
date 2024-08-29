@@ -162,6 +162,8 @@ namespace NR
         glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
+        bool IsTrigger = false;
+
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
     };
@@ -170,6 +172,8 @@ namespace NR
     {
         float Radius;
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+
+        bool IsTrigger = false;
 
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
@@ -181,6 +185,8 @@ namespace NR
         float Height = 1.0f;
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
+        bool IsTrigger = false;
+
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
     };
@@ -188,6 +194,8 @@ namespace NR
     struct MeshColliderComponent
     {
         Ref<Mesh> CollisionMesh;
+
+        bool IsTrigger = false;
 
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;
