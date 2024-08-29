@@ -376,7 +376,7 @@ namespace NR
         std::string filepath = app.OpenFile("NotRed Scene (*.nsc)\0*.nsc\0");
         if (!filepath.empty())
         {
-            Ref<Scene> newScene = Ref<Scene>::Create();
+            Ref<Scene> newScene = Ref<Scene>::Create("Scene", true);
             SceneSerializer serializer(newScene);
             serializer.Deserialize(filepath);
             mEditorScene = newScene;

@@ -155,6 +155,10 @@ namespace NR
                     {
                         if (ImGui::Button("Rigidbody"))
                         {
+                            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+                            {
+                                mSelectionContext.AddComponent<PhysicsMaterialComponent>();
+                            }
                             mSelectionContext.AddComponent<RigidBodyComponent>();
                             ImGui::CloseCurrentPopup();
                         }
@@ -179,6 +183,10 @@ namespace NR
                             {
                                 mSelectionContext.AddComponent<RigidBodyComponent>();
                             }
+                            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+                            {
+                                mSelectionContext.AddComponent<PhysicsMaterialComponent>();
+                            }
                             mSelectionContext.AddComponent<BoxColliderComponent>();
                             ImGui::CloseCurrentPopup();
                         }
@@ -190,6 +198,10 @@ namespace NR
                             if (!mSelectionContext.HasComponent<RigidBodyComponent>())
                             {
                                 mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+                            {
+                                mSelectionContext.AddComponent<PhysicsMaterialComponent>();
                             }
                             mSelectionContext.AddComponent<SphereColliderComponent>();
                             ImGui::CloseCurrentPopup();
@@ -203,6 +215,10 @@ namespace NR
                             {
                                 mSelectionContext.AddComponent<RigidBodyComponent>();
                             }
+                            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+                            {
+                                mSelectionContext.AddComponent<PhysicsMaterialComponent>();
+                            }
                             mSelectionContext.AddComponent<CapsuleColliderComponent>();
                             ImGui::CloseCurrentPopup();
                         }
@@ -214,6 +230,10 @@ namespace NR
                             if (!mSelectionContext.HasComponent<RigidBodyComponent>())
                             {
                                 mSelectionContext.AddComponent<RigidBodyComponent>();
+                            }
+                            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+                            {
+                                mSelectionContext.AddComponent<PhysicsMaterialComponent>();
                             }
                             mSelectionContext.AddComponent<MeshColliderComponent>();
                             ImGui::CloseCurrentPopup();

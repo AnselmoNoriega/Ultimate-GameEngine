@@ -6,15 +6,88 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 8039489096781228754
+  - Entity: 16867057163340504578
     TagComponent:
       Tag: Entity
     TransformComponent:
-      Position: [-0.0539836884, 0, 1.23204899]
+      Position: [0, 21.1893044, 0]
+      Rotation: [1, 0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      AssetPath: C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Assets\Models\Cube.fbx
+    RigidBodyComponent:
+      BodyType: 1
+      Mass: 1
+      IsKinematic: false
+      Layer: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+    PhysicsMaterialComponent:
+      StaticFriction: 1
+      DynamicFriction: 1
+      Bounciness: 1
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [1, 1, 1]
+      IsTrigger: false
+  - Entity: 8039489096781228754
+    TagComponent:
+      Tag: Floot
+    TransformComponent:
+      Position: [-0.0539836884, 0, 1.23204875]
       Rotation: [1, 0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
       AssetPath: C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Assets\Meshes\TestScene.fbx
-    RigidBody2DComponent:
-      BodyType: 1
+    RigidBodyComponent:
+      BodyType: 0
       Mass: 1
+      IsKinematic: false
+      Layer: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+    PhysicsMaterialComponent:
+      StaticFriction: 1
+      DynamicFriction: 1
+      Bounciness: 1
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [1, 1, 1]
+      IsTrigger: false
+  - Entity: 1204591983446404477
+    TagComponent:
+      Tag: Camera
+    TransformComponent:
+      Position: [0, 0, 37.5593491]
+      Rotation: [1, 0, 0, 0]
+      Scale: [1, 1, 1]
+    CameraComponent:
+      Camera: Camera data...
+      Primary: true
+PhysicsLayers:
+  - Name: Default
+    CollidesWith:
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
+      - Name: Default
