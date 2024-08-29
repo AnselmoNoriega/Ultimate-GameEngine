@@ -125,6 +125,7 @@ namespace NR
 	{
 	public:
 		Mesh(const std::string& filename);
+		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices);
 		~Mesh();
 
 		void Update(float dt);

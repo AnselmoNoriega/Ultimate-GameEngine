@@ -6,8 +6,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Renderer.h"
-
 #include "Renderer2D.h"
+
+#include "NotRed/Renderer/MeshFactory.h"
 
 namespace NR
 {
@@ -37,9 +38,11 @@ namespace NR
         };
         std::vector<DrawCommand> DrawList;
         std::vector<DrawCommand> SelectedMeshDrawList;
+        std::vector<DrawCommand> ColliderDrawList;
 
         Ref<MaterialInstance> GridMaterial;
         Ref<MaterialInstance> OutlineMaterial;
+        Ref<MaterialInstance> ColliderMaterial;
 
         SceneRendererOptions Options;
     };
@@ -83,6 +86,11 @@ namespace NR
         auto outlineShader = Shader::Create("Assets/Shaders/Outline");
         sData.OutlineMaterial = MaterialInstance::Create(Material::Create(outlineShader));
         sData.OutlineMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
+
+        // Collider
+        auto colliderShader = Shader::Create("Assets/Shaders/Collider");
+        sData.ColliderMaterial = MaterialInstance::Create(Material::Create(colliderShader));
+        sData.ColliderMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
     }
 
     void SceneRenderer::SetViewportSize(uint32_t width, uint32_t height)
@@ -122,6 +130,26 @@ namespace NR
         sData.SelectedMeshDrawList.push_back({ mesh, nullptr, transform });
     }
 
+    void SceneRenderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& parentTransform)
+    {
+        sData.ColliderDrawList.push_back({ component.DebugMesh, nullptr, glm::translate(parentTransform, component.Offset) });
+    }
+
+    void SceneRenderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& parentTransform)
+    {
+        sData.ColliderDrawList.push_back({ component.DebugMesh, nullptr, parentTransform });
+    }
+
+    void SceneRenderer::SubmitColliderMesh(const CapsuleColliderComponent& component, const glm::mat4& parentTransform)
+    {
+        sData.ColliderDrawList.push_back({ component.DebugMesh, nullptr, parentTransform });
+    }
+
+    void SceneRenderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& parentTransform)
+    {
+        sData.ColliderDrawList.push_back({ component.ProcessedMesh, nullptr, parentTransform });
+    }
+
     static Ref<Shader> equirectangularConversionShader, envFilteringShader, envIrradianceShader;
 
     std::pair<Ref<TextureCube>, Ref<TextureCube>> SceneRenderer::CreateEnvironmentMap(const std::string& filepath)
@@ -134,6 +162,7 @@ namespace NR
         {
             equirectangularConversionShader = Shader::Create("Assets/Shaders/EquirectangularToCubeMap");
         }
+
         Ref<Texture2D> envEquirect = Texture2D::Create(filepath);
         NR_CORE_ASSERT(envEquirect->GetFormat() == TextureFormat::Float16, "Texture is not HDR!");
 
@@ -197,8 +226,9 @@ namespace NR
     void SceneRenderer::GeometryPass()
     {
         bool outline = sData.SelectedMeshDrawList.size() > 0;
+        bool collider = sData.ColliderDrawList.size() > 0;
 
-        if (outline)
+        if (outline || collider)
         {
             Renderer::Submit([]()
                 {
@@ -208,7 +238,7 @@ namespace NR
 
         Renderer::BeginRenderPass(sData.GeoPass);
 
-        if (outline)
+        if (outline || collider)
         {
             Renderer::Submit([]()
                 {
@@ -245,31 +275,6 @@ namespace NR
         {
             Renderer::Submit([]()
                 {
-                    glStencilFunc(GL_ALWAYS, 1, 0xff);
-                    glStencilMask(0xff);
-                });
-        }
-
-        for (auto& dc : sData.SelectedMeshDrawList)
-        {
-            auto baseMaterial = dc.Mesh->GetMaterial();
-            baseMaterial->Set("uViewProjectionMatrix", viewProjection);
-            baseMaterial->Set("uCameraPosition", cameraPosition);
-
-            baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment.RadianceMap);
-            baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment.IrradianceMap);
-            baseMaterial->Set("uBRDFLUTTexture", sData.BRDFLUT);
-
-            baseMaterial->Set("lights", sData.SceneData.ActiveLight);
-
-            auto overrideMaterial = nullptr; // dc.Material;
-            Renderer::SubmitMesh(dc.Mesh, dc.Transform, overrideMaterial);
-        }
-
-        if (outline)
-        {
-            Renderer::Submit([]()
-                {
                     glStencilFunc(GL_NOTEQUAL, 1, 0xff);
                     glStencilMask(0);
 
@@ -279,7 +284,6 @@ namespace NR
                     glDisable(GL_DEPTH_TEST);
                 });
 
-            // Draw outline here
             sData.OutlineMaterial->Set("uViewProjection", viewProjection);
             for (auto& dc : sData.SelectedMeshDrawList)
             {
@@ -291,9 +295,55 @@ namespace NR
                     glPointSize(10);
                     glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
                 });
+
             for (auto& dc : sData.SelectedMeshDrawList)
             {
                 Renderer::SubmitMesh(dc.Mesh, dc.Transform, sData.OutlineMaterial);
+            }
+
+            Renderer::Submit([]()
+                {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                    glStencilMask(0xff);
+                    glStencilFunc(GL_ALWAYS, 1, 0xff);
+                    glEnable(GL_DEPTH_TEST);
+                });
+        }
+
+        if (collider)
+        {
+            Renderer::Submit([]()
+                {
+                    glStencilFunc(GL_NOTEQUAL, 1, 0xff);
+                    glStencilMask(0);
+
+                    glLineWidth(1);
+                    glEnable(GL_LINE_SMOOTH);
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                    glDisable(GL_DEPTH_TEST);
+                });
+
+            sData.ColliderMaterial->Set("uViewProjection", viewProjection);
+            for (auto& dc : sData.ColliderDrawList)
+            {
+                if (dc.Mesh)
+                {
+                    Renderer::SubmitMesh(dc.Mesh, dc.Transform, sData.ColliderMaterial);
+                }
+            }
+
+            Renderer::Submit([]()
+                {
+                    glPointSize(1);
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+                });
+
+            for (auto& dc : sData.ColliderDrawList)
+            {
+                if (dc.Mesh)
+                {
+                    Renderer::SubmitMesh(dc.Mesh, dc.Transform, sData.ColliderMaterial);
+                }
             }
 
             Renderer::Submit([]()
@@ -346,6 +396,7 @@ namespace NR
 
         sData.DrawList.clear();
         sData.SelectedMeshDrawList.clear();
+        sData.ColliderDrawList.clear();
         sData.SceneData = {};
     }
 

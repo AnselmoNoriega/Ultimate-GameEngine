@@ -12,6 +12,8 @@
 #include "Entity.h"
 #include "Components.h"
 #include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Physics/PhysicsWrappers.h"
+#include "NotRed/Renderer/MeshFactory.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -710,6 +712,7 @@ namespace NR
                     component.Offset = boxColliderComponent["Offset"].as<glm::vec3>();
                     component.Size = boxColliderComponent["Size"].as<glm::vec3>();
                     component.IsTrigger = boxColliderComponent["IsTrigger"].as<bool>();
+                    component.DebugMesh = MeshFactory::CreateBox(component.Size);
                 }
 
                 auto sphereColliderComponent = entity["SphereColliderComponent"];
@@ -718,6 +721,7 @@ namespace NR
                     auto& component = deserializedEntity.AddComponent<SphereColliderComponent>();
                     component.Radius = sphereColliderComponent["Radius"].as<float>();
                     component.IsTrigger = sphereColliderComponent["IsTrigger"].as<bool>();
+                    component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
                 }
 
                 auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
@@ -727,6 +731,7 @@ namespace NR
                     component.Radius = capsuleColliderComponent["Radius"].as<float>();
                     component.Height = capsuleColliderComponent["Height"].as<float>();
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"].as<bool>();
+                    component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
                 }
 
                 auto meshColliderComponent = entity["MeshColliderComponent"];
@@ -735,6 +740,7 @@ namespace NR
                     std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
                     auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(Ref<Mesh>::Create(meshPath));
                     component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
+                    PhysicsWrappers::CreateConvexMesh(component);
 
                     NR_CORE_INFO("  Mesh Collider Asset Path: {0}", meshPath);
                 }

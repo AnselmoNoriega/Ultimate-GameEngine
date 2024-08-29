@@ -22,6 +22,8 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 
+#include "NotRed/Physics/PhysicsUtil.h"
+
 namespace NR
 {
 
@@ -497,6 +499,30 @@ namespace NR
 
         PipelineSpecification pipelineSpecification;
         pipelineSpecification.Layout = vertexLayout;
+        mPipeline = Pipeline::Create(pipelineSpecification);
+    }
+
+    Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices)
+        : mStaticVertices(vertices), mIndices(indices), mIsAnimated(false)
+    {
+        Submesh submesh;
+        submesh.BaseVertex = 0;
+        submesh.BaseIndex = 0;
+        submesh.IndexCount = indices.size() * 3;
+        submesh.Transform = glm::mat4(1.0F);
+        mSubmeshes.push_back(submesh);
+
+        mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+        mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
+
+        PipelineSpecification pipelineSpecification;
+        pipelineSpecification.Layout = {
+            { ShaderDataType::Float3, "aPosition" },
+            { ShaderDataType::Float3, "aNormal" },
+            { ShaderDataType::Float3, "aTangent" },
+            { ShaderDataType::Float3, "aBinormal" },
+            { ShaderDataType::Float2, "aTexCoord" },
+        };
         mPipeline = Pipeline::Create(pipelineSpecification);
     }
 

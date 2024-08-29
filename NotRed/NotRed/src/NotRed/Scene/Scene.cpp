@@ -240,14 +240,64 @@ namespace NR
             if (meshComponent.MeshObj)
             {
                 meshComponent.MeshObj->Update(dt);
+                SceneRenderer::SubmitMesh(meshComponent, transformComponent);
+            }
+        }
+
+        {
+            auto view = mRegistry.view<BoxColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& collider = e.GetComponent<BoxColliderComponent>();
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitSelectedMesh(meshComponent, transformComponent);
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
                 }
-                else
+            }
+        }
+
+        {
+            auto view = mRegistry.view<SphereColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& collider = e.GetComponent<SphereColliderComponent>();
+
+                if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitMesh(meshComponent, transformComponent);
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<CapsuleColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& collider = e.GetComponent<CapsuleColliderComponent>();
+
+                if (mSelectedEntity == entity)
+                {
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<MeshColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& collider = e.GetComponent<MeshColliderComponent>();
+
+                if (mSelectedEntity == entity)
+                {
+                    {
+                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
+                    }
                 }
             }
         }

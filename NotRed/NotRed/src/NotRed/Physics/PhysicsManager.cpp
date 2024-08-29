@@ -11,7 +11,7 @@ namespace NR
 	static Entity* sEntityStorageBuffer;
 	static int sEntityStorageBufferPosition;
 
-	static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
+	static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
 	{
 		glm::vec3 scale, translation, skew;
 		glm::vec4 perspective;
@@ -69,29 +69,31 @@ namespace NR
 		// Physics Material
 		physx::PxMaterial* material = PhysicsWrappers::CreateMaterial(e.GetComponent<PhysicsMaterialComponent>());
 
+		auto [translation, rotationQuat, scale] = DecomposeTransform(e.Transform());
+
 		// Add all colliders
 		if (e.HasComponent<BoxColliderComponent>())
 		{
 			BoxColliderComponent& collider = e.GetComponent<BoxColliderComponent>();
-			PhysicsWrappers::AddBoxCollider(*actor, *material, collider);
+			PhysicsWrappers::AddBoxCollider(*actor, *material, collider, scale);
 		}
 
 		if (e.HasComponent<SphereColliderComponent>())
 		{
 			SphereColliderComponent& collider = e.GetComponent<SphereColliderComponent>();
-			PhysicsWrappers::AddSphereCollider(*actor, *material, collider);
+			PhysicsWrappers::AddSphereCollider(*actor, *material, collider, scale);
 		}
 
 		if (e.HasComponent<CapsuleColliderComponent>())
 		{
 			CapsuleColliderComponent& collider = e.GetComponent<CapsuleColliderComponent>();
-			PhysicsWrappers::AddCapsuleCollider(*actor, *material, collider);
+			PhysicsWrappers::AddCapsuleCollider(*actor, *material, collider, scale);
 		}
 
 		if (e.HasComponent<MeshColliderComponent>())
 		{
 			MeshColliderComponent& collider = e.GetComponent<MeshColliderComponent>();
-			PhysicsWrappers::AddMeshCollider(*actor, *material, collider);
+			PhysicsWrappers::AddMeshCollider(*actor, *material, collider, scale);
 		}
 
 		// Set collision filters
@@ -117,7 +119,7 @@ namespace NR
 		{
 			auto& transform = e.Transform();
 			// TODO: Come up with a better solution for scale
-			auto [p, r, scale] = GetTransformDecomposition(transform);
+			auto [p, r, scale] = DecomposeTransform(transform);
 			RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
 			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
 

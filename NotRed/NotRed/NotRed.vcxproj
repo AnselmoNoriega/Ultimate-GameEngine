@@ -193,6 +193,7 @@
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Material.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
+    <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
@@ -308,6 +309,7 @@
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />

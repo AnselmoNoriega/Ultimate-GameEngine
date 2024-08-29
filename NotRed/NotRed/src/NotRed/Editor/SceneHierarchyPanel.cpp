@@ -2,16 +2,19 @@
 #include "SceneHierarchyPanel.h"
 
 #include <imgui.h>
-
-#include "NotRed/Core/Application.h"
-#include "NotRed/Renderer/Mesh.h"
-#include "NotRed/Script/ScriptEngine.h"
 #include <assimp/scene.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include "NotRed/Core/Application.h"
+#include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Script/ScriptEngine.h"
+
+#include "NotRed/Physics/PhysicsWrappers.h"
+#include "NotRed/Renderer/MeshFactory.h"
 
 namespace NR
 {
@@ -1037,7 +1040,10 @@ namespace NR
             {
                 BeginPropertyGrid();
 
-                Property("Size", bcc.Size);
+                if (Property("Size", bcc.Size))
+                {
+                    bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
+                }
                 Property("Is Trigger", bcc.IsTrigger);
 
                 EndPropertyGrid();
@@ -1047,7 +1053,10 @@ namespace NR
             {
                 BeginPropertyGrid();
 
-                Property("Radius", scc.Radius);
+                if (Property("Radius", scc.Radius))
+                {
+                    scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
+                }
                 Property("Is Trigger", scc.IsTrigger);
 
                 EndPropertyGrid();
@@ -1057,8 +1066,19 @@ namespace NR
             {
                 BeginPropertyGrid();
 
-                Property("Radius", ccc.Radius);
-                Property("Height", ccc.Height);
+                bool changed = false;
+                if (Property("Radius", ccc.Radius))
+                {
+                    changed = true;
+                }
+                if (Property("Height", ccc.Height))
+                {
+                    changed = true;
+                }
+                if (changed)
+                {
+                    ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+                }
                 Property("Is Trigger", ccc.IsTrigger);
 
                 EndPropertyGrid();
@@ -1066,6 +1086,7 @@ namespace NR
 
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [](MeshColliderComponent& mcc)
             {
+                BeginPropertyGrid();
                 ImGui::Columns(3);
                 ImGui::SetColumnWidth(0, 100);
                 ImGui::SetColumnWidth(1, 300);
@@ -1089,10 +1110,12 @@ namespace NR
                     if (!file.empty())
                     {
                         mcc.CollisionMesh = Ref<Mesh>::Create(file);
+                        PhysicsWrappers::CreateConvexMesh(mcc);
                     }
                 }
 
                 Property("Is Trigger", mcc.IsTrigger);
+                EndPropertyGrid();
             });
     }
 }

@@ -164,16 +164,20 @@ namespace NR
 
         bool IsTrigger = false;
 
+        Ref<Mesh> DebugMesh;
+
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
     };
 
     struct SphereColliderComponent
     {
-        float Radius;
+        float Radius = 0.5f;
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         bool IsTrigger = false;
+
+        Ref<Mesh> DebugMesh;
 
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
@@ -187,6 +191,8 @@ namespace NR
 
         bool IsTrigger = false;
 
+        Ref<Mesh> DebugMesh;
+
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;
     };
@@ -194,6 +200,7 @@ namespace NR
     struct MeshColliderComponent
     {
         Ref<Mesh> CollisionMesh;
+        Ref<Mesh> ProcessedMesh;
 
         bool IsTrigger = false;
 

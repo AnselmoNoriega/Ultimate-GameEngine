@@ -446,6 +446,7 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h" />
+    <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -693,5 +694,6 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
   </ItemGroup>
 </Project>
