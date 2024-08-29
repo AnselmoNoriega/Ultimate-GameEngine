@@ -361,21 +361,16 @@ namespace NR
 
     void ScriptEngine::CreateEntity(Entity entity)
     {
-        CreateEntity(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
-    }
-
-    void ScriptEngine::CreateEntity(UUID sceneID, UUID entityID)
-    {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->InitMethod)
         {
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->InitMethod);
         }
     }
 
-    void ScriptEngine::UpdateEntity(UUID sceneID, UUID entityID, float dt)
+    void ScriptEngine::UpdateEntity(Entity entity, float dt)
     {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->UpdateMethod)
         {
             void* args[] = { &dt };
@@ -385,12 +380,7 @@ namespace NR
 
     void ScriptEngine::Collision2DBegin(Entity entity)
     {
-        Collision2DBegin(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
-    }
-
-    void ScriptEngine::Collision2DBegin(UUID sceneID, UUID entityID)
-    {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DBeginMethod)
         {
             float value = 5.0f;
@@ -401,12 +391,7 @@ namespace NR
 
     void ScriptEngine::Collision2DEnd(Entity entity)
     {
-        Collision2DEnd(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
-    }
-
-    void ScriptEngine::Collision2DEnd(UUID sceneID, UUID entityID)
-    {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DEndMethod)
         {
             float value = 5.0f;
@@ -417,12 +402,7 @@ namespace NR
 
     void ScriptEngine::CollisionBegin(Entity entity)
     {
-        CollisionBegin(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
-    }
-
-    void ScriptEngine::CollisionBegin(UUID sceneID, UUID entityID)
-    {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionBeginMethod)
         {
             float value = 5.0f;
@@ -433,12 +413,7 @@ namespace NR
 
     void ScriptEngine::CollisionEnd(Entity entity)
     {
-        CollisionEnd(entity.mScene->GetID(), entity.GetComponent<IDComponent>().ID);
-    }
-
-    void ScriptEngine::CollisionEnd(UUID sceneID, UUID entityID)
-    {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionEndMethod)
         {
             float value = 5.0f;
@@ -447,9 +422,9 @@ namespace NR
         }
     }
 
-    void ScriptEngine::TriggerBegin(UUID sceneID, UUID entityID)
+    void ScriptEngine::TriggerBegin(Entity entity)
     {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerBeginMethod)
         {
             float value = 5.0f;
@@ -458,9 +433,9 @@ namespace NR
         }
     }
 
-    void ScriptEngine::TriggerEnd(UUID sceneID, UUID entityID)
+    void ScriptEngine::TriggerEnd(Entity entity)
     {
-        EntityInstance& entityInstance = GetEntityInstanceData(sceneID, entityID).Instance;
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerEndMethod)
         {
             float value = 5.0f;

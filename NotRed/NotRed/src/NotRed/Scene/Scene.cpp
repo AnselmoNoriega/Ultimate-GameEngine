@@ -161,11 +161,10 @@ namespace NR
             auto view = mRegistry.view<ScriptComponent>();
             for (auto entity : view)
             {
-                UUID entityID = mRegistry.get<IDComponent>(entity).ID;
                 Entity e = { entity, this };
                 if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
                 {
-                    ScriptEngine::UpdateEntity(mSceneID, entityID, dt);
+                    ScriptEngine::UpdateEntity(e, dt);
                 }
             }
         }

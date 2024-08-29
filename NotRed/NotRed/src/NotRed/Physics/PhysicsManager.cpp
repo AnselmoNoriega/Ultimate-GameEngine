@@ -135,6 +135,7 @@ namespace NR
 	void PhysicsManager::DestroyScene()
 	{
 		delete[] sEntityStorageBuffer;
+		sEntityStorageBuffer = nullptr;
 		sSimulatedEntities.clear();
 		sScene->release();
 		sScene = nullptr;
