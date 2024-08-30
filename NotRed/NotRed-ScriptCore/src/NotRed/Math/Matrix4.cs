@@ -39,18 +39,18 @@ namespace NR
             a3 = 0.0f;  b3 = 0.0f;  c3 = 0.0f;  d3 = value;
         }
 
-        public Vector3 Translation
+        public Vector3 Position
         {
             get { return new Vector3(a3, b3, c3); }
             set { a3 = value.x; b3 = value.y; c3 = value.z; }
         }
 
-        public static Matrix4 Translate(Vector3 translation)
+        public static Matrix4 Translate(Vector3 position)
         {
             Matrix4 result = new Matrix4(1.0f);
-            result.a3 = translation.x;
-            result.b3 = translation.y;
-            result.c3 = translation.z;
+            result.a3 = position.x;
+            result.b3 = position.y;
+            result.c3 = position.z;
             return result;
         }
 

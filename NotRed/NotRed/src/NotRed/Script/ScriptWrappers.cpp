@@ -209,7 +209,7 @@ namespace NR::Script
                     &boxCollider.IsTrigger
                 };
 
-                MonoObject* obj = ScriptEngine::Construct("NR.BoxCollider:.ctor(ulong,bool,Vector3,Vector3)", true, data);
+                MonoObject* obj = ScriptEngine::Construct("NR.BoxCollider:.ctor(ulong,Vector3,Vector3,bool)", true, data);
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
@@ -223,7 +223,7 @@ namespace NR::Script
                     &sphereCollider.IsTrigger
                 };
 
-                MonoObject* obj = ScriptEngine::Construct("NR.SphereCollider:.ctor(ulong,bool,float)", true, data);
+                MonoObject* obj = ScriptEngine::Construct("NR.SphereCollider:.ctor(ulong,float,bool)", true, data);
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
@@ -238,7 +238,7 @@ namespace NR::Script
                     &capsuleCollider.IsTrigger
                 };
 
-                MonoObject* obj = ScriptEngine::Construct("NR.CapsuleCollider:.ctor(ulong,bool,float,float)", true, data);
+                MonoObject* obj = ScriptEngine::Construct("NR.CapsuleCollider:.ctor(ulong,float,float,bool)", true, data);
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
@@ -253,7 +253,7 @@ namespace NR::Script
                     &meshCollider.IsTrigger
                 };
 
-                MonoObject* obj = ScriptEngine::Construct("NR.MeshCollider:.ctor(ulong,bool,intptr)", true, data);
+                MonoObject* obj = ScriptEngine::Construct("NR.MeshCollider:.ctor(ulong,intptr,bool)", true, data);
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
         }
@@ -289,6 +289,66 @@ namespace NR::Script
             AddCollidersToArray(outColliders, sOverlapBuffer, count);
         }
         return outColliders;
+    }
+
+    int32_t NR_Physics_OverlapBoxNonAlloc(glm::vec3* origin, glm::vec3* halfSize, MonoArray* outColliders)
+    {
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+
+        uint64_t arrayLength = mono_array_length(outColliders);
+
+        uint32_t count;
+        if (PhysicsWrappers::OverlapBox(*origin, *halfSize, sOverlapBuffer, &count))
+        {
+            if (count > arrayLength)
+            {
+                count = arrayLength;
+            }
+
+            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+        }
+
+        return count;
+    }
+
+    int32_t NR_Physics_OverlapCapsuleNonAlloc(glm::vec3* origin, float radius, float halfHeight, MonoArray* outColliders)
+    {
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+
+        uint64_t arrayLength = mono_array_length(outColliders);
+
+        uint32_t count;
+        if (PhysicsWrappers::OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, &count))
+        {
+            if (count > arrayLength)
+            {
+                count = arrayLength;
+            }
+
+            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+        }
+
+        return count;
+    }
+
+    int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders)
+    {
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+
+        uint64_t arrayLength = mono_array_length(outColliders);
+
+        uint32_t count;
+        if (PhysicsWrappers::OverlapSphere(*origin, radius, sOverlapBuffer, &count))
+        {
+            if (count > arrayLength)
+            {
+                count = arrayLength;
+            }
+
+            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+        }
+
+        return count;
     }
 
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius)
