@@ -6,12 +6,17 @@ namespace NR
 	template<typename T, typename ConditionFunction>
 	static bool RemoveIfExists(std::vector<T>& vector, ConditionFunction condition)
 	{
-		for (std::vector<T>::iterator it = vector.begin(); it != vector.end(); ++it)
+		auto it = vector.begin();
+		while (it != vector.end())
 		{
 			if (condition(*it))
 			{
 				vector.erase(it);
 				return true;
+			}
+			else
+			{
+				++it;
 			}
 		}
 

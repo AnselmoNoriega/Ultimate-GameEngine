@@ -61,7 +61,7 @@ namespace NR
 			return !(*this == other);
 		}
 
-		UUID GetID() { return GetComponent<IDComponent>().ID; }
+		UUID& GetID() { return GetComponent<IDComponent>().ID; }
 		UUID GetSceneID() { return mScene->GetID(); }
 
 	private:

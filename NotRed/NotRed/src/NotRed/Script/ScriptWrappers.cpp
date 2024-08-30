@@ -5,8 +5,6 @@
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 
-#include <imgui.h>
-
 #include <glm/gtc/type_ptr.hpp>
 #include <mono/jit/jit.h>
 
@@ -20,7 +18,6 @@
 
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
-#include "NotRed/Scene/Components.h"
 
 namespace NR
 {
@@ -30,15 +27,6 @@ namespace NR
 
 namespace NR::Script
 {
-    enum class ComponentID
-    {
-        None,
-        Transform,
-        Mesh,
-        Script,
-        SpriteRenderer
-    };
-
     static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
     {
         glm::vec3 scale, translation, skew;
@@ -203,12 +191,12 @@ namespace NR::Script
         return PhysicsWrappers::Raycast(*origin, *direction, maxDistance, hit);
     }
 
-    static void AddCollidersToArray(MonoArray* array, const std::vector<physx::PxOverlapHit>& hits)
+    static void AddCollidersToArray(MonoArray* array, const std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count)
     {
         uint32_t arrayIndex = 0;
-        for (const auto& hit : hits)
+        for (uint32_t i = 0; i < count; ++i)
         {
-            Entity& entity = *(Entity*)hit.actor->userData;
+            Entity& entity = *(Entity*)hits[i].actor->userData;
 
             if (entity.HasComponent<BoxColliderComponent>())
             {
@@ -272,15 +260,33 @@ namespace NR::Script
 
     }
 
+    static std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS> sOverlapBuffer;
+
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize)
     {
         MonoArray* outColliders = nullptr;
-        std::vector<physx::PxOverlapHit> buffer;
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
-        if (PhysicsWrappers::OverlapBox(*origin, *halfSize, buffer))
+        uint32_t count;
+        if (PhysicsWrappers::OverlapBox(*origin, *halfSize, sOverlapBuffer, &count))
         {
-            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), buffer.size());
-            AddCollidersToArray(outColliders, buffer);
+            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+        }
+
+        return outColliders;
+    }
+
+    MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight)
+    {
+        MonoArray* outColliders = nullptr;
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+
+        uint32_t count;
+        if (PhysicsWrappers::OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, &count))
+        {
+            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count);
         }
         return outColliders;
     }
@@ -288,11 +294,13 @@ namespace NR::Script
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius)
     {
         MonoArray* outColliders = nullptr;
-        std::vector<physx::PxOverlapHit> buffer;
-        if (PhysicsWrappers::OverlapSphere(*origin, radius, buffer))
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+
+        uint32_t count;
+        if (PhysicsWrappers::OverlapSphere(*origin, radius, sOverlapBuffer, &count))
         {
-            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), buffer.size());
-            AddCollidersToArray(outColliders, buffer);
+            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count);
         }
 
         return outColliders;

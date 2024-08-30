@@ -32,9 +32,6 @@ IncludeDir["PhysX"] = "NotRed/vendor/PhysX/include"
 
 LibraryDir = {}
 LibraryDir["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
-LibraryDir["PhysX_LowLevel"] = "vendor/PhysX/lib/%{cfg.buildcfg}/LowLevel_static_64.lib"
-LibraryDir["PhysX_LowLevelAABB"] = "vendor/PhysX/lib/%{cfg.buildcfg}/LowLevelAABB_static_64.lib"
-LibraryDir["PhysX_LowLevelDynamics"] = "vendor/PhysX/lib/%{cfg.buildcfg}/LowLevelDynamics_static_64.lib"
 LibraryDir["PhysX"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysX_64.lib"
 LibraryDir["PhysXCharacterKinematic"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCharacterKinematic_static_64.lib"
 LibraryDir["PhysXCommon"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCommon_64.lib"
@@ -42,10 +39,6 @@ LibraryDir["PhysXCooking"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCooking_64.l
 LibraryDir["PhysXExtensions"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXExtensions_static_64.lib"
 LibraryDir["PhysXFoundation"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXFoundation_64.lib"
 LibraryDir["PhysXPvd"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXPvdSDK_static_64.lib"
-LibraryDir["PhysXTask"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXTask_static_64.lib"
-LibraryDir["PhysXVehicle"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXVehicle_static_64.lib"
-LibraryDir["PhysX_SceneQuery"] = "vendor/PhysX/lib/%{cfg.buildcfg}/SceneQuery_static_64.lib"
-LibraryDir["PhysX_SimulationController"] = "vendor/PhysX/lib/%{cfg.buildcfg}/SimulationController_static_64.lib"
 
 group "Dependencies"
 include "NotRed/vendor/GLFW"
@@ -108,20 +101,13 @@ project "NotRed"
 		"ImGui",
 		"opengl32.lib",
 		"%{LibraryDir.Mono}",
-		--"%{LibraryDir.PhysX_LowLevel}",
-		--"%{LibraryDir.PhysX_LowLevelAABB}",
-		--"%{LibraryDir.PhysX_LowLevelDynamics}",
 		"%{LibraryDir.PhysX}",
 		"%{LibraryDir.PhysXCharacterKinematic}",
 		"%{LibraryDir.PhysXCommon}",
 		"%{LibraryDir.PhysXCooking}",
 		"%{LibraryDir.PhysXExtensions}",
 		"%{LibraryDir.PhysXFoundation}",
-		"%{LibraryDir.PhysXPvd}",
-		--"%{LibraryDir.PhysXTask}",
-		--"%{LibraryDir.PhysXVehicle}",
-		--"%{LibraryDir.PhysX_SceneQuery}",
-		--"%{LibraryDir.PhysX_SimulationController}"
+		"%{LibraryDir.PhysXPvd}"
 	}
 	
 	filter "files:NotRed/vendor/FastNoise/**.cpp or files:NotRed/vendor/yaml-cpp/src/**.cpp"
@@ -225,7 +211,11 @@ project "NotEditor"
 		}
 				
 	filter "configurations:Release"
-		defines "NR_RELEASE"
+		defines
+		{
+			"NR_RELEASE",
+			"NDEBUG"
+		}
 		optimize "on"
 
 		links

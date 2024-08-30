@@ -27,6 +27,7 @@ namespace NR::Script
     bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit);
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize);
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius);
+    MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight);
 
     // Entity
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);

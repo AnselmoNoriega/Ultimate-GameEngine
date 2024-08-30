@@ -30,10 +30,17 @@ namespace NR
             return OverlapSphere_Native(ref origin, radius);
         }
 
+        public static Collider[] OverlapCapsule(Vector3 origin, float radius, float halfHeight)
+        {
+            return OverlapCapsule_Native(ref origin, radius, halfHeight);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Raycast_Native(ref Vector3 origin, ref Vector3 direction, float maxDistance, out RaycastHit hit);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Collider[] OverlapBox_Native(ref Vector3 origin, ref Vector3 halfSize);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern Collider[] OverlapCapsule_Native(ref Vector3 origin, float radius, float halfHeight);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Collider[] OverlapSphere_Native(ref Vector3 origin, float radius);
     }

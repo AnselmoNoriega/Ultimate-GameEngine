@@ -54,6 +54,7 @@ namespace NR {
 		mono_add_internal_call("NR.Physics::Raycast_Native", NR::Script::NR_Physics_Raycast);
 		mono_add_internal_call("NR.Physics::OverlapBox_Native", NR::Script::NR_Physics_OverlapBox);
 		mono_add_internal_call("NR.Physics::OverlapSphere_Native", NR::Script::NR_Physics_OverlapSphere);
+		mono_add_internal_call("NR.Physics::OverlapCapsule_Native", NR::Script::NR_Physics_OverlapCapsule);
 
 		mono_add_internal_call("NR.Entity::GetTransform_Native", NR::Script::NR_Entity_GetTransform);
 		mono_add_internal_call("NR.Entity::SetTransform_Native", NR::Script::NR_Entity_SetTransform);

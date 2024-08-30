@@ -6,21 +6,68 @@
 #include "PhysicsManager.h"
 #include "PhysicsLayer.h"
 
-#ifdef NR_DEBUG
-	#define PHYSX_DEBUGGER 0
-#endif
-
 namespace NR
 {
-	static physx::PxDefaultErrorCallback sErrorCallback;
+	static PhysicsErrorCallback sErrorCallback;
 	static physx::PxDefaultAllocator sAllocator;
 	static physx::PxFoundation* sFoundation;
 	static physx::PxPhysics* sPhysics;
 	static physx::PxPvd* sVisualDebugger = nullptr;
+	static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
 
 	static physx::PxSimulationFilterShader sFilterShader = physx::PxDefaultSimulationFilterShader;
 
 	static ContactListener sContactListener;
+
+	void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line)
+	{
+		const char* errorMessage = NULL;
+
+		switch (code)
+		{
+		case physx::PxErrorCode::eNO_ERROR:	errorMessage = "No Error"; break;
+		case physx::PxErrorCode::eDEBUG_INFO: errorMessage = "Info"; break;
+		case physx::PxErrorCode::eDEBUG_WARNING:	errorMessage = "Warning"; break;
+		case physx::PxErrorCode::eINVALID_PARAMETER: errorMessage = "Invalid Parameter"; break;
+		case physx::PxErrorCode::eINVALID_OPERATION: errorMessage = "Invalid Operation"; break;
+		case physx::PxErrorCode::eOUT_OF_MEMORY: errorMessage = "Out Of Memory"; break;
+		case physx::PxErrorCode::eINTERNAL_ERROR: errorMessage = "Internal Error"; break;
+		case physx::PxErrorCode::eABORT: errorMessage = "Abort"; break;
+		case physx::PxErrorCode::ePERF_WARNING:	errorMessage = "Performance Warning"; break;
+		case physx::PxErrorCode::eMASK_ALL:	errorMessage = "Unknown Error"; break;
+		}
+
+		switch (code)
+		{
+		case physx::PxErrorCode::eNO_ERROR:
+		case physx::PxErrorCode::eDEBUG_INFO:
+		{
+			NR_CORE_INFO("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+			break;
+		}
+		case physx::PxErrorCode::eDEBUG_WARNING:
+		case physx::PxErrorCode::ePERF_WARNING:
+		{
+			NR_CORE_WARN("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+			break;
+		}
+		case physx::PxErrorCode::eINVALID_PARAMETER:
+		case physx::PxErrorCode::eINVALID_OPERATION:
+		case physx::PxErrorCode::eOUT_OF_MEMORY:
+		case physx::PxErrorCode::eINTERNAL_ERROR:
+		{
+			NR_CORE_ERROR("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+			break;
+		}
+		case physx::PxErrorCode::eABORT:
+		case physx::PxErrorCode::eMASK_ALL:
+		{
+			NR_CORE_FATAL("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+			NR_CORE_ASSERT(false);
+			break;
+		}
+		}
+	}
 
 	physx::PxScene* PhysicsWrappers::CreateScene(const SceneParams& sceneParams)
 	{
@@ -249,12 +296,6 @@ namespace NR
 		{
 			Entity& entity = *(Entity*)hitInfo.block.actor->userData;
 
-			// NOTE: This should never be the case...
-			if (!entity)
-			{
-				NR_CORE_ASSERT("Physics body with not Entity?");
-			}
-
 			hit->EntityID = entity.GetID();
 			hit->Position = FromPhysicsVector(hitInfo.block.position);
 			hit->Normal = FromPhysicsVector(hitInfo.block.normal);
@@ -264,13 +305,12 @@ namespace NR
 		return result;
 	}
 
-	bool PhysicsWrappers::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::vector<physx::PxOverlapHit>& buffer)
+	bool PhysicsWrappers::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
 	{
 		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
 
-		constexpr uint32_t bufferSize = 50;
-		physx::PxOverlapHit hitBuffer[bufferSize];
-		physx::PxOverlapBuffer buf(hitBuffer, bufferSize);
+		memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
+		physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
 		physx::PxBoxGeometry geometry = physx::PxBoxGeometry(halfSize.x, halfSize.y, halfSize.z);
 		physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
 
@@ -278,22 +318,41 @@ namespace NR
 
 		if (result)
 		{
-			for (uint32_t i = 0; i < buf.nbTouches; ++i)
-			{
-				buffer.push_back(buf.touches[i]);
-			}
+			uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+			memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
+			*count = bodyCount;
 		}
 
 		return result;
 	}
 
-	bool PhysicsWrappers::OverlapSphere(const glm::vec3& origin, float radius, std::vector<physx::PxOverlapHit>& buffer)
+	bool PhysicsWrappers::OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
 	{
 		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
 
-		constexpr uint32_t bufferSize = 50;
-		physx::PxOverlapHit hitBuffer[bufferSize];
-		physx::PxOverlapBuffer buf(hitBuffer, bufferSize);
+		memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
+		physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
+		physx::PxCapsuleGeometry geometry = physx::PxCapsuleGeometry(radius, halfHeight);
+		physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0F), origin));
+
+		bool result = scene->overlap(geometry, pose, buf);
+
+		if (result)
+		{
+			uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+			memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
+			*count = bodyCount;
+		}
+
+		return result;
+	}
+
+	bool PhysicsWrappers::OverlapSphere(const glm::vec3& origin, float radius, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
+	{
+		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
+
+		memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
+		physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
 		physx::PxSphereGeometry geometry = physx::PxSphereGeometry(radius);
 		physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
 
@@ -301,10 +360,9 @@ namespace NR
 
 		if (result)
 		{
-			for (uint32_t i = 0; i < buf.nbTouches; ++i)
-			{
-				buffer.push_back(buf.touches[i]);
-			}
+			uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+			memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
+			*count = bodyCount;
 		}
 
 		return result;

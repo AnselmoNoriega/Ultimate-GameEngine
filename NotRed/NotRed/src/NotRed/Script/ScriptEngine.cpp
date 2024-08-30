@@ -476,8 +476,15 @@ namespace NR
         return obj;
     }
 
+    static std::unordered_map<std::string, MonoClass*> sClasses;
+
     MonoClass* ScriptEngine::GetCoreClass(const std::string& fullName)
     {
+        if (sClasses.find(fullName) != sClasses.end())
+        {
+            return sClasses[fullName];
+        }
+
         std::string namespaceName = "";
         std::string className;
 
@@ -496,6 +503,8 @@ namespace NR
         {
             std::cout << "mono_class_from_name failed" << std::endl;
         }
+
+        sClasses[fullName] = monoClass;
 
         return monoClass;
     }

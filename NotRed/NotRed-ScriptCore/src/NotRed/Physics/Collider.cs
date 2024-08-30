@@ -6,6 +6,35 @@ namespace NR
     {
         public ulong EntityID { get; protected set; }
         public bool IsTrigger { get; protected set; }
+
+        private Entity entity;
+        private RigidBodyComponent _rigidBodyComponent;
+
+        public Entity Entity
+        {
+            get
+            {
+                if (entity == null)
+                {
+                    entity = new Entity(EntityID);
+                }
+
+                return entity;
+            }
+        }
+
+        public RigidBodyComponent RigidBody
+        {
+            get
+            {
+                if (_rigidBodyComponent == null)
+                {
+                    _rigidBodyComponent = Entity.GetComponent<RigidBodyComponent>();
+                }
+
+                return _rigidBodyComponent;
+            }
+        }
     }
 
     public class BoxCollider : Collider
