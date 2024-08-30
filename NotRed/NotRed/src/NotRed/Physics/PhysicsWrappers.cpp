@@ -4,6 +4,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "PhysicsManager.h"
+#include "PhysicsLayer.h"
 
 #ifdef NR_DEBUG
 	#define PHYSX_DEBUGGER 0
@@ -64,23 +65,16 @@ namespace NR
 
 	void PhysicsWrappers::SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t physicsLayer)
 	{
-		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayerInfo(physicsLayer);
+		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(physicsLayer);
 
-		uint32_t collisionBitField = 0;
-
-		for (const auto& collisionLayerInfo : PhysicsLayerManager::GetLayerCollisions(physicsLayer))
-		{
-			collisionBitField |= collisionLayerInfo.BitValue;
-		}
-
-		if (collisionBitField == 0)
+		if (layerInfo.CollidesWith == 0)
 		{
 			return;
 		}
 
 		physx::PxFilterData filterData;
 		filterData.word0 = layerInfo.BitValue;
-		filterData.word1 = collisionBitField;
+		filterData.word1 = layerInfo.CollidesWith;
 
 		const physx::PxU32 numShapes = actor.getNbShapes();
 
@@ -158,9 +152,9 @@ namespace NR
 
 	void PhysicsWrappers::AddMeshCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, MeshColliderComponent& collider, const glm::vec3& size)
 	{
-		physx::PxConvexMeshGeometry triangleGeometry = physx::PxConvexMeshGeometry(CreateConvexMesh(collider));
-		triangleGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, triangleGeometry, material);
+		physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(CreateConvexMesh(collider));
+		convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, convexGeometry, material);
 		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
 		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
 	}
@@ -243,6 +237,31 @@ namespace NR
 	physx::PxMaterial* PhysicsWrappers::CreateMaterial(const PhysicsMaterialComponent& material)
 	{
 		return sPhysics->createMaterial(material.StaticFriction, material.DynamicFriction, material.Bounciness);
+	}
+
+	bool PhysicsWrappers::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit)
+	{
+		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
+		physx::PxRaycastBuffer hitInfo;
+		bool result = scene->raycast(ToPhysicsVector(origin), ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
+
+		if (result)
+		{
+			Entity& entity = *(Entity*)hitInfo.block.actor->userData;
+
+			// NOTE: This should never be the case...
+			if (!entity)
+			{
+				NR_CORE_ASSERT("Physics body with not Entity?");
+			}
+
+			hit->EntityID = entity.GetID();
+			hit->Position = FromPhysicsVector(hitInfo.block.position);
+			hit->Normal = FromPhysicsVector(hitInfo.block.normal);
+			hit->Distance = hitInfo.block.distance;
+		}
+
+		return result;
 	}
 
 	void PhysicsWrappers::Initialize()

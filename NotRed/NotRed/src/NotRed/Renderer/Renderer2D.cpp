@@ -210,7 +210,7 @@ namespace NR
     {
 #if OLD
         // Bind textures
-        for (uint32_t i = 0; i < sData.TextureSlotIndex; i++)
+        for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
             sData.TextureSlots[i]->Bind(i);
 
         sData.QuadVertexArray->Bind();
@@ -294,7 +294,7 @@ namespace NR
             ++sData.TextureSlotIndex;
         }
 
-        for (size_t i = 0; i < quadVertexCount; i++)
+        for (size_t i = 0; i < quadVertexCount; ++i)
         {
             sData.QuadVertexBufferPtr->Position = transform * sData.QuadVertexPositions[i];
             sData.QuadVertexBufferPtr->Color = color;

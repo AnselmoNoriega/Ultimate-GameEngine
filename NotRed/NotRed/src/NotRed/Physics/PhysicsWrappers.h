@@ -6,6 +6,7 @@
 namespace NR
 {
 	struct SceneParams;
+	struct RaycastHit;
 
 	class PhysicsWrappers
 	{
@@ -22,6 +23,8 @@ namespace NR
 		static physx::PxConvexMesh* CreateConvexMesh(MeshColliderComponent& collider);
 
 		static physx::PxMaterial* CreateMaterial(const PhysicsMaterialComponent& material);
+
+		static bool Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit);
 
 	private:
 		static void Initialize();

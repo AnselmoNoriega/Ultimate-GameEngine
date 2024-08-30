@@ -12,6 +12,7 @@
 #include "NotRed/Script/ScriptEngine.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Editor/PhysicsSettingsWindow.h"
 
 namespace NR
 {
@@ -696,6 +697,13 @@ namespace NR
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("Edit"))
+            {
+                ImGui::MenuItem("Physics Settings", nullptr, &mShowPhysicsSettings);
+
+                ImGui::EndMenu();
+            }
+
             if (ImGui::BeginMenu("Debug"))
             {
                 if (ImGui::MenuItem("Connect To Debugger"))
@@ -911,6 +919,7 @@ namespace NR
         ImGui::End();
 
         ScriptEngine::ImGuiRender();
+        PhysicsSettingsWindow::ImGuiRender(&mShowPhysicsSettings);
 
         ImGui::End();
     }

@@ -18,9 +18,13 @@ namespace NR::Script
 
     // Input
     bool NR_Input_IsKeyPressed(KeyCode key);
+    bool NR_Input_IsMouseButtonPressed(MouseButton button);
     void NR_Input_GetMousePosition(glm::vec2* outPosition);
     void NR_Input_SetCursorMode(CursorMode mode);
     CursorMode NR_Input_GetCursorMode();
+
+    // Physics
+    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit);
 
     // Entity
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);

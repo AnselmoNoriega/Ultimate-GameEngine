@@ -49,6 +49,32 @@ namespace NR
             z = Mathf.Clamp(z, min.z, max.z);
         }
 
+        public float Length()
+        {
+            return (float)Math.Sqrt((x * x) + (y * y) + (z * z));
+        }
+
+        public Vector3 Normalized()
+        {
+            float length = Length();
+            float x = this.x / length;
+            float y = this.y / length;
+            float z = this.z / length;
+            return new Vector3(x, y, z);
+        }
+
+        public void Normalize()
+        {
+            float length = Length();
+            this.x = this.x / length;
+            this.y = this.y / length;
+            this.z = this.z / length;
+        }
+        public static Vector3 operator +(Vector3 left, float right)
+        {
+            return new Vector3(left.x + right, left.y + right, left.z + right);
+        }
+
         public static Vector3 operator *(Vector3 left, float scalar)
         {
             return new Vector3(left.x * scalar, left.y * scalar, left.z * scalar);

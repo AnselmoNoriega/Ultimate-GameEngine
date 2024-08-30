@@ -11,7 +11,7 @@
 
 #include "NotRed/Core/Application.h"
 #include "NotRed/Renderer/Mesh.h"
-#include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/PhysicsLayer.h"
 #include "NotRed/Script/ScriptEngine.h"
 
 #include "NotRed/Physics/PhysicsWrappers.h"
@@ -1025,19 +1025,25 @@ namespace NR
                     ImGui::EndCombo();
                 }
 
-                const std::vector<std::string>& layerNames = PhysicsLayerManager::GetLayerNames();
-                const char* currentLayer = layerNames[rbc.Layer].c_str();
+                if (!PhysicsLayerManager::IsLayerValid(rbc.Layer))
+                {
+                    rbc.Layer = 0;
+                }
+
+                uint32_t currentLayer = rbc.Layer;
+                const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(currentLayer);
+
                 ImGui::TextUnformatted("Layer");
                 ImGui::SameLine();
-                if (ImGui::BeginCombo("##LayerSelection", currentLayer))
+                if (ImGui::BeginCombo("##LayerSelection", layerInfo.Name.c_str()))
                 {
-                    for (uint32_t layer = 0; layer < PhysicsLayerManager::GetLayerCount(); ++layer)
+                    for (const auto& layer : PhysicsLayerManager::GetLayers())
                     {
-                        bool isSelected = (currentLayer == layerNames[layer]);
-                        if (ImGui::Selectable(layerNames[layer].c_str(), isSelected))
+                        bool isSelected = (currentLayer == layer.ID);
+                        if (ImGui::Selectable(layer.Name.c_str(), isSelected))
                         {
-                            currentLayer = layerNames[layer].c_str();
-                            rbc.Layer = layer;
+                            currentLayer = layer.ID;
+                            rbc.Layer = layer.ID;
                         }
                         if (isSelected)
                         {

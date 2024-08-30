@@ -155,6 +155,8 @@ namespace NR
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
 
+		bool mShowPhysicsSettings = false;
+
 		enum class SceneState
 		{
 			Edit,

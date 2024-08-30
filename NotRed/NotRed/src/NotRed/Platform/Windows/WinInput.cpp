@@ -16,11 +16,11 @@ namespace NR
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
 	}
 
-	bool Input::IsMouseButtonPressed(int button)
+	bool Input::IsMouseButtonPressed(MouseButton  button)
 	{
 		auto& window = static_cast<WinWindow&>(Application::Get().GetWindow());
 
-		auto state = glfwGetMouseButton(static_cast<GLFWwindow*>(window.GetNativeWindow()), button);
+		auto state = glfwGetMouseButton(static_cast<GLFWwindow*>(window.GetNativeWindow()), static_cast<int32_t>(button));
 		return state == GLFW_PRESS;
 	}
 

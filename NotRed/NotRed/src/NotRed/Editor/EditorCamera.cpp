@@ -75,15 +75,15 @@ namespace NR
 			glm::vec2 delta = (mouse - mInitialMousePosition) * dt;
 			mInitialMousePosition = mouse;
 
-			if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE))
+			if (Input::IsMouseButtonPressed(MouseButton::Middle))
 			{
 				MousePan(delta);
 			}
-			else if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
+			else if (Input::IsMouseButtonPressed(MouseButton::Left))
 			{
 				MouseRotate(delta);
 			}
-			else if (Input::IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT))
+			else if (Input::IsMouseButtonPressed(MouseButton::Right))
 			{
 				MouseZoom(delta.y);
 			}

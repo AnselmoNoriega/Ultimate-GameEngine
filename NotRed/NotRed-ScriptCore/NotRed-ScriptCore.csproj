@@ -70,6 +70,7 @@
     <Compile Include="src\NotRed\Math\Vector3.cs" />
     <Compile Include="src\NotRed\Math\Vector4.cs" />
     <Compile Include="src\NotRed\Physics\Collider.cs" />
+    <Compile Include="src\NotRed\Physics\Physics.cs" />
     <Compile Include="src\NotRed\Renderer\Color.cs" />
     <Compile Include="src\NotRed\Renderer\Material.cs" />
     <Compile Include="src\NotRed\Renderer\Mesh.cs" />

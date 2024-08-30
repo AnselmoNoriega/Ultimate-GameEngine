@@ -51,6 +51,8 @@ namespace NR {
 
 		mono_add_internal_call("NR.Noise::PerlinNoise_Native", NR::Script::NR_Noise_PerlinNoise);
 
+		mono_add_internal_call("NR.Physics::Raycast_Native", NR::Script::NR_Physics_Raycast);
+
 		mono_add_internal_call("NR.Entity::GetTransform_Native", NR::Script::NR_Entity_GetTransform);
 		mono_add_internal_call("NR.Entity::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
 		mono_add_internal_call("NR.Entity::CreateComponent_Native", NR::Script::NR_Entity_CreateComponent);
@@ -68,6 +70,7 @@ namespace NR {
 		mono_add_internal_call("NR.MeshComponent::SetMesh_Native", NR::Script::NR_MeshComponent_SetMesh);
 
 		mono_add_internal_call("NR.Input::IsKeyPressed_Native", NR::Script::NR_Input_IsKeyPressed);
+		mono_add_internal_call("NR.Input::IsMouseButtonPressed_Native", NR::Script::NR_Input_IsMouseButtonPressed);
 		mono_add_internal_call("NR.Input::GetMousePosition_Native", NR::Script::NR_Input_GetMousePosition);
 		mono_add_internal_call("NR.Input::SetCursorMode_Native", NR::Script::NR_Input_SetCursorMode);
 		mono_add_internal_call("NR.Input::GetCursorMode_Native", NR::Script::NR_Input_GetCursorMode);

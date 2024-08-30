@@ -14,6 +14,7 @@
 
 #include <PxPhysicsAPI.h>
 #include "NotRed/Physics/PhysicsUtil.h"
+#include "NotRed/Physics/PhysicsWrappers.h"
 
 #include "NotRed/Core/Math/Noise.h"
 
@@ -64,6 +65,11 @@ namespace NR::Script
     bool NR_Input_IsKeyPressed(KeyCode key)
     {
         return Input::IsKeyPressed(key);
+    }
+
+    bool NR_Input_IsMouseButtonPressed(MouseButton button)
+    {
+        return Input::IsMouseButtonPressed(button);
     }
 
     ////////////////////////////////////////////////////////////////
@@ -144,7 +150,7 @@ namespace NR::Script
         auto& transformComponent = entity.GetComponent<TransformComponent>();
 
         auto [position, rotation, scale] = DecomposeTransform(transformComponent.Transform);
-        *outDirection = glm::rotate(glm::normalize(rotation), *inAbsoluteDirection);
+        *outDirection = glm::rotate(rotation, *inAbsoluteDirection);
     }
 
     void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation)
@@ -190,6 +196,11 @@ namespace NR::Script
     CursorMode NR_Input_GetCursorMode()
     {
         return Input::GetCursorMode();
+    }
+
+    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit)
+    {
+        return PhysicsWrappers::Raycast(*origin, *direction, maxDistance, hit);
     }
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID)
@@ -425,7 +436,7 @@ namespace NR::Script
 
         uint8_t* pixels = (uint8_t*)buffer.Data;
         uint32_t index = 0;
-        for (int i = 0; i < instance->GetWidth() * instance->GetHeight(); i++)
+        for (int i = 0; i < instance->GetWidth() * instance->GetHeight(); ++i)
         {
             glm::vec4& value = mono_array_get(inData, glm::vec4, i);
             *pixels++ = (uint32_t)(value.x * 255.0f);
