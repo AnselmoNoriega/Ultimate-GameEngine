@@ -187,6 +187,14 @@ namespace NR
             Acceleration
         }
 
+        public float Mass
+        {
+            get { return GetMass_Native(Entity.ID); }
+            set { SetMass_Native(Entity.ID, value); }
+        }
+
+        public uint Layer { get { return GetLayer_Native(Entity.ID); } }
+
         public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
         {
             AddForce_Native(Entity.ID, ref force, forceMode);
@@ -219,5 +227,12 @@ namespace NR
         internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector3 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector3 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern uint GetLayer_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetMass_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float SetMass_Native(ulong entityID, float mass);
     }
 }

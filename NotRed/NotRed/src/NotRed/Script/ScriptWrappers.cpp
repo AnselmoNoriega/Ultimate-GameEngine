@@ -203,6 +203,101 @@ namespace NR::Script
         return PhysicsWrappers::Raycast(*origin, *direction, maxDistance, hit);
     }
 
+    static void AddCollidersToArray(MonoArray* array, const std::vector<physx::PxOverlapHit>& hits)
+    {
+        uint32_t arrayIndex = 0;
+        for (const auto& hit : hits)
+        {
+            Entity& entity = *(Entity*)hit.actor->userData;
+
+            if (entity.HasComponent<BoxColliderComponent>())
+            {
+                auto& boxCollider = entity.GetComponent<BoxColliderComponent>();
+
+                void* data[] = {
+                    &entity.GetID(),
+                    &boxCollider.Size,
+                    &boxCollider.Offset,
+                    &boxCollider.IsTrigger
+                };
+
+                MonoObject* obj = ScriptEngine::Construct("NR.BoxCollider:.ctor(ulong,bool,Vector3,Vector3)", true, data);
+                mono_array_set(array, MonoObject*, arrayIndex++, obj);
+            }
+
+            if (entity.HasComponent<SphereColliderComponent>())
+            {
+                auto& sphereCollider = entity.GetComponent<SphereColliderComponent>();
+
+                void* data[] = {
+                    &entity.GetID(),
+                    &sphereCollider.Radius,
+                    &sphereCollider.IsTrigger
+                };
+
+                MonoObject* obj = ScriptEngine::Construct("NR.SphereCollider:.ctor(ulong,bool,float)", true, data);
+                mono_array_set(array, MonoObject*, arrayIndex++, obj);
+            }
+
+            if (entity.HasComponent<CapsuleColliderComponent>())
+            {
+                auto& capsuleCollider = entity.GetComponent<CapsuleColliderComponent>();
+
+                void* data[] = {
+                    &entity.GetID(),
+                    &capsuleCollider.Radius,
+                    &capsuleCollider.Height,
+                    &capsuleCollider.IsTrigger
+                };
+
+                MonoObject* obj = ScriptEngine::Construct("NR.CapsuleCollider:.ctor(ulong,bool,float,float)", true, data);
+                mono_array_set(array, MonoObject*, arrayIndex++, obj);
+            }
+
+            if (entity.HasComponent<MeshColliderComponent>())
+            {
+                auto& meshCollider = entity.GetComponent<MeshColliderComponent>();
+
+                Ref<Mesh>* mesh = new Ref<Mesh>(meshCollider.CollisionMesh);
+                void* data[] = {
+                    &entity.GetID(),
+                    &mesh,
+                    &meshCollider.IsTrigger
+                };
+
+                MonoObject* obj = ScriptEngine::Construct("NR.MeshCollider:.ctor(ulong,bool,intptr)", true, data);
+                mono_array_set(array, MonoObject*, arrayIndex++, obj);
+            }
+        }
+
+    }
+
+    MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize)
+    {
+        MonoArray* outColliders = nullptr;
+        std::vector<physx::PxOverlapHit> buffer;
+
+        if (PhysicsWrappers::OverlapBox(*origin, *halfSize, buffer))
+        {
+            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), buffer.size());
+            AddCollidersToArray(outColliders, buffer);
+        }
+        return outColliders;
+    }
+
+    MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius)
+    {
+        MonoArray* outColliders = nullptr;
+        std::vector<physx::PxOverlapHit> buffer;
+        if (PhysicsWrappers::OverlapSphere(*origin, radius, buffer))
+        {
+            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), buffer.size());
+            AddCollidersToArray(outColliders, buffer);
+        }
+
+        return outColliders;
+    }
+
     void* NR_MeshComponent_GetMesh(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -378,6 +473,56 @@ namespace NR::Script
             * physx::PxQuat(glm::radians(rotation->y), { 0.0f, 1.0f, 0.0f })
             * physx::PxQuat(glm::radians(rotation->z), { 0.0f, 0.0f, 1.0f }));
         dynamicActor->setGlobalPose(transform);
+    }
+
+    uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        return component.Layer;
+    }
+
+    float NR_RigidBodyComponent_GetMass(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+
+        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
+        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
+        NR_CORE_ASSERT(dynamicActor);
+
+        return dynamicActor->getMass();
+    }
+
+    void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+
+        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
+        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
+        NR_CORE_ASSERT(dynamicActor);
+
+        component.Mass = mass;
+        physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, mass);
     }
 
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)

@@ -143,6 +143,8 @@ namespace NR
         mSelectionContext.clear();
         ScriptEngine::SetSceneContext(mEditorScene);
         mSceneHierarchyPanel->SetContext(mEditorScene);
+
+        Input::SetCursorMode(CursorMode::Normal);
     }
 
     void EditorLayer::UpdateWindowTitle(const std::string& sceneName)

@@ -1,19 +1,11 @@
-﻿namespace NR
+﻿using System;
+
+namespace NR
 {
     public class Collider
     {
-        public enum ColliderType
-        {
-            Box,
-            Sphere,
-            Capsule,
-            Mesh
-        }
-
-        public Entity ColliderEntity { get; protected set; }
-        public ColliderType Type { get; protected set; }
+        public ulong EntityID { get; protected set; }
         public bool IsTrigger { get; protected set; }
-
     }
 
     public class BoxCollider : Collider
@@ -21,10 +13,9 @@
         public Vector3 Size { get; private set; }
         public Vector3 Offset { get; private set; }
 
-        internal BoxCollider(ulong entityID, Vector3 size, Vector3 offset, bool isTrigger)
+        private BoxCollider(ulong entityID, Vector3 size, Vector3 offset, bool isTrigger)
         {
-            ColliderEntity = new Entity(entityID);
-            Type = ColliderType.Box;
+            EntityID = entityID;
             Size = size;
             Offset = offset;
             IsTrigger = isTrigger;
@@ -35,10 +26,9 @@
     {
         public float Radius { get; private set; }
 
-        internal SphereCollider(ulong entityID, float radius, bool isTrigger)
+        private SphereCollider(ulong entityID, float radius, bool isTrigger)
         {
-            ColliderEntity = new Entity(entityID);
-            Type = ColliderType.Box;
+            EntityID = entityID;
             Radius = radius;
             IsTrigger = isTrigger;
         }
@@ -49,10 +39,9 @@
         public float Radius { get; private set; }
         public float Height { get; private set; }
 
-        internal CapsuleCollider(ulong entityID, float radius, float height, bool isTrigger)
+        private CapsuleCollider(ulong entityID, float radius, float height, bool isTrigger)
         {
-            ColliderEntity = new Entity(entityID);
-            Type = ColliderType.Box;
+            EntityID = entityID;
             Radius = radius;
             Height = height;
             IsTrigger = isTrigger;
@@ -63,12 +52,11 @@
     {
         public Mesh Mesh { get; private set; }
 
-        internal MeshCollider(ulong entityID, Mesh mesh, bool isTrigger)
+        private MeshCollider(ulong entityID, IntPtr mesh, bool isTrigger)
         {
-            ColliderEntity = new Entity(entityID);
-            Type = ColliderType.Box;
-            Mesh = mesh;
+            EntityID = entityID;
             IsTrigger = isTrigger;
+            Mesh = new Mesh(mesh);
         }
     }
 }

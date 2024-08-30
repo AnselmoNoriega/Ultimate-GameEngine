@@ -25,6 +25,8 @@ namespace NR::Script
 
     // Physics
     bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit);
+    MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize);
+    MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius);
 
     // Entity
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
@@ -49,6 +51,9 @@ namespace NR::Script
     void NR_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity);
     void NR_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* velocity);
     void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation);
+    uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID);
+    float NR_RigidBodyComponent_GetMass(uint64_t entityID);
+    void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass);
 
     // Renderer
     // Texture2D
