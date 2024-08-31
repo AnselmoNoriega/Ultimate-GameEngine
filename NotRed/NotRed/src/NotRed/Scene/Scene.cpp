@@ -421,10 +421,11 @@ namespace NR
         {
             auto view = mRegistry.view<RigidBodyComponent>();
 
+            PhysicsManager::ExpandEntityBuffer(view.size());
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                PhysicsManager::CreateActor(e, view.size());
+                PhysicsManager::CreateActor(e);
             }
         }
 

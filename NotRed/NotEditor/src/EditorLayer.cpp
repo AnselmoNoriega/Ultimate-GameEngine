@@ -706,16 +706,6 @@ namespace NR
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Debug"))
-            {
-                if (ImGui::MenuItem("Connect To Debugger"))
-                {
-                    PhysicsManager::ConnectVisualDebugger();
-                }
-
-                ImGui::EndMenu();
-            }
-
             ImGui::EndMenuBar();
         }
 

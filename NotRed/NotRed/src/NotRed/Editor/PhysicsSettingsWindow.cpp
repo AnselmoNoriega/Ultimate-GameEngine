@@ -1,9 +1,11 @@
 #include "nrpch.h"
 #include "PhysicsSettingsWindow.h"
 
+#include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsLayer.h"
 
 #include "imgui.h"
+#include "imgui_internal.h"
 
 namespace NR
 {
@@ -20,13 +22,37 @@ namespace NR
 		ImGui::Begin("Physics", show);
 		ImGui::PushID(0);
 		ImGui::Columns(2);
+		RenderWorldSettings();
+		ImGui::EndColumns();
+		ImGui::PopID();
+
+		ImGui::Separator();
+
+		ImGui::PushID(1);
+		ImGui::Columns(2);
 
 		RenderLayerList();
 		ImGui::NextColumn();
 		RenderSelectedLayer();
 
+		ImGui::EndColumns();
 		ImGui::PopID();
 		ImGui::End();
+	}
+
+	void PhysicsSettingsWindow::RenderWorldSettings()
+	{
+		float timestep = PhysicsManager::GetFixedDeltaTime();
+		if (Property("Fixed Timestep (Default: 0.02)", timestep))
+		{
+			PhysicsManager::SetFixedDeltaTime(timestep);
+		}
+
+		float gravity = PhysicsManager::GetGravity();
+		if (Property("Gravity (Default: -9.81)", gravity))
+		{
+			PhysicsManager::SetGravity(gravity);
+		}
 	}
 
 	void PhysicsSettingsWindow::RenderLayerList()
@@ -109,6 +135,26 @@ namespace NR
 				PhysicsLayerManager::SetLayerCollision(sSelectedLayer, layer.ID, shouldCollide);
 			}
 		}
+
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+		{
+			sSelectedLayer = -1;
+		}
+	}
+
+	bool PhysicsSettingsWindow::Property(const char* label, float& value, float min, float max)
+	{
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + std::string(label);
+		bool changed = ImGui::SliderFloat(id.c_str(), &value, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
 	}
 
 }

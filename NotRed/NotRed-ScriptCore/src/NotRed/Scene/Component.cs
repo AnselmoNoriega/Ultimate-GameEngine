@@ -146,15 +146,15 @@ namespace NR
             ApplyLinearImpulse_Native(Entity.ID, ref impulse, ref offset, wake);
         }
         
-        public Vector2 GetLinearVelocity()
+        public Vector2 GetVelocity()
         {
-            GetLinearVelocity_Native(Entity.ID, out Vector2 velocity);
+            GetVelocity_Native(Entity.ID, out Vector2 velocity);
             return velocity;
         }
 
-        public void SetLinearVelocity(Vector2 velocity)
+        public void SetVelocity(Vector2 velocity)
         {
-            SetLinearVelocity_Native(Entity.ID, ref velocity);
+            SetVelocity_Native(Entity.ID, ref velocity);
         }
 
         public void Rotate(Vector3 rotation)
@@ -166,9 +166,9 @@ namespace NR
         internal static extern void ApplyLinearImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector2 velocity);
+        internal static extern void GetVelocity_Native(ulong entityID, out Vector2 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector2 velocity);
+        internal static extern void SetVelocity_Native(ulong entityID, ref Vector2 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Rotate_Native(ulong entityID, ref Vector3 rotation);
     }
@@ -179,12 +179,26 @@ namespace NR
 
     public class RigidBodyComponent : Component
     {
+        public enum Type
+        {
+            Static,
+            Dynamic
+        }
+
         public enum ForceMode
         {
             Force,
             Impulse,
             VelocityChange,
             Acceleration
+        }
+
+        public Type BodyType
+        {
+            get
+            {
+                return GetBodyType_Native(Entity.ID);
+            }
         }
 
         public float Mass
@@ -205,17 +219,27 @@ namespace NR
             AddTorque_Native(Entity.ID, ref torque, forceMode);
         }
 
-        public Vector3 GetLinearVelocity()
+        public Vector3 GetVelocity()
         {
-            GetLinearVelocity_Native(Entity.ID, out Vector3 velocity);
+            GetVelocity_Native(Entity.ID, out Vector3 velocity);
             return velocity;
         }
 
-        public void SetLinearVelocity(Vector3 velocity)
+        public void SetVelocity(Vector3 velocity)
         {
-            SetLinearVelocity_Native(Entity.ID, ref velocity);
+            SetVelocity_Native(Entity.ID, ref velocity);
         }
 
+        public Vector3 GetAngularVelocity()
+        {
+            GetAngularVelocity_Native(Entity.ID, out Vector3 velocity);
+            return velocity;
+        }
+
+        public void SetAngularVelocity(Vector3 velocity)
+        {
+            SetAngularVelocity_Native(Entity.ID, ref velocity);
+        }
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -224,9 +248,13 @@ namespace NR
         internal static extern void AddTorque_Native(ulong entityID, ref Vector3 torque, ForceMode forceMode);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector3 velocity);
+        internal static extern void GetVelocity_Native(ulong entityID, out Vector3 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector3 velocity);
+        internal static extern void SetVelocity_Native(ulong entityID, ref Vector3 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetAngularVelocity_Native(ulong entityID, out Vector3 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetAngularVelocity_Native(ulong entityID, ref Vector3 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern uint GetLayer_Native(ulong entityID);
 
@@ -234,5 +262,7 @@ namespace NR
         internal static extern float GetMass_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float SetMass_Native(ulong entityID, float mass);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern Type GetBodyType_Native(ulong entityID);
     }
 }

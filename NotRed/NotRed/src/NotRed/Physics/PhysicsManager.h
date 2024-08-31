@@ -39,16 +39,21 @@ namespace NR
 		static void Init();
 		static void Shutdown();
 
+		static void ExpandEntityBuffer(uint32_t entityCount);
+
 		static void CreateScene(const SceneParams& params);
-		static void CreateActor(Entity e, int entityCount);
+		static void CreateActor(Entity e);
+
+		static void SetGravity(float gravity);
+		static float GetGravity();
+
+		static void SetFixedDeltaTime(float timestep);
+		static float GetFixedDeltaTime();
 
 		static void Simulate(float dt);
 
 		static void* GetPhysicsScene();
 
 		static void DestroyScene();
-
-		static void ConnectVisualDebugger();
-		static void DisconnectVisualDebugger();
 	};
 }

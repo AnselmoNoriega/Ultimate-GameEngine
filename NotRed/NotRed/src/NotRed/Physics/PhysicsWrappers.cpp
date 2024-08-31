@@ -12,7 +12,6 @@ namespace NR
 	static physx::PxDefaultAllocator sAllocator;
 	static physx::PxFoundation* sFoundation;
 	static physx::PxPhysics* sPhysics;
-	static physx::PxPvd* sVisualDebugger = nullptr;
 	static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
 
 	static physx::PxSimulationFilterShader sFilterShader = physx::PxDefaultSimulationFilterShader;
@@ -25,16 +24,16 @@ namespace NR
 
 		switch (code)
 		{
-		case physx::PxErrorCode::eNO_ERROR:	errorMessage = "No Error"; break;
-		case physx::PxErrorCode::eDEBUG_INFO: errorMessage = "Info"; break;
-		case physx::PxErrorCode::eDEBUG_WARNING:	errorMessage = "Warning"; break;
-		case physx::PxErrorCode::eINVALID_PARAMETER: errorMessage = "Invalid Parameter"; break;
-		case physx::PxErrorCode::eINVALID_OPERATION: errorMessage = "Invalid Operation"; break;
-		case physx::PxErrorCode::eOUT_OF_MEMORY: errorMessage = "Out Of Memory"; break;
-		case physx::PxErrorCode::eINTERNAL_ERROR: errorMessage = "Internal Error"; break;
-		case physx::PxErrorCode::eABORT: errorMessage = "Abort"; break;
-		case physx::PxErrorCode::ePERF_WARNING:	errorMessage = "Performance Warning"; break;
-		case physx::PxErrorCode::eMASK_ALL:	errorMessage = "Unknown Error"; break;
+		case physx::PxErrorCode::eNO_ERROR:	              errorMessage = "No Error"; break;
+		case physx::PxErrorCode::eDEBUG_INFO:             errorMessage = "Info"; break;
+		case physx::PxErrorCode::eDEBUG_WARNING:	      errorMessage = "Warning"; break;
+		case physx::PxErrorCode::eINVALID_PARAMETER:      errorMessage = "Invalid Parameter"; break;
+		case physx::PxErrorCode::eINVALID_OPERATION:      errorMessage = "Invalid Operation"; break;
+		case physx::PxErrorCode::eOUT_OF_MEMORY:          errorMessage = "Out Of Memory"; break;
+		case physx::PxErrorCode::eINTERNAL_ERROR:         errorMessage = "Internal Error"; break;
+		case physx::PxErrorCode::eABORT:                  errorMessage = "Abort"; break;
+		case physx::PxErrorCode::ePERF_WARNING:	          errorMessage = "Performance Warning"; break;
+		case physx::PxErrorCode::eMASK_ALL:	              errorMessage = "Unknown Error"; break;
 		}
 
 		switch (code)
@@ -73,7 +72,7 @@ namespace NR
 	{
 		physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
 
-		sceneDesc.gravity = ToPhysicsVector(sceneParams.Gravity);
+		sceneDesc.gravity = { 0.0f, PhysicsManager::GetGravity(), 0.0f };;
 		sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 		sceneDesc.filterShader = FilterShader;
 		sceneDesc.simulationEventCallback = &sContactListener;
@@ -375,12 +374,7 @@ namespace NR
 		sFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, sAllocator, sErrorCallback);
 		NR_CORE_ASSERT(sFoundation, "PxCreateFoundation Failed!");
 
-#if PHYSX_DEBUGGER
-		sVisualDebugger = PxCreatePvd(*sFoundation);
-		ConnectVisualDebugger();
-#endif
-
-		sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, physx::PxTolerancesScale(), true, sVisualDebugger);
+		sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, physx::PxTolerancesScale(), true);
 		NR_CORE_ASSERT(sPhysics, "PxCreatePhysics Failed!");
 	}
 
@@ -389,26 +383,4 @@ namespace NR
 		sPhysics->release();
 		sFoundation->release();
 	}
-
-	void PhysicsWrappers::ConnectVisualDebugger()
-	{
-#if PHYSX_DEBUGGER
-		if (sVisualDebugger->isConnected(false))
-		{
-			sVisualDebugger->disconnect();
-		}
-
-		physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10);
-		sVisualDebugger->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
-#endif
-	}
-
-	void PhysicsWrappers::DisconnectVisualDebugger()
-	{
-#if PHYSX_DEBUGGER
-		if (sVisualDebugger->isConnected(false))
-			sVisualDebugger->disconnect();
-#endif
-	}
-
 }

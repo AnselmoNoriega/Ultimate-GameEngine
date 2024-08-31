@@ -19,17 +19,17 @@ namespace NR
 
 	physx::PxVec3 ToPhysicsVector(const glm::vec3& vector)
 	{
-		return physx::PxVec3(vector.x, vector.y, vector.z);
+		return *(physx::PxVec3*)&vector;
 	}
 
 	physx::PxVec4 ToPhysicsVector(const glm::vec4& vector)
 	{
-		return physx::PxVec4(vector.x, vector.y, vector.z, vector.w);
+		return *(physx::PxVec4*)&vector;
 	}
 
 	physx::PxQuat ToPhysicsQuat(const glm::quat& quat)
 	{
-		return physx::PxQuat(quat.x, quat.y, quat.z, quat.w);
+		return *(physx::PxQuat*)&quat;
 	}
 
 	glm::mat4 FromPhysicsTransform(const physx::PxTransform& transform)
@@ -46,17 +46,17 @@ namespace NR
 
 	glm::vec3 FromPhysicsVector(const physx::PxVec3& vector)
 	{
-		return glm::vec3(vector.x, vector.y, vector.z);
+		return *(glm::vec3*)&vector;
 	}
 
 	glm::vec4 FromPhysicsVector(const physx::PxVec4& vector)
 	{
-		return glm::vec4(vector.x, vector.y, vector.z, vector.w);
+		return *(glm::vec4*)&vector;
 	}
 
 	glm::quat FromPhysicsQuat(const physx::PxQuat& quat)
 	{
-		return glm::quat(quat.w, quat.x, quat.y, quat.z);
+		return *(glm::quat*)&quat;
 	}
 
 	physx::PxFilterFlags FilterShader(
