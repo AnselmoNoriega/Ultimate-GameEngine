@@ -119,9 +119,7 @@ namespace NR
 
         if (!isEditorScene)
         {
-            SceneParams sceneDesc;
-            sceneDesc.Gravity = glm::vec3(0.0f, -9.81f, 0.0f);
-            PhysicsManager::CreateScene(sceneDesc);
+            PhysicsManager::CreateScene();
         }
 
         Init();

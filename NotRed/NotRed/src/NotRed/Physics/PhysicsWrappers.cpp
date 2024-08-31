@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "PhysicsWrappers.h"
 
+#include "NotRed/Script/ScriptEngine.h"
+
 #include <glm/gtx/rotate_vector.hpp>
 
 #include "PhysicsManager.h"
@@ -13,8 +15,6 @@ namespace NR
 	static physx::PxFoundation* sFoundation;
 	static physx::PxPhysics* sPhysics;
 	static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
-
-	static physx::PxSimulationFilterShader sFilterShader = physx::PxDefaultSimulationFilterShader;
 
 	static ContactListener sContactListener;
 
@@ -68,11 +68,95 @@ namespace NR
 		}
 	}
 
-	physx::PxScene* PhysicsWrappers::CreateScene(const SceneParams& sceneParams)
+	void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
+	{
+		PX_UNUSED(constraints);
+		PX_UNUSED(count);
+	}
+
+	void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)
+	{
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			physx::PxActor& actor = *actors[i];
+			Entity& entity = *(Entity*)actor.userData;
+
+			NR_CORE_INFO("PhysX Actor waking up: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+		}
+	}
+
+	void ContactListener::onSleep(physx::PxActor** actors, physx::PxU32 count)
+	{
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			physx::PxActor& actor = *actors[i];
+			Entity& entity = *(Entity*)actor.userData;
+
+			NR_CORE_INFO("PhysX Actor going to sleep: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+		}
+	}
+
+	void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
+	{
+		Entity& a = *(Entity*)pairHeader.actors[0]->userData;
+		Entity& b = *(Entity*)pairHeader.actors[1]->userData;
+
+		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
+		{
+			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionBegin(a);
+			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionBegin(b);
+		}
+		else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
+		{
+			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionEnd(a);
+			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionEnd(b);
+		}
+	}
+
+	void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
+	{
+		Entity& a = *(Entity*)pairs->triggerActor->userData;
+		Entity& b = *(Entity*)pairs->otherActor->userData;
+
+		if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+		{
+			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerBegin(a);
+			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerBegin(b);
+		}
+		else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
+		{
+			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerEnd(a);
+			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerEnd(b);
+		}
+	}
+
+	void ContactListener::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
+	{
+		PX_UNUSED(bodyBuffer);
+		PX_UNUSED(poseBuffer);
+		PX_UNUSED(count);
+	}
+
+	static physx::PxBroadPhaseType::Enum ToPhysicsBroadphaseType(BroadphaseType type)
+	{
+		switch (type)
+		{
+		case BroadphaseType::SweepAndPrune:        return physx::PxBroadPhaseType::eSAP;
+		case BroadphaseType::MultiBoxPrune:        return physx::PxBroadPhaseType::eMBP;
+		case BroadphaseType::AutomaticBoxPrune:    return physx::PxBroadPhaseType::eABP;
+		}
+
+		return physx::PxBroadPhaseType::eABP;
+	}
+
+	physx::PxScene* PhysicsWrappers::CreateScene()
 	{
 		physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
 
-		sceneDesc.gravity = { 0.0f, PhysicsManager::GetGravity(), 0.0f };;
+		const PhysicsSettings& settings = PhysicsManager::GetSettings();
+
+		sceneDesc.gravity = ToPhysicsVector(settings.Gravity);
+		sceneDesc.broadPhaseType = ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
 		sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 		sceneDesc.filterShader = FilterShader;
 		sceneDesc.simulationEventCallback = &sContactListener;

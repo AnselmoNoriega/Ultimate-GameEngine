@@ -911,7 +911,7 @@ namespace NR
         ImGui::End();
 
         ScriptEngine::ImGuiRender();
-        PhysicsSettingsWindow::ImGuiRender(&mShowPhysicsSettings);
+        PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
         ImGui::End();
     }

@@ -12,14 +12,14 @@ namespace NR
 	static int32_t sSelectedLayer = -1;
 	static char sNewLayerNameBuffer[50];
 
-	void PhysicsSettingsWindow::ImGuiRender(bool* show)
+	void PhysicsSettingsWindow::ImGuiRender(bool& show)
 	{
-		if (!(*show))
+		if (!show)
 		{
 			return;
 		}
 
-		ImGui::Begin("Physics", show);
+		ImGui::Begin("Physics", &show);
 		ImGui::PushID(0);
 		ImGui::Columns(2);
 		RenderWorldSettings();
@@ -42,16 +42,31 @@ namespace NR
 
 	void PhysicsSettingsWindow::RenderWorldSettings()
 	{
-		float timestep = PhysicsManager::GetFixedDeltaTime();
-		if (Property("Fixed Timestep (Default: 0.02)", timestep))
-		{
-			PhysicsManager::SetFixedDeltaTime(timestep);
-		}
+		PhysicsSettings& settings = PhysicsManager::GetSettings();
 
-		float gravity = PhysicsManager::GetGravity();
-		if (Property("Gravity (Default: -9.81)", gravity))
+		Property("Fixed Timestep (Default: 0.02)", settings.FixedDeltaTime);
+		Property("Gravity (Default: -9.81)", settings.Gravity.y);
+
+		const char* broadphaseTypeStrings[] = { "Sweep And Prune", "Multi Box Pruning", "Automatic Box Pruning" };
+		const char* currentType = broadphaseTypeStrings[(int)settings.BroadphaseAlgorithm];
+		ImGui::TextUnformatted("Broadphase Type");
+		ImGui::SameLine();
+		if (ImGui::BeginCombo("##BroadphaseTypeSelection", currentType))
 		{
-			PhysicsManager::SetGravity(gravity);
+			for (int type = 0; type < 3; ++type)
+			{
+				bool is_selected = (currentType == broadphaseTypeStrings[type]);
+				if (ImGui::Selectable(broadphaseTypeStrings[type], is_selected))
+				{
+					currentType = broadphaseTypeStrings[type];
+					settings.BroadphaseAlgorithm = (BroadphaseType)type;
+				}
+				if (is_selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
 		}
 	}
 
@@ -76,7 +91,7 @@ namespace NR
 			ImGui::EndPopup();
 		}
 
-		uint32_t buttonId = 1;
+		uint32_t buttonID = 0;
 
 		for (const auto& layer : PhysicsLayerManager::GetLayers())
 		{
@@ -88,7 +103,7 @@ namespace NR
 			if (layer.Name != "Default")
 			{
 				ImGui::SameLine();
-				ImGui::PushID(buttonId++);
+				ImGui::PushID(buttonID++);
 				if (ImGui::Button("X"))
 				{
 					PhysicsLayerManager::RemoveLayer(layer.ID);

@@ -9,7 +9,6 @@
 
 #include "NotRed/Scene/Entity.h"
 #include "ScriptWrappers.h"
-#include <iostream>
 
 namespace NR {
 

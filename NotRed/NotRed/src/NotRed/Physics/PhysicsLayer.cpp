@@ -65,9 +65,9 @@ namespace NR
 		RemoveIfExists<PhysicsLayer>(sLayers, [&](const PhysicsLayer& layer) { return layer.ID == layerId; });
 	}
 
-	void PhysicsLayerManager::SetLayerCollision(uint32_t layerId, uint32_t otherLayer, bool collides)
+	void PhysicsLayerManager::SetLayerCollision(uint32_t layerId, uint32_t otherLayer, bool shouldCollide)
 	{
-		if (ShouldCollide(layerId, otherLayer) && collides)
+		if (ShouldCollide(layerId, otherLayer) && shouldCollide)
 		{
 			return;
 		}
@@ -75,7 +75,7 @@ namespace NR
 		PhysicsLayer& layerInfo = GetLayer(layerId);
 		PhysicsLayer& otherLayerInfo = GetLayer(otherLayer);
 
-		if (collides)
+		if (shouldCollide)
 		{
 			layerInfo.CollidesWith |= otherLayerInfo.BitValue;
 			otherLayerInfo.CollidesWith |= layerInfo.BitValue;

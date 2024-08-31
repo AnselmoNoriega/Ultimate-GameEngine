@@ -5,7 +5,7 @@ namespace NR
 	class PhysicsSettingsWindow
 	{
 	public:
-		static void ImGuiRender(bool* show);
+		static void ImGuiRender(bool& show);
 
 	private:
 		static void RenderWorldSettings();

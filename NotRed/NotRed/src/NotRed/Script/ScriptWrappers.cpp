@@ -191,14 +191,14 @@ namespace NR::Script
         return PhysicsWrappers::Raycast(*origin, *direction, maxDistance, hit);
     }
 
-    static void AddCollidersToArray(MonoArray* array, const std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count)
+    static void AddCollidersToArray(MonoArray* array, const std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
     {
         uint32_t arrayIndex = 0;
         for (uint32_t i = 0; i < count; ++i)
         {
             Entity& entity = *(Entity*)hits[i].actor->userData;
 
-            if (entity.HasComponent<BoxColliderComponent>())
+            if (entity.HasComponent<BoxColliderComponent>() && arrayIndex < arrayLength)
             {
                 auto& boxCollider = entity.GetComponent<BoxColliderComponent>();
 
@@ -213,7 +213,7 @@ namespace NR::Script
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
-            if (entity.HasComponent<SphereColliderComponent>())
+            if (entity.HasComponent<SphereColliderComponent>() && arrayIndex < arrayLength)
             {
                 auto& sphereCollider = entity.GetComponent<SphereColliderComponent>();
 
@@ -227,7 +227,7 @@ namespace NR::Script
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
-            if (entity.HasComponent<CapsuleColliderComponent>())
+            if (entity.HasComponent<CapsuleColliderComponent>() && arrayIndex < arrayLength)
             {
                 auto& capsuleCollider = entity.GetComponent<CapsuleColliderComponent>();
 
@@ -242,7 +242,7 @@ namespace NR::Script
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
-            if (entity.HasComponent<MeshColliderComponent>())
+            if (entity.HasComponent<MeshColliderComponent>() && arrayIndex < arrayLength)
             {
                 auto& meshCollider = entity.GetComponent<MeshColliderComponent>();
 
@@ -271,7 +271,7 @@ namespace NR::Script
         if (PhysicsWrappers::OverlapBox(*origin, *halfSize, sOverlapBuffer, &count))
         {
             outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
-            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
         }
 
         return outColliders;
@@ -286,7 +286,7 @@ namespace NR::Script
         if (PhysicsWrappers::OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, &count))
         {
             outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
-            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
         }
         return outColliders;
     }
@@ -305,7 +305,7 @@ namespace NR::Script
                 count = arrayLength;
             }
 
-            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
         }
 
         return count;
@@ -325,7 +325,7 @@ namespace NR::Script
                 count = arrayLength;
             }
 
-            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
         }
 
         return count;
@@ -345,7 +345,7 @@ namespace NR::Script
                 count = arrayLength;
             }
 
-            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
         }
 
         return count;
@@ -360,7 +360,7 @@ namespace NR::Script
         if (PhysicsWrappers::OverlapSphere(*origin, radius, sOverlapBuffer, &count))
         {
             outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
-            AddCollidersToArray(outColliders, sOverlapBuffer, count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
         }
 
         return outColliders;

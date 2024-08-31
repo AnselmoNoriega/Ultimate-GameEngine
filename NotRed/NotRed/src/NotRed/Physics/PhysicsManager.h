@@ -20,9 +20,18 @@ namespace NR
 		All = Static | Dynamic | Kinematic
 	};
 
-	struct SceneParams
+	enum class BroadphaseType
 	{
+		SweepAndPrune,
+		MultiBoxPrune,
+		AutomaticBoxPrune
+	};
+
+	struct PhysicsSettings
+	{
+		float FixedDeltaTime = 0.02f;
 		glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
+		BroadphaseType BroadphaseAlgorithm = BroadphaseType::AutomaticBoxPrune;
 	};
 
 	struct RaycastHit
@@ -41,19 +50,15 @@ namespace NR
 
 		static void ExpandEntityBuffer(uint32_t entityCount);
 
-		static void CreateScene(const SceneParams& params);
+		static void CreateScene();
 		static void CreateActor(Entity e);
-
-		static void SetGravity(float gravity);
-		static float GetGravity();
-
-		static void SetFixedDeltaTime(float timestep);
-		static float GetFixedDeltaTime();
 
 		static void Simulate(float dt);
 
 		static void* GetPhysicsScene();
 
 		static void DestroyScene();
+
+		static PhysicsSettings& GetSettings();
 	};
 }

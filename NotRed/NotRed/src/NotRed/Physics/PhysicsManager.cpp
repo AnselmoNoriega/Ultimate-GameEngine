@@ -22,8 +22,8 @@ namespace NR
 	static uint32_t sEntityBufferCount;
 	static int sEntityStorageBufferPosition;
 	static float sSimulationTime = 0.0f;
-	static float sGravity = -9.8f;
-	static float sFixedDeltaTime= 0.02f;
+
+	static PhysicsSettings sSettings;
 
 	void PhysicsManager::Init()
 	{
@@ -38,6 +38,8 @@ namespace NR
 
 	void PhysicsManager::ExpandEntityBuffer(uint32_t amount)
 	{
+		NR_CORE_ASSERT(sScene);
+
 		if (sEntityStorageBuffer != nullptr)
 		{
 			Entity* temp = new Entity[sEntityBufferCount + amount];
@@ -66,14 +68,16 @@ namespace NR
 		}
 	}
 
-	void PhysicsManager::CreateScene(const SceneParams& params)
+	void PhysicsManager::CreateScene()
 	{
 		NR_CORE_ASSERT(sScene == nullptr, "Scene already has a Physics Scene!");
-		sScene = PhysicsWrappers::CreateScene(params);
+		sScene = PhysicsWrappers::CreateScene();
 	}
 
 	void PhysicsManager::CreateActor(Entity e)
 	{
+		NR_CORE_ASSERT(sScene);
+
 		if (!e.HasComponent<RigidBodyComponent>())
 		{
 			NR_CORE_WARN("Trying to create PhysX actor from a non-rigidbody actor!");
@@ -89,7 +93,12 @@ namespace NR
 		RigidBodyComponent& rigidbody = e.GetComponent<RigidBodyComponent>();
 
 		physx::PxRigidActor* actor = PhysicsWrappers::CreateActor(rigidbody, e.Transform());
-		sSimulatedEntities.push_back(e);
+
+		if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
+		{
+			sSimulatedEntities.push_back(e);
+		}
+
 		Entity* entityStorage = &sEntityStorageBuffer[sEntityStorageBufferPosition];
 		*entityStorage = e;
 		actor->userData = (void*)entityStorage;
@@ -136,43 +145,25 @@ namespace NR
 		sScene->addActor(*actor);
 	}
 
-	void PhysicsManager::SetGravity(float gravity)
+	PhysicsSettings& PhysicsManager::GetSettings()
 	{
-		sGravity = gravity;
-
-		if (sScene)
-		{
-			sScene->setGravity({ 0.0f, gravity, 0.0f });
-		}
-	}
-
-	float PhysicsManager::GetGravity()
-	{
-		return sGravity;
-	}
-
-	void PhysicsManager::SetFixedDeltaTime(float timestep)
-	{
-		sFixedDeltaTime = timestep;
-	}
-
-	float PhysicsManager::GetFixedDeltaTime()
-	{
-		return sFixedDeltaTime;
+		return sSettings;
 	}
 
 	void PhysicsManager::Simulate(float dt)
 	{
+		NR_CORE_ASSERT(sScene);
+
 		sSimulationTime += dt;
 
-		if (sSimulationTime < sFixedDeltaTime)
+		if (sSimulationTime < sSettings.FixedDeltaTime)
 		{
 			return;
 		}
 
-		sSimulationTime -= sFixedDeltaTime;
+		sSimulationTime -= sSettings.FixedDeltaTime;
 
-		sScene->simulate(sFixedDeltaTime);
+		sScene->simulate(sSettings.FixedDeltaTime);
 		sScene->fetchResults(true);
 
 		for (Entity& e : sSimulatedEntities)
@@ -182,19 +173,14 @@ namespace NR
 			RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
 			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
 
-			if (rb.BodyType == RigidBodyComponent::Type::Dynamic)
-			{
-				transform = FromPhysicsTransform(actor->getGlobalPose()) * glm::scale(glm::mat4(1.0f), scale);
-			}
-			else if (rb.BodyType == RigidBodyComponent::Type::Static)
-			{
-				actor->setGlobalPose(ToPhysicsTransform(transform));
-			}
+			transform = FromPhysicsTransform(actor->getGlobalPose()) * glm::scale(glm::mat4(1.0F), scale);
 		}
 	}
 
 	void PhysicsManager::DestroyScene()
 	{
+		NR_CORE_ASSERT(sScene);
+
 		delete[] sEntityStorageBuffer;
 		sEntityStorageBuffer = nullptr;
 		sEntityStorageBufferPosition = 0;
