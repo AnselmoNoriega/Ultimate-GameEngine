@@ -58,16 +58,11 @@ namespace NR {
 		mono_add_internal_call("NR.Physics::OverlapCapsuleNonAlloc_Native", NR::Script::NR_Physics_OverlapCapsuleNonAlloc);
 		mono_add_internal_call("NR.Physics::OverlapSphereNonAlloc_Native", NR::Script::NR_Physics_OverlapSphereNonAlloc);
 
-		mono_add_internal_call("NR.Entity::GetTransform_Native", NR::Script::NR_Entity_GetTransform);
-		mono_add_internal_call("NR.Entity::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
 		mono_add_internal_call("NR.Entity::CreateComponent_Native", NR::Script::NR_Entity_CreateComponent);
 		mono_add_internal_call("NR.Entity::HasComponent_Native", NR::Script::NR_Entity_HasComponent);
 
-		mono_add_internal_call("NR.TransformComponent::GetTransform_Native", NR::Script::NR_Entity_GetTransform);
-		mono_add_internal_call("NR.TransformComponent::SetTransform_Native", NR::Script::NR_Entity_SetTransform);
-		mono_add_internal_call("NR.TransformComponent::GetRelativeDirection_Native", NR::Script::NR_TransformComponent_GetRelativeDirection);
-		mono_add_internal_call("NR.TransformComponent::GetRotation_Native", NR::Script::NR_TransformComponent_GetRotation);
-		mono_add_internal_call("NR.TransformComponent::SetRotation_Native", NR::Script::NR_TransformComponent_SetRotation);
+		mono_add_internal_call("NR.TransformComponent::GetTransform_Native", NR::Script::NR_TransformComponent_GetTransform);
+		mono_add_internal_call("NR.TransformComponent::SetTransform_Native", NR::Script::NR_TransformComponent_SetTransform);
 
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
 

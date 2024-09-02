@@ -163,16 +163,6 @@ namespace NR
     {
     }
 
-    static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
-    {
-        glm::vec3 scale, translation, skew;
-        glm::vec4 perspective;
-        glm::quat orientation;
-        glm::decompose(transform, scale, orientation, translation, skew, perspective);
-
-        return { translation, orientation, scale };
-    }
-
     static void SerializeEntity(YAML::Emitter& out, Entity entity)
     {
         UUID uuid = entity.GetComponent<IDComponent>().ID;
@@ -181,7 +171,6 @@ namespace NR
         out << YAML::Key << "Entity";
         out << YAML::Value << uuid;
 
-        if (entity.HasComponent<TagComponent>())
         {
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap; // TagComponent
@@ -192,16 +181,14 @@ namespace NR
             out << YAML::EndMap; // TagComponent
         }
 
-        if (entity.HasComponent<TransformComponent>())
         {
             out << YAML::Key << "TransformComponent";
             out << YAML::BeginMap; // TransformComponent
 
-            auto& transform = entity.GetComponent<TransformComponent>().Transform;
-            auto [pos, rot, scale] = GetTransformDecomposition(transform);
-            out << YAML::Key << "Position" << YAML::Value << pos;
-            out << YAML::Key << "Rotation" << YAML::Value << rot;
-            out << YAML::Key << "Scale" << YAML::Value << scale;
+            auto& transform = entity.GetComponent<TransformComponent>();
+            out << YAML::Key << "Position" << YAML::Value << transform.Translation;
+            out << YAML::Key << "Rotation" << YAML::Value << transform.Rotation;
+            out << YAML::Key << "Scale" << YAML::Value << transform.Scale;
 
             out << YAML::EndMap; // TransformComponent
         }
@@ -479,9 +466,12 @@ namespace NR
 
         out << YAML::Key << "PhysicsLayers";
         out << YAML::Value << YAML::BeginSeq;
-        for (uint32_t i = 0; i < PhysicsLayerManager::GetLayerCount(); ++i)
+        for (const auto& layer : PhysicsLayerManager::GetLayers())
         {
-            const PhysicsLayer& layer = PhysicsLayerManager::GetLayer(i);
+            if (layer.ID == 0)
+            {
+                continue;
+            }
 
             out << YAML::BeginMap;
             out << YAML::Key << "Name" << YAML::Value << layer.Name;
@@ -561,19 +551,15 @@ namespace NR
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
                 {
-                    // Entities always have transforms
-                    auto& transform = deserializedEntity.GetComponent<TransformComponent>().Transform;
-                    glm::vec3 translation = transformComponent["Position"].as<glm::vec3>();
-                    glm::quat rotation = transformComponent["Rotation"].as<glm::quat>();
-                    glm::vec3 scale = transformComponent["Scale"].as<glm::vec3>();
+                    auto& transform = deserializedEntity.GetComponent<TransformComponent>();
+                    transform.Translation = transformComponent["Position"].as<glm::vec3>();
+                    transform.Rotation = transformComponent["Rotation"].as<glm::vec3>();
+                    transform.Scale = transformComponent["Scale"].as<glm::vec3>();
 
-                    transform = glm::translate(glm::mat4(1.0f), translation) *
-                        glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
-
-                    NR_CORE_INFO("  Entity Transform:");
-                    NR_CORE_INFO("    Translation: {0}, {1}, {2}", translation.x, translation.y, translation.z);
-                    NR_CORE_INFO("    Rotation: {0}, {1}, {2}, {3}", rotation.w, rotation.x, rotation.y, rotation.z);
-                    NR_CORE_INFO("    Scale: {0}, {1}, {2}", scale.x, scale.y, scale.z);
+                    NR_CORE_INFO("   Entity Transform:");
+                    NR_CORE_INFO("    Translation: {0}, {1}, {2}", transform.Translation.x, transform.Translation.y, transform.Translation.z);
+                    NR_CORE_INFO("    Rotation: {0}, {1}, {2}", transform.Rotation.x, transform.Rotation.y, transform.Rotation.z);
+                    NR_CORE_INFO("    Scale: {0}, {1}, {2}", transform.Scale.x, transform.Scale.y, transform.Scale.z);
                 }
 
                 auto scriptComponent = entity["ScriptComponent"];
@@ -777,8 +763,6 @@ namespace NR
         auto physicsLayers = data["PhysicsLayers"];
         if (physicsLayers)
         {
-            PhysicsLayerManager::ClearLayers();
-
             for (auto layer : physicsLayers)
             {
                 PhysicsLayerManager::AddLayer(layer["Name"].as<std::string>(), false);

@@ -11,10 +11,10 @@
 #include "Entity.h"
 #include "Components.h"
 
+#include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Script/ScriptEngine.h"
-#include "NotRed/Physics/PhysicsManager.h"
 
 namespace NR
 {
@@ -143,16 +143,6 @@ namespace NR
         mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
     }
 
-    static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
-    {
-        glm::vec3 scale, translation, skew;
-        glm::vec4 perspective;
-        glm::quat orientation;
-        glm::decompose(transform, scale, orientation, translation, skew, perspective);
-
-        return { translation, orientation, scale };
-    }
-
     void Scene::Update(float dt)
     {
         {
@@ -177,17 +167,15 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                auto& transform = e.Transform();
                 auto& rb2d = e.GetComponent<RigidBody2DComponent>();
                 b2Body* body = static_cast<b2Body*>(rb2d.RuntimeBody);
 
                 auto& position = body->GetPosition();
-                auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
-                glm::vec3 rotation = glm::eulerAngles(rotationQuat);
+                auto& transform = e.GetComponent<TransformComponent>();
 
-                transform = glm::translate(glm::mat4(1.0f), { position.x, position.y, transform[3].z }) *
-                    glm::toMat4(glm::quat({ rotation.x, rotation.y, body->GetAngle() })) *
-                    glm::scale(glm::mat4(1.0f), scale);
+                transform.Translation.x = position.x;
+                transform.Translation.y = position.y;
+                transform.Rotation.z = glm::degrees(body->GetAngle());
             }
         }
 
@@ -202,7 +190,7 @@ namespace NR
             return;
         }
 
-        glm::mat4 cameraViewMatrix = glm::inverse(cameraEntity.GetComponent<TransformComponent>().Transform);
+        glm::mat4 cameraViewMatrix = glm::inverse(cameraEntity.Transform().GetTransform());
         NR_CORE_ASSERT(cameraEntity, "Scene does not contain any cameras!");
         SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>();
         camera.SetViewportSize(mViewportWidth, mViewportHeight);
@@ -218,7 +206,7 @@ namespace NR
                 if (meshComponent.MeshObj)
                 {
                     meshComponent.MeshObj->Update(dt);
-                    SceneRenderer::SubmitMesh(meshComponent, transformComponent, nullptr);
+                    SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform(), nullptr);
                 }
             }
             SceneRenderer::EndScene();
@@ -238,7 +226,7 @@ namespace NR
             if (meshComponent.MeshObj)
             {
                 meshComponent.MeshObj->Update(dt);
-                SceneRenderer::SubmitMesh(meshComponent, transformComponent);
+                SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform());
             }
         }
 
@@ -251,7 +239,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
         }
@@ -265,7 +253,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
         }
@@ -279,7 +267,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
         }
@@ -293,9 +281,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    {
-                        SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>());
-                    }
+                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
                 }
             }
         }
@@ -317,7 +303,9 @@ namespace NR
             {
                 Entity e = { entity, this };
                 if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                {
                     ScriptEngine::InstantiateEntityClass(e);
+                }
             }
         }
 
@@ -332,7 +320,7 @@ namespace NR
             {
                 Entity e = { entity, this };
                 UUID entityID = e.GetComponent<IDComponent>().ID;
-                auto& transform = e.Transform();
+                TransformComponent& transform = e.GetComponent<TransformComponent>();
                 auto& rigidBody2D = mRegistry.get<RigidBody2DComponent>(entity);
 
                 b2BodyDef bodyDef;
@@ -348,11 +336,9 @@ namespace NR
                 {
                     bodyDef.type = b2_kinematicBody;
                 }
-                bodyDef.position.Set(transform[3].x, transform[3].y);
+                bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
 
-                auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
-                glm::vec3 rotation = glm::eulerAngles(rotationQuat);
-                bodyDef.angle = rotation.z;
+                bodyDef.angle = glm::radians(transform.Rotation.z);
 
                 b2Body* body = world->CreateBody(&bodyDef);
                 body->SetFixedRotation(rigidBody2D.FixedRotation);
@@ -368,7 +354,6 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                auto& transform = e.Transform();
 
                 auto& boxCollider2D = mRegistry.get<BoxCollider2DComponent>(entity);
                 if (e.HasComponent<RigidBody2DComponent>())
@@ -394,7 +379,6 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                auto& transform = e.Transform();
 
                 auto& circleCollider2D = mRegistry.get<CircleCollider2DComponent>(entity);
                 if (e.HasComponent<RigidBody2DComponent>())
@@ -475,7 +459,7 @@ namespace NR
         auto& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = {};
 
-        entity.AddComponent<TransformComponent>(glm::mat4(1.0f));
+        entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name);
 
         mEntityIDMap[idComponent.ID] = entity;
@@ -488,7 +472,7 @@ namespace NR
         auto& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = uuid;
 
-        entity.AddComponent<TransformComponent>(glm::mat4(1.0f));
+        entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name);
 
         NR_CORE_ASSERT(mEntityIDMap.find(uuid) == mEntityIDMap.end());

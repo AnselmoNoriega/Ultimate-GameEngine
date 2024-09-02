@@ -1,0 +1,39 @@
+Scene: Scene Name
+Environment:
+  AssetPath: Assets/Env/HDR_blue_nebulae-1.hdr
+  Light:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 10369719367597421394
+    TagComponent:
+      Tag: Shapes
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0, 0, 0]
+    MeshComponent:
+      AssetPath: C:\Github\Ultimate-GameEngine\NotRed\NotEditor\Assets\Meshes\TestScene.fbx
+    RigidBodyComponent:
+      BodyType: 0
+      Mass: 1
+      IsKinematic: false
+      Layer: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+    PhysicsMaterialComponent:
+      StaticFriction: 1
+      DynamicFriction: 1
+      Bounciness: 1
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [3.5999999, 3.29999995, 3.4000001]
+      IsTrigger: false
+PhysicsLayers:
+  []

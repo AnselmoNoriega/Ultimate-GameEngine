@@ -26,8 +26,8 @@ namespace NR
 	uint32_t PhysicsLayerManager::AddLayer(const std::string& name, bool setCollisions)
 	{
 		uint32_t layerId = GetNextLayerID();
-		PhysicsLayer layer = { layerId, name, (1 << layerId) };
-		sLayers.push_back(layer);
+		PhysicsLayer layer = { layerId, name, (1 << layerId), (1 << layerId) };
+		sLayers.insert(sLayers.begin() + layerId, layer);
 
 		if (setCollisions)
 		{
@@ -42,11 +42,6 @@ namespace NR
 
 	void PhysicsLayerManager::RemoveLayer(uint32_t layerId)
 	{
-		if (!IsLayerValid(layerId))
-		{
-			return;
-		}
-
 		PhysicsLayer& layerInfo = GetLayer(layerId);
 
 		for (auto& otherLayer : sLayers)
@@ -87,7 +82,7 @@ namespace NR
 		}
 	}
 
-	const std::vector<PhysicsLayer>& PhysicsLayerManager::GetLayerCollisions(uint32_t layerId)
+	std::vector<PhysicsLayer> PhysicsLayerManager::GetLayerCollisions(uint32_t layerId)
 	{
 		const PhysicsLayer& layer = GetLayer(layerId);
 
@@ -110,15 +105,7 @@ namespace NR
 
 	PhysicsLayer& PhysicsLayerManager::GetLayer(uint32_t layerId)
 	{
-		for (auto& layer : sLayers)
-		{
-			if (layer.ID == layerId)
-			{
-				return layer;
-			}
-		}
-
-		return sNullLayer;
+		return layerId >= sLayers.size() ? sNullLayer : sLayers[layerId];
 	}
 
 	PhysicsLayer& PhysicsLayerManager::GetLayer(const std::string& layerName)
@@ -141,20 +128,8 @@ namespace NR
 
 	bool PhysicsLayerManager::IsLayerValid(uint32_t layerId)
 	{
-		for (const auto& layer : sLayers)
-		{
-			if (layer.ID == layerId)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	void PhysicsLayerManager::ClearLayers()
-	{
-		sLayers.clear();
+		const PhysicsLayer& layer = GetLayer(layerId);
+		return layer.ID != sNullLayer.ID && layer.IsValid();
 	}
 
 	uint32_t PhysicsLayerManager::GetNextLayerID()

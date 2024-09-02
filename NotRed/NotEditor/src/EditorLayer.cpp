@@ -29,7 +29,7 @@ namespace NR
         }
     }
 
-    static std::tuple<glm::vec3, glm::quat, glm::vec3> GetTransformDecomposition(const glm::mat4& transform)
+    static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
     {
         glm::vec3 scale, translation, skew;
         glm::vec4 perspective;
@@ -192,7 +192,7 @@ namespace NR
                     auto viewProj = mEditorCamera.GetViewProjection();
                     Renderer2D::BeginScene(viewProj, false);
                     glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
-                    Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.EntityObj.GetComponent<TransformComponent>().Transform * selection.Mesh->Transform, color);
+                    Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.EntityObj.Transform().GetTransform() * selection.Mesh->Transform, color);
                     Renderer2D::EndScene();
                     Renderer::EndRenderPass();
                 }
@@ -205,13 +205,12 @@ namespace NR
                 if (selection.EntityObj.HasComponent<BoxCollider2DComponent>())
                 {
                     const auto& size = selection.EntityObj.GetComponent<BoxCollider2DComponent>().Size;
-                    auto [translation, rotationQuat, scale] = GetTransformDecomposition(selection.EntityObj.GetComponent<TransformComponent>().Transform);
-                    glm::vec3 rotation = glm::eulerAngles(rotationQuat);
+                    const TransformComponent& transform = selection.EntityObj.GetComponent<TransformComponent>();
 
                     Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
                     auto viewProj = mEditorCamera.GetViewProjection();
                     Renderer2D::BeginScene(viewProj, false);
-                    Renderer2D::DrawRotatedQuad({ translation.x, translation.y }, size * 2.0f, glm::degrees(rotation.z), { 1.0f, 0.0f, 1.0f, 1.0f });
+                    Renderer2D::DrawRotatedQuad({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 1.0f, 0.0f, 1.0f, 1.0f });
                     Renderer2D::EndScene();
                     Renderer::EndRenderPass();
                 }
@@ -626,22 +625,28 @@ namespace NR
 
             bool snap = Input::IsKeyPressed(NR_KEY_LEFT_CONTROL);
 
-            auto& entityTransform = selection.EntityObj.Transform();
+            TransformComponent& entityTransform = selection.EntityObj.Transform();
             float snapValue = GetSnapValue();
             float snapValues[3] = { snapValue, snapValue, snapValue };
             if (mSelectionMode == SelectionMode::Entity)
             {
+                glm::mat4 transform = entityTransform.GetTransform();
                 ImGuizmo::Manipulate(glm::value_ptr(mEditorCamera.GetViewMatrix()),
                     glm::value_ptr(mEditorCamera.GetProjectionMatrix()),
                     (ImGuizmo::OPERATION)mGizmoType,
                     ImGuizmo::LOCAL,
-                    glm::value_ptr(entityTransform),
+                    glm::value_ptr(transform),
                     nullptr,
                     snap ? snapValues : nullptr);
+
+                auto [translation, rotation, scale] = DecomposeTransform(transform);
+                entityTransform.Translation = translation;
+                entityTransform.Rotation = glm::degrees(glm::eulerAngles(rotation));
+                entityTransform.Scale = scale;
             }
             else
             {
-                glm::mat4 transformBase = entityTransform * selection.Mesh->Transform;
+                glm::mat4 transformBase = entityTransform.GetTransform() * selection.Mesh->Transform;
                 ImGuizmo::Manipulate(glm::value_ptr(mEditorCamera.GetViewMatrix()),
                     glm::value_ptr(mEditorCamera.GetProjectionMatrix()),
                     (ImGuizmo::OPERATION)mGizmoType,
@@ -650,7 +655,7 @@ namespace NR
                     nullptr,
                     snap ? snapValues : nullptr);
 
-                selection.Mesh->Transform = glm::inverse(entityTransform) * transformBase;
+                selection.Mesh->Transform = glm::inverse(entityTransform.GetTransform()) * transformBase;
             }
         }
 
@@ -1084,8 +1089,8 @@ namespace NR
                     {
                         auto& submesh = submeshes[i];
                         Ray ray = {
-                            glm::inverse(entity.Transform() * submesh.Transform) * glm::vec4(origin, 1.0f),
-                            glm::inverse(glm::mat3(entity.Transform()) * glm::mat3(submesh.Transform)) * direction
+                            glm::inverse(entity.Transform().GetTransform() * submesh.Transform) * glm::vec4(origin, 1.0f),
+                            glm::inverse(glm::mat3(entity.Transform().GetTransform()) * glm::mat3(submesh.Transform)) * direction
                         };
 
                         float t;

@@ -123,6 +123,7 @@ namespace NR
 
 		static void CreateEntity(Entity entity);
 		static void UpdateEntity(Entity entity, float ts);
+		static void UpdateEntityPhysics(Entity entity, float fixedDeltaTime);
 
 		static void Collision2DBegin(Entity entity);
 		static void Collision2DEnd(Entity entity);

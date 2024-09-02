@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "PhysicsSettingsWindow.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsLayer.h"
 
@@ -47,27 +49,21 @@ namespace NR
 		Property("Fixed Timestep (Default: 0.02)", settings.FixedDeltaTime);
 		Property("Gravity (Default: -9.81)", settings.Gravity.y);
 
-		const char* broadphaseTypeStrings[] = { "Sweep And Prune", "Multi Box Pruning", "Automatic Box Pruning" };
-		const char* currentType = broadphaseTypeStrings[(int)settings.BroadphaseAlgorithm];
-		ImGui::TextUnformatted("Broadphase Type");
-		ImGui::SameLine();
-		if (ImGui::BeginCombo("##BroadphaseTypeSelection", currentType))
+		static const char* broadphaseTypeStrings[] = { "Sweep And Prune", "Multi Box Pruning", "Automatic Box Pruning" };
+		Property("Broadphase Type", broadphaseTypeStrings, 3, (int*)&settings.BroadphaseAlgorithm);
+
+		if (settings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
 		{
-			for (int type = 0; type < 3; ++type)
-			{
-				bool is_selected = (currentType == broadphaseTypeStrings[type]);
-				if (ImGui::Selectable(broadphaseTypeStrings[type], is_selected))
-				{
-					currentType = broadphaseTypeStrings[type];
-					settings.BroadphaseAlgorithm = (BroadphaseType)type;
-				}
-				if (is_selected)
-				{
-					ImGui::SetItemDefaultFocus();
-				}
-			}
-			ImGui::EndCombo();
+			Property("World Bounds (Min)", settings.WorldBoundsMin);
+			Property("World Bounds (Max)", settings.WorldBoundsMax);
+			Property("Grid Subdivisions", settings.WorldBoundsSubdivisions, 1.0F, 10000.0F);
 		}
+
+		static const char* frictionTypeStrings[] = { "Patch", "One Directional", "Two Directional" };
+		Property("Friction Model", frictionTypeStrings, 3, (int*)&settings.FrictionModel);
+
+		Property("Solver Iterations", settings.SolverIterations, 1, 512);
+		Property("Solver Velocity Iterations", settings.SolverVelocityIterations, 1, 512);
 	}
 
 	void PhysicsSettingsWindow::RenderLayerList()
@@ -164,7 +160,72 @@ namespace NR
 		ImGui::PushItemWidth(-1);
 
 		std::string id = "##" + std::string(label);
-		bool changed = ImGui::SliderFloat(id.c_str(), &value, min, max);
+		bool changed = ImGui::DragFloat(id.c_str(), &value, 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	bool PhysicsSettingsWindow::Property(const char* label, uint32_t& value, uint32_t min, uint32_t max)
+	{
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + std::string(label);
+		bool changed = ImGui::DragInt(id.c_str(), (int*)&value, 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	bool PhysicsSettingsWindow::Property(const char* label, glm::vec3& value, float min, float max)
+	{
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		std::string id = "##" + std::string(label);
+		bool changed = ImGui::DragFloat3(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return changed;
+	}
+
+	bool PhysicsSettingsWindow::Property(const char* label, const char** options, int32_t optionCount, int32_t* selected)
+	{
+		const char* current = options[*selected];
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		bool changed = false;
+
+		std::string id = "##" + std::string(label);
+		if (ImGui::BeginCombo(id.c_str(), current))
+		{
+			for (int i = 0; i < optionCount; i++)
+			{
+				bool is_selected = (current == options[i]);
+				if (ImGui::Selectable(options[i], is_selected))
+				{
+					current = options[i];
+					*selected = i;
+					changed = true;
+				}
+				if (is_selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();

@@ -8,6 +8,11 @@ namespace NR
 		std::string Name;
 		uint32_t BitValue;
 		int32_t CollidesWith = 0;
+
+		bool IsValid() const
+		{
+			return ID >= 0 && !Name.empty() && BitValue > 0;
+		}
 	};
 
 	class PhysicsLayerManager
@@ -17,7 +22,7 @@ namespace NR
 		static void RemoveLayer(uint32_t layerId);
 
 		static void SetLayerCollision(uint32_t layerId, uint32_t otherLayer, bool shouldCollide);
-		static const std::vector<PhysicsLayer>& GetLayerCollisions(uint32_t layerId);
+		static std::vector<PhysicsLayer> GetLayerCollisions(uint32_t layerId);
 
 		static const std::vector<PhysicsLayer>& GetLayers() { return sLayers; }
 
@@ -30,12 +35,9 @@ namespace NR
 
 	private:
 		static uint32_t GetNextLayerID();
-		static void ClearLayers();
 
 	private:
 		static std::vector<PhysicsLayer> sLayers;
 		static PhysicsLayer sNullLayer;
-
-		friend class SceneSerializer;
 	};
 }

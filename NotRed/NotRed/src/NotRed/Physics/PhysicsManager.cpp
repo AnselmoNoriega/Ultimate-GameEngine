@@ -1,21 +1,15 @@
 #include "nrpch.h"
 #include "PhysicsManager.h"
 
+#include <extensions/PxBroadPhaseExt.h>
+
+#include "NotRed/Script/ScriptEngine.h"
+
 #include "PhysicsWrappers.h"
 #include "PhysicsLayer.h"
 
 namespace NR
 {
-	static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
-	{
-		glm::vec3 scale, translation, skew;
-		glm::vec4 perspective;
-		glm::quat orientation;
-		glm::decompose(transform, scale, orientation, translation, skew, perspective);
-
-		return { translation, orientation, scale };
-	}
-
 	static physx::PxScene* sScene;
 	static std::vector<Entity> sSimulatedEntities;
 	static Entity* sEntityStorageBuffer;
@@ -72,6 +66,20 @@ namespace NR
 	{
 		NR_CORE_ASSERT(sScene == nullptr, "Scene already has a Physics Scene!");
 		sScene = PhysicsWrappers::CreateScene();
+
+		if (sSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
+		{
+			physx::PxBounds3* regionBounds;
+			physx::PxBounds3 globalBounds(ToPhysicsVector(sSettings.WorldBoundsMin), ToPhysicsVector(sSettings.WorldBoundsMax));
+			uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, sSettings.WorldBoundsSubdivisions);
+
+			for (uint32_t i = 0; i < regionCount; ++i)
+			{
+				physx::PxBroadPhaseRegion region;
+				region.mBounds = regionBounds[i];
+				sScene->addBroadPhaseRegion(region);
+			}
+		}
 	}
 
 	void PhysicsManager::CreateActor(Entity e)
@@ -92,7 +100,8 @@ namespace NR
 
 		RigidBodyComponent& rigidbody = e.GetComponent<RigidBodyComponent>();
 
-		physx::PxRigidActor* actor = PhysicsWrappers::CreateActor(rigidbody, e.Transform());
+		TransformComponent& transform = e.GetComponent<TransformComponent>();
+		physx::PxRigidActor* actor = PhysicsWrappers::CreateActor(rigidbody, transform);
 
 		if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
 		{
@@ -108,31 +117,28 @@ namespace NR
 
 		physx::PxMaterial* material = PhysicsWrappers::CreateMaterial(e.GetComponent<PhysicsMaterialComponent>());
 
-		const auto& transform = e.Transform();
-		auto [translation, rotation, scale] = DecomposeTransform(transform);
-
 		if (e.HasComponent<BoxColliderComponent>())
 		{
 			BoxColliderComponent& collider = e.GetComponent<BoxColliderComponent>();
-			PhysicsWrappers::AddBoxCollider(*actor, *material, collider, scale);
+			PhysicsWrappers::AddBoxCollider(*actor, *material, collider, transform.Scale);
 		}
 
 		if (e.HasComponent<SphereColliderComponent>())
 		{
 			SphereColliderComponent& collider = e.GetComponent<SphereColliderComponent>();
-			PhysicsWrappers::AddSphereCollider(*actor, *material, collider, scale);
+			PhysicsWrappers::AddSphereCollider(*actor, *material, collider, transform.Scale);
 		}
 
 		if (e.HasComponent<CapsuleColliderComponent>())
 		{
 			CapsuleColliderComponent& collider = e.GetComponent<CapsuleColliderComponent>();
-			PhysicsWrappers::AddCapsuleCollider(*actor, *material, collider, scale);
+			PhysicsWrappers::AddCapsuleCollider(*actor, *material, collider, transform.Scale);
 		}
 
 		if (e.HasComponent<MeshColliderComponent>())
 		{
 			MeshColliderComponent& collider = e.GetComponent<MeshColliderComponent>();
-			PhysicsWrappers::AddMeshCollider(*actor, *material, collider, scale);
+			PhysicsWrappers::AddMeshCollider(*actor, *material, collider, transform.Scale);
 		}
 
 		if (!PhysicsLayerManager::IsLayerValid(rigidbody.Layer))
@@ -152,8 +158,6 @@ namespace NR
 
 	void PhysicsManager::Simulate(float dt)
 	{
-		NR_CORE_ASSERT(sScene);
-
 		sSimulationTime += dt;
 
 		if (sSimulationTime < sSettings.FixedDeltaTime)
@@ -163,17 +167,26 @@ namespace NR
 
 		sSimulationTime -= sSettings.FixedDeltaTime;
 
+		for (Entity& e : sSimulatedEntities)
+		{
+			if (ScriptEngine::IsEntityModuleValid(e))
+			{
+				ScriptEngine::UpdateEntityPhysics(e, sSettings.FixedDeltaTime);
+			}
+		}
+
 		sScene->simulate(sSettings.FixedDeltaTime);
 		sScene->fetchResults(true);
 
 		for (Entity& e : sSimulatedEntities)
 		{
-			auto& transform = e.Transform();
-			auto [translation, rotation, scale] = DecomposeTransform(transform);
+			TransformComponent& transform = e.Transform();
 			RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
 			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
 
-			transform = FromPhysicsTransform(actor->getGlobalPose()) * glm::scale(glm::mat4(1.0F), scale);
+			physx::PxTransform actorPose = actor->getGlobalPose();
+			transform.Translation = (FromPhysicsVector(actorPose.p));
+			transform.Rotation = glm::degrees(glm::eulerAngles(FromPhysicsQuat(actorPose.q)));
 		}
 	}
 

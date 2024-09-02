@@ -149,6 +149,18 @@ namespace NR
 		return physx::PxBroadPhaseType::eABP;
 	}
 
+	static physx::PxFrictionType::Enum ToPhysXFrictionType(FrictionType type)
+	{
+		switch (type)
+		{
+		case FrictionType::Patch:			return physx::PxFrictionType::ePATCH;
+		case FrictionType::OneDirectional:	return physx::PxFrictionType::eONE_DIRECTIONAL;
+		case FrictionType::TwoDirectional:	return physx::PxFrictionType::eTWO_DIRECTIONAL;
+		}
+
+		return physx::PxFrictionType::ePATCH;
+	}
+
 	physx::PxScene* PhysicsWrappers::CreateScene()
 	{
 		physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
@@ -160,14 +172,17 @@ namespace NR
 		sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 		sceneDesc.filterShader = FilterShader;
 		sceneDesc.simulationEventCallback = &sContactListener;
+		sceneDesc.frictionType = ToPhysXFrictionType(settings.FrictionModel);
 
 		NR_CORE_ASSERT(sceneDesc.isValid());
 		return sPhysics->createScene(sceneDesc);
 	}
 
-	physx::PxRigidActor* PhysicsWrappers::CreateActor(const RigidBodyComponent& rigidbody, const glm::mat4& transform)
+	physx::PxRigidActor* PhysicsWrappers::CreateActor(const RigidBodyComponent& rigidbody, const TransformComponent& transform)
 	{
 		physx::PxRigidActor* actor = nullptr;
+
+		const PhysicsSettings& settings = PhysicsManager::GetSettings();
 
 		if (rigidbody.BodyType == RigidBodyComponent::Type::Static)
 		{
@@ -185,6 +200,8 @@ namespace NR
 			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, rigidbody.LockRotationX);
 			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, rigidbody.LockRotationY);
 			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, rigidbody.LockRotationZ);
+
+			dynamicActor->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
 
 			physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, rigidbody.Mass);
 			actor = dynamicActor;
@@ -291,26 +308,36 @@ namespace NR
 
 	physx::PxConvexMesh* PhysicsWrappers::CreateConvexMesh(MeshColliderComponent & collider)
 	{
-		std::vector<Vertex> vertices = collider.CollisionMesh->GetStaticVertices();
-
-		physx::PxConvexMeshDesc convexDesc;
-		convexDesc.points.count = vertices.size();
-		convexDesc.points.stride = sizeof(Vertex);
-		convexDesc.points.data = vertices.data();
-		convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
-
-		physx::PxTolerancesScale sc;
-		physx::PxCookingParams params(sc);
-
-		physx::PxDefaultMemoryOutputStream buf;
-		physx::PxConvexMeshCookingResult::Enum result;
-		if (!PxCookConvexMesh(params, convexDesc, buf, &result))
+		physx::PxConvexMesh* mesh = nullptr;
+		if (!ConvexMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
 		{
-			NR_CORE_ASSERT(false);
-		}
+			std::vector<Vertex> vertices = collider.CollisionMesh->GetStaticVertices();
 
-		physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-		physx::PxConvexMesh* mesh = sPhysics->createConvexMesh(input);
+			physx::PxConvexMeshDesc convexDesc;
+			convexDesc.points.count = vertices.size();
+			convexDesc.points.stride = sizeof(Vertex);
+			convexDesc.points.data = vertices.data();
+			convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
+
+			physx::PxTolerancesScale sc;
+			physx::PxCookingParams params(sc);
+
+			physx::PxDefaultMemoryOutputStream buf;
+			physx::PxConvexMeshCookingResult::Enum result;
+			if (!PxCookConvexMesh(params, convexDesc, buf, &result))
+			{
+				NR_CORE_ASSERT(false);
+			}
+
+			ConvexMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf);
+			physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+			mesh = sPhysics->createConvexMesh(input);
+		}
+		else
+		{
+			physx::PxDefaultMemoryInputData input = ConvexMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
+			mesh = sPhysics->createConvexMesh(input);
+		}
 
 		if (!collider.ProcessedMesh)
 		{

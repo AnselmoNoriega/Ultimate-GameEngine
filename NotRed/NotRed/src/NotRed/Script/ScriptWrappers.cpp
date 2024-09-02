@@ -4,8 +4,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/common.hpp>
+
 #include <mono/jit/jit.h>
 
 #include <box2d/box2d.h>
@@ -27,16 +28,6 @@ namespace NR
 
 namespace NR::Script
 {
-    static std::tuple<glm::vec3, glm::quat, glm::vec3> DecomposeTransform(const glm::mat4& transform)
-    {
-        glm::vec3 scale, translation, skew;
-        glm::vec4 perspective;
-        glm::quat orientation;
-        glm::decompose(transform, scale, orientation, translation, skew, perspective);
-
-        return { translation, orientation, scale };
-    }
-
     ////////////////////////////////////////////////////////////////
     // Math ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
@@ -63,30 +54,6 @@ namespace NR::Script
     ////////////////////////////////////////////////////////////////
     // Entity //////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////
-
-    void NR_Entity_GetTransform(uint64_t entityID, glm::mat4* outTransform)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        auto& transformComponent = entity.GetComponent<TransformComponent>();
-        memcpy(outTransform, glm::value_ptr(transformComponent.Transform), sizeof(glm::mat4));
-    }
-
-    void NR_Entity_SetTransform(uint64_t entityID, glm::mat4* inTransform)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        auto& transformComponent = entity.GetComponent<TransformComponent>();
-        memcpy(glm::value_ptr(transformComponent.Transform), inTransform, sizeof(glm::mat4));
-    }
 
     void NR_Entity_CreateComponent(uint64_t entityID, void* type)
     {
@@ -127,7 +94,7 @@ namespace NR::Script
         return 0;
     }
 
-    void NR_TransformComponent_GetRelativeDirection(uint64_t entityID, glm::vec3* outDirection, glm::vec3* inAbsoluteDirection)
+    void NR_TransformComponent_GetTransform(uint64_t entityID, ScriptTransform* outTransform)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -135,13 +102,20 @@ namespace NR::Script
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
         Entity entity = entityMap.at(entityID);
-        auto& transformComponent = entity.GetComponent<TransformComponent>();
+        TransformComponent& transform = entity.GetComponent<TransformComponent>();
 
-        auto [position, rotation, scale] = DecomposeTransform(transformComponent.Transform);
-        *outDirection = glm::rotate(rotation, *inAbsoluteDirection);
+        glm::quat rotation = glm::quat(glm::radians(transform.Rotation));
+        glm::vec3 right = glm::normalize(glm::rotate(rotation, glm::vec3(1.0f, 0.0f, 0.0f)));
+        glm::vec3 up = glm::normalize(glm::rotate(rotation, glm::vec3(0.0f, 1.0f, 0.0f)));
+        glm::vec3 forward = glm::normalize(glm::rotate(rotation, glm::vec3(0.0f, 0.0f, -1.0f)));
+
+        *outTransform = {
+            transform.Translation, transform.Rotation, transform.Scale,
+            up, right, forward
+        };
     }
 
-    void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation)
+    void NR_TransformComponent_SetTransform(uint64_t entityID, ScriptTransform* inTransform)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -149,25 +123,10 @@ namespace NR::Script
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
         Entity entity = entityMap.at(entityID);
-        auto& transformComponent = entity.GetComponent<TransformComponent>();
-        auto [position, rotationQuat, scale] = DecomposeTransform(transformComponent.Transform);
-        *outRotation = glm::degrees(glm::eulerAngles(rotationQuat));
-    }
-
-    void NR_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        glm::mat4& transform = entity.Transform();
-
-        auto [translation, rotationQuat, scale] = DecomposeTransform(transform);
-        transform = glm::translate(glm::mat4(1.0f), translation) *
-            glm::toMat4(glm::quat(glm::radians(*inRotation))) *
-            glm::scale(glm::mat4(1.0f), scale);
+        TransformComponent& transform = entity.GetComponent<TransformComponent>();
+        transform.Translation = inTransform->Translation;
+        transform.Rotation = inTransform->Rotation;
+        transform.Scale = inTransform->Scale;
     }
 
     void NR_Input_GetMousePosition(glm::vec2* outPosition)

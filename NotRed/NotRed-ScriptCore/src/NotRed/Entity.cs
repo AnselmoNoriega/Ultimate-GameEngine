@@ -63,17 +63,6 @@ namespace NR
             return new Entity(entityID);
         }
 
-        public Matrix4 GetTransform()
-        {
-            Matrix4 mat4Instance;
-            GetTransform_Native(ID, out mat4Instance);
-            return mat4Instance;
-        }
-
-        public void SetTransform(Matrix4 transform)
-        {
-            SetTransform_Native(ID, ref transform);
-        }
         public void AddCollision2DBeginCallback(Action<float> callback)
         {
             _collision2DBeginCallbacks += callback;
@@ -150,10 +139,6 @@ namespace NR
         private static extern void CreateComponent_Native(ulong entityID, Type type);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern bool HasComponent_Native(ulong entityID, Type type);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void GetTransform_Native(ulong entityID, out Matrix4 matrix);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern void SetTransform_Native(ulong entityID, ref Matrix4 matrix);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong FindEntityByTag_Native(string tag);
 

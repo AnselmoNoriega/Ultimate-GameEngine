@@ -32,17 +32,21 @@ namespace NR
 
     public class TransformComponent : Component
     {
-        public Matrix4 Transform
+        private Transform _transform;
+        public Transform Transform { get { return _transform; } }
+
+        public Vector3 Position
         {
             get
             {
-                Matrix4 result;
-                GetTransform_Native(Entity.ID, out result);
-                return result;
+                GetTransform_Native(Entity.ID, out _transform);
+                return _transform.Position;
             }
+
             set
             {
-                SetTransform_Native(Entity.ID, ref value);
+                _transform.Position = value;
+                SetTransform_Native(Entity.ID, ref _transform);
             }
         }
 
@@ -50,54 +54,36 @@ namespace NR
         {
             get
             {
-                GetRotation_Native(Entity.ID, out Vector3 rotation);
-                return rotation;
+                GetTransform_Native(Entity.ID, out _transform);
+                return _transform.Rotation;
             }
 
             set
             {
-                SetRotation_Native(Entity.ID, ref value);
+                _transform.Rotation = value;
+                SetTransform_Native(Entity.ID, ref _transform);
             }
         }
 
-        public Vector3 Forward
+        public Vector3 Scale
         {
             get
             {
-                GetRelativeDirection_Native(Entity.ID, out Vector3 result, ref Vector3.Forward);
-                return result;
+                GetTransform_Native(Entity.ID, out _transform);
+                return _transform.Scale;
             }
-        }
 
-        public Vector3 Right
-        {
-            get
+            set
             {
-                GetRelativeDirection_Native(Entity.ID, out Vector3 result, ref Vector3.Right);
-                return result;
-            }
-        }
-
-        public Vector3 Up
-        {
-            get
-            {
-                GetRelativeDirection_Native(Entity.ID, out Vector3 result, ref Vector3.Up);
-                return result;
+                _transform.Scale = value;
+                SetTransform_Native(Entity.ID, ref _transform);
             }
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetTransform_Native(ulong entityID, out Matrix4 result);
-
+        internal static extern void GetTransform_Native(ulong entityID, out Transform result);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetTransform_Native(ulong entityID, ref Matrix4 result);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetRelativeDirection_Native(ulong entityID, out Vector3 result, ref Vector3 direction);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetRotation_Native(ulong entityID, out Vector3 result);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetRotation_Native(ulong entityID, ref Vector3 rotation);
+        internal static extern void SetTransform_Native(ulong entityID, ref Transform result);
     }
 
     public class MeshComponent : Component
@@ -145,7 +131,7 @@ namespace NR
         {
             ApplyLinearImpulse_Native(Entity.ID, ref impulse, ref offset, wake);
         }
-        
+
         public Vector2 GetVelocity()
         {
             GetVelocity_Native(Entity.ID, out Vector2 velocity);

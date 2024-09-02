@@ -21,7 +21,7 @@ namespace NR
 		Button5,
 		Left = Button0,
 		Right = Button1,
-		Middle = Button3
+		Middle = Button2
 	};
 
 	inline std::ostream& operator<<(std::ostream& os, MouseButton button)

@@ -44,8 +44,8 @@ namespace NR
 			mScene->mRegistry.remove<T>(mEntityHandle);
 		}
 
-		glm::mat4& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
-		const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
+		TransformComponent& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
+		const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle).GetTransform(); }
 
 		operator uint32_t() const { return (uint32_t)mEntityHandle; }
 		operator entt::entity() const { return mEntityHandle; }

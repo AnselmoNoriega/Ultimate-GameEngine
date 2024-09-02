@@ -1,12 +1,21 @@
 #include "nrpch.h"
 #include "PhysicsUtil.h"
 
+#include <filesystem>
+
 namespace NR
 {
-	physx::PxTransform ToPhysicsTransform(const glm::mat4& matrix)
+	physx::PxTransform ToPhysicsTransform(const TransformComponent& transform)
 	{
-		physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::toQuat(matrix)));
-		physx::PxVec3 p = ToPhysicsVector(glm::vec3(matrix[3]));
+		physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::quat(glm::radians(transform.Rotation))));
+		physx::PxVec3 p = ToPhysicsVector(transform.Translation);
+		return physx::PxTransform(p, r);
+	}
+
+	physx::PxTransform ToPhysicsTransform(const glm::mat4 &transform)
+	{
+		physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::toQuat(transform)));
+		physx::PxVec3 p = ToPhysicsVector(glm::vec3(transform[3]));
 		return physx::PxTransform(p, r);
 	}
 
@@ -83,5 +92,64 @@ namespace NR
 		}
 
 		return physx::PxFilterFlag::eSUPPRESS;
+	}
+
+	void ConvexMeshSerializer::SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data)
+	{
+		std::filesystem::path p = filepath;
+		auto path = p.parent_path() / (p.filename().string() + ".pxm");
+		std::string cachedFilepath = path.string();
+
+		FILE* f = fopen(cachedFilepath.c_str(), "wb");
+		if (f)
+		{
+			fwrite(data.getData(), sizeof(physx::PxU8), data.getSize() / sizeof(physx::PxU8), f);
+			fclose(f);
+		}
+	}
+
+	bool ConvexMeshSerializer::IsSerialized(const std::string& filepath)
+	{
+		std::filesystem::path p = filepath;
+		auto path = p.parent_path() / (p.filename().string() + ".pxm");
+		std::string cachedFilepath = path.string();
+
+		FILE* f = fopen(cachedFilepath.c_str(), "rb");
+		bool exists = f != nullptr;
+		if (exists)
+		{
+			fclose(f);
+		}
+		return exists;
+	}
+
+	static physx::PxU8* sMeshDataBuffer;
+
+	physx::PxDefaultMemoryInputData ConvexMeshSerializer::DeserializeMesh(const std::string& filepath)
+	{
+		std::filesystem::path p = filepath;
+		auto path = p.parent_path() / (p.filename().string() + ".pxm");
+		std::string cachedFilepath = path.string();
+
+		FILE* f = fopen(cachedFilepath.c_str(), "rb");
+
+		uint32_t size = 0;
+		if (f)
+		{
+			fseek(f, 0, SEEK_END);
+			size = ftell(f);
+			fseek(f, 0, SEEK_SET);
+
+			if (sMeshDataBuffer)
+			{
+				delete[] sMeshDataBuffer;
+			}
+
+			sMeshDataBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
+			fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), f);
+			fclose(f);
+		}
+
+		return physx::PxDefaultMemoryInputData(sMeshDataBuffer, size);
 	}
 }

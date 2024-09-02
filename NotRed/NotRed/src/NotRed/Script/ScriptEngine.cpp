@@ -10,9 +10,6 @@
 #include <chrono>
 #include <thread>
 
-#include <Windows.h>
-#include <winioctl.h>
-
 #include "imgui.h"
 
 #include "ScriptEngineRegistry.h"
@@ -43,6 +40,7 @@ namespace NR
         MonoMethod* InitMethod = nullptr;
         MonoMethod* DestroyMethod = nullptr;
         MonoMethod* UpdateMethod = nullptr;
+        MonoMethod* UpdatePhysics = nullptr;
 
         MonoMethod* Collision2DBeginMethod = nullptr;
         MonoMethod* Collision2DEndMethod = nullptr;
@@ -56,6 +54,7 @@ namespace NR
             Constructor = GetMethod(sCoreAssemblyImage, "NR.Entity:.ctor(ulong)");
             InitMethod = GetMethod(image, ClassName + ":Init()");
             UpdateMethod = GetMethod(image, ClassName + ":Update(single)");
+            UpdatePhysics = GetMethod(image, FullName + ":UpdatePhysics(single)");
 
             Collision2DBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DBegin(single)");
             Collision2DEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DEnd(single)");
@@ -375,6 +374,16 @@ namespace NR
         {
             void* args[] = { &dt };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->UpdateMethod, args);
+        }
+    }
+
+    void ScriptEngine::UpdateEntityPhysics(Entity entity, float fixedDeltaTime)
+    {
+        EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
+        if (entityInstance.ScriptClass->UpdatePhysics)
+        {
+            void* args[] = { &fixedDeltaTime };
+            CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->UpdatePhysics, args);
         }
     }
 

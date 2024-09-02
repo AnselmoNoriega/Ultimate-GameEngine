@@ -659,23 +659,15 @@ namespace NR
         ImGui::Separator();
 
         {
-            auto& tc = entity.GetComponent<TransformComponent>();
+            TransformComponent& transform = entity.GetComponent<TransformComponent>();
             if (ImGui::TreeNodeEx((void*)((uint32_t)entity | typeid(TransformComponent).hash_code()), ImGuiTreeNodeFlags_OpenOnArrow, "Transform"))
             {
-                auto [translation, rotationQuat, scale] = GetTransformDecomposition(tc);
-                glm::vec3 rotation = glm::degrees(glm::eulerAngles(rotationQuat));
-
                 ImGui::Columns(2);
                 ImGui::Text("Translation");
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
 
-                bool updateTransform = false;
-
-                if (ImGui::DragFloat3("##translation", glm::value_ptr(translation), 0.25f))
-                {
-                    updateTransform = true;
-                }
+                ImGui::DragFloat3("##translation", glm::value_ptr(transform.Translation), 0.25f);
 
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
@@ -684,10 +676,7 @@ namespace NR
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
 
-                if (ImGui::DragFloat3("##rotation", glm::value_ptr(rotation), 0.25f))
-                {
-                    updateTransform = true;
-                }
+                ImGui::DragFloat3("##rotation", glm::value_ptr(transform.Rotation), 0.25f);
 
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
@@ -696,22 +685,12 @@ namespace NR
                 ImGui::NextColumn();
                 ImGui::PushItemWidth(-1);
 
-                if (ImGui::DragFloat3("##scale", glm::value_ptr(scale), 0.25f))
-                {
-                    updateTransform = true;
-                }
+                ImGui::DragFloat3("##scale", glm::value_ptr(transform.Scale), 0.25f);
 
                 ImGui::PopItemWidth();
                 ImGui::NextColumn();
 
                 ImGui::Columns(1);
-
-                if (updateTransform)
-                {
-                    tc.Transform = glm::translate(glm::mat4(1.0f), translation) *
-                        glm::toMat4(glm::quat(glm::radians(rotation))) *
-                        glm::scale(glm::mat4(1.0f), scale);
-                }
 
                 ImGui::TreePop();
             }
