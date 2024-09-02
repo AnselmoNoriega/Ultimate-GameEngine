@@ -19,6 +19,8 @@ namespace NR
 		void ImGuiRender() override;
 		void Detach() override;
 
+		void SetDarkThemeColors();
+
 	private:
 		float mTime = 0.0f;
 	};
