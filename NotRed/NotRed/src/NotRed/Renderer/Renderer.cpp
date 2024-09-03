@@ -227,7 +227,7 @@ namespace NR
                 for (size_t i = 0; i < mesh->mBoneTransforms.size(); ++i)
                 {
                     std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
-                    mesh->mMeshShader->SetMat4(uniformName, mesh->mBoneTransforms[i]);
+                    shader->SetMat4(uniformName, mesh->mBoneTransforms[i]);
                 }
             }
             shader->SetMat4("uTransform", transform * submesh.Transform);
@@ -269,6 +269,15 @@ namespace NR
 
         for (Submesh& submesh : mesh->mSubmeshes)
         {
+            if (mesh->mIsAnimated)
+            {
+                for (size_t i = 0; i < mesh->mBoneTransforms.size(); ++i)
+                {
+                    std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
+                    shader->SetMat4(uniformName, mesh->mBoneTransforms[i]);
+                }
+            }
+
             shader->SetMat4("uTransform", transform * submesh.Transform);
 
             Renderer::Submit([submesh]() {

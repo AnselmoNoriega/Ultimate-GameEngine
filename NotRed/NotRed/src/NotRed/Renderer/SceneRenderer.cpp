@@ -44,7 +44,7 @@ namespace NR
         Ref<RenderPass> BloomBlurPass[2];
         Ref<RenderPass> BloomBlendPass;
 
-        Ref<Shader> ShadowMapShader;
+        Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
         Ref<RenderPass> ShadowMapRenderPass[4];
         float ShadowMapSize = 20.0f;
         float LightDistance = 0.1f;
@@ -55,7 +55,7 @@ namespace NR
         float CascadeFarPlaneOffset = 15.0f, CascadeNearPlaneOffset = -15.0f;
         bool ShowCascades = false;
         bool SoftShadows = true;
-        float LightSize = 0.5f;
+        float LightSize = 0.25f;
         float MaxShadowDistance = 200.0f;
         float ShadowFade = 25.0f;
         float CascadeTransitionFade = 1.0f;
@@ -80,7 +80,7 @@ namespace NR
         std::vector<DrawCommand> ShadowPassDrawList;
 
         Ref<MaterialInstance> GridMaterial;
-        Ref<MaterialInstance> OutlineMaterial;
+        Ref<MaterialInstance> OutlineMaterial, OutlineAnimMaterial;
         Ref<MaterialInstance> ColliderMaterial;
 
         SceneRendererOptions Options;
@@ -143,8 +143,8 @@ namespace NR
         }
 
         sData.CompositeShader = Shader::Create("Assets/Shaders/HDR");
-        sData.BloomBlurShader = Shader::Create("assets/shaders/BloomBlur");
-        sData.BloomBlendShader = Shader::Create("assets/shaders/BloomBlend");
+        sData.BloomBlurShader = Shader::Create("Assets/Shaders/BloomBlur");
+        sData.BloomBlendShader = Shader::Create("Assets/Shaders/BloomBlend");
         sData.BRDFLUT = Texture2D::Create("Assets/Textures/BRDF_LUT.tga");
 
         // Grid
@@ -165,8 +165,13 @@ namespace NR
         sData.ColliderMaterial = MaterialInstance::Create(Material::Create(colliderShader));
         sData.ColliderMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
 
+        auto outlineAnimShader = Shader::Create("Assets/Shaders/OutlineAnim");
+        sData.OutlineAnimMaterial = MaterialInstance::Create(Material::Create(outlineAnimShader));
+        sData.OutlineAnimMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
+
         // Shadow Map
-        sData.ShadowMapShader = Shader::Create("assets/shaders/ShadowMap");
+        sData.ShadowMapShader = Shader::Create("Assets/Shaders/ShadowMap");
+        sData.ShadowMapAnimShader = Shader::Create("Assets/Shaders/ShadowMapAnim");
 
         FrameBufferSpecification shadowMapFramebufferSpec;
         shadowMapFramebufferSpec.Width = 4096;
@@ -508,9 +513,10 @@ namespace NR
                 });
 
             sData.OutlineMaterial->Set("uViewProjection", viewProjection);
+            sData.OutlineAnimMaterial->Set("uViewProjection", viewProjection);
             for (auto& dc : sData.SelectedMeshDrawList)
             {
-                Renderer::SubmitMesh(dc.Mesh, dc.Transform, sData.OutlineMaterial);
+                Renderer::SubmitMesh(dc.Mesh, dc.Transform, dc.Mesh->IsAnimated() ? sData.OutlineAnimMaterial : sData.OutlineMaterial);
             }
 
             Renderer::Submit([]()
@@ -521,7 +527,7 @@ namespace NR
 
             for (auto& dc : sData.SelectedMeshDrawList)
             {
-                Renderer::SubmitMesh(dc.Mesh, dc.Transform, sData.OutlineMaterial);
+                Renderer::SubmitMesh(dc.Mesh, dc.Transform, dc.Mesh->IsAnimated() ? sData.OutlineAnimMaterial : sData.OutlineMaterial);
             }
 
             Renderer::Submit([]()
@@ -812,14 +818,15 @@ namespace NR
             Renderer::BeginRenderPass(sData.ShadowMapRenderPass[i]);
 
             glm::mat4 shadowMapVP = cascades[i].ViewProj;
-            sData.ShadowMapShader->SetMat4("uViewProjection", shadowMapVP);
 
             static glm::mat4 scaleBiasMatrix = glm::scale(glm::mat4(1.0f), { 0.5f, 0.5f, 0.5f }) * glm::translate(glm::mat4(1.0f), { 1, 1, 1 });
             sData.LightMatrices[i] = scaleBiasMatrix * cascades[i].ViewProj;
 
             for (auto& dc : sData.ShadowPassDrawList)
             {
-                Renderer::SubmitMesh(dc.Mesh, dc.Transform, sData.ShadowMapShader);
+                Ref<Shader> shader = dc.Mesh->IsAnimated() ? sData.ShadowMapAnimShader : sData.ShadowMapShader;
+                shader->SetMat4("uViewProjection", shadowMapVP);
+                Renderer::SubmitMesh(dc.Mesh, dc.Transform, shader);
             }
 
             Renderer::EndRenderPass();

@@ -133,6 +133,8 @@ namespace NR
 
 		const std::string& GetFilePath() const { return mFilePath; }
 
+		bool IsAnimated() const { return mIsAnimated; }
+
 		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 

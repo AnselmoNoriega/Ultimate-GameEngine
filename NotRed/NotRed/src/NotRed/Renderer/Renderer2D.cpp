@@ -72,11 +72,11 @@ namespace NR
         {
             PipelineSpecification pipelineSpecification;
             pipelineSpecification.Layout = {
-                { ShaderDataType::Float3, "a_Position" },
-                { ShaderDataType::Float4, "a_Color" },
-                { ShaderDataType::Float2, "a_TexCoord" },
-                { ShaderDataType::Float, "a_TexIndex" },
-                { ShaderDataType::Float, "a_TilingFactor" }
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float4, "aColor" },
+                { ShaderDataType::Float2, "aTexCoord" },
+                { ShaderDataType::Float, "aTexIndex" },
+                { ShaderDataType::Float, "aTilingFactor" }
             };
             sData.QuadPipeline = Pipeline::Create(pipelineSpecification);
 
@@ -125,8 +125,8 @@ namespace NR
 
             PipelineSpecification pipelineSpecification;
             pipelineSpecification.Layout = {
-                { ShaderDataType::Float3, "a_Position" },
-                { ShaderDataType::Float4, "a_Color" }
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float4, "aColor" }
             };
             sData.LinePipeline = Pipeline::Create(pipelineSpecification);
 
@@ -197,7 +197,7 @@ namespace NR
             sData.LinePipeline->Bind();
             sData.LineIndexBuffer->Bind();
             Renderer::SetLineThickness(2.0f);
-            Renderer::DrawIndexed(sData.LineIndexCount, PrimitiveType::Lines, sData.DepthTest);
+            Renderer::DrawIndexed(sData.LineIndexCount, PrimitiveType::Lines, false);
             ++sData.Stats.DrawCalls;
         }
 

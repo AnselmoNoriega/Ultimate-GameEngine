@@ -26,7 +26,7 @@ namespace NR
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
-        mWindow->SetVSync(false);
+        mWindow->SetVSync(true);
 
         mImGuiLayer = new ImGuiLayer("ImGui");
         PushOverlay(mImGuiLayer);

@@ -19,5 +19,7 @@
     <None Include="Assets\Shaders\BloomBlend\BloomBlend.frag" />
     <None Include="Assets\Shaders\BloomBlur\BloomBlur.vert" />
     <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
+    <None Include="Assets\Shaders\ShadowMap\ShadowMap.vert" />
+    <None Include="Assets\Shaders\ShadowMap\ShadowMap.frag" />
   </ItemGroup>
 </Project>
