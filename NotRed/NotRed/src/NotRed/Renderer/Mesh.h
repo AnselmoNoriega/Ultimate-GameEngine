@@ -113,6 +113,7 @@ namespace NR
 		uint32_t BaseVertex;
 		uint32_t BaseIndex;
 		uint32_t IndexCount;
+		uint32_t VertexCount;
 		uint32_t MaterialIndex;
 
 		glm::mat4 Transform;

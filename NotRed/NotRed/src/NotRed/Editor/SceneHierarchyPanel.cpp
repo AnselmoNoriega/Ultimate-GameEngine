@@ -83,7 +83,7 @@ namespace NR
                     {
                         auto newEntity = mContext->CreateEntity("Directional Light");
                         newEntity.AddComponent<DirectionalLightComponent>();
-                        newEntity.GetComponent<TransformComponent>().GetTransform() = glm::toMat4(glm::quat(glm::radians(glm::vec3{80.0f, 10.0f, 0.0f})));
+                        newEntity.GetComponent<TransformComponent>().GetTransform() = glm::toMat4(glm::quat(glm::radians(glm::vec3{ 80.0f, 10.0f, 0.0f })));
                         SetSelected(newEntity);
                     }
                     if (ImGui::MenuItem("Sky Light"))
@@ -298,7 +298,7 @@ namespace NR
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
         ImGui::PushFont(boldFont);
-		if (ImGui::Button("X", buttonSize))
+        if (ImGui::Button("X", buttonSize))
         {
             values.x = resetValue;
             modified = true;
@@ -379,8 +379,8 @@ namespace NR
 
         float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
         ImVec2 textSize = ImGui::CalcTextSize("Add Component");
-        ImGui::SameLine(contentRegionAvailable.x - (textSize.x + GImGui->Style.FramePadding.y)); 
-        
+        ImGui::SameLine(contentRegionAvailable.x - (textSize.x + GImGui->Style.FramePadding.y));
+
         if (ImGui::Button("Add Component"))
         {
             ImGui::OpenPopup("AddComponentPanel");
@@ -750,7 +750,7 @@ namespace NR
                     ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-                            });
+            });
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
@@ -969,12 +969,32 @@ namespace NR
                     if (!file.empty())
                     {
                         mcc.CollisionMesh = Ref<Mesh>::Create(file);
-                        PhysicsWrappers::CreateConvexMesh(mcc);
+
+                        if (mcc.IsConvex)
+                        {
+                            PhysicsWrappers::CreateConvexMesh(mcc, true);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(mcc, true);
+                        }
+                    }
+
+                    if (UI::Property("Is Convex", mcc.IsConvex))
+                    {
+                        if (mcc.IsConvex)
+                        {
+                            PhysicsWrappers::CreateConvexMesh(mcc, true);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(mcc, true);
+                        }
                     }
                 }
 
                 UI::Property("Is Trigger", mcc.IsTrigger);
                 UI::EndPropertyGrid();
             });
-                            }
-                        }
+    }
+}

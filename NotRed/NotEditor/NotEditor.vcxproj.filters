@@ -21,5 +21,9 @@
     <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
     <None Include="Assets\Shaders\ShadowMap\ShadowMap.vert" />
     <None Include="Assets\Shaders\ShadowMap\ShadowMap.frag" />
+    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.vert" />
+    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.frag" />
+    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.vert" />
+    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.frag" />
   </ItemGroup>
 </Project>

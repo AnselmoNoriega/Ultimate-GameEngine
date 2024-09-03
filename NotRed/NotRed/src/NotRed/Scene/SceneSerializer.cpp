@@ -447,6 +447,7 @@ namespace NR
 
             auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
             out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+            out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
             out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
 
             out << YAML::EndMap; // MeshColliderComponent
@@ -801,8 +802,17 @@ namespace NR
                 {
                     std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
                     auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(Ref<Mesh>::Create(meshPath));
+                    component.IsConvex = meshColliderComponent["IsConvex"].as<bool>();
                     component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
-                    PhysicsWrappers::CreateConvexMesh(component);
+
+                    if (component.IsConvex)
+                    {
+                        PhysicsWrappers::CreateConvexMesh(component);
+                    }
+                    else
+                    {
+                        PhysicsWrappers::CreateTriangleMesh(component);
+                    }
 
                     NR_CORE_INFO("  Mesh Collider Asset Path: {0}", meshPath);
                 }

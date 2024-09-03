@@ -34,8 +34,10 @@ namespace NR
     class ConvexMeshSerializer
     {
     public:
-        static void SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data);
+        static void Delete(const std::string& filepath);
+        static void SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data, const std::string& submeshName = "");
         static bool IsSerialized(const std::string& filepath);
-        static physx::PxDefaultMemoryInputData DeserializeMesh(const std::string& filepath);
+        static std::vector<physx::PxDefaultMemoryInputData> DeserializeMesh(const std::string& filepath);
+        static void CleanupDataBuffers();
     };
 }

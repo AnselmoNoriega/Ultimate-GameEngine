@@ -117,11 +117,12 @@ namespace NR
             Submesh& submesh = mSubmeshes.emplace_back();
             submesh.BaseVertex = vertexCount;
             submesh.BaseIndex = indexCount;
-            submesh.MaterialIndex = mesh->mMaterialIndex;
             submesh.IndexCount = mesh->mNumFaces * 3;
+            submesh.VertexCount = mesh->mNumVertices;
+            submesh.MaterialIndex = mesh->mMaterialIndex;
             submesh.MeshName = mesh->mName.C_Str();
 
-            vertexCount += mesh->mNumVertices;
+            vertexCount += submesh.VertexCount;
             indexCount += submesh.IndexCount;
 
             NR_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");

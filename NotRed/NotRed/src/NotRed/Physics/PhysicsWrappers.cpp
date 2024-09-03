@@ -10,488 +10,635 @@
 
 namespace NR
 {
-	static PhysicsErrorCallback sErrorCallback;
-	static physx::PxDefaultAllocator sAllocator;
-	static physx::PxFoundation* sFoundation;
-	static physx::PxPhysics* sPhysics;
-	static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
-
-	static ContactListener sContactListener;
-
-	void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line)
-	{
-		const char* errorMessage = NULL;
-
-		switch (code)
-		{
-		case physx::PxErrorCode::eNO_ERROR:	              errorMessage = "No Error"; break;
-		case physx::PxErrorCode::eDEBUG_INFO:             errorMessage = "Info"; break;
-		case physx::PxErrorCode::eDEBUG_WARNING:	      errorMessage = "Warning"; break;
-		case physx::PxErrorCode::eINVALID_PARAMETER:      errorMessage = "Invalid Parameter"; break;
-		case physx::PxErrorCode::eINVALID_OPERATION:      errorMessage = "Invalid Operation"; break;
-		case physx::PxErrorCode::eOUT_OF_MEMORY:          errorMessage = "Out Of Memory"; break;
-		case physx::PxErrorCode::eINTERNAL_ERROR:         errorMessage = "Internal Error"; break;
-		case physx::PxErrorCode::eABORT:                  errorMessage = "Abort"; break;
-		case physx::PxErrorCode::ePERF_WARNING:	          errorMessage = "Performance Warning"; break;
-		case physx::PxErrorCode::eMASK_ALL:	              errorMessage = "Unknown Error"; break;
-		}
-
-		switch (code)
-		{
-		case physx::PxErrorCode::eNO_ERROR:
-		case physx::PxErrorCode::eDEBUG_INFO:
-		{
-			NR_CORE_INFO("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
-			break;
-		}
-		case physx::PxErrorCode::eDEBUG_WARNING:
-		case physx::PxErrorCode::ePERF_WARNING:
-		{
-			NR_CORE_WARN("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
-			break;
-		}
-		case physx::PxErrorCode::eINVALID_PARAMETER:
-		case physx::PxErrorCode::eINVALID_OPERATION:
-		case physx::PxErrorCode::eOUT_OF_MEMORY:
-		case physx::PxErrorCode::eINTERNAL_ERROR:
-		{
-			NR_CORE_ERROR("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
-			break;
-		}
-		case physx::PxErrorCode::eABORT:
-		case physx::PxErrorCode::eMASK_ALL:
-		{
-			NR_CORE_FATAL("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
-			NR_CORE_ASSERT(false);
-			break;
-		}
-		}
-	}
-
-	void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
-	{
-		PX_UNUSED(constraints);
-		PX_UNUSED(count);
-	}
-
-	void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)
-	{
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			physx::PxActor& actor = *actors[i];
-			Entity& entity = *(Entity*)actor.userData;
-
-			NR_CORE_INFO("PhysX Actor waking up: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
-		}
-	}
-
-	void ContactListener::onSleep(physx::PxActor** actors, physx::PxU32 count)
-	{
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			physx::PxActor& actor = *actors[i];
-			Entity& entity = *(Entity*)actor.userData;
-
-			NR_CORE_INFO("PhysX Actor going to sleep: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
-		}
-	}
-
-	void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
-	{
-		Entity& a = *(Entity*)pairHeader.actors[0]->userData;
-		Entity& b = *(Entity*)pairHeader.actors[1]->userData;
-
-		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
-		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionBegin(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionBegin(b);
-		}
-		else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
-		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionEnd(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionEnd(b);
-		}
-	}
-
-	void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
-	{
-		Entity& a = *(Entity*)pairs->triggerActor->userData;
-		Entity& b = *(Entity*)pairs->otherActor->userData;
-
-		if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
-		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerBegin(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerBegin(b);
-		}
-		else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
-		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerEnd(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerEnd(b);
-		}
-	}
-
-	void ContactListener::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
-	{
-		PX_UNUSED(bodyBuffer);
-		PX_UNUSED(poseBuffer);
-		PX_UNUSED(count);
-	}
-
-	static physx::PxBroadPhaseType::Enum ToPhysicsBroadphaseType(BroadphaseType type)
-	{
-		switch (type)
-		{
-		case BroadphaseType::SweepAndPrune:        return physx::PxBroadPhaseType::eSAP;
-		case BroadphaseType::MultiBoxPrune:        return physx::PxBroadPhaseType::eMBP;
-		case BroadphaseType::AutomaticBoxPrune:    return physx::PxBroadPhaseType::eABP;
-		}
-
-		return physx::PxBroadPhaseType::eABP;
-	}
-
-	static physx::PxFrictionType::Enum ToPhysXFrictionType(FrictionType type)
-	{
-		switch (type)
-		{
-		case FrictionType::Patch:			return physx::PxFrictionType::ePATCH;
-		case FrictionType::OneDirectional:	return physx::PxFrictionType::eONE_DIRECTIONAL;
-		case FrictionType::TwoDirectional:	return physx::PxFrictionType::eTWO_DIRECTIONAL;
-		}
-
-		return physx::PxFrictionType::ePATCH;
-	}
-
-	physx::PxScene* PhysicsWrappers::CreateScene()
-	{
-		physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
-
-		const PhysicsSettings& settings = PhysicsManager::GetSettings();
-
-		sceneDesc.gravity = ToPhysicsVector(settings.Gravity);
-		sceneDesc.broadPhaseType = ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
-		sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
-		sceneDesc.filterShader = FilterShader;
-		sceneDesc.simulationEventCallback = &sContactListener;
-		sceneDesc.frictionType = ToPhysXFrictionType(settings.FrictionModel);
-
-		NR_CORE_ASSERT(sceneDesc.isValid());
-		return sPhysics->createScene(sceneDesc);
-	}
-
-	physx::PxRigidActor* PhysicsWrappers::CreateActor(const RigidBodyComponent& rigidbody, const TransformComponent& transform)
-	{
-		physx::PxRigidActor* actor = nullptr;
-
-		const PhysicsSettings& settings = PhysicsManager::GetSettings();
-
-		if (rigidbody.BodyType == RigidBodyComponent::Type::Static)
-		{
-			actor = sPhysics->createRigidStatic(ToPhysicsTransform(transform));
-		}
-		else if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
-		{
-			physx::PxRigidDynamic* dynamicActor = sPhysics->createRigidDynamic(ToPhysicsTransform(transform));
-
-			dynamicActor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, rigidbody.IsKinematic);
-
-			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, rigidbody.LockPositionX);
-			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, rigidbody.LockPositionY);
-			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, rigidbody.LockPositionZ);
-			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, rigidbody.LockRotationX);
-			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, rigidbody.LockRotationY);
-			dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, rigidbody.LockRotationZ);
-
-			dynamicActor->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
-
-			physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, rigidbody.Mass);
-			actor = dynamicActor;
-		}
-
-		return actor;
-	}
-
-	void PhysicsWrappers::SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t physicsLayer)
-	{
-		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(physicsLayer);
-
-		if (layerInfo.CollidesWith == 0)
-		{
-			return;
-		}
-
-		physx::PxFilterData filterData;
-		filterData.word0 = layerInfo.BitValue;
-		filterData.word1 = layerInfo.CollidesWith;
-
-		const physx::PxU32 numShapes = actor.getNbShapes();
-
-		physx::PxShape** shapes = (physx::PxShape**)sAllocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
-		actor.getShapes(shapes, numShapes);
-
-		for (physx::PxU32 i = 0; i < numShapes; ++i)
-		{
-			shapes[i]->setSimulationFilterData(filterData);
-		}
-
-		sAllocator.deallocate(shapes);
-	}
-
-	void PhysicsWrappers::AddBoxCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const BoxColliderComponent& collider, const glm::vec3& size)
-	{
-		glm::vec3 colliderSize = collider.Size;
-
-		if (size.x != 0.0f) 
-		{
-			colliderSize.x *= size.x;
-		}
-		if (size.y != 0.0f) 
-		{
-			colliderSize.y *= size.y;
-		}
-		if (size.z != 0.0f) 
-		{
-			colliderSize.z *= size.z;
-		}
-
-		physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, boxGeometry, material);
-		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
-		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-		shape->setLocalPose(ToPhysicsTransform(glm::translate(glm::mat4(1.0F), collider.Offset)));
-	}
-
-	void PhysicsWrappers::AddSphereCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const SphereColliderComponent& collider, const glm::vec3& size)
-	{
-		float colliderRadius = collider.Radius;
-
-		if (size.x != 0.0f)
-		{
-			colliderRadius *= (size.x / 2.0f);
-		}
-
-		physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(colliderRadius);
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, sphereGeometry, material);
-		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
-		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-	}
-
-	void PhysicsWrappers::AddCapsuleCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const CapsuleColliderComponent& collider, const glm::vec3& size)
-	{
-		float colliderRadius = collider.Radius;
-		float colliderHeight = collider.Height;
-
-		if (size.x != 0.0f)
-		{
-			colliderRadius *= size.x;
-		}
-
-		if (size.y != 0.0f)
-		{
-			colliderHeight *= size.y;
-		}
-
-		physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(colliderRadius, colliderHeight / 2.0f);
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, capsuleGeometry, material);
-		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
-		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-		shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
-	}
-
-	void PhysicsWrappers::AddMeshCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, MeshColliderComponent& collider, const glm::vec3& size)
-	{
-		physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(CreateConvexMesh(collider));
-		convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
-		physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, convexGeometry, material);
-		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
-		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
-	}
-
-	physx::PxConvexMesh* PhysicsWrappers::CreateConvexMesh(MeshColliderComponent & collider)
-	{
-		physx::PxConvexMesh* mesh = nullptr;
-		if (!ConvexMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
-		{
-			std::vector<Vertex> vertices = collider.CollisionMesh->GetStaticVertices();
-
-			physx::PxConvexMeshDesc convexDesc;
-			convexDesc.points.count = vertices.size();
-			convexDesc.points.stride = sizeof(Vertex);
-			convexDesc.points.data = vertices.data();
-			convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX;
-
-			physx::PxTolerancesScale sc;
-			physx::PxCookingParams params(sc);
-
-			physx::PxDefaultMemoryOutputStream buf;
-			physx::PxConvexMeshCookingResult::Enum result;
-			if (!PxCookConvexMesh(params, convexDesc, buf, &result))
-			{
-				NR_CORE_ASSERT(false);
-			}
-
-			ConvexMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf);
-			physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
-			mesh = sPhysics->createConvexMesh(input);
-		}
-		else
-		{
-			physx::PxDefaultMemoryInputData input = ConvexMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
-			mesh = sPhysics->createConvexMesh(input);
-		}
-
-		if (!collider.ProcessedMesh)
-		{
-			const uint32_t nbPolygons = mesh->getNbPolygons();
-			const physx::PxVec3* convexVertices = mesh->getVertices();
-			const physx::PxU8* convexIndices = mesh->getIndexBuffer();
-
-			uint32_t nbVertices = 0;
-			uint32_t nbFaces = 0;
-
-			for (uint32_t i = 0; i < nbPolygons; ++i)
-			{
-				physx::PxHullPolygon polygon;
-				mesh->getPolygonData(i, polygon);
-				nbVertices += polygon.mNbVerts;
-				nbFaces += (polygon.mNbVerts - 2) * 3;
-			}
-
-			std::vector<Vertex> collisionVertices;
-			std::vector<Index> collisionIndices;
-
-			collisionVertices.resize(nbVertices);
-			collisionIndices.resize(nbFaces / 3);
-
-			uint32_t vertCounter = 0;
-			uint32_t indexCounter = 0;
-			for (uint32_t i = 0; i < nbPolygons; ++i)
-			{
-				physx::PxHullPolygon polygon;
-				mesh->getPolygonData(i, polygon);
-
-				uint32_t vI0 = vertCounter;
-				for (uint32_t vI = 0; vI < polygon.mNbVerts; ++vI)
-				{
-					collisionVertices[vertCounter].Position = glm::rotate(FromPhysicsVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]), glm::radians(90.0F), { 1, 0, 0 });
-					++vertCounter;
-				}
-
-				for (uint32_t vI = 1; vI < uint32_t(polygon.mNbVerts) - 1; ++vI)
-				{
-					collisionIndices[indexCounter].V1 = uint32_t(vI0);
-					collisionIndices[indexCounter].V2 = uint32_t(vI0 + vI + 1);
-					collisionIndices[indexCounter].V3 = uint32_t(vI0 + vI);
-					++indexCounter;
-				}
-			}
-
-			collider.ProcessedMesh = Ref<Mesh>::Create(collisionVertices, collisionIndices);
-		}
-
-		return mesh;
-	}
-
-	physx::PxMaterial* PhysicsWrappers::CreateMaterial(const PhysicsMaterialComponent& material)
-	{
-		return sPhysics->createMaterial(material.StaticFriction, material.DynamicFriction, material.Bounciness);
-	}
-
-	bool PhysicsWrappers::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit)
-	{
-		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
-		physx::PxRaycastBuffer hitInfo;
-		bool result = scene->raycast(ToPhysicsVector(origin), ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
-
-		if (result)
-		{
-			Entity& entity = *(Entity*)hitInfo.block.actor->userData;
-
-			hit->EntityID = entity.GetID();
-			hit->Position = FromPhysicsVector(hitInfo.block.position);
-			hit->Normal = FromPhysicsVector(hitInfo.block.normal);
-			hit->Distance = hitInfo.block.distance;
-		}
-
-		return result;
-	}
-
-	bool PhysicsWrappers::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
-	{
-		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
-
-		memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
-		physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
-		physx::PxBoxGeometry geometry = physx::PxBoxGeometry(halfSize.x, halfSize.y, halfSize.z);
-		physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
-
-		bool result = scene->overlap(geometry, pose, buf);
-
-		if (result)
-		{
-			uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
-			memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
-			*count = bodyCount;
-		}
-
-		return result;
-	}
-
-	bool PhysicsWrappers::OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
-	{
-		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
-
-		memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
-		physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
-		physx::PxCapsuleGeometry geometry = physx::PxCapsuleGeometry(radius, halfHeight);
-		physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0F), origin));
-
-		bool result = scene->overlap(geometry, pose, buf);
-
-		if (result)
-		{
-			uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
-			memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
-			*count = bodyCount;
-		}
-
-		return result;
-	}
-
-	bool PhysicsWrappers::OverlapSphere(const glm::vec3& origin, float radius, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
-	{
-		physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
-
-		memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
-		physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
-		physx::PxSphereGeometry geometry = physx::PxSphereGeometry(radius);
-		physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
-
-		bool result = scene->overlap(geometry, pose, buf);
-
-		if (result)
-		{
-			uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
-			memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
-			*count = bodyCount;
-		}
-
-		return result;
-	}
-
-	void PhysicsWrappers::Initialize()
-	{
-		NR_CORE_ASSERT(!sFoundation, "PhysicsWrappers::Initializer shouldn't be called more than once!");
-
-		sFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, sAllocator, sErrorCallback);
-		NR_CORE_ASSERT(sFoundation, "PxCreateFoundation Failed!");
-
-		sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, physx::PxTolerancesScale(), true);
-		NR_CORE_ASSERT(sPhysics, "PxCreatePhysics Failed!");
-	}
-
-	void PhysicsWrappers::Shutdown()
-	{
-		sPhysics->release();
-		sFoundation->release();
-	}
+    static PhysicsErrorCallback sErrorCallback;
+    static physx::PxDefaultAllocator sAllocator;
+    static physx::PxFoundation* sFoundation;
+    static physx::PxPvd* sPVD;
+    static physx::PxPhysics* sPhysics;
+    static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
+
+    static ContactListener sContactListener;
+
+    void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line)
+    {
+        const char* errorMessage = NULL;
+
+        switch (code)
+        {
+        case physx::PxErrorCode::eNO_ERROR:	              errorMessage = "No Error"; break;
+        case physx::PxErrorCode::eDEBUG_INFO:             errorMessage = "Info"; break;
+        case physx::PxErrorCode::eDEBUG_WARNING:	      errorMessage = "Warning"; break;
+        case physx::PxErrorCode::eINVALID_PARAMETER:      errorMessage = "Invalid Parameter"; break;
+        case physx::PxErrorCode::eINVALID_OPERATION:      errorMessage = "Invalid Operation"; break;
+        case physx::PxErrorCode::eOUT_OF_MEMORY:          errorMessage = "Out Of Memory"; break;
+        case physx::PxErrorCode::eINTERNAL_ERROR:         errorMessage = "Internal Error"; break;
+        case physx::PxErrorCode::eABORT:                  errorMessage = "Abort"; break;
+        case physx::PxErrorCode::ePERF_WARNING:	          errorMessage = "Performance Warning"; break;
+        case physx::PxErrorCode::eMASK_ALL:	              errorMessage = "Unknown Error"; break;
+        }
+
+        switch (code)
+        {
+        case physx::PxErrorCode::eNO_ERROR:
+        case physx::PxErrorCode::eDEBUG_INFO:
+        {
+            NR_CORE_INFO("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+            break;
+        }
+        case physx::PxErrorCode::eDEBUG_WARNING:
+        case physx::PxErrorCode::ePERF_WARNING:
+        {
+            NR_CORE_WARN("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+            break;
+        }
+        case physx::PxErrorCode::eINVALID_PARAMETER:
+        case physx::PxErrorCode::eINVALID_OPERATION:
+        case physx::PxErrorCode::eOUT_OF_MEMORY:
+        case physx::PxErrorCode::eINTERNAL_ERROR:
+        {
+            NR_CORE_ERROR("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+            break;
+        }
+        case physx::PxErrorCode::eABORT:
+        case physx::PxErrorCode::eMASK_ALL:
+        {
+            NR_CORE_FATAL("[Physics]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
+            NR_CORE_ASSERT(false);
+            break;
+        }
+        }
+    }
+
+    void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
+    {
+        PX_UNUSED(constraints);
+        PX_UNUSED(count);
+    }
+
+    void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)
+    {
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            physx::PxActor& actor = *actors[i];
+            Entity& entity = *(Entity*)actor.userData;
+
+            NR_CORE_INFO("PhysX Actor waking up: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+        }
+    }
+
+    void ContactListener::onSleep(physx::PxActor** actors, physx::PxU32 count)
+    {
+        for (uint32_t i = 0; i < count; ++i)
+        {
+            physx::PxActor& actor = *actors[i];
+            Entity& entity = *(Entity*)actor.userData;
+
+            NR_CORE_INFO("PhysX Actor going to sleep: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+        }
+    }
+
+    void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
+    {
+        Entity& a = *(Entity*)pairHeader.actors[0]->userData;
+        Entity& b = *(Entity*)pairHeader.actors[1]->userData;
+
+        if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionBegin(a);
+            if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionBegin(b);
+        }
+        else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionEnd(a);
+            if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionEnd(b);
+        }
+    }
+
+    void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
+    {
+        Entity& a = *(Entity*)pairs->triggerActor->userData;
+        Entity& b = *(Entity*)pairs->otherActor->userData;
+
+        if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerBegin(a);
+            if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerBegin(b);
+        }
+        else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
+        {
+            if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerEnd(a);
+            if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerEnd(b);
+        }
+    }
+
+    void ContactListener::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
+    {
+        PX_UNUSED(bodyBuffer);
+        PX_UNUSED(poseBuffer);
+        PX_UNUSED(count);
+    }
+
+    static physx::PxBroadPhaseType::Enum ToPhysicsBroadphaseType(BroadphaseType type)
+    {
+        switch (type)
+        {
+        case BroadphaseType::SweepAndPrune:        return physx::PxBroadPhaseType::eSAP;
+        case BroadphaseType::MultiBoxPrune:        return physx::PxBroadPhaseType::eMBP;
+        case BroadphaseType::AutomaticBoxPrune:    return physx::PxBroadPhaseType::eABP;
+        }
+
+        return physx::PxBroadPhaseType::eABP;
+    }
+
+    static physx::PxFrictionType::Enum ToPhysXFrictionType(FrictionType type)
+    {
+        switch (type)
+        {
+        case FrictionType::Patch:			return physx::PxFrictionType::ePATCH;
+        case FrictionType::OneDirectional:	return physx::PxFrictionType::eONE_DIRECTIONAL;
+        case FrictionType::TwoDirectional:	return physx::PxFrictionType::eTWO_DIRECTIONAL;
+        }
+
+        return physx::PxFrictionType::ePATCH;
+    }
+
+    physx::PxScene* PhysicsWrappers::CreateScene()
+    {
+        physx::PxSceneDesc sceneDesc(sPhysics->getTolerancesScale());
+
+        const PhysicsSettings& settings = PhysicsManager::GetSettings();
+
+        sceneDesc.gravity = ToPhysicsVector(settings.Gravity);
+        sceneDesc.broadPhaseType = ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
+        sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
+        sceneDesc.filterShader = FilterShader;
+        sceneDesc.simulationEventCallback = &sContactListener;
+        sceneDesc.frictionType = ToPhysXFrictionType(settings.FrictionModel);
+
+        NR_CORE_ASSERT(sceneDesc.isValid());
+        return sPhysics->createScene(sceneDesc);
+    }
+
+    physx::PxRigidActor* PhysicsWrappers::CreateActor(const RigidBodyComponent& rigidbody, const TransformComponent& transform)
+    {
+        physx::PxRigidActor* actor = nullptr;
+
+        const PhysicsSettings& settings = PhysicsManager::GetSettings();
+
+        if (rigidbody.BodyType == RigidBodyComponent::Type::Static)
+        {
+            actor = sPhysics->createRigidStatic(ToPhysicsTransform(transform));
+        }
+        else if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
+        {
+            physx::PxRigidDynamic* dynamicActor = sPhysics->createRigidDynamic(ToPhysicsTransform(transform));
+
+            dynamicActor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, rigidbody.IsKinematic);
+
+            dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, rigidbody.LockPositionX);
+            dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, rigidbody.LockPositionY);
+            dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, rigidbody.LockPositionZ);
+            dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, rigidbody.LockRotationX);
+            dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, rigidbody.LockRotationY);
+            dynamicActor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, rigidbody.LockRotationZ);
+
+            dynamicActor->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
+
+            physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, rigidbody.Mass);
+            actor = dynamicActor;
+        }
+
+        return actor;
+    }
+
+    void PhysicsWrappers::SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t physicsLayer)
+    {
+        const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(physicsLayer);
+
+        if (layerInfo.CollidesWith == 0)
+        {
+            return;
+        }
+
+        physx::PxFilterData filterData;
+        filterData.word0 = layerInfo.BitValue;
+        filterData.word1 = layerInfo.CollidesWith;
+
+        const physx::PxU32 numShapes = actor.getNbShapes();
+
+        physx::PxShape** shapes = (physx::PxShape**)sAllocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
+        actor.getShapes(shapes, numShapes);
+
+        for (physx::PxU32 i = 0; i < numShapes; ++i)
+        {
+            shapes[i]->setSimulationFilterData(filterData);
+        }
+
+        sAllocator.deallocate(shapes);
+    }
+
+    void PhysicsWrappers::AddBoxCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const BoxColliderComponent& collider, const glm::vec3& size)
+    {
+        glm::vec3 colliderSize = collider.Size;
+
+        if (size.x != 0.0f)
+        {
+            colliderSize.x *= size.x;
+        }
+        if (size.y != 0.0f)
+        {
+            colliderSize.y *= size.y;
+        }
+        if (size.z != 0.0f)
+        {
+            colliderSize.z *= size.z;
+        }
+
+        physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, boxGeometry, material);
+        shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+        shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+        shape->setLocalPose(ToPhysicsTransform(glm::translate(glm::mat4(1.0F), collider.Offset)));
+    }
+
+    void PhysicsWrappers::AddSphereCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const SphereColliderComponent& collider, const glm::vec3& size)
+    {
+        float colliderRadius = collider.Radius;
+
+        if (size.x != 0.0f)
+        {
+            colliderRadius *= (size.x / 2.0f);
+        }
+
+        physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(colliderRadius);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, sphereGeometry, material);
+        shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+        shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+    }
+
+    void PhysicsWrappers::AddCapsuleCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const CapsuleColliderComponent& collider, const glm::vec3& size)
+    {
+        float colliderRadius = collider.Radius;
+        float colliderHeight = collider.Height;
+
+        if (size.x != 0.0f)
+        {
+            colliderRadius *= size.x;
+        }
+
+        if (size.y != 0.0f)
+        {
+            colliderHeight *= size.y;
+        }
+
+        physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(colliderRadius, colliderHeight / 2.0f);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, capsuleGeometry, material);
+        shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+        shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+        shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
+    }
+
+    void PhysicsWrappers::AddMeshCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, MeshColliderComponent& collider, const glm::vec3& size)
+    {
+        if (collider.IsConvex)
+        {
+            std::vector<physx::PxConvexMesh*> meshes = CreateConvexMesh(collider);
+
+            for (auto mesh : meshes)
+            {
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(mesh, physx::PxMeshScale(ToPhysicsVector(size)));
+                convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+                physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, convexGeometry, material);
+                shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+                shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+            }
+        }
+        else
+        {
+            std::vector<physx::PxTriangleMesh*> meshes = CreateTriangleMesh(collider);
+
+            for (auto mesh : meshes)
+            {
+                physx::PxTriangleMeshGeometry convexGeometry = physx::PxTriangleMeshGeometry(mesh, physx::PxMeshScale(ToPhysicsVector(size)));
+                physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(actor, convexGeometry, material);
+                shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
+                shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
+            }
+        }
+    }
+
+    std::vector<physx::PxTriangleMesh*> PhysicsWrappers::CreateTriangleMesh(MeshColliderComponent& collider, bool invalidateOld)
+    {
+        std::vector<physx::PxTriangleMesh*> meshes;
+
+        if (invalidateOld)
+        {
+            ConvexMeshSerializer::Delete(collider.CollisionMesh->GetFilePath());
+        }
+
+        if (!ConvexMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
+        {
+            const std::vector<Vertex>& vertices = collider.CollisionMesh->GetStaticVertices();
+            const std::vector<Index>& indices = collider.CollisionMesh->GetIndices();
+
+            std::vector<glm::vec3> vertexPositions;
+            for (const auto& vertex : vertices)
+            {
+                vertexPositions.push_back(vertex.Position);
+            }
+
+            for (const auto& submesh : collider.CollisionMesh->GetSubmeshes())
+            {
+                physx::PxTolerancesScale sc;
+                physx::PxCookingParams params(sc);
+
+                physx::PxTriangleMeshDesc convexDesc;
+                convexDesc.points.count = submesh.VertexCount;
+                convexDesc.points.stride = sizeof(glm::vec3);
+                convexDesc.points.data = &vertexPositions[submesh.BaseVertex];
+                convexDesc.triangles.count = submesh.IndexCount / 3;
+                convexDesc.triangles.data = &indices[submesh.BaseIndex / 3];
+                convexDesc.triangles.stride = sizeof(Index);
+
+                physx::PxDefaultMemoryOutputStream buf;
+                physx::PxTriangleMeshCookingResult::Enum result;
+                if (!PxCookTriangleMesh(params, convexDesc, buf, &result))
+                {
+                    NR_CORE_ERROR("Failed to cook triangle mesh: {0}", submesh.MeshName);
+                    continue;
+                }
+
+                ConvexMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
+                physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+                meshes.push_back(sPhysics->createTriangleMesh(input));
+            }
+        }
+        else
+        {
+            std::vector<physx::PxDefaultMemoryInputData> serializedMeshes = ConvexMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
+
+            for (auto& meshData : serializedMeshes)
+            {
+                meshes.push_back(sPhysics->createTriangleMesh(meshData));
+            }
+
+            ConvexMeshSerializer::CleanupDataBuffers();
+        }
+
+        if (collider.ProcessedMeshes.size() <= 0)
+        {
+            for (auto mesh : meshes)
+            {
+                const uint32_t nbVerts = mesh->getNbVertices();
+                const physx::PxVec3* convexVertices = mesh->getVertices();
+                const uint32_t nbTriangles = mesh->getNbTriangles();
+                const physx::PxU16* tris = (const physx::PxU16*)mesh->getTriangles();
+
+                std::vector<Vertex> vertices;
+                std::vector<Index> indices;
+
+
+                for (uint32_t v = 0; v < nbVerts; ++v)
+                {
+                    Vertex v1;
+                    v1.Position = FromPhysicsVector(convexVertices[v]);
+                    vertices.push_back(v1);
+                }
+
+                for (uint32_t tri = 0; tri < nbTriangles; ++tri)
+                {
+                    Index index;
+                    index.V1 = tris[3 * tri + 0];
+                    index.V2 = tris[3 * tri + 1];
+                    index.V3 = tris[3 * tri + 2];
+                    indices.push_back(index);
+                }
+
+                collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices));
+            }
+        }
+
+        return meshes;
+    }
+
+    std::vector<physx::PxConvexMesh*> PhysicsWrappers::CreateConvexMesh(MeshColliderComponent& collider, bool invalidateOld)
+    {
+        std::vector<physx::PxConvexMesh*> meshes;
+
+        physx::PxTolerancesScale sc;
+        physx::PxCookingParams newParams(sc);
+        newParams.planeTolerance = 0.0F;
+        newParams.meshPreprocessParams = physx::PxMeshPreprocessingFlags(physx::PxMeshPreprocessingFlag::eWELD_VERTICES);
+        newParams.meshWeldTolerance = 0.01f;
+
+        if (invalidateOld)
+        {
+            ConvexMeshSerializer::Delete(collider.CollisionMesh->GetFilePath());
+        }
+
+        if (!ConvexMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
+        {
+            const std::vector<Vertex>& vertices = collider.CollisionMesh->GetStaticVertices();
+            const std::vector<Index>& indices = collider.CollisionMesh->GetIndices();
+            std::vector<glm::vec3> vertexPositions;
+            for (const auto& vertex : vertices)
+                vertexPositions.push_back(vertex.Position);
+
+            for (const auto& submesh : collider.CollisionMesh->GetSubmeshes())
+            {
+                physx::PxConvexMeshDesc convexDesc;
+                convexDesc.points.count = submesh.VertexCount;
+                convexDesc.points.stride = sizeof(glm::vec3);
+                convexDesc.points.data = &vertexPositions[submesh.BaseVertex];
+                convexDesc.flags = physx::PxConvexFlag::eCOMPUTE_CONVEX | physx::PxConvexFlag::eCHECK_ZERO_AREA_TRIANGLES | physx::PxConvexFlag::eSHIFT_VERTICES;
+
+                physx::PxDefaultMemoryOutputStream buf;
+                physx::PxConvexMeshCookingResult::Enum result;
+                if (!PxCookConvexMesh(newParams, convexDesc, buf, &result))
+                {
+                    NR_CORE_ERROR("Failed to cook convex mesh {0}", submesh.MeshName);
+                    continue;
+                }
+
+                ConvexMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
+                physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
+                meshes.push_back(sPhysics->createConvexMesh(input));
+            }
+        }
+        else
+        {
+            std::vector<physx::PxDefaultMemoryInputData> serializedMeshes = ConvexMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
+
+            for (auto& meshData : serializedMeshes)
+            {
+                meshes.push_back(sPhysics->createConvexMesh(meshData));
+            }
+
+            ConvexMeshSerializer::CleanupDataBuffers();
+        }
+
+        if (collider.ProcessedMeshes.size() <= 0)
+        {
+            for (auto mesh : meshes)
+            {
+                // Based On: https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/ThirdParty/PhysX3/NvCloth/samples/SampleBase/renderer/ConvexRenderMesh.cpp
+                const uint32_t nbPolygons = mesh->getNbPolygons();
+                const physx::PxVec3* convexVertices = mesh->getVertices();
+                const physx::PxU8* convexIndices = mesh->getIndexBuffer();
+
+                uint32_t nbVertices = 0;
+                uint32_t nbFaces = 0;
+
+                std::vector<Vertex> collisionVertices;
+                std::vector<Index> collisionIndices;
+                uint32_t vertCounter = 0;
+                uint32_t indexCounter = 0;
+
+                for (uint32_t i = 0; i < nbPolygons; ++i)
+                {
+                    physx::PxHullPolygon polygon;
+                    mesh->getPolygonData(i, polygon);
+                    nbVertices += polygon.mNbVerts;
+                    nbFaces += (polygon.mNbVerts - 2) * 3;
+
+                    uint32_t vI0 = vertCounter;
+
+                    for (uint32_t vI = 0; vI < polygon.mNbVerts; vI++)
+                    {
+                        Vertex v;
+                        v.Position = FromPhysicsVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]);
+                        collisionVertices.push_back(v);
+                        ++vertCounter;
+                    }
+
+                    for (uint32_t vI = 1; vI < uint32_t(polygon.mNbVerts) - 1; ++vI)
+                    {
+                        Index index;
+                        index.V1 = uint32_t(vI0);
+                        index.V2 = uint32_t(vI0 + vI + 1);
+                        index.V3 = uint32_t(vI0 + vI);
+                        collisionIndices.push_back(index);
+                        ++indexCounter;
+                    }
+
+                    collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(collisionVertices, collisionIndices));
+                }
+            }
+        }
+
+        return meshes;
+    }
+
+    physx::PxMaterial* PhysicsWrappers::CreateMaterial(const PhysicsMaterialComponent& material)
+    {
+        return sPhysics->createMaterial(material.StaticFriction, material.DynamicFriction, material.Bounciness);
+    }
+
+    bool PhysicsWrappers::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit)
+    {
+        physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
+        physx::PxRaycastBuffer hitInfo;
+        bool result = scene->raycast(ToPhysicsVector(origin), ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
+
+        if (result)
+        {
+            Entity& entity = *(Entity*)hitInfo.block.actor->userData;
+
+            hit->EntityID = entity.GetID();
+            hit->Position = FromPhysicsVector(hitInfo.block.position);
+            hit->Normal = FromPhysicsVector(hitInfo.block.normal);
+            hit->Distance = hitInfo.block.distance;
+        }
+
+        return result;
+    }
+
+    bool PhysicsWrappers::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
+    {
+        physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
+
+        memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
+        physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
+        physx::PxBoxGeometry geometry = physx::PxBoxGeometry(halfSize.x, halfSize.y, halfSize.z);
+        physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
+
+        bool result = scene->overlap(geometry, pose, buf);
+
+        if (result)
+        {
+            uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+            memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
+            *count = bodyCount;
+        }
+
+        return result;
+    }
+
+    bool PhysicsWrappers::OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
+    {
+        physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
+
+        memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
+        physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
+        physx::PxCapsuleGeometry geometry = physx::PxCapsuleGeometry(radius, halfHeight);
+        physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0F), origin));
+
+        bool result = scene->overlap(geometry, pose, buf);
+
+        if (result)
+        {
+            uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+            memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
+            *count = bodyCount;
+        }
+
+        return result;
+    }
+
+    bool PhysicsWrappers::OverlapSphere(const glm::vec3& origin, float radius, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count)
+    {
+        physx::PxScene* scene = static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene());
+
+        memset(sOverlapBuffer, 0, sizeof(sOverlapBuffer));
+        physx::PxOverlapBuffer buf(sOverlapBuffer, OVERLAP_MAX_COLLIDERS);
+        physx::PxSphereGeometry geometry = physx::PxSphereGeometry(radius);
+        physx::PxTransform pose = ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
+
+        bool result = scene->overlap(geometry, pose, buf);
+
+        if (result)
+        {
+            uint32_t bodyCount = buf.nbTouches >= OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+            memcpy(buffer.data(), buf.touches, bodyCount * sizeof(physx::PxOverlapHit));
+            *count = bodyCount;
+        }
+
+        return result;
+    }
+
+    void PhysicsWrappers::Initialize()
+    {
+        NR_CORE_ASSERT(!sFoundation, "PhysicsWrappers::Initializer shouldn't be called more than once!");
+
+        sFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, sAllocator, sErrorCallback);
+        NR_CORE_ASSERT(sFoundation, "PxCreateFoundation Failed!");
+
+        sPVD = PxCreatePvd(*sFoundation);
+        if (sPVD)
+        {
+            physx::PxPvdTransport* transport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 10);
+            sPVD->connect(*transport, physx::PxPvdInstrumentationFlag::eALL);
+        }
+
+        physx::PxTolerancesScale scale = physx::PxTolerancesScale();
+        scale.length = 10;
+        sPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *sFoundation, scale, true, sPVD);
+        NR_CORE_ASSERT(sPhysics, "PxCreatePhysics Failed!");
+    }
+
+    void PhysicsWrappers::Shutdown()
+    {
+        sPhysics->release();
+        sFoundation->release();
+    }
 }
