@@ -12,6 +12,8 @@ namespace NR
 		ImGuiLayer(const std::string& name);
 		~ImGuiLayer() override;
 
+		void OnEvent(Event& e) override;
+
 		void Begin();
 		void End();
 

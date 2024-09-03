@@ -9,6 +9,7 @@
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Scene/SceneCamera.h"
+#include "NotRed/Renderer/SceneEnvironment.h"
 
 namespace NR
 {
@@ -59,6 +60,27 @@ namespace NR
             : MeshObj(mesh) {}
 
         operator Ref<Mesh>() { return MeshObj; }
+    };
+
+    enum class LightType
+    {
+        None, Directional, Point, Spot
+    };
+
+    struct DirectionalLightComponent
+    {
+        glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+        float Intensity = 1.0f;
+        bool CastShadows = true;
+        bool SoftShadows = true;
+        float LightSize = 0.5f; // For PCSS
+    };
+
+    struct SkyLightComponent
+    {
+        Environment SceneEnvironment;
+        float Intensity = 1.0f;
+        float Angle = 0.0f;
     };
 
     struct ScriptComponent

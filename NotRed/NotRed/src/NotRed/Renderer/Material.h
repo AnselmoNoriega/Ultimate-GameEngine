@@ -13,7 +13,8 @@ enum class MaterialFlag
 	{
 		None = (1 << 0),
 		DepthTest = (1 << 1),
-		Blend = (1 << 2)
+		Blend = (1 << 2),
+		TwoSided = (1 << 3)
 	};
 
 	class Material : public RefCounted
@@ -28,6 +29,8 @@ enum class MaterialFlag
 
 		uint32_t GetFlags() const { return mMaterialFlags; }
 		void SetFlag(MaterialFlag flag) { mMaterialFlags |= (uint32_t)flag; }
+
+		Ref<Shader> GetShader() { return mShader; }
 
 		template <typename T>
 		void Set(const std::string& name, const T& value)
@@ -83,6 +86,8 @@ enum class MaterialFlag
 			return mTextures[slot];
 		}
 
+		ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
+
 	private:
 		friend class MaterialInstance;
 
@@ -92,7 +97,6 @@ enum class MaterialFlag
 		void BindTextures();
 
 		ShaderUniformDeclaration* FindUniformDeclaration(const std::string& name);
-		ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
 		Buffer& GetUniformBufferTarget(ShaderUniformDeclaration* uniformDeclaration);
 
 	private:

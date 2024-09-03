@@ -123,7 +123,6 @@ namespace NR
         }
 
         Init();
-        SetEnvironment(Environment::Load("Assets/Env/HDR_blue_nebulae-1.hdr"));
     }
 
     Scene::~Scene()
@@ -145,17 +144,6 @@ namespace NR
 
     void Scene::Update(float dt)
     {
-        {
-            auto view = mRegistry.view<ScriptComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
-                {
-                    ScriptEngine::UpdateEntity(e, dt);
-                }
-            }
-        }
         {
             auto sceneView = mRegistry.view<Box2DWorldComponent>();
             auto& box2DWorld = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
@@ -180,6 +168,19 @@ namespace NR
         }
 
         PhysicsManager::Simulate(dt);
+
+        {
+            auto view = mRegistry.view<ScriptComponent>();
+            for (auto entity : view)
+            {
+                UUID entityID = mRegistry.get<IDComponent>(entity).ID;
+                Entity e = { entity, this };
+                if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+                {
+                    ScriptEngine::UpdateEntity(e, dt);
+                }
+            }
+        }
     }
 
     void Scene::RenderRuntime(float dt)
@@ -194,6 +195,37 @@ namespace NR
         NR_CORE_ASSERT(cameraEntity, "Scene does not contain any cameras!");
         SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>();
         camera.SetViewportSize(mViewportWidth, mViewportHeight);
+
+        // Process lights
+        {
+            mLightEnvironment = LightEnvironment();
+            auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+            uint32_t directionalLightIndex = 0;
+            for (auto entity : lights)
+            {
+                auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>(entity);
+                glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
+                mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                {
+                    direction,
+                    lightComponent.Radiance,
+                    lightComponent.Intensity,
+                    lightComponent.CastShadows
+                };
+            }
+        }
+
+        {
+            mEnvironment = Environment();
+            auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
+            for (auto entity : lights)
+            {
+                auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
+                mEnvironment = skyLightComponent.SceneEnvironment;
+                mEnvironmentIntensity = skyLightComponent.Intensity;
+                SetSkybox(mEnvironment.RadianceMap);
+            }
+        }
 
         {
             mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
@@ -216,10 +248,41 @@ namespace NR
 
     void Scene::RenderEditor(float dt, const EditorCamera& editorCamera)
     {
+        // Process lights
+        {
+            mLightEnvironment = LightEnvironment();
+            auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+            uint32_t directionalLightIndex = 0;
+            for (auto entity : lights)
+            {
+                auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>(entity);
+                glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
+                mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                {
+                    direction,
+                    lightComponent.Radiance,
+                    lightComponent.Intensity,
+                    lightComponent.CastShadows
+                };
+            }
+        }
+
+        {
+            mEnvironment = Environment();
+            auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
+            for (auto entity : lights)
+            {
+                auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
+                mEnvironment = skyLightComponent.SceneEnvironment;
+                mEnvironmentIntensity = skyLightComponent.Intensity;
+                SetSkybox(mEnvironment.RadianceMap);
+            }
+        }
+
         mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
 
         auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-        SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix() });
+        SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
         for (auto entity : group)
         {
             auto&& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
@@ -427,12 +490,6 @@ namespace NR
         mViewportHeight = height;
     }
 
-    void Scene::SetEnvironment(const Environment& environment)
-    {
-        mEnvironment = environment;
-        SetSkybox(environment.RadianceMap);
-    }
-
     Entity Scene::GetMainCameraEntity()
     {
         auto view = mRegistry.view<CameraComponent>();
@@ -519,6 +576,8 @@ namespace NR
 
         CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -570,6 +629,8 @@ namespace NR
         CopyComponent<TagComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
@@ -610,12 +671,5 @@ namespace NR
     void Scene::SetPhysics2DGravity(float gravity)
     {
         mRegistry.get<Box2DWorldComponent>(mSceneEntity).World->SetGravity({ 0.0f, gravity });
-    }
-
-
-    Environment Environment::Load(const std::string& filepath)
-    {
-        auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(filepath);
-        return { filepath, radiance, irradiance };
     }
 }

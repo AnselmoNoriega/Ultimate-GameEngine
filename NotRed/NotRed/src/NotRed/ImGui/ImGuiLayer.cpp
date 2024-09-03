@@ -30,6 +30,10 @@ namespace NR
 
 	}
 
+	void ImGuiLayer::OnEvent(Event& e)
+	{
+	}
+
 	void ImGuiLayer::Attach()
 	{
 		// Setup Dear ImGui context

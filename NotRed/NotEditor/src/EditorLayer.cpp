@@ -7,6 +7,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <imgui/imgui_internal.h>
+
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -40,7 +42,7 @@ namespace NR
     }
 
     EditorLayer::EditorLayer()
-        : mSceneType(SceneType::Model), mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 10000.0f))
+        : mSceneType(SceneType::Model), mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f))
     {
     }
 
@@ -55,15 +57,9 @@ namespace NR
         mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
         mPlayButtonTex = Texture2D::Create("Assets/Editor/PlayButton.png");
 
-        mEditorScene = Ref<Scene>::Create("TestScene", true);
-        UpdateWindowTitle("Scene");
-        ScriptEngine::SetSceneContext(mEditorScene);
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
         mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
-
-        SceneSerializer serializer(mEditorScene);
-        //serializer.Deserialize("Assets/Scenes/Test.nsc");
     }
 
     void EditorLayer::Detach()
@@ -121,6 +117,10 @@ namespace NR
 
     void EditorLayer::Update(float dt)
     {
+        auto [x, y] = GetMouseViewportSpace();
+
+        SceneRenderer::SetFocusPoint({ x * 0.5f + 0.5f, y * 0.5f + 0.5f });
+
         switch (mSceneState)
         {
         case SceneState::Edit:
@@ -327,32 +327,53 @@ namespace NR
         return changed;
     }
 
+    void EditorLayer::NewScene()
+    {
+        mEditorScene = Ref<Scene>::Create();
+        mSceneHierarchyPanel->SetContext(mEditorScene);
+        ScriptEngine::SetSceneContext(mEditorScene);
+        UpdateWindowTitle("Scene");
+        mSceneFilePath = std::string();
+
+        mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+    }
+
     void EditorLayer::OpenScene()
     {
         auto& app = Application::Get();
         std::string filepath = app.OpenFile("NotRed Scene (*.nsc)\0*.nsc\0");
         if (!filepath.empty())
         {
-            Ref<Scene> newScene = Ref<Scene>::Create("Scene", true);
-            SceneSerializer serializer(newScene);
-            serializer.Deserialize(filepath);
-            mEditorScene = newScene;
-            std::filesystem::path path = filepath;
-            UpdateWindowTitle(path.filename().string());
-            mSceneHierarchyPanel->SetContext(mEditorScene);
-            ScriptEngine::SetSceneContext(mEditorScene);
-
-            mEditorScene->SetSelectedEntity({});
-            mSelectionContext.clear();
-
-            mSceneFilePath = filepath;
+            OpenScene(filepath);
         }
+    }
+
+    void EditorLayer::OpenScene(const std::string& filepath)
+    {
+        Ref<Scene> newScene = Ref<Scene>::Create();
+        SceneSerializer serializer(newScene);
+        serializer.Deserialize(filepath);
+        mEditorScene = newScene;
+        std::filesystem::path path = filepath;
+        UpdateWindowTitle(path.filename().string());
+        mSceneHierarchyPanel->SetContext(mEditorScene);
+        ScriptEngine::SetSceneContext(mEditorScene);
+
+        mEditorScene->SetSelectedEntity({});
+        mSelectionContext.clear();
     }
 
     void EditorLayer::SaveScene()
     {
-        SceneSerializer serializer(mEditorScene);
-        serializer.Serialize(mSceneFilePath);
+        if (!mSceneFilePath.empty())
+        {
+            SceneSerializer serializer(mEditorScene);
+            serializer.Serialize(mSceneFilePath);
+        }
+        else
+        {
+            SaveSceneAs();
+        }
     }
 
     void EditorLayer::SaveSceneAs()
@@ -405,7 +426,9 @@ namespace NR
         ImGui::PopStyleVar();
 
         if (opt_fullscreen)
+        {
             ImGui::PopStyleVar(2);
+        }
 
         // Dockspace
         ImGuiIO& io = ImGui::GetIO();
@@ -424,15 +447,6 @@ namespace NR
         ImGui::Begin("Model");
 
         ImGui::Begin("Environment");
-
-        if (ImGui::Button("Load Environment Map"))
-        {
-            std::string filename = Application::Get().OpenFile("*.hdr");
-            if (filename != "")
-            {
-                mEditorScene->SetEnvironment(Environment::Load(filename));
-            }
-        }
 
         ImGui::SliderFloat("Skybox LOD", &mEditorScene->GetSkyboxLod(), 0.0f, 11.0f);
 
@@ -558,7 +572,7 @@ namespace NR
         {
             mRuntimeScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         }
-        mEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 10000.0f));
+        mEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
         mEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
 
@@ -628,6 +642,7 @@ namespace NR
             {
                 if (ImGui::MenuItem("New Scene", "Ctrl+N"))
                 {
+                    NewScene();
                 }
                 if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
                 {
@@ -876,6 +891,7 @@ namespace NR
         ImGui::End();
 
         ScriptEngine::ImGuiRender();
+        SceneRenderer::ImGuiRender();
         PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
         ImGui::End();
@@ -930,32 +946,38 @@ namespace NR
 
     bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
     {
-        if (mViewportPanelFocused)
+        if (GImGui->ActiveId == 0)
         {
+            if (mViewportPanelMouseOver)
+            {
+                switch (e.GetKeyCode())
+                {
+                case KeyCode::Q:
+                {
+                    mGizmoType = -1;
+                    break;
+                }
+                case KeyCode::W:
+                {
+                    mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                    break;
+                }
+                case KeyCode::E:
+                {
+                    mGizmoType = ImGuizmo::OPERATION::ROTATE;
+                    break;
+                }
+                case KeyCode::R:
+                {
+                    mGizmoType = ImGuizmo::OPERATION::SCALE;
+                    break;
+                }
+                }
+
+            }
             switch (e.GetKeyCode())
             {
-            case KeyCode::Q:
-            {
-                mGizmoType = -1;
-                break;
-            }
-            case KeyCode::W:
-            {
-                mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
-                break;
-            }
-            case KeyCode::E:
-            {
-                mGizmoType = ImGuizmo::OPERATION::ROTATE;
-                break;
-            }
-            case KeyCode::R:
-            {
-                mGizmoType = ImGuizmo::OPERATION::SCALE;
-                break;
-            }
             case KeyCode::Delete:
-            {
                 if (mSelectionContext.size())
                 {
                     Entity selectedEntity = mSelectionContext[0].EntityObj;
@@ -965,7 +987,6 @@ namespace NR
                     mSceneHierarchyPanel->SetSelected({});
                 }
                 break;
-            }
             }
         }
 
@@ -991,6 +1012,11 @@ namespace NR
             case KeyCode::G:
             {
                 SceneRenderer::GetOptions().ShowGrid = !SceneRenderer::GetOptions().ShowGrid;
+                break;
+            }
+            case KeyCode::N:
+            {
+                NewScene();
                 break;
             }
             case KeyCode::O:
@@ -1024,7 +1050,7 @@ namespace NR
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
     {
         auto [mx, my] = Input::GetMousePosition();
-        if (e.GetMouseButton() == NR_MOUSE_BUTTON_LEFT && !Input::IsKeyPressed(KeyCode::LeftAlt) && !ImGuizmo::IsOver() && mSceneState != SceneState::Play)
+        if (e.GetMouseButton() == NR_MOUSE_BUTTON_LEFT && mViewportPanelMouseOver && !Input::IsKeyPressed(KeyCode::LeftAlt) && !ImGuizmo::IsOver() && mSceneState != SceneState::Play)
         {
             auto [mouseX, mouseY] = GetMouseViewportSpace();
             if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)

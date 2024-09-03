@@ -279,6 +279,33 @@ namespace NR
             out << YAML::EndMap; // CameraComponent
         }
 
+        if (entity.HasComponent<DirectionalLightComponent>())
+        {
+            out << YAML::Key << "DirectionalLightComponent";
+            out << YAML::BeginMap; // DirectionalLightComponent
+
+            auto& directionalLightComponent = entity.GetComponent<DirectionalLightComponent>();
+            out << YAML::Key << "Radiance" << YAML::Value << directionalLightComponent.Radiance;
+            out << YAML::Key << "CastShadows" << YAML::Value << directionalLightComponent.CastShadows;
+            out << YAML::Key << "SoftShadows" << YAML::Value << directionalLightComponent.SoftShadows;
+            out << YAML::Key << "LightSize" << YAML::Value << directionalLightComponent.LightSize;
+
+            out << YAML::EndMap; // DirectionalLightComponent
+        }
+
+        if (entity.HasComponent<SkyLightComponent>())
+        {
+            out << YAML::Key << "SkyLightComponent";
+            out << YAML::BeginMap; // SkyLightComponent
+
+            auto& skyLightComponent = entity.GetComponent<SkyLightComponent>();
+            out << YAML::Key << "EnvironmentAssetPath" << YAML::Value << skyLightComponent.SceneEnvironment.FilePath;
+            out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;
+            out << YAML::Key << "Angle" << YAML::Value << skyLightComponent.Angle;
+
+            out << YAML::EndMap; // SkyLightComponent
+        }
+
         if (entity.HasComponent<SpriteRendererComponent>())
         {
             out << YAML::Key << "SpriteRendererComponent";
@@ -520,7 +547,6 @@ namespace NR
         if (environment)
         {
             std::string envPath = environment["AssetPath"].as<std::string>();
-            mScene->SetEnvironment(Environment::Load(envPath));
 
             auto lightNode = environment["Light"];
             if (lightNode)
@@ -652,6 +678,29 @@ namespace NR
                     component.Primary = cameraComponent["Primary"].as<bool>();
 
                     NR_CORE_INFO("  Primary Camera: {0}", component.Primary);
+                }
+
+                auto directionalLightComponent = entity["DirectionalLightComponent"];
+                if (directionalLightComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<DirectionalLightComponent>();
+                    component.Radiance = directionalLightComponent["Radiance"].as<glm::vec3>();
+                    component.CastShadows = directionalLightComponent["CastShadows"].as<bool>();
+                    component.SoftShadows = directionalLightComponent["SoftShadows"].as<bool>();
+                    component.LightSize = directionalLightComponent["LightSize"].as<float>();
+                }
+
+                auto skyLightComponent = entity["SkyLightComponent"];
+                if (skyLightComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
+                    std::string env = skyLightComponent["EnvironmentAssetPath"].as<std::string>();
+                    if (!env.empty())
+                    {
+                        component.SceneEnvironment = Environment::Load(env);
+                    }
+                    component.Intensity = skyLightComponent["Intensity"].as<float>();
+                    component.Angle = skyLightComponent["Angle"].as<float>();
                 }
 
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];

@@ -6,6 +6,7 @@
 #include "NotRed/Renderer/Camera.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Material.h"
+#include "NotRed/Renderer/SceneEnvironment.h"
 
 #include "SceneCamera.h"
 #include "NotRed/Editor/EditorCamera.h"
@@ -14,20 +15,26 @@
 
 namespace NR
 {
-	struct Environment
-	{
-		std::string FilePath;
-		Ref<TextureCube> RadianceMap;
-		Ref<TextureCube> IrradianceMap;
-
-		static Environment Load(const std::string& filepath);
-	};
-
 	struct Light
 	{
 		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
+
 		float Multiplier = 1.0f;
+	};
+
+	struct DirectionalLight
+	{
+		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
+		float Multiplier = 0.0f;
+
+		bool CastShadows = true;
+	};
+
+	struct LightEnvironment
+	{
+		DirectionalLight DirectionalLights[4];
 	};
 
 	class Entity;
@@ -51,7 +58,6 @@ namespace NR
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
-		void SetEnvironment(const Environment& environment);
 		const Environment& GetEnvironment() const { return mEnvironment; }
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
@@ -99,7 +105,10 @@ namespace NR
 		Light mLight;
 		float mLightMultiplier = 0.3f;
 
+		LightEnvironment mLightEnvironment;
+
 		Environment mEnvironment;
+		float mEnvironmentIntensity = 1.0f;
 		Ref<TextureCube> mSkyboxTexture;
 		Ref<MaterialInstance> mSkyboxMaterial;
 

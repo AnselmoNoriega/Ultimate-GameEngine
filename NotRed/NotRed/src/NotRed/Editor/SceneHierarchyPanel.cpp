@@ -11,6 +11,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "NotRed/ImGui/ImGui.h"
+
 #include "NotRed/Core/Application.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Physics/PhysicsLayer.h"
@@ -63,9 +65,34 @@ namespace NR
 
             if (ImGui::BeginPopupContextWindow(0, 1))
             {
-                if (ImGui::MenuItem("Create Empty Entity"))
+                if (ImGui::BeginMenu("Create"))
                 {
-                    mContext->CreateEntity("Entity");
+                    if (ImGui::MenuItem("Empty Entity"))
+                    {
+                        auto newEntity = mContext->CreateEntity("Entity");
+                        SetSelected(newEntity);
+                    }
+                    if (ImGui::MenuItem("Mesh"))
+                    {
+                        auto newEntity = mContext->CreateEntity("Entity");
+                        newEntity.AddComponent<MeshComponent>();
+                        SetSelected(newEntity);
+                    }
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Directional Light"))
+                    {
+                        auto newEntity = mContext->CreateEntity("Directional Light");
+                        newEntity.AddComponent<DirectionalLightComponent>();
+                        newEntity.GetComponent<TransformComponent>().GetTransform() = glm::toMat4(glm::quat(glm::radians(glm::vec3{80.0f, 10.0f, 0.0f})));
+                        SetSelected(newEntity);
+                    }
+                    if (ImGui::MenuItem("Sky Light"))
+                    {
+                        auto newEntity = mContext->CreateEntity("Sky Light");
+                        newEntity.AddComponent<SkyLightComponent>();
+                        SetSelected(newEntity);
+                    }
+                    ImGui::EndMenu();
                 }
                 ImGui::EndPopup();
             }
@@ -200,228 +227,6 @@ namespace NR
 
             ImGui::TreePop();
         }
-    }
-
-    static int sUIContextID = 0;
-    static uint32_t sCounter = 0;
-    static char sIDBuffer[16];
-
-    static void PushID()
-    {
-        ImGui::PushID(sUIContextID++);
-        sCounter = 0;
-    }
-
-    static void PopID()
-    {
-        ImGui::PopID();
-        --sUIContextID;
-    }
-
-    static void BeginPropertyGrid()
-    {
-        PushID();
-        ImGui::Columns(2);
-    }
-
-    static bool Property(const char* label, std::string& value, bool error = false)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        char buffer[256];
-        strcpy(buffer, value.c_str());
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-
-        if (error)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 2.0f));
-        }
-
-        if (ImGui::InputText(sIDBuffer, buffer, 256))
-        {
-            value = buffer;
-            modified = true;
-        }
-
-        if (error)
-        {
-            ImGui::PopStyleColor();
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-    static void Property(const char* label, const char* value)
-    {
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-
-        ImGui::BeginDisabled(true);
-        ImGui::InputText(sIDBuffer, (char*)value, 256);
-        ImGui::EndDisabled();
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-    }
-
-    static bool Property(const char* label, bool& value)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::Checkbox(sIDBuffer, &value))
-            modified = true;
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-    static bool Property(const char* label, int& value)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::DragInt(sIDBuffer, &value))
-        {
-            modified = true;
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-    static bool Property(const char* label, float& value, float delta = 0.1f)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::DragFloat(sIDBuffer, &value, delta))
-        {
-            modified = true;
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-    static bool Property(const char* label, glm::vec2& value, float delta = 0.1f)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::DragFloat2(sIDBuffer, glm::value_ptr(value), delta))
-        {
-            modified = true;
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-
-    static bool Property(const char* label, glm::vec3& value, float delta = 0.1f)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
-        {
-            modified = true;
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-    static bool Property(const char* label, glm::vec4& value, float delta = 0.1f)
-    {
-        bool modified = false;
-
-        ImGui::Text(label);
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        sIDBuffer[0] = '#';
-        sIDBuffer[1] = '#';
-        memset(sIDBuffer + 2, 0, 14);
-        itoa(sCounter++, sIDBuffer + 2, 16);
-        if (ImGui::DragFloat4(sIDBuffer, glm::value_ptr(value), delta))
-        {
-            modified = true;
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return modified;
-    }
-
-    static void EndPropertyGrid()
-    {
-        ImGui::Columns(1);
-        PopID();
     }
 
     template<typename T, typename UIFunction>
@@ -599,6 +404,22 @@ namespace NR
                     ImGui::CloseCurrentPopup();
                 }
             }
+            if (!mSelectionContext.HasComponent<DirectionalLightComponent>())
+            {
+                if (ImGui::Button("Directional Light"))
+                {
+                    mSelectionContext.AddComponent<DirectionalLightComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<SkyLightComponent>())
+            {
+                if (ImGui::Button("Sky Light"))
+                {
+                    mSelectionContext.AddComponent<SkyLightComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
             if (!mSelectionContext.HasComponent<ScriptComponent>())
             {
                 if (ImGui::Button("Script"))
@@ -714,23 +535,23 @@ namespace NR
                     ImGui::EndCombo();
                 }
 
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
                 if (cc.CameraObj.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
                 {
                     float verticalFOV = cc.CameraObj.GetPerspectiveVerticalFOV();
-                    if (Property("Vertical FOV", verticalFOV))
+                    if (UI::Property("Vertical FOV", verticalFOV))
                     {
                         cc.CameraObj.SetPerspectiveVerticalFOV(verticalFOV);
                     }
 
                     float nearClip = cc.CameraObj.GetPerspectiveNearClip();
-                    if (Property("Near Clip", nearClip))
+                    if (UI::Property("Near Clip", nearClip))
                     {
                         cc.CameraObj.SetPerspectiveNearClip(nearClip);
                     }
                     ImGui::SameLine();
                     float farClip = cc.CameraObj.GetPerspectiveFarClip();
-                    if (Property("Far Clip", farClip))
+                    if (UI::Property("Far Clip", farClip))
                     {
                         cc.CameraObj.SetPerspectiveFarClip(farClip);
                     }
@@ -738,35 +559,80 @@ namespace NR
                 else if (cc.CameraObj.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
                 {
                     float orthoSize = cc.CameraObj.GetOrthographicSize();
-                    if (Property("Size", orthoSize))
+                    if (UI::Property("Size", orthoSize))
                     {
                         cc.CameraObj.SetOrthographicSize(orthoSize);
                     }
 
                     float nearClip = cc.CameraObj.GetOrthographicNearClip();
-                    if (Property("Near Clip", nearClip))
+                    if (UI::Property("Near Clip", nearClip))
                     {
                         cc.CameraObj.SetOrthographicNearClip(nearClip);
                     }
                     ImGui::SameLine();
                     float farClip = cc.CameraObj.GetOrthographicFarClip();
-                    if (Property("Far Clip", farClip))
+                    if (UI::Property("Far Clip", farClip))
                     {
                         cc.CameraObj.SetOrthographicFarClip(farClip);
                     }
                 }
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& mc)
             {
             });
 
+        DrawComponent<DirectionalLightComponent>("Directional Light", entity, [](DirectionalLightComponent& dlc)
+            {
+                UI::BeginPropertyGrid();
+                UI::PropertyColor("Radiance", dlc.Radiance);
+                UI::Property("Intensity", dlc.Intensity);
+                UI::Property("Cast Shadows", dlc.CastShadows);
+                UI::Property("Soft Shadows", dlc.SoftShadows);
+                UI::Property("Source Size", dlc.LightSize);
+                UI::EndPropertyGrid();
+            });
+
+        DrawComponent<SkyLightComponent>("Sky Light", entity, [](SkyLightComponent& slc)
+            {
+                ImGui::Columns(3);
+                ImGui::SetColumnWidth(0, 100);
+                ImGui::SetColumnWidth(1, 300);
+                ImGui::SetColumnWidth(2, 40);
+                ImGui::Text("File Path");
+                ImGui::NextColumn();
+                ImGui::PushItemWidth(-1);
+                if (!slc.SceneEnvironment.FilePath.empty())
+                {
+                    ImGui::InputText("##envfilepath", (char*)slc.SceneEnvironment.FilePath.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                }
+                else
+                {
+                    ImGui::InputText("##envfilepath", (char*)"Empty", 256, ImGuiInputTextFlags_ReadOnly);
+                }
+                ImGui::PopItemWidth();
+                ImGui::NextColumn();
+                if (ImGui::Button("...##openenv"))
+                {
+                    std::string file = Application::Get().OpenFile("*.hdr");
+                    if (!file.empty())
+                    {
+                        slc.SceneEnvironment = Environment::Load(file);
+                    }
+                }
+                ImGui::Columns(1);
+
+                UI::BeginPropertyGrid();
+                UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
+                UI::EndPropertyGrid();
+            });
+
         DrawComponent<ScriptComponent>("Script", entity, [=](ScriptComponent& sc) mutable
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
                 std::string oldName = sc.ModuleName;
-                if (Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName)))
+                if (UI::Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName)))
                 {
                     if (ScriptEngine::ModuleExists(oldName))
                     {
@@ -795,7 +661,7 @@ namespace NR
                             case FieldType::Int:
                             {
                                 int value = isRuntime ? field.GetValue<int>() : field.GetStoredValue<int>();
-                                if (Property(field.Name.c_str(), value))
+                                if (UI::Property(field.Name.c_str(), value))
                                 {
                                     if (isRuntime)
                                     {
@@ -811,7 +677,7 @@ namespace NR
                             case FieldType::Float:
                             {
                                 float value = isRuntime ? field.GetValue<float>() : field.GetStoredValue<float>();
-                                if (Property(field.Name.c_str(), value, 0.2f))
+                                if (UI::Property(field.Name.c_str(), value, 0.2f))
                                 {
                                     if (isRuntime)
                                     {
@@ -827,7 +693,7 @@ namespace NR
                             case FieldType::Vec2:
                             {
                                 glm::vec2 value = isRuntime ? field.GetValue<glm::vec2>() : field.GetStoredValue<glm::vec2>();
-                                if (Property(field.Name.c_str(), value, 0.2f))
+                                if (UI::Property(field.Name.c_str(), value, 0.2f))
                                 {
                                     if (isRuntime)
                                     {
@@ -843,7 +709,7 @@ namespace NR
                             case FieldType::Vec3:
                             {
                                 glm::vec3 value = isRuntime ? field.GetValue<glm::vec3>() : field.GetStoredValue<glm::vec3>();
-                                if (Property(field.Name.c_str(), value, 0.2f))
+                                if (UI::Property(field.Name.c_str(), value, 0.2f))
                                 {
                                     if (isRuntime)
                                     {
@@ -859,7 +725,7 @@ namespace NR
                             case FieldType::Vec4:
                             {
                                 glm::vec4 value = isRuntime ? field.GetValue<glm::vec4>() : field.GetStoredValue<glm::vec4>();
-                                if (Property(field.Name.c_str(), value, 0.2f))
+                                if (UI::Property(field.Name.c_str(), value, 0.2f))
                                 {
                                     if (isRuntime)
                                     {
@@ -877,7 +743,7 @@ namespace NR
                     }
                 }
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
 #if TODO
                 if (ImGui::Button("Run Script"))
                 {
@@ -914,34 +780,34 @@ namespace NR
 
                 if (rb2dc.BodyType == RigidBody2DComponent::Type::Dynamic)
                 {
-                    BeginPropertyGrid();
-                    Property("Fixed Rotation", rb2dc.FixedRotation);
-                    EndPropertyGrid();
+                    UI::BeginPropertyGrid();
+                    UI::Property("Fixed Rotation", rb2dc.FixedRotation);
+                    UI::EndPropertyGrid();
                 }
             });
 
         DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& bc2dc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
 
-                Property("Offset", bc2dc.Offset);
-                Property("Size", bc2dc.Size);
-                Property("Density", bc2dc.Density);
-                Property("Friction", bc2dc.Friction);
+                UI::Property("Offset", bc2dc.Offset);
+                UI::Property("Size", bc2dc.Size);
+                UI::Property("Density", bc2dc.Density);
+                UI::Property("Friction", bc2dc.Friction);
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](CircleCollider2DComponent& cc2dc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
 
-                Property("Offset", cc2dc.Offset);
-                Property("Radius", cc2dc.Radius);
-                Property("Density", cc2dc.Density);
-                Property("Friction", cc2dc.Friction);
+                UI::Property("Offset", cc2dc.Offset);
+                UI::Property("Radius", cc2dc.Radius);
+                UI::Property("Density", cc2dc.Density);
+                UI::Property("Friction", cc2dc.Friction);
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
@@ -996,22 +862,22 @@ namespace NR
 
                 if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
                 {
-                    BeginPropertyGrid();
-                    Property("Mass", rbc.Mass);
-                    Property("Is Kinematic", rbc.IsKinematic);
-                    EndPropertyGrid();
+                    UI::BeginPropertyGrid();
+                    UI::Property("Mass", rbc.Mass);
+                    UI::Property("Is Kinematic", rbc.IsKinematic);
+                    UI::EndPropertyGrid();
 
                     if (ImGui::TreeNode("RigidBodyConstraints", "Constraints"))
                     {
-                        BeginPropertyGrid();
-                        Property("Position: X", rbc.LockPositionX);
-                        Property("Position: Y", rbc.LockPositionY);
-                        Property("Position: Z", rbc.LockPositionZ);
+                        UI::BeginPropertyGrid();
+                        UI::Property("Position: X", rbc.LockPositionX);
+                        UI::Property("Position: Y", rbc.LockPositionY);
+                        UI::Property("Position: Z", rbc.LockPositionZ);
 
-                        Property("Rotation: X", rbc.LockRotationX);
-                        Property("Rotation: Y", rbc.LockRotationY);
-                        Property("Rotation: Z", rbc.LockRotationZ);
-                        EndPropertyGrid();
+                        UI::Property("Rotation: X", rbc.LockRotationX);
+                        UI::Property("Rotation: Y", rbc.LockRotationY);
+                        UI::Property("Rotation: Z", rbc.LockRotationZ);
+                        UI::EndPropertyGrid();
 
                         ImGui::TreePop();
                     }
@@ -1020,51 +886,51 @@ namespace NR
 
         DrawComponent<PhysicsMaterialComponent>("Physics Material", entity, [](PhysicsMaterialComponent& pmc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
 
-                Property("Static Friction", pmc.StaticFriction);
-                Property("Dynamic Friction", pmc.DynamicFriction);
-                Property("Bounciness", pmc.Bounciness);
+                UI::Property("Static Friction", pmc.StaticFriction);
+                UI::Property("Dynamic Friction", pmc.DynamicFriction);
+                UI::Property("Bounciness", pmc.Bounciness);
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<BoxColliderComponent>("Box Collider", entity, [](BoxColliderComponent& bcc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
 
-                if (Property("Size", bcc.Size))
+                if (UI::Property("Size", bcc.Size))
                 {
                     bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                 }
-                Property("Is Trigger", bcc.IsTrigger);
+                UI::Property("Is Trigger", bcc.IsTrigger);
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](SphereColliderComponent& scc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
 
-                if (Property("Radius", scc.Radius))
+                if (UI::Property("Radius", scc.Radius))
                 {
                     scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
                 }
-                Property("Is Trigger", scc.IsTrigger);
+                UI::Property("Is Trigger", scc.IsTrigger);
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [](CapsuleColliderComponent& ccc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
 
                 bool changed = false;
-                if (Property("Radius", ccc.Radius))
+                if (UI::Property("Radius", ccc.Radius))
                 {
                     changed = true;
                 }
-                if (Property("Height", ccc.Height))
+                if (UI::Property("Height", ccc.Height))
                 {
                     changed = true;
                 }
@@ -1072,14 +938,14 @@ namespace NR
                 {
                     ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                 }
-                Property("Is Trigger", ccc.IsTrigger);
+                UI::Property("Is Trigger", ccc.IsTrigger);
 
-                EndPropertyGrid();
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [](MeshColliderComponent& mcc)
             {
-                BeginPropertyGrid();
+                UI::BeginPropertyGrid();
                 ImGui::Columns(3);
                 ImGui::SetColumnWidth(0, 100);
                 ImGui::SetColumnWidth(1, 300);
@@ -1107,8 +973,8 @@ namespace NR
                     }
                 }
 
-                Property("Is Trigger", mcc.IsTrigger);
-                EndPropertyGrid();
+                UI::Property("Is Trigger", mcc.IsTrigger);
+                UI::EndPropertyGrid();
             });
                             }
                         }

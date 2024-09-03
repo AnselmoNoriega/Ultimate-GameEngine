@@ -25,7 +25,8 @@ namespace NR
 
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
-        mWindow->SetVSync(true);
+        mWindow->Maximize();
+        mWindow->SetVSync(false);
 
         mImGuiLayer = new ImGuiLayer("ImGui");
         PushOverlay(mImGuiLayer);
@@ -138,7 +139,10 @@ namespace NR
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)
         {
-            fb->Resize(width, height);
+            if (fb->GetSpecification().Resizable)
+            {
+                fb->Resize(width, height);
+            }
         }
 
         return false;

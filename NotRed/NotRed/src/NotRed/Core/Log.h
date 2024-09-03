@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include "NotRed/Core/Core.h"
 
 #include "spdlog/spdlog.h"
@@ -19,6 +21,18 @@ namespace NR
 		static std::shared_ptr<spdlog::logger> sClientLogger;
 	};
 
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const glm::vec3& vec)
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ')';
+}
+
+template<typename OStream>
+OStream& operator<<(OStream& os, const glm::vec4& vec)
+{
+	return os << '(' << vec.x << ", " << vec.y << ", " << vec.z << ", " << vec.w << ')';
 }
 
 // Core Logging Macros

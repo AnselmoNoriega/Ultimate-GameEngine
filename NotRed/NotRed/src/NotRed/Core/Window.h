@@ -44,6 +44,8 @@ namespace NR
 		virtual void* GetNativeWindow() const = 0;
 		virtual std::pair<float, float> GetWindowPos() const = 0;
 
+		virtual void Maximize() = 0;
+
 		static Window* Create(const WindowProps& props = WindowProps());
 	};
 

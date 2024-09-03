@@ -15,5 +15,9 @@
   <ItemGroup>
     <None Include="Assets\Shaders\Collider\Collider.vert" />
     <None Include="Assets\Shaders\Collider\Collider.frag" />
+    <None Include="Assets\Shaders\BloomBlend\BloomBlend.vert" />
+    <None Include="Assets\Shaders\BloomBlend\BloomBlend.frag" />
+    <None Include="Assets\Shaders\BloomBlur\BloomBlur.vert" />
+    <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
   </ItemGroup>
 </Project>

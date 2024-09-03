@@ -15,10 +15,13 @@ namespace NR
 		void Bind() const override;
 		void Unbind() const override;
 
-		void BindTexture(uint32_t slot = 0) const override;
+		void BindTexture(uint32_t attachmentIndex = 0, uint32_t slot = 0) const override;
+
+		uint32_t GetWidth() const override { return mSpecification.Width; }
+		uint32_t GetHeight() const override { return mSpecification.Height; }
 
 		RendererID GetRendererID() const { return mID; }
-		RendererID GetColorAttachmentRendererID() const { return mColorAttachment; }
+		RendererID GetColorAttachmentRendererID(int index = 0) const { return mColorAttachments[index]; }
 		RendererID GetDepthAttachmentRendererID() const { return mDepthAttachment; }
 
 		const FrameBufferSpecification& GetSpecification() const override { return mSpecification; }
@@ -27,6 +30,12 @@ namespace NR
 		RendererID mID = 0;
 		FrameBufferSpecification mSpecification;
 
-		RendererID mColorAttachment = 0, mDepthAttachment = 0;
+		std::vector<RendererID> mColorAttachments;
+		RendererID mDepthAttachment;
+
+		std::vector<FrameBufferTextureFormat> mColorAttachmentFormats;
+		FrameBufferTextureFormat mDepthAttachmentFormat = FrameBufferTextureFormat::None;
+
+		uint32_t mWidth = 0, mHeight = 0;
 	};
 }

@@ -56,7 +56,7 @@ namespace NR
 
         virtual void write(const char* message) override
         {
-            NR_CORE_ERROR("Assimp error: {0}", message);
+            NR_CORE_WARN("Assimp error: {0}", message);
         }
     };
 

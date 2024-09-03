@@ -7,7 +7,13 @@ layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
 
 uniform mat4 uViewProjectionMatrix;
+uniform mat4 uViewMatrix;
 uniform mat4 uTransform;
+
+uniform mat4 uLightMatrixCascade0;
+uniform mat4 uLightMatrixCascade1;
+uniform mat4 uLightMatrixCascade2;
+uniform mat4 uLightMatrixCascade3;
 
 out VertexOutput
 {
@@ -17,6 +23,8 @@ out VertexOutput
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
+	vec4 ShadowMapCoords[4];
+	vec3 ViewPosition;
 } vsOutput;
 
 void main()
@@ -27,6 +35,12 @@ void main()
 	vsOutput.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
 	vsOutput.WorldTransform = mat3(uTransform);
 	vsOutput.Binormal = aBinormal;
+
+	vsOutput.ShadowMapCoords[0] = uLightMatrixCascade0 * vec4(vsOutput.WorldPosition, 1.0);
+	vsOutput.ShadowMapCoords[1] = uLightMatrixCascade1 * vec4(vsOutput.WorldPosition, 1.0);
+	vsOutput.ShadowMapCoords[2] = uLightMatrixCascade2 * vec4(vsOutput.WorldPosition, 1.0);
+	vsOutput.ShadowMapCoords[3] = uLightMatrixCascade3 * vec4(vsOutput.WorldPosition, 1.0);
+	vsOutput.ViewPosition = vec3(uViewMatrix * vec4(vsOutput.WorldPosition, 1.0));
 
 	gl_Position = uViewProjectionMatrix * uTransform * vec4(aPosition, 1.0);
 }

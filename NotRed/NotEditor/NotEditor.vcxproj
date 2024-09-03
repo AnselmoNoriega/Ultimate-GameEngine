@@ -168,6 +168,10 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Shaders\BloomBlend\BloomBlend.frag" />
+    <None Include="Assets\Shaders\BloomBlend\BloomBlend.vert" />
+    <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
+    <None Include="Assets\Shaders\BloomBlur\BloomBlur.vert" />
     <None Include="Assets\Shaders\Collider\Collider.frag" />
     <None Include="Assets\Shaders\Collider\Collider.vert" />
   </ItemGroup>

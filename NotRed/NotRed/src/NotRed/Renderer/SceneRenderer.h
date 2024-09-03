@@ -18,6 +18,8 @@ namespace NR
 	{
 		Camera CameraObj;
 		glm::mat4 ViewMatrix;
+		float Near, Far;
+		float FOV;
 	};
 
 	class SceneRenderer
@@ -30,6 +32,8 @@ namespace NR
 		static void BeginScene(const Scene* scene, const SceneRendererCamera& camera);
 		static void EndScene();
 
+		static void ImGuiRender();
+
 		static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f), Ref<MaterialInstance> overrideMaterial = nullptr);
 		static void SubmitSelectedMesh(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 
@@ -39,6 +43,8 @@ namespace NR
 		static void SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& parentTransform = glm::mat4(1.0f));
 
 		static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
+
+		static void SetFocusPoint(const glm::vec2& point);
 
 		static SceneRendererOptions& GetOptions();
 
@@ -52,5 +58,8 @@ namespace NR
 		static void FlushDrawList();
 		static void GeometryPass();
 		static void CompositePass();
+		static void BloomBlurPass();
+
+		static void ShadowMapPass();
 	};
 }

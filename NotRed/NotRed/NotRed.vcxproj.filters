@@ -449,6 +449,8 @@
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
     <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsLayer.h" />
+    <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
+    <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -699,5 +701,6 @@
     <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
     <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
   </ItemGroup>
 </Project>

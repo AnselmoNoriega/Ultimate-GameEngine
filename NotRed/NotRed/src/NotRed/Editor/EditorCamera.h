@@ -31,9 +31,6 @@ namespace NR
 		glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
 		const glm::vec3& GetPosition() const { return mPosition; }
 
-		float GetExposure() const { return mExposure; }
-		float& GetExposure() { return mExposure; }
-
 		float GetPitch() const { return mPitch; }
 		float GetYaw() const { return mYaw; }
 		
@@ -62,8 +59,6 @@ namespace NR
 
 		float mDistance;
 		float mPitch, mYaw;
-
-		float mExposure = 0.8f;
 
 		uint32_t mViewportWidth = 1280, mViewportHeight = 720;
 	};

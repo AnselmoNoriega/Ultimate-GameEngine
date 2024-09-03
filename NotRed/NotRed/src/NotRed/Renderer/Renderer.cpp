@@ -149,13 +149,28 @@ namespace NR
     void Renderer::SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform)
     {
         bool depthTest = true;
+        bool cullFace = true;
         if (material)
         {
             material->Bind();
             depthTest = material->IsFlagActive(MaterialFlag::DepthTest);
+            cullFace = !material->IsFlagActive(MaterialFlag::TwoSided);
 
             auto shader = material->GetShader();
             shader->SetMat4("uTransform", transform);
+        }
+
+        if (cullFace)
+        {
+            Renderer::Submit([]() { 
+                glEnable(GL_CULL_FACE); 
+                });
+        }
+        else
+        {
+            Renderer::Submit([]() {
+                glDisable(GL_CULL_FACE);
+                });
         }
 
         sData.mFullscreenQuadVertexBuffer->Bind();
@@ -167,10 +182,25 @@ namespace NR
     void Renderer::SubmitFullScreenQuad(Ref<MaterialInstance> material)
     {
         bool depthTest = true;
+        bool cullFace = true;
         if (material)
         {
             material->Bind();
             depthTest = material->IsFlagActive(MaterialFlag::DepthTest);
+            cullFace = !material->IsFlagActive(MaterialFlag::TwoSided);
+        }
+
+        if (cullFace)
+        {
+            Renderer::Submit([]() {
+                glEnable(GL_CULL_FACE);
+                });
+        }
+        else
+        {
+            Renderer::Submit([]() {
+                glDisable(GL_CULL_FACE);
+                });
         }
 
         sData.mFullscreenQuadVertexBuffer->Bind();
@@ -213,6 +243,35 @@ namespace NR
                         glDisable(GL_DEPTH_TEST);
                     }
 
+                    if (!material->IsFlagActive(MaterialFlag::TwoSided))
+                    {
+                        Renderer::Submit([]() {
+                            glEnable(GL_CULL_FACE);
+                            });
+                    }
+                    else
+                    {
+                        Renderer::Submit([]() {
+                            glDisable(GL_CULL_FACE);
+                            });
+                    }
+
+                    glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
+                });
+        }
+    }
+
+    void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Shader> shader)
+    {
+        mesh->mVertexBuffer->Bind();
+        mesh->mPipeline->Bind();
+        mesh->mIndexBuffer->Bind();
+
+        for (Submesh& submesh : mesh->mSubmeshes)
+        {
+            shader->SetMat4("uTransform", transform * submesh.Transform);
+
+            Renderer::Submit([submesh]() {
                     glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
                 });
         }

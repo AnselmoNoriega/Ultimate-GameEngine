@@ -17,16 +17,18 @@ namespace NR
         inline uint32_t GetWidth() const override { return mData.Width; }
         inline uint32_t GetHeight() const override { return mData.Height; }
 
-        virtual void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
-        virtual void SetVSync(bool enabled) override;
-        virtual bool IsVSync() const override;
+        void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
+        void SetVSync(bool enabled) override;
+        bool IsVSync() const override;
 
-        virtual const std::string& GetTitle() const override { return mData.Title; }
-        virtual void SetTitle(const std::string& title) override;
+        void Maximize() override;
+
+        const std::string& GetTitle() const override { return mData.Title; }
+        void SetTitle(const std::string& title) override;
 
         inline void* GetNativeWindow() const override { return mWindow; }
         std::pair<float, float> GetWindowPos() const override;
-        virtual std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
+        std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
 
     private:
         void Init(const WindowProps& props);

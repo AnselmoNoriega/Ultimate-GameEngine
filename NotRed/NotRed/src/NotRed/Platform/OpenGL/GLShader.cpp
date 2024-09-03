@@ -77,7 +77,7 @@ namespace NR
 
     std::vector<std::string> Tokenize(const std::string& string)
     {
-        return SplitString(string, " \t\n");
+        return SplitString(string, " \t\n\r");
     }
 
     std::vector<std::string> GetLines(const std::string& string)
@@ -124,6 +124,7 @@ namespace NR
 
     static bool IsTypeStringResource(const std::string& type)
     {
+        if (type == "sampler1D")		return true;
         if (type == "sampler2D")		return true;
         if (type == "sampler2DMS")		return true;
         if (type == "samplerCube")		return true;
@@ -371,8 +372,7 @@ namespace NR
                 glDeleteShader(shaderID);
             }
 
-            NR_CORE_ERROR("{0}", infoLog.data());
-            NR_CORE_ASSERT(false, "GLShader link failure!");
+            NR_CORE_ERROR("Shader linking failed ({0}):\n{1}", mAssetPath, &infoLog[0]);
             return;
         }
 
@@ -496,17 +496,21 @@ namespace NR
             {
                 resource->mRegister = sampler;
                 if (location != -1)
+                {
                     UploadUniformInt(location, sampler);
+                }
 
-                sampler++;
+                ++sampler;
             }
             else if (resource->GetCount() > 1)
             {
-                resource->mRegister = 0;
+                resource->mRegister = sampler;
                 uint32_t count = resource->GetCount();
                 int* samplers = new int[count];
-                for (uint32_t s = 0; s < count; s++)
-                    samplers[s] = s;
+                for (uint32_t s = 0; s < count; ++s)
+                {
+                    samplers[s] = sampler++;
+                }
                 UploadUniformIntArray(resource->GetName(), samplers, count);
                 delete[] samplers;
             }
@@ -682,11 +686,14 @@ namespace NR
         uint32_t offset = uniform->GetOffset();
         switch (uniform->GetType())
         {
-        case GLShaderUniformDeclaration::Type::FLOAT32:
-            UploadUniformFloat(uniform->GetLocation(), *(float*)&buffer.Data[offset]);
+        case GLShaderUniformDeclaration::Type::BOOL:
+            UploadUniformFloat(uniform->GetLocation(), *(bool*)&buffer.Data[offset]);
             break;
         case GLShaderUniformDeclaration::Type::INT32:
             UploadUniformInt(uniform->GetLocation(), *(int32_t*)&buffer.Data[offset]);
+            break;
+        case GLShaderUniformDeclaration::Type::FLOAT32:
+            UploadUniformFloat(uniform->GetLocation(), *(float*)&buffer.Data[offset]);
             break;
         case GLShaderUniformDeclaration::Type::VEC2:
             UploadUniformFloat2(uniform->GetLocation(), *(glm::vec2*)&buffer.Data[offset]);
@@ -718,11 +725,14 @@ namespace NR
         uint32_t offset = uniform->GetOffset();
         switch (uniform->GetType())
         {
-        case GLShaderUniformDeclaration::Type::FLOAT32:
-            UploadUniformFloat(uniform->GetLocation(), *(float*)&buffer.Data[offset]);
+        case GLShaderUniformDeclaration::Type::BOOL:
+            UploadUniformFloat(uniform->GetLocation(), *(bool*)&buffer.Data[offset]);
             break;
         case GLShaderUniformDeclaration::Type::INT32:
             UploadUniformInt(uniform->GetLocation(), *(int32_t*)&buffer.Data[offset]);
+            break;
+        case GLShaderUniformDeclaration::Type::FLOAT32:
+            UploadUniformFloat(uniform->GetLocation(), *(float*)&buffer.Data[offset]);
             break;
         case GLShaderUniformDeclaration::Type::VEC2:
             UploadUniformFloat2(uniform->GetLocation(), *(glm::vec2*)&buffer.Data[offset]);
@@ -751,11 +761,14 @@ namespace NR
     {
         switch (field.GetType())
         {
-        case GLShaderUniformDeclaration::Type::FLOAT32:
-            UploadUniformFloat(field.GetLocation(), *(float*)&data[offset]);
+        case GLShaderUniformDeclaration::Type::BOOL:
+            UploadUniformFloat(field.GetLocation(), *(bool*)&data[offset]);
             break;
         case GLShaderUniformDeclaration::Type::INT32:
             UploadUniformInt(field.GetLocation(), *(int32_t*)&data[offset]);
+            break;
+        case GLShaderUniformDeclaration::Type::FLOAT32:
+            UploadUniformFloat(field.GetLocation(), *(float*)&data[offset]);
             break;
         case GLShaderUniformDeclaration::Type::VEC2:
             UploadUniformFloat2(field.GetLocation(), *(glm::vec2*)&data[offset]);
@@ -827,10 +840,24 @@ namespace NR
             });
     }
 
+    void GLShader::SetBool(const std::string& name, bool value)
+    {
+        Renderer::Submit([=]() {
+            UploadUniformInt(name, value);
+            });
+    }
+
     void GLShader::SetFloat(const std::string& name, float value)
     {
         Renderer::Submit([=]() {
             UploadUniformFloat(name, value);
+            });
+    }
+
+    void GLShader::SetFloat2(const std::string& name, const glm::vec2& value)
+    {
+        Renderer::Submit([=]() {
+            UploadUniformFloat2(name, value);
             });
     }
 
