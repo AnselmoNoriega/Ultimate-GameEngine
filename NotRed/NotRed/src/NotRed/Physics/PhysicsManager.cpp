@@ -7,11 +7,13 @@
 
 #include "PhysicsWrappers.h"
 #include "PhysicsLayer.h"
+#include "PhysicsActor.h"
 
 namespace NR
 {
 	static physx::PxScene* sScene;
-	static std::vector<Entity> sSimulatedEntities;
+	static std::vector<Ref<PhysicsActor>> sSimulatedActors;
+	static std::vector<Ref<PhysicsActor>> sStaticActors;
 	static Entity* sEntityStorageBuffer;
 	static uint32_t sEntityBufferCount;
 	static int sEntityStorageBufferPosition;
@@ -44,11 +46,8 @@ namespace NR
 				Entity& e = sEntityStorageBuffer[i];
 				RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
 
-				if (rb.RuntimeActor)
-				{
-					physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
-					actor->userData = &temp[rb.EntityBufferIndex];
-				}
+				Ref<PhysicsActor>& actor = GetActorForEntity(e);
+				actor->SetUserData(&temp[rb.EntityBufferIndex]);
 			}
 
 			delete[] sEntityStorageBuffer;
@@ -98,57 +97,43 @@ namespace NR
 			return;
 		}
 
-		RigidBodyComponent& rigidbody = e.GetComponent<RigidBodyComponent>();
+		Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(e);
 
-		TransformComponent& transform = e.GetComponent<TransformComponent>();
-		physx::PxRigidActor* actor = PhysicsWrappers::CreateActor(rigidbody, transform);
-
-		if (rigidbody.BodyType == RigidBodyComponent::Type::Dynamic)
+		if (actor->IsDynamic())
 		{
-			sSimulatedEntities.push_back(e);
+			sSimulatedActors.push_back(actor);
+		}
+		else
+		{
+			sStaticActors.push_back(actor);
 		}
 
 		Entity* entityStorage = &sEntityStorageBuffer[sEntityStorageBufferPosition];
 		*entityStorage = e;
-		actor->userData = (void*)entityStorage;
-		rigidbody.RuntimeActor = actor;
-		rigidbody.EntityBufferIndex = sEntityStorageBufferPosition;
+		actor->SetUserData((void*)entityStorage);
+		actor->mRigidBody.EntityBufferIndex = sEntityStorageBufferPosition;
 		++sEntityStorageBufferPosition;
+	}
 
-		physx::PxMaterial* material = PhysicsWrappers::CreateMaterial(e.GetComponent<PhysicsMaterialComponent>());
-
-		if (e.HasComponent<BoxColliderComponent>())
+	Ref<PhysicsActor> PhysicsManager::GetActorForEntity(Entity entity)
+	{
+		for (auto& actor : sStaticActors)
 		{
-			BoxColliderComponent& collider = e.GetComponent<BoxColliderComponent>();
-			PhysicsWrappers::AddBoxCollider(*actor, *material, collider, transform.Scale);
+			if (actor->GetEntity() == entity)
+			{
+				return actor;
+			}
 		}
 
-		if (e.HasComponent<SphereColliderComponent>())
+		for (auto& actor : sSimulatedActors)
 		{
-			SphereColliderComponent& collider = e.GetComponent<SphereColliderComponent>();
-			PhysicsWrappers::AddSphereCollider(*actor, *material, collider, transform.Scale);
+			if (actor->GetEntity() == entity)
+			{
+				return actor;
+			}
 		}
 
-		if (e.HasComponent<CapsuleColliderComponent>())
-		{
-			CapsuleColliderComponent& collider = e.GetComponent<CapsuleColliderComponent>();
-			PhysicsWrappers::AddCapsuleCollider(*actor, *material, collider, transform.Scale);
-		}
-
-		if (e.HasComponent<MeshColliderComponent>())
-		{
-			MeshColliderComponent& collider = e.GetComponent<MeshColliderComponent>();
-			PhysicsWrappers::AddMeshCollider(*actor, *material, collider, transform.Scale);
-		}
-
-		if (!PhysicsLayerManager::IsLayerValid(rigidbody.Layer))
-		{
-			rigidbody.Layer = 0;
-		}
-
-		PhysicsWrappers::SetCollisionFilters(*actor, rigidbody.Layer);
-
-		sScene->addActor(*actor);
+		return nullptr;
 	}
 
 	PhysicsSettings& PhysicsManager::GetSettings()
@@ -167,26 +152,17 @@ namespace NR
 
 		sSimulationTime -= sSettings.FixedDeltaTime;
 
-		for (Entity& e : sSimulatedEntities)
+		for (auto& actor : sSimulatedActors)
 		{
-			if (ScriptEngine::IsEntityModuleValid(e))
-			{
-				ScriptEngine::UpdateEntityPhysics(e, sSettings.FixedDeltaTime);
-			}
+			actor->Update(sSettings.FixedDeltaTime);
 		}
 
 		sScene->simulate(sSettings.FixedDeltaTime);
 		sScene->fetchResults(true);
 
-		for (Entity& e : sSimulatedEntities)
+		for (auto& actor : sSimulatedActors)
 		{
-			TransformComponent& transform = e.Transform();
-			RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
-			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
-
-			physx::PxTransform actorPose = actor->getGlobalPose();
-			transform.Translation = FromPhysicsVector(actorPose.p);
-			transform.Rotation = glm::eulerAngles(FromPhysicsQuat(actorPose.q));
+			actor->SynchronizeTransform();
 		}
 	}
 
@@ -197,7 +173,8 @@ namespace NR
 		delete[] sEntityStorageBuffer;
 		sEntityStorageBuffer = nullptr;
 		sEntityStorageBufferPosition = 0;
-		sSimulatedEntities.clear();
+		sStaticActors.clear();
+		sSimulatedActors.clear();
 		sScene->release();
 		sScene = nullptr;
 	}

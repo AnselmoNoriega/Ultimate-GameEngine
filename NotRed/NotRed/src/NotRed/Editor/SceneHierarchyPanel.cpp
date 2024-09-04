@@ -855,19 +855,28 @@ namespace NR
                 {
                     UI::BeginPropertyGrid();
                     UI::Property("Mass", rbc.Mass);
+                    UI::Property("Linear Drag", rbc.LinearDrag);
+                    UI::Property("Angular Drag", rbc.AngularDrag);
+                    UI::Property("Disable Gravity", rbc.DisableGravity);
                     UI::Property("Is Kinematic", rbc.IsKinematic);
                     UI::EndPropertyGrid();
 
-                    if (ImGui::TreeNode("RigidBodyConstraints", "Constraints"))
+                    if (ImGui::TreeNode("Constraints", "Constraints"))
                     {
                         UI::BeginPropertyGrid();
-                        UI::Property("Position: X", rbc.LockPositionX);
-                        UI::Property("Position: Y", rbc.LockPositionY);
-                        UI::Property("Position: Z", rbc.LockPositionZ);
 
-                        UI::Property("Rotation: X", rbc.LockRotationX);
-                        UI::Property("Rotation: Y", rbc.LockRotationY);
-                        UI::Property("Rotation: Z", rbc.LockRotationZ);
+                        UI::BeginCheckboxGroup("Freeze Position");
+                        UI::PropertyCheckboxGroup("X", rbc.LockPositionX);
+                        UI::PropertyCheckboxGroup("Y", rbc.LockPositionY);
+                        UI::PropertyCheckboxGroup("Z", rbc.LockPositionZ);
+                        UI::EndCheckboxGroup();
+
+                        UI::BeginCheckboxGroup("Freeze Rotation");
+                        UI::PropertyCheckboxGroup("X", rbc.LockRotationX);
+                        UI::PropertyCheckboxGroup("Y", rbc.LockRotationY);
+                        UI::PropertyCheckboxGroup("Z", rbc.LockRotationZ);
+                        UI::EndCheckboxGroup();
+
                         UI::EndPropertyGrid();
 
                         ImGui::TreePop();

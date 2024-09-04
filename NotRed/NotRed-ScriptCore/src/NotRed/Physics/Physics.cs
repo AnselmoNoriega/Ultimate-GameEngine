@@ -4,6 +4,14 @@ using System.Runtime.InteropServices;
 
 namespace NR
 {
+    public enum ForceMode
+    {
+        Force,
+        Impulse,
+        VelocityChange,
+        Acceleration
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct RaycastHit
     {

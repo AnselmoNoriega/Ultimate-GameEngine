@@ -7,6 +7,7 @@
 
 namespace NR
 {
+	class PhysicsActor;
 	struct RaycastHit;
 
 	class PhysicsErrorCallback : public physx::PxErrorCallback
@@ -30,18 +31,14 @@ namespace NR
 	{
 	public:
 		static physx::PxScene* CreateScene();
-		static physx::PxRigidActor* CreateActor(const RigidBodyComponent& rigidbody, const TransformComponent& transform);
-		static void SetCollisionFilters(const physx::PxRigidActor& actor, uint32_t physicsLayer);
 
-		static void AddBoxCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const BoxColliderComponent& collider, const glm::vec3& size = glm::vec3(0.0F));
-		static void AddSphereCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const SphereColliderComponent& collider, const glm::vec3& size = glm::vec3(0.0F));
-		static void AddCapsuleCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, const CapsuleColliderComponent& collider, const glm::vec3& size = glm::vec3(0.0F));
-		static void AddMeshCollider(physx::PxRigidActor& actor, const physx::PxMaterial& material, MeshColliderComponent& collider, const glm::vec3& size = glm::vec3(0.0F));
+		static void AddBoxCollider(PhysicsActor& actor, const physx::PxMaterial& material);
+		static void AddSphereCollider(PhysicsActor& actor, const physx::PxMaterial& material);
+		static void AddCapsuleCollider(PhysicsActor& actor, const physx::PxMaterial& material);
+		static void AddMeshCollider(PhysicsActor& actor, const physx::PxMaterial& material);
 
 		static std::vector<physx::PxTriangleMesh*> CreateTriangleMesh(MeshColliderComponent& collider, bool invalidateOld = false);
 		static std::vector<physx::PxConvexMesh*> CreateConvexMesh(MeshColliderComponent& collider, bool invalidateOld = false);
-
-		static physx::PxMaterial* CreateMaterial(const PhysicsMaterialComponent& material);
 
 		static bool Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* hit);
 		static bool OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t* count);
@@ -51,8 +48,11 @@ namespace NR
 	private:
 		static void Initialize();
 		static void Shutdown();
+		static physx::PxPhysics& GetPhysics();
+		static physx::PxAllocatorCallback& GetAllocator();
 
 	private:
 		friend class PhysicsManager;
+		friend class PhysicsActor;
 	};
 }

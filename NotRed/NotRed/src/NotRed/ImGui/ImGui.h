@@ -286,4 +286,43 @@ namespace NR::UI
 		ImGui::TreePop();
 	}
 
+	static int sCheckboxCount = 0;
+
+	static void BeginCheckboxGroup(const char* label)
+	{
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+	}
+
+	static bool PropertyCheckboxGroup(const char* label, bool& value)
+	{
+		bool modified = false;
+
+		if (++sCheckboxCount > 1)
+		{
+			ImGui::SameLine();
+		}
+
+		ImGui::Text(label);
+		ImGui::SameLine();
+
+		sIDBuffer[0] = '#';
+		sIDBuffer[1] = '#';
+		memset(sIDBuffer + 2, 0, 14);
+		itoa(sCounter++, sIDBuffer + 2, 16);
+		if (ImGui::Checkbox(s_IDBuffer, &value))
+		{
+			modified = true;
+		}
+
+		return modified;
+	}
+
+	static void EndCheckboxGroup()
+	{
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		sCheckboxCount = 0;
+	}
 }

@@ -161,6 +161,9 @@ namespace NR
 
         Type BodyType;
         float Mass = 1.0f;
+        float LinearDrag = 0.0f;
+        float AngularDrag = 0.05f;
+        bool DisableGravity = false;
         bool IsKinematic = false;
         uint32_t Layer = 0;
 
@@ -173,7 +176,6 @@ namespace NR
         bool LockPositionZ = false;
         bool LockRotationZ = false;
 
-        void* RuntimeActor = nullptr;
         int32_t EntityBufferIndex = -1;
 
         RigidBodyComponent() = default;

@@ -14,6 +14,7 @@
 #include <PxPhysicsAPI.h>
 #include "NotRed/Physics/PhysicsUtil.h"
 #include "NotRed/Physics/PhysicsWrappers.h"
+#include "NotRed/Physics/PhysicsActor.h"
 
 #include "NotRed/Core/Math/Noise.h"
 
@@ -422,12 +423,8 @@ namespace NR::Script
             return;
         }
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
-        NR_CORE_ASSERT(force);
-        dynamicActor->addForce({ force->x, force->y, force->z }, (physx::PxForceMode::Enum)forceMode);
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        actor->AddForce(*force, forceMode);
     }
 
     void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode)
@@ -447,11 +444,8 @@ namespace NR::Script
             return;
         }
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor && torque);
-
-        dynamicActor->addTorque({ torque->x, torque->y, torque->z }, (physx::PxForceMode::Enum)forceMode);
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        actor->AddTorque(*torque, forceMode);
     }
 
     void NR_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity)
@@ -465,13 +459,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
         NR_CORE_ASSERT(outVelocity);
-        physx::PxVec3 velocity = dynamicActor->getLinearVelocity();
-        *outVelocity = { velocity.x, velocity.y, velocity.z };
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        *outVelocity = actor->GetVelocity();
     }
 
     void NR_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* velocity)
@@ -485,12 +475,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
         NR_CORE_ASSERT(velocity);
-        dynamicActor->setLinearVelocity({ velocity->x, velocity->y, velocity->z });
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        actor->SetVelocity(*velocity);
     }
 
     void NR_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity)
@@ -504,13 +491,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
         NR_CORE_ASSERT(outVelocity);
-        physx::PxVec3 velocity = dynamicActor->getAngularVelocity();
-        *outVelocity = { velocity.x, velocity.y, velocity.z };
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        *outVelocity = actor->GetAngularVelocity();
     }
 
     void NR_RigidBodyComponent_SetAngularVelocity(uint64_t entityID, glm::vec3* velocity)
@@ -524,12 +507,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
         NR_CORE_ASSERT(velocity);
-        dynamicActor->setAngularVelocity({ velocity->x, velocity->y, velocity->z });
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        actor->SetAngularVelocity(*velocity);
     }
 
     void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation)
@@ -543,15 +523,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
-        physx::PxTransform transform = dynamicActor->getGlobalPose();
-        transform.q *= (physx::PxQuat(glm::radians(rotation->x), { 1.0f, 0.0f, 0.0f })
-            * physx::PxQuat(glm::radians(rotation->y), { 0.0f, 1.0f, 0.0f })
-            * physx::PxQuat(glm::radians(rotation->z), { 0.0f, 0.0f, 1.0f }));
-        dynamicActor->setGlobalPose(transform);
+        NR_CORE_ASSERT(rotation);
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        actor->Rotate(*rotation);
     }
 
     uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID)
@@ -578,11 +552,8 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
-        return dynamicActor->getMass();
+        Ref<PhysicsActor>& actor = PhysicsManager::GetActorForEntity(entity);
+        return actor->GetMass();
     }
 
     void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass)
@@ -596,12 +567,8 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        physx::PxRigidActor* actor = (physx::PxRigidActor*)component.RuntimeActor;
-        physx::PxRigidDynamic* dynamicActor = actor->is<physx::PxRigidDynamic>();
-        NR_CORE_ASSERT(dynamicActor);
-
-        component.Mass = mass;
-        physx::PxRigidBodyExt::updateMassAndInertia(*dynamicActor, mass);
+        Ref<PhysicsActor>& actor = PhysicsManager::GetActorForEntity(entity);
+        actor->SetMass(mass);
     }
 
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)

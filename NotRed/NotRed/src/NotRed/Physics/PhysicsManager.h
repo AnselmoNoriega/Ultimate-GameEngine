@@ -4,6 +4,8 @@
 
 namespace NR
 {
+	class PhysicsActor;
+
 	enum class ForceMode : uint16_t
 	{
 		Force,
@@ -69,6 +71,7 @@ namespace NR
 		static void Simulate(float dt);
 
 		static void* GetPhysicsScene();
+		static Ref<PhysicsActor> GetActorForEntity(Entity entity);
 
 		static void DestroyScene();
 

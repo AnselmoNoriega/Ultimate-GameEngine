@@ -13,7 +13,7 @@ namespace NR
 		}
 		void DecRefCount() const
 		{
-			mRefCount--;
+			--mRefCount;
 		}
 
 		uint32_t GetRefCount() const { return mRefCount; }

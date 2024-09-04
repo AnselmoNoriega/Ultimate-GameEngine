@@ -171,14 +171,6 @@ namespace NR
             Dynamic
         }
 
-        public enum ForceMode
-        {
-            Force,
-            Impulse,
-            VelocityChange,
-            Acceleration
-        }
-
         public Type BodyType
         {
             get
