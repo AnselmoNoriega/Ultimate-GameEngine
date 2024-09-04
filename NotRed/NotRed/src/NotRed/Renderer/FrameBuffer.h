@@ -30,10 +30,10 @@ namespace NR
 	struct FrameBufferAttachmentSpecification
 	{
 		FrameBufferAttachmentSpecification() = default;
-		FrameBufferAttachmentSpecification(const std::initializer_list<FrameBufferTextureFormat>& attachments)
+		FrameBufferAttachmentSpecification(const std::initializer_list<FrameBufferTextureSpecification>& attachments)
 			: Attachments(attachments) {}
 
-		std::vector<FrameBufferTextureFormat> Attachments;
+		std::vector<FrameBufferTextureSpecification> Attachments;
 	};
 
 	struct FrameBufferSpecification

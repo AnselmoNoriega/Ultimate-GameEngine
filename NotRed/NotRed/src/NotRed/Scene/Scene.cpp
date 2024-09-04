@@ -16,6 +16,8 @@
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Script/ScriptEngine.h"
 
+#include "NotRed/Core/Input.h"
+
 namespace NR
 {
     std::unordered_map<UUID, Scene*> sActiveScenes;
@@ -479,6 +481,8 @@ namespace NR
 
     void Scene::RuntimeStop()
     {
+        Input::SetCursorMode(CursorMode::Normal);
+
         delete[] mPhysics2DBodyEntityBuffer;
         PhysicsManager::DestroyScene();
         mIsPlaying = false;

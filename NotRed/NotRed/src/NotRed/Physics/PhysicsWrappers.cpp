@@ -333,10 +333,10 @@ namespace NR
 
         if (invalidateOld)
         {
-            ConvexMeshSerializer::Delete(collider.CollisionMesh->GetFilePath());
+            PhysicsMeshSerializer::Delete(collider.CollisionMesh->GetFilePath());
         }
 
-        if (!ConvexMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
+        if (!PhysicsMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
         {
             const std::vector<Vertex>& vertices = collider.CollisionMesh->GetStaticVertices();
             const std::vector<Index>& indices = collider.CollisionMesh->GetIndices();
@@ -368,21 +368,21 @@ namespace NR
                     continue;
                 }
 
-                ConvexMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
+                PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 meshes.push_back(sPhysics->createTriangleMesh(input));
             }
         }
         else
         {
-            std::vector<physx::PxDefaultMemoryInputData> serializedMeshes = ConvexMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
+            std::vector<physx::PxDefaultMemoryInputData> serializedMeshes = PhysicsMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
 
             for (auto& meshData : serializedMeshes)
             {
                 meshes.push_back(sPhysics->createTriangleMesh(meshData));
             }
 
-            ConvexMeshSerializer::CleanupDataBuffers();
+            PhysicsMeshSerializer::CleanupDataBuffers();
         }
 
         if (collider.ProcessedMeshes.size() <= 0)
@@ -433,10 +433,10 @@ namespace NR
 
         if (invalidateOld)
         {
-            ConvexMeshSerializer::Delete(collider.CollisionMesh->GetFilePath());
+            PhysicsMeshSerializer::Delete(collider.CollisionMesh->GetFilePath());
         }
 
-        if (!ConvexMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
+        if (!PhysicsMeshSerializer::IsSerialized(collider.CollisionMesh->GetFilePath()))
         {
             const std::vector<Vertex>& vertices = collider.CollisionMesh->GetStaticVertices();
             const std::vector<Index>& indices = collider.CollisionMesh->GetIndices();
@@ -460,21 +460,21 @@ namespace NR
                     continue;
                 }
 
-                ConvexMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
+                PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 meshes.push_back(sPhysics->createConvexMesh(input));
             }
         }
         else
         {
-            std::vector<physx::PxDefaultMemoryInputData> serializedMeshes = ConvexMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
+            std::vector<physx::PxDefaultMemoryInputData> serializedMeshes = PhysicsMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath());
 
             for (auto& meshData : serializedMeshes)
             {
                 meshes.push_back(sPhysics->createConvexMesh(meshData));
             }
 
-            ConvexMeshSerializer::CleanupDataBuffers();
+            PhysicsMeshSerializer::CleanupDataBuffers();
         }
 
         if (collider.ProcessedMeshes.size() <= 0)

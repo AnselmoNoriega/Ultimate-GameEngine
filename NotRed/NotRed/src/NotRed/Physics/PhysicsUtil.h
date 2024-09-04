@@ -31,7 +31,7 @@ namespace NR
         physx::PxU32 constantBlockSize
     );
 
-    class ConvexMeshSerializer
+    class PhysicsMeshSerializer
     {
     public:
         static void Delete(const std::string& filepath);

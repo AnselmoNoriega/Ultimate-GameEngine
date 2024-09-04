@@ -7,7 +7,7 @@ namespace NR
 {
     physx::PxTransform ToPhysicsTransform(const TransformComponent& transform)
     {
-        physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::quat(glm::radians(transform.Rotation))));
+        physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::quat(transform.Rotation)));
         physx::PxVec3 p = ToPhysicsVector(transform.Translation);
         return physx::PxTransform(p, r);
     }
@@ -94,7 +94,7 @@ namespace NR
         return physx::PxFilterFlag::eSUPPRESS;
     }
 
-    void ConvexMeshSerializer::Delete(const std::string& filepath)
+    void PhysicsMeshSerializer::Delete(const std::string& filepath)
     {
         std::filesystem::path p = filepath;
         std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
@@ -109,7 +109,7 @@ namespace NR
         }
     }
 
-    void ConvexMeshSerializer::SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data, const std::string& submeshName)
+    void PhysicsMeshSerializer::SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data, const std::string& submeshName)
     {
         std::filesystem::path p = filepath;
         std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
@@ -141,7 +141,7 @@ namespace NR
         }
     }
 
-    bool ConvexMeshSerializer::IsSerialized(const std::string& filepath)
+    bool PhysicsMeshSerializer::IsSerialized(const std::string& filepath)
     {
         std::filesystem::path p = filepath;
         size_t lastDot = p.filename().string().find_first_of(".");
@@ -153,7 +153,7 @@ namespace NR
 
     static std::vector<physx::PxU8*> sMeshDataBuffers;
 
-    std::vector<physx::PxDefaultMemoryInputData> ConvexMeshSerializer::DeserializeMesh(const std::string& filepath)
+    std::vector<physx::PxDefaultMemoryInputData> PhysicsMeshSerializer::DeserializeMesh(const std::string& filepath)
     {
         std::vector<physx::PxDefaultMemoryInputData> result;
 
@@ -187,7 +187,7 @@ namespace NR
         return result;
     }
 
-    void ConvexMeshSerializer::CleanupDataBuffers()
+    void PhysicsMeshSerializer::CleanupDataBuffers()
     {
         for (auto buffer : sMeshDataBuffers)
         {

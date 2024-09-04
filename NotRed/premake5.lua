@@ -109,6 +109,11 @@ project "NotRed"
 		"%{LibraryDir.PhysXFoundation}",
 		"%{LibraryDir.PhysXPvd}"
 	}
+
+	defines
+	{
+		"PX_PHYSX_STATIC_LIB"
+	}
 	
 	filter "files:NotRed/vendor/FastNoise/**.cpp or files:NotRed/vendor/yaml-cpp/src/**.cpp"
    	flags { "NoPCH" }
@@ -118,9 +123,7 @@ project "NotRed"
 		
 		defines 
 		{ 
-			"NR_PLATFORM_WINDOWS",
-			"NR_BUILD_DLL",
-			"PX_PHYSX_STATIC_LIB"
+			"NR_BUILD_DLL"
 		}
 
 	filter "configurations:Debug"

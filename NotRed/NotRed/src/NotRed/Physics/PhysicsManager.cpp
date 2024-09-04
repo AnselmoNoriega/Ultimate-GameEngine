@@ -185,8 +185,8 @@ namespace NR
 			physx::PxRigidActor* actor = static_cast<physx::PxRigidActor*>(rb.RuntimeActor);
 
 			physx::PxTransform actorPose = actor->getGlobalPose();
-			transform.Translation = (FromPhysicsVector(actorPose.p));
-			transform.Rotation = glm::degrees(glm::eulerAngles(FromPhysicsQuat(actorPose.q)));
+			transform.Translation = FromPhysicsVector(actorPose.p);
+			transform.Rotation = glm::eulerAngles(FromPhysicsQuat(actorPose.q));
 		}
 	}
 
