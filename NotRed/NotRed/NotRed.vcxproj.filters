@@ -452,6 +452,7 @@
     <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
     <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
+    <ClInclude Include="src\NotRed\Core\Math\Math.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -704,5 +705,6 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
+    <ClCompile Include="src\NotRed\Core\Math\Math.cpp" />
   </ItemGroup>
 </Project>

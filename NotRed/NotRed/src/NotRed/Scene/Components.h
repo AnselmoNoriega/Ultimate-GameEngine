@@ -176,8 +176,6 @@ namespace NR
         bool LockPositionZ = false;
         bool LockRotationZ = false;
 
-        int32_t EntityBufferIndex = -1;
-
         RigidBodyComponent() = default;
         RigidBodyComponent(const RigidBodyComponent& other) = default;
     };
@@ -237,6 +235,7 @@ namespace NR
         Ref<Mesh> CollisionMesh;
         std::vector<Ref<Mesh>> ProcessedMeshes;
         bool IsConvex = false;
+        bool OverrideMesh = false;
 
         bool IsTrigger = false;
 

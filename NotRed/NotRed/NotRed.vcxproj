@@ -147,6 +147,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\NotRed\Core\Math\Math.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed.h" />
@@ -280,6 +281,7 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Core\Math\Math.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />

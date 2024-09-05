@@ -370,6 +370,9 @@ namespace NR
             auto& rigidbodyComponent = entity.GetComponent<RigidBodyComponent>();
             out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbodyComponent.BodyType;
             out << YAML::Key << "Mass" << YAML::Value << rigidbodyComponent.Mass;
+            out << YAML::Key << "LinearDrag" << YAML::Value << rigidbodyComponent.LinearDrag;
+            out << YAML::Key << "AngularDrag" << YAML::Value << rigidbodyComponent.AngularDrag;
+            out << YAML::Key << "DisableGravity" << YAML::Value << rigidbodyComponent.DisableGravity;
             out << YAML::Key << "IsKinematic" << YAML::Value << rigidbodyComponent.IsKinematic;
             out << YAML::Key << "Layer" << YAML::Value << rigidbodyComponent.Layer;
 
@@ -446,7 +449,10 @@ namespace NR
             out << YAML::BeginMap; // MeshColliderComponent
 
             auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
-            out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+            if (meshColliderComponent.OverrideMesh)
+            {
+                out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+            }
             out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
             out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
 
@@ -747,6 +753,9 @@ namespace NR
                     auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
                     component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
                     component.Mass = rigidBodyComponent["Mass"].as<float>();
+                    component.LinearDrag = rigidBodyComponent["LinearDrag"].as<float>();
+                    component.AngularDrag = rigidBodyComponent["AngularDrag"].as<float>();
+                    component.DisableGravity = rigidBodyComponent["DisableGravity"].as<bool>();
                     component.IsKinematic = rigidBodyComponent["IsKinematic"].as<bool>();
                     component.Layer = rigidBodyComponent["Layer"].as<uint32_t>();
 
@@ -800,21 +809,35 @@ namespace NR
                 auto meshColliderComponent = entity["MeshColliderComponent"];
                 if (meshColliderComponent)
                 {
-                    std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
-                    auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(Ref<Mesh>::Create(meshPath));
-                    component.IsConvex = meshColliderComponent["IsConvex"].as<bool>();
-                    component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
+                    Ref<Mesh> collisionMesh = deserializedEntity.GetComponent<MeshComponent>().MeshObj;
+                    bool overrideMesh = meshColliderComponent["OverrideMesh"].as<bool>();
 
-                    if (component.IsConvex)
+                    if (overrideMesh)
                     {
-                        PhysicsWrappers::CreateConvexMesh(component);
+                        std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
+                        collisionMesh = Ref<Mesh>::Create(meshPath);
+                    }
+
+                    if (collisionMesh)
+                    {
+                        auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(collisionMesh);
+                        component.IsConvex = meshColliderComponent["IsConvex"].as<bool>();
+                        component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
+                        component.OverrideMesh = overrideMesh;
+
+                        if (component.IsConvex)
+                        {
+                            PhysicsWrappers::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
+                        }
                     }
                     else
                     {
-                        PhysicsWrappers::CreateTriangleMesh(component);
+                        NR_CORE_WARN("MeshColliderComponent in use without valid mesh!");
                     }
-
-                    NR_CORE_INFO("  Mesh Collider Asset Path: {0}", meshPath);
                 }
             }
         }

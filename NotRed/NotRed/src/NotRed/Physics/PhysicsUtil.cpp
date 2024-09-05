@@ -105,7 +105,7 @@ namespace NR
 
         if (IsSerialized(filepath))
         {
-            std::filesystem::remove(p.parent_path() / dirName);
+            std::filesystem::remove_all(p.parent_path() / dirName);
         }
     }
 
@@ -151,49 +151,39 @@ namespace NR
         return std::filesystem::is_directory(path);
     }
 
-    static std::vector<physx::PxU8*> sMeshDataBuffers;
+    static physx::PxU8* sMeshDataBuffer;
 
-    std::vector<physx::PxDefaultMemoryInputData> PhysicsMeshSerializer::DeserializeMesh(const std::string& filepath)
+    physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const std::string& filepath, const std::string& submeshName)
     {
-        std::vector<physx::PxDefaultMemoryInputData> result;
-
         std::filesystem::path p = filepath;
         size_t lastDot = p.filename().string().find_first_of(".");
         lastDot = lastDot == std::string::npos ? p.filename().string().length() - 1 : lastDot;
         std::string dirName = p.filename().string().substr(0, lastDot);
         auto path = p.parent_path() / dirName;
 
-        for (const auto& file : std::filesystem::directory_iterator(path))
+        if (submeshName.length() > 0)
         {
-            NR_CORE_INFO("Deserializing {0}", file.path().string());
+            path = p.parent_path() / dirName / (submeshName + ".pxm");
+        }
 
-            FILE* f = fopen(file.path().string().c_str(), "rb");
-            uint32_t size;
+        FILE* f = fopen(path.string().c_str(), "rb");
+        uint32_t size;
 
-            if (f)
+        if (f)
+        {
+            fseek(f, 0, SEEK_END);
+            size = ftell(f);
+            fseek(f, 0, SEEK_SET);
+            if (sMeshDataBuffer)
             {
-                fseek(f, 0, SEEK_END);
-                size = ftell(f);
-                fseek(f, 0, SEEK_SET);
-
-                physx::PxU8* buffer = new physx::PxU8[size / sizeof(physx::PxU8)];
-                fread(buffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), f);
-                fclose(f);
-                sMeshDataBuffers.push_back(buffer);
-                result.push_back(physx::PxDefaultMemoryInputData(buffer, size));
+                delete[] sMeshDataBuffer;
             }
+
+            sMeshDataBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
+            fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), f);
+            fclose(f);
         }
 
-        return result;
-    }
-
-    void PhysicsMeshSerializer::CleanupDataBuffers()
-    {
-        for (auto buffer : sMeshDataBuffers)
-        {
-            delete[] buffer;
-        }
-
-        sMeshDataBuffers.clear();
+        return physx::PxDefaultMemoryInputData(sMeshDataBuffer, size);
     }
 }

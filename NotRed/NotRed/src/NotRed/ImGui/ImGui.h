@@ -311,7 +311,7 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		itoa(sCounter++, sIDBuffer + 2, 16);
-		if (ImGui::Checkbox(s_IDBuffer, &value))
+		if (ImGui::Checkbox(sIDBuffer, &value))
 		{
 			modified = true;
 		}

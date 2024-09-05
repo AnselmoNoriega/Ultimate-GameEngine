@@ -503,14 +503,14 @@ namespace NR
         mPipeline = Pipeline::Create(pipelineSpecification);
     }
 
-    Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices)
+    Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
         : mStaticVertices(vertices), mIndices(indices), mIsAnimated(false)
     {
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
         submesh.IndexCount = indices.size() * 3;
-        submesh.Transform = glm::mat4(1.0F);
+        submesh.Transform = transform;
         mSubmeshes.push_back(submesh);
 
         mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));

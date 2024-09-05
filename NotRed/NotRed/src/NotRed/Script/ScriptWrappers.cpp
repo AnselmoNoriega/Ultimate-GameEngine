@@ -552,7 +552,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        Ref<PhysicsActor>& actor = PhysicsManager::GetActorForEntity(entity);
+        const Ref<PhysicsActor>& actor = PhysicsManager::GetActorForEntity(entity);
         return actor->GetMass();
     }
 
@@ -567,7 +567,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        Ref<PhysicsActor>& actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
         actor->SetMass(mass);
     }
 

@@ -12,11 +12,7 @@
 namespace NR
 {
 	static physx::PxScene* sScene;
-	static std::vector<Ref<PhysicsActor>> sSimulatedActors;
-	static std::vector<Ref<PhysicsActor>> sStaticActors;
-	static Entity* sEntityStorageBuffer;
-	static uint32_t sEntityBufferCount;
-	static int sEntityStorageBufferPosition;
+	static std::vector<Ref<PhysicsActor>> sActors;
 	static float sSimulationTime = 0.0f;
 
 	static PhysicsSettings sSettings;
@@ -30,35 +26,6 @@ namespace NR
 	void PhysicsManager::Shutdown()
 	{
 		PhysicsWrappers::Shutdown();
-	}
-
-	void PhysicsManager::ExpandEntityBuffer(uint32_t amount)
-	{
-		NR_CORE_ASSERT(sScene);
-
-		if (sEntityStorageBuffer != nullptr)
-		{
-			Entity* temp = new Entity[sEntityBufferCount + amount];
-			memcpy(temp, sEntityStorageBuffer, sEntityBufferCount * sizeof(Entity));
-
-			for (uint32_t i = 0; i < sEntityBufferCount; ++i)
-			{
-				Entity& e = sEntityStorageBuffer[i];
-				RigidBodyComponent& rb = e.GetComponent<RigidBodyComponent>();
-
-				Ref<PhysicsActor>& actor = GetActorForEntity(e);
-				actor->SetUserData(&temp[rb.EntityBufferIndex]);
-			}
-
-			delete[] sEntityStorageBuffer;
-			sEntityStorageBuffer = temp;
-			sEntityBufferCount += amount;
-		}
-		else
-		{
-			sEntityStorageBuffer = new Entity[amount];
-			sEntityBufferCount = amount;
-		}
 	}
 
 	void PhysicsManager::CreateScene()
@@ -81,51 +48,20 @@ namespace NR
 		}
 	}
 
-	void PhysicsManager::CreateActor(Entity e)
+	Ref<PhysicsActor> PhysicsManager::CreateActor(Entity e)
 	{
 		NR_CORE_ASSERT(sScene);
 
-		if (!e.HasComponent<RigidBodyComponent>())
-		{
-			NR_CORE_WARN("Trying to create PhysX actor from a non-rigidbody actor!");
-			return;
-		}
-
-		if (!e.HasComponent<PhysicsMaterialComponent>())
-		{
-			NR_CORE_WARN("Trying to create PhysX actor without a PhysicsMaterialComponent!");
-			return;
-		}
-
 		Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(e);
 
-		if (actor->IsDynamic())
-		{
-			sSimulatedActors.push_back(actor);
-		}
-		else
-		{
-			sStaticActors.push_back(actor);
-		}
-
-		Entity* entityStorage = &sEntityStorageBuffer[sEntityStorageBufferPosition];
-		*entityStorage = e;
-		actor->SetUserData((void*)entityStorage);
-		actor->mRigidBody.EntityBufferIndex = sEntityStorageBufferPosition;
-		++sEntityStorageBufferPosition;
+		sActors.push_back(actor);
+		actor->Spawn();
+		return actor;
 	}
 
 	Ref<PhysicsActor> PhysicsManager::GetActorForEntity(Entity entity)
 	{
-		for (auto& actor : sStaticActors)
-		{
-			if (actor->GetEntity() == entity)
-			{
-				return actor;
-			}
-		}
-
-		for (auto& actor : sSimulatedActors)
+		for (auto& actor : sActors)
 		{
 			if (actor->GetEntity() == entity)
 			{
@@ -152,7 +88,7 @@ namespace NR
 
 		sSimulationTime -= sSettings.FixedDeltaTime;
 
-		for (auto& actor : sSimulatedActors)
+		for (auto& actor : sActors)
 		{
 			actor->Update(sSettings.FixedDeltaTime);
 		}
@@ -160,7 +96,7 @@ namespace NR
 		sScene->simulate(sSettings.FixedDeltaTime);
 		sScene->fetchResults(true);
 
-		for (auto& actor : sSimulatedActors)
+		for (auto& actor : sActors)
 		{
 			actor->SynchronizeTransform();
 		}
@@ -170,11 +106,7 @@ namespace NR
 	{
 		NR_CORE_ASSERT(sScene);
 
-		delete[] sEntityStorageBuffer;
-		sEntityStorageBuffer = nullptr;
-		sEntityStorageBufferPosition = 0;
-		sStaticActors.clear();
-		sSimulatedActors.clear();
+		sActors.clear();
 		sScene->release();
 		sScene = nullptr;
 	}

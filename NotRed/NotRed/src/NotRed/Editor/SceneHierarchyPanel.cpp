@@ -14,12 +14,14 @@
 #include "NotRed/ImGui/ImGui.h"
 
 #include "NotRed/Core/Application.h"
-#include "NotRed/Renderer/Mesh.h"
-#include "NotRed/Physics/PhysicsLayer.h"
 #include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Renderer/MeshFactory.h"
 
 #include "NotRed/Physics/PhysicsWrappers.h"
-#include "NotRed/Renderer/MeshFactory.h"
+#include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Physics/PhysicsActor.h"
 
 namespace NR
 {
@@ -457,6 +459,60 @@ namespace NR
                 if (ImGui::Button("Circle Collider 2D"))
                 {
                     mSelectionContext.AddComponent<CircleCollider2DComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+            {
+                if (ImGui::Button("Rigidbody"))
+                {
+                    mSelectionContext.AddComponent<RigidBodyComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
+            {
+                if (ImGui::Button("Physics Material"))
+                {
+                    mSelectionContext.AddComponent<PhysicsMaterialComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<BoxColliderComponent>())
+            {
+                if (ImGui::Button("Box Collider"))
+                {
+                    mSelectionContext.AddComponent<BoxColliderComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<SphereColliderComponent>())
+            {
+                if (ImGui::Button("Sphere Collider"))
+                {
+                    mSelectionContext.AddComponent<SphereColliderComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<SphereColliderComponent>())
+            {
+                if (ImGui::Button("Capsule Collider"))
+                {
+                    mSelectionContext.AddComponent<CapsuleColliderComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            if (!mSelectionContext.HasComponent<MeshColliderComponent>())
+            {
+                if (ImGui::Button("Mesh Collider"))
+                {
+                    MeshColliderComponent& component = mSelectionContext.AddComponent<MeshColliderComponent>();
+                    if (mSelectionContext.HasComponent<MeshComponent>())
+                    {
+                        component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
+                        PhysicsWrappers::CreateTriangleMesh(component, mSelectionContext.Transform().Scale);
+                    }
+
                     ImGui::CloseCurrentPopup();
                 }
             }
@@ -943,57 +999,76 @@ namespace NR
                 UI::EndPropertyGrid();
             });
 
-        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [](MeshColliderComponent& mcc)
+        DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
             {
-                UI::BeginPropertyGrid();
-                ImGui::Columns(3);
-                ImGui::SetColumnWidth(0, 100);
-                ImGui::SetColumnWidth(1, 300);
-                ImGui::SetColumnWidth(2, 40);
-                ImGui::Text("File Path");
-                ImGui::NextColumn();
-                ImGui::PushItemWidth(-1);
-                if (mcc.CollisionMesh)
+                if (mcc.OverrideMesh)
                 {
-                    ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                }
-                else
-                {
-                    ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
-                }
-                ImGui::PopItemWidth();
-                ImGui::NextColumn();
-                if (ImGui::Button("...##openmesh"))
-                {
-                    std::string file = Application::Get().OpenFile();
-                    if (!file.empty())
+                    ImGui::Columns(3);
+                    ImGui::SetColumnWidth(0, 100);
+                    ImGui::SetColumnWidth(1, 300);
+                    ImGui::SetColumnWidth(2, 40);
+                    ImGui::Text("File Path");
+                    ImGui::NextColumn();
+                    ImGui::PushItemWidth(-1);
+                    if (mcc.CollisionMesh)
                     {
-                        mcc.CollisionMesh = Ref<Mesh>::Create(file);
-
-                        if (mcc.IsConvex)
+                        ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+                    }
+                    else
+                    {
+                        ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+                    }
+                    ImGui::PopItemWidth();
+                    ImGui::NextColumn();
+                    if (ImGui::Button("...##openmesh"))
+                    {
+                        std::string file = Application::Get().OpenFile();
+                        if (!file.empty())
                         {
-                            PhysicsWrappers::CreateConvexMesh(mcc, true);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, true);
+                            mcc.CollisionMesh = Ref<Mesh>::Create(file);
+                            if (mcc.IsConvex)
+                            {
+                                PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                            }
+                            else
+                            {
+                                PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                            }
                         }
                     }
+                    ImGui::Columns(1);
+                }
 
-                    if (UI::Property("Is Convex", mcc.IsConvex))
+                UI::BeginPropertyGrid();
+                if (UI::Property("Is Convex", mcc.IsConvex))
+                {
+                    if (mcc.IsConvex)
                     {
-                        if (mcc.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(mcc, true);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, true);
-                        }
+                        PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                    }
+                    else
+                    {
+                        PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
                     }
                 }
 
                 UI::Property("Is Trigger", mcc.IsTrigger);
+                if (UI::Property("Override Mesh", mcc.OverrideMesh))
+                {
+                    if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
+                    {
+                        mcc.CollisionMesh = entity.GetComponent<MeshComponent>().MeshObj;
+
+                        if (mcc.IsConvex)
+                        {
+                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                        }
+                    }
+                }
                 UI::EndPropertyGrid();
             });
     }

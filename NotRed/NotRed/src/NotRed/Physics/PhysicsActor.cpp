@@ -15,14 +15,29 @@
 namespace NR
 {
 	PhysicsActor::PhysicsActor(Entity entity)
-		: mEntity(entity), mRigidBody(entity.GetComponent<RigidBodyComponent>()), mMaterial(entity.GetComponent<PhysicsMaterialComponent>())
+		: mEntity(entity), mRigidBody(entity.GetComponent<RigidBodyComponent>())
 	{
-		Create();
+		if (!mEntity.HasComponent<PhysicsMaterialComponent>())
+		{
+			mMaterial.StaticFriction = 1.0f;
+			mMaterial.DynamicFriction = 1.0f;
+			mMaterial.Bounciness = 0.0f;
+		}
+		else
+		{
+			mMaterial = entity.GetComponent<PhysicsMaterialComponent>();
+		}
+
+		Initialize();
 	}
 
 	PhysicsActor::~PhysicsActor()
 	{
-		mActorInternal->release();
+		if (mActorInternal && mActorInternal->isReleasable())
+		{
+			mActorInternal->release();
+			mActorInternal = nullptr;
+		}
 	}
 
 	glm::vec3 PhysicsActor::GetPosition()
@@ -195,7 +210,7 @@ namespace NR
 		allocator.deallocate(shapes);
 	}
 
-	void PhysicsActor::Create()
+	void PhysicsActor::Initialize()
 	{
 		physx::PxPhysics& physics = PhysicsWrappers::GetPhysics();
 
@@ -227,22 +242,22 @@ namespace NR
 			mActorInternal = actor;
 		}
 
-		physx::PxMaterial* physicsMat = physics.createMaterial(mMaterial.StaticFriction, mMaterial.DynamicFriction, mMaterial.Bounciness);
+		mMaterialInternal = physics.createMaterial(mMaterial.StaticFriction, mMaterial.DynamicFriction, mMaterial.Bounciness);
 		if (mEntity.HasComponent<BoxColliderComponent>()) 
 		{
-			PhysicsWrappers::AddBoxCollider(*this, *physicsMat);
+			PhysicsWrappers::AddBoxCollider(*this);
 		}
 		if (mEntity.HasComponent<SphereColliderComponent>()) 
 		{
-			PhysicsWrappers::AddSphereCollider(*this, *physicsMat);
+			PhysicsWrappers::AddSphereCollider(*this);
 		}
 		if (mEntity.HasComponent<CapsuleColliderComponent>()) 
 		{
-			PhysicsWrappers::AddCapsuleCollider(*this, *physicsMat);
+			PhysicsWrappers::AddCapsuleCollider(*this);
 		}
 		if (mEntity.HasComponent<MeshColliderComponent>()) 
 		{
-			PhysicsWrappers::AddMeshCollider(*this, *physicsMat);
+			PhysicsWrappers::AddMeshCollider(*this);
 		}
 
 		if (!PhysicsLayerManager::IsLayerValid(mRigidBody.Layer))
@@ -251,8 +266,12 @@ namespace NR
 		}
 
 		SetLayer(mRigidBody.Layer);
+		mActorInternal->userData = &mEntity;
+	}
 
-		static_cast<physx::PxScene*>(PhysicsManager::GetPhysicsScene())->addActor(*mActorInternal);
+	void PhysicsActor::Spawn()
+	{
+		((physx::PxScene*)PhysicsManager::GetPhysicsScene())->addActor(*mActorInternal);
 	}
 
 	void PhysicsActor::Update(float fixedTimestep)
@@ -267,14 +286,26 @@ namespace NR
 
 	void PhysicsActor::SynchronizeTransform()
 	{
-		TransformComponent& transform = mEntity.Transform();
-		physx::PxTransform actorPose = mActorInternal->getGlobalPose();
-		transform.Translation = FromPhysicsVector(actorPose.p);
-		transform.Rotation = glm::eulerAngles(FromPhysicsQuat(actorPose.q));
+		if (IsDynamic())
+		{
+			TransformComponent& transform = mEntity.Transform();
+			physx::PxTransform actorPose = mActorInternal->getGlobalPose();
+			transform.Translation = FromPhysicsVector(actorPose.p);
+			transform.Rotation = glm::eulerAngles(FromPhysicsQuat(actorPose.q));
+		}
+		else
+		{
+			mActorInternal->setGlobalPose(ToPhysicsTransform(mEntity.Transform()));
+		}
 	}
 
-	void PhysicsActor::SetUserData(void* userData)
+	void PhysicsActor::AddCollisionShape(physx::PxShape* shape)
 	{
-		mActorInternal->userData = userData;
+		bool status = mActorInternal->attachShape(*shape);
+		shape->release();
+		if (!status)
+		{
+			shape = nullptr;
+		}
 	}
 }

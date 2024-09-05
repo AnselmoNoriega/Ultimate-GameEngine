@@ -192,7 +192,6 @@ namespace NR
             {
                 glGenSamplers(1, &sData.ShadowMapSampler);
 
-                // Setup the shadowmap depth sampler
                 glSamplerParameteri(sData.ShadowMapSampler, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glSamplerParameteri(sData.ShadowMapSampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glSamplerParameteri(sData.ShadowMapSampler, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -433,7 +432,7 @@ namespace NR
             Renderer::SubmitMesh(dc.Mesh, dc.Transform, overrideMaterial);
         }
 
-        if (outline)
+        if (outline || collider)
         {
             Renderer::Submit([]()
                 {
@@ -733,12 +732,12 @@ namespace NR
             glm::vec3 frustumCorners[8] =
             {
                 glm::vec3(-1.0f,  1.0f, -1.0f),
-                glm::vec3( 1.0f,  1.0f, -1.0f),
-                glm::vec3( 1.0f, -1.0f, -1.0f),
+                glm::vec3(1.0f,  1.0f, -1.0f),
+                glm::vec3(1.0f, -1.0f, -1.0f),
                 glm::vec3(-1.0f, -1.0f, -1.0f),
                 glm::vec3(-1.0f,  1.0f,  1.0f),
-                glm::vec3( 1.0f,  1.0f,  1.0f),
-                glm::vec3( 1.0f, -1.0f,  1.0f),
+                glm::vec3(1.0f,  1.0f,  1.0f),
+                glm::vec3(1.0f, -1.0f,  1.0f),
                 glm::vec3(-1.0f, -1.0f,  1.0f),
             };
 

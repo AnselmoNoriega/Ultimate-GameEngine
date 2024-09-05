@@ -12,6 +12,7 @@
 #include "Components.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/PhysicsActor.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -240,7 +241,7 @@ namespace NR
                 if (meshComponent.MeshObj)
                 {
                     meshComponent.MeshObj->Update(dt);
-                    SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform(), nullptr);
+                    SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform());
                 }
             }
             SceneRenderer::EndScene();
@@ -467,8 +468,6 @@ namespace NR
 
         {
             auto view = mRegistry.view<RigidBodyComponent>();
-
-            PhysicsManager::ExpandEntityBuffer(view.size());
             for (auto entity : view)
             {
                 Entity e = { entity, this };

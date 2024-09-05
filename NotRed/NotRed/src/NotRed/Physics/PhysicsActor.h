@@ -6,6 +6,8 @@
 namespace physx
 {
 	class PxRigidActor;
+	class PxShape;
+	class PxMaterial;
 }
 
 namespace NR
@@ -41,11 +43,12 @@ namespace NR
 		Entity& GetEntity() { return mEntity; }
 
 	private:
-		void Create();
+		void Initialize();
+		void Spawn();
 		void Update(float FixedDeltaTime);
-		void SynchronizeTransform();
 
-		void SetUserData(void* userData);
+		void SynchronizeTransform();
+		void AddCollisionShape(physx::PxShape* shape);
 
 	private:
 		Entity mEntity;
@@ -53,6 +56,9 @@ namespace NR
 		PhysicsMaterialComponent mMaterial;
 
 		physx::PxRigidActor* mActorInternal;
+		std::unordered_map<int, std::vector<physx::PxShape*>> mShapes;
+
+		physx::PxMaterial* mMaterialInternal;
 
 	private:
 		friend class PhysicsManager;
