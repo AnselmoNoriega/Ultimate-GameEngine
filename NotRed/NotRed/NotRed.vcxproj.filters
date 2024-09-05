@@ -117,16 +117,16 @@
     <ClInclude Include="src\NotRed\Core\Log.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\Math\AABB.h">
+    <ClInclude Include="src\NotRed\Math\AABB.h">
       <Filter>src\NotRed\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\Math\Matrix4x4.h">
+    <ClInclude Include="src\NotRed\Math\Matrix4x4.h">
       <Filter>src\NotRed\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\Math\Noise.h">
+    <ClInclude Include="src\NotRed\Math\Noise.h">
       <Filter>src\NotRed\Core\Math</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Core\Math\Ray.h">
+    <ClInclude Include="src\NotRed\Math\Ray.h">
       <Filter>src\NotRed\Core\Math</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\Platform.h">
@@ -452,7 +452,7 @@
     <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
     <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
-    <ClInclude Include="src\NotRed\Core\Math\Math.h" />
+    <ClInclude Include="src\NotRed\Math\Math.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -470,10 +470,10 @@
     <ClCompile Include="src\NotRed\Core\Log.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\Math\Matrix4x4.cpp">
+    <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp">
       <Filter>src\NotRed\Core\Math</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\Math\Noise.cpp">
+    <ClCompile Include="src\NotRed\Math\Noise.cpp">
       <Filter>src\NotRed\Core\Math</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp">
@@ -705,6 +705,6 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
-    <ClCompile Include="src\NotRed\Core\Math\Math.cpp" />
+    <ClCompile Include="src\NotRed\Math\Math.cpp" />
   </ItemGroup>
 </Project>

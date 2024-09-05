@@ -15,7 +15,7 @@
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Editor/PhysicsSettingsWindow.h"
-#include "NotRed/Core/Math/Math.h"
+#include "NotRed/Math/Math.h"
 
 namespace NR
 {
@@ -346,8 +346,11 @@ namespace NR
         Ref<Scene> newScene = Ref<Scene>::Create();
         SceneSerializer serializer(newScene);
         serializer.Deserialize(filepath);
+
         mEditorScene = newScene;
+        mSceneFilePath = filepath;
         std::filesystem::path path = filepath;
+
         UpdateWindowTitle(path.filename().string());
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);

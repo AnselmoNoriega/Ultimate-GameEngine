@@ -16,7 +16,7 @@
 #include "NotRed/Physics/PhysicsWrappers.h"
 #include "NotRed/Physics/PhysicsActor.h"
 
-#include "NotRed/Core/Math/Noise.h"
+#include "NotRed/Math/Noise.h"
 
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"

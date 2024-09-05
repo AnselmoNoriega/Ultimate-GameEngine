@@ -9,7 +9,7 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Material.h"
 
-#include "NotRed/Core/Math/AABB.h"
+#include "NotRed/Math/AABB.h"
 
 struct aiNode;
 struct aiAnimation;
@@ -117,6 +117,7 @@ namespace NR
 		uint32_t MaterialIndex;
 
 		glm::mat4 Transform;
+		glm::mat4 LocalTransform;
 		AABB BoundingBox;
 
 		std::string NodeName, MeshName;

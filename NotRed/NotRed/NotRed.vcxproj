@@ -147,7 +147,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Core\Math\Math.h" />
+    <ClInclude Include="src\NotRed\Math\Math.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed.h" />
@@ -164,10 +164,10 @@
     <ClInclude Include="src\NotRed\Core\Layer.h" />
     <ClInclude Include="src\NotRed\Core\LayerStack.h" />
     <ClInclude Include="src\NotRed\Core\Log.h" />
-    <ClInclude Include="src\NotRed\Core\Math\AABB.h" />
-    <ClInclude Include="src\NotRed\Core\Math\Matrix4x4.h" />
-    <ClInclude Include="src\NotRed\Core\Math\Noise.h" />
-    <ClInclude Include="src\NotRed\Core\Math\Ray.h" />
+    <ClInclude Include="src\NotRed\Math\AABB.h" />
+    <ClInclude Include="src\NotRed\Math\Matrix4x4.h" />
+    <ClInclude Include="src\NotRed\Math\Noise.h" />
+    <ClInclude Include="src\NotRed\Math\Ray.h" />
     <ClInclude Include="src\NotRed\Core\Platform.h" />
     <ClInclude Include="src\NotRed\Core\Ref.h" />
     <ClInclude Include="src\NotRed\Core\TimeFrame.h" />
@@ -281,7 +281,7 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Core\Math\Math.cpp" />
+    <ClCompile Include="src\NotRed\Math\Math.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
@@ -289,8 +289,8 @@
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
-    <ClCompile Include="src\NotRed\Core\Math\Matrix4x4.cpp" />
-    <ClCompile Include="src\NotRed\Core\Math\Noise.cpp" />
+    <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp" />
+    <ClCompile Include="src\NotRed\Math\Noise.cpp" />
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />

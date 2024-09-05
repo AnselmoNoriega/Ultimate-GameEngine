@@ -273,7 +273,17 @@ namespace NR
             out << YAML::BeginMap; // CameraComponent
 
             auto& cameraComponent = entity.GetComponent<CameraComponent>();
-            out << YAML::Key << "Camera" << YAML::Value << "Camera data...";
+            auto& camera = cameraComponent.CameraObj;
+            out << YAML::Key << "Camera" << YAML::Value;
+            out << YAML::BeginMap; // Camera
+            out << YAML::Key << "ProjectionType" << YAML::Value << (int)camera.GetProjectionType();
+            out << YAML::Key << "PerspectiveFOV" << YAML::Value << camera.GetPerspectiveVerticalFOV();
+            out << YAML::Key << "PerspectiveNear" << YAML::Value << camera.GetPerspectiveNearClip();
+            out << YAML::Key << "PerspectiveFar" << YAML::Value << camera.GetPerspectiveFarClip();
+            out << YAML::Key << "OrthographicSize" << YAML::Value << camera.GetOrthographicSize();
+            out << YAML::Key << "OrthographicNear" << YAML::Value << camera.GetOrthographicNearClip();
+            out << YAML::Key << "OrthographicFar" << YAML::Value << camera.GetOrthographicFarClip();
+            out << YAML::EndMap;
             out << YAML::Key << "Primary" << YAML::Value << cameraComponent.Primary;
 
             out << YAML::EndMap; // CameraComponent
@@ -478,6 +488,16 @@ namespace NR
         out << YAML::EndMap; // Environment
     }
 
+    static bool CheckPath(const std::string& path)
+    {
+        FILE* f = fopen(path.c_str(), "rb");
+        if (f)
+        {
+            fclose(f);
+        }
+        return f != nullptr;
+    }
+
     void SceneSerializer::Serialize(const std::string& filepath)
     {
         YAML::Emitter out;
@@ -565,6 +585,8 @@ namespace NR
             }
         }
 
+        std::vector<std::string> missingPaths;
+
         auto entities = data["Entities"];
         if (entities)
         {
@@ -575,7 +597,9 @@ namespace NR
                 std::string name;
                 auto tagComponent = entity["TagComponent"];
                 if (tagComponent)
+                {
                     name = tagComponent["Tag"].as<std::string>();
+                }
 
                 NR_CORE_INFO("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
@@ -671,7 +695,17 @@ namespace NR
 
                     if (!deserializedEntity.HasComponent<MeshComponent>())
                     {
-                        deserializedEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshPath));
+                        Ref<Mesh> mesh;
+                        if (!CheckPath(meshPath))
+                        {
+                            missingPaths.emplace_back(meshPath);
+                        }
+                        else
+                        {
+                            mesh = Ref<Mesh>::Create(meshPath);
+                        }
+
+                        deserializedEntity.AddComponent<MeshComponent>(mesh);
                     }
 
                     NR_CORE_INFO("  Mesh Asset Path: {0}", meshPath);
@@ -681,10 +715,40 @@ namespace NR
                 if (cameraComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<CameraComponent>();
+                    const auto& cameraNode = cameraComponent["Camera"];
                     component.CameraObj = SceneCamera();
-                    component.Primary = cameraComponent["Primary"].as<bool>();
 
-                    NR_CORE_INFO("  Primary Camera: {0}", component.Primary);
+                    auto& camera = component.CameraObj;
+                    if (cameraNode["ProjectionType"])
+                    {
+                        camera.SetProjectionType((SceneCamera::ProjectionType)cameraNode["ProjectionType"].as<int>());
+                    }
+                    if (cameraNode["PerspectiveFOV"])
+                    {
+                        camera.SetPerspectiveVerticalFOV(cameraNode["PerspectiveFOV"].as<float>());
+                    }
+                    if (cameraNode["PerspectiveNear"])
+                    {
+                        camera.SetPerspectiveNearClip(cameraNode["PerspectiveNear"].as<float>());
+                    }
+                    if (cameraNode["PerspectiveFar"])
+                    {
+                        camera.SetPerspectiveFarClip(cameraNode["PerspectiveFar"].as<float>());
+                    }
+                    if (cameraNode["OrthographicSize"])
+                    {
+                        camera.SetOrthographicSize(cameraNode["OrthographicSize"].as<float>());
+                    }
+                    if (cameraNode["OrthographicNear"])
+                    {
+                        camera.SetOrthographicNearClip(cameraNode["OrthographicNear"].as<float>());
+                    }
+                    if (cameraNode["OrthographicFar"])
+                    {
+                        camera.SetOrthographicFarClip(cameraNode["OrthographicFar"].as<float>());
+                    }
+
+                    component.Primary = cameraComponent["Primary"].as<bool>();
                 }
 
                 auto directionalLightComponent = entity["DirectionalLightComponent"];
@@ -704,7 +768,14 @@ namespace NR
                     std::string env = skyLightComponent["EnvironmentAssetPath"].as<std::string>();
                     if (!env.empty())
                     {
-                        component.SceneEnvironment = Environment::Load(env);
+                        if (!CheckPath(env))
+                        {
+                            missingPaths.emplace_back(env);
+                        }
+                        else
+                        {
+                            component.SceneEnvironment = Environment::Load(env);
+                        }
                     }
                     component.Intensity = skyLightComponent["Intensity"].as<float>();
                     component.Angle = skyLightComponent["Angle"].as<float>();
@@ -815,7 +886,14 @@ namespace NR
                     if (overrideMesh)
                     {
                         std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
-                        collisionMesh = Ref<Mesh>::Create(meshPath);
+                        if (!CheckPath(meshPath))
+                        {
+                            missingPaths.emplace_back(meshPath);
+                        }
+                        else
+                        {
+                            collisionMesh = Ref<Mesh>::Create(meshPath);
+                        }
                     }
 
                     if (collisionMesh)
@@ -865,6 +943,18 @@ namespace NR
                 }
             }
         }
+
+        if (missingPaths.size())
+        {
+            NR_CORE_ERROR("The following files could not be loaded:");
+            for (auto& path : missingPaths)
+            {
+                NR_CORE_ERROR("  {0}", path);
+            }
+
+            return false;
+        }
+
         return true;
     }
 

@@ -7,6 +7,8 @@
 
 #include <extensions/PxRigidActorExt.h>
 
+#include "NotRed/Math/Math.h"
+
 #include "PhysicsManager.h"
 #include "PhysicsLayer.h"
 #include "PhysicsActor.h"
@@ -407,7 +409,7 @@ namespace NR
         return shapes;
     }
 
-    std::vector<physx::PxShape*> PhysicsWrappers::CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld)
+    std::vector<physx::PxShape*> PhysicsWrappers::CreateTriangleMesh(MeshColliderComponent& collider, const glm::vec3& scale, bool invalidateOld)
     {
         std::vector<physx::PxShape*> shapes;
 
@@ -446,12 +448,15 @@ namespace NR
 
                 PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
 
+                glm::vec3 submeshTranslation, submeshRotation, submeshScale;
+                Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
+
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 physx::PxTriangleMesh* trimesh = sPhysics->createTriangleMesh(input);
-                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(ToPhysicsVector(size)));
-                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
+                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(ToPhysicsVector(submeshScale * scale)));
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
                 physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
-                shape->setLocalPose(ToPhysicsTransform(submesh.Transform));
+                shape->setLocalPose(ToPhysicsTransform(submeshTranslation, submeshRotation));
                 shapes.push_back(shape);
             }
         }
@@ -459,12 +464,15 @@ namespace NR
         {
             for (const auto& submesh : collider.CollisionMesh->GetSubmeshes())
             {
+                glm::vec3 submeshTranslation, submeshRotation, submeshScale;
+                Math::DecomposeTransform(submesh.LocalTransform, submeshTranslation, submeshRotation, submeshScale);
+
                 physx::PxDefaultMemoryInputData meshData = PhysicsMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath(), submesh.MeshName);
                 physx::PxTriangleMesh* trimesh = sPhysics->createTriangleMesh(meshData);
-                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(ToPhysicsVector(size)));
-                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); // Dummy material, will be replaced at runtime.
+                physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(ToPhysicsVector(submeshScale * scale)));
+                physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
                 physx::PxShape* shape = sPhysics->createShape(triangleGeometry, *material, true);
-                shape->setLocalPose(ToPhysicsTransform(submesh.Transform));
+                shape->setLocalPose(ToPhysicsTransform(submeshTranslation, submeshRotation));
                 shapes.push_back(shape);
             }
         }
@@ -474,7 +482,8 @@ namespace NR
             for (auto shape : shapes)
             {
                 physx::PxGeometryHolder geometryHolder = shape->getGeometry();
-                physx::PxTriangleMesh* mesh = geometryHolder.triangleMesh().triangleMesh;
+                physx::PxTriangleMeshGeometry triangleGeometry = geometryHolder.triangleMesh();
+                physx::PxTriangleMesh* mesh = triangleGeometry.triangleMesh;
 
                 const uint32_t nbVerts = mesh->getNbVertices();
                 const physx::PxVec3* triangleVertices = mesh->getVertices();
@@ -500,7 +509,10 @@ namespace NR
                     indices.push_back(index);
                 }
 
-                collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, FromPhysicsTransform(shape->getLocalPose())));
+                glm::mat4 scale = glm::scale(glm::mat4(1.0f), *(glm::vec3*)&triangleGeometry.scale.scale);
+                //scale = glm::mat4(1.0f);
+                glm::mat4 transform = FromPhysicsTransform(shape->getLocalPose()) * scale;
+                collider.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, transform));
             }
         }
 

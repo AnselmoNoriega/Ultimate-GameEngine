@@ -510,7 +510,7 @@ namespace NR
                     if (mSelectionContext.HasComponent<MeshComponent>())
                     {
                         component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
-                        PhysicsWrappers::CreateTriangleMesh(component, mSelectionContext.Transform().Scale);
+                        PhysicsWrappers::CreateTriangleMesh(component);
                     }
 
                     ImGui::CloseCurrentPopup();
@@ -1028,11 +1028,11 @@ namespace NR
                             mcc.CollisionMesh = Ref<Mesh>::Create(file);
                             if (mcc.IsConvex)
                             {
-                                PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                                PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
                             }
                             else
                             {
-                                PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                                PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                             }
                         }
                     }
@@ -1044,11 +1044,11 @@ namespace NR
                 {
                     if (mcc.IsConvex)
                     {
-                        PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                        PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
                     }
                     else
                     {
-                        PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                        PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                     }
                 }
 
@@ -1061,11 +1061,11 @@ namespace NR
 
                         if (mcc.IsConvex)
                         {
-                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                            PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
                         }
                         else
                         {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                            PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                         }
                     }
                 }

@@ -12,6 +12,11 @@ namespace NR
         return physx::PxTransform(p, r);
     }
 
+    physx::PxTransform ToPhysicsTransform(const glm::vec3& translation, const glm::vec3& rotation)
+    {
+        return physx::PxTransform(ToPhysicsVector(translation), ToPhysicsQuat(glm::quat(rotation)));
+    }
+
     physx::PxTransform ToPhysicsTransform(const glm::mat4& transform)
     {
         physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::toQuat(transform)));
@@ -36,7 +41,7 @@ namespace NR
 
     physx::PxQuat ToPhysicsQuat(const glm::quat& quat)
     {
-        return *(physx::PxQuat*)&quat;
+        return physx::PxQuat(quat.x, quat.y, quat.z, quat.w);
     }
 
     glm::mat4 FromPhysicsTransform(const physx::PxTransform& transform)

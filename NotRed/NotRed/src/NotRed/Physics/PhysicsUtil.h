@@ -10,6 +10,7 @@ namespace NR
 {
     physx::PxTransform ToPhysicsTransform(const TransformComponent& transform);
     physx::PxTransform ToPhysicsTransform(const glm::mat4& transform);
+    physx::PxTransform ToPhysicsTransform(const glm::vec3& translation, const glm::vec3& rotation);
     physx::PxMat44 ToPhysicsMatrix(const glm::mat4& matrix);
     physx::PxVec3 ToPhysicsVector(const glm::vec3& vector);
     physx::PxVec4 ToPhysicsVector(const glm::vec4& vector);
