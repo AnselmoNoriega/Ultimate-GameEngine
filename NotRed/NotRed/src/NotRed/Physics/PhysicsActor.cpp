@@ -214,15 +214,18 @@ namespace NR
 	{
 		physx::PxPhysics& physics = PhysicsWrappers::GetPhysics();
 
+		Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
+		glm::mat4 transform = scene->GetTransformRelativeToParent(mEntity);
+
 		if (mRigidBody.BodyType == RigidBodyComponent::Type::Static)
 		{
-			mActorInternal = physics.createRigidStatic(ToPhysicsTransform(mEntity.Transform()));
+			mActorInternal = physics.createRigidStatic(ToPhysicsTransform(transform));
 		}
 		else
 		{
 			const PhysicsSettings& settings = PhysicsManager::GetSettings();
 
-			physx::PxRigidDynamic* actor = physics.createRigidDynamic(ToPhysicsTransform(mEntity.Transform()));
+			physx::PxRigidDynamic* actor = physics.createRigidDynamic(ToPhysicsTransform(transform));
 			actor->setLinearDamping(mRigidBody.LinearDrag);
 			actor->setAngularDamping(mRigidBody.AngularDrag);
 			actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, mRigidBody.IsKinematic);
@@ -295,7 +298,8 @@ namespace NR
 		}
 		else
 		{
-			mActorInternal->setGlobalPose(ToPhysicsTransform(mEntity.Transform()));
+			Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
+			mActorInternal->setGlobalPose(ToPhysicsTransform(scene->GetTransformRelativeToParent(mEntity)));
 		}
 	}
 

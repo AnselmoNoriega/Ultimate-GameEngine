@@ -73,6 +73,9 @@ namespace NR
 
 		Entity GetMainCameraEntity();
 		Entity FindEntityByTag(const std::string& tag);
+		Entity FindEntityByID(UUID id);
+
+		glm::mat4 GetTransformRelativeToParent(Entity entity);
 
 		template<typename T>
 		auto GetAllEntitiesWith()

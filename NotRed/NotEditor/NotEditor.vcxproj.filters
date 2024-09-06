@@ -25,5 +25,7 @@
     <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.frag" />
     <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.vert" />
     <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.frag" />
+    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.frag" />
+    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.vert" />
   </ItemGroup>
 </Project>

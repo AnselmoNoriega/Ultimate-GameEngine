@@ -37,6 +37,10 @@ namespace NR
         glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
         glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 
+        glm::vec3 Up = { 0.0f, 1.0f, 0.0f };
+        glm::vec3 Right = { 1.0f, 0.0f, 0.0f };
+        glm::vec3 Forward = { 0.0f, 0.0f, -1.0f };
+
         TransformComponent() = default;
         TransformComponent(const TransformComponent& other) = default;
         TransformComponent(const glm::vec3& translation)
@@ -48,6 +52,24 @@ namespace NR
                 * glm::toMat4(glm::quat(glm::radians(Rotation)))
                 * glm::scale(glm::mat4(1.0f), Scale);
         }
+    };
+
+    struct ParentComponent
+    {
+        UUID ParentHandle = 0;
+
+        ParentComponent() = default;
+        ParentComponent(const ParentComponent& other) = default;
+        ParentComponent(UUID parent)
+            : ParentHandle(parent) {}
+    };
+
+    struct ChildrenComponent
+    {
+        std::vector<UUID> Children;
+
+        ChildrenComponent() = default;
+        ChildrenComponent(const ChildrenComponent& other) = default;
     };
 
     struct MeshComponent

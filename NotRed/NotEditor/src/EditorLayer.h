@@ -14,6 +14,8 @@
 #include "imgui/imgui_internal.h"
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
+#include "NotRed/Editor/AssetManagerPanel.h"
+#include "NotRed/Editor/ObjectsPanel.h"
 #include "NotRed/Editor/EditorCamera.h"
 
 namespace NR
@@ -86,8 +88,10 @@ namespace NR
 
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
+		Scope<AssetManagerPanel> mAssetManagerPanel;
+		Scope<ObjectsPanel> mObjectsPanel;
 
-		Ref<Scene> mRuntimeScene, mEditorScene;
+		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
 		std::string mSceneFilePath;
 		bool mReloadScriptOnPlay = true;
 

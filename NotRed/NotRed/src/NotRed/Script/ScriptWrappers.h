@@ -13,14 +13,6 @@ extern "C" {
 
 namespace NR::Script
 {
-    struct ScriptTransform
-    {
-        glm::vec3 Translation;
-        glm::vec3 Rotation;
-        glm::vec3 Scale;
-        glm::vec3 Up, Right, Forward;
-    };
-
     // Math
     float NR_Noise_PerlinNoise(float x, float y);
 
@@ -45,8 +37,14 @@ namespace NR::Script
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
 
-    void NR_TransformComponent_GetTransform(uint64_t entityID, ScriptTransform* outTransform);
-    void NR_TransformComponent_SetTransform(uint64_t entityID, ScriptTransform* inTransform);
+    void NR_TransformComponent_GetTransform(uint64_t entityID, TransformComponent* outTransform);
+    void NR_TransformComponent_SetTransform(uint64_t entityID, TransformComponent* inTransform);
+    void NR_TransformComponent_GetTranslation(uint64_t entityID, glm::vec3* outTranslation);
+    void NR_TransformComponent_SetTranslation(uint64_t entityID, glm::vec3* inTranslation);
+    void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation);
+    void NR_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation);
+    void NR_TransformComponent_GetScale(uint64_t entityID, glm::vec3* outScale);
+    void NR_TransformComponent_SetScale(uint64_t entityID, glm::vec3* inScale);
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);

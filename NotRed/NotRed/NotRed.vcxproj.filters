@@ -453,6 +453,11 @@
     <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Math\Math.h" />
+    <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
+    <ClInclude Include="src\NotRed\Util\AssetManager.h" />
+    <ClInclude Include="src\NotRed\Util\DragDropData.h" />
+    <ClInclude Include="src\NotRed\Util\FileSystemWatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -706,5 +711,9 @@
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />
+    <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
+    <ClCompile Include="src\NotRed\Util\AssetManager.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystemWatcher.cpp" />
   </ItemGroup>
 </Project>

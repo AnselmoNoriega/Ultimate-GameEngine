@@ -184,7 +184,7 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		itoa(sCounter++, sIDBuffer + 2, 16);
-		if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
+		if (ImGui::DragFloat2(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
 		}

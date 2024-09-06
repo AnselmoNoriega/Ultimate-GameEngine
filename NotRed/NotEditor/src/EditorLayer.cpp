@@ -9,12 +9,14 @@
 
 #include <imgui/imgui_internal.h>
 
+#include "NotRed/Util/DragDropData.h"
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Editor/PhysicsSettingsWindow.h"
+#include "NotRed/Util/FileSystemWatcher.h"
 #include "NotRed/Math/Math.h"
 
 namespace NR
@@ -52,12 +54,17 @@ namespace NR
         mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
 
+        mAssetManagerPanel = CreateScope<AssetManagerPanel>();
+        mObjectsPanel = CreateScope<ObjectsPanel>();
+
         NewScene();
+
+        FileSystemWatcher::StartWatching();
     }
 
     void EditorLayer::Detach()
     {
-
+        FileSystemWatcher::StopWatching();
     }
 
     void EditorLayer::ScenePlay()
@@ -75,6 +82,7 @@ namespace NR
 
         mRuntimeScene->RuntimeStart();
         mSceneHierarchyPanel->SetContext(mRuntimeScene);
+        mCurrentScene = mRuntimeScene;
     }
 
     void EditorLayer::SceneStop()
@@ -87,6 +95,7 @@ namespace NR
         mSelectionContext.clear();
         ScriptEngine::SetSceneContext(mEditorScene);
         mSceneHierarchyPanel->SetContext(mEditorScene);
+        mCurrentScene = mEditorScene;
 
         Input::SetCursorMode(CursorMode::Normal);
     }
@@ -158,7 +167,20 @@ namespace NR
                     Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
                     auto viewProj = mEditorCamera.GetViewProjection();
                     Renderer2D::BeginScene(viewProj, false);
-                    Renderer2D::DrawRotatedQuad({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 1.0f, 0.0f, 1.0f, 1.0f });
+                    Renderer2D::DrawRotatedRect({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 0.0f, 1.0f, 1.0f, 1.0f });
+                    Renderer2D::EndScene();
+                    Renderer::EndRenderPass();
+                }
+
+                if (selection.EntityObj.HasComponent<CircleCollider2DComponent>())
+                {
+                    const auto& size = selection.EntityObj.GetComponent<CircleCollider2DComponent>().Radius;
+                    const TransformComponent& transform = selection.EntityObj.GetComponent<TransformComponent>();
+
+                    Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
+                    auto viewProj = mEditorCamera.GetViewProjection();
+                    Renderer2D::BeginScene(viewProj, false);
+                    Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
                     Renderer2D::EndScene();
                     Renderer::EndRenderPass();
                 }
@@ -357,6 +379,8 @@ namespace NR
 
         mEditorScene->SetSelectedEntity({});
         mSelectionContext.clear();
+
+        mCurrentScene = mEditorScene;
     }
 
     void EditorLayer::SaveScene()
@@ -483,6 +507,9 @@ namespace NR
         {
             ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
         }
+
+        mAssetManagerPanel->ImGuiRender();
+        mObjectsPanel->ImGuiRender();
 
         const char* label = (mSelectionMode == SelectionMode::Entity) ? "Entity" : "Mesh";
         if (ImGui::Button(label))
@@ -634,6 +661,44 @@ namespace NR
 
                 selection.Mesh->Transform = glm::inverse(transform) * transformBase;
             }
+        }
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            auto data = ImGui::AcceptDragDropPayload("scene_entity_objectP");
+            if (data)
+            {
+                auto d = (DragDropData*)data->Data;
+                if (d->Type == "Mesh")
+                {
+                    auto entity = mEditorScene->CreateEntity(d->Name);
+                    entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(d->SourcePath));
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+
+        /* Payload Implementation For Getting Assets In The Viewport From Asset Manager */
+        if (ImGui::BeginDragDropTarget())
+        {
+            auto data = ImGui::AcceptDragDropPayload("scene_entity_assetsP");
+            if (data)
+            {
+                auto d = (DragDropData*)data->Data;
+
+                if (d->Type == "NotRedScene")
+                {
+                    auto sceneName = d->SourcePath;
+                    OpenScene(sceneName);
+                }
+
+                if (d->Type == "Mesh")
+                {
+                    auto entity = mEditorScene->CreateEntity(d->Name);
+                    entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(d->SourcePath));
+                }
+            }
+            ImGui::EndDragDropTarget();
         }
 
         ImGui::End();

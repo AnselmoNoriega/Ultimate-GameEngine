@@ -193,6 +193,25 @@ namespace NR
             out << YAML::EndMap; // TransformComponent
         }
 
+        {
+            auto& parent = entity.GetComponent<ParentComponent>();
+            out << YAML::Key << "Parent" << YAML::Value << parent.ParentHandle;
+        }
+
+        {
+            auto& childrenComponent = entity.GetComponent<ChildrenComponent>();
+            out << YAML::Key << "Children";
+            out << YAML::Value << YAML::BeginSeq;
+
+            for (auto child : childrenComponent.Children)
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "Handle" << YAML::Value << child;
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+        }
+
         if (entity.HasComponent<ScriptComponent>())
         {
             out << YAML::Key << "ScriptComponent";
@@ -617,6 +636,19 @@ namespace NR
                     NR_CORE_INFO("    Translation: {0}, {1}, {2}", transform.Translation.x, transform.Translation.y, transform.Translation.z);
                     NR_CORE_INFO("    Rotation: {0}, {1}, {2}", transform.Rotation.x, transform.Rotation.y, transform.Rotation.z);
                     NR_CORE_INFO("    Scale: {0}, {1}, {2}", transform.Scale.x, transform.Scale.y, transform.Scale.z);
+                }
+
+                uint64_t parentHandle = entity["Parent"].as<uint64_t>();
+                deserializedEntity.GetComponent<ParentComponent>().ParentHandle = parentHandle;
+
+                auto children = entity["Children"];
+                if (children)
+                {
+                    for (auto child : children)
+                    {
+                        uint64_t childHandle = child["Handle"].as<uint64_t>();
+                        deserializedEntity.GetComponent<ChildrenComponent>().Children.push_back(childHandle);
+                    }
                 }
 
                 auto scriptComponent = entity["ScriptComponent"];

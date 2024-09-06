@@ -64,6 +64,10 @@ namespace NR
 		UUID& GetID() { return GetComponent<IDComponent>().ID; }
 		UUID GetSceneID() { return mScene->GetID(); }
 
+		void SetParentID(UUID parent) { GetComponent<ParentComponent>().ParentHandle = parent; }
+		UUID GetParentID() { return GetComponent<ParentComponent>().ParentHandle; }
+		std::vector<UUID>& Children() { return GetComponent<ChildrenComponent>().Children; }
+
 	private:
 		Entity(const std::string& name);
 

@@ -32,21 +32,30 @@ namespace NR
 
     public class TransformComponent : Component
     {
-        private Transform _transform;
-        public Transform Transform { get { return _transform; } }
-
-        public Vector3 Position
+        public Transform Transform
         {
             get
             {
-                GetTransform_Native(Entity.ID, out _transform);
-                return _transform.Position;
+                GetTransform_Native(Entity.ID, out Transform result);
+                return result;
+            }
+            set
+            {
+                SetTransform_Native(Entity.ID, ref value);
+            }
+        }
+
+        public Vector3 Translation
+        {
+            get
+            {
+                GetTranslation_Native(Entity.ID, out Vector3 result);
+                return result;
             }
 
             set
             {
-                _transform.Position = value;
-                SetTransform_Native(Entity.ID, ref _transform);
+                SetTranslation_Native(Entity.ID, ref value);
             }
         }
 
@@ -54,14 +63,13 @@ namespace NR
         {
             get
             {
-                GetTransform_Native(Entity.ID, out _transform);
-                return _transform.Rotation;
+                GetRotation_Native(Entity.ID, out Vector3 result);
+                return result;
             }
 
             set
             {
-                _transform.Rotation = value;
-                SetTransform_Native(Entity.ID, ref _transform);
+                SetRotation_Native(Entity.ID, ref value);
             }
         }
 
@@ -69,21 +77,31 @@ namespace NR
         {
             get
             {
-                GetTransform_Native(Entity.ID, out _transform);
-                return _transform.Scale;
+                GetScale_Native(Entity.ID, out Vector3 result);
+                return result;
             }
-
             set
             {
-                _transform.Scale = value;
-                SetTransform_Native(Entity.ID, ref _transform);
+                SetScale_Native(Entity.ID, ref value);
             }
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetTransform_Native(ulong entityID, out Transform result);
+        internal static extern void GetTransform_Native(ulong entityID, out Transform outTransform);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetTransform_Native(ulong entityID, ref Transform result);
+        internal static extern void SetTransform_Native(ulong entityID, ref Transform inTransform);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetTranslation_Native(ulong entityID, out Vector3 outTranslation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetTranslation_Native(ulong entityID, ref Vector3 inTranslation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRotation_Native(ulong entityID, out Vector3 outRotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRotation_Native(ulong entityID, ref Vector3 inRotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetScale_Native(ulong entityID, out Vector3 outScale);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale);
     }
 
     public class MeshComponent : Component

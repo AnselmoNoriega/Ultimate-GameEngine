@@ -11,6 +11,8 @@
 #include "Entity.h"
 #include "Components.h"
 
+#include "NotRed/Math/Math.h"
+
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsActor.h"
 #include "NotRed/Renderer/Renderer2D.h"
@@ -170,6 +172,24 @@ namespace NR
             }
         }
 
+        {
+            auto view = mRegistry.view<TransformComponent>();
+            for (auto entity : view)
+            {
+                auto& transformComponent = view.get<TransformComponent>(entity);
+                glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+                glm::vec3 translation;
+                glm::vec3 rotation;
+                glm::vec3 scale;
+                Math::DecomposeTransform(transform, translation, rotation, scale);
+
+                glm::quat rotationQuat = glm::quat(rotation);
+                transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
+                transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
+                transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
+            }
+        }
+
         PhysicsManager::Simulate(dt);
 
         {
@@ -194,7 +214,7 @@ namespace NR
             return;
         }
 
-        glm::mat4 cameraViewMatrix = glm::inverse(cameraEntity.Transform().GetTransform());
+        glm::mat4 cameraViewMatrix = glm::inverse(GetTransformRelativeToParent(cameraEntity));
         NR_CORE_ASSERT(cameraEntity, "Scene does not contain any cameras!");
         SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>();
         camera.SetViewportSize(mViewportWidth, mViewportHeight);
@@ -241,7 +261,8 @@ namespace NR
                 if (meshComponent.MeshObj)
                 {
                     meshComponent.MeshObj->Update(dt);
-                    SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform());
+                    glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+                    SceneRenderer::SubmitMesh(meshComponent, transform);
                 }
             }
             SceneRenderer::EndScene();
@@ -292,7 +313,17 @@ namespace NR
             if (meshComponent.MeshObj)
             {
                 meshComponent.MeshObj->Update(dt);
-                SceneRenderer::SubmitMesh(meshComponent, transformComponent.GetTransform());
+
+                glm::mat4 transform = GetTransformRelativeToParent(Entity{ entity, this });
+
+                if (mSelectedEntity == entity)
+                {
+                    SceneRenderer::SubmitSelectedMesh(meshComponent, transform);
+                }
+                else
+                {
+                    SceneRenderer::SubmitMesh(meshComponent, transform);
+                }
             }
         }
 
@@ -301,11 +332,12 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
                 auto& collider = e.GetComponent<BoxColliderComponent>();
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                    SceneRenderer::SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -315,11 +347,12 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
                 auto& collider = e.GetComponent<SphereColliderComponent>();
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                    SceneRenderer::SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -329,11 +362,12 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
                 auto& collider = e.GetComponent<CapsuleColliderComponent>();
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                    SceneRenderer::SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -343,11 +377,12 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
                 auto& collider = e.GetComponent<MeshColliderComponent>();
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, e.GetComponent<TransformComponent>().GetTransform());
+                    SceneRenderer::SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -522,6 +557,9 @@ namespace NR
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name);
 
+        entity.AddComponent<ParentComponent>();
+        entity.AddComponent<ChildrenComponent>();
+
         mEntityIDMap[idComponent.ID] = entity;
         return entity;
     }
@@ -534,6 +572,9 @@ namespace NR
 
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name);
+
+        entity.AddComponent<ParentComponent>();
+        entity.AddComponent<ChildrenComponent>();
 
         NR_CORE_ASSERT(mEntityIDMap.find(uuid) == mEntityIDMap.end());
         mEntityIDMap[uuid] = entity;
@@ -578,6 +619,8 @@ namespace NR
         newEntity = CreateEntity(entity.GetComponent<TagComponent>().Tag);
 
         CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<ParentComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<ChildrenComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -610,6 +653,34 @@ namespace NR
         return Entity{};
     }
 
+    Entity Scene::FindEntityByID(UUID id)
+    {
+        auto view = mRegistry.view<IDComponent>();
+        for (auto entity : view)
+        {
+            auto& idComponent = mRegistry.get<IDComponent>(entity);
+            if (idComponent.ID == id)
+            {
+                return Entity(entity, this);
+            }
+        }
+
+        return Entity{};
+    }
+
+    glm::mat4 Scene::GetTransformRelativeToParent(Entity entity)
+    {
+        glm::mat4 transform(1.0f);
+
+        Entity parent = FindEntityByID(entity.GetParentID());
+        if (parent)
+        {
+            transform = GetTransformRelativeToParent(parent);
+        }
+
+        return transform * entity.Transform().GetTransform();
+    }
+
     void Scene::CopyTo(Ref<Scene>& target)
     {
         target->mLight = mLight;
@@ -631,6 +702,8 @@ namespace NR
 
         CopyComponent<TagComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<ParentComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<ChildrenComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);

@@ -368,9 +368,6 @@ namespace NR
         sData.SceneData.SkyboxMaterial->Set("uInverseVP", glm::inverse(viewProjection));
         Renderer::SubmitFullScreenQuad(sData.SceneData.SkyboxMaterial);
 
-        float aspectRatio = (float)sData.GeoPass->GetSpecification().TargetFrameBuffer->GetWidth() / (float)sData.GeoPass->GetSpecification().TargetFrameBuffer->GetHeight();
-        float frustumSize = 2.0f * sceneCamera.Near * glm::tan(sceneCamera.FOV * 0.5f) * aspectRatio;
-
         // Render entities
         for (auto& dc : sData.DrawList)
         {

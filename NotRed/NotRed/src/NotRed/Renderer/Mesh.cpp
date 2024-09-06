@@ -238,6 +238,7 @@ namespace NR
                 auto aiMaterialName = aiMaterial->GetName();
 
                 auto mi = Ref<MaterialInstance>::Create(mBaseMaterial, aiMaterialName.data);
+                mi->ModifyFlags(MaterialFlag::TwoSided, false);
                 mMaterials[i] = mi;
 
                 NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);

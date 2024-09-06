@@ -104,10 +104,10 @@ namespace NR
 
     }
 
-    void Renderer::DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest)
+    void Renderer::DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest, bool faceCulling)
     {
         Renderer::Submit([=]() {
-            RendererAPI::DrawIndexed(count, type, depthTest);
+            RendererAPI::DrawIndexed(count, type, depthTest, faceCulling);
             });
     }
 
@@ -160,23 +160,10 @@ namespace NR
             shader->SetMat4("uTransform", transform);
         }
 
-        if (cullFace)
-        {
-            Renderer::Submit([]() { 
-                glEnable(GL_CULL_FACE); 
-                });
-        }
-        else
-        {
-            Renderer::Submit([]() {
-                glDisable(GL_CULL_FACE);
-                });
-        }
-
         sData.mFullscreenQuadVertexBuffer->Bind();
         sData.mFullscreenQuadPipeline->Bind();
         sData.mFullscreenQuadIndexBuffer->Bind();
-        Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
+        Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest, cullFace);
     }
 
     void Renderer::SubmitFullScreenQuad(Ref<MaterialInstance> material)
@@ -190,23 +177,11 @@ namespace NR
             cullFace = !material->IsFlagActive(MaterialFlag::TwoSided);
         }
 
-        if (cullFace)
-        {
-            Renderer::Submit([]() {
-                glEnable(GL_CULL_FACE);
-                });
-        }
-        else
-        {
-            Renderer::Submit([]() {
-                glDisable(GL_CULL_FACE);
-                });
-        }
-
         sData.mFullscreenQuadVertexBuffer->Bind();
         sData.mFullscreenQuadPipeline->Bind();
         sData.mFullscreenQuadIndexBuffer->Bind();
-        Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest);
+
+        Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest, cullFace);
     }
 
     void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
@@ -245,15 +220,11 @@ namespace NR
 
                     if (!material->IsFlagActive(MaterialFlag::TwoSided))
                     {
-                        Renderer::Submit([]() {
-                            glEnable(GL_CULL_FACE);
-                            });
+                        glEnable(GL_CULL_FACE);
                     }
                     else
                     {
-                        Renderer::Submit([]() {
-                            glDisable(GL_CULL_FACE);
-                            });
+                        glDisable(GL_CULL_FACE);
                     }
 
                     glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);

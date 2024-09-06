@@ -60,7 +60,7 @@ namespace NR
 
         Ref<GLVertexBuffer> instance = this;
         Renderer::Submit([instance, offset]() {
-            glNamedBufferSubData(instance->mID, offset, instance->mSize, instance->mLocalData.Data);
+            glNamedBufferSubData(instance->mID, offset, instance->mLocalData.Size, instance->mLocalData.Data);
             });
     }
 

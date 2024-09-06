@@ -44,7 +44,7 @@ namespace NR
         glBindVertexArray(vao);
 
         glEnable(GL_DEPTH_TEST);
-        //glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glFrontFace(GL_CCW);
 
@@ -94,7 +94,7 @@ namespace NR
         glClearColor(r, g, b, a);
     }
 
-    void RendererAPI::DrawIndexed(uint32_t count, PrimitiveType type, bool depthTestActive)
+    void RendererAPI::DrawIndexed(uint32_t count, PrimitiveType type, bool depthTestActive, bool faceCulling)
     {
         if (!depthTestActive)
         {
@@ -106,6 +106,15 @@ namespace NR
         {
         case PrimitiveType::Triangles: glPrimitiveType = GL_TRIANGLES; break;
         case PrimitiveType::Lines: glPrimitiveType = GL_LINES; break;
+        }
+
+        if (faceCulling)
+        {
+            glEnable(GL_CULL_FACE);
+        }
+        else
+        {
+            glDisable(GL_CULL_FACE);
         }
 
         glDrawElements(glPrimitiveType, count, GL_UNSIGNED_INT, nullptr);

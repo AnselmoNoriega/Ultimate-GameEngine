@@ -24,6 +24,14 @@ namespace NR
         glm::vec4 Color;
     };
 
+    struct CircleVertex
+    {
+        glm::vec3 WorldPosition;
+        float Thickness;
+        glm::vec2 LocalPosition;
+        glm::vec4 Color;
+    };
+
     struct Renderer2DData
     {
         static const uint32_t MaxQuads = 20000;
@@ -44,6 +52,14 @@ namespace NR
         uint32_t QuadIndexCount = 0;
         QuadVertex* QuadVertexBufferBase = nullptr;
         QuadVertex* QuadVertexBufferPtr = nullptr;
+
+        Ref<Shader> CircleShader;
+        Ref<Pipeline> CirclePipeline;
+        Ref<VertexBuffer> CircleVertexBuffer;
+
+        uint32_t CircleIndexCount = 0;
+        CircleVertex* CircleVertexBufferBase = nullptr;
+        CircleVertex* CircleVertexBufferPtr = nullptr;
 
         std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
         uint32_t TextureSlotIndex = 1; // 0 = white texture
@@ -142,6 +158,23 @@ namespace NR
             sData.LineIndexBuffer = IndexBuffer::Create(lineIndices, sData.MaxLineIndices);
             delete[] lineIndices;
         }
+
+        // Circles
+        {
+            sData.CircleShader = Shader::Create("Assets/Shaders/Renderer2D_Circle");
+
+            PipelineSpecification pipelineSpecification;
+            pipelineSpecification.Layout = {
+                { ShaderDataType::Float3, "aWorldPosition" },
+                { ShaderDataType::Float,  "aThickness" },
+                { ShaderDataType::Float2,  "aLocalPosition" },
+                { ShaderDataType::Float4, "aColor" }
+            };
+            sData.CirclePipeline = Pipeline::Create(pipelineSpecification);
+
+            sData.CircleVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex));
+            sData.CircleVertexBufferBase = new CircleVertex[sData.MaxVertices];
+        }
     }
 
     void Renderer2D::Shutdown()
@@ -162,6 +195,9 @@ namespace NR
         sData.LineIndexCount = 0;
         sData.LineVertexBufferPtr = sData.LineVertexBufferBase;
 
+        sData.CircleIndexCount = 0;
+        sData.CircleVertexBufferPtr = sData.CircleVertexBufferBase;
+
         sData.TextureSlotIndex = 1;
     }
 
@@ -180,9 +216,10 @@ namespace NR
                 sData.TextureSlots[i]->Bind(i);
             }
 
+            sData.QuadVertexBuffer->Bind();
             sData.QuadPipeline->Bind();
             sData.QuadIndexBuffer->Bind();
-            Renderer::DrawIndexed(sData.QuadIndexCount, PrimitiveType::Triangles, sData.DepthTest);
+            Renderer::DrawIndexed(sData.QuadIndexCount, PrimitiveType::Triangles, sData.DepthTest, false);
             ++sData.Stats.DrawCalls;
         }
 
@@ -194,10 +231,26 @@ namespace NR
             sData.LineShader->Bind();
             sData.LineShader->SetMat4("uViewProjection", sData.CameraViewProj);
 
+            sData.LineVertexBuffer->Bind();
             sData.LinePipeline->Bind();
             sData.LineIndexBuffer->Bind();
             Renderer::SetLineThickness(2.0f);
-            Renderer::DrawIndexed(sData.LineIndexCount, PrimitiveType::Lines, false);
+            Renderer::DrawIndexed(sData.LineIndexCount, PrimitiveType::Lines, false, false);
+            ++sData.Stats.DrawCalls;
+        }
+
+        dataSize = (uint8_t*)sData.CircleVertexBufferPtr - (uint8_t*)sData.CircleVertexBufferBase;
+        if (dataSize)
+        {
+            sData.CircleVertexBuffer->SetData(sData.CircleVertexBufferBase, dataSize);
+
+            sData.CircleShader->Bind();
+            sData.CircleShader->SetMat4("uViewProjection", sData.CameraViewProj);
+
+            sData.CircleVertexBuffer->Bind();
+            sData.CirclePipeline->Bind();
+            sData.QuadIndexBuffer->Bind();
+            Renderer::DrawIndexed(sData.CircleIndexCount, PrimitiveType::Triangles, false, false);
             ++sData.Stats.DrawCalls;
         }
 
@@ -545,6 +598,77 @@ namespace NR
         sData.QuadIndexCount += 6;
 
         ++sData.Stats.QuadCount;
+    }
+
+    void Renderer2D::DrawRotatedRect(const glm::vec2& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+    {
+        DrawRotatedRect({ position.x, position.y, 0.0f }, size, rotation, color);
+    }
+
+    void Renderer2D::DrawRotatedRect(const glm::vec3& position, const glm::vec2& size, float rotation, const glm::vec4& color)
+    {
+        if (sData.LineIndexCount >= Renderer2DData::MaxLineIndices)
+        {
+            FlushAndResetLines();
+        }
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::rotate(glm::mat4(1.0f), rotation, { 0.0f, 0.0f, 1.0f })
+            * glm::scale(glm::mat4(1.0f), { size.x, size.y, 1.0f });
+
+        glm::vec3 positions[4] =
+        {
+            transform * sData.QuadVertexPositions[0],
+            transform * sData.QuadVertexPositions[1],
+            transform * sData.QuadVertexPositions[2],
+            transform * sData.QuadVertexPositions[3]
+        };
+
+        for (int i = 0; i < 4; ++i)
+        {
+            auto& v0 = positions[i];
+            auto& v1 = positions[(i + 1) % 4];
+
+            sData.LineVertexBufferPtr->Position = v0;
+            sData.LineVertexBufferPtr->Color = color;
+            ++sData.LineVertexBufferPtr;
+
+            sData.LineVertexBufferPtr->Position = v1;
+            sData.LineVertexBufferPtr->Color = color;
+            ++sData.LineVertexBufferPtr;
+
+            sData.LineIndexCount += 2;
+            ++sData.Stats.LineCount;
+        }
+    }
+
+    void Renderer2D::DrawCircle(const glm::vec2& position, float radius, const glm::vec4& color, float thickness)
+    {
+        DrawCircle({ position.x, position.y, 0.0f }, radius, color, thickness);
+    }
+
+    void Renderer2D::DrawCircle(const glm::vec3& position, float radius, const glm::vec4& color, float thickness)
+    {
+        if (sData.CircleIndexCount >= Renderer2DData::MaxIndices)
+        {
+            FlushAndReset();
+        }
+
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::scale(glm::mat4(1.0f), { radius * 2.0f, radius * 2.0f, 1.0f });
+
+        for (int i = 0; i < 4; ++i)
+        {
+            sData.CircleVertexBufferPtr->WorldPosition = transform * sData.QuadVertexPositions[i];
+            sData.CircleVertexBufferPtr->Thickness = thickness;
+            sData.CircleVertexBufferPtr->LocalPosition = sData.QuadVertexPositions[i] * 2.0f;
+            sData.CircleVertexBufferPtr->Color = color;
+            ++sData.CircleVertexBufferPtr;
+
+            sData.CircleIndexCount += 6;
+            ++sData.Stats.QuadCount;
+        }
+
     }
 
     void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color)
