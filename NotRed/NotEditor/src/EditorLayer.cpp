@@ -16,7 +16,7 @@
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Editor/PhysicsSettingsWindow.h"
-#include "NotRed/Util/FileSystemWatcher.h"
+#include "NotRed/Util/FileSystem.h"
 #include "NotRed/Math/Math.h"
 
 namespace NR
@@ -59,12 +59,12 @@ namespace NR
 
         NewScene();
 
-        FileSystemWatcher::StartWatching();
+        FileSystem::StartWatching();
     }
 
     void EditorLayer::Detach()
     {
-        FileSystemWatcher::StopWatching();
+        FileSystem::StopWatching();
     }
 
     void EditorLayer::ScenePlay()
@@ -663,39 +663,25 @@ namespace NR
             }
         }
 
-        if (ImGui::BeginDragDropTarget())
-        {
-            auto data = ImGui::AcceptDragDropPayload("scene_entity_objectP");
-            if (data)
-            {
-                auto d = (DragDropData*)data->Data;
-                if (d->Type == "Mesh")
-                {
-                    auto entity = mEditorScene->CreateEntity(d->Name);
-                    entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(d->SourcePath));
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }
-
         /* Payload Implementation For Getting Assets In The Viewport From Asset Manager */
         if (ImGui::BeginDragDropTarget())
         {
             auto data = ImGui::AcceptDragDropPayload("scene_entity_assetsP");
             if (data)
             {
-                auto d = (DragDropData*)data->Data;
+                AssetHandle assetHandle = *(AssetHandle*)data->Data;
+                Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
 
-                if (d->Type == "NotRedScene")
+                if (asset->Type == AssetType::Scene)
                 {
-                    auto sceneName = d->SourcePath;
-                    OpenScene(sceneName);
+                    OpenScene(asset->FilePath);
                 }
 
-                if (d->Type == "Mesh")
+                if (asset->Type == AssetType::Mesh)
                 {
-                    auto entity = mEditorScene->CreateEntity(d->Name);
-                    entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(d->SourcePath));
+                    Entity entity = mEditorScene->CreateEntity(asset->FileName);
+                    entity.AddComponent<MeshComponent>(Ref<Mesh>(asset));
+                    SelectEntity(entity);
                 }
             }
             ImGui::EndDragDropTarget();

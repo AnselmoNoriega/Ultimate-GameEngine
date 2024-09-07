@@ -4,6 +4,8 @@
 #include "NotRed/Core/Buffer.h"
 #include "RendererAPI.h"
 
+#include "NotRed/Util/Asset.h"
+
 namespace NR
 {
 	enum class TextureFormat
@@ -21,7 +23,7 @@ namespace NR
 		Repeat
 	};
 
-	class Texture : public RefCounted
+	class Texture : public Asset
 	{
 	public:
 		virtual ~Texture() {}

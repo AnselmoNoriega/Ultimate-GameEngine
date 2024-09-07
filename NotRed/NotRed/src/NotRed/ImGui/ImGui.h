@@ -1,5 +1,10 @@
 #pragma once
 
+#include "NotRed/Util/Asset.h"
+
+//This shouldn't be here
+#include "NotRed/Util/AssetManager.h"
+
 #include "imgui/imgui.h"
 
 #include <glm/glm.hpp>
@@ -324,5 +329,44 @@ namespace NR::UI
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 		sCheckboxCount = 0;
+	}
+
+	template<typename T>
+	static bool PropertyAssetReference(const char* label, Ref<T>& object, AssetType supportedType)
+	{
+		bool modified = false;
+
+		ImGui::Text("Mesh");
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		char* assetName = ((Ref<Asset>&)object)->FileName.data();
+		if (object)
+		{
+			ImGui::InputText("##meshid", assetName, 256, ImGuiInputTextFlags_ReadOnly);
+		}
+		else
+		{
+			ImGui::InputText("##meshid", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			auto data = ImGui::AcceptDragDropPayload("scene_entity_assetsP");
+
+			if (data)
+			{
+				AssetHandle assetHandle = *(AssetHandle*)data->Data;
+				if (AssetManager::IsAssetType(assetHandle, supportedType))
+				{
+					object = AssetManager::GetAsset<T>(assetHandle);
+					modified = true;
+				}
+			}
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		return modified;
 	}
 }

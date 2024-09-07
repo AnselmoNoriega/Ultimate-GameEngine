@@ -9,6 +9,8 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Material.h"
 
+#include "NotRed/Util/Asset.h"
+
 #include "NotRed/Math/AABB.h"
 
 struct aiNode;
@@ -123,7 +125,7 @@ namespace NR
 		std::string NodeName, MeshName;
 	};
 
-	class Mesh : public RefCounted
+	class Mesh : public Asset
 	{
 	public:
 		Mesh(const std::string& filename);

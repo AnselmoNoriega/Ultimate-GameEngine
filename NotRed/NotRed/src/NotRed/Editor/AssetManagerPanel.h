@@ -15,16 +15,19 @@ namespace NR
 		void ImGuiRender();
 
 	private:
-		void RenderFileListView(int dirIndex);
-		void RenderFileGridView(int dirIndex);
-		void HandleDragDrop(RendererID icon, int dirIndex);
-		void RenderDirectoriesListView(int dirIndex);
-		void RenderDirectoriesGridView(int dirIndex);
+		void DrawDirectoryInfo(DirectoryInfo& dir);
+
+		void RenderFileListView(Ref<Asset>& asset);
+		void RenderFileGridView(Ref<Asset>& asset);
+		void HandleDragDrop(RendererID icon, Ref<Asset>& asset);
+		void RenderDirectoriesListView(DirectoryInfo& dirInfo);
+		void RenderDirectoriesGridView(DirectoryInfo& dirInfo);
 		void RenderBreadCrumbs();
-		void RenderSearch();
 		void RenderBottom();
 
-		ImGuiInputTextCallback SearchCallback(ImGuiInputTextCallbackData* data);
+		void UpdateCurrentDirectory(int dirIndex);
+
+		//ImGuiInputTextCallback SearchCallback(ImGuiInputTextCallbackData* data);
 
 	private:
 		Ref<Texture2D> mFolderTex;
@@ -43,32 +46,32 @@ namespace NR
 		Ref<Texture2D> mGridView;
 		Ref<Texture2D> mListView;
 
-		std::string mCurrentDirPath;
-		std::string mBaseDirPath;
-		std::string mPrevDirPath;
 		std::string mMovePath;
 
-		std::string mForwardPath;
-		std::string mBackPath;
-
-		int mBasePathLen;
-		int mDirDataLen;
+		int mBaseDirIndex;
+		int mCurrentDirIndex;
+		int mPrevDirIndex;
+		int mNextDirIndex;
 
 		bool mIsDragging = false;
 		bool mDisplayListView = false;
 		bool mUpdateBreadCrumbs = true;
 		bool mShowSearchBar = false;
-		bool mIsPathChanged = false;
+		bool mDirectoryChanged = false;
 
 		char mInputBuffer[1024];
 
-		std::vector<DirectoryInfo> mCurrentDir;
-		std::vector<DirectoryInfo> mBaseProjectDir;
+		DirectoryInfo mCurrentDir;
+		DirectoryInfo mBaseProjectDir;
+		std::vector<DirectoryInfo> mCurrentDirChildren;
+		std::vector<Ref<Asset>> mCurrentDirAssets;
+
+		std::vector<DirectoryInfo> mBreadCrumbData;
+
+		AssetHandle mDraggedAssetID = 0;
 
 		ImGuiInputTextCallbackData mData;
 		std::map<size_t, Ref<Texture2D>> mAssetIconMaps;
-		//NotificationManager nManager;
-		AssetManager mAssetManager;
 	};
 
 }

@@ -15,16 +15,20 @@ namespace NR
 	struct FileSystemChangedEvent
 	{
 		FileSystemAction Action;
-		std::string Filepath;
+		std::string FilePath;
 		std::string OldName;
 		std::string NewName;
 		bool IsDirectory;
 	};
 
-	class FileSystemWatcher
+	class FileSystem
 	{
 	public:
 		using FileSystemChangedCallbackFn = std::function<void(FileSystemChangedEvent)>;
+
+	public:
+		static bool CreateFolder(const std::string& filepath);
+		static bool Exists(const std::string& filePath);
 
 		static void SetChangeCallback(const FileSystemChangedCallbackFn& callback);
 		static void StartWatching();

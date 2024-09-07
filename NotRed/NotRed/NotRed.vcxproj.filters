@@ -457,7 +457,8 @@
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Util\AssetManager.h" />
     <ClInclude Include="src\NotRed\Util\DragDropData.h" />
-    <ClInclude Include="src\NotRed\Util\FileSystemWatcher.h" />
+    <ClInclude Include="src\NotRed\Util\FileSystem.h" />
+    <ClInclude Include="src\NotRed\Util\Asset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -714,6 +715,6 @@
     <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Util\AssetManager.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystemWatcher.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
   </ItemGroup>
 </Project>

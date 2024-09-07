@@ -12,6 +12,7 @@
 #include "NotRed/Renderer/Framebuffer.h"
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Util/AssetManager.h"
 
 namespace NR
 {
@@ -36,6 +37,9 @@ namespace NR
 
         Renderer::Init();
         Renderer::WaitAndRender();
+
+        AssetTypes::Init();
+        AssetManager::Init();
     }
 
     Application::~Application()
@@ -47,6 +51,8 @@ namespace NR
 
         PhysicsManager::Shutdown();
         ScriptEngine::Shutdown();
+
+        AssetManager::Shutdown();
     }
 
     void Application::RenderImGui()

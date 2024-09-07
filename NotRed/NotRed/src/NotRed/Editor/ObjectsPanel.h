@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/Renderer/Texture.h"
+#include "NotRed/Util/AssetManager.h"
 
 namespace NR
 {
@@ -10,6 +11,9 @@ namespace NR
 		ObjectsPanel();
 
 		void ImGuiRender();
+
+	private:
+		void DrawObject(const char* label, AssetHandle handle);
 
 	private:
 		Ref<Texture2D> mCubeImage;

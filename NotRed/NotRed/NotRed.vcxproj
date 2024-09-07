@@ -221,9 +221,10 @@
     <ClInclude Include="src\NotRed\Script\ScriptEngine.h" />
     <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h" />
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
+    <ClInclude Include="src\NotRed\Util\Asset.h" />
     <ClInclude Include="src\NotRed\Util\AssetManager.h" />
     <ClInclude Include="src\NotRed\Util\DragDropData.h" />
-    <ClInclude Include="src\NotRed\Util\FileSystemWatcher.h" />
+    <ClInclude Include="src\NotRed\Util\FileSystem.h" />
     <ClInclude Include="src\nrpch.h" />
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\anchor.h" />
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\binary.h" />
@@ -290,7 +291,7 @@
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystemWatcher.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />

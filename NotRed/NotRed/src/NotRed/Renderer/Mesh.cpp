@@ -272,6 +272,10 @@ namespace NR
                     std::string texturePath = parentPath.string();
 
                     NR_MESH_LOG("    Albedo map path = {0}", texturePath);
+                    if (texturePath.find_first_of(".tga") != std::string::npos)
+                    {
+                        continue;
+                    }
                     auto texture = Texture2D::Create(texturePath, true);
                     if (texture->Loaded())
                     {

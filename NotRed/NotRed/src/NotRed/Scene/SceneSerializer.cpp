@@ -16,6 +16,8 @@
 #include "NotRed/Renderer/MeshFactory.h"
 #include "NotRed/Physics/PhysicsLayer.h"
 
+#include "NotRed/Util/AssetManager.h"
+
 #include "yaml-cpp/yaml.h"
 
 namespace YAML
@@ -281,7 +283,7 @@ namespace NR
             out << YAML::BeginMap; // MeshComponent
 
             auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
-            out << YAML::Key << "AssetPath" << YAML::Value << mesh->GetFilePath();
+            out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
 
             out << YAML::EndMap; // MeshComponent
         }
@@ -480,7 +482,7 @@ namespace NR
             auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
             if (meshColliderComponent.OverrideMesh)
             {
-                out << YAML::Key << "AssetPath" << YAML::Value << meshColliderComponent.CollisionMesh->GetFilePath();
+                out << YAML::Key << "AssetID" << YAML::Value << meshColliderComponent.CollisionMesh->Handle;
             }
             out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
             out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
@@ -723,24 +725,26 @@ namespace NR
                 auto meshComponent = entity["MeshComponent"];
                 if (meshComponent)
                 {
-                    std::string meshPath = meshComponent["AssetPath"].as<std::string>();
+                    UUID assetID;
+                    if (meshComponent["AssetPath"])
+                    {
+                        std::string filepath = meshComponent["AssetPath"].as<std::string>();
+                        assetID = AssetManager::GetAssetIDForFile(filepath);
+                    }
+                    else
+                    {
+                        assetID = meshComponent["AssetID"].as<uint64_t>();
+
+                        if (!AssetManager::IsAssetHandleValid(assetID))
+                        {
+                            NR_CORE_WARN("Invalid ID");
+                        }
+                    }
 
                     if (!deserializedEntity.HasComponent<MeshComponent>())
                     {
-                        Ref<Mesh> mesh;
-                        if (!CheckPath(meshPath))
-                        {
-                            missingPaths.emplace_back(meshPath);
-                        }
-                        else
-                        {
-                            mesh = Ref<Mesh>::Create(meshPath);
-                        }
-
-                        deserializedEntity.AddComponent<MeshComponent>(mesh);
+                        deserializedEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>(assetID));
                     }
-
-                    NR_CORE_INFO("  Mesh Asset Path: {0}", meshPath);
                 }
 
                 auto cameraComponent = entity["CameraComponent"];
@@ -917,15 +921,23 @@ namespace NR
 
                     if (overrideMesh)
                     {
-                        std::string meshPath = meshColliderComponent["AssetPath"].as<std::string>();
-                        if (!CheckPath(meshPath))
+                        UUID assetID;
+                        if (meshComponent["AssetPath"])
                         {
-                            missingPaths.emplace_back(meshPath);
+                            std::string filepath = meshComponent["AssetPath"].as<std::string>();
+                            assetID = AssetManager::GetAssetIDForFile(filepath);
                         }
                         else
                         {
-                            collisionMesh = Ref<Mesh>::Create(meshPath);
+                            assetID = meshComponent["AssetID"].as<uint64_t>();
+
+                            if (!AssetManager::IsAssetHandleValid(assetID))
+                            {
+                                NR_CORE_WARN("Invalid ID!");
+                            }
                         }
+
+                        collisionMesh = AssetManager::GetAsset<Mesh>(assetID);
                     }
 
                     if (collisionMesh)

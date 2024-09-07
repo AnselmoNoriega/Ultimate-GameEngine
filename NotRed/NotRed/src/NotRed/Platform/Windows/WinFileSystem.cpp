@@ -1,36 +1,66 @@
 #include "nrpch.h"
-#include "NotRed/Util/FileSystemWatcher.h"
+#include "NotRed/Util/FileSystem.h"
 
 #include <Windows.h>
 #include <filesystem>
 
+#include "NotRed/Util/AssetManager.h"
+
 namespace NR
 {
-	FileSystemWatcher::FileSystemChangedCallbackFn FileSystemWatcher::sCallback;
+	FileSystem::FileSystemChangedCallbackFn FileSystem::sCallback;
 
 	static bool sWatching = true;
 	static HANDLE sWatcherThread;
 
-	void FileSystemWatcher::SetChangeCallback(const FileSystemChangedCallbackFn& callback)
+	void FileSystem::SetChangeCallback(const FileSystemChangedCallbackFn& callback)
 	{
 		sCallback = callback;
 	}
 
-	static std::string wchar_to_string(wchar_t* input)
+	bool FileSystem::CreateFolder(const std::string& filepath)
 	{
-		std::wstring string_input(input);
-		std::string converted(string_input.begin(), string_input.end());
-		return converted;
+		BOOL created = CreateDirectoryA(filepath.c_str(), NULL);
+		if (!created)
+		{
+			DWORD error = GetLastError();
+
+			if (error == ERROR_ALREADY_EXISTS)
+			{
+				NR_CORE_ERROR("{0} already exists!", filepath);
+			}
+
+			if (error == ERROR_PATH_NOT_FOUND)
+			{
+				NR_CORE_ERROR("{0}: One or more directories don't exist.", filepath);
+			}
+
+			return false;
+		}
+
+		return true;
 	}
 
-	void FileSystemWatcher::StartWatching()
+	bool FileSystem::Exists(const std::string& filepath)
+	{
+		DWORD attribs = GetFileAttributesA(filepath.c_str());
+
+		if (attribs == INVALID_FILE_ATTRIBUTES)
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	void FileSystem::StartWatching()
 	{
 		DWORD threadID;
 		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadID);
 		NR_CORE_ASSERT(sWatcherThread != NULL);
 	}
 
-	void FileSystemWatcher::StopWatching()
+	void FileSystem::StopWatching()
 	{
 		sWatching = false;
 		DWORD result = WaitForSingleObject(sWatcherThread, 5000);
@@ -41,10 +71,10 @@ namespace NR
 		CloseHandle(sWatcherThread);
 	}
 
-	unsigned long FileSystemWatcher::Watch(void* param)
+	unsigned long FileSystem::Watch(void* param)
 	{
 		LPCWSTR	filepath = L"Assets";
-		char* buffer = new char[1024];
+		BYTE buffer[1024];
 		OVERLAPPED overlapped = { 0 };
 		HANDLE handle = NULL;
 		DWORD bytesReturned = 0;
@@ -81,7 +111,7 @@ namespace NR
 			DWORD status = ReadDirectoryChangesW(
 				handle,
 				buffer,
-				1024,
+				sizeof(buffer),
 				TRUE,
 				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
 				&bytesReturned,
@@ -103,18 +133,25 @@ namespace NR
 
 			std::string oldName;
 
+			char fileName[MAX_PATH] = "";
+
+			BYTE* current = buffer;
+
 			for (;;)
 			{
-				FILE_NOTIFY_INFORMATION& fni = (FILE_NOTIFY_INFORMATION&)*buffer;
-				std::filesystem::path filepath = "Assets/" + wchar_to_string(fni.FileName);
+				ZeroMemory(fileName, sizeof(fileName));
+
+				FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(current);
+				WideCharToMultiByte(CP_ACP, 0, fni->FileName, fni->FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
+				std::filesystem::path filepath = "assets/" + std::string(fileName);
 
 				FileSystemChangedEvent e;
-				e.Filepath = filepath.string();
+				e.FilePath = filepath.string();
 				e.NewName = filepath.filename().string();
 				e.OldName = filepath.filename().string();
 				e.IsDirectory = std::filesystem::is_directory(filepath);
 
-				switch (fni.Action)
+				switch (fni->Action)
 				{
 				case FILE_ACTION_ADDED:
 				{
@@ -124,6 +161,7 @@ namespace NR
 				}
 				case FILE_ACTION_REMOVED:
 				{
+					e.IsDirectory = AssetManager::IsDirectory(e.FilePath);
 					e.Action = FileSystemAction::Delete;
 					sCallback(e);
 					break;
@@ -148,13 +186,13 @@ namespace NR
 				}
 				}
 
-				if (!fni.NextEntryOffset)
+				if (!fni->NextEntryOffset)
 				{
 					ZeroMemory(buffer, 1024);
 					break;
 				}
 
-				buffer += fni.NextEntryOffset;
+				current += fni->NextEntryOffset;
 			}
 		}
 

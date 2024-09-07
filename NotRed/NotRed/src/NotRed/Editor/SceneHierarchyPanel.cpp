@@ -13,6 +13,8 @@
 
 #include "NotRed/ImGui/ImGui.h"
 
+#include "NotRed/Util/AssetManager.h"
+
 #include "NotRed/Core/Application.h"
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Renderer/Mesh.h"
@@ -63,9 +65,10 @@ namespace NR
             auto view = mContext->mRegistry.view<IDComponent>();
             view.each([&](entt::entity entity, auto id)
                 {
-                    if (entity.GetParentID() == 0)
+                    Entity e(entity, mContext.Raw());
+                    if (e.GetParentID() == 0)
                     {
-                        DrawEntityNode(entity);
+                        DrawEntityNode(e);
                     }
                 });
 
@@ -600,33 +603,9 @@ namespace NR
 
         DrawComponent<MeshComponent>("Mesh", entity, [](MeshComponent& mc)
             {
-                ImGui::Columns(3);
-                ImGui::SetColumnWidth(0, 100);
-                ImGui::SetColumnWidth(1, 300);
-                ImGui::SetColumnWidth(2, 40);
-                ImGui::Text("File Path");
-                ImGui::NextColumn();
-                ImGui::PushItemWidth(-1);
-                if (mc.MeshObj)
-                {
-                    ImGui::InputText("##meshfilepath", (char*)mc.MeshObj->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                }
-                else
-                {
-                    ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
-                }
-                ImGui::PopItemWidth();
-                ImGui::NextColumn();
-                if (ImGui::Button("...##openmesh"))
-                {
-
-                    std::string file = Application::Get().OpenFile();
-                    if (!file.empty())
-                    {
-                        mc.MeshObj = Ref<Mesh>::Create(file);
-                    }
-                }
-                ImGui::Columns(1);
+                UI::BeginPropertyGrid();
+                UI::PropertyAssetReference("Mesh", mc.MeshObj, AssetType::Mesh);
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
@@ -1071,45 +1050,23 @@ namespace NR
 
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
             {
+                UI::BeginPropertyGrid();
+
                 if (mcc.OverrideMesh)
                 {
-                    ImGui::Columns(3);
-                    ImGui::SetColumnWidth(0, 100);
-                    ImGui::SetColumnWidth(1, 300);
-                    ImGui::SetColumnWidth(2, 40);
-                    ImGui::Text("File Path");
-                    ImGui::NextColumn();
-                    ImGui::PushItemWidth(-1);
-                    if (mcc.CollisionMesh)
+                    if (UI::PropertyAssetReference("Mesh", mcc.CollisionMesh, AssetType::Mesh))
                     {
-                        ImGui::InputText("##meshfilepath", (char*)mcc.CollisionMesh->GetFilePath().c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                    }
-                    else
-                    {
-                        ImGui::InputText("##meshfilepath", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
-                    }
-                    ImGui::PopItemWidth();
-                    ImGui::NextColumn();
-                    if (ImGui::Button("...##openmesh"))
-                    {
-                        std::string file = Application::Get().OpenFile();
-                        if (!file.empty())
+                        if (mcc.IsConvex)
                         {
-                            mcc.CollisionMesh = Ref<Mesh>::Create(file);
-                            if (mcc.IsConvex)
-                            {
-                                PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
-                            }
-                            else
-                            {
-                                PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
-                            }
+                            PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
                         }
                     }
-                    ImGui::Columns(1);
                 }
 
-                UI::BeginPropertyGrid();
                 if (UI::Property("Is Convex", mcc.IsConvex))
                 {
                     if (mcc.IsConvex)
@@ -1123,6 +1080,7 @@ namespace NR
                 }
 
                 UI::Property("Is Trigger", mcc.IsTrigger);
+
                 if (UI::Property("Override Mesh", mcc.OverrideMesh))
                 {
                     if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
