@@ -95,7 +95,7 @@ namespace NR
                 glGenTextures(1, &instance->mID);
                 glBindTexture(GL_TEXTURE_2D, instance->mID);
 
-                //TODO: make this toggleable between GL_LINEAR && GL_NEAREST
+                //TODO: make this toggleable between GL_LINEAR && GL_NEAREST && GL_LINEAR_MIPMAP_LINEAR
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
