@@ -13,6 +13,7 @@
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Editor/AssetEditorPanel.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Editor/PhysicsSettingsWindow.h"
@@ -59,6 +60,7 @@ namespace NR
 
         NewScene();
 
+        AssetEditorPanel::RegisterDefaultEditors();
         FileSystem::StartWatching();
     }
 
@@ -510,6 +512,7 @@ namespace NR
 
         mAssetManagerPanel->ImGuiRender();
         mObjectsPanel->ImGuiRender();
+        AssetEditorPanel::ImGuiRender();
 
         const char* label = (mSelectionMode == SelectionMode::Entity) ? "Entity" : "Mesh";
         if (ImGui::Button(label))

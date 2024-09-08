@@ -1,9 +1,9 @@
 #pragma once
 
-#include "NotRed/Util/Asset.h"
+#include "NotRed/Asset/Assets.h"
 
-//This shouldn't be here
-#include "NotRed/Util/AssetManager.h"
+//TODO: This shouldn't be here
+#include "NotRed/Asset/AssetManager.h"
 
 #include "imgui/imgui.h"
 
@@ -154,7 +154,7 @@ namespace NR::UI
 		return modified;
 	}
 
-	static bool Property(const char* label, float& value, float delta = 0.1f, float min = 0.0f, float max = 0.0f)
+	static bool Property(const char* label, float& value, float delta = 0.1f, float min = 0.0f, float max = 0.0f, bool readOnly = false)
 	{
 		bool modified = false;
 
@@ -166,9 +166,17 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		itoa(sCounter++, sIDBuffer + 2, 16);
-		if (ImGui::DragFloat(sIDBuffer, &value, delta, min, max))
+
+		if (readOnly)
 		{
-			modified = true;
+			if (ImGui::DragFloat(sIDBuffer, &value, delta, min, max))
+			{
+				modified = true;
+			}
+		}
+		else
+		{
+			ImGui::InputFloat(sIDBuffer, &value, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
 		}
 
 		ImGui::PopItemWidth();
@@ -336,18 +344,19 @@ namespace NR::UI
 	{
 		bool modified = false;
 
-		ImGui::Text("Mesh");
+		ImGui::Text(label);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
 		char* assetName = ((Ref<Asset>&)object)->FileName.data();
 		if (object)
 		{
-			ImGui::InputText("##meshid", assetName, 256, ImGuiInputTextFlags_ReadOnly);
+			char* assetName = ((Ref<Asset>&)object)->FileName.data();
+			ImGui::InputText("##assetRef", assetName, 256, ImGuiInputTextFlags_ReadOnly);
 		}
 		else
 		{
-			ImGui::InputText("##meshid", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputText("##assetRef", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
 		}
 
 		if (ImGui::BeginDragDropTarget())

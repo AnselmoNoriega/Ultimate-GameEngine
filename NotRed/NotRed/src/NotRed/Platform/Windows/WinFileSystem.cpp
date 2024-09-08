@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include <filesystem>
 
-#include "NotRed/Util/AssetManager.h"
+#include "NotRed/Asset/AssetManager.h"
 
 namespace NR
 {

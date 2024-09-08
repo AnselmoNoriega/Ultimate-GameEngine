@@ -16,7 +16,7 @@
 #include "NotRed/Renderer/MeshFactory.h"
 #include "NotRed/Physics/PhysicsLayer.h"
 
-#include "NotRed/Util/AssetManager.h"
+#include "NotRed/Asset/AssetManager.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -423,19 +423,6 @@ namespace NR
             out << YAML::EndMap; // RigidBodyComponent
         }
 
-        if (entity.HasComponent<PhysicsMaterialComponent>())
-        {
-            out << YAML::Key << "PhysicsMaterialComponent";
-            out << YAML::BeginMap; // PhysicsMaterialComponent
-
-            auto& physicsMaterial = entity.GetComponent<PhysicsMaterialComponent>();
-            out << YAML::Key << "StaticFriction" << YAML::Value << physicsMaterial.StaticFriction;
-            out << YAML::Key << "DynamicFriction" << YAML::Value << physicsMaterial.DynamicFriction;
-            out << YAML::Key << "Bounciness" << YAML::Value << physicsMaterial.Bounciness;
-
-            out << YAML::EndMap;
-        }
-
         if (entity.HasComponent<BoxColliderComponent>())
         {
             out << YAML::Key << "BoxColliderComponent";
@@ -445,6 +432,7 @@ namespace NR
             out << YAML::Key << "Offset" << YAML::Value << boxColliderComponent.Offset;
             out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
             out << YAML::Key << "IsTrigger" << YAML::Value << boxColliderComponent.IsTrigger;
+            out << YAML::Key << "Material" << YAML::Value << boxColliderComponent.Material->Handle;
 
             out << YAML::EndMap; // BoxColliderComponent
         }
@@ -457,6 +445,7 @@ namespace NR
             auto& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
             out << YAML::Key << "Radius" << YAML::Value << sphereColliderComponent.Radius;
             out << YAML::Key << "IsTrigger" << YAML::Value << sphereColliderComponent.IsTrigger;
+            out << YAML::Key << "Material" << YAML::Value << sphereColliderComponent.Material->Handle;
 
             out << YAML::EndMap; // SphereColliderComponent
         }
@@ -470,6 +459,7 @@ namespace NR
             out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
             out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
             out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
+            out << YAML::Key << "Material" << YAML::Value << capsuleColliderComponent.Material->Handle;
 
             out << YAML::EndMap; // CapsuleColliderComponent
         }
@@ -486,6 +476,7 @@ namespace NR
             }
             out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
             out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
+            out << YAML::Key << "Material" << YAML::Value << meshColliderComponent.Material->Handle;
 
             out << YAML::EndMap; // MeshColliderComponent
         }
@@ -875,15 +866,6 @@ namespace NR
                     component.LockRotationZ = rigidBodyComponent["Constraints"]["LockRotationZ"].as<bool>();
                 }
 
-                auto physicsMaterialComponent = entity["PhysicsMaterialComponent"];
-                if (physicsMaterialComponent)
-                {
-                    auto& component = deserializedEntity.AddComponent<PhysicsMaterialComponent>();
-                    component.StaticFriction = physicsMaterialComponent["StaticFriction"].as<float>();
-                    component.DynamicFriction = physicsMaterialComponent["DynamicFriction"].as<float>();
-                    component.Bounciness = physicsMaterialComponent["Bounciness"].as<float>();
-                }
-
                 auto boxColliderComponent = entity["BoxColliderComponent"];
                 if (boxColliderComponent)
                 {
@@ -892,6 +874,12 @@ namespace NR
                     component.Size = boxColliderComponent["Size"].as<glm::vec3>();
                     component.IsTrigger = boxColliderComponent["IsTrigger"].as<bool>();
                     component.DebugMesh = MeshFactory::CreateBox(component.Size);
+
+                    auto material = boxColliderComponent["Material"];
+                    if (material)
+                    {
+                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                    }
                 }
 
                 auto sphereColliderComponent = entity["SphereColliderComponent"];
@@ -901,6 +889,12 @@ namespace NR
                     component.Radius = sphereColliderComponent["Radius"].as<float>();
                     component.IsTrigger = sphereColliderComponent["IsTrigger"].as<bool>();
                     component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
+
+                    auto material = sphereColliderComponent["Material"];
+                    if (material)
+                    {
+                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                    }
                 }
 
                 auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
@@ -910,6 +904,13 @@ namespace NR
                     component.Radius = capsuleColliderComponent["Radius"].as<float>();
                     component.Height = capsuleColliderComponent["Height"].as<float>();
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"].as<bool>();
+
+                    auto material = capsuleColliderComponent["Material"];
+                    if (material)
+                    {
+                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                    }
+
                     component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
                 }
 
@@ -946,6 +947,12 @@ namespace NR
                         component.IsConvex = meshColliderComponent["IsConvex"].as<bool>();
                         component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
                         component.OverrideMesh = overrideMesh;
+
+                        auto material = meshColliderComponent["Material"];
+                        if (material)
+                        {
+                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                        }
 
                         if (component.IsConvex)
                         {

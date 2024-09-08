@@ -17,17 +17,6 @@ namespace NR
 	PhysicsActor::PhysicsActor(Entity entity)
 		: mEntity(entity), mRigidBody(entity.GetComponent<RigidBodyComponent>())
 	{
-		if (!mEntity.HasComponent<PhysicsMaterialComponent>())
-		{
-			mMaterial.StaticFriction = 1.0f;
-			mMaterial.DynamicFriction = 1.0f;
-			mMaterial.Bounciness = 0.0f;
-		}
-		else
-		{
-			mMaterial = entity.GetComponent<PhysicsMaterialComponent>();
-		}
-
 		Initialize();
 	}
 
@@ -245,7 +234,6 @@ namespace NR
 			mActorInternal = actor;
 		}
 
-		mMaterialInternal = physics.createMaterial(mMaterial.StaticFriction, mMaterial.DynamicFriction, mMaterial.Bounciness);
 		if (mEntity.HasComponent<BoxColliderComponent>()) 
 		{
 			PhysicsWrappers::AddBoxCollider(*this);

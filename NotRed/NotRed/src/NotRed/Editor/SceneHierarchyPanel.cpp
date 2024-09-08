@@ -13,7 +13,7 @@
 
 #include "NotRed/ImGui/ImGui.h"
 
-#include "NotRed/Util/AssetManager.h"
+#include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Core/Application.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -543,14 +543,6 @@ namespace NR
                     ImGui::CloseCurrentPopup();
                 }
             }
-            if (!mSelectionContext.HasComponent<PhysicsMaterialComponent>())
-            {
-                if (ImGui::Button("Physics Material"))
-                {
-                    mSelectionContext.AddComponent<PhysicsMaterialComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
             if (!mSelectionContext.HasComponent<BoxColliderComponent>())
             {
                 if (ImGui::Button("Box Collider"))
@@ -989,17 +981,6 @@ namespace NR
                 }
             });
 
-        DrawComponent<PhysicsMaterialComponent>("Physics Material", entity, [](PhysicsMaterialComponent& pmc)
-            {
-                UI::BeginPropertyGrid();
-
-                UI::Property("Static Friction", pmc.StaticFriction);
-                UI::Property("Dynamic Friction", pmc.DynamicFriction);
-                UI::Property("Bounciness", pmc.Bounciness);
-
-                UI::EndPropertyGrid();
-            });
-
         DrawComponent<BoxColliderComponent>("Box Collider", entity, [](BoxColliderComponent& bcc)
             {
                 UI::BeginPropertyGrid();
@@ -1009,6 +990,7 @@ namespace NR
                     bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                 }
                 UI::Property("Is Trigger", bcc.IsTrigger);
+                UI::PropertyAssetReference("Material", bcc.Material, AssetType::PhysicsMat);
 
                 UI::EndPropertyGrid();
             });
@@ -1022,6 +1004,7 @@ namespace NR
                     scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
                 }
                 UI::Property("Is Trigger", scc.IsTrigger);
+                UI::PropertyAssetReference("Material", scc.Material, AssetType::PhysicsMat);
 
                 UI::EndPropertyGrid();
             });
@@ -1044,6 +1027,7 @@ namespace NR
                     ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                 }
                 UI::Property("Is Trigger", ccc.IsTrigger);
+                UI::PropertyAssetReference("Material", ccc.Material, AssetType::PhysicsMat);
 
                 UI::EndPropertyGrid();
             });
@@ -1080,6 +1064,7 @@ namespace NR
                 }
 
                 UI::Property("Is Trigger", mcc.IsTrigger);
+                UI::PropertyAssetReference("Material", mcc.Material, AssetType::PhysicsMat);
 
                 if (UI::Property("Override Mesh", mcc.OverrideMesh))
                 {

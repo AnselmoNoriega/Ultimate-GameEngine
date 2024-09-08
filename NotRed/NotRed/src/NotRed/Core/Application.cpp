@@ -12,7 +12,7 @@
 #include "NotRed/Renderer/Framebuffer.h"
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Util/AssetManager.h"
+#include "NotRed/Asset/AssetManager.h"
 
 namespace NR
 {

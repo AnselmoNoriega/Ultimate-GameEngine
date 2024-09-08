@@ -3,6 +3,7 @@
 
 #include "NotRed/Core/Application.h"
 #include "NotRed/Util/DragDropData.h"
+#include "AssetEditorPanel.h"
 
 namespace NR
 {
@@ -20,14 +21,14 @@ namespace NR
         mResourceTex = Texture2D::Create("Assets/Editor/resource.png");
         mSceneTex = Texture2D::Create("Assets/Editor/scene.png");
 
-        mAssetIconMaps[-1] = Texture2D::Create("Assets/Editor/file.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("hdr")] = Texture2D::Create("Assets/Editor/file.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("obj")] = Texture2D::Create("Assets/Editor/obj.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("wav")] = Texture2D::Create("Assets/Editor/wav.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("cs")] = Texture2D::Create("Assets/Editor/csc.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("png")] = Texture2D::Create("Assets/Editor/png.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("blend")] = Texture2D::Create("Assets/Editor/blend.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("nrsc")] = Texture2D::Create("Assets/Editor/notred.png");
+        mAssetIconMap[-1] = Texture2D::Create("Assets/Editor/file.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("hdr")] = Texture2D::Create("Assets/Editor/file.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("obj")] = Texture2D::Create("Assets/Editor/obj.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("wav")] = Texture2D::Create("Assets/Editor/wav.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("cs")] = Texture2D::Create("Assets/Editor/csc.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("png")] = Texture2D::Create("Assets/Editor/png.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("blend")] = Texture2D::Create("Assets/Editor/blend.png");
+        mAssetIconMap[AssetTypes::GetAssetTypeID("nrsc")] = Texture2D::Create("Assets/Editor/notred.png");
 
         mBackbtnTex = Texture2D::Create("Assets/Editor/back.png");
         mFwrdbtnTex = Texture2D::Create("Assets/Editor/btn_fwrd.png");
@@ -91,12 +92,6 @@ namespace NR
                 auto data = ImGui::AcceptDragDropPayload("selectable", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
                 if (data)
                 {
-                    std::string file = (char*)data->Data;
-                    if (AssetManager::MoveFile(file, mMovePath))
-                    {
-                        NR_CORE_INFO("Moved File: " + file + " to " + mMovePath);
-                        UpdateCurrentDirectory(mCurrentDirIndex);
-                    }
                     mIsDragging = false;
                 }
                 ImGui::EndDragDropTarget();
@@ -182,6 +177,12 @@ namespace NR
                         {
                         }
 
+                        if (ImGui::MenuItem("Physics Material"))
+                        {
+                            AssetManager::CreateAsset<PhysicsMaterial>("Physics Material.hpm", AssetType::PhysicsMat, mCurrentDirIndex, 0.6f, 0.6f, 0.0f);
+                            UpdateCurrentDirectory(mCurrentDirIndex);
+                        }
+
                         ImGui::EndMenu();
                     }
 
@@ -206,11 +207,6 @@ namespace NR
                 auto data = ImGui::AcceptDragDropPayload("selectable", ImGuiDragDropFlags_AcceptNoDrawDefaultRect);
                 if (data)
                 {
-                    std::string a = (char*)data->Data;
-                    if (AssetManager::MoveFile(a, mMovePath))
-                    {
-                        UpdateCurrentDirectory(mCurrentDirIndex);
-                    }
                     mIsDragging = false;
                 }
                 ImGui::EndDragDropTarget();
@@ -280,13 +276,16 @@ namespace NR
     void AssetManagerPanel::RenderFileListView(Ref<Asset>& asset)
     {
         size_t fileID = AssetTypes::GetAssetTypeID(asset->Extension);
-        RendererID iconRef = mAssetIconMaps[fileID]->GetRendererID();
+        RendererID iconRef = mAssetIconMap[fileID]->GetRendererID();
         ImGui::Image((ImTextureID)iconRef, ImVec2(30, 30));
 
         ImGui::SameLine();
 
-        if (ImGui::Selectable(asset->FileName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 30)))
+        ImGui::Selectable(asset->FileName.c_str(), false, ImGuiSelectableFlags_AllowDoubleClick, ImVec2(0, 30));
+
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
         {
+            AssetEditorPanel::OpenEditor(asset);
         }
 
         HandleDragDrop(iconRef, asset);
@@ -297,10 +296,16 @@ namespace NR
         ImGui::BeginGroup();
 
         size_t fileID = AssetTypes::GetAssetTypeID(asset->Extension);
-        RendererID iconRef = mAssetIconMaps[fileID]->GetRendererID();
+        fileID = mAssetIconMap.find(fileID) != mAssetIconMap.end() ? fileID : -1;
+        RendererID iconRef = mAssetIconMap[fileID]->GetRendererID();
         float columnWidth = ImGui::GetColumnWidth();
 
         ImGui::ImageButton((ImTextureID)iconRef, { columnWidth - 15.0f, columnWidth - 15.0f });
+
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
+        {
+            AssetEditorPanel::OpenEditor(asset);
+        }
 
         HandleDragDrop(iconRef, asset);
 
@@ -367,7 +372,7 @@ namespace NR
         {
             ImGui::PushItemWidth(200);
 
-            if (ImGui::InputTextWithHint("", "Search...", mInputBuffer, 100))
+            if (ImGui::InputTextWithHint("##", "Search...", mInputBuffer, 100))
             {
                 SearchResults results = AssetManager::SearchFiles(mInputBuffer, mCurrentDir.FilePath);
 

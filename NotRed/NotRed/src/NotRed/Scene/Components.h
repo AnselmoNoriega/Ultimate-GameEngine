@@ -10,6 +10,7 @@
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Scene/SceneCamera.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
+#include "NotRed/Asset/Assets.h"
 
 namespace NR
 {
@@ -202,22 +203,13 @@ namespace NR
         RigidBodyComponent(const RigidBodyComponent& other) = default;
     };
 
-    struct PhysicsMaterialComponent
-    {
-        float StaticFriction = 1.0f;
-        float DynamicFriction = 1.0f;
-        float Bounciness = 1.0f;
-
-        PhysicsMaterialComponent() = default;
-        PhysicsMaterialComponent(const PhysicsMaterialComponent& other) = default;
-    };
-
     struct BoxColliderComponent
     {
         glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         bool IsTrigger = false;
+        Ref<PhysicsMaterial> Material;
 
         Ref<Mesh> DebugMesh;
 
@@ -231,6 +223,7 @@ namespace NR
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         bool IsTrigger = false;
+        Ref<PhysicsMaterial> Material;
 
         Ref<Mesh> DebugMesh;
 
@@ -245,6 +238,7 @@ namespace NR
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         bool IsTrigger = false;
+        Ref<PhysicsMaterial> Material;
 
         Ref<Mesh> DebugMesh;
 
@@ -260,6 +254,7 @@ namespace NR
         bool OverrideMesh = false;
 
         bool IsTrigger = false;
+        Ref<PhysicsMaterial> Material;
 
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;

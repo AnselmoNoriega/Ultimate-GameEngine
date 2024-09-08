@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NotRed/Renderer/Texture.h"
-#include "NotRed/Util/AssetManager.h"
+#include "NotRed/Asset/AssetManager.h"
 
 namespace NR
 {

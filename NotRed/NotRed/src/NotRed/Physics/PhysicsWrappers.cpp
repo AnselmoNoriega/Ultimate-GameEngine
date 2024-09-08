@@ -187,6 +187,12 @@ namespace NR
     void PhysicsWrappers::AddBoxCollider(PhysicsActor& actor)
     {
         auto& collider = actor.mEntity.GetComponent<BoxColliderComponent>();
+
+        if (!collider.Material)
+        {
+            collider.Material = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+        }
+
         glm::vec3 size = actor.mEntity.Transform().Scale;
         glm::vec3 colliderSize = collider.Size;
 
@@ -204,7 +210,8 @@ namespace NR
         }
 
         physx::PxBoxGeometry boxGeometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
-        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mActorInternal, boxGeometry, *actor.mMaterialInternal);
+        physx::PxMaterial* material = sPhysics->createMaterial(collider.Material->StaticFriction, collider.Material->DynamicFriction, collider.Material->Bounciness);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mActorInternal, boxGeometry, *material);
         shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
         shape->setLocalPose(ToPhysicsTransform(glm::translate(glm::mat4(1.0f), collider.Offset)));
@@ -213,6 +220,11 @@ namespace NR
     void PhysicsWrappers::AddSphereCollider(PhysicsActor& actor)
     {
 		auto& collider = actor.mEntity.GetComponent<SphereColliderComponent>();
+
+        if (!collider.Material)
+        {
+            collider.Material = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+        }
 
         float colliderRadius = collider.Radius;
         glm::vec3 size = actor.mEntity.Transform().Scale;
@@ -223,7 +235,8 @@ namespace NR
         }
 
         physx::PxSphereGeometry sphereGeometry = physx::PxSphereGeometry(colliderRadius);
-        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mActorInternal, sphereGeometry, *actor.mMaterialInternal);
+        physx::PxMaterial* material = sPhysics->createMaterial(collider.Material->StaticFriction, collider.Material->DynamicFriction, collider.Material->Bounciness);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mActorInternal, sphereGeometry, *material);
         shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
     }
@@ -231,6 +244,11 @@ namespace NR
     void PhysicsWrappers::AddCapsuleCollider(PhysicsActor& actor)
     {
         auto& collider = actor.mEntity.GetComponent<CapsuleColliderComponent>();
+
+        if (!collider.Material)
+        {
+            collider.Material = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+        }
 
         float colliderRadius = collider.Radius;
         float colliderHeight = collider.Height;
@@ -247,7 +265,8 @@ namespace NR
         }
 
         physx::PxCapsuleGeometry capsuleGeometry = physx::PxCapsuleGeometry(colliderRadius, colliderHeight / 2.0f);
-        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mActorInternal, capsuleGeometry, *actor.mMaterialInternal);
+        physx::PxMaterial* material = sPhysics->createMaterial(collider.Material->StaticFriction, collider.Material->DynamicFriction, collider.Material->Bounciness);
+        physx::PxShape* shape = physx::PxRigidActorExt::createExclusiveShape(*actor.mActorInternal, capsuleGeometry, *material);
         shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
         shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
         shape->setLocalPose(physx::PxTransform(physx::PxQuat(physx::PxHalfPi, physx::PxVec3(0, 0, 1))));
@@ -256,7 +275,15 @@ namespace NR
     void PhysicsWrappers::AddMeshCollider(PhysicsActor& actor)
     {
         auto& collider = actor.mEntity.GetComponent<MeshColliderComponent>();
+
+        if (!collider.Material)
+        {
+            collider.Material = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+        }
+
         glm::vec3 size = actor.mEntity.Transform().Scale;
+        physx::PxMaterial* material = sPhysics->createMaterial(collider.Material->StaticFriction, collider.Material->DynamicFriction, collider.Material->Bounciness);
+        physx::PxMaterial* materials[] = { material };
 
         if (collider.IsConvex)
         {
@@ -265,7 +292,6 @@ namespace NR
             for (auto shape : shapes)
             {
 
-                physx::PxMaterial* materials[] = { actor.mMaterialInternal };
                 shape->setMaterials(materials, 1);
                 shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
                 shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);
@@ -278,7 +304,6 @@ namespace NR
 
             for (auto shape : shapes)
             {
-                physx::PxMaterial* materials[] = { actor.mMaterialInternal };
                 shape->setMaterials(materials, 1);
                 shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !collider.IsTrigger);
                 shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, collider.IsTrigger);

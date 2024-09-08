@@ -2,7 +2,7 @@
 
 #include <map>
 
-#include "NotRed/Util/AssetManager.h"
+#include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/ImGui/ImGui.h"
 
@@ -71,7 +71,7 @@ namespace NR
 		AssetHandle mDraggedAssetID = 0;
 
 		ImGuiInputTextCallbackData mData;
-		std::map<size_t, Ref<Texture2D>> mAssetIconMaps;
+		std::map<size_t, Ref<Texture2D>> mAssetIconMap;
 	};
 
 }

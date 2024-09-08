@@ -9,7 +9,7 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Material.h"
 
-#include "NotRed/Util/Asset.h"
+#include "NotRed/Asset/Assets.h"
 
 #include "NotRed/Math/AABB.h"
 

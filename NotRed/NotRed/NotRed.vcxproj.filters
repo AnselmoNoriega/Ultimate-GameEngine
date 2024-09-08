@@ -300,10 +300,7 @@
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h">
       <Filter>src\NotRed\Script</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Util\Asset.h">
-      <Filter>src\NotRed\Util</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Util\AssetManager.h">
+    <ClInclude Include="src\NotRed\Asset\AssetManager.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Util\DragDropData.h">
@@ -492,6 +489,11 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
+    <ClInclude Include="src\NotRed\Asset\Assets.h" />
+    <ClInclude Include="src\NotRed\Util\StringUtils.h" />
+    <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -671,7 +673,7 @@
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp">
       <Filter>src\NotRed\Script</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Util\AssetManager.cpp">
+    <ClCompile Include="src\NotRed\Asset\AssetManager.cpp">
       <Filter>src\NotRed\Util</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp">
@@ -773,5 +775,9 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Util\StringUtils.cpp" />
+    <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
   </ItemGroup>
 </Project>

@@ -53,12 +53,9 @@ namespace NR
 	private:
 		Entity mEntity;
 		RigidBodyComponent& mRigidBody;
-		PhysicsMaterialComponent mMaterial;
 
 		physx::PxRigidActor* mActorInternal;
 		std::unordered_map<int, std::vector<physx::PxShape*>> mShapes;
-
-		physx::PxMaterial* mMaterialInternal;
 
 	private:
 		friend class PhysicsManager;
