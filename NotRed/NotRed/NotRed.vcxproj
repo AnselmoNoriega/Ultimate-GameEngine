@@ -76,7 +76,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;PX_PHYSX_STATIC_LIB;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
@@ -99,7 +99,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;PX_PHYSX_STATIC_LIB;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -125,7 +125,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_BUILD_DLL;PX_PHYSX_STATIC_LIB;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -147,11 +147,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
-    <ClInclude Include="src\NotRed\Math\Math.h" />
-    <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
-    <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
@@ -166,25 +161,29 @@
     <ClInclude Include="src\NotRed\Core\Layer.h" />
     <ClInclude Include="src\NotRed\Core\LayerStack.h" />
     <ClInclude Include="src\NotRed\Core\Log.h" />
-    <ClInclude Include="src\NotRed\Math\AABB.h" />
-    <ClInclude Include="src\NotRed\Math\Matrix4x4.h" />
-    <ClInclude Include="src\NotRed\Math\Noise.h" />
-    <ClInclude Include="src\NotRed\Math\Ray.h" />
     <ClInclude Include="src\NotRed\Core\Platform.h" />
     <ClInclude Include="src\NotRed\Core\Ref.h" />
     <ClInclude Include="src\NotRed\Core\TimeFrame.h" />
     <ClInclude Include="src\NotRed\Core\Timer.h" />
     <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
+    <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
+    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
+    <ClInclude Include="src\NotRed\Math\AABB.h" />
+    <ClInclude Include="src\NotRed\Math\Math.h" />
+    <ClInclude Include="src\NotRed\Math\Matrix4x4.h" />
+    <ClInclude Include="src\NotRed\Math\Noise.h" />
+    <ClInclude Include="src\NotRed\Math\Ray.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsLayer.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsManager.h" />
-    <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h" />
@@ -208,6 +207,7 @@
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer2D.h" />
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h" />
+    <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
@@ -287,30 +287,28 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
-    <ClCompile Include="src\NotRed\Math\Math.cpp" />
-    <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
-    <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp" />
-    <ClCompile Include="src\NotRed\Math\Noise.cpp" />
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
+    <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
+    <ClCompile Include="src\NotRed\Math\Math.cpp" />
+    <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp" />
+    <ClCompile Include="src\NotRed\Math\Noise.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp" />
-    <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp" />
@@ -322,6 +320,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
@@ -335,6 +334,7 @@
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />

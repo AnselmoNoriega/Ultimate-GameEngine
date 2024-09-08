@@ -123,6 +123,7 @@ project "NotRed"
 		
 		defines 
 		{ 
+			"NR_PLATFORM_WINDOWS",
 			"NR_BUILD_DLL"
 		}
 

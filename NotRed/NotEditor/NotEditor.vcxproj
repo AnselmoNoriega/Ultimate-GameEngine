@@ -103,7 +103,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -166,22 +166,6 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
     <ProjectReference Include="..\NotRed\NotRed.vcxproj">
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Shaders\BloomBlend\BloomBlend.frag" />
-    <None Include="Assets\Shaders\BloomBlend\BloomBlend.vert" />
-    <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
-    <None Include="Assets\Shaders\BloomBlur\BloomBlur.vert" />
-    <None Include="Assets\Shaders\Collider\Collider.frag" />
-    <None Include="Assets\Shaders\Collider\Collider.vert" />
-    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.frag" />
-    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.vert" />
-    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.frag" />
-    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.vert" />
-    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.frag" />
-    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.vert" />
-    <None Include="Assets\Shaders\ShadowMap\ShadowMap.frag" />
-    <None Include="Assets\Shaders\ShadowMap\ShadowMap.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

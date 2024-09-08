@@ -27,11 +27,11 @@ namespace NR
         mAssetIconMaps[AssetTypes::GetAssetTypeID("cs")] = Texture2D::Create("Assets/Editor/csc.png");
         mAssetIconMaps[AssetTypes::GetAssetTypeID("png")] = Texture2D::Create("Assets/Editor/png.png");
         mAssetIconMaps[AssetTypes::GetAssetTypeID("blend")] = Texture2D::Create("Assets/Editor/blend.png");
-        mAssetIconMaps[AssetTypes::GetAssetTypeID("nrc")] = Texture2D::Create("Assets/Editor/notred.png");
+        mAssetIconMaps[AssetTypes::GetAssetTypeID("nrsc")] = Texture2D::Create("Assets/Editor/notred.png");
 
-        mBackbtnTex = Texture2D::Create("Assets/Editor/btn_back.png");
+        mBackbtnTex = Texture2D::Create("Assets/Editor/back.png");
         mFwrdbtnTex = Texture2D::Create("Assets/Editor/btn_fwrd.png");
-        mFolderRightTex = Texture2D::Create("Assets/Editor/folder_hierarchy.png");
+        mFolderRightTex = Texture2D::Create("Assets/Editor/right.png");
         mSearchTex = Texture2D::Create("Assets/Editor/search.png");
         mTagsTex = Texture2D::Create("Assets/Editor/tags.png");
         mGridView = Texture2D::Create("Assets/Editor/grid.png");

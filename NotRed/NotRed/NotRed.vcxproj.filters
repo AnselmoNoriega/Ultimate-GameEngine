@@ -13,14 +13,14 @@
     <Filter Include="src\NotRed\Core\Events">
       <UniqueIdentifier>{645E8248-5058-AB9A-39C5-41AB255E1107}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\NotRed\Core\Math">
-      <UniqueIdentifier>{5977BC38-4506-4602-EE24-5AFDDA9256A8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\NotRed\Editor">
       <UniqueIdentifier>{5EC5110F-CADB-0FA5-1353-9BC67FA8E02C}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Math">
+      <UniqueIdentifier>{01C30D27-6D4E-7BEB-765F-FEDFE269D7EB}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\Physics">
       <UniqueIdentifier>{9A90804A-8674-41A0-EFD4-3BF3DBD72B22}</UniqueIdentifier>
@@ -42,6 +42,9 @@
     </Filter>
     <Filter Include="src\NotRed\Script">
       <UniqueIdentifier>{6CA6AC2F-D8BC-AAC5-2134-36E78D897B4D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Util">
+      <UniqueIdentifier>{75751227-E100-80EB-EA11-03E0561CDCEB}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -117,18 +120,6 @@
     <ClInclude Include="src\NotRed\Core\Log.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Math\AABB.h">
-      <Filter>src\NotRed\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Math\Matrix4x4.h">
-      <Filter>src\NotRed\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Math\Noise.h">
-      <Filter>src\NotRed\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Math\Ray.h">
-      <Filter>src\NotRed\Core\Math</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Platform.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
@@ -147,7 +138,16 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h">
@@ -156,13 +156,43 @@
     <ClInclude Include="src\NotRed\EntryPoint.h">
       <Filter>src\NotRed</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\ImGui\ImGui.h">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Math\AABB.h">
+      <Filter>src\NotRed\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Math\Math.h">
+      <Filter>src\NotRed\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Math\Matrix4x4.h">
+      <Filter>src\NotRed\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Math\Noise.h">
+      <Filter>src\NotRed\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Math\Ray.h">
+      <Filter>src\NotRed\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\PhysicsActor.h">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\PhysicsLayer.h">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Physics\PhysicsManager.h">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h">
       <Filter>src\NotRed\Physics</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h">
@@ -207,6 +237,9 @@
     <ClInclude Include="src\NotRed\Renderer\Mesh.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\MeshFactory.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -223,6 +256,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RendererAPI.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h">
@@ -263,6 +299,18 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h">
       <Filter>src\NotRed\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Util\Asset.h">
+      <Filter>src\NotRed\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Util\AssetManager.h">
+      <Filter>src\NotRed\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Util\DragDropData.h">
+      <Filter>src\NotRed\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Util\FileSystem.h">
+      <Filter>src\NotRed\Util</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h">
       <Filter>src</Filter>
@@ -444,21 +492,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h" />
-    <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h" />
-    <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
-    <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
-    <ClInclude Include="src\NotRed\Physics\PhysicsLayer.h" />
-    <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
-    <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
-    <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
-    <ClInclude Include="src\NotRed\Math\Math.h" />
-    <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
-    <ClInclude Include="src\NotRed\Util\AssetManager.h" />
-    <ClInclude Include="src\NotRed\Util\DragDropData.h" />
-    <ClInclude Include="src\NotRed\Util\FileSystem.h" />
-    <ClInclude Include="src\NotRed\Util\Asset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
@@ -476,12 +509,6 @@
     <ClCompile Include="src\NotRed\Core\Log.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp">
-      <Filter>src\NotRed\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Math\Noise.cpp">
-      <Filter>src\NotRed\Core\Math</Filter>
-    </ClCompile>
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
@@ -491,7 +518,16 @@
     <ClCompile Include="src\NotRed\Core\Window.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp">
@@ -506,7 +542,28 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Math\Math.cpp">
+      <Filter>src\NotRed\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp">
+      <Filter>src\NotRed\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Math\Noise.cpp">
+      <Filter>src\NotRed\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp">
+      <Filter>src\NotRed\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp">
       <Filter>src\NotRed\Physics</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp">
@@ -536,6 +593,9 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp">
+      <Filter>src\NotRed\Platform\Windows</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp">
       <Filter>src\NotRed\Platform\Windows</Filter>
     </ClCompile>
@@ -557,6 +617,9 @@
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -570,6 +633,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Renderer2D.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp">
@@ -604,6 +670,9 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp">
       <Filter>src\NotRed\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Util\AssetManager.cpp">
+      <Filter>src\NotRed\Util</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp">
       <Filter>src</Filter>
@@ -704,17 +773,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp" />
-    <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
-    <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
-    <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
-    <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
-    <ClCompile Include="src\NotRed\Math\Math.cpp" />
-    <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
-    <ClCompile Include="src\NotRed\Util\AssetManager.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
   </ItemGroup>
 </Project>
