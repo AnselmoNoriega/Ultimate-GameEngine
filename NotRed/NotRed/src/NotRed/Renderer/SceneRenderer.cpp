@@ -28,7 +28,7 @@ namespace NR
             SceneRendererCamera SceneCamera;
 
             Ref<MaterialInstance> SkyboxMaterial;
-            Environment SceneEnvironment;
+            Ref<Environment> SceneEnvironment;
             float SceneEnvironmentIntensity;
             LightEnvironment SceneLightEnvironment;
             Light ActiveLight;
@@ -391,8 +391,8 @@ namespace NR
             baseMaterial->Set("uCascadeTransitionFade", sData.CascadeTransitionFade);
             baseMaterial->Set("uIBLContribution", sData.SceneData.SceneEnvironmentIntensity);
 
-            baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment.RadianceMap);
-            baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment.IrradianceMap);
+            baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment->RadianceMap);
+            baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment->IrradianceMap);
             baseMaterial->Set("uBRDFLUTTexture", sData.BRDFLUT);
 
             auto directionalLight = sData.SceneData.SceneLightEnvironment.DirectionalLights[0];
@@ -455,8 +455,8 @@ namespace NR
             baseMaterial->Set("uIBLContribution", sData.SceneData.SceneEnvironmentIntensity);
 
             // Environment
-            baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment.RadianceMap);
-            baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment.IrradianceMap);
+            baseMaterial->Set("uEnvRadianceTex", sData.SceneData.SceneEnvironment->RadianceMap);
+            baseMaterial->Set("uEnvIrradianceTex", sData.SceneData.SceneEnvironment->IrradianceMap);
             baseMaterial->Set("uBRDFLUTTexture", sData.BRDFLUT);
 
             baseMaterial->Set("uLightMatrixCascade0", sData.LightMatrices[0]);

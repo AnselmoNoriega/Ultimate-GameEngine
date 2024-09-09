@@ -196,16 +196,13 @@ namespace NR
         }
 
         {
-            auto& parent = entity.GetComponent<ParentComponent>();
-            out << YAML::Key << "Parent" << YAML::Value << parent.ParentHandle;
-        }
+            auto& relationshipComponent = entity.GetComponent<RelationshipComponent>();
+            out << YAML::Key << "Parent" << YAML::Value << relationshipComponent.ParentHandle;
 
-        {
-            auto& childrenComponent = entity.GetComponent<ChildrenComponent>();
             out << YAML::Key << "Children";
             out << YAML::Value << YAML::BeginSeq;
 
-            for (auto child : childrenComponent.Children)
+            for (auto child : relationshipComponent.Children)
             {
                 out << YAML::BeginMap;
                 out << YAML::Key << "Handle" << YAML::Value << child;
@@ -283,7 +280,14 @@ namespace NR
             out << YAML::BeginMap; // MeshComponent
 
             auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
-            out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
+            if (mesh)
+            {
+                out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
+            }
+            else
+            {
+                out << YAML::Key << "AssetID" << YAML::Value << 0;
+            }
 
             out << YAML::EndMap; // MeshComponent
         }
@@ -330,7 +334,7 @@ namespace NR
             out << YAML::BeginMap; // SkyLightComponent
 
             auto& skyLightComponent = entity.GetComponent<SkyLightComponent>();
-            out << YAML::Key << "EnvironmentAssetPath" << YAML::Value << skyLightComponent.SceneEnvironment.FilePath;
+            out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
             out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;
             out << YAML::Key << "Angle" << YAML::Value << skyLightComponent.Angle;
 
@@ -432,7 +436,15 @@ namespace NR
             out << YAML::Key << "Offset" << YAML::Value << boxColliderComponent.Offset;
             out << YAML::Key << "Size" << YAML::Value << boxColliderComponent.Size;
             out << YAML::Key << "IsTrigger" << YAML::Value << boxColliderComponent.IsTrigger;
-            out << YAML::Key << "Material" << YAML::Value << boxColliderComponent.Material->Handle;
+
+            if (boxColliderComponent.Material)
+            {
+                out << YAML::Key << "Material" << YAML::Value << boxColliderComponent.Material->Handle;
+            }
+            else
+            {
+                out << YAML::Key << "Material" << YAML::Value << 0;
+            }
 
             out << YAML::EndMap; // BoxColliderComponent
         }
@@ -445,7 +457,15 @@ namespace NR
             auto& sphereColliderComponent = entity.GetComponent<SphereColliderComponent>();
             out << YAML::Key << "Radius" << YAML::Value << sphereColliderComponent.Radius;
             out << YAML::Key << "IsTrigger" << YAML::Value << sphereColliderComponent.IsTrigger;
-            out << YAML::Key << "Material" << YAML::Value << sphereColliderComponent.Material->Handle;
+
+            if (sphereColliderComponent.Material)
+            {
+                out << YAML::Key << "Material" << YAML::Value << sphereColliderComponent.Material->Handle;
+            }
+            else
+            {
+                out << YAML::Key << "Material" << YAML::Value << 0;
+            }
 
             out << YAML::EndMap; // SphereColliderComponent
         }
@@ -459,7 +479,15 @@ namespace NR
             out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
             out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
             out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
-            out << YAML::Key << "Material" << YAML::Value << capsuleColliderComponent.Material->Handle;
+
+            if (capsuleColliderComponent.Material)
+            {
+                out << YAML::Key << "Material" << YAML::Value << capsuleColliderComponent.Material->Handle;
+            }
+            else
+            {
+                out << YAML::Key << "Material" << YAML::Value << 0;
+            }
 
             out << YAML::EndMap; // CapsuleColliderComponent
         }
@@ -476,7 +504,15 @@ namespace NR
             }
             out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
             out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
-            out << YAML::Key << "Material" << YAML::Value << meshColliderComponent.Material->Handle;
+
+            if (meshColliderComponent.Material)
+            {
+                out << YAML::Key << "Material" << YAML::Value << meshColliderComponent.Material->Handle;
+            }
+            else
+            {
+                out << YAML::Key << "Material" << YAML::Value << 0;
+            }
 
             out << YAML::EndMap; // MeshColliderComponent
         }
@@ -489,7 +525,7 @@ namespace NR
         out << YAML::Key << "Environment";
         out << YAML::Value;
         out << YAML::BeginMap; // Environment
-        out << YAML::Key << "AssetPath" << YAML::Value << scene->GetEnvironment().FilePath;
+        out << YAML::Key << "AssetHandle" << YAML::Value << scene->GetEnvironment()->Handle;
         const auto& light = scene->GetLight();
         out << YAML::Key << "Light" << YAML::Value;
         out << YAML::BeginMap; // Light
@@ -631,16 +667,16 @@ namespace NR
                     NR_CORE_INFO("    Scale: {0}, {1}, {2}", transform.Scale.x, transform.Scale.y, transform.Scale.z);
                 }
 
-                uint64_t parentHandle = entity["Parent"].as<uint64_t>();
-                deserializedEntity.GetComponent<ParentComponent>().ParentHandle = parentHandle;
-
-                auto children = entity["Children"];
-                if (children)
                 {
+                    auto& relationshipComponent = deserializedEntity.GetComponent<RelationshipComponent>();
+                    uint64_t parentHandle = entity["Parent"].as<uint64_t>();
+                    relationshipComponent.ParentHandle = parentHandle;
+
+                    auto children = entity["Children"];
                     for (auto child : children)
                     {
                         uint64_t childHandle = child["Handle"].as<uint64_t>();
-                        deserializedEntity.GetComponent<ChildrenComponent>().Children.push_back(childHandle);
+                        relationshipComponent.Children.push_back(childHandle);
                     }
                 }
 
@@ -725,14 +761,9 @@ namespace NR
                     else
                     {
                         assetID = meshComponent["AssetID"].as<uint64_t>();
-
-                        if (!AssetManager::IsAssetHandleValid(assetID))
-                        {
-                            NR_CORE_WARN("Invalid ID");
-                        }
                     }
 
-                    if (!deserializedEntity.HasComponent<MeshComponent>())
+                    if (AssetManager::IsAssetHandleValid(assetID) && !deserializedEntity.HasComponent<MeshComponent>())
                     {
                         deserializedEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>(assetID));
                     }
@@ -792,17 +823,21 @@ namespace NR
                 if (skyLightComponent)
                 {
                     auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
-                    std::string env = skyLightComponent["EnvironmentAssetPath"].as<std::string>();
-                    if (!env.empty())
+
+                    AssetHandle assetHandle;
+                    if (skyLightComponent["EnvironmentAssetPath"])
                     {
-                        if (!CheckPath(env))
-                        {
-                            missingPaths.emplace_back(env);
-                        }
-                        else
-                        {
-                            component.SceneEnvironment = Environment::Load(env);
-                        }
+                        std::string filepath = skyLightComponent["EnvironmentAssetPath"].as<std::string>();
+                        assetHandle = AssetManager::GetAssetIDForFile(filepath);
+                    }
+                    else
+                    {
+                        assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
+                    }
+
+                    if (AssetManager::IsAssetHandleValid(assetHandle))
+                    {
+                        component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
                     }
                     component.Intensity = skyLightComponent["Intensity"].as<float>();
                     component.Angle = skyLightComponent["Angle"].as<float>();
@@ -876,9 +911,9 @@ namespace NR
                     component.DebugMesh = MeshFactory::CreateBox(component.Size);
 
                     auto material = boxColliderComponent["Material"];
-                    if (material)
+                    if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
                     {
-                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
                     }
                 }
 
@@ -891,9 +926,9 @@ namespace NR
                     component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
 
                     auto material = sphereColliderComponent["Material"];
-                    if (material)
+                    if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
                     {
-                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
                     }
                 }
 
@@ -906,9 +941,9 @@ namespace NR
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"].as<bool>();
 
                     auto material = capsuleColliderComponent["Material"];
-                    if (material)
+                    if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
                     {
-                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
+                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
                     }
 
                     component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
@@ -931,14 +966,12 @@ namespace NR
                         else
                         {
                             assetID = meshComponent["AssetID"].as<uint64_t>();
-
-                            if (!AssetManager::IsAssetHandleValid(assetID))
-                            {
-                                NR_CORE_WARN("Invalid ID!");
-                            }
                         }
 
-                        collisionMesh = AssetManager::GetAsset<Mesh>(assetID);
+                        if (AssetManager::IsAssetHandleValid(assetID))
+                        {
+                            collisionMesh = AssetManager::GetAsset<Mesh>(assetID);
+                        }
                     }
 
                     if (collisionMesh)
@@ -949,18 +982,18 @@ namespace NR
                         component.OverrideMesh = overrideMesh;
 
                         auto material = meshColliderComponent["Material"];
-                        if (material)
+                        if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
                         {
-                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<AssetHandle>());
-                        }
+                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
 
-                        if (component.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
+                            if (component.IsConvex)
+                            {
+                                PhysicsWrappers::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
+                            }
+                            else
+                            {
+                                PhysicsWrappers::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
+                            }
                         }
                     }
                     else

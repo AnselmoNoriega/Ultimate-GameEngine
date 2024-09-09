@@ -9,7 +9,6 @@
 
 #include <imgui/imgui_internal.h>
 
-#include "NotRed/Util/DragDropData.h"
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -669,24 +668,30 @@ namespace NR
         /* Payload Implementation For Getting Assets In The Viewport From Asset Manager */
         if (ImGui::BeginDragDropTarget())
         {
-            auto data = ImGui::AcceptDragDropPayload("scene_entity_assetsP");
+            auto data = ImGui::AcceptDragDropPayload("asset_payload");
             if (data)
             {
-                AssetHandle assetHandle = *(AssetHandle*)data->Data;
-                Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                int count = data->DataSize / sizeof(AssetHandle);
 
-                if (asset->Type == AssetType::Scene)
+                for (int i = 0; i < count; ++i)
                 {
-                    OpenScene(asset->FilePath);
-                }
+                    AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
 
-                if (asset->Type == AssetType::Mesh)
-                {
-                    Entity entity = mEditorScene->CreateEntity(asset->FileName);
-                    entity.AddComponent<MeshComponent>(Ref<Mesh>(asset));
-                    SelectEntity(entity);
+                    if (count == 1 && asset->Type == AssetType::Scene)
+                    {
+                        OpenScene(asset->FilePath);
+                    }
+
+                    if (asset->Type == AssetType::Mesh)
+                    {
+                        Entity entity = mEditorScene->CreateEntity(asset->FileName);
+                        entity.AddComponent<MeshComponent>(Ref<Mesh>(asset));
+                        SelectEntity(entity);
+                    }
                 }
             }
+
             ImGui::EndDragDropTarget();
         }
 

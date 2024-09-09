@@ -55,22 +55,16 @@ namespace NR
         }
     };
 
-    struct ParentComponent
+    struct RelationshipComponent
     {
         UUID ParentHandle = 0;
 
-        ParentComponent() = default;
-        ParentComponent(const ParentComponent& other) = default;
-        ParentComponent(UUID parent)
-            : ParentHandle(parent) {}
-    };
-
-    struct ChildrenComponent
-    {
         std::vector<UUID> Children;
 
-        ChildrenComponent() = default;
-        ChildrenComponent(const ChildrenComponent& other) = default;
+        RelationshipComponent() = default;
+        RelationshipComponent(const RelationshipComponent& other) = default;
+        RelationshipComponent(UUID parent)
+            : ParentHandle(parent) {}
     };
 
     struct MeshComponent
@@ -101,7 +95,7 @@ namespace NR
 
     struct SkyLightComponent
     {
-        Environment SceneEnvironment;
+        Ref<Environment> SceneEnvironment;
         float Intensity = 1.0f;
         float Angle = 0.0f;
     };

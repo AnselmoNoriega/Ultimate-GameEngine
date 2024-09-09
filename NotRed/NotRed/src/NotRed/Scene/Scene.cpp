@@ -239,14 +239,14 @@ namespace NR
         }
 
         {
-            mEnvironment = Environment();
+            mEnvironment = Ref<Environment>::Create();
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             for (auto entity : lights)
             {
                 auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
                 mEnvironment = skyLightComponent.SceneEnvironment;
                 mEnvironmentIntensity = skyLightComponent.Intensity;
-                SetSkybox(mEnvironment.RadianceMap);
+                SetSkybox(mEnvironment->RadianceMap);
             }
         }
 
@@ -292,14 +292,14 @@ namespace NR
         }
 
         {
-            mEnvironment = Environment();
+            mEnvironment = Ref<Environment>::Create();
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             for (auto entity : lights)
             {
                 auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
                 mEnvironment = skyLightComponent.SceneEnvironment;
                 mEnvironmentIntensity = skyLightComponent.Intensity;
-                SetSkybox(mEnvironment.RadianceMap);
+                SetSkybox(mEnvironment->RadianceMap);
             }
         }
 
@@ -557,8 +557,7 @@ namespace NR
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name);
 
-        entity.AddComponent<ParentComponent>();
-        entity.AddComponent<ChildrenComponent>();
+        entity.AddComponent<RelationshipComponent>();
 
         mEntityIDMap[idComponent.ID] = entity;
         return entity;
@@ -573,8 +572,7 @@ namespace NR
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name);
 
-        entity.AddComponent<ParentComponent>();
-        entity.AddComponent<ChildrenComponent>();
+        entity.AddComponent<RelationshipComponent>();
 
         NR_CORE_ASSERT(mEntityIDMap.find(uuid) == mEntityIDMap.end());
         mEntityIDMap[uuid] = entity;
@@ -619,8 +617,7 @@ namespace NR
         newEntity = CreateEntity(entity.GetComponent<TagComponent>().Tag);
 
         CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        CopyComponentIfExists<ParentComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-        CopyComponentIfExists<ChildrenComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<RelationshipComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -701,8 +698,7 @@ namespace NR
 
         CopyComponent<TagComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
-        CopyComponent<ParentComponent>(target->mRegistry, mRegistry, enttMap);
-        CopyComponent<ChildrenComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<RelationshipComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);

@@ -14,12 +14,15 @@ namespace NR
 			SerializeAsset(asset, asset->Type);
 		}
 
-		static Ref<Asset> Deserialize(const std::string& filepath, int parentIndex, bool reimport, AssetType type);
+		static Ref<Asset> LoadAssetInfo(const std::string& filepath, AssetHandle parentHandle, AssetType type);
+		static Ref<Asset> LoadAssetData(Ref<Asset>& asset);
 
 	private:
 		static void SerializeAsset(const Ref<Asset>& asset, AssetType type);
-		static Ref<Asset> DeserializeYAML(const std::string& filepath, AssetType type);
+		static Ref<Asset> DeserializeYAML(const Ref<Asset>& asset);
 		static void LoadMetaData(Ref<Asset>& asset);
 		static void CreateMetaFile(const Ref<Asset>& asset);
+
+		friend class AssetManager;
 	};
 }

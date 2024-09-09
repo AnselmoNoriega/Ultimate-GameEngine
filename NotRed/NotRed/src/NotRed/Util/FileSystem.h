@@ -29,6 +29,8 @@ namespace NR
 	public:
 		static bool CreateFolder(const std::string& filepath);
 		static bool Exists(const std::string& filePath);
+		static std::string Rename(const std::string& filepath, const std::string& newName);
+		static bool DeleteFile(const std::string& filepath);
 
 		static void SetChangeCallback(const FileSystemChangedCallbackFn& callback);
 		static void StartWatching();

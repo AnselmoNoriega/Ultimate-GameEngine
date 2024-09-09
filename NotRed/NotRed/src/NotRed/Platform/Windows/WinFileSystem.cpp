@@ -11,6 +11,7 @@ namespace NR
 	FileSystem::FileSystemChangedCallbackFn FileSystem::sCallback;
 
 	static bool sWatching = true;
+	static bool sIgnoreNextChange = false;
 	static HANDLE sWatcherThread;
 
 	void FileSystem::SetChangeCallback(const FileSystemChangedCallbackFn& callback)
@@ -53,6 +54,35 @@ namespace NR
 		return true;
 	}
 
+	std::string FileSystem::Rename(const std::string& filepath, const std::string& newName)
+	{
+		sIgnoreNextChange = true;
+		std::filesystem::path p = filepath;
+		std::string newFilePath = p.parent_path().string() + "/" + newName + p.extension().string();
+		MoveFileA(filepath.c_str(), newFilePath.c_str());
+		sIgnoreNextChange = false;
+		return newFilePath;
+	}
+
+	bool FileSystem::DeleteFile(const std::string& filepath)
+	{
+		sIgnoreNextChange = true;
+		std::string fp = filepath;
+		fp.append(1, '\0');
+		SHFILEOPSTRUCTA file_op;
+		file_op.hwnd = NULL;
+		file_op.wFunc = FO_DELETE;
+		file_op.pFrom = fp.c_str();
+		file_op.pTo = "";
+		file_op.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
+		file_op.fAnyOperationsAborted = false;
+		file_op.hNameMappings = 0;
+		file_op.lpszProgressTitle = "";
+		int result = SHFileOperationA(&file_op);
+		sIgnoreNextChange = false;
+		return result == 0;
+	}
+
 	void FileSystem::StartWatching()
 	{
 		DWORD threadID;
@@ -71,10 +101,17 @@ namespace NR
 		CloseHandle(sWatcherThread);
 	}
 
+	static std::string wchar_to_string(wchar_t* input)
+	{
+		std::wstring string_input(input);
+		std::string converted(string_input.begin(), string_input.end());
+		return converted;
+	}
+
 	unsigned long FileSystem::Watch(void* param)
 	{
 		LPCWSTR	filepath = L"Assets";
-		BYTE buffer[1024];
+		BYTE* buffer = new BYTE[10 * 1024];
 		OVERLAPPED overlapped = { 0 };
 		HANDLE handle = NULL;
 		DWORD bytesReturned = 0;
@@ -111,7 +148,7 @@ namespace NR
 			DWORD status = ReadDirectoryChangesW(
 				handle,
 				buffer,
-				sizeof(buffer),
+				10 * 1024 * sizeof(BYTE),
 				TRUE,
 				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
 				&bytesReturned,
@@ -131,18 +168,20 @@ namespace NR
 				continue;
 			}
 
+			if (sIgnoreNextChange)
+			{
+				continue;
+			}
+
 			std::string oldName;
+			char fileName[MAX_PATH * 10] = "";
 
-			char fileName[MAX_PATH] = "";
-
-			BYTE* current = buffer;
+			FILE_NOTIFY_INFORMATION* current = (FILE_NOTIFY_INFORMATION*)buffer;
 
 			for (;;)
 			{
 				ZeroMemory(fileName, sizeof(fileName));
-
-				FILE_NOTIFY_INFORMATION* fni = reinterpret_cast<FILE_NOTIFY_INFORMATION*>(current);
-				WideCharToMultiByte(CP_ACP, 0, fni->FileName, fni->FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
+				WideCharToMultiByte(CP_ACP, 0, current->FileName, current->FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
 				std::filesystem::path filepath = "assets/" + std::string(fileName);
 
 				FileSystemChangedEvent e;
@@ -151,7 +190,7 @@ namespace NR
 				e.OldName = filepath.filename().string();
 				e.IsDirectory = std::filesystem::is_directory(filepath);
 
-				switch (fni->Action)
+				switch (current->Action)
 				{
 				case FILE_ACTION_ADDED:
 				{
@@ -186,13 +225,13 @@ namespace NR
 				}
 				}
 
-				if (!fni->NextEntryOffset)
+				if (!current->NextEntryOffset)
 				{
 					ZeroMemory(buffer, 1024);
 					break;
 				}
 
-				current += fni->NextEntryOffset;
+				current += current->NextEntryOffset;
 			}
 		}
 

@@ -8,6 +8,11 @@ namespace NR
 
 	void PhysicsMaterialEditor::Render()
 	{
+		if (!mAsset)
+		{
+			SetOpen(false);
+		}
+
 		UI::BeginPropertyGrid();
 		UI::Property("Static friction", mAsset->StaticFriction);
 		UI::Property("Dynamic friction", mAsset->DynamicFriction);
@@ -24,6 +29,11 @@ namespace NR
 
 	void TextureEditor::Render()
 	{
+		if (!mAsset)
+		{
+			SetOpen(false);
+		}
+
 		float textureWidth = mAsset->GetWidth();
 		float textureHeight = mAsset->GetHeight();
 		float bitsPerPixel = Texture::GetBPP(mAsset->GetFormat());

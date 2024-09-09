@@ -141,25 +141,6 @@ namespace NR
         }
 
         ImGui::End();
-
-#if TODO
-        ImGui::Begin("Mesh Debug");
-        if (ImGui::CollapsingHeader(mesh->mFilePath.c_str()))
-        {
-            if (mesh->mIsAnimated)
-            {
-                if (ImGui::CollapsingHeader("Animation"))
-                {
-                    if (ImGui::Button(mesh->mAnimationPlaying ? "Pause" : "Play"))
-                        mesh->mAnimationPlaying = !mesh->mAnimationPlaying;
-
-                    ImGui::SliderFloat("##AnimationTime", &mesh->mAnimationTime, 0.0f, (float)mesh->mScene->mAnimations[0]->mDuration);
-                    ImGui::DragFloat("Time Scale", &mesh->mTimeMultiplier, 0.05f, 0.0f, 10.0f);
-                }
-            }
-        }
-        ImGui::End();
-#endif
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -169,6 +150,12 @@ namespace NR
 
         ImGuiTreeNodeFlags flags = (entity == mSelectionContext ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+
+        if (entity.Children().empty())
+        {
+            flags |= ImGuiTreeNodeFlags_Leaf;
+        }
+
         bool opened = ImGui::TreeNodeEx((void*)(uint32_t)entity, flags, name);
         if (ImGui::IsItemClicked())
         {
@@ -207,17 +194,21 @@ namespace NR
                 UUID droppedHandle = *((UUID*)payload->Data);
                 Entity e = mContext->FindEntityByID(droppedHandle);
 
-                // Remove from previous parent
-                Entity previousParent = mContext->FindEntityByID(e.GetParentID());
-                if (previousParent)
+                if (!entity.IsDescendantOf(e))
                 {
-                    auto& parentChildren = previousParent.Children();
-                    parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), droppedHandle), parentChildren.end());
-                }
+                    // Remove from previous parent
+                    Entity previousParent = mContext->FindEntityByID(e.GetParentID());
+                    if (previousParent)
+                    {
+                        auto& parentChildren = previousParent.Children();
+                        parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), droppedHandle), parentChildren.end());
+                    }
 
-                e.SetParentID(entity.GetID());
-                auto& children = entity.Children();
-                children.push_back(droppedHandle);
+                    e.SetParentID(entity.GetID());
+                    entity.Children().push_back(droppedHandle);
+
+                    NR_CORE_INFO("Dropping Entity {0} on {1}", droppedHandle, entity.GetID());
+                }
 
                 NR_CORE_INFO("Dropping Entity {0} on {1}", droppedHandle, entity.GetID());
             }
@@ -684,34 +675,8 @@ namespace NR
 
         DrawComponent<SkyLightComponent>("Sky Light", entity, [](SkyLightComponent& slc)
             {
-                ImGui::Columns(3);
-                ImGui::SetColumnWidth(0, 100);
-                ImGui::SetColumnWidth(1, 300);
-                ImGui::SetColumnWidth(2, 40);
-                ImGui::Text("File Path");
-                ImGui::NextColumn();
-                ImGui::PushItemWidth(-1);
-                if (!slc.SceneEnvironment.FilePath.empty())
-                {
-                    ImGui::InputText("##envfilepath", (char*)slc.SceneEnvironment.FilePath.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
-                }
-                else
-                {
-                    ImGui::InputText("##envfilepath", (char*)"Empty", 256, ImGuiInputTextFlags_ReadOnly);
-                }
-                ImGui::PopItemWidth();
-                ImGui::NextColumn();
-                if (ImGui::Button("...##openenv"))
-                {
-                    std::string file = Application::Get().OpenFile("*.hdr");
-                    if (!file.empty())
-                    {
-                        slc.SceneEnvironment = Environment::Load(file);
-                    }
-                }
-                ImGui::Columns(1);
-
                 UI::BeginPropertyGrid();
+                UI::PropertyAssetReference("Environment Map", slc.SceneEnvironment, AssetType::EnvMap);
                 UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
                 UI::EndPropertyGrid();
             });

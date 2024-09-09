@@ -64,9 +64,42 @@ namespace NR
 		UUID& GetID() { return GetComponent<IDComponent>().ID; }
 		UUID GetSceneID() { return mScene->GetID(); }
 
-		void SetParentID(UUID parent) { GetComponent<ParentComponent>().ParentHandle = parent; }
-		UUID GetParentID() { return GetComponent<ParentComponent>().ParentHandle; }
-		std::vector<UUID>& Children() { return GetComponent<ChildrenComponent>().Children; }
+		void SetParentID(UUID parent) { GetComponent<RelationshipComponent>().ParentHandle = parent; }
+		UUID GetParentID() { return GetComponent<RelationshipComponent>().ParentHandle; }
+		std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }
+
+		bool IsAncesterOf(Entity entity)
+		{
+			const auto& children = Children();
+
+			if (children.size() == 0)
+			{
+				return false;
+			}
+
+			for (UUID child : children)
+			{
+				if (child == entity.GetID())
+				{
+					return true;
+				}
+			}
+
+			for (UUID child : children)
+			{
+				if (mScene->FindEntityByID(child).IsAncesterOf(entity))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		bool IsDescendantOf(Entity entity)
+		{
+			return entity.IsAncesterOf(*this);
+		}
 
 	private:
 		Entity(const std::string& name);

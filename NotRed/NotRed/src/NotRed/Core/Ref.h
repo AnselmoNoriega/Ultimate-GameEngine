@@ -123,6 +123,12 @@ namespace NR
 			mInstance = instance;
 		}
 
+		template<typename T2>
+		Ref<T2> As()
+		{
+			return Ref<T2>(*this);
+		}
+
 		template<typename... Args>
 		static Ref<T> Create(Args&&... args)
 		{

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <entt/entt.hpp>
+
 #include "NotRed/Core/UUID.h"
 
 namespace NR
@@ -8,13 +10,14 @@ namespace NR
 	{
 		Scene, 
 		Mesh, Texture, EnvMap, 
-		Audio, 
-		Script, 
-		PhysicsMat, 
+		Audio,
+		Script,
+		PhysicsMat,
+		Directory,
 		Other
 	};
 
-	using AssetHandle = size_t;
+	using AssetHandle = UUID;
 
 	class Asset : public RefCounted
 	{
@@ -25,7 +28,8 @@ namespace NR
 		std::string FilePath;
 		std::string FileName;
 		std::string Extension;
-		int ParentDirectory;
+		AssetHandle ParentDirectory;
+		bool IsDataLoaded = false;
 
 		virtual ~Asset() = default;
 	};
@@ -44,4 +48,11 @@ namespace NR
 		}
 	};
 
+	class Directory : public Asset
+	{
+	public:
+		std::vector<AssetHandle> ChildDirectories;
+
+		Directory() = default;
+	};
 }

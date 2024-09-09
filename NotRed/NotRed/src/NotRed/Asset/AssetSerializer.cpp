@@ -4,6 +4,7 @@
 #include "NotRed/Util/StringUtils.h"
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Renderer/SceneRenderer.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -32,31 +33,75 @@ namespace NR
 		fout << out.c_str();
 	}
 
-	Ref<Asset> AssetSerializer::Deserialize(const std::string& filepath, int parentIndex, bool reimport, AssetType type)
+	Ref<Asset> AssetSerializer::LoadAssetInfo(const std::string& filepath, AssetHandle parentHandle, AssetType type)
 	{
 		Ref<Asset> asset = Ref<Asset>::Create();
 
+		if (type == AssetType::Directory)
+		{
+			asset = Ref<Directory>::Create();
+		}
+
 		std::string extension = Utils::GetExtension(filepath);
 
+		asset->FilePath = filepath;
+		std::replace(asset->FilePath.begin(), asset->FilePath.end(), '\\', '/');
+
+		bool hasMeta = FileSystem::Exists(asset->FilePath + ".meta");
+		if (hasMeta)
+		{
+			LoadMetaData(asset);
+		}
+		else
+		{
+			asset->Handle = filepath == "Assets" ? 0 : AssetHandle();
+			asset->FileName = Utils::RemoveExtension(Utils::GetFilename(filepath));
+			asset->Extension = Utils::GetExtension(filepath);
+			asset->Type = type;
+		}
+
+		asset->ParentDirectory = parentHandle;
+		asset->IsDataLoaded = false;
+
+		if (!hasMeta)
+		{
+			CreateMetaFile(asset);
+		}
+
+		return asset;
+	}
+
+	Ref<Asset> AssetSerializer::LoadAssetData(Ref<Asset>& asset)
+	{
+		if (asset->Type == AssetType::Directory)
+		{
+			return asset;
+		}
+
+		Ref<Asset> temp = asset;
 		bool loadYAMLData = true;
 
-		switch (type)
+		switch (asset->Type)
 		{
 		case AssetType::Mesh:
 		{
-			if (extension != "blend")
-				asset = Ref<Mesh>::Create(filepath);
+			if (asset->Extension != "blend")
+			{
+				asset = Ref<Mesh>::Create(asset->FilePath);
+			}
 			loadYAMLData = false;
 			break;
 		}
 		case AssetType::Texture:
 		{
-			asset = Texture2D::Create(filepath);
+			asset = Texture2D::Create(asset->FilePath);
 			loadYAMLData = false;
 			break;
 		}
 		case AssetType::EnvMap:
 		{
+			auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(asset->FilePath);
+			asset = Ref<Environment>::Create(radiance, irradiance);
 			loadYAMLData = false;
 			break;
 		}
@@ -72,45 +117,30 @@ namespace NR
 
 		if (loadYAMLData)
 		{
-			asset = DeserializeYAML(filepath, type);
+			asset = DeserializeYAML(asset);
 			NR_CORE_ASSERT(asset, "Failed to load asset");
 		}
 
-		bool hasMeta = FileSystem::Exists(filepath + ".meta");
-		if (hasMeta)
-		{
-			asset->FilePath = filepath;
-			LoadMetaData(asset);
-			std::replace(asset->FilePath.begin(), asset->FilePath.end(), '\\', '/');
-		}
-		else
-		{
-			asset->FilePath = filepath;
-			std::replace(asset->FilePath.begin(), asset->FilePath.end(), '\\', '/');
-			asset->Handle = std::hash<std::string>()(asset->FilePath);
-			asset->FileName = Utils::RemoveExtension(Utils::GetFilename(filepath));
-			asset->Extension = Utils::GetExtension(filepath);
-			asset->ParentDirectory = parentIndex;
-			asset->Type = type;
-		}
-
-		if (!hasMeta || reimport)
-		{
-			CreateMetaFile(asset);
-		}
+		asset->Handle = temp->Handle;
+		asset->FilePath = temp->FilePath;
+		asset->FileName = temp->FileName;
+		asset->Extension = temp->Extension;
+		asset->ParentDirectory = temp->ParentDirectory;
+		asset->Type = temp->Type;
+		asset->IsDataLoaded = true;
 
 		return asset;
 	}
 
-	Ref<Asset> AssetSerializer::DeserializeYAML(const std::string& filepath, AssetType type)
+	Ref<Asset> AssetSerializer::DeserializeYAML(const Ref<Asset>& asset)
 	{
-		std::ifstream stream(filepath);
+		std::ifstream stream(asset->FilePath);
 		std::stringstream strStream;
 		strStream << stream.rdbuf();
 
 		YAML::Node data = YAML::Load(strStream.str());
 
-		if (type == AssetType::PhysicsMat)
+		if (asset->Type == AssetType::PhysicsMat)
 		{
 			float staticFriction = data["StaticFriction"].as<float>();
 			float dynamicFriction = data["DynamicFriction"].as<float>();
@@ -134,11 +164,10 @@ namespace NR
 			NR_CORE_ASSERT("Invalid File Format");
 		}
 
-		asset->Handle = data["Asset"].as<AssetHandle>();
+		asset->Handle = data["Asset"].as<uint64_t>();
 		asset->FileName = data["FileName"].as<std::string>();
 		asset->FilePath = data["FilePath"].as<std::string>();
 		asset->Extension = data["Extension"].as<std::string>();
-		asset->ParentDirectory = data["Directory"].as<int>();
 		asset->Type = (AssetType)data["Type"].as<int>();
 	}
 
@@ -157,5 +186,4 @@ namespace NR
 		std::ofstream fout(asset->FilePath + ".meta");
 		fout << out.c_str();
 	}
-
 }

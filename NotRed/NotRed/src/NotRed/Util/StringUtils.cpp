@@ -19,7 +19,7 @@ namespace NR::Utils
 	{
 		std::vector<std::string> parts = SplitString(filename, '.');
 
-		if (parts.size() > 0)
+		if (parts.size() > 1)
 		{
 			return parts[parts.size() - 1];
 		}

@@ -167,7 +167,7 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		itoa(sCounter++, sIDBuffer + 2, 16);
 
-		if (readOnly)
+		if (!readOnly)
 		{
 			if (ImGui::DragFloat(sIDBuffer, &value, delta, min, max))
 			{
@@ -361,7 +361,7 @@ namespace NR::UI
 
 		if (ImGui::BeginDragDropTarget())
 		{
-			auto data = ImGui::AcceptDragDropPayload("scene_entity_assetsP");
+			auto data = ImGui::AcceptDragDropPayload("asset_payload");
 
 			if (data)
 			{

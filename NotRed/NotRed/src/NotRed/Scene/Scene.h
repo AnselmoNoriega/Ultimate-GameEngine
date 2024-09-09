@@ -58,7 +58,7 @@ namespace NR
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
-		const Environment& GetEnvironment() const { return mEnvironment; }
+		const Ref<Environment>& GetEnvironment() const { return mEnvironment; }
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
 		float& GetSkyboxLod() { return mSkyboxLod; }
@@ -110,7 +110,7 @@ namespace NR
 
 		LightEnvironment mLightEnvironment;
 
-		Environment mEnvironment;
+		Ref<Environment> mEnvironment;
 		float mEnvironmentIntensity = 1.0f;
 		Ref<TextureCube> mSkyboxTexture;
 		Ref<MaterialInstance> mSkyboxMaterial;
