@@ -246,7 +246,10 @@ namespace NR
                 auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
                 mEnvironment = skyLightComponent.SceneEnvironment;
                 mEnvironmentIntensity = skyLightComponent.Intensity;
-                SetSkybox(mEnvironment->RadianceMap);
+                if (mEnvironment)
+                {
+                    SetSkybox(mEnvironment->RadianceMap);
+                }
             }
         }
 
@@ -299,7 +302,10 @@ namespace NR
                 auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
                 mEnvironment = skyLightComponent.SceneEnvironment;
                 mEnvironmentIntensity = skyLightComponent.Intensity;
-                SetSkybox(mEnvironment->RadianceMap);
+                if (mEnvironment)
+                {
+                    SetSkybox(mEnvironment->RadianceMap);
+                }
             }
         }
 

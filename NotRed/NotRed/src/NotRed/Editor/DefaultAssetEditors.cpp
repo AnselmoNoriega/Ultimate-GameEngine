@@ -20,14 +20,14 @@ namespace NR
 		UI::EndPropertyGrid();
 	}
 
-	TextureEditor::TextureEditor()
+	TextureViewer::TextureViewer()
 		: AssetEditor("Edit Texture")
 	{
 		SetMinSize(200, 600);
 		SetMaxSize(500, 1000);
 	}
 
-	void TextureEditor::Render()
+	void TextureViewer::Render()
 	{
 		if (!mAsset)
 		{

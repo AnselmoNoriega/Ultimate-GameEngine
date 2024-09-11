@@ -24,24 +24,6 @@ namespace NR
         sTypes["cs"] = AssetType::Script;
     }
 
-    size_t AssetTypes::GetAssetTypeID(const std::string& extension)
-    {
-        if (extension == "")
-        {
-            return 0;
-        }
-
-        for (auto& kv : sTypes)
-        {
-            if (kv.first == extension)
-            {
-                return std::hash<std::string>()(extension);
-            }
-        }
-
-        return -1;
-    }
-
     AssetType AssetTypes::GetAssetTypeFromExtension(const std::string& extension)
     {
         return sTypes.find(extension) != sTypes.end() ? sTypes[extension] : AssetType::Other;
@@ -152,7 +134,7 @@ namespace NR
         return results;
     }
 
-    AssetHandle AssetManager::GetAssetIDForFile(const std::string& filepath)
+    AssetHandle AssetManager::GetAssetHandleFromFilePath(const std::string& filepath)
     {
         for (auto& [id, asset] : sLoadedAssets)
         {
@@ -167,7 +149,7 @@ namespace NR
 
     bool AssetManager::IsAssetHandleValid(AssetHandle assetHandle)
     {
-        return sLoadedAssets.find(assetHandle) != sLoadedAssets.end();
+        return assetHandle != 0 && sLoadedAssets.find(assetHandle) != sLoadedAssets.end();
     }
 
     void AssetManager::Rename(Ref<Asset>&asset, const std::string & newName)
@@ -216,7 +198,7 @@ namespace NR
     {
         std::vector<std::string> parts = Utils::SplitString(filepath, "/\\");
         std::string parentFolder = parts[parts.size() - 2];
-        Ref<Directory> assetsDirectory = GetAsset<Directory>(0);
+        Ref<Directory> assetsDirectory = GetAsset<Directory>(GetAssetHandleFromFilePath("Assets"));
         return FindParentHandleInChildren(assetsDirectory, parentFolder);
     }
 
@@ -331,7 +313,7 @@ namespace NR
         Ref<Directory> dirInfo = AssetSerializer::LoadAssetInfo(directoryPath, parentHandle, AssetType::Directory).As<Directory>();
         sLoadedAssets[dirInfo->Handle] = dirInfo;
 
-        if (parentHandle != dirInfo->Handle && IsAssetHandleValid(parentHandle))
+        if (IsAssetHandleValid(parentHandle))
         {
             sLoadedAssets[parentHandle].As<Directory>()->ChildDirectories.push_back(dirInfo->Handle);
         }
@@ -353,7 +335,7 @@ namespace NR
 
     void AssetManager::ReloadAssets()
     {
-        ProcessDirectory("assets", 0);
+        ProcessDirectory("Assets", 0);
     }
 
     std::map<std::string, AssetType> AssetTypes::sTypes;

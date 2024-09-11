@@ -64,6 +64,16 @@ namespace NR
 		return newFilePath;
 	}
 
+	bool FileSystem::MoveFile(const std::string& filepath, const std::string& dest)
+	{
+		sIgnoreNextChange = true;
+		std::filesystem::path p = filepath;
+		std::string destFilePath = dest + "/" + p.filename().string();
+		BOOL result = MoveFileA(filepath.c_str(), destFilePath.c_str());
+		sIgnoreNextChange = false;
+		return result != 0;
+	}
+
 	bool FileSystem::DeleteFile(const std::string& filepath)
 	{
 		sIgnoreNextChange = true;

@@ -21,7 +21,8 @@ namespace NR
 		None,
 		Int, Float, UnsignedInt,
 		String,
-		Vec2, Vec3, Vec4
+		Vec2, Vec3, Vec4,
+		ClassReference
 	};
 
 	const char* FieldTypeToString(FieldType type);
@@ -40,9 +41,10 @@ namespace NR
 	struct PublicField
 	{
 		std::string Name;
+		std::string TypeName;
 		FieldType Type;
-		
-		PublicField(const std::string& name, FieldType type);
+
+		PublicField(const std::string& name, const std::string& typeName, FieldType type);
 		PublicField(const PublicField&) = delete;
 		PublicField(PublicField&& other);
 		~PublicField();
@@ -79,6 +81,10 @@ namespace NR
 		}
 
 		void SetStoredValueRaw(void* src);
+		void* GetStoredValueRaw() { return mStoredValueBuffer; }
+
+		void SetRuntimeValueRaw(void* src);
+		void* GetRuntimeValueRaw();
 
 	private:
 		uint8_t* AllocateBuffer(FieldType type);

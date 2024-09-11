@@ -41,8 +41,8 @@ namespace NR
     {
         public Vector3 Size { get; private set; }
         public Vector3 Offset { get; private set; }
-
-        private BoxCollider(ulong entityID, Vector3 size, Vector3 offset, bool isTrigger)
+        
+		internal BoxCollider(ulong entityID, Vector3 size, Vector3 offset, bool isTrigger)
         {
             EntityID = entityID;
             Size = size;
@@ -55,7 +55,7 @@ namespace NR
     {
         public float Radius { get; private set; }
 
-        private SphereCollider(ulong entityID, float radius, bool isTrigger)
+        internal SphereCollider(ulong entityID, float radius, bool isTrigger)
         {
             EntityID = entityID;
             Radius = radius;
@@ -68,7 +68,7 @@ namespace NR
         public float Radius { get; private set; }
         public float Height { get; private set; }
 
-        private CapsuleCollider(ulong entityID, float radius, float height, bool isTrigger)
+        internal CapsuleCollider(ulong entityID, float radius, float height, bool isTrigger)
         {
             EntityID = entityID;
             Radius = radius;
@@ -81,7 +81,7 @@ namespace NR
     {
         public Mesh Mesh { get; private set; }
 
-        private MeshCollider(ulong entityID, IntPtr mesh, bool isTrigger)
+        internal MeshCollider(ulong entityID, IntPtr mesh, bool isTrigger)
         {
             EntityID = entityID;
             IsTrigger = isTrigger;

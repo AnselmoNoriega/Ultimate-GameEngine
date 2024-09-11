@@ -10,7 +10,7 @@
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Scene/SceneCamera.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
-#include "NotRed/Asset/Assets.h"
+#include "NotRed/Asset/Asset.h"
 
 namespace NR
 {

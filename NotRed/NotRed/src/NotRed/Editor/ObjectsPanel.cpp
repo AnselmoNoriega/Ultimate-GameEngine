@@ -32,13 +32,13 @@ namespace NR
 
 	void ObjectsPanel::ImGuiRender()
 	{
-		static const AssetHandle CubeHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Cube.fbx");
-		static const AssetHandle CapsuleHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Capsule.fbx");
-		static const AssetHandle SphereHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Sphere.fbx");
-		static const AssetHandle CylinderHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Cylinder.fbx");
-		static const AssetHandle TorusHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Torus.fbx");
-		static const AssetHandle PlaneHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Plane.fbx");
-		static const AssetHandle ConeHandle = AssetManager::GetAssetIDForFile("Assets/Meshes/Default/Cone.fbx");
+		static const AssetHandle CubeHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Cube.fbx");
+		static const AssetHandle CapsuleHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Capsule.fbx");
+		static const AssetHandle SphereHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Sphere.fbx");
+		static const AssetHandle CylinderHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Cylinder.fbx");
+		static const AssetHandle TorusHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Torus.fbx");
+		static const AssetHandle PlaneHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Plane.fbx");
+		static const AssetHandle ConeHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Cone.fbx");
 
 		ImGui::Begin("Objects");
 		{

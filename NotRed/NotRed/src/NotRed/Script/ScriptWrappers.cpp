@@ -236,7 +236,7 @@ namespace NR::Script
                     &sphereCollider.IsTrigger
                 };
 
-                MonoObject* obj = ScriptEngine::Construct("NR.SphereCollider:.ctor(ulong,float,bool)", true, data);
+                MonoObject* obj = ScriptEngine::Construct("NR.SphereCollider:.ctor(ulong,single,bool)", true, data);
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 
@@ -251,7 +251,7 @@ namespace NR::Script
                     &capsuleCollider.IsTrigger
                 };
 
-                MonoObject* obj = ScriptEngine::Construct("NR.CapsuleCollider:.ctor(ulong,float,float,bool)", true, data);
+                MonoObject* obj = ScriptEngine::Construct("NR.CapsuleCollider:.ctor(ulong,single,single,bool)", true, data);
                 mono_array_set(array, MonoObject*, arrayIndex++, obj);
             }
 

@@ -15,7 +15,7 @@ namespace NR
 		void Update(float dt);
 		void OnEvent(Event& e);
 
-		void Focus();
+		void Focus(const glm::vec3& focusPoint);
 
 		inline float GetDistance() const { return mDistance; }
 		inline void SetDistance(float distance) { mDistance = distance; }
@@ -59,6 +59,8 @@ namespace NR
 
 		float mDistance;
 		float mPitch, mYaw;
+
+		float mMinFocusDistance = 100.0f;
 
 		uint32_t mViewportWidth = 1280, mViewportHeight = 720;
 	};

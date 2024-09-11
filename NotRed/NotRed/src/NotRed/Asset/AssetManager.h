@@ -13,7 +13,6 @@ namespace NR
 	{
 	public:
 		static void Init();
-		static size_t GetAssetTypeID(const std::string& extension);
 		static AssetType GetAssetTypeFromExtension(const std::string& extension);
 
 	private:
@@ -37,7 +36,7 @@ namespace NR
 
 		static bool IsDirectory(const std::string& filepath);
 
-		static AssetHandle GetAssetIDForFile(const std::string& filepath);
+		static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
 		static bool IsAssetHandleValid(AssetHandle assetHandle);
 
 		static void Rename(Ref<Asset>& asset, const std::string& newName);
@@ -48,7 +47,7 @@ namespace NR
 		{
 			static_assert(std::is_base_of<Asset, T>::value, "CreateAsset only works for types derived from Asset");
 
-			auto& directory = GetAsset<Directory>(directoryHandle);
+			const auto& directory = GetAsset<Directory>(directoryHandle);
 
 			Ref<T> asset = Ref<T>::Create(std::forward<Args>(args)...);
 			asset->Type = type;
@@ -66,17 +65,23 @@ namespace NR
 		}
 
 		template<typename T>
-		static Ref<T> GetAsset(AssetHandle assetHandle)
+		static Ref<T> GetAsset(AssetHandle assetHandle, bool loadData = true)
 		{
 			NR_CORE_ASSERT(sLoadedAssets.find(assetHandle) != sLoadedAssets.end());
-			Ref<Asset> asset = s_LoadedAssets[assetHandle];
+			Ref<Asset> asset = sLoadedAssets[assetHandle];
 
-			if (!asset->IsDataLoaded)
+			if (!asset->IsDataLoaded && loadData)
 			{
 				asset = AssetSerializer::LoadAssetData(asset);
 			}
 
 			return asset.As<T>();
+		}
+
+		template<typename T>
+		static Ref<T> GetAsset(const std::string& filepath, bool loadData = true)
+		{
+			return GetAsset<T>(GetAssetHandleFromFilePath(filepath), loadData);
 		}
 
 		static bool IsAssetType(AssetHandle assetHandle, AssetType type)

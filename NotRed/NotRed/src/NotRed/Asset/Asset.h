@@ -1,6 +1,6 @@
 #pragma once
 
-#include <entt/entt.hpp>
+#include <Entt/include/entt.hpp>
 
 #include "NotRed/Core/UUID.h"
 
@@ -14,7 +14,8 @@ namespace NR
 		Script,
 		PhysicsMat,
 		Directory,
-		Other
+		Other,
+		None
 	};
 
 	using AssetHandle = UUID;
@@ -23,7 +24,7 @@ namespace NR
 	{
 	public:
 		AssetHandle Handle;
-		AssetType Type;
+		AssetType Type = AssetType::None;
 
 		std::string FilePath;
 		std::string FileName;

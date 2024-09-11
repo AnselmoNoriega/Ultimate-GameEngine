@@ -68,6 +68,8 @@ namespace NR
 		UUID GetParentID() { return GetComponent<RelationshipComponent>().ParentHandle; }
 		std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }
 
+		bool HasParent() { return mScene->FindEntityByID(GetParentID()); }
+
 		bool IsAncesterOf(Entity entity)
 		{
 			const auto& children = Children();

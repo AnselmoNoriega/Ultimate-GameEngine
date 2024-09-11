@@ -2,6 +2,7 @@
 #include "AssetEditorPanel.h"
 
 #include "DefaultAssetEditors.h"
+#include "NotRed/Asset/AssetManager.h"
 
 namespace NR
 {
@@ -43,7 +44,7 @@ namespace NR
 
 	void AssetEditorPanel::RegisterDefaultEditors()
 	{
-		RegisterEditor<TextureEditor>(AssetType::Texture);
+		RegisterEditor<TextureViewer>(AssetType::Texture);
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
 	}
 
@@ -64,7 +65,7 @@ namespace NR
 		}
 
 		sEditors[asset->Type]->SetOpen(true);
-		sEditors[asset->Type]->SetAsset(asset);
+		sEditors[asset->Type]->SetAsset(AssetManager::GetAsset<Asset>(asset->Handle));
 	}
 
 	std::unordered_map<AssetType, Scope<AssetEditor>> AssetEditorPanel::sEditors;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Asset/Assets.h"
+#include "NotRed/Asset/Asset.h"
 
 //TODO: This shouldn't be here
 #include "NotRed/Asset/AssetManager.h"

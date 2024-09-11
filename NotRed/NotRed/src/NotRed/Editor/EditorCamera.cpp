@@ -38,8 +38,15 @@ namespace NR
 		mViewMatrix = glm::inverse(mViewMatrix);
 	}
 
-	void EditorCamera::Focus()
+	void EditorCamera::Focus(const glm::vec3& focusPoint)
 	{
+		mFocalPoint = focusPoint;
+		if (mDistance > mMinFocusDistance)
+		{
+			float distance = mDistance - mMinFocusDistance;
+			MouseZoom(distance / ZoomSpeed());
+			UpdateCameraView();
+		}
 	}
 
 	std::pair<float, float> EditorCamera::PanSpeed() const

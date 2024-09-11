@@ -15,6 +15,7 @@
 
 #include "NotRed/Asset/AssetManager.h"
 
+#include "NotRed/Math/Math.h"
 #include "NotRed/Core/Application.h"
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Renderer/Mesh.h"
@@ -86,11 +87,15 @@ namespace NR
                     {
                         auto& children = previousParent.Children();
                         children.erase(std::remove(children.begin(), children.end(), droppedHandle), children.end());
+
+                        glm::mat4 parentTransform = mContext->GetTransformRelativeToParent(previousParent);
+                        glm::vec3 parentTranslation, parentRotation, parentScale;
+                        Math::DecomposeTransform(parentTransform, parentTranslation, parentRotation, parentScale);
+
+                        e.Transform().Translation = e.Transform().Translation + parentTranslation;
                     }
 
                     e.SetParentID(0);
-
-                    NR_CORE_INFO("Unparented Entity!");
                 }
 
                 ImGui::EndDragDropTarget();
@@ -204,13 +209,15 @@ namespace NR
                         parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), droppedHandle), parentChildren.end());
                     }
 
+                    glm::mat4 parentTransform = mContext->GetTransformRelativeToParent(entity);
+                    glm::vec3 parentTranslation, parentRotation, parentScale;
+                    Math::DecomposeTransform(parentTransform, parentTranslation, parentRotation, parentScale);
+
+                    e.Transform().Translation = e.Transform().Translation - parentTranslation;
+
                     e.SetParentID(entity.GetID());
                     entity.Children().push_back(droppedHandle);
-
-                    NR_CORE_INFO("Dropping Entity {0} on {1}", droppedHandle, entity.GetID());
                 }
-
-                NR_CORE_INFO("Dropping Entity {0} on {1}", droppedHandle, entity.GetID());
             }
 
             ImGui::EndDragDropTarget();

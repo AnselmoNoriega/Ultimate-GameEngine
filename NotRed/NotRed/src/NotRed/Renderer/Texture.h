@@ -4,7 +4,7 @@
 #include "NotRed/Core/Buffer.h"
 #include "RendererAPI.h"
 
-#include "NotRed/Asset/Assets.h"
+#include "NotRed/Asset/Asset.h"
 
 namespace NR
 {

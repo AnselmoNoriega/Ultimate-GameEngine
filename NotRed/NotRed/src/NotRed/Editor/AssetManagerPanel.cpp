@@ -16,24 +16,22 @@ namespace NR
                 UpdateCurrentDirectory(mCurrentDirHandle);
             });
 
-        mFolderTex = Texture2D::Create("Assets/Editor/folder.png");
+        mFileTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/file.png");
+        mAssetIconMap[""] = AssetManager::GetAsset<Texture2D>("Assets/Editor/folder.png");
+        mAssetIconMap["fbx"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/fbx.png");
+        mAssetIconMap["obj"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/obj.png");
+        mAssetIconMap["wav"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/wav.png");
+        mAssetIconMap["cs"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/csc.png");
+        mAssetIconMap["png"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/png.png");
+        mAssetIconMap["blend"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/blend.png");
+        mAssetIconMap["nrc"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/notred.png");
 
-        mAssetIconMap[-1] = Texture2D::Create("Assets/Editor/file.png");
-        mAssetIconMap[0] = mFolderTex;
-        mAssetIconMap[AssetTypes::GetAssetTypeID("hdr")] = Texture2D::Create("Assets/Editor/file.png");
-        mAssetIconMap[AssetTypes::GetAssetTypeID("obj")] = Texture2D::Create("Assets/Editor/obj.png");
-        mAssetIconMap[AssetTypes::GetAssetTypeID("wav")] = Texture2D::Create("Assets/Editor/wav.png");
-        mAssetIconMap[AssetTypes::GetAssetTypeID("cs")] = Texture2D::Create("Assets/Editor/csc.png");
-        mAssetIconMap[AssetTypes::GetAssetTypeID("png")] = Texture2D::Create("Assets/Editor/png.png");
-        mAssetIconMap[AssetTypes::GetAssetTypeID("blend")] = Texture2D::Create("Assets/Editor/blend.png");
-        mAssetIconMap[AssetTypes::GetAssetTypeID("nrsc")] = Texture2D::Create("Assets/Editor/notred.png");
+        mBackbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/btn_back.png");
+        mFwrdbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/btn_fwrd.png");
+        mFolderRightTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/folder_hierarchy.png");
+        mSearchTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/search.png");
 
-        mBackbtnTex = Texture2D::Create("Assets/Editor/back.png");
-        mFwrdbtnTex = Texture2D::Create("Assets/Editor/btn_fwrd.png");
-        mFolderRightTex = Texture2D::Create("Assets/Editor/right.png");
-        mSearchTex = Texture2D::Create("Assets/Editor/search.png");
-
-        mBaseDirectoryHandle = 0;
+        mBaseDirectoryHandle = AssetManager::GetAssetHandleFromFilePath("Assets");
         mBaseDirectory = AssetManager::GetAsset<Directory>(mBaseDirectoryHandle);
         UpdateCurrentDirectory(mBaseDirectoryHandle);
 
@@ -97,6 +95,7 @@ namespace NR
                     mSelectedAssets.Clear();
 
                     mRenamingSelected = false;
+                    memset(mInputBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
                 }
 
                 mIsAnyItemHovered = false;
@@ -114,7 +113,7 @@ namespace NR
                             if (created)
                             {
                                 UpdateCurrentDirectory(mCurrentDirHandle);
-                                const auto& createdDirectory = AssetManager::GetAsset<Directory>(AssetManager::GetAssetIDForFile(mCurrentDirectory->FilePath + "/Folder"));
+                                const auto& createdDirectory = AssetManager::GetAsset<Directory>(AssetManager::GetAssetHandleFromFilePath(mCurrentDirectory->FilePath + "/Folder"));
                                 mSelectedAssets.Select(createdDirectory->Handle);
                                 memset(mInputBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
                                 memcpy(mInputBuffer, createdDirectory->FileName.c_str(), createdDirectory->FileName.size());
@@ -159,15 +158,15 @@ namespace NR
 
                 for (Ref<Asset>& asset : mCurrentDirAssets)
                 {
-                    if (mSkipRenderingThisFrame)
-                    {
-                        mSkipRenderingThisFrame = false;
-                        break;
-                    }
-
                     RenderAsset(asset);
 
                     ImGui::NextColumn();
+                }
+
+                if (mUpdateDirectoryNextFrame)
+                {
+                    UpdateCurrentDirectory(mCurrentDirHandle);
+                    mUpdateDirectoryNextFrame = false;
                 }
 
                 if (mIsDragging && !ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.1f))
@@ -207,9 +206,7 @@ namespace NR
         ImGui::PushID(&asset->Handle);
         ImGui::BeginGroup();
 
-        size_t fileID = AssetTypes::GetAssetTypeID(asset->Extension);
-        fileID = mAssetIconMap.find(fileID) != mAssetIconMap.end() ? fileID : -1;
-        RendererID iconRef = mAssetIconMap[fileID]->GetRendererID();
+        RendererID iconRef = mAssetIconMap.find(asset->Extension) != mAssetIconMap.end() ? mAssetIconMap[asset->Extension]->GetRendererID() : mFileTex->GetRendererID();
 
         if (mSelectedAssets.IsSelected(assetHandle))
         {
@@ -235,8 +232,11 @@ namespace NR
                 if (asset->Type == AssetType::Directory)
                 {
                     mPrevDirHandle = mCurrentDirHandle;
-                    UpdateCurrentDirectory(assetHandle);
-                    mSkipRenderingThisFrame = true;
+                    mCurrentDirHandle = assetHandle;
+                    mUpdateDirectoryNextFrame = true;
+                }
+                else if (asset->Type == AssetType::Scene)
+                {
                 }
                 else
                 {
@@ -315,8 +315,7 @@ namespace NR
                 {
                     FileSystem::DeleteFile(filepath + ".meta");
                     AssetManager::RemoveAsset(assetHandle);
-                    mSkipRenderingThisFrame = true;
-                    UpdateCurrentDirectory(mCurrentDirHandle);
+                    mUpdateDirectoryNextFrame = true;
                 }
 
                 ImGui::CloseCurrentPopup();
@@ -352,6 +351,30 @@ namespace NR
 
     void AssetManagerPanel::HandleDragDrop(RendererID icon, Ref<Asset>& asset)
     {
+        if (asset->Type == AssetType::Directory && mIsDragging)
+        {
+            if (ImGui::BeginDragDropTarget())
+            {
+                auto payload = ImGui::AcceptDragDropPayload("asset_payload");
+                if (payload)
+                {
+                    int count = payload->DataSize / sizeof(AssetHandle);
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        AssetHandle handle = *(((AssetHandle*)payload->Data) + i);
+                        Ref<Asset> droppedAsset = AssetManager::GetAsset<Asset>(handle, false);
+
+                        bool result = FileSystem::MoveFile(droppedAsset->FilePath, asset->FilePath);
+                        if (result)
+                            droppedAsset->ParentDirectory = asset->Handle;
+                    }
+
+                    mUpdateDirectoryNextFrame = true;
+                }
+            }
+        }
+
         if (!mSelectedAssets.IsSelected(asset->Handle) || mIsDragging)
         {
             return;
@@ -431,7 +454,6 @@ namespace NR
                 currentHandle = dirInfo->ParentDirectory;
             }
 
-            mBreadCrumbData.push_back(mBaseDirectory);
             std::reverse(mBreadCrumbData.begin(), mBreadCrumbData.end());
 
             mUpdateBreadCrumbs = false;
@@ -486,19 +508,14 @@ namespace NR
                 AssetManager::Rename(asset, mInputBuffer);
                 mRenamingSelected = false;
                 mSelectedAssets.Clear();
-                mSkipRenderingThisFrame = true;
-                UpdateCurrentDirectory(mCurrentDirHandle);
+                mUpdateDirectoryNextFrame = true;
             }
         }
     }
 
     void AssetManagerPanel::UpdateCurrentDirectory(AssetHandle directoryHandle)
     {
-        if (mCurrentDirHandle != directoryHandle)
-        {
-            mUpdateBreadCrumbs = true;
-        }
-
+        mUpdateBreadCrumbs = true;
         mCurrentDirAssets.clear();
 
         mCurrentDirHandle = directoryHandle;

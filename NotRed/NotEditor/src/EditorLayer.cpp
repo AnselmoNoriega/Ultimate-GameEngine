@@ -625,7 +625,7 @@ namespace NR
             bool snap = Input::IsKeyPressed(NR_KEY_LEFT_CONTROL);
 
             TransformComponent& entityTransform = selection.EntityObj.Transform();
-            glm::mat4 transform = entityTransform.GetTransform();
+            glm::mat4 transform = mCurrentScene->GetTransformRelativeToParent(selection.EntityObj);
             float snapValue = GetSnapValue();
             float snapValues[3] = { snapValue, snapValue, snapValue };
             if (mSelectionMode == SelectionMode::Entity)
@@ -644,10 +644,24 @@ namespace NR
                     glm::vec3 translation, rotation, scale;
                     Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                    glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
-                    entityTransform.Translation = translation;
-                    entityTransform.Rotation += deltaRotation;
-                    entityTransform.Scale = scale;
+                    Entity parent = mCurrentScene->FindEntityByID(selection.EntityObj.GetParentID());
+                    if (parent)
+                    {
+                        glm::vec3 parentTranslation, parentRotation, parentScale;
+                        Math::DecomposeTransform(mCurrentScene->GetTransformRelativeToParent(parent), parentTranslation, parentRotation, parentScale);
+
+                        glm::vec3 deltaRotation = (rotation - parentRotation) - entityTransform.Rotation;
+                        entityTransform.Translation = translation - parentTranslation;
+                        entityTransform.Rotation += deltaRotation;
+                        entityTransform.Scale = scale;
+                    }
+                    else
+                    {
+                        glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
+                        entityTransform.Translation = translation;
+                        entityTransform.Rotation += deltaRotation;
+                        entityTransform.Scale = scale;
+                    }
                 }
             }
             else
@@ -983,6 +997,8 @@ namespace NR
         mSelectionContext.push_back(selection);
 
         mEditorScene->SetSelectedEntity(entity);
+
+        mCurrentScene = mEditorScene;
     }
 
     void EditorLayer::OnEvent(Event& e)
@@ -1032,6 +1048,17 @@ namespace NR
                 case KeyCode::R:
                 {
                     mGizmoType = ImGuizmo::OPERATION::SCALE;
+                    break;
+                }
+                case KeyCode::F:
+                {
+                    if (mSelectionContext.size() == 0)
+                    {
+                        break;
+                    }
+
+                    Entity selectedEntity = mSelectionContext[0].EntityObj;
+                    mEditorCamera.Focus(selectedEntity.Transform().Translation);
                     break;
                 }
                 }
@@ -1136,9 +1163,10 @@ namespace NR
                     for (uint32_t i = 0; i < submeshes.size(); ++i)
                     {
                         auto& submesh = submeshes[i];
+                        glm::mat4 transform = mCurrentScene->GetTransformRelativeToParent(entity);
                         Ray ray = {
-                            glm::inverse(entity.Transform().GetTransform() * submesh.Transform) * glm::vec4(origin, 1.0f),
-                            glm::inverse(glm::mat3(entity.Transform().GetTransform()) * glm::mat3(submesh.Transform)) * direction
+                            glm::inverse(transform * submesh.Transform) * glm::vec4(origin, 1.0f),
+                            glm::inverse(glm::mat3(transform) * glm::mat3(submesh.Transform)) * direction
                         };
 
                         float t;
@@ -1202,7 +1230,7 @@ namespace NR
 
     void EditorLayer::EntityDeleted(Entity e)
     {
-        if (mSelectionContext[0].EntityObj == e)
+        if (mSelectionContext.size() > 0 && mSelectionContext[0].EntityObj == e)
         {
             mSelectionContext.clear();
             mEditorScene->SetSelectedEntity({});

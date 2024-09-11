@@ -618,21 +618,6 @@ namespace NR
         std::string sceneName = data["Scene"].as<std::string>();
         NR_CORE_INFO("Deserializing scene '{0}'", sceneName);
 
-        auto environment = data["Environment"];
-        if (environment)
-        {
-            std::string envPath = environment["AssetPath"].as<std::string>();
-
-            auto lightNode = environment["Light"];
-            if (lightNode)
-            {
-                auto& light = mScene->GetLight();
-                light.Direction = lightNode["Direction"].as<glm::vec3>();
-                light.Radiance = lightNode["Radiance"].as<glm::vec3>();
-                light.Multiplier = lightNode["Multiplier"].as<float>();
-            }
-        }
-
         std::vector<std::string> missingPaths;
 
         auto entities = data["Entities"];
@@ -696,13 +681,14 @@ namespace NR
                             for (auto field : storedFields)
                             {
                                 std::string name = field["Name"].as<std::string>();
+                                std::string typeName = field["TypeName"] ? field["TypeName"].as<std::string>() : "";
                                 FieldType type = (FieldType)field["Type"].as<uint32_t>();
                                 EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(mScene->GetID(), uuid);
                                 auto& moduleFieldMap = data.ModuleFieldMap;
                                 auto& publicFields = moduleFieldMap[moduleName];
                                 if (publicFields.find(name) == publicFields.end())
                                 {
-                                    PublicField pf = { name, type };
+                                    PublicField pf = { name, typeName, type };
                                     publicFields.emplace(name, std::move(pf));
                                 }
                                 auto dataNode = field["Data"];
@@ -756,7 +742,7 @@ namespace NR
                     if (meshComponent["AssetPath"])
                     {
                         std::string filepath = meshComponent["AssetPath"].as<std::string>();
-                        assetID = AssetManager::GetAssetIDForFile(filepath);
+                        assetID = AssetManager::GetAssetHandleFromFilePath(filepath);
                     }
                     else
                     {
@@ -828,7 +814,7 @@ namespace NR
                     if (skyLightComponent["EnvironmentAssetPath"])
                     {
                         std::string filepath = skyLightComponent["EnvironmentAssetPath"].as<std::string>();
-                        assetHandle = AssetManager::GetAssetIDForFile(filepath);
+                        assetHandle = AssetManager::GetAssetHandleFromFilePath(filepath);
                     }
                     else
                     {
@@ -961,7 +947,7 @@ namespace NR
                         if (meshComponent["AssetPath"])
                         {
                             std::string filepath = meshComponent["AssetPath"].as<std::string>();
-                            assetID = AssetManager::GetAssetIDForFile(filepath);
+                            assetID = AssetManager::GetAssetHandleFromFilePath(filepath);
                         }
                         else
                         {

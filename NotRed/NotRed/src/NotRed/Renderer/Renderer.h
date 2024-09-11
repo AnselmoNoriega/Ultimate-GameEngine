@@ -34,7 +34,6 @@ namespace NR
 			auto renderCmd = [](void* ptr) {
 				auto pFunc = (FuncT*)ptr;
 				(*pFunc)();
-				pFunc->~FuncT();
 				};
 			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
 			new (storageBuffer) FuncT(std::forward<FuncT>(func));

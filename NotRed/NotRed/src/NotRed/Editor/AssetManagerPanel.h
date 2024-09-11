@@ -80,7 +80,7 @@ namespace NR
 		void UpdateCurrentDirectory(AssetHandle directoryHandle);
 
 	private:
-		Ref<Texture2D> mFolderTex;
+		Ref<Texture2D> mFileTex;
 		Ref<Texture2D> mBackbtnTex;
 		Ref<Texture2D> mFwrdbtnTex;
 		Ref<Texture2D> mFolderRightTex;
@@ -91,7 +91,7 @@ namespace NR
 		bool mIsDragging = false;
 		bool mUpdateBreadCrumbs = true;
 		bool mIsAnyItemHovered = false;
-		bool mSkipRenderingThisFrame = false;
+		bool mUpdateDirectoryNextFrame = false;
 
 		char mInputBuffer[MAX_INPUT_BUFFER_LENGTH];
 
@@ -109,7 +109,7 @@ namespace NR
 		SelectionStack<AssetHandle> mSelectedAssets;
 		bool mRenamingSelected = false;
 
-		std::map<size_t, Ref<Texture2D>> mAssetIconMap;
+		std::map<std::string, Ref<Texture2D>> mAssetIconMap;
 	};
 
 }

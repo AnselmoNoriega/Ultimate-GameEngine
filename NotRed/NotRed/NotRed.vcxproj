@@ -149,7 +149,7 @@
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
-    <ClInclude Include="src\NotRed\Asset\Assets.h" />
+    <ClInclude Include="src\NotRed\Asset\Asset.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />

@@ -19,10 +19,10 @@ namespace NR
 		Ref<PhysicsMaterial> mAsset;
 	};
 
-	class TextureEditor : public AssetEditor
+	class TextureViewer : public AssetEditor
 	{
 	public:
-		TextureEditor();
+		TextureViewer();
 
 		void SetAsset(const Ref<Asset>& asset) override { mAsset = (Ref<Texture>)asset; }
 
