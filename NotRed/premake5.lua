@@ -29,11 +29,7 @@ IncludeDir["Glm"] = "NotRed/vendor/glm"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 IncludeDir["Mono"] = "NotRed/vendor/mono/include"
 IncludeDir["PhysX"] = "NotRed/vendor/PhysX/include"
-------------------------------------
-IncludeDir["shaderc"] = "NotRed/vendor/shaderc/include"
-IncludeDir["SPIRV_Cross"] = "NotRed/vendor/SPIRV-Cross"
-IncludeDir["Vulkan"] = "NotRed/vendor/Vulkan/1.2.170.0/Include"
-IncludeDir["VulkanSDK"] = "NotRed/vendor/VulkanSDK/Include"
+IncludeDir["Vulkan"] = "NotRed/vendor/Vulkan/Include"
 
 LibraryDir = {}
 LibraryDir["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
@@ -44,10 +40,18 @@ LibraryDir["PhysXCooking"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCooking_64.l
 LibraryDir["PhysXExtensions"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXExtensions_static_64.lib"
 LibraryDir["PhysXFoundation"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXFoundation_64.lib"
 LibraryDir["PhysXPvd"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXPvdSDK_static_64.lib"
-------------------------
-LibraryDir["VulkanSDK"] = "vendor/VulkanSDK/Lib"
-LibraryDir["Vulkan"] = "vendor/Vulkan/1.2.170.0/Lib/vulkan-1.lib"
-LibraryDir["VulkanUtils"] = "vendor/Vulkan/1.2.170.0/Lib/VkLayer_utils.lib"
+
+----------Vulkan--------------
+LibraryDir["Vulkan"] = "vendor/Vulkan/lib/vulkan-1.lib"
+
+LibraryDir["ShaderC_Debug"] = "vendor/Vulkan/lib/shaderc_sharedd.lib"
+LibraryDir["SPIRV_Cross_Debug"] = "vendor/Vulkan/lib/spirv-cross-cored.lib"
+LibraryDir["SPIRV_Cross_GLSL_Debug"] = "vendor/Vulkan/lib/spirv-cross-glsld.lib"
+LibraryDir["SPIRV_Tools_Debug"] = "vendor/Vulkan/lib/SPIRV-Toolsd.lib"
+
+LibraryDir["ShaderC_Release"] = "vendor/Vulkan/lib/shaderc_shared.lib"
+LibraryDir["SPIRV_Cross_Release"] = "vendor/Vulkan/lib/spirv-cross-core.lib"
+LibraryDir["SPIRV_Cross_GLSL_Release"] = "vendor/Vulkan/lib/spirv-cross-glsl.lib"
 
 group "Dependencies"
 include "NotRed/vendor/GLFW"
@@ -97,10 +101,7 @@ project "NotRed"
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
-
 		"%{IncludeDir.Vulkan}",
-		"%{IncludeDir.VulkanSDK}",
-
 		"%{prj.name}/vendor/assimp/include",
 		"%{prj.name}/vendor/stb_image",
 		"%{prj.name}/vendor/yaml-cpp/include"
@@ -113,14 +114,7 @@ project "NotRed"
 		"Glad",
 		"ImGui",
 		"opengl32.lib",
-
 		"%{LibraryDir.Vulkan}",
-		"%{LibraryDir.VulkanUtils}",
-
-		"%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib",
-		"%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib",
-		"%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib",
-
 		"%{LibraryDir.Mono}",
 		"%{LibraryDir.PhysX}",
 		"%{LibraryDir.PhysXCharacterKinematic}",
@@ -151,14 +145,35 @@ project "NotRed"
 	filter "configurations:Debug"
 		defines "NR_DEBUG"
 		symbols "on"
+
+		links
+		{
+			"%{Library.ShaderC_Debug}",
+			"%{Library.SPIRV_Cross_Debug}",
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
+		}
 				
 	filter "configurations:Release"
 		defines "NR_RELEASE"
 		optimize "on"
+		
+		links
+		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
+		}
 
 	filter "configurations:Dist"
 		defines "NR_DIST"
 		optimize "on"
+		
+		links
+		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
+		}
 
 project "NotRed-ScriptCore"
 	location "NotRed-ScriptCore"

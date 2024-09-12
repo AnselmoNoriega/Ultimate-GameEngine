@@ -33,6 +33,7 @@ project "NotRed"
 	{
 		"src",
 		"vendor/spdlog/include",
+		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.FileWatch}",
@@ -45,8 +46,8 @@ project "NotRed"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.Stb}",
-		"%{IncludeDir.Yaml}"
-		--"%{IncludeDir.VulkanSDK}"
+		"%{IncludeDir.Yaml}",
+		"%{IncludeDir.VulkanSDK}"
 	}
 
 	links
@@ -59,7 +60,9 @@ project "NotRed"
 		"yaml-cpp",
 		"opengl32.lib",
 
+		"%{Library.Assimp}",
 		"%{Library.Mono}",
+		"%{Library.Vulkan}"
 	}
 
 	filter "files:vendor/ImGuizmo/**.cpp"
@@ -85,33 +88,33 @@ project "NotRed"
 		runtime "Debug"
 		symbols "on"
 
-		--links
-		--{
-		--	"%{Library.ShaderC_Debug}",
-		--	"%{Library.SPIRV_Cross_Debug}",
-		--	"%{Library.SPIRV_Cross_GLSL_Debug}"
-		--}
+		links
+		{
+			"%{Library.ShaderC_Debug}",
+			"%{Library.SPIRV_Cross_Debug}",
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
+		}
 
 	filter "configurations:Release"
 		defines "NR_RELEASE"
 		runtime "Release"
 		optimize "on"
 		
-		--links
-		--{
-		--	"%{Library.ShaderC_Release}",
-		--	"%{Library.SPIRV_Cross_Release}",
-		--	"%{Library.SPIRV_Cross_GLSL_Release}"
-		--}
+		links
+		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
+		}
 
 	filter "configurations:Dist"
 		defines "NR_DIST"
 		runtime "Release"
 		optimize "on"
 		
-		--links
-		--{
-		--	"%{Library.ShaderC_Release}",
-		--	"%{Library.SPIRV_Cross_Release}",
-		--	"%{Library.SPIRV_Cross_GLSL_Release}"
-		--}
+		links
+		{
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
+		}
