@@ -77,11 +77,11 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -91,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;vendor\Vulkan\lib\shaderc_sharedd.lib;vendor\Vulkan\lib\spirv-cross-cored.lib;vendor\Vulkan\lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,14 +99,14 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -117,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -126,13 +126,13 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\assimp\include;vendor\stb_image;vendor\yaml-cpp\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>true</StringPooling>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -143,13 +143,13 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
-    <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
     <ClInclude Include="src\NotRed\Asset\Asset.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetManager.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
@@ -170,10 +170,11 @@
     <ClInclude Include="src\NotRed\Core\Timer.h" />
     <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
+    <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
     <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
@@ -225,7 +226,6 @@
     <ClInclude Include="src\NotRed\Script\ScriptEngine.h" />
     <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h" />
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
-    <ClInclude Include="src\NotRed\Asset\AssetManager.h" />
     <ClInclude Include="src\NotRed\Util\FileSystem.h" />
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />
     <ClInclude Include="src\nrpch.h" />
@@ -290,7 +290,7 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
+    <ClCompile Include="src\NotRed\Asset\AssetManager.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
@@ -300,10 +300,11 @@
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
+    <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
-    <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
     <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
@@ -352,7 +353,6 @@
     <ClCompile Include="src\NotRed\Script\ScriptEngine.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptEngineRegistry.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
-    <ClCompile Include="src\NotRed\Asset\AssetManager.cpp" />
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp" />
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

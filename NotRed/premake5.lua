@@ -148,20 +148,24 @@ project "NotRed"
 
 		links
 		{
-			"%{Library.ShaderC_Debug}",
-			"%{Library.SPIRV_Cross_Debug}",
-			"%{Library.SPIRV_Cross_GLSL_Debug}"
+			"%{LibraryDir.ShaderC_Debug}",
+			"%{LibraryDir.SPIRV_Cross_Debug}",
+			"%{LibraryDir.SPIRV_Cross_GLSL_Debug}"
 		}
 				
 	filter "configurations:Release"
-		defines "NR_RELEASE"
+		defines
+		{
+			"NR_RELEASE",
+			"NDEBUG"
+		}
 		optimize "on"
 		
 		links
 		{
-			"%{Library.ShaderC_Release}",
-			"%{Library.SPIRV_Cross_Release}",
-			"%{Library.SPIRV_Cross_GLSL_Release}"
+			"%{LibraryDir.ShaderC_Release}",
+			"%{LibraryDir.SPIRV_Cross_Release}",
+			"%{LibraryDir.SPIRV_Cross_GLSL_Release}"
 		}
 
 	filter "configurations:Dist"
@@ -170,9 +174,9 @@ project "NotRed"
 		
 		links
 		{
-			"%{Library.ShaderC_Release}",
-			"%{Library.SPIRV_Cross_Release}",
-			"%{Library.SPIRV_Cross_GLSL_Release}"
+			"%{LibraryDir.ShaderC_Release}",
+			"%{LibraryDir.SPIRV_Cross_Release}",
+			"%{LibraryDir.SPIRV_Cross_GLSL_Release}"
 		}
 
 project "NotRed-ScriptCore"
@@ -285,7 +289,8 @@ project "NotEditor"
 		{
 			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
-		}group ""
+		}
+group ""
 
 workspace "Sandbox"
 	architecture "x64"
