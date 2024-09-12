@@ -29,6 +29,11 @@ IncludeDir["Glm"] = "NotRed/vendor/glm"
 IncludeDir["ImGui"] = "NotRed/vendor/imgui"
 IncludeDir["Mono"] = "NotRed/vendor/mono/include"
 IncludeDir["PhysX"] = "NotRed/vendor/PhysX/include"
+------------------------------------
+IncludeDir["shaderc"] = "NotRed/vendor/shaderc/include"
+IncludeDir["SPIRV_Cross"] = "NotRed/vendor/SPIRV-Cross"
+IncludeDir["Vulkan"] = "NotRed/vendor/Vulkan/1.2.170.0/Include"
+IncludeDir["VulkanSDK"] = "NotRed/vendor/VulkanSDK/Include"
 
 LibraryDir = {}
 LibraryDir["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
@@ -39,6 +44,10 @@ LibraryDir["PhysXCooking"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCooking_64.l
 LibraryDir["PhysXExtensions"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXExtensions_static_64.lib"
 LibraryDir["PhysXFoundation"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXFoundation_64.lib"
 LibraryDir["PhysXPvd"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXPvdSDK_static_64.lib"
+------------------------
+LibraryDir["VulkanSDK"] = "vendor/VulkanSDK/Lib"
+LibraryDir["Vulkan"] = "vendor/Vulkan/1.2.170.0/Lib/vulkan-1.lib"
+LibraryDir["VulkanUtils"] = "vendor/Vulkan/1.2.170.0/Lib/VkLayer_utils.lib"
 
 group "Dependencies"
 include "NotRed/vendor/GLFW"
@@ -53,7 +62,7 @@ project "NotRed"
 	kind "StaticLib"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "on"
+	staticruntime "off"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -88,6 +97,10 @@ project "NotRed"
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
+
+		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.VulkanSDK}",
+
 		"%{prj.name}/vendor/assimp/include",
 		"%{prj.name}/vendor/stb_image",
 		"%{prj.name}/vendor/yaml-cpp/include"
@@ -100,6 +113,14 @@ project "NotRed"
 		"Glad",
 		"ImGui",
 		"opengl32.lib",
+
+		"%{LibraryDir.Vulkan}",
+		"%{LibraryDir.VulkanUtils}",
+
+		"%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib",
+		"%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib",
+		"%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib",
+
 		"%{LibraryDir.Mono}",
 		"%{LibraryDir.PhysX}",
 		"%{LibraryDir.PhysXCharacterKinematic}",
@@ -159,7 +180,7 @@ project "NotEditor"
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "on"
+	staticruntime "off"
 	
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -183,7 +204,10 @@ project "NotEditor"
 		"NotRed/src",
 		"NotRed/vendor",
 		"%{IncludeDir.Entt}",
-		"%{IncludeDir.Glm}"
+		"%{IncludeDir.Glm}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.Glad}"
 	}
 
 	postbuildcommands 
@@ -246,10 +270,8 @@ project "NotEditor"
 		{
 			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
-		}
-group ""
+		}group ""
 
-group "External"
 workspace "Sandbox"
 	architecture "x64"
 	targetdir "build"
@@ -259,6 +281,19 @@ workspace "Sandbox"
 		"Debug", 
 		"Release",
 		"Dist"
+	}
+
+project "NotRed-ScriptCore"
+	location "NotRed-ScriptCore"
+	kind "SharedLib"
+	language "C#"
+
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+	files 
+	{
+		"%{prj.name}/src/**.cs", 
 	}
 
 project "ExampleApp"
