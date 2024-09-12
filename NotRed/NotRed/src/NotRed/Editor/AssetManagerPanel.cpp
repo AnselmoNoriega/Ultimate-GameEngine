@@ -26,9 +26,9 @@ namespace NR
         mAssetIconMap["blend"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/blend.png");
         mAssetIconMap["nrc"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/notred.png");
 
-        mBackbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/btn_back.png");
-        mFwrdbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/btn_fwrd.png");
-        mFolderRightTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/folder_hierarchy.png");
+        mBackbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/back.png");
+        mFwrdbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/fwrd.png");
+        mFolderRightTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/folderHierarchy.png");
         mSearchTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/search.png");
 
         mBaseDirectoryHandle = AssetManager::GetAssetHandleFromFilePath("Assets");
@@ -99,8 +99,6 @@ namespace NR
                 }
 
                 mIsAnyItemHovered = false;
-
-                ImGui::PopStyleColor(2);
 
                 if (ImGui::BeginPopupContextWindow(0, 1))
                 {
@@ -419,13 +417,14 @@ namespace NR
         ImGui::SameLine();
 
         {
+            ImGui::PushItemWidth(200);
             char* buf = mInputBuffer;
             if (mRenamingSelected)
             {
                 buf = (char*)"\0";
             }
 
-            if (ImGui::InputTextWithHint("", "Search...", buf, MAX_INPUT_BUFFER_LENGTH))
+            if (ImGui::InputTextWithHint("##", "Search...", buf, MAX_INPUT_BUFFER_LENGTH))
             {
                 if (strlen(mInputBuffer) == 0)
                 {

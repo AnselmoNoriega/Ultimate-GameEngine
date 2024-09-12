@@ -43,7 +43,7 @@ namespace NR
 	class Scene : public RefCounted
 	{
 	public:
-		Scene(const std::string& debugName = "Scene", bool isEditorScene = true);
+		Scene(const std::string& debugName = "Scene", bool isEditorScene = false);
 		~Scene();
 
 		void Init();

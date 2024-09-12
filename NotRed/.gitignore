@@ -4,6 +4,8 @@
 !NotRed/vendor/mono/bin
 bin-int/
 Intermediates/
+obj/
+cache/
 
 # NotRed files
 *.log
@@ -14,6 +16,7 @@ Intermediates/
 **.vcxproj.filters
 **.vcxproj.user
 **.csproj
+**.nsight-gfxproj
 
 **.meta
 

@@ -345,7 +345,7 @@ namespace NR
 
     void EditorLayer::NewScene()
     {
-        mEditorScene = Ref<Scene>::Create();
+        mEditorScene = Ref<Scene>::Create("Scene", true);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
         UpdateWindowTitle("Scene");
