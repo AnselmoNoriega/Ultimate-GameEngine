@@ -6,7 +6,7 @@ namespace NR
 {
 	struct Buffer
 	{
-		byte* Data;
+		void* Data;
 		uint32_t Size;
 
 		Buffer()
@@ -14,12 +14,12 @@ namespace NR
 		{
 		}
 
-		Buffer(byte* data, uint32_t size)
+		Buffer(void* data, uint32_t size)
 			: Data(data), Size(size)
 		{
 		}
 
-		static Buffer Copy(void* data, uint32_t size)
+		static Buffer Copy(const void* data, uint32_t size)
 		{
 			Buffer buffer;
 			buffer.Allocate(size);
@@ -41,6 +41,13 @@ namespace NR
 			Size = size;
 		}
 
+		void Release()
+		{
+			delete[] Data;
+			Data = nullptr;
+			Size = 0;
+		}
+
 		void ZeroInitialize()
 		{
 			if (Data)
@@ -52,13 +59,21 @@ namespace NR
 		template<typename T>
 		T& Read(uint32_t offset = 0)
 		{
-			return *(T*)(Data + offset);
+			return *(T*)((byte*)Data + offset);
+		}
+
+		byte* ReadBytes(uint32_t size, uint32_t offset)
+		{
+			NR_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
+			byte* buffer = new byte[size];
+			memcpy(buffer, (byte*)Data + offset, size);
+			return buffer;
 		}
 
 		void Write(void* data, uint32_t size, uint32_t offset = 0)
 		{
 			NR_CORE_ASSERT(offset + size <= Size, "Buffer overflow!");
-			memcpy(Data + offset, data, size);
+			memcpy((byte*)Data + offset, data, size);
 		}
 
 		operator bool() const
@@ -68,12 +83,12 @@ namespace NR
 
 		byte& operator[](int index)
 		{
-			return Data[index];
+			return ((byte*)Data)[index];
 		}
 
 		byte operator[](int index) const
 		{
-			return Data[index];
+			return ((byte*)Data)[index];
 		}
 
 		template<typename T>

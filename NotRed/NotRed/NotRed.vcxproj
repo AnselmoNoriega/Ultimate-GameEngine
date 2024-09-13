@@ -149,6 +149,7 @@
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Asset\Asset.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetImporter.h" />
     <ClInclude Include="src\NotRed\Asset\AssetManager.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
@@ -290,6 +291,7 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />

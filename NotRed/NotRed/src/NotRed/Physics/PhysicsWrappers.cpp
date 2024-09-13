@@ -22,7 +22,7 @@ namespace NR
     static physx::PxPhysics* sPhysics;
     static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
 
-    static ContactListener sContactListener;
+    static ContactListener3D sContactListener3D;
 
     void PhysicsErrorCallback::reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line)
     {
@@ -74,13 +74,13 @@ namespace NR
         }
     }
 
-    void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
+    void ContactListener3D::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
     {
         PX_UNUSED(constraints);
         PX_UNUSED(count);
     }
 
-    void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)
+    void ContactListener3D::onWake(physx::PxActor** actors, physx::PxU32 count)
     {
         for (uint32_t i = 0; i < count; ++i)
         {
@@ -91,7 +91,7 @@ namespace NR
         }
     }
 
-    void ContactListener::onSleep(physx::PxActor** actors, physx::PxU32 count)
+    void ContactListener3D::onSleep(physx::PxActor** actors, physx::PxU32 count)
     {
         for (uint32_t i = 0; i < count; ++i)
         {
@@ -102,7 +102,7 @@ namespace NR
         }
     }
 
-    void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
+    void ContactListener3D::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
     {
         Entity& a = *(Entity*)pairHeader.actors[0]->userData;
         Entity& b = *(Entity*)pairHeader.actors[1]->userData;
@@ -119,7 +119,7 @@ namespace NR
         }
     }
 
-    void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
+    void ContactListener3D::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
     {
         Entity& a = *(Entity*)pairs->triggerActor->userData;
         Entity& b = *(Entity*)pairs->otherActor->userData;
@@ -136,7 +136,7 @@ namespace NR
         }
     }
 
-    void ContactListener::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
+    void ContactListener3D::onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count)
     {
         PX_UNUSED(bodyBuffer);
         PX_UNUSED(poseBuffer);
@@ -177,7 +177,7 @@ namespace NR
         sceneDesc.broadPhaseType = ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
         sceneDesc.cpuDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
         sceneDesc.filterShader = FilterShader;
-        sceneDesc.simulationEventCallback = &sContactListener;
+        sceneDesc.simulationEventCallback = &sContactListener3D;
         sceneDesc.frictionType = ToPhysXFrictionType(settings.FrictionModel);
 
         NR_CORE_ASSERT(sceneDesc.isValid());
@@ -312,7 +312,7 @@ namespace NR
         }
     }
 
-    std::vector<physx::PxShape*> PhysicsWrappers::CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& size, bool invalidateOld)
+    std::vector<physx::PxShape*> PhysicsWrappers::CreateConvexMesh(MeshColliderComponent& collider, const glm::vec3& scale, bool invalidateOld)
     {
         std::vector<physx::PxShape*> shapes;
 
@@ -356,7 +356,7 @@ namespace NR
                 PhysicsMeshSerializer::SerializeMesh(collider.CollisionMesh->GetFilePath(), buf, submesh.MeshName);
                 physx::PxDefaultMemoryInputData input(buf.getData(), buf.getSize());
                 physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(input);
-                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(ToPhysicsVector(size)));
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(ToPhysicsVector(scale)));
                 convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
                 physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0); 
                 physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);
@@ -370,7 +370,7 @@ namespace NR
             {
                 physx::PxDefaultMemoryInputData meshData = PhysicsMeshSerializer::DeserializeMesh(collider.CollisionMesh->GetFilePath(), submesh.MeshName);
                 physx::PxConvexMesh* convexMesh = sPhysics->createConvexMesh(meshData);
-                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(ToPhysicsVector(size)));
+                physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(ToPhysicsVector(scale)));
                 convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
                 physx::PxMaterial* material = sPhysics->createMaterial(0, 0, 0);
                 physx::PxShape* shape = sPhysics->createShape(convexGeometry, *material, true);

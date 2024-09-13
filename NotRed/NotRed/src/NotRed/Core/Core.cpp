@@ -18,6 +18,7 @@ namespace NR
 	void ShutdownCore()
 	{
 		NR_CORE_TRACE("Shutting down...");
-	}
 
+		Log::Shutdown();
+	}
 }

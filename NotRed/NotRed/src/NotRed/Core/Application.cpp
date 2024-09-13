@@ -14,6 +14,10 @@
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Asset/AssetManager.h"
 
+#include "NotRed/Platform/Vulkan/VkRenderer.h"
+
+extern bool gApplicationRunning;
+
 namespace NR
 {
 #define BIND_EVENT_FN(fn) std::bind(&Application::##fn, this, std::placeholders::_1)
@@ -27,7 +31,12 @@ namespace NR
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
-        mWindow->SetVSync(true);
+        mWindow->SetVSync(false);
+        
+        Renderer::Init();
+        Renderer::WaitAndRender();
+
+        mImGuiLayer = ImGuiLayer::Create();
 
         mImGuiLayer = new ImGuiLayer("ImGui");
         PushOverlay(mImGuiLayer);
@@ -35,10 +44,6 @@ namespace NR
         ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
         PhysicsManager::Init();
 
-        Renderer::Init();
-        Renderer::WaitAndRender();
-
-        AssetTypes::Init();
         AssetManager::Init();
     }
 
@@ -47,12 +52,18 @@ namespace NR
         for (Layer* layer : mLayerStack)
         {
             layer->Detach();
+            delete layer;
         }
+
+        FrameBufferPool::GetGlobal()->GetAll().clear();
 
         PhysicsManager::Shutdown();
         ScriptEngine::Shutdown();
 
         AssetManager::Shutdown();
+
+        Renderer::WaitAndRender();
+        Renderer::Shutdown();
     }
 
     void Application::RenderImGui()
@@ -60,7 +71,7 @@ namespace NR
         mImGuiLayer->Begin();
 
         ImGui::Begin("Renderer");
-        auto& caps = RendererAPI::GetCapabilities();
+        auto& caps = Renderer::GetCapabilities();
         ImGui::Text("Vendor: %s", caps.Vendor.c_str());
         ImGui::Text("Renderer: %s", caps.Renderer.c_str());
         ImGui::Text("Version: %s", caps.Version.c_str());
@@ -71,8 +82,6 @@ namespace NR
         {
             layer->ImGuiRender();
         }
-
-        mImGuiLayer->End();
     }
 
     void Application::PushLayer(Layer* layer)
@@ -93,26 +102,39 @@ namespace NR
 
         while (mRunning)
         {
+            static uint64_t frameCounter = 0;
+            mWindow->ProcessEvents();
+
             if (!mMinimized)
             {
+                Renderer::BeginFrame();
+
                 for (Layer* layer : mLayerStack)
                 {
                     layer->Update((float)mTimeFrame);
                 }
                 Application* app = this;
-                Renderer::Submit([app]() { app->RenderImGui(); });
+                Renderer::Submit([app]() { app->RenderImGui(); });				Renderer::Submit([=]() {m_ImGuiLayer->End(); });
+                Renderer::EndFrame();
 
+                mWindow->GetRenderContext()->BeginFrame();
                 Renderer::WaitAndRender();
+                mWindow->SwapBuffers();
             }
-
-            mWindow->Update();
 
             float time = GetTime();
             mTimeFrame = time - mLastFrameTime;
             mLastFrameTime = time;
+
+            ++frameCounter;
         }
 
         Shutdown();
+    }
+
+    void Application::Close()
+    {
+        mRunning = false;
     }
 
     void Application::OnEvent(Event& event)
@@ -141,7 +163,8 @@ namespace NR
         }
         mMinimized = false;
 
-        Renderer::Submit([=]() { glViewport(0, 0, width, height); });
+        mWindow->GetRenderContext()->Resize(width, height);
+
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)
         {
@@ -157,6 +180,7 @@ namespace NR
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
         mRunning = false;
+        gApplicationRunning = false;
         return true;
     }
 

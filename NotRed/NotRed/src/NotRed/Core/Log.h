@@ -13,6 +13,7 @@ namespace NR
 	{
 	public:
 		static void Init();
+		static void Shutdown();
 
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return sCoreLogger; }
 		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return sClientLogger; }

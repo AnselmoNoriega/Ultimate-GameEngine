@@ -4,25 +4,41 @@
 
 namespace NR
 {
-	class AssetSerializer
-	{
-	public:
-		template<typename T>
-		static void SerializeAsset(const Ref<T>& asset)
-		{
-			static_assert(std::is_base_of<Asset, T>::value, "SerializeAsset only accepts types that inherit from Asset");
-			SerializeAsset(asset, asset->Type);
-		}
+    class AssetSerializer
+    {
+    public:
+        virtual void Serialize(const Ref<Asset>& asset) const = 0;
+        virtual bool TryLoadData(Ref<Asset>& asset) const = 0;
 
-		static Ref<Asset> LoadAssetInfo(const std::string& filepath, AssetHandle parentHandle, AssetType type);
-		static Ref<Asset> LoadAssetData(Ref<Asset>& asset);
+    protected:
+        void CopyMetadata(const Ref<Asset>& from, Ref<Asset>& to) const;
+    };
 
-	private:
-		static void SerializeAsset(const Ref<Asset>& asset, AssetType type);
-		static Ref<Asset> DeserializeYAML(const Ref<Asset>& asset);
-		static void LoadMetaData(Ref<Asset>& asset);
-		static void CreateMetaFile(const Ref<Asset>& asset);
+    class TextureSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const Ref<Asset>& asset) const override {}
+        bool TryLoadData(Ref<Asset>& asset) const override;
+    };
 
-		friend class AssetManager;
-	};
+    class MeshSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const Ref<Asset>& asset) const override {}
+        bool TryLoadData(Ref<Asset>& asset) const override;
+    };
+
+    class EnvironmentSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const Ref<Asset>& asset) const override {}
+        bool TryLoadData(Ref<Asset>& asset) const override;
+    };
+
+    class PhysicsMaterialSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const Ref<Asset>& asset) const override;
+        bool TryLoadData(Ref<Asset>& asset) const override;
+    };
 }

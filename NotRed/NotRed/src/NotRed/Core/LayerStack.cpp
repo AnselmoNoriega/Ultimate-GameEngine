@@ -10,10 +10,6 @@ namespace NR
 
 	LayerStack::~LayerStack()
 	{
-		for (Layer* layer : mLayers)
-		{
-			delete layer;
-		}
 	}
 
 	void LayerStack::PushLayer(Layer* layer)

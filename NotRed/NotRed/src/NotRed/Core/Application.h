@@ -24,6 +24,7 @@ namespace NR
         virtual ~Application();
 
         void Run();
+        void Close();
 
         virtual void Init() {}
         virtual void Update(float dt) {}
@@ -65,5 +66,5 @@ namespace NR
         float mLastFrameTime = 0.0f;
     };
 
-    Application* CreateApplication();
+    Application* CreateApplication(int argc, char** argv);
 }

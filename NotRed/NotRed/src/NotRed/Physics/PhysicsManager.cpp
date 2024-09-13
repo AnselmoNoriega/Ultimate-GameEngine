@@ -35,7 +35,7 @@ namespace NR
 
 		if (sSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
 		{
-			physx::PxBounds3* regionBounds;
+			physx::PxBounds3* regionBounds = new physx::PxBounds3[(size_t)sSettings.WorldBoundsSubdivisions * sSettings.WorldBoundsSubdivisions];
 			physx::PxBounds3 globalBounds(ToPhysicsVector(sSettings.WorldBoundsMin), ToPhysicsVector(sSettings.WorldBoundsMax));
 			uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, sSettings.WorldBoundsSubdivisions);
 

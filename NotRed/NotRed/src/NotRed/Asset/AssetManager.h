@@ -3,106 +3,107 @@
 #include <map>
 #include <unordered_map>
 
-#include "AssetSerializer.h"
+#include "AssetImporter.h"
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Util/StringUtils.h"
 
 namespace NR
 {
-	class AssetTypes
-	{
-	public:
-		static void Init();
-		static AssetType GetAssetTypeFromExtension(const std::string& extension);
+    class AssetManager
+    {
+    public:
+        using AssetsChangeEventFn = std::function<void()>;
 
-	private:
-		static std::map<std::string, AssetType> sTypes;
-	};
+        struct AssetMetadata
+        {
+            AssetHandle Handle;
+            std::string FilePath;
+            AssetType Type;
+        };
 
-	class AssetManager
-	{
-	public:
-		using AssetsChangeEventFn = std::function<void()>;
+    public:
+        static void Init();
+        static void Shutdown();
 
-	public:
-		static void Init();
-		static void Shutdown();
+        static void SetAssetChangeCallback(const AssetsChangeEventFn& callback);
+        static std::vector<Ref<Asset>> GetAssetsInDirectory(AssetHandle directoryHandle);
 
-		static void SetAssetChangeCallback(const AssetsChangeEventFn& callback);
-		static std::vector<Ref<Asset>> GetAssetsInDirectory(AssetHandle directoryHandle);
+        static std::vector<Ref<Asset>> SearchAssets(const std::string& query, const std::string& searchPath, AssetType desiredTypes = AssetType::None);
 
-		static std::vector<Ref<Asset>> SearchFiles(const std::string& query, const std::string& searchPath);
-		static std::string GetParentPath(const std::string& path);
+        static bool IsDirectory(const std::string& filepath);
 
-		static bool IsDirectory(const std::string& filepath);
+        static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
+        static bool IsAssetHandleValid(AssetHandle assetHandle);
 
-		static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
-		static bool IsAssetHandleValid(AssetHandle assetHandle);
+        static void Rename(AssetHandle assetHandle, const std::string& newName);
+        static void RemoveAsset(AssetHandle assetHandle);
 
-		static void Rename(Ref<Asset>& asset, const std::string& newName);
-		static void RemoveAsset(AssetHandle assetHandle);
+        static AssetType GetAssetTypeForFileType(const std::string& extension);
 
-		template<typename T, typename... Args>
-		static Ref<T> CreateAsset(const std::string& filename, AssetType type, AssetHandle directoryHandle, Args&&... args)
-		{
-			static_assert(std::is_base_of<Asset, T>::value, "CreateAsset only works for types derived from Asset");
+        template<typename T, typename... Args>
+        static Ref<T> CreateNewAsset(const std::string& filename, AssetType type, AssetHandle directoryHandle, Args&&... args)
+        {
+            static_assert(std::is_base_of<Asset, T>::value, "CreateNewAsset only works for types derived from Asset");
 
-			const auto& directory = GetAsset<Directory>(directoryHandle);
+            const auto& directory = GetAsset<Directory>(directoryHandle);
 
-			Ref<T> asset = Ref<T>::Create(std::forward<Args>(args)...);
-			asset->Type = type;
-			asset->FilePath = directory->FilePath + "/" + filename;
-			asset->FileName = Utils::RemoveExtension(Utils::GetFilename(asset->FilePath));
-			asset->Extension = Utils::GetFilename(filename);
-			asset->ParentDirectory = directoryHandle;
-			asset->Handle = std::hash<std::string>()(asset->FilePath);
-			asset->IsDataLoaded = true;
-			sLoadedAssets[asset->Handle] = asset;
+            Ref<T> asset = Ref<T>::Create(std::forward<Args>(args)...);
+            asset->Type = type;
+            asset->FilePath = directory->FilePath + "/" + filename;
+            asset->FileName = Utils::RemoveExtension(Utils::GetFilename(asset->FilePath));
+            asset->Extension = Utils::GetFilename(filename);
+            asset->ParentDirectory = directoryHandle;
+            asset->Handle = AssetHandle();
+            asset->IsDataLoaded = true;
+            sLoadedAssets[asset->Handle] = asset;
+            AssetImporter::Serialize(asset);
 
-			AssetSerializer::SerializeAsset(asset);
+            AssetMetadata metadata;
+            metadata.Handle = asset->Handle;
+            metadata.FilePath = asset->FilePath;
+            metadata.Type = asset->Type;
+            sAssetRegistry[asset->FilePath] = metadata;
+            UpdateRegistryCache();
 
-			return asset;
-		}
+            return asset;
+        }
 
-		template<typename T>
-		static Ref<T> GetAsset(AssetHandle assetHandle, bool loadData = true)
-		{
-			NR_CORE_ASSERT(sLoadedAssets.find(assetHandle) != sLoadedAssets.end());
-			Ref<Asset> asset = sLoadedAssets[assetHandle];
+        template<typename T>
+        static Ref<T> GetAsset(AssetHandle assetHandle, bool loadData = true)
+        {
+            NR_CORE_ASSERT(sLoadedAssets.find(assetHandle) != sLoadedAssets.end());
+            Ref<Asset>& asset = sLoadedAssets[assetHandle];
 
-			if (!asset->IsDataLoaded && loadData)
-			{
-				asset = AssetSerializer::LoadAssetData(asset);
-			}
+            if (!asset->IsDataLoaded && loadData)
+            {
+                AssetImporter::TryLoadData(asset);
+            }
 
-			return asset.As<T>();
-		}
+            return asset.As<T>();
+        }
 
-		template<typename T>
-		static Ref<T> GetAsset(const std::string& filepath, bool loadData = true)
-		{
-			return GetAsset<T>(GetAssetHandleFromFilePath(filepath), loadData);
-		}
+        template<typename T>
+        static Ref<T> GetAsset(const std::string& filepath, bool loadData = true)
+        {
+            return GetAsset<T>(GetAssetHandleFromFilePath(filepath), loadData);
+        }
 
-		static bool IsAssetType(AssetHandle assetHandle, AssetType type)
-		{
-			return sLoadedAssets.find(assetHandle) != sLoadedAssets.end() && sLoadedAssets[assetHandle]->Type == type;
-		}
+    private:
+        static void LoadAssetRegistry();
+        static Ref<Asset> CreateAsset(const std::string& filepath, AssetType type, AssetHandle parentHandle);
+        static void ImportAsset(const std::string& filepath, AssetHandle parentHandle);
+        static AssetHandle ProcessDirectory(const std::string& directoryPath, AssetHandle parentHandle);
+        static void ReloadAssets();
+        static void UpdateRegistryCache();
 
-		static std::string StripExtras(const std::string& filename);
+        static void FileSystemChanged(FileSystemChangedEvent e);
 
-	private:
-		static void ImportAsset(const std::string& filepath, AssetHandle parentHandle);
-		static AssetHandle ProcessDirectory(const std::string& directoryPath, AssetHandle parentHandle);
-		static void ReloadAssets();
+        static AssetHandle FindParentHandleInChildren(Ref<Directory>& dir, const std::string& dirName);
+        static AssetHandle FindParentHandle(const std::string& filepath);
 
-		static void FileSystemChanged(FileSystemChangedEvent e);
-
-		static AssetHandle FindParentHandleInChildren(Ref<Directory>& dir, const std::string& dirName);
-		static AssetHandle FindParentHandle(const std::string& filepath);
-
-	private:
-		static std::unordered_map<AssetHandle, Ref<Asset>> sLoadedAssets;
-		static AssetsChangeEventFn sAssetsChangeCallback;
-	};
+    private:
+        static std::unordered_map<AssetHandle, Ref<Asset>> sLoadedAssets;
+        static std::unordered_map<std::string, AssetMetadata> sAssetRegistry;
+        static AssetsChangeEventFn sAssetsChangeCallback;
+    };
 }

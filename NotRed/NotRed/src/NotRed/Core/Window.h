@@ -4,6 +4,7 @@
 
 #include "NotRed/Core/Core.h"
 #include "NotRed/Core/Events/Event.h"
+#include "NotRed/Renderer/RendererContext.h"
 
 namespace NR
 {
@@ -28,7 +29,8 @@ namespace NR
 
 		virtual ~Window() {}
 
-		virtual void Update() = 0;
+		virtual void ProcessEvents() = 0;
+		virtual void SwapBuffers() = 0;
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
@@ -43,6 +45,8 @@ namespace NR
 
 		virtual void* GetNativeWindow() const = 0;
 		virtual std::pair<float, float> GetWindowPos() const = 0;
+
+		virtual Ref<RendererContext> GetRenderContext() = 0;
 
 		virtual void Maximize() = 0;
 

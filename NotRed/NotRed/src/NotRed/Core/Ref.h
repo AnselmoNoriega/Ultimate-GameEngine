@@ -124,7 +124,7 @@ namespace NR
 		}
 
 		template<typename T2>
-		Ref<T2> As()
+		Ref<T2> As() const
 		{
 			return Ref<T2>(*this);
 		}
@@ -133,6 +133,26 @@ namespace NR
 		static Ref<T> Create(Args&&... args)
 		{
 			return Ref<T>(new T(std::forward<Args>(args)...));
+		}
+
+		bool operator==(const Ref<T>& other) const
+		{
+			return mInstance == other.mInstance;
+		}
+
+		bool operator!=(const Ref<T>& other) const
+		{
+			return !(*this == other);
+		}
+
+		bool EqualsObject(const Ref<T>& other)
+		{
+			if (!mInstance || !other.mInstance)
+			{
+				return false;
+			}
+
+			return *mInstance == *other.mInstance;
 		}
 
 	private:
