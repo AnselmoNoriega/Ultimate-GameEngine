@@ -14,7 +14,7 @@ namespace NR
 
 		void Update(float dt);
 		void OnEvent(Event& e);
-
+		
 		void Focus(const glm::vec3& focusPoint);
 
 		inline float GetDistance() const { return mDistance; }

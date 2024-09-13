@@ -10,16 +10,15 @@
 
 namespace NR
 {
-	template<typename T>
 	struct SelectionStack
 	{
 	public:
-		void Select(T item)
+		void Select(AssetHandle item)
 		{
 			mSelections.push_back(item);
 		}
 
-		void Deselect(T item)
+		void Deselect(AssetHandle item)
 		{
 			for (auto it = mSelections.begin(); it != mSelections.end(); it++)
 			{
@@ -31,7 +30,7 @@ namespace NR
 			}
 		}
 
-		bool IsSelected(T item) const
+		bool IsSelected(AssetHandle item) const
 		{
 			for (auto selection : mSelections)
 			{
@@ -52,19 +51,19 @@ namespace NR
 			return mSelections.size();
 		}
 
-		T* GetSelectionData()
+		AssetHandle* GetSelectionData()
 		{
 			return mSelections.data();
 		}
 
 	private:
-		std::vector<T> mSelections;
+		std::vector<AssetHandle> mSelections;
 	};
 
-	class AssetManagerPanel
+	class ContentBrowserPanel
 	{
 	public:
-		AssetManagerPanel();
+		ContentBrowserPanel();
 
 		void ImGuiRender();
 
@@ -72,7 +71,7 @@ namespace NR
 		void DrawDirectoryInfo(AssetHandle directory);
 
 		void RenderAsset(Ref<Asset>& assetHandle);
-		void HandleDragDrop(RendererID icon, Ref<Asset>& asset);
+		void HandleDragDrop(Ref<Image2D> icon, Ref<Asset>& asset);
 		void RenderBreadCrumbs();
 
 		void HandleRenaming(Ref<Asset>& asset);
@@ -83,17 +82,15 @@ namespace NR
 		Ref<Texture2D> mFileTex;
 		Ref<Texture2D> mBackbtnTex;
 		Ref<Texture2D> mFwrdbtnTex;
-		Ref<Texture2D> mFolderRightTex;
-		Ref<Texture2D> mSearchTex;
-
-		std::string mMovePath;
 
 		bool mIsDragging = false;
 		bool mUpdateBreadCrumbs = true;
 		bool mIsAnyItemHovered = false;
-		bool mUpdateDirectoryNextFrame = false;
+		bool mUpdateDirectoryNextFrame = false;		
+		bool mRenamingSelected = false;
 
-		char mInputBuffer[MAX_INPUT_BUFFER_LENGTH];
+		char mRenameBuffer[MAX_INPUT_BUFFER_LENGTH];
+		char mSearchBuffer[MAX_INPUT_BUFFER_LENGTH];
 
 		AssetHandle mCurrentDirHandle;
 		AssetHandle mBaseDirectoryHandle;
@@ -101,13 +98,12 @@ namespace NR
 		AssetHandle mNextDirHandle;
 		Ref<Directory> mCurrentDirectory;
 		Ref<Directory> mBaseDirectory;
-		std::vector<Ref<Asset>> mCurrentDirAssets;
 
+		std::vector<Ref<Asset>> mCurrentDirFiles;
+		std::vector<Ref<Asset>> mCurrentDirFolders;
 		std::vector<Ref<Directory>> mBreadCrumbData;
 
-		AssetHandle mDraggedAssetID = 0;
-		SelectionStack<AssetHandle> mSelectedAssets;
-		bool mRenamingSelected = false;
+		SelectionStack mSelectedAssets;
 
 		std::map<std::string, Ref<Texture2D>> mAssetIconMap;
 	};

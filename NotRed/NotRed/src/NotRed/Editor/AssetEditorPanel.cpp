@@ -18,10 +18,24 @@ namespace NR
 			return;
 		}
 
+		bool wasOpen = mIsOpen;
 		ImGui::SetNextWindowSizeConstraints(mMinSize, mMaxSize);
 		ImGui::Begin(mTitle, &mIsOpen, mFlags);
 		Render();
 		ImGui::End();
+		if (wasOpen && !mIsOpen)
+		{
+			Close();
+		}
+	}
+
+	void AssetEditor::SetOpen(bool isOpen)
+	{
+		mIsOpen = isOpen;
+		if (!mIsOpen)
+		{
+			Close();
+		}
 	}
 
 	void AssetEditor::SetMinSize(uint32_t width, uint32_t height)
@@ -46,6 +60,11 @@ namespace NR
 	{
 		RegisterEditor<TextureViewer>(AssetType::Texture);
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
+	}
+
+	void AssetEditorPanel::UnregisterAllEditors()
+	{
+		sEditors.clear();
 	}
 
 	void AssetEditorPanel::ImGuiRender()

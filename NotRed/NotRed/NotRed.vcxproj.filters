@@ -87,6 +87,9 @@
     <ClInclude Include="src\NotRed\Asset\Asset.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetImporter.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetManager.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
@@ -153,7 +156,7 @@
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\AssetManagerPanel.h">
+    <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h">
@@ -504,9 +507,11 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Asset\AssetImporter.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
@@ -540,7 +545,7 @@
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\AssetManagerPanel.cpp">
+    <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp">
@@ -798,6 +803,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp" />
   </ItemGroup>
 </Project>

@@ -12,11 +12,12 @@ namespace NR
 	public:
 		virtual ~AssetEditor() = default;
 
-		void ImGuiRender();
-		void SetOpen(bool isOpen) { mIsOpen = isOpen; }
+		void ImGuiRender();		
+		void SetOpen(bool isOpen);
 		virtual void SetAsset(const Ref<Asset>& asset) = 0;
 
-	private:
+	private:		
+		virtual void Close() = 0;
 		virtual void Render() = 0;
 
 	protected:
@@ -34,7 +35,8 @@ namespace NR
 	class AssetEditorPanel
 	{
 	public:
-		static void RegisterDefaultEditors();
+		static void RegisterDefaultEditors();		
+		static void UnregisterAllEditors();
 		static void ImGuiRender();
 		static void OpenEditor(const Ref<Asset>& asset);
 

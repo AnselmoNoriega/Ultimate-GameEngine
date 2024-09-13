@@ -12,7 +12,8 @@ namespace NR
 
 		void SetAsset(const Ref<Asset>& asset) override { mAsset = (Ref<PhysicsMaterial>)asset; }
 
-	private:
+	private:		
+		void Close() override;
 		void Render() override;
 
 	private:
@@ -29,7 +30,8 @@ namespace NR
 	private:
 		void Render() override;
 
-	private:
+	private:		
+		void Close() override;
 		Ref<Texture> mAsset;
 	};
 
