@@ -572,6 +572,9 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Math\Math.cpp">
       <Filter>src\NotRed\Math</Filter>
     </ClCompile>
