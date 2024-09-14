@@ -5,25 +5,14 @@
 
 namespace NR
 {
-	class ImGuiLayer : public Layer
-	{
-	public:
-		ImGuiLayer();
-		ImGuiLayer(const std::string& name);
-		~ImGuiLayer() override;
+    class ImGuiLayer : public Layer
+    {
+    public:
+        virtual void Begin() = 0;
+        virtual void End() = 0;
 
-		void OnEvent(Event& e) override;
+        void SetDarkThemeColors();
 
-		void Begin();
-		void End();
-
-		void Attach() override;
-		void ImGuiRender() override;
-		void Detach() override;
-
-		void SetDarkThemeColors();
-
-	private:
-		float mTime = 0.0f;
-	};
+        static ImGuiLayer* Create();
+    };
 }

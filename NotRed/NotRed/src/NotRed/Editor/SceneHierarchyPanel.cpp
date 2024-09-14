@@ -53,6 +53,11 @@ namespace NR
     void SceneHierarchyPanel::SetSelected(Entity entity)
     {
         mSelectionContext = entity;
+
+        if (mSelectionChangedCallback)
+        {
+            mSelectionChangedCallback(mSelectionContext);
+        }
     }
 
     void SceneHierarchyPanel::ImGuiRender()
@@ -105,16 +110,88 @@ namespace NR
             {
                 if (ImGui::BeginMenu("Create"))
                 {
-                    if (ImGui::MenuItem("Empty Entity"))
+                    if (ImGui::MenuItem("Entity"))
                     {
                         auto newEntity = mContext->CreateEntity("Entity");
                         SetSelected(newEntity);
                     }
-                    if (ImGui::MenuItem("Mesh"))
+                    if (ImGui::MenuItem("Camera"))
                     {
-                        auto newEntity = mContext->CreateEntity("Entity");
-                        newEntity.AddComponent<MeshComponent>();
+                        auto newEntity = mContext->CreateEntity("Camera");
+                        newEntity.AddComponent<CameraComponent>();
                         SetSelected(newEntity);
+                    }
+                    if (ImGui::BeginMenu("Mesh"))
+                    {
+                        if (ImGui::MenuItem("Empty Mesh"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Empty Mesh");
+                            newEntity.AddComponent<MeshComponent>();
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Cube"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Cube");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Cube.fbx"));
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Sphere"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Sphere");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Sphere.fbx"));
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Capsule"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Capsule");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Capsule.fbx"));
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Plane"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Plane");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Plane.fbx"));
+                            SetSelected(newEntity);
+                        }
+                        ImGui::EndMenu();
+                    }
+                    if (ImGui::BeginMenu("Physics"))
+                    {
+                        if (ImGui::MenuItem("Rigidbody"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Rigidbody");
+                            newEntity.AddComponent<RigidBodyComponent>();
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Box"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Cube");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("assets/Meshes/Default/Cube.fbx"));
+                            newEntity.AddComponent<BoxColliderComponent>();
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Sphere"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Sphere");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Sphere.fbx"));
+                            newEntity.AddComponent<SphereColliderComponent>();
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Capsule"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Capsule");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Capsule.fbx"));
+                            newEntity.AddComponent<CapsuleColliderComponent>();
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Mesh"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Mesh");
+                            newEntity.AddComponent<MeshComponent>();
+                            newEntity.AddComponent<MeshColliderComponent>();
+                            SetSelected(newEntity);
+                        }
+                        ImGui::EndMenu();
                     }
                     ImGui::Separator();
                     if (ImGui::MenuItem("Directional Light"))
@@ -161,6 +238,12 @@ namespace NR
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
+        bool missingMesh = entity.HasComponent<MeshComponent>() && (entity.GetComponent<MeshComponent>().MeshObj && entity.GetComponent<MeshComponent>().MeshObj->Type == AssetType::Missing);
+        if (missingMesh)
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
+        }
+
         bool opened = ImGui::TreeNodeEx((void*)(uint32_t)entity, flags, name);
         if (ImGui::IsItemClicked())
         {
@@ -169,6 +252,11 @@ namespace NR
             {
                 mSelectionChangedCallback(mSelectionContext);
             }
+        }
+
+        if (missingMesh)
+        {
+            ImGui::PopStyleColor();
         }
 
         bool entityDeleted = false;
@@ -303,7 +391,7 @@ namespace NR
     }
 
     template<typename T, typename UIFunction>
-    static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction)
+    static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, bool canBeRemoved = true)
     {
         const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
         if (entity.HasComponent<T>())
@@ -315,20 +403,31 @@ namespace NR
             float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
             ImGui::Separator();
             bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+            bool rightClicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
             ImGui::PopStyleVar();
+
+            bool resetValues = false;
+            bool removeComponent = false;
+
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-            if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }))
+            if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }) || rightClicked)
             {
                 ImGui::OpenPopup("ComponentSettings");
             }
 
-            bool removeComponent = false;
-
             if (ImGui::BeginPopup("ComponentSettings"))
             {
-                if (ImGui::MenuItem("Remove component"))
+                if (ImGui::MenuItem("Reset"))
                 {
-                    removeComponent = true;
+                    resetValues = true;
+                }
+
+                if (canBeRemoved)
+                {
+                    if (ImGui::MenuItem("Remove component"))
+                    {
+                        removeComponent = true;
+                    }
                 }
 
                 ImGui::EndPopup();
@@ -340,10 +439,17 @@ namespace NR
                 ImGui::TreePop();
             }
 
-            if (removeComponent)
+            if (removeComponent || resetValues)
             {
                 entity.RemoveComponent<T>();
             }
+
+            if (resetValues)
+            {
+                entity.AddComponent<T>();
+            }
+
+            ImGui::PopID();
         }
     }
 
@@ -351,7 +457,7 @@ namespace NR
     {
         bool modified = false;
 
-        ImGuiIO& io = ImGui::GetIO();
+        const ImGuiIO& io = ImGui::GetIO();
         auto boldFont = io.Fonts->Fonts[0];
 
         ImGui::PushID(label.c_str());
@@ -589,39 +695,42 @@ namespace NR
                 DrawVec3Control("Rotation", rotation);
                 component.Rotation = glm::radians(rotation);
                 DrawVec3Control("Scale", component.Scale, 1.0f);
-            });
+            }, false);
 
-        DrawComponent<MeshComponent>("Mesh", entity, [](MeshComponent& mc)
+        DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
             {
                 UI::BeginPropertyGrid();
-                UI::PropertyAssetReference("Mesh", mc.MeshObj, AssetType::Mesh);
+                if (UI::PropertyAssetReference("Mesh", mc.MeshObj, AssetType::Mesh))
+                {
+                    if (entity.HasComponent<MeshColliderComponent>())
+                    {
+                        auto& mcc = entity.GetComponent<MeshColliderComponent>();
+                        mcc.CollisionMesh = mc.MeshObj;
+                        if (mcc.IsConvex)
+                        {
+                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                        }
+                    }
+                }
                 UI::EndPropertyGrid();
             });
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
             {
-                const char* projTypeStrings[] = { "Perspective", "Orthographic" };
-                const char* currentProj = projTypeStrings[(int)cc.CameraObj.GetProjectionType()];
-                if (ImGui::BeginCombo("Projection", currentProj))
-                {
+                UI::BeginPropertyGrid();
 
-                    for (int type = 0; type < 2; ++type)
-                    {
-                        bool isSelected = (currentProj == projTypeStrings[type]);
-                        if (ImGui::Selectable(projTypeStrings[type], isSelected))
-                        {
-                            currentProj = projTypeStrings[type];
-                            cc.CameraObj.SetProjectionType((SceneCamera::ProjectionType)type);
-                        }
-                        if (isSelected)
-                        {
-                            ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
+                // Projection Type
+                const char* projTypeStrings[] = { "Perspective", "Orthographic" };
+                int currentProj = (int)cc.CameraObj.GetProjectionType();
+                if (UI::PropertyDropdown("Projection", projTypeStrings, 2, &currentProj))
+                {
+                    cc.CameraObj.SetProjectionType((SceneCamera::ProjectionType)currentProj);
                 }
 
-                UI::BeginPropertyGrid();
                 if (cc.CameraObj.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
                 {
                     float verticalFOV = cc.CameraObj.GetPerspectiveVerticalFOV();
@@ -814,29 +923,11 @@ namespace NR
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
-                // Rigidbody2D Type
-                const char* rb2dTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
-                const char* currentType = rb2dTypeStrings[(int)rb2dc.BodyType];
+                UI::BeginPropertyGrid();
 
-                ImGui::TextUnformatted("Type");
-                ImGui::SameLine();
-                if (ImGui::BeginCombo("##TypeSelection", currentType))
-                {
-                    for (int type = 0; type < 3; ++type)
-                    {
-                        bool isSelected = (currentType == rb2dTypeStrings[type]);
-                        if (ImGui::Selectable(rb2dTypeStrings[type], isSelected))
-                        {
-                            currentType = rb2dTypeStrings[type];
-                            rb2dc.BodyType = (RigidBody2DComponent::Type)type;
-                        }
-                        if (isSelected)
-                        {
-                            ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
+                // Rigidbody2D Type
+                const char* rb2dTypeStrings[] = { "Static", "Dynamic", "Kinematic" };			
+                UI::PropertyDropdown("Type", rb2dTypeStrings, 3, (int*)&rb2dc.BodyType);
 
                 if (rb2dc.BodyType == RigidBody2DComponent::Type::Dynamic)
                 {
@@ -844,6 +935,8 @@ namespace NR
                     UI::Property("Fixed Rotation", rb2dc.FixedRotation);
                     UI::EndPropertyGrid();
                 }
+
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& bc2dc)
@@ -871,54 +964,19 @@ namespace NR
             });
 
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
-            {
-                const char* rbTypeStrings[] = { "Static", "Dynamic" };
-                const char* currentType = rbTypeStrings[(int)rbc.BodyType];
-                if (ImGui::BeginCombo("Type", currentType))
-                {
-                    for (int type = 0; type < 2; ++type)
-                    {
-                        bool isSelected = (currentType == rbTypeStrings[type]);
-                        if (ImGui::Selectable(rbTypeStrings[type], isSelected))
-                        {
-                            currentType = rbTypeStrings[type];
-                            rbc.BodyType = (RigidBodyComponent::Type)type;
-                        }
-                        if (isSelected)
-                        {
-                            ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
+            {			
+                UI::BeginPropertyGrid();
+                const char* rbTypeStrings[] = { "Static", "Dynamic" };			
+                UI::PropertyDropdown("Type", rbTypeStrings, 2, (int*)&rbc.BodyType);
 
                 if (!PhysicsLayerManager::IsLayerValid(rbc.Layer))
                 {
                     rbc.Layer = 0;
                 }
 
-                uint32_t currentLayer = rbc.Layer;
-                const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(currentLayer);
-
-                ImGui::TextUnformatted("Layer");
-                ImGui::SameLine();
-                if (ImGui::BeginCombo("##LayerSelection", layerInfo.Name.c_str()))
-                {
-                    for (const auto& layer : PhysicsLayerManager::GetLayers())
-                    {
-                        bool isSelected = (currentLayer == layer.ID);
-                        if (ImGui::Selectable(layer.Name.c_str(), isSelected))
-                        {
-                            currentLayer = layer.ID;
-                            rbc.Layer = layer.ID;
-                        }
-                        if (isSelected)
-                        {
-                            ImGui::SetItemDefaultFocus();
-                        }
-                    }
-                    ImGui::EndCombo();
-                }
+                int layerCount = PhysicsLayerManager::GetLayerCount();
+                const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+                UI::PropertyDropdown("Layer", layerNames, layerCount, (int*)&rbc.Layer);
 
                 if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
                 {
@@ -947,10 +1005,11 @@ namespace NR
                         UI::EndCheckboxGroup();
 
                         UI::EndPropertyGrid();
-
                         ImGui::TreePop();
                     }
                 }
+
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<BoxColliderComponent>("Box Collider", entity, [](BoxColliderComponent& bcc)
@@ -1014,11 +1073,11 @@ namespace NR
                     {
                         if (mcc.IsConvex)
                         {
-                            PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
                         }
                         else
                         {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
                         }
                     }
                 }
@@ -1027,11 +1086,11 @@ namespace NR
                 {
                     if (mcc.IsConvex)
                     {
-                        PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                        PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
                     }
                     else
                     {
-                        PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                        PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
                     }
                 }
 
@@ -1046,11 +1105,11 @@ namespace NR
 
                         if (mcc.IsConvex)
                         {
-                            PhysicsWrappers::CreateConvexMesh(mcc, glm::vec3(1.0f), true);
+                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
                         }
                         else
                         {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, glm::vec3(1.0f), true);
+                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
                         }
                     }
                 }
