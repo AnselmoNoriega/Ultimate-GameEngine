@@ -27,7 +27,8 @@ namespace NR
 	{
 		uint32_t layerId = GetNextLayerID();
 		PhysicsLayer layer = { layerId, name, (1 << layerId), (1 << layerId) };
-		sLayers.insert(sLayers.begin() + layerId, layer);
+		sLayers.insert(sLayers.begin() + layerId, layer);		
+		sLayerNames.insert(sLayerNames.begin() + layerId, name);
 
 		if (setCollisions)
 		{
@@ -57,6 +58,7 @@ namespace NR
 			}
 		}
 
+		RemoveIfExists<std::string>(sLayerNames, [&](const std::string& name) { return name == layerInfo.Name; });
 		RemoveIfExists<PhysicsLayer>(sLayers, [&](const PhysicsLayer& layer) { return layer.ID == layerId; });
 	}
 
@@ -152,6 +154,7 @@ namespace NR
 		return sLayers.size();
 	}
 
-	std::vector<PhysicsLayer> PhysicsLayerManager::sLayers;
+	std::vector<PhysicsLayer> PhysicsLayerManager::sLayers;	
+	std::vector<std::string> PhysicsLayerManager::sLayerNames;
 	PhysicsLayer PhysicsLayerManager::sNullLayer = { 0, "NULL", 0, -1 };
 }

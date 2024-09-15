@@ -3,6 +3,8 @@
 
 #include <filesystem>
 
+#include "NotRed/Util/FileSystem.h"
+
 namespace NR
 {
     physx::PxTransform ToPhysicsTransform(const TransformComponent& transform)
@@ -101,43 +103,24 @@ namespace NR
 
     void PhysicsMeshSerializer::Delete(const std::string& filepath)
     {
-        std::filesystem::path p = filepath;
-        std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
-
-        size_t lastDot = path.filename().string().find_first_of(".");
-        lastDot = lastDot == std::string::npos ? path.filename().string().length() - 1 : lastDot;
-        std::string dirName = p.filename().string().substr(0, lastDot);
-
+        std::filesystem::path path = filepath;
+        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        
         if (IsSerialized(filepath))
         {
-            std::filesystem::remove_all(p.parent_path() / dirName);
+            FileSystem::DeleteFile(cachePath);
         }
     }
 
-    void PhysicsMeshSerializer::SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data, const std::string& submeshName)
+    void PhysicsMeshSerializer::SerializeMesh(const std::string& filepath, const Buffer& data)
     {
-        std::filesystem::path p = filepath;
-        std::filesystem::path path = p.parent_path() / (p.filename().string() + ".pxm");
+        std::filesystem::path path = filepath;
+        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
 
-        size_t lastDot = path.filename().string().find_first_of(".");
-        lastDot = lastDot == std::string::npos ? path.filename().string().length() - 1 : lastDot;
-        std::string dirName = p.filename().string().substr(0, lastDot);
-
-        if (submeshName.length() > 0)
-        {
-            path = p.parent_path() / dirName / (submeshName + ".pxm");
-        }
-
-        std::filesystem::create_directory(p.parent_path() / dirName);
-        std::string cachedFilepath = path.string();
-
-        NR_CORE_INFO("Serializing {0}", submeshName);
-
-        FILE* f = fopen(cachedFilepath.c_str(), "wb");
+        FILE* f = fopen(cachePath.c_str(), "wb");
         if (f)
         {
-            NR_CORE_INFO("File Created");
-            fwrite(data.getData(), sizeof(physx::PxU8), data.getSize() / sizeof(physx::PxU8), f);
+            fwrite(data.Data, sizeof(byte), data.Size / sizeof(byte), f);
             fclose(f);
         }
         else
@@ -148,47 +131,31 @@ namespace NR
 
     bool PhysicsMeshSerializer::IsSerialized(const std::string& filepath)
     {
-        std::filesystem::path p = filepath;
-        size_t lastDot = p.filename().string().find_first_of(".");
-        lastDot = lastDot == std::string::npos ? p.filename().string().length() - 1 : lastDot;
-        std::string dirName = p.filename().string().substr(0, lastDot);
-        auto path = p.parent_path() / dirName;
-        return std::filesystem::is_directory(path);
+        std::filesystem::path path = filepath;
+        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        return FileSystem::Exists(cachePath);
     }
 
-    static physx::PxU8* sMeshDataBuffer;
-
-    physx::PxDefaultMemoryInputData PhysicsMeshSerializer::DeserializeMesh(const std::string& filepath, const std::string& submeshName)
+    Buffer PhysicsMeshSerializer::DeserializeMesh(const std::string& filepath)
     {
-        std::filesystem::path p = filepath;
-        size_t lastDot = p.filename().string().find_first_of(".");
-        lastDot = lastDot == std::string::npos ? p.filename().string().length() - 1 : lastDot;
-        std::string dirName = p.filename().string().substr(0, lastDot);
-        auto path = p.parent_path() / dirName;
+        std::filesystem::path path = filepath;
+        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        FILE* f = fopen(cachePath.c_str(), "rb");
+        uint32_t size = 0;
 
-        if (submeshName.length() > 0)
-        {
-            path = p.parent_path() / dirName / (submeshName + ".pxm");
-        }
-
-        FILE* f = fopen(path.string().c_str(), "rb");
-        uint32_t size;
+        Buffer buffer;
 
         if (f)
         {
             fseek(f, 0, SEEK_END);
             size = ftell(f);
             fseek(f, 0, SEEK_SET);
-            if (sMeshDataBuffer)
-            {
-                delete[] sMeshDataBuffer;
-            }
 
-            sMeshDataBuffer = new physx::PxU8[size / sizeof(physx::PxU8)];
-            fread(sMeshDataBuffer, sizeof(physx::PxU8), size / sizeof(physx::PxU8), f);
+            buffer.Allocate(size);
+            fread(buffer.Data, sizeof(byte), size / sizeof(byte), f);
+
             fclose(f);
         }
 
-        return physx::PxDefaultMemoryInputData(sMeshDataBuffer, size);
-    }
+        return buffer;
 }

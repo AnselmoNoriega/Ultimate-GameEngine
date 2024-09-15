@@ -6,8 +6,8 @@
 #include "NotRed/Platform/Vulkan/VkTexture.h"
 #include "NotRed/Platform/Vulkan/VkImage.h"
 
-#include "NotRed/Platform/GL/GLTexture.h"
-#include "NotRed/Platform/GL/GLImage.h"
+#include "NotRed/Platform/OpenGL/GLTexture.h"
+#include "NotRed/Platform/OpenGL/GLImage.h"
 
 #include "imgui/examples/imgui_impl_vulkan_with_textures.h"
 

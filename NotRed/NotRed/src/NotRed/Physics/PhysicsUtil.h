@@ -36,8 +36,8 @@ namespace NR
     {
     public:
         static void Delete(const std::string& filepath);
-        static void SerializeMesh(const std::string& filepath, const physx::PxDefaultMemoryOutputStream& data, const std::string& submeshName = "");
+        static void SerializeMesh(const std::string& filepath, const Buffer& data);
         static bool IsSerialized(const std::string& filepath);
-        static physx::PxDefaultMemoryInputData DeserializeMesh(const std::string& filepath, const std::string& submeshName);
+        static Buffer DeserializeMesh(const std::string& filepath);
     };
 }

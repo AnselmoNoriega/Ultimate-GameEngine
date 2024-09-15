@@ -11,7 +11,7 @@ namespace NR
 
 		bool IsValid() const
 		{
-			return ID >= 0 && !Name.empty() && BitValue > 0;
+			return !Name.empty() && BitValue > 0;
 		}
 	};
 
@@ -25,6 +25,7 @@ namespace NR
 		static std::vector<PhysicsLayer> GetLayerCollisions(uint32_t layerId);
 
 		static const std::vector<PhysicsLayer>& GetLayers() { return sLayers; }
+		static const std::vector<std::string>& GetLayerNames() { return sLayerNames; }
 
 		static PhysicsLayer& GetLayer(uint32_t layerId);
 		static PhysicsLayer& GetLayer(const std::string& layerName);
@@ -38,6 +39,7 @@ namespace NR
 
 	private:
 		static std::vector<PhysicsLayer> sLayers;
+		static std::vector<std::string> sLayerNames;
 		static PhysicsLayer sNullLayer;
 	};
 }
