@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererAPI.h"
+#include "RendererTypes.h"
 
 namespace NR
 {

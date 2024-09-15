@@ -22,16 +22,14 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 
-#include "NotRed/Physics/PhysicsUtil.h"
-
 namespace NR
 {
 
 #define MESH_DEBUG_LOG 1
-    #if MESH_DEBUG_LOG
-        #define NR_MESH_LOG(...) NR_CORE_TRACE(__VA_ARGS__)
-    #else
-        #define NR_MESH_LOG(...)
+#if MESH_DEBUG_LOG
+#define NR_MESH_LOG(...) NR_CORE_TRACE(__VA_ARGS__)
+#else
+#define NR_MESH_LOG(...)
 #endif
 
     static const uint32_t sMeshImportFlags =
@@ -56,7 +54,7 @@ namespace NR
 
         virtual void write(const char* message) override
         {
-            NR_CORE_WARN("Assimp error: {0}", message);
+            NR_CORE_ERROR("Assimp error: {0}", message);
         }
     };
 
@@ -98,12 +96,11 @@ namespace NR
         {
             NR_CORE_ERROR("Failed to load mesh file: {0}", modelsDirectory.string());
         }
-        
+
         mScene = scene;
 
         mIsAnimated = scene->mAnimations != nullptr;
         mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
-        mBaseMaterial = Ref<Material>::Create(mMeshShader);
         mInverseTransform = glm::inverse(AssimpMat4ToMat4(scene->mRootNode->mTransformation));
 
         uint32_t vertexCount = 0;
@@ -117,12 +114,12 @@ namespace NR
             Submesh& submesh = mSubmeshes.emplace_back();
             submesh.BaseVertex = vertexCount;
             submesh.BaseIndex = indexCount;
-            submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.VertexCount = mesh->mNumVertices;
+            submesh.IndexCount = mesh->mNumFaces * 3;
             submesh.MaterialIndex = mesh->mMaterialIndex;
             submesh.MeshName = mesh->mName.C_Str();
 
-            vertexCount += submesh.VertexCount;
+            vertexCount += mesh->mNumVertices;
             indexCount += submesh.IndexCount;
 
             NR_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");
@@ -232,13 +229,15 @@ namespace NR
         {
             mTextures.resize(scene->mNumMaterials);
             mMaterials.resize(scene->mNumMaterials);
+
+            Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
+
             for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
             {
                 auto aiMaterial = scene->mMaterials[i];
                 auto aiMaterialName = aiMaterial->GetName();
 
-                auto mi = Ref<MaterialInstance>::Create(mBaseMaterial, aiMaterialName.data);
-                mi->ModifyFlags(MaterialFlag::TwoSided, false);
+                Ref<Material> mi = Material::Create(mMeshShader, aiMaterialName.data);
                 mMaterials[i] = mi;
 
                 NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
@@ -246,8 +245,14 @@ namespace NR
                 uint32_t textureCount = aiMaterial->GetTextureCount(aiTextureType_DIFFUSE);
                 NR_MESH_LOG("  TextureCount = {0}", textureCount);
 
+                glm::vec3 albedoColor(0.8f);
                 aiColor3D aiColor;
-                aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor);
+                if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
+                {
+                    albedoColor = { aiColor.r, aiColor.g, aiColor.b };
+                }
+
+                mi->Set("uMaterialUniforms.AlbedoColor", albedoColor);
 
                 float shininess, metalness;
                 if (aiMaterial->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS)
@@ -263,7 +268,10 @@ namespace NR
                 float roughness = 1.0f - glm::sqrt(shininess / 100.0f);
                 NR_MESH_LOG("    COLOR = {0}, {1}, {2}", aiColor.r, aiColor.g, aiColor.b);
                 NR_MESH_LOG("    ROUGHNESS = {0}", roughness);
+                NR_MESH_LOG("    METALNESS = {0}", metalness);
+
                 bool hasAlbedoMap = aiMaterial->GetTexture(aiTextureType_DIFFUSE, 0, &aiTexPath) == AI_SUCCESS;
+                bool fallback = !hasAlbedoMap;
                 if (hasAlbedoMap)
                 {
                     std::filesystem::path path = modelsDirectory;
@@ -272,33 +280,30 @@ namespace NR
                     std::string texturePath = parentPath.string();
 
                     NR_MESH_LOG("    Albedo map path = {0}", texturePath);
-                    if (texturePath.find_first_of(".tga") != std::string::npos)
-                    {
-                        continue;
-                    }
                     auto texture = Texture2D::Create(texturePath, true);
                     if (texture->Loaded())
                     {
                         mTextures[i] = texture;
-                        NR_MESH_LOG("  Texture Path = {0}", texturePath);
-                        mi->Set("uAlbedoTexture", mTextures[i]);
-                        mi->Set("uAlbedoTexToggle", 1.0f);
+                        mi->Set("uAlbedoTexture", texture);
                     }
                     else
                     {
                         NR_CORE_ERROR("Could not load texture: {0}", texturePath);
-                        mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
+                        fallback = true;
                     }
                 }
-                else
+
+                if (fallback)
                 {
-                    mi->Set("uAlbedoColor", glm::vec3{ aiColor.r, aiColor.g, aiColor.b });
                     NR_MESH_LOG("    No albedo map");
+                    mi->Set("uAlbedoTexture", whiteTexture);
                 }
 
                 // Normal maps
-                mi->Set("uNormalTexToggle", 0.0f);
-                if (aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS)
+                mi->Set("uMaterialUniforms.UseNormalMap", (uint32_t)false);
+                bool hasNormalMap = aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS;
+                fallback = !hasNormalMap;
+                if (hasNormalMap)
                 {
                     std::filesystem::path path = filename;
                     auto parentPath = path.parent_path();
@@ -309,21 +314,27 @@ namespace NR
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
+                        mTextures.push_back(texture);
                         mi->Set("uNormalTexture", texture);
-                        mi->Set("uNormalTexToggle", 1.0f);
+                        mi->Set("uMaterialUniforms.UseNormalMap", true);
                     }
                     else
                     {
                         NR_CORE_ERROR("  Could not load normal map");
+                        fallback = true;
                     }
                 }
-                else
+
+                if (fallback)
                 {
                     NR_MESH_LOG("   Mesh has no normal map");
+                    mi->Set("uNormalTexture", whiteTexture);
                 }
 
                 // Roughness map
-                if (aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS)
+                bool hasRoughnessMap = aiMaterial->GetTexture(aiTextureType_SHININESS, 0, &aiTexPath) == AI_SUCCESS;
+                fallback = !hasRoughnessMap;
+                if (hasRoughnessMap)
                 {
                     std::filesystem::path path = filename;
                     auto parentPath = path.parent_path();
@@ -334,18 +345,21 @@ namespace NR
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
+                        mTextures.push_back(texture);
                         mi->Set("uRoughnessTexture", texture);
-                        mi->Set("uRoughnessTexToggle", 1.0f);
                     }
                     else
                     {
                         NR_CORE_ERROR("    Could not load roughness map}");
+                        fallback = true;
                     }
                 }
-                else
+
+                if (fallback)
                 {
                     NR_MESH_LOG("    No roughness map");
-                    mi->Set("uRoughness", roughness);
+                    mi->Set("uRoughnessTexture", whiteTexture);
+                    mi->Set("uMaterialUniforms.Roughness", roughness);
                 }
 
                 // Metalness map
@@ -375,9 +389,9 @@ namespace NR
                 }
 
                 bool metalnessTextureFound = false;
-                for (uint32_t i = 0; i < aiMaterial->mNumProperties; ++i)
+                for (uint32_t p = 0; p < aiMaterial->mNumProperties; ++p)
                 {
-                    auto prop = aiMaterial->mProperties[i];
+                    auto prop = aiMaterial->mProperties[p];
 
 #if DEBUG_PRINT_ALL_PROPS
                     NR_MESH_LOG("Material Property:");
@@ -439,7 +453,6 @@ namespace NR
                         std::string key = prop->mKey.data;
                         if (key == "$raw.ReflectionFactor|file")
                         {
-                            metalnessTextureFound = true;
                             std::filesystem::path path = modelsDirectory;
                             auto parentPath = path.parent_path();
                             parentPath /= str;
@@ -449,37 +462,47 @@ namespace NR
                             auto texture = Texture2D::Create(texturePath);
                             if (texture->Loaded())
                             {
+                                metalnessTextureFound = true;
+                                mTextures.push_back(texture);
                                 mi->Set("uMetalnessTexture", texture);
-                                mi->Set("uMetalnessTexToggle", 1.0f);
                             }
                             else
                             {
                                 NR_CORE_ERROR("    Could not load Metalness texture");
-                                mi->Set("uMetalness", metalness);
-                                mi->Set("uMetalnessTexToggle", 0.0f);
                             }
                             break;
                         }
                     }
                 }
 
-                if (!metalnessTextureFound)
+                fallback = !metalnessTextureFound;
+                if (fallback)
                 {
                     NR_MESH_LOG("    No metalness map");
-
-                    mi->Set("uMetalness", metalness);
-                    mi->Set("uMetalnessTexToggle", 0.0f);
+                    mi->Set("uMetalnessTexture", whiteTexture);
+                    mi->Set("uMaterialUniforms.Metalness", metalness);
                 }
             }
 
             NR_MESH_LOG("------------------------");
         }
+        else
+        {
+            auto mi = Material::Create(mMeshShader, "NotRed-Default");
+            mi->Set("uMaterialUniforms.AlbedoTexToggle", 0.0f);
+            mi->Set("uMaterialUniforms.NormalTexToggle", 0.0f);
+            mi->Set("uMaterialUniforms.MetalnessTexToggle", 0.0f);
+            mi->Set("uMaterialUniforms.RoughnessTexToggle", 0.0f);
+            mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f, 0.1f, 0.3f));
+            mi->Set("uMaterialUniforms.Metalness", 0.0f);
+            mi->Set("uMaterialUniforms.Roughness", 0.8f);
+            mMaterials.push_back(mi);
+        }
 
-        VertexBufferLayout vertexLayout;
         if (mIsAnimated)
         {
             mVertexBuffer = VertexBuffer::Create(mAnimatedVertices.data(), mAnimatedVertices.size() * sizeof(AnimatedVertex));
-            vertexLayout = {
+            mVertexBufferLayout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
                 { ShaderDataType::Float3, "aTangent" },
@@ -487,25 +510,21 @@ namespace NR
                 { ShaderDataType::Float2, "aTexCoord" },
                 { ShaderDataType::Int4,   "aBoneIDs" },
                 { ShaderDataType::Float4, "aBoneWeights" },
-                };
+            };
         }
         else
         {
             mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
-            vertexLayout= {
+            mVertexBufferLayout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
                 { ShaderDataType::Float3, "aTangent" },
                 { ShaderDataType::Float3, "aBinormal" },
                 { ShaderDataType::Float2, "aTexCoord" },
-                };
+            };
         }
 
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
-
-        PipelineSpecification pipelineSpecification;
-        pipelineSpecification.Layout = vertexLayout;
-        mPipeline = Pipeline::Create(pipelineSpecification);
     }
 
     Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
@@ -520,16 +539,13 @@ namespace NR
 
         mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
-
-        PipelineSpecification pipelineSpecification;
-        pipelineSpecification.Layout = {
+        mVertexBufferLayout = {
             { ShaderDataType::Float3, "aPosition" },
             { ShaderDataType::Float3, "aNormal" },
             { ShaderDataType::Float3, "aTangent" },
             { ShaderDataType::Float3, "aBinormal" },
             { ShaderDataType::Float2, "aTexCoord" },
         };
-        mPipeline = Pipeline::Create(pipelineSpecification);
     }
 
     Mesh::~Mesh()
@@ -583,15 +599,13 @@ namespace NR
 
     void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
     {
-		glm::mat4 localTransform = AssimpMat4ToMat4(node->mTransformation);
-		glm::mat4 transform = parentTransform * localTransform;
+        glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
         for (uint32_t i = 0; i < node->mNumMeshes; ++i)
         {
             uint32_t mesh = node->mMeshes[i];
             auto& submesh = mSubmeshes[mesh];
             submesh.NodeName = node->mName.C_Str();
             submesh.Transform = transform;
-            submesh.LocalTransform = localTransform;
         }
 
         for (uint32_t i = 0; i < node->mNumChildren; ++i)

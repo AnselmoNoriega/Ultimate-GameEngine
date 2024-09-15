@@ -203,6 +203,7 @@
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\Image.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Material.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
@@ -335,6 +336,7 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Image.cpp" />
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />

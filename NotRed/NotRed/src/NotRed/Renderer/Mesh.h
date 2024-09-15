@@ -9,8 +9,6 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Material.h"
 
-#include "NotRed/Asset/Asset.h"
-
 #include "NotRed/Math/AABB.h"
 
 struct aiNode;
@@ -118,8 +116,7 @@ namespace NR
 		uint32_t VertexCount;
 		uint32_t MaterialIndex;
 
-		glm::mat4 Transform;
-		glm::mat4 LocalTransform;
+		glm::mat4 Transform{ 1.0f };
 		AABB BoundingBox;
 
 		std::string NodeName, MeshName;
@@ -145,12 +142,16 @@ namespace NR
 		const std::vector<Vertex>& GetStaticVertices() const { return mStaticVertices; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
 
-		Ref<Shader> GetMeshShader() { return mMeshShader; }
-		Ref<Material> GetMaterial() { return mBaseMaterial; }
-		std::vector<Ref<MaterialInstance>>& GetMaterials() { return mMaterials; }
+		Ref<Shader> GetMeshShader() { return mMeshShader; }		
+		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
+		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return mTextures; }
 
 		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }
+
+		Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
+		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
+		const VertexBufferLayout& GetVertexBufferLayout() const { return mVertexBufferLayout; }
 
 	private:
 		void BoneTransform(float time);
@@ -158,9 +159,11 @@ namespace NR
 		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
 
 		const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName);
+
 		uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
 		uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
 		uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
+
 		glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim);
 		glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim);
 		glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim);
@@ -175,9 +178,9 @@ namespace NR
 		uint32_t mBoneCount = 0;
 		std::vector<BoneInfo> mBoneInfo;
 
-		Ref<Pipeline> mPipeline;
 		Ref<VertexBuffer> mVertexBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
+		VertexBufferLayout mVertexBufferLayout;
 
 		std::vector<Vertex> mStaticVertices;
 		std::vector<AnimatedVertex> mAnimatedVertices;
@@ -188,10 +191,9 @@ namespace NR
 
 		// Materials
 		Ref<Shader> mMeshShader;
-		Ref<Material> mBaseMaterial;
 		std::vector<Ref<Texture2D>> mTextures;
 		std::vector<Ref<Texture2D>> mNormalMaps;
-		std::vector<Ref<MaterialInstance>> mMaterials;
+		std::vector<Ref<Material>> mMaterials;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> mTriangleCache;
 
@@ -205,6 +207,8 @@ namespace NR
 		std::string mFilePath;
 
 		friend class Renderer;
+		friend class VkRenderer;
+		friend class GLRenderer;
 		friend class SceneHierarchyPanel;
 	};
 }

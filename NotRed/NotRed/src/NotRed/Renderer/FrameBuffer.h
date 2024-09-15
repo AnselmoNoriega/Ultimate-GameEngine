@@ -2,7 +2,8 @@
 
 #include <glm/glm.hpp>
 
-#include "NotRed/Renderer/RendererAPI.h"
+#include "Image.h"
+#include "NotRed/Renderer/RendererTypes.h"
 
 namespace NR
 {
@@ -22,9 +23,9 @@ namespace NR
 	struct FrameBufferTextureSpecification
 	{
 		FrameBufferTextureSpecification() = default;
-		FrameBufferTextureSpecification(FrameBufferTextureFormat format) : TextureFormat(format) {}
+		FramebufferTextureSpecification(ImageFormat format) : Format(format) {}
 
-		FrameBufferTextureFormat TextureFormat;
+		ImageFormat Format;
 	};
 
 	struct FrameBufferAttachmentSpecification
@@ -38,15 +39,18 @@ namespace NR
 
 	struct FrameBufferSpecification
 	{
-		uint32_t Width = 1280;
-		uint32_t Height = 720;
-		glm::vec4 ClearColor;
+		float Scale = 1.0f;
+		uint32_t Width = 0;
+		uint32_t Height = 0;
+		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 		FrameBufferAttachmentSpecification Attachments;
 		uint32_t Samples = 1;
 
 		bool Resizable = false;
 
 		bool SwapChainTarget = false;
+
+		std::string DebugName;
 	};
 
 	class FrameBuffer : public RefCounted
@@ -59,6 +63,7 @@ namespace NR
 		virtual void Unbind() const = 0;
 
 		virtual void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) = 0;
+		virtual void AddResizeCallback(const std::function<void(Ref<Framebuffer>)>& func) = 0;
 
 		virtual void BindTexture(uint32_t attachmentIndex = 0, uint32_t slot = 0) const = 0;
 
@@ -66,8 +71,8 @@ namespace NR
 		virtual uint32_t GetHeight() const = 0;
 
 		virtual RendererID GetRendererID() const = 0;
-		virtual RendererID GetColorAttachmentRendererID(int index = 0) const = 0;
-		virtual RendererID GetDepthAttachmentRendererID() const = 0;
+		virtual Ref<Image2D> GetImage(uint32_t attachmentIndex = 0) const = 0;
+		virtual Ref<Image2D> GetDepthImage() const = 0;
 
 		virtual const FrameBufferSpecification& GetSpecification() const = 0;
 	};
