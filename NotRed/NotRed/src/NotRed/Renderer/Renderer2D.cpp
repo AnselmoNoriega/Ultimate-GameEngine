@@ -94,6 +94,7 @@ namespace NR
                 { ShaderDataType::Float, "aTexIndex" },
                 { ShaderDataType::Float, "aTilingFactor" }
             };
+            pipelineSpecification.DebugName = "Renderer2D-Quad";
             sData.QuadPipeline = Pipeline::Create(pipelineSpecification);
 
             sData.QuadVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex));
@@ -119,7 +120,7 @@ namespace NR
             delete[] quadIndices;
         }
 
-        sData.WhiteTexture = Texture2D::Create(TextureFormat::RGBA, 1, 1);
+        sData.WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1);
         uint32_t whiteTextureData = 0xffffffff;
         sData.WhiteTexture->Lock();
         sData.WhiteTexture->GetWriteableBuffer().Write(&whiteTextureData, sizeof(uint32_t));
@@ -144,6 +145,7 @@ namespace NR
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float4, "aColor" }
             };
+            pipelineSpecification.DebugName = "Renderer2D-Line";
             sData.LinePipeline = Pipeline::Create(pipelineSpecification);
 
             sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxLineVertices * sizeof(LineVertex));
@@ -203,73 +205,10 @@ namespace NR
 
     void Renderer2D::EndScene()
     {
-        uint32_t dataSize = (uint8_t*)sData.QuadVertexBufferPtr - (uint8_t*)sData.QuadVertexBufferBase;
-        if (dataSize)
-        {
-            sData.QuadVertexBuffer->SetData(sData.QuadVertexBufferBase, dataSize);
-
-            sData.TextureShader->Bind();
-            sData.TextureShader->SetMat4("uViewProjection", sData.CameraViewProj);
-
-            for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
-            {
-                sData.TextureSlots[i]->Bind(i);
-            }
-
-            sData.QuadVertexBuffer->Bind();
-            sData.QuadPipeline->Bind();
-            sData.QuadIndexBuffer->Bind();
-            Renderer::DrawIndexed(sData.QuadIndexCount, PrimitiveType::Triangles, sData.DepthTest, false);
-            ++sData.Stats.DrawCalls;
-        }
-
-        dataSize = (uint8_t*)sData.LineVertexBufferPtr - (uint8_t*)sData.LineVertexBufferBase;
-        if (dataSize)
-        {
-            sData.LineVertexBuffer->SetData(sData.LineVertexBufferBase, dataSize);
-
-            sData.LineShader->Bind();
-            sData.LineShader->SetMat4("uViewProjection", sData.CameraViewProj);
-
-            sData.LineVertexBuffer->Bind();
-            sData.LinePipeline->Bind();
-            sData.LineIndexBuffer->Bind();
-            Renderer::SetLineThickness(2.0f);
-            Renderer::DrawIndexed(sData.LineIndexCount, PrimitiveType::Lines, false, false);
-            ++sData.Stats.DrawCalls;
-        }
-
-        dataSize = (uint8_t*)sData.CircleVertexBufferPtr - (uint8_t*)sData.CircleVertexBufferBase;
-        if (dataSize)
-        {
-            sData.CircleVertexBuffer->SetData(sData.CircleVertexBufferBase, dataSize);
-
-            sData.CircleShader->Bind();
-            sData.CircleShader->SetMat4("uViewProjection", sData.CameraViewProj);
-
-            sData.CircleVertexBuffer->Bind();
-            sData.CirclePipeline->Bind();
-            sData.QuadIndexBuffer->Bind();
-            Renderer::DrawIndexed(sData.CircleIndexCount, PrimitiveType::Triangles, false, false);
-            ++sData.Stats.DrawCalls;
-        }
-
-#if OLD
-        Flush();
-#endif
     }
 
     void Renderer2D::Flush()
     {
-#if OLD
-        // Bind textures
-        for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
-            sData.TextureSlots[i]->Bind(i);
-
-        sData.QuadVertexArray->Bind();
-        Renderer::DrawIndexed(sData.QuadIndexCount, false);
-        sData.Stats.DrawCalls++;
-#endif
     }
 
     void Renderer2D::FlushAndReset()

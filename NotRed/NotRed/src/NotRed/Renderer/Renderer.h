@@ -1,58 +1,82 @@
 #pragma once
 
+#include "RendererContext.h"
 #include "RenderCommandQueue.h"
 #include "RenderPass.h"
 
 #include "Mesh.h"
 
+#include "NotRed/Core/Application.h"
+
+#include "RendererCapabilities.h"
+
+#include "NotRed/Scene/Scene.h"
+
 namespace NR
 {
-	class ShaderLibrary;
+    class ShaderLibrary;
 
-	class Renderer
-	{
-	public:
-		typedef void(*RenderCommandFn)(void*);
+    class Renderer
+    {
+    public:
+        typedef void(*RenderCommandFn)(void*);
 
-		static void Init();
+        static Ref<RendererContext> GetContext()
+        {
+            return Application::Get().GetWindow().GetRenderContext();
+        }
 
-		static void Clear();
-		static void Clear(float r, float g, float b, float a = 1.0f);
-		static void SetClearColor(float r, float g, float b, float a);
+    public:
 
-		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true, bool faceCulling = true);
+        static void Init();
+        static void Shutdown();
 
-		static void SetLineThickness(float thickness);
+        static RendererCapabilities& GetCapabilities();
+        static Ref<ShaderLibrary> GetShaderLibrary();
 
-		static void ClearMagenta();
+        template<typename FuncT>
+        static void Submit(FuncT&& func)
+        {
+            auto renderCmd = [](void* ptr) {
+                auto pFunc = (FuncT*)ptr;
+                (*pFunc)();
+                pFunc->~FuncT();
+                };
+            auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
+            new (storageBuffer) FuncT(std::forward<FuncT>(func));
+        }
 
-		static Ref<ShaderLibrary> GetShaderLibrary();
+        static void WaitAndRender();
 
-		template<typename FuncT>
-		static void Submit(FuncT&& func)
-		{
-			auto renderCmd = [](void* ptr) {
-				auto pFunc = (FuncT*)ptr;
-				(*pFunc)();
-				};
-			auto storageBuffer = GetRenderCommandQueue().Allocate(renderCmd, sizeof(func));
-			new (storageBuffer) FuncT(std::forward<FuncT>(func));
-		}
+        static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
+        static void EndRenderPass();
 
-		static void WaitAndRender();
+        static void BeginFrame();
+        static void EndFrame();
 
-		static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
-		static void EndRenderPass();
+        static void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow);
+        static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
 
-		static void SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform = glm::mat4(1.0f));
-		static void SubmitFullScreenQuad(Ref<MaterialInstance> material);
-		static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial = nullptr);
-		static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Shader> shader);
+        static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderMeshWithoutMaterial(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform);
+        static void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material);
 
-		static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
-		static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+        static void SubmitQuad(Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
+        static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial = nullptr);
 
-	private:
-		static RenderCommandQueue& GetRenderCommandQueue();
-	};
+        static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+        static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+
+        static Ref<Texture2D> GetWhiteTexture();
+        static Ref<TextureCube> GetBlackCubeTexture();
+        static Ref<Environment> GetEmptyEnvironment();
+
+        static void RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline);
+        static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);
+        static void OnShaderReloaded(size_t hash);
+
+    private:
+        static RenderCommandQueue& GetRenderCommandQueue();
+    };
 }

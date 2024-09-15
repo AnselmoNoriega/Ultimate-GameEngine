@@ -1,8 +1,21 @@
 #pragma once
 
+#include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Scene/Scene.h"
+
+#include "RendererTypes.h"
+#include "RendererCapabilities.h"
+
 namespace NR
 {
 	using RendererID = uint32_t;
+
+	enum class RendererAPIType
+	{
+		None,
+		OpenGL,
+		Vulkan
+	};
 
 	enum class PrimitiveType
 	{
@@ -11,47 +24,33 @@ namespace NR
 		Triangles
 	};
 
-	enum class RendererAPIType
-	{
-		None,
-		OpenGL
-	}; 
-	
-	struct RenderAPICapabilities
-	{
-		std::string Vendor;
-		std::string Renderer;
-		std::string Version;
-
-		int MaxSamples = 0;
-		float MaxAnisotropy = 0.0f;
-		int MaxTextureUnits = 0;
-	};
-
 	class RendererAPI
 	{
 	public:
-		static void Init();
-		static void Shutdown();
+		virtual void Init() = 0;
+		virtual void Shutdown() = 0;
 
-		static void Clear(float r, float g, float b, float a);
-		static void SetClearColor(float r, float g, float b, float a);
+		virtual void BeginFrame() = 0;
+		virtual void EndFrame() = 0;
 
-		static void DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest = true, bool faceCulling = true);
-		static void SetLineThickness(float thickness);
+		virtual void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material) = 0;
+		virtual void BeginRenderPass(const Ref<RenderPass>& renderPass) = 0;
+		virtual void EndRenderPass() = 0;
 
-		static RenderAPICapabilities& GetCapabilities()
-		{
-			static RenderAPICapabilities capabilities;
-			return capabilities;
-		}
+		virtual void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow) = 0;
+		virtual std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath) = 0;
+
+		virtual void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) = 0;
+		virtual void RenderMeshWithoutMaterial(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) = 0;
+		virtual void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform) = 0;
+
+		virtual RendererCapabilities& GetCapabilities() = 0;
 
 		static RendererAPIType Current() { return sCurrentRendererAPI; }
 
-	private:
-		static void LoadRequiredAssets();
+		static void SetAPI(RendererAPIType api);
 
 	private:
-		static RendererAPIType sCurrentRendererAPI;
+		inline static RendererAPIType sCurrentRendererAPI = RendererAPIType::Vulkan;
 	};
 }

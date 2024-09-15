@@ -9,252 +9,194 @@
 
 #include "Shader.h"
 
+#include "NotRed/Platform/OpenGL/GLRenderer.h"
+#include "NotRed/Platform/Vulkan/VkRenderer.h"
+
 namespace NR
 {
-    RendererAPIType RendererAPI::sCurrentRendererAPI = RendererAPIType::OpenGL;
+    static std::unordered_map<size_t, Ref<Pipeline>> sPipelineCache;
+
+    static RendererAPI* sRendererAPI = nullptr;
+
+    struct ShaderDependencies
+    {
+        std::vector<Ref<Pipeline>> Pipelines;
+        std::vector<Ref<Material>> Materials;
+    };
+
+    static std::unordered_map<size_t, ShaderDependencies> sShaderDependencies;
+
+    void Renderer::RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline)
+    {
+        sShaderDependencies[shader->GetHash()].Pipelines.push_back(pipeline);
+    }
+
+    void Renderer::RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material)
+    {
+        sShaderDependencies[shader->GetHash()].Materials.push_back(material);
+    }
+
+    void Renderer::OnShaderReloaded(size_t hash)
+    {
+        if (sShaderDependencies.find(hash) != sShaderDependencies.end())
+        {
+            auto& dependencies = sShaderDependencies.at(hash);
+            for (auto& pipeline : dependencies.Pipelines)
+            {
+                pipeline->Invalidate();
+            }
+
+            for (auto& material : dependencies.Materials)
+            {
+                material->Invalidate();
+            }
+        }
+    }
+
+    void RendererAPI::SetAPI(RendererAPIType api)
+    {
+        sCurrentRendererAPI = api;
+    }
 
     struct RendererData
     {
-        Ref<RenderPass> mActiveRenderPass;
-        RenderCommandQueue mCommandQueue;
         Ref<ShaderLibrary> mShaderLibrary;
 
-        Ref<VertexBuffer> mFullscreenQuadVertexBuffer;
-        Ref<IndexBuffer> mFullscreenQuadIndexBuffer;
-        Ref<Pipeline> mFullscreenQuadPipeline;
+        Ref<Texture2D> WhiteTexture;
+        Ref<TextureCube> BlackCubeTexture;
+        Ref<Environment> EmptyEnvironment;
     };
 
-    static RendererData sData;
+    static RendererData* sData = nullptr;
+    static RenderCommandQueue* sCommandQueue = nullptr;
+
+    static RendererAPI* InitRendererAPI()
+    {
+        switch (RendererAPI::Current())
+        {
+        case RendererAPIType::OpenGL: return new GLRenderer();
+        case RendererAPIType::Vulkan: return new VkRenderer();
+        default:
+        {
+            NR_CORE_ASSERT(false, "Unknown RendererAPI");
+            return nullptr;
+        }
+        }
+    }
 
     void Renderer::Init()
     {
-        sData.mShaderLibrary = Ref<ShaderLibrary>::Create();
+        sData = new RendererData();
+        sCommandQueue = new RenderCommandQueue();
+        sRendererAPI = InitRendererAPI();
 
-        Renderer::Submit([]() { RendererAPI::Init(); });
+        sData->mShaderLibrary = Ref<ShaderLibrary>::Create();
 
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentMipFilter");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EquirectangularToCubeMap");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentIrradiance");
+
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/SceneComposite");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Texture");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
 
+        // Compile shaders
+        Renderer::WaitAndRender();
+
+        uint32_t whiteTextureData = 0xffffffff;
+        sData->WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
+
+        uint32_t blackTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+        sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackTextureData);
+
+        sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
+
+        sRendererAPI->Init();
         SceneRenderer::Init();
+    }
 
-        // Create fullscreen quad
-        float x = -1;
-        float y = -1;
-        float width = 2, height = 2;
-        struct QuadVertex
-        {
-            glm::vec3 Position;
-            glm::vec2 TexCoord;
-        };
+    void Renderer::Shutdown()
+    {
+        sShaderDependencies.clear();
+        SceneRenderer::Shutdown();
+        sRendererAPI->Shutdown();
 
-        QuadVertex* data = new QuadVertex[4];
+        delete sData;
+        delete sCommandQueue;
+    }
 
-        data[0].Position = glm::vec3(x, y, 0.1f);
-        data[0].TexCoord = glm::vec2(0, 0);
-
-        data[1].Position = glm::vec3(x + width, y, 0.1f);
-        data[1].TexCoord = glm::vec2(1, 0);
-
-        data[2].Position = glm::vec3(x + width, y + height, 0.1f);
-        data[2].TexCoord = glm::vec2(1, 1);
-
-        data[3].Position = glm::vec3(x, y + height, 0.1f);
-        data[3].TexCoord = glm::vec2(0, 1);
-
-        PipelineSpecification pipelineSpecification;
-        pipelineSpecification.Layout = {
-            { ShaderDataType::Float3, "a_Position" },
-            { ShaderDataType::Float2, "a_TexCoord" }
-        };
-        sData.mFullscreenQuadPipeline = Pipeline::Create(pipelineSpecification);
-
-        sData.mFullscreenQuadVertexBuffer = VertexBuffer::Create(data, 4 * sizeof(QuadVertex));
-        uint32_t indices[6] = { 0, 1, 2, 2, 3, 0, };
-        sData.mFullscreenQuadIndexBuffer = IndexBuffer::Create(indices, 6 * sizeof(uint32_t));
-
-        Renderer2D::Init();
+    RendererCapabilities& Renderer::GetCapabilities()
+    {
+        return sRendererAPI->GetCapabilities();
     }
 
     Ref<ShaderLibrary> Renderer::GetShaderLibrary()
     {
-        return sData.mShaderLibrary;
-    }
-
-    void Renderer::Clear()
-    {
-        Renderer::Submit([]() {
-            RendererAPI::Clear(0.0f, 0.0f, 0.0f, 1.0f);
-            });
-    }
-
-    void Renderer::Clear(float r, float g, float b, float a)
-    {
-        Renderer::Submit([=]() {
-            RendererAPI::Clear(r, g, b, a);
-            });
-    }
-
-    void Renderer::ClearMagenta()
-    {
-        Clear(1, 0, 1);
-    }
-
-    void Renderer::SetClearColor(float r, float g, float b, float a)
-    {
-
-    }
-
-    void Renderer::DrawIndexed(uint32_t count, PrimitiveType type, bool depthTest, bool faceCulling)
-    {
-        Renderer::Submit([=]() {
-            RendererAPI::DrawIndexed(count, type, depthTest, faceCulling);
-            });
-    }
-
-    void Renderer::SetLineThickness(float thickness)
-    {
-        Renderer::Submit([=]() {
-            RendererAPI::SetLineThickness(thickness);
-            });
+        return sData->mShaderLibrary;
     }
 
     void Renderer::WaitAndRender()
     {
-        sData.mCommandQueue.Execute();
+        sCommandQueue->Execute();
     }
 
     void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
-        sData.mActiveRenderPass = renderPass;
-
-        renderPass->GetSpecification().TargetFrameBuffer->Bind();
-        if (clear)
-        {
-            const glm::vec4& clearColor = renderPass->GetSpecification().TargetFrameBuffer->GetSpecification().ClearColor;
-            Renderer::Submit([=]() {
-                RendererAPI::Clear(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
-                });
-        }
+        sRendererAPI->BeginRenderPass(renderPass);
     }
 
     void Renderer::EndRenderPass()
     {
-        NR_CORE_ASSERT(sData.mActiveRenderPass, "No active render pass! Have you called Renderer::EndRenderPass twice?");
-        sData.mActiveRenderPass->GetSpecification().TargetFrameBuffer->Unbind();
-        sData.mActiveRenderPass = nullptr;
+        sRendererAPI->EndRenderPass();
     }
 
-    void Renderer::SubmitQuad(Ref<MaterialInstance> material, const glm::mat4& transform)
+    void Renderer::BeginFrame()
     {
-        bool depthTest = true;
-        bool cullFace = true;
-        if (material)
-        {
-            material->Bind();
-            depthTest = material->IsFlagActive(MaterialFlag::DepthTest);
-            cullFace = !material->IsFlagActive(MaterialFlag::TwoSided);
-
-            auto shader = material->GetShader();
-            shader->SetMat4("uTransform", transform);
-        }
-
-        sData.mFullscreenQuadVertexBuffer->Bind();
-        sData.mFullscreenQuadPipeline->Bind();
-        sData.mFullscreenQuadIndexBuffer->Bind();
-        Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest, cullFace);
+        sRendererAPI->BeginFrame();
     }
 
-    void Renderer::SubmitFullScreenQuad(Ref<MaterialInstance> material)
+    void Renderer::EndFrame()
     {
-        bool depthTest = true;
-        bool cullFace = true;
-        if (material)
-        {
-            material->Bind();
-            depthTest = material->IsFlagActive(MaterialFlag::DepthTest);
-            cullFace = !material->IsFlagActive(MaterialFlag::TwoSided);
-        }
-
-        sData.mFullscreenQuadVertexBuffer->Bind();
-        sData.mFullscreenQuadPipeline->Bind();
-        sData.mFullscreenQuadIndexBuffer->Bind();
-
-        Renderer::DrawIndexed(6, PrimitiveType::Triangles, depthTest, cullFace);
+        sRendererAPI->EndFrame();
     }
 
-    void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<MaterialInstance> overrideMaterial)
+    void Renderer::SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow)
     {
-        mesh->mVertexBuffer->Bind();
-        mesh->mPipeline->Bind();
-        mesh->mIndexBuffer->Bind();
-
-        auto& materials = mesh->GetMaterials();
-        for (Submesh& submesh : mesh->mSubmeshes)
-        {
-            auto material = overrideMaterial ? overrideMaterial : materials[submesh.MaterialIndex];
-            auto shader = material->GetShader();
-            material->Bind();
-
-            if (mesh->mIsAnimated)
-            {
-                for (size_t i = 0; i < mesh->mBoneTransforms.size(); ++i)
-                {
-                    std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
-                    shader->SetMat4(uniformName, mesh->mBoneTransforms[i]);
-                }
-            }
-            shader->SetMat4("uTransform", transform * submesh.Transform);
-
-            Renderer::Submit([submesh, material]()
-                {
-                    if (material->IsFlagActive(MaterialFlag::DepthTest))
-                    {
-                        glEnable(GL_DEPTH_TEST);
-                    }
-                    else
-                    {
-                        glDisable(GL_DEPTH_TEST);
-                    }
-
-                    if (!material->IsFlagActive(MaterialFlag::TwoSided))
-                    {
-                        glEnable(GL_CULL_FACE);
-                    }
-                    else
-                    {
-                        glDisable(GL_CULL_FACE);
-                    }
-
-                    glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
-                });
-        }
+        sRendererAPI->SetSceneEnvironment(environment, shadow);
     }
 
-    void Renderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Shader> shader)
+    std::pair<Ref<TextureCube>, Ref<TextureCube>> Renderer::CreateEnvironmentMap(const std::string& filepath)
     {
-        mesh->mVertexBuffer->Bind();
-        mesh->mPipeline->Bind();
-        mesh->mIndexBuffer->Bind();
+        return sRendererAPI->CreateEnvironmentMap(filepath);
+    }
 
-        for (Submesh& submesh : mesh->mSubmeshes)
-        {
-            if (mesh->mIsAnimated)
-            {
-                for (size_t i = 0; i < mesh->mBoneTransforms.size(); ++i)
-                {
-                    std::string uniformName = std::string("uBoneTransforms[") + std::to_string(i) + std::string("]");
-                    shader->SetMat4(uniformName, mesh->mBoneTransforms[i]);
-                }
-            }
+    void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    {
+        sRendererAPI->RenderMesh(pipeline, mesh, transform);
+    }
 
-            shader->SetMat4("uTransform", transform * submesh.Transform);
+    void Renderer::RenderMeshWithoutMaterial(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    {
+        sRendererAPI->RenderMeshWithoutMaterial(pipeline, mesh, transform);
+    }
 
-            Renderer::Submit([submesh]() {
-                    glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
-                });
-        }
+    void Renderer::RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform)
+    {
+        sRendererAPI->RenderQuad(pipeline, material, transform);
+    }
+
+    void Renderer::SubmitQuad(Ref<Material> material, const glm::mat4& transform)
+    {
+    }
+
+    void Renderer::SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
+    {
+        sRendererAPI->SubmitFullScreenQuad(pipeline, material);
     }
 
     void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
@@ -298,8 +240,24 @@ namespace NR
         }
     }
 
+    Ref<Texture2D> Renderer::GetWhiteTexture()
+    {
+        return sData->WhiteTexture;
+    }
+
+    Ref<TextureCube> Renderer::GetBlackCubeTexture()
+    {
+        return sData->BlackCubeTexture;
+    }
+
+
+    Ref<Environment> Renderer::GetEmptyEnvironment()
+    {
+        return sData->EmptyEnvironment;
+    }
+
     RenderCommandQueue& Renderer::GetRenderCommandQueue()
     {
-        return sData.mCommandQueue;
+        return *sCommandQueue;
     }
 }

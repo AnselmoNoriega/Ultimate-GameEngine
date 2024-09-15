@@ -4,6 +4,7 @@
 
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/Shader.h"
+#include "NotRed/Renderer/RenderPass.h"
 
 namespace NR
 {
@@ -11,6 +12,9 @@ namespace NR
 	{
 		Ref<NR::Shader> Shader;
 		VertexBufferLayout Layout;
+		Ref<RenderPass> RenderPass;
+
+		std::string DebugName;
 	};
 
 	class Pipeline : public RefCounted
