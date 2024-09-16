@@ -33,7 +33,7 @@ namespace NR
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;
 
-		virtual void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material) = 0;
+		virtual void SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material) = 0;
 		virtual void BeginRenderPass(const Ref<RenderPass>& renderPass) = 0;
 		virtual void EndRenderPass() = 0;
 

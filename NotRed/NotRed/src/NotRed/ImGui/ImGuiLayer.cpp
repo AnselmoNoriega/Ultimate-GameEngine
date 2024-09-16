@@ -16,8 +16,8 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None:    return nullptr;
-        case RendererAPIType::Vulkan:  return new VkImGuiLayer();
         case RendererAPIType::OpenGL:  return new GLImGuiLayer();
+        case RendererAPIType::Vulkan:  return new VkImGuiLayer();
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

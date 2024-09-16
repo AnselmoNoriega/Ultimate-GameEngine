@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RendererAPI.h"
+#include "RendererTypes.h"
 
 namespace NR
 {
@@ -86,8 +86,9 @@ namespace NR
             CalculateOffsetsAndStride();
         }
 
-        inline uint32_t GetStride() const { return mStride; }
-        inline const std::vector<VertexBufferElement>& GetElements() const { return mElements; }
+        uint32_t GetStride() const { return mStride; }
+        const std::vector<VertexBufferElement>& GetElements() const { return mElements; }
+        uint32_t GetElementCount() const { return mElements.size(); }
 
         std::vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
         std::vector<VertexBufferElement>::iterator end() { return mElements.end(); }

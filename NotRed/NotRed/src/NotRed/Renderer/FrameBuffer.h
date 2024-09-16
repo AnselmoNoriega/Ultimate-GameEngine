@@ -23,7 +23,8 @@ namespace NR
 	struct FrameBufferTextureSpecification
 	{
 		FrameBufferTextureSpecification() = default;
-		FramebufferTextureSpecification(ImageFormat format) : Format(format) {}
+		FrameBufferTextureSpecification(ImageFormat format) 
+			: Format(format) {}
 
 		ImageFormat Format;
 	};
@@ -46,7 +47,7 @@ namespace NR
 		FrameBufferAttachmentSpecification Attachments;
 		uint32_t Samples = 1;
 
-		bool Resizable = false;
+		bool Resizable = true;
 
 		bool SwapChainTarget = false;
 
@@ -63,7 +64,7 @@ namespace NR
 		virtual void Unbind() const = 0;
 
 		virtual void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) = 0;
-		virtual void AddResizeCallback(const std::function<void(Ref<Framebuffer>)>& func) = 0;
+		virtual void AddResizeCallback(const std::function<void(Ref<FrameBuffer>)>& func) = 0;
 
 		virtual void BindTexture(uint32_t attachmentIndex = 0, uint32_t slot = 0) const = 0;
 

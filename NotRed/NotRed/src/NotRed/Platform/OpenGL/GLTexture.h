@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NotRed/Renderer/RendererAPI.h"
+#include "NotRed/Renderer/RendererTypes.h"
 #include "NotRed/Renderer/Texture.h"
 
 namespace NR
@@ -8,7 +8,7 @@ namespace NR
 	class GLTexture2D : public Texture2D
 	{
 	public:
-		GLTexture2D(TextureFormat format, uint32_t width, uint32_t height, TextureWrap wrap);
+		GLTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data);
 		GLTexture2D(const std::string& path, bool standardRGB);
 		~GLTexture2D() override;
 
@@ -19,32 +19,26 @@ namespace NR
 		void Lock() override;
 		void Unlock() override;
 
-		void Resize(uint32_t width, uint32_t height) override;
-
-		RendererID GetRendererID() const override { return mID; }
 		const std::string& GetPath() const override { return mFilePath; }
 
 		bool Loaded() const override { return mLoaded; }
 
-		TextureFormat GetFormat() const override { return mFormat; }
+		Ref<Image2D> GetImage() const override { return mImage; }
+		ImageFormat GetFormat() const override { return mImage->GetFormat(); }
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 
+		uint64_t GetHash() const override { return mImage->GetHash(); }
+
 		Buffer GetWriteableBuffer() override;
 
-		bool operator==(const Texture& other) const override
-		{
-			return mID == ((GLTexture2D&)other).mID;
-		}
-
 	private:
-		RendererID mID;
+		Ref<Image2D> mImage;
 
 		bool mLocked = false;
 		bool mIsHDR = false;
 		bool mLoaded = false;
 
-		TextureFormat mFormat;
 		uint32_t mWidth, mHeight;
 		Buffer mImageData;
 		TextureWrap mWrap = TextureWrap::Clamp;
@@ -55,15 +49,16 @@ namespace NR
 	class GLTextureCube : public TextureCube
 	{
 	public:
-		GLTextureCube(TextureFormat format, uint32_t width, uint32_t height);
+		GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
 		GLTextureCube(const std::string& path);
 		~GLTextureCube() override;
 
 		void Bind(uint32_t slot = 0) const override;
 
-		RendererID GetRendererID() const override { return mID; }
+		RendererID GetRendererID() const { return mID; }
+		uint64_t GetHash() const override { return (uint64_t)mID; }
 
-		TextureFormat GetFormat() const override { return mFormat; }
+		ImageFormat GetFormat() const override { return mFormat; }
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 
@@ -71,18 +66,13 @@ namespace NR
 
 		const std::string& GetPath() const override { return mFilePath; }
 
-		bool operator==(const Texture& other) const override
-		{
-			return mID == ((GLTextureCube&)other).mID;
-		}
-
 	private:
 		RendererID mID;
 
-		TextureFormat mFormat;
+		ImageFormat mFormat;
 		TextureWrap mWrap = TextureWrap::Clamp;
 		uint32_t mWidth, mHeight;
-		unsigned char* mImageData;
+		Buffer mLocalStorage;
 
 		std::string mFilePath;
 	};

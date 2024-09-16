@@ -1,9 +1,9 @@
 #pragma once
 
-#include "NotRed/Renderer/Shader.h"
 #include <glad/glad.h>
+#include <spirv_cross/spirv_glsl.hpp>
 
-#include "GLShaderUniform.h"
+#include "NotRed/Renderer/Shader.h"
 
 namespace NR
 {
@@ -11,21 +11,30 @@ namespace NR
 	{
 	public:
 		GLShader() = default;
-		GLShader(const std::string& filepath);
-		static Ref<GLShader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc);
+		GLShader(const std::string& filepath, bool forceCompile);
+		static Ref<GLShader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc);
 
 		void Bind() override;
 		RendererID GetRendererID() const override { return mID; }
 
-		void Reload() override;
+		void Reload(bool forceCompile = false) override;
 
-		void UploadUniformBuffer(const UniformBufferBase& uniformBuffer) override;
+		size_t GetHash() const override;
 
-		void SetVSMaterialUniformBuffer(Buffer buffer) override;
-		void SetPSMaterialUniformBuffer(Buffer buffer) override;
+		void SetUniformBuffer(const std::string& name, const void* data, uint32_t size) override;
 
+		void SetUniform(const std::string& fullname, uint32_t value) override;
+		void SetUniform(const std::string& fullname, int value) override;
+		void SetUniform(const std::string& fullname, float value) override;
+		void SetUniform(const std::string& fullname, const glm::vec2& value) override;
+		void SetUniform(const std::string& fullname, const glm::vec3& value) override;
+		void SetUniform(const std::string& fullname, const glm::vec4& value) override;
+		void SetUniform(const std::string& fullname, const glm::mat3& value) override;
+		void SetUniform(const std::string& fullname, const glm::mat4& value) override;
+
+		void UploadUniformUInt(const std::string& name, uint32_t value);
+		void SetUInt(const std::string& name, uint32_t value) override;
 		void SetInt(const std::string& name, int value) override;
-		virtual void SetBool(const std::string& name, bool value) override;
 		void SetFloat(const std::string& name, float value) override;
 		void SetFloat2(const std::string& name, const glm::vec2& value) override;
 		void SetFloat3(const std::string& name, const glm::vec3& value) override;
@@ -37,27 +46,25 @@ namespace NR
 
 		const std::string& GetName() const override { return mName; }
 
-	private:
-		void Load(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc = "");
+		const std::unordered_map<std::string, ShaderBuffer>& GetShaderBuffers() const override { return mBuffers; }
+		const std::unordered_map<std::string, ShaderResourceDeclaration>& GetResources() const override { return mResources; }
 
-		std::string GetShaderName(const std::string& filepath);
+		const ShaderResourceDeclaration* GetShaderResource(const std::string& name);
+
+		static void ClearUniformBuffers();
+
+	private:
+		void Load(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc, bool forceCompile);
+		void Compile(const std::vector<uint32_t>& vertexBinary, const std::vector<uint32_t>& fragmentBinary);
+		void Reflect(std::vector<uint32_t>& data);
+
+		void CompileOrGetVulkanBinary(std::unordered_map<uint32_t, std::vector<uint32_t>>& outputBinary, bool forceCompile = false);
+		void CompileOrGetOpenGLBinary(const std::unordered_map<uint32_t, std::vector<uint32_t>>&, bool forceCompile = false);
 
 		void ParseFile(const std::string& filepath, std::string& output, bool isCompute = false);
-		void Parse(const std::string& source, ShaderDomain type);
-		void ParseUniform(const std::string& statement, ShaderDomain domain);
-		void ParseUniformStruct(const std::string& block, ShaderDomain domain);
-		
-		ShaderStruct* FindStruct(const std::string& name);
+
+		void ParseConstantBuffers(const spirv_cross::CompilerGLSL& compiler);
 		int32_t GetUniformLocation(const std::string& name) const;
-
-		void Compile();
-		void ResolveUniforms();
-		void ValidateUniforms();
-
-		void ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, Buffer buffer);
-		void ResolveAndSetUniforms(const Ref<GLShaderUniformBufferDeclaration>& decl, Buffer buffer);
-		void ResolveAndSetUniformArray(GLShaderUniformDeclaration* uniform, Buffer buffer);
-		void ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, byte* data, int32_t offset);
 
 		void UploadUniformInt(uint32_t location, int32_t value);
 		void UploadUniformInt(const std::string& name, int32_t value);
@@ -83,16 +90,6 @@ namespace NR
 		void UploadUniformMat4Array(uint32_t location, const glm::mat4& values, uint32_t count);
 		void UploadUniformMat4(const std::string& name, const glm::mat4& value);
 
-		void UploadUniformStruct(GLShaderUniformDeclaration* uniform, byte* buffer, uint32_t offset);
-		
-		const ShaderUniformBufferList& GetVSRendererUniforms() const override { return mVSRendererUniformBuffers; }
-		const ShaderUniformBufferList& GetPSRendererUniforms() const override { return mPSRendererUniformBuffers; }
-		bool HasVSMaterialUniformBuffer() const override { return (bool)mVSMaterialUniformBuffer; }
-		bool HasPSMaterialUniformBuffer() const override { return (bool)mPSMaterialUniformBuffer; }
-		const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const override { return *mVSMaterialUniformBuffer; }
-		const ShaderUniformBufferDeclaration& GetPSMaterialUniformBuffer() const override { return *mPSMaterialUniformBuffer; }
-		const ShaderResourceList& GetResources() const override { return mResources; }
-
 	private:
 		RendererID mID = 0;
 		std::string mName, mAssetPath;
@@ -101,13 +98,14 @@ namespace NR
 		bool mLoaded = false;
 		bool mIsCompute = false;
 
+		uint32_t mConstantBufferOffset = 0;
+
 		std::vector<ShaderReloadedCallback> mShaderReloadedCallbacks;
 
-		ShaderUniformBufferList mVSRendererUniformBuffers;
-		ShaderUniformBufferList mPSRendererUniformBuffers;
-		Ref<GLShaderUniformBufferDeclaration> mVSMaterialUniformBuffer;
-		Ref<GLShaderUniformBufferDeclaration> mPSMaterialUniformBuffer;
-		ShaderResourceList mResources;
-		ShaderStructList mStructs;
+		std::unordered_map<std::string, ShaderBuffer> mBuffers;
+		std::unordered_map<std::string, ShaderResourceDeclaration> mResources;
+		std::unordered_map<std::string, GLint> mUniformLocations;
+
+		inline static std::unordered_map<uint32_t, ShaderUniformBuffer> sUniformBuffers;
 	};
 }

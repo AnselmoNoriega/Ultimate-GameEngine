@@ -5,23 +5,538 @@
 #include <sstream>
 #include <limits>
 
+#include <shaderc/shaderc.hpp>
+#include <filesystem>
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include "NotRed/Renderer/Renderer.h"
 
-#include "NotRed/Util/StringUtils.h"
+#include "NotRed/Util/FileSystem.h"
 
 namespace NR
 {
-#define UNIFORMLOGGING 0
-
-#if UNIFORMLOGGING
+#define UNIFORmLOGGING 0
+#if UNIFORmLOGGING
 #define NR_LOG_UNIFORM(...) NR_CORE_WARN(__VA_ARGS__)
 #else
 #define NR_LOG_UNIFORM
 #endif
 
-#pragma region Utils
+#define PRINT_SHADERS 1
+
+    namespace Utils
+    {
+        static const char* GetCacheDirectory()
+        {
+            return "Assets/Cache/Shader/OpenGL";
+        }
+
+        static void CreateCacheDirectoryIfNeeded()
+        {
+            std::string cacheDirectory = GetCacheDirectory();
+            if (!std::filesystem::exists(cacheDirectory))
+            {
+                std::filesystem::create_directories(cacheDirectory);
+            }
+        }
+    }
+
+    GLShader::GLShader(const std::string& filepath, bool forceRecompile)
+        : mAssetPath(filepath)
+    {
+        size_t fileName = filepath.find_last_of("/\\");
+        mName = fileName != std::string::npos ? filepath.substr(fileName + 1) : filepath;
+
+        Reload(forceRecompile);
+    }
+
+    Ref<GLShader> GLShader::CreateFromString(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc)
+    {
+        Ref<GLShader> shader = Ref<GLShader>::Create();
+        shader->Load(vertSrc, fragSrc, computeSrc, true);
+        return shader;
+    }
+
+    void GLShader::Reload(bool forceCompile)
+    {
+        std::string compute = "";
+        ParseFile(mAssetPath + "/" + mName + ".comp", compute, true);
+
+        std::string vert = "";
+        std::string frag = "";
+
+        if (compute == "")
+        {
+            ParseFile(mAssetPath + "/" + mName + ".vert", vert);
+            ParseFile(mAssetPath + "/" + mName + ".frag", frag);
+        }
+
+        Load(vert, frag, compute, forceCompile);
+    }
+
+    void GLShader::Load(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc, bool forceCompile)
+    {
+        if (computeSrc.empty())
+        {
+            mShaderSource.insert({ GL_VERTEX_SHADER, vertSrc });
+            mShaderSource.insert({ GL_FRAGMENT_SHADER, fragSrc });
+        }
+        else
+        {
+            mIsCompute = true;
+            mShaderSource.insert({ GL_VERTEX_SHADER, vertSrc });
+        }
+
+        Utils::CreateCacheDirectoryIfNeeded();
+        Ref<GLShader> instance = this;
+        Renderer::Submit([instance, forceCompile]() mutable
+            {
+                std::array<std::vector<uint32_t>, 2> vulkanBinaries;
+                std::unordered_map<uint32_t, std::vector<uint32_t>> shaderData;
+                instance->CompileOrGetVulkanBinary(shaderData, forceCompile);
+                instance->CompileOrGetOpenGLBinary(shaderData, forceCompile);
+            });
+    }
+
+    void GLShader::ParseFile(const std::string& filepath, std::string& output, bool isCompute)
+    {
+        std::ifstream in(filepath, std::ios::in | std::ios::binary);
+
+        if (in)
+        {
+            in.seekg(0, std::ios::end);
+            output.resize(in.tellg());
+            in.seekg(0, std::ios::beg);
+            in.read(&output[0], output.size());
+        }
+        else if (!isCompute)
+        {
+            NR_CORE_ASSERT(false, "Could not open file");
+        }
+        in.close();
+    }
+
+    void GLShader::ClearUniformBuffers()
+    {
+        sUniformBuffers.clear();
+    }
+
+    static const char* GLShaderStageCachedVulkanFileExtension(uint32_t stage)
+    {
+        switch (stage)
+        {
+        case GL_VERTEX_SHADER:    return ".cached_vulkan.vert";
+        case GL_FRAGMENT_SHADER:  return ".cached_vulkan.frag";
+        case GL_COMPUTE_SHADER:   return ".cached_vulkan.comp";
+        default:
+            NR_CORE_ASSERT(false);
+            return "";
+        }
+    }
+
+    static const char* GLShaderStageCachedOpenGLFileExtension(uint32_t stage)
+    {
+        switch (stage)
+        {
+        case GL_VERTEX_SHADER:    return ".cached_opengl.vert";
+        case GL_FRAGMENT_SHADER:  return ".cached_opengl.frag";
+        case GL_COMPUTE_SHADER:   return ".cached_opengl.comp";
+        default:
+            NR_CORE_ASSERT(false);
+            return "";
+        }
+    }
+
+    static shaderc_shader_kind GLShaderStageToShaderC(uint32_t stage)
+    {
+        switch (stage)
+        {
+        case GL_VERTEX_SHADER:    return shaderc_vertex_shader;
+        case GL_FRAGMENT_SHADER:  return shaderc_fragment_shader;
+        case GL_COMPUTE_SHADER:   return shaderc_compute_shader;
+        default:
+            NR_CORE_ASSERT(false);
+            return (shaderc_shader_kind)0;
+        }
+    }
+
+    std::string GetShaderFileExtension(uint32_t stage, std::string& assetPath)
+    {
+        switch (stage)
+        {
+        case GL_VERTEX_SHADER:    return std::string(assetPath) + ".vert";
+        case GL_FRAGMENT_SHADER:  return std::string(assetPath) + ".frag";
+        case GL_COMPUTE_SHADER:   return std::string(assetPath) + ".comp";
+        default:
+            NR_CORE_ASSERT(false);
+            return "";
+        }
+    }
+
+    static const char* GLShaderTypeToString(uint32_t stage)
+    {
+        switch (stage)
+        {
+        case GL_VERTEX_SHADER:    return "Vertex";
+        case GL_FRAGMENT_SHADER:  return "Fragment";
+        case GL_COMPUTE_SHADER:   return "Compute";
+        }
+        NR_CORE_ASSERT(false);
+        return "";
+    }
+
+    void GLShader::CompileOrGetVulkanBinary(std::unordered_map<uint32_t, std::vector<uint32_t>>& outputBinary, bool forceCompile)
+    {
+        std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+        for (auto [stage, source] : mShaderSource)
+        {
+            auto extension = GLShaderStageCachedVulkanFileExtension(stage);
+            std::filesystem::path shaderPath = GetShaderFileExtension(stage, mAssetPath);
+            if (!forceCompile)
+            {
+                auto path = cacheDirectory / (shaderPath.filename().string() + extension);
+                std::string cachedFilePath = path.string();
+
+                FILE* f = fopen(cachedFilePath.c_str(), "rb");
+                if (f)
+                {
+                    fseek(f, 0, SEEK_END);
+                    uint64_t size = ftell(f);
+                    fseek(f, 0, SEEK_SET);
+                    outputBinary[stage] = std::vector<uint32_t>(size / sizeof(uint32_t));
+                    fread(outputBinary[stage].data(), sizeof(uint32_t), outputBinary[stage].size(), f);
+                    fclose(f);
+                }
+            }
+
+            if (outputBinary[stage].size() == 0)
+            {
+                shaderc::Compiler compiler;
+                shaderc::CompileOptions options;
+                options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+                options.AddMacroDefinition("OPENGL");
+                const bool optimize = false;
+                if (optimize)
+                {
+                    options.SetOptimizationLevel(shaderc_optimization_level_performance);
+                }
+
+                // Compile shader
+                {
+                    auto& shaderSource = mShaderSource.at(stage);
+                    shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
+                        shaderSource,
+                        GLShaderStageToShaderC(stage),
+                        shaderPath.string().c_str(),
+                        options);
+
+                    if (module.GetCompilationStatus() != shaderc_compilation_status_success)
+                    {
+                        NR_CORE_ERROR(module.GetErrorMessage());
+                        NR_CORE_ASSERT(false);
+                    }
+
+                    const uint8_t* begin = (const uint8_t*)module.cbegin();
+                    const uint8_t* end = (const uint8_t*)module.cend();
+                    const ptrdiff_t size = end - begin;
+
+                    outputBinary[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
+                }
+
+                // Cache compiled shader
+                {
+                    auto path = cacheDirectory / (shaderPath.filename().string() + extension);
+                    std::string cachedFilePath = path.string();
+
+                    FILE* f = fopen(cachedFilePath.c_str(), "wb");
+                    fwrite(outputBinary[stage].data(), sizeof(uint32_t), outputBinary[stage].size(), f);
+                    fclose(f);
+                }
+            }
+        }
+    }
+
+    void GLShader::CompileOrGetOpenGLBinary(const std::unordered_map<uint32_t, std::vector<uint32_t>>& vulkanBinaries, bool forceCompile)
+    {
+        if (mID)
+        {
+            glDeleteProgram(mID);
+        }
+
+        GLuint program = glCreateProgram();
+        mID = program;
+
+        std::vector<GLuint> shaderRendererIDs;
+        shaderRendererIDs.reserve(vulkanBinaries.size());
+
+        std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+
+        mConstantBufferOffset = 0;
+        std::vector<std::vector<uint32_t>> shaderData;
+        for (auto [stage, binary] : vulkanBinaries)
+        {
+            shaderc::Compiler compiler;
+            shaderc::CompileOptions options;
+            options.SetTargetEnvironment(shaderc_target_env_opengl_compat, shaderc_env_version_opengl_4_5);
+
+            {
+                spirv_cross::CompilerGLSL glsl(binary);
+                ParseConstantBuffers(glsl);
+
+                std::filesystem::path shaderPath = GetShaderFileExtension(stage, mAssetPath);
+                auto path = cacheDirectory / (shaderPath.filename().string() + GLShaderStageCachedOpenGLFileExtension(stage));
+                std::string cachedFilePath = path.string();
+
+                std::vector<uint32_t>& shaderStageData = shaderData.emplace_back();
+
+                if (!forceCompile)
+                {
+                    FILE* f = fopen(cachedFilePath.c_str(), "rb");
+                    if (f)
+                    {
+                        fseek(f, 0, SEEK_END);
+                        uint64_t size = ftell(f);
+                        fseek(f, 0, SEEK_SET);
+                        shaderStageData = std::vector<uint32_t>(size / sizeof(uint32_t));
+                        fread(shaderStageData.data(), sizeof(uint32_t), shaderStageData.size(), f);
+                        fclose(f);
+                    }
+                }
+
+                if (!shaderStageData.size())
+                {
+                    std::string source = glsl.compile();
+#if PRINT_SHADERS
+                    printf("=========================================\n");
+                    printf("%s Shader:\n%s\n", GLShaderTypeToString(stage), source.c_str());
+                    printf("=========================================\n");
+#endif
+                    shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
+                        source,
+                        GLShaderStageToShaderC(stage),
+                        shaderPath.string().c_str(),
+                        options);
+
+                    if (module.GetCompilationStatus() != shaderc_compilation_status_success)
+                    {
+                        NR_CORE_ERROR(module.GetErrorMessage());
+                        NR_CORE_ASSERT(false);
+                    }
+
+                    shaderStageData = std::vector<uint32_t>(module.cbegin(), module.cend());
+
+                    {
+                        auto path = cacheDirectory / (shaderPath.filename().string() + GLShaderStageCachedOpenGLFileExtension(stage));
+                        std::string cachedFilePath = path.string();
+                        FILE* f = fopen(cachedFilePath.c_str(), "wb");
+                        fwrite(shaderStageData.data(), sizeof(uint32_t), shaderStageData.size(), f);
+                        fclose(f);
+                    }
+                }
+
+                GLuint shaderID = glCreateShader(stage);
+                glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, shaderStageData.data(), shaderStageData.size() * sizeof(uint32_t));
+                glSpecializeShader(shaderID, "main", 0, nullptr, nullptr);
+                glAttachShader(program, shaderID);
+
+                shaderRendererIDs.emplace_back(shaderID);
+            }
+        }
+
+        glLinkProgram(program);
+
+        // Note the different functions here: glGetProgram* instead of glGetShader*.
+        GLint isLinked = 0;
+        glGetProgramiv(program, GL_LINK_STATUS, (int*)&isLinked);
+        if (isLinked == GL_FALSE)
+        {
+            GLint maxLength = 0;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+            std::vector<GLchar> infoLog(maxLength);
+            glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+            NR_CORE_ERROR("Shader compilation failed ({0}):\n{1}", mAssetPath, &infoLog[0]);
+
+            glDeleteProgram(program);
+
+            for (auto id : shaderRendererIDs)
+            {
+                glDeleteShader(id);
+            }
+        }
+
+        // Detach shaders after a successful link. Maybe OpenGL does it already 
+        for (auto id : shaderRendererIDs)
+        {
+            glDetachShader(program, id);
+        }
+
+        // Get uniform locations
+        for (auto& [bufferName, buffer] : mBuffers)
+        {
+            for (auto& [name, uniform] : buffer.Uniforms)
+            {
+                GLint location = glGetUniformLocation(mID, name.c_str());
+                if (location == -1)
+                {
+                    NR_CORE_WARN("{0}: could not find uniform location {0}", name);
+                }
+
+                mUniformLocations[name] = location;
+            }
+        }
+
+        for (auto& shaderStageData : shaderData)
+        {
+            Reflect(shaderStageData);
+        }
+    }
+
+    static ShaderUniformType SPIRTypeToShaderUniformType(spirv_cross::SPIRType type)
+    {
+        switch (type.basetype)
+        {
+        case spirv_cross::SPIRType::Boolean:    return ShaderUniformType::Bool;
+        case spirv_cross::SPIRType::Int:        return ShaderUniformType::Int;
+        case spirv_cross::SPIRType::UInt:       return ShaderUniformType::UInt;
+        case spirv_cross::SPIRType::Float:      
+            if (type.vecsize == 1)              return ShaderUniformType::Float;
+            if (type.vecsize == 2)              return ShaderUniformType::Vec2;
+            if (type.vecsize == 3)              return ShaderUniformType::Vec3;
+            if (type.vecsize == 4)              return ShaderUniformType::Vec4;
+                                                
+            if (type.columns == 3)              return ShaderUniformType::Mat3;
+            if (type.columns == 4)              return ShaderUniformType::Mat4;
+            break;
+        }
+        NR_CORE_ASSERT(false, "Unknown type!");
+        return ShaderUniformType::None;
+    }
+
+    void GLShader::Compile(const std::vector<uint32_t>& vertexBinary, const std::vector<uint32_t>& fragmentBinary)
+    {
+
+    }
+
+    void GLShader::ParseConstantBuffers(const spirv_cross::CompilerGLSL& compiler)
+    {
+        spirv_cross::ShaderResources res = compiler.get_shader_resources();
+        for (const spirv_cross::Resource& resource : res.push_constant_buffers)
+        {
+            const auto& bufferName = resource.name;
+            auto& bufferType = compiler.get_type(resource.base_type_id);
+            auto bufferSize = compiler.get_declared_struct_size(bufferType);
+
+            // Skip empty push constant buffers - these are for the renderer only
+            if (bufferName.empty() || bufferName == "uRenderer")
+            {
+                mConstantBufferOffset += bufferSize;
+                continue;
+            }
+
+            auto location = compiler.get_decoration(resource.id, spv::DecorationLocation);
+            int memberCount = bufferType.member_types.size();
+            ShaderBuffer& buffer = mBuffers[bufferName];
+            buffer.Name = bufferName;
+            buffer.Size = bufferSize - mConstantBufferOffset;
+            for (int i = 0; i < memberCount; i++)
+            {
+                auto type = compiler.get_type(bufferType.member_types[i]);
+                const auto& memberName = compiler.get_member_name(bufferType.self, i);
+                auto size = compiler.get_declared_struct_member_size(bufferType, i);
+                auto offset = compiler.type_struct_member_offset(bufferType, i) - mConstantBufferOffset;
+
+                std::string uniformName = bufferName + "." + memberName;
+                buffer.Uniforms[uniformName] = ShaderUniform(uniformName, SPIRTypeToShaderUniformType(type), size, offset);
+            }
+
+            mConstantBufferOffset += bufferSize;
+        }
+    }
+
+    void GLShader::Reflect(std::vector<uint32_t>& data)
+    {
+        spirv_cross::Compiler comp(data);
+        spirv_cross::ShaderResources res = comp.get_shader_resources();
+
+        NR_CORE_TRACE("GLShader::Reflect - {0}", mAssetPath);
+        NR_CORE_TRACE("   {0} Uniform Buffers", res.uniform_buffers.size());
+        NR_CORE_TRACE("   {0} Resources", res.sampled_images.size());
+
+        glUseProgram(mID);
+
+        uint32_t bufferIndex = 0;
+        for (const spirv_cross::Resource& resource : res.uniform_buffers)
+        {
+            auto& bufferType = comp.get_type(resource.base_type_id);
+            int memberCount = bufferType.member_types.size();
+            uint32_t bindingPoint = comp.get_decoration(resource.id, spv::DecorationBinding);
+            uint32_t bufferSize = comp.get_declared_struct_size(bufferType);
+
+            if (sUniformBuffers.find(bindingPoint) == sUniformBuffers.end())
+            {
+                ShaderUniformBuffer& buffer = sUniformBuffers[bindingPoint];
+                buffer.Name = resource.name;
+                buffer.BindingPoint = bindingPoint;
+                buffer.Size = bufferSize;
+
+                glCreateBuffers(1, &buffer.RendererID);
+                glBindBuffer(GL_UNIFORM_BUFFER, buffer.RendererID);
+                glBufferData(GL_UNIFORM_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
+                glBindBufferBase(GL_UNIFORM_BUFFER, buffer.BindingPoint, buffer.RendererID);
+
+                NR_CORE_TRACE("Created Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+
+                glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        }
+            else
+            {
+                // Validation
+                ShaderUniformBuffer& buffer = sUniformBuffers.at(bindingPoint);
+                NR_CORE_ASSERT(buffer.Name == resource.name); // Must be the same buffer
+                if (bufferSize > buffer.Size) // Resize buffer if needed
+                {
+                    buffer.Size = bufferSize;
+
+                    glDeleteBuffers(1, &buffer.RendererID);
+                    glCreateBuffers(1, &buffer.RendererID);
+                    glBindBuffer(GL_UNIFORM_BUFFER, buffer.RendererID);
+                    glBufferData(GL_UNIFORM_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
+                    glBindBufferBase(GL_UNIFORM_BUFFER, buffer.BindingPoint, buffer.RendererID);
+
+                    NR_CORE_TRACE("Resized Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+                }
+            }
+    }
+
+        int32_t sampler = 0;
+        for (const spirv_cross::Resource& resource : res.sampled_images)
+        {
+            auto& type = comp.get_type(resource.base_type_id);
+            auto binding = comp.get_decoration(resource.id, spv::DecorationBinding);
+            const auto& name = resource.name;
+            uint32_t dimension = type.image.dim;
+
+            GLint location = glGetUniformLocation(mID, name.c_str());
+            mResources[name] = ShaderResourceDeclaration(name, binding, 1);
+            glUniform1i(location, binding);
+        }
+}
+
+    void GLShader::AddShaderReloadedCallback(const ShaderReloadedCallback& callback)
+    {
+        mShaderReloadedCallbacks.push_back(callback);
+    }
+
+    void GLShader::Bind()
+    {
+        Renderer::Submit([=]() {
+            glUseProgram(mID);
+            });
+    }
+
+#pragma region Parsing helper functions
 
     const char* FindToken(const char* str, const std::string& token)
     {
@@ -43,16 +558,6 @@ namespace NR
     const char* FindToken(const std::string& string, const std::string& token)
     {
         return FindToken(string.c_str(), token);
-    }
-
-    std::vector<std::string> Tokenize(const std::string& string)
-    {
-        return Utils::SplitString(string, " \t\n\r");
-    }
-
-    std::vector<std::string> GetLines(const std::string& string)
-    {
-        return Utils::SplitString(string, "\n");
     }
 
     std::string GetBlock(const char* str, const char** outPosition)
@@ -87,728 +592,139 @@ namespace NR
         return std::string(str, length);
     }
 
+    bool StartsWith(const std::string& string, const std::string& start)
+    {
+        return string.find(start) == 0;
+    }
+
     static bool IsTypeStringResource(const std::string& type)
     {
-        if (type == "sampler1D")		return true;
-        if (type == "sampler2D")		return true;
-        if (type == "sampler2DMS")		return true;
-        if (type == "samplerCube")		return true;
-        if (type == "sampler2DShadow")	return true;
+        if (type == "sampler1D")		  return true;
+        if (type == "sampler2D")		  return true;
+        if (type == "sampler2DMS")		  return true;
+        if (type == "samplerCube")		  return true;
+        if (type == "sampler2DShadow")	  return true;
         return false;
     }
-
 #pragma endregion
-
-    GLShader::GLShader(const std::string& filepath)
-    {
-        mAssetPath = filepath;
-        Reload();
-    }
-
-    Ref<GLShader> GLShader::CreateFromString(const std::string& vertSrc, const std::string& fragSrc)
-    {
-        Ref<GLShader> shader = Ref<GLShader>::Create();
-        shader->Load(vertSrc, fragSrc);
-        return shader;
-    }
-
-    void GLShader::Reload()
-    {
-        if (mAssetPath.empty())
-        {
-            NR_WARN("This shader can't be reloaded");
-            return;
-        }
-
-        mName = GetShaderName(mAssetPath);
-
-        std::string compute = "";
-        ParseFile(mAssetPath + "/" + mName + ".comp", compute, true);
-
-        std::string vert;
-        std::string frag;
-
-        if (compute == "")
-        {
-            ParseFile(mAssetPath + "/" + mName + ".vert", vert);
-            ParseFile(mAssetPath + "/" + mName + ".frag", frag);
-        }
-
-        Load(vert, frag, compute);
-    }
-
-    void GLShader::Load(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc)
-    {
-        mShaderSource.clear();
-
-        mResources.clear();
-        mStructs.clear();
-        mVSMaterialUniformBuffer.Reset();
-        mPSMaterialUniformBuffer.Reset();
-
-        if (computeSrc == "")
-        {
-            Parse(vertSrc, ShaderDomain::Vertex);
-            mShaderSource.insert({ glCreateShader(GL_VERTEX_SHADER), vertSrc });
-
-            Parse(fragSrc, ShaderDomain::Pixel);
-            mShaderSource.insert({ glCreateShader(GL_FRAGMENT_SHADER), fragSrc });
-        }
-        else
-        {
-            mIsCompute = true;
-            mShaderSource.insert({ glCreateShader(GL_COMPUTE_SHADER), computeSrc });
-        }
-
-        Renderer::Submit([=]() {
-            if (mID)
-            {
-                glDeleteProgram(mID);
-            }
-
-            Compile();
-            if (!mIsCompute)
-            {
-                ResolveUniforms();
-                ValidateUniforms();
-            }
-
-            if (mLoaded)
-            {
-                for (auto& callback : mShaderReloadedCallbacks)
-                {
-                    callback();
-                }
-            }
-
-            mLoaded = true;
-            });
-    }
-
-    std::string GLShader::GetShaderName(const std::string& filepath)
-    {
-        size_t fileName = filepath.find_last_of("/\\");
-
-        if (fileName != std::string::npos)
-        {
-            return filepath.substr(fileName + 1);
-        }
-        else
-        {
-            NR_CORE_WARN("File is in wrong folder!");
-            return filepath;
-        }
-    }
-
-    void GLShader::ParseFile(const std::string& filepath, std::string& output, bool isCompute)
-    {
-        std::ifstream in(filepath, std::ios::in | std::ios::binary);
-
-        if (in)
-        {
-            in.seekg(0, std::ios::end);
-            output.resize(in.tellg());
-            in.seekg(0, std::ios::beg);
-            in.read(&output[0], output.size());
-        }
-        else if (!isCompute)
-        {
-            NR_CORE_ASSERT(false, "Could not open file");
-        }
-        in.close();
-    }
-
-    void GLShader::Parse(const std::string& source, ShaderDomain type)
-    {
-        const char* token;
-        const char* str;
-
-        str = source.c_str();
-        while (token = FindToken(str, "struct"))
-        {
-            ParseUniformStruct(GetBlock(token, &str), type);
-        }
-
-        str = source.c_str();
-        while (token = FindToken(str, "uniform"))
-        {
-            ParseUniform(GetStatement(token, &str), type);
-        }
-    }
-
-    void GLShader::ParseUniformStruct(const std::string& block, ShaderDomain domain)
-    {
-        std::vector<std::string> tokens = Tokenize(block);
-
-        uint32_t index = 0;
-        ++index; // struct
-        std::string name = tokens[index++];
-        ShaderStruct* uniformStruct = new ShaderStruct(name);
-        ++index; // {
-        while (index < tokens.size())
-        {
-            if (tokens[index] == "}")
-            {
-                break;
-            }
-
-            std::string type = tokens[index++];
-            std::string name = tokens[index++];
-
-            // Strip ; from name if present
-            if (const char* s = strstr(name.c_str(), ";"))
-            {
-                name = std::string(name.c_str(), s - name.c_str());
-            }
-
-            uint32_t count = 1;
-            const char* namestr = name.c_str();
-            if (const char* s = strstr(namestr, "["))
-            {
-                name = std::string(namestr, s - namestr);
-
-                const char* end = strstr(namestr, "]");
-                std::string c(s + 1, end - s);
-                count = atoi(c.c_str());
-            }
-            ShaderUniformDeclaration* field = new GLShaderUniformDeclaration(domain, GLShaderUniformDeclaration::StringToType(type), name, count);
-            uniformStruct->AddField(field);
-        }
-        mStructs.push_back(uniformStruct);
-    }
-
-    void GLShader::Compile()
-    {
-        for (const auto& [shaderID, shaderSource] : mShaderSource)
-        {
-            const GLchar* source = shaderSource.c_str();
-            glShaderSource(shaderID, 1, &source, 0);
-
-            glCompileShader(shaderID);
-
-            GLint isCompiled = 0;
-            glGetShaderiv(shaderID, GL_COMPILE_STATUS, &isCompiled);
-            if (isCompiled == GL_FALSE)
-            {
-                GLint maxLength = 0;
-                glGetShaderiv(shaderID, GL_INFO_LOG_LENGTH, &maxLength);
-
-                std::vector<GLchar> infoLog(maxLength);
-                glGetShaderInfoLog(shaderID, maxLength, &maxLength, &infoLog[0]);
-
-                for (const auto& [prevShaderID, prevShaderSource] : mShaderSource)
-                {
-                    glDeleteShader(prevShaderID);
-                    if (prevShaderID == shaderID)
-                    {
-                        break;
-                    }
-                }
-
-                NR_CORE_ERROR("{0}", infoLog.data());
-                NR_CORE_ASSERT(false, "GLShader failed to compile!");
-                return;
-            }
-        }
-
-        mID = glCreateProgram();
-        GLuint program = mID;
-
-        for (const auto& [shaderID, shaderSource] : mShaderSource)
-        {
-            glAttachShader(program, shaderID);
-        }
-
-        glLinkProgram(program);
-
-        GLint isLinked = 0;
-        glGetProgramiv(program, GL_LINK_STATUS, static_cast<int*>(&isLinked));
-        if (isLinked == GL_FALSE)
-        {
-            GLint maxLength = 0;
-            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
-
-            std::vector<GLchar> infoLog(maxLength);
-            glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
-
-            glDeleteProgram(program);
-            for (const auto& [shaderID, shaderSource] : mShaderSource)
-            {
-                glDeleteShader(shaderID);
-            }
-
-            NR_CORE_ERROR("Shader linking failed ({0}):\n{1}", mAssetPath, &infoLog[0]);
-            return;
-        }
-
-        for (const auto& [shaderID, shaderSource] : mShaderSource)
-        {
-            glDetachShader(program, shaderID);
-        }
-    }
-
-    void GLShader::ResolveUniforms()
-    {
-        glUseProgram(mID);
-
-        for (size_t i = 0; i < mVSRendererUniformBuffers.size(); ++i)
-        {
-            GLShaderUniformBufferDeclaration* decl = (GLShaderUniformBufferDeclaration*)mVSRendererUniformBuffers[i];
-            const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-            for (size_t j = 0; j < uniforms.size(); ++j)
-            {
-                GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
-                if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
-                {
-                    const ShaderStruct& s = uniform->GetShaderUniformStruct();
-                    const auto& fields = s.GetFields();
-                    for (size_t k = 0; k < fields.size(); ++k)
-                    {
-                        GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
-                        field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
-                    }
-                }
-                else
-                {
-                    uniform->mLocation = GetUniformLocation(uniform->mName);
-                }
-            }
-        }
-
-        for (size_t i = 0; i < mPSRendererUniformBuffers.size(); ++i)
-        {
-            GLShaderUniformBufferDeclaration* decl = (GLShaderUniformBufferDeclaration*)mPSRendererUniformBuffers[i];
-            const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-            for (size_t j = 0; j < uniforms.size(); ++j)
-            {
-                GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
-                if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
-                {
-                    const ShaderStruct& s = uniform->GetShaderUniformStruct();
-                    const auto& fields = s.GetFields();
-                    for (size_t k = 0; k < fields.size(); ++k)
-                    {
-                        GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
-                        field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
-                    }
-                }
-                else
-                {
-                    uniform->mLocation = GetUniformLocation(uniform->mName);
-                }
-            }
-        }
-
-        {
-            const auto& decl = mVSMaterialUniformBuffer;
-            if (decl)
-            {
-                const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-                for (size_t j = 0; j < uniforms.size(); ++j)
-                {
-                    GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
-                    if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
-                    {
-                        const ShaderStruct& s = uniform->GetShaderUniformStruct();
-                        const auto& fields = s.GetFields();
-                        for (size_t k = 0; k < fields.size(); ++k)
-                        {
-                            GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
-                            field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
-                        }
-                    }
-                    else
-                    {
-                        uniform->mLocation = GetUniformLocation(uniform->mName);
-                    }
-                }
-            }
-        }
-
-        {
-            const auto& decl = mPSMaterialUniformBuffer;
-            if (decl)
-            {
-                const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-                for (size_t j = 0; j < uniforms.size(); ++j)
-                {
-                    GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[j];
-                    if (uniform->GetType() == GLShaderUniformDeclaration::Type::STRUCT)
-                    {
-                        const ShaderStruct& s = uniform->GetShaderUniformStruct();
-                        const auto& fields = s.GetFields();
-                        for (size_t k = 0; k < fields.size(); ++k)
-                        {
-                            GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
-                            field->mLocation = GetUniformLocation(uniform->mName + "." + field->mName);
-                        }
-                    }
-                    else
-                    {
-                        uniform->mLocation = GetUniformLocation(uniform->mName);
-                    }
-                }
-            }
-        }
-
-        uint32_t sampler = 0;
-        for (size_t i = 0; i < mResources.size(); ++i)
-        {
-            GLShaderResourceDeclaration* resource = (GLShaderResourceDeclaration*)mResources[i];
-            int32_t location = GetUniformLocation(resource->mName);
-
-            if (resource->GetCount() == 1)
-            {
-                resource->mRegister = sampler;
-                if (location != -1)
-                {
-                    UploadUniformInt(location, sampler);
-                }
-
-                ++sampler;
-            }
-            else if (resource->GetCount() > 1)
-            {
-                resource->mRegister = sampler;
-                uint32_t count = resource->GetCount();
-                int* samplers = new int[count];
-                for (uint32_t s = 0; s < count; ++s)
-                {
-                    samplers[s] = sampler++;
-                }
-                UploadUniformIntArray(resource->GetName(), samplers, count);
-                delete[] samplers;
-            }
-        }
-    }
-
-    void GLShader::ValidateUniforms()
-    {
-
-    }
-
-    void GLShader::Bind()
-    {
-        Ref<const GLShader> instance = this;
-        Renderer::Submit([instance]() {
-            glUseProgram(instance->mID);
-            });
-    }
-
-    void GLShader::AddShaderReloadedCallback(const ShaderReloadedCallback& callback)
-    {
-        mShaderReloadedCallbacks.push_back(callback);
-    }
-
-    ShaderStruct* GLShader::FindStruct(const std::string& name)
-    {
-        for (ShaderStruct* s : mStructs)
-        {
-            if (s->GetName() == name)
-            {
-                return s;
-            }
-        }
-        return nullptr;
-    }
-
-    void GLShader::ParseUniform(const std::string& statement, ShaderDomain domain)
-    {
-        std::vector<std::string> tokens = Tokenize(statement);
-        uint32_t index = 0;
-
-        index++; // "uniform"
-        std::string typeString = tokens[index++];
-        std::string name = tokens[index++];
-        // Strip ; from name if present
-        if (const char* s = strstr(name.c_str(), ";"))
-        {
-            name = std::string(name.c_str(), s - name.c_str());
-        }
-
-        std::string n(name);
-        int32_t count = 1;
-        const char* namestr = n.c_str();
-        if (const char* s = strstr(namestr, "["))
-        {
-            name = std::string(namestr, s - namestr);
-
-            const char* end = strstr(namestr, "]");
-            std::string c(s + 1, end - s);
-            count = atoi(c.c_str());
-        }
-
-        if (IsTypeStringResource(typeString))
-        {
-            ShaderResourceDeclaration* declaration = new GLShaderResourceDeclaration(GLShaderResourceDeclaration::StringToType(typeString), name, count);
-            mResources.push_back(declaration);
-        }
-        else
-        {
-            GLShaderUniformDeclaration::Type t = GLShaderUniformDeclaration::StringToType(typeString);
-            GLShaderUniformDeclaration* declaration = nullptr;
-
-            if (t == GLShaderUniformDeclaration::Type::NONE)
-            {
-                // Find struct
-                ShaderStruct* s = FindStruct(typeString);
-                NR_CORE_ASSERT(s, "");
-                declaration = new GLShaderUniformDeclaration(domain, s, name, count);
-            }
-            else
-            {
-                declaration = new GLShaderUniformDeclaration(domain, t, name, count);
-            }
-
-            if (Utils::StartsWith(name, "r_"))
-            {
-                if (domain == ShaderDomain::Vertex)
-                {
-                    ((GLShaderUniformBufferDeclaration*)mVSRendererUniformBuffers.front())->PushUniform(declaration);
-                }
-                else if (domain == ShaderDomain::Pixel)
-                {
-                    ((GLShaderUniformBufferDeclaration*)mPSRendererUniformBuffers.front())->PushUniform(declaration);
-                }
-            }
-            else
-            {
-                if (domain == ShaderDomain::Vertex)
-                {
-                    if (!mVSMaterialUniformBuffer)
-                    {
-                        mVSMaterialUniformBuffer.Reset(new GLShaderUniformBufferDeclaration("", domain));
-                    }
-
-                    mVSMaterialUniformBuffer->PushUniform(declaration);
-                }
-                else if (domain == ShaderDomain::Pixel)
-                {
-                    if (!mPSMaterialUniformBuffer)
-                    {
-                        mPSMaterialUniformBuffer.Reset(new GLShaderUniformBufferDeclaration("", domain));
-                    }
-
-                    mPSMaterialUniformBuffer->PushUniform(declaration);
-                }
-            }
-        }
-    }
 
     int32_t GLShader::GetUniformLocation(const std::string& name) const
     {
         int32_t result = glGetUniformLocation(mID, name.c_str());
         if (result == -1)
         {
-            NR_CORE_WARN("Could not find uniform '{0}' in the shader {1}", name, mName);
+            NR_CORE_WARN("Could not find uniform '{0}' in shader", name);
         }
 
         return result;
     }
 
-    void GLShader::SetVSMaterialUniformBuffer(Buffer buffer)
+    size_t GLShader::GetHash() const
     {
-        Renderer::Submit([this, buffer]() {
-            glUseProgram(mID);
-            ResolveAndSetUniforms(mVSMaterialUniformBuffer, buffer);
+        return std::hash<std::string>{}(mAssetPath);
+    }
+
+    void GLShader::SetUniformBuffer(const std::string& name, const void* data, uint32_t size)
+    {
+        ShaderUniformBuffer* uniformBuffer = nullptr;
+        for (auto& [bindingPoint, ub] : sUniformBuffers)
+        {
+            if (ub.Name == name)
+            {
+                uniformBuffer = &ub;
+                break;
+            }
+        }
+
+        NR_CORE_ASSERT(uniformBuffer);
+        NR_CORE_ASSERT(uniformBuffer->Size >= size);
+        glNamedBufferSubData(uniformBuffer->RendererID, 0, size, data);
+    }
+
+    void GLShader::SetUniform(const std::string& fullname, float value)
+    {
+        Renderer::Submit([=]()
+            {
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniform1f(location, value);
             });
     }
 
-    void GLShader::SetPSMaterialUniformBuffer(Buffer buffer)
+    void GLShader::SetUniform(const std::string& fullname, uint32_t value)
     {
-        Renderer::Submit([this, buffer]() {
-            glUseProgram(mID);
-            ResolveAndSetUniforms(mPSMaterialUniformBuffer, buffer);
+        Renderer::Submit([=]()
+            {
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniform1ui(location, value);
             });
     }
 
-    void GLShader::ResolveAndSetUniforms(const Ref<GLShaderUniformBufferDeclaration>& decl, Buffer buffer)
+    void GLShader::SetUniform(const std::string& fullname, int value)
     {
-        const ShaderUniformList& uniforms = decl->GetUniformDeclarations();
-        for (size_t i = 0; i < uniforms.size(); ++i)
-        {
-            GLShaderUniformDeclaration* uniform = (GLShaderUniformDeclaration*)uniforms[i];
-            if (uniform->IsArray())
+        Renderer::Submit([=]()
             {
-                ResolveAndSetUniformArray(uniform, buffer);
-            }
-            else
-            {
-                ResolveAndSetUniform(uniform, buffer);
-            }
-        }
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniform1i(location, value);
+            });
     }
 
-    void GLShader::ResolveAndSetUniform(GLShaderUniformDeclaration* uniform, Buffer buffer)
+    void GLShader::SetUniform(const std::string& fullname, const glm::vec2& value)
     {
-        if (uniform->GetLocation() == -1)
-        {
-            return;
-        }
-
-        NR_CORE_ASSERT(uniform->GetLocation() != -1, "Uniform has invalid location!");
-
-        uint32_t offset = uniform->GetOffset();
-        switch (uniform->GetType())
-        {
-        case GLShaderUniformDeclaration::Type::BOOL:
-            UploadUniformFloat(uniform->GetLocation(), *(bool*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::INT32:
-            UploadUniformInt(uniform->GetLocation(), *(int32_t*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::FLOAT32:
-            UploadUniformFloat(uniform->GetLocation(), *(float*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC2:
-            UploadUniformFloat2(uniform->GetLocation(), *(glm::vec2*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC3:
-            UploadUniformFloat3(uniform->GetLocation(), *(glm::vec3*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC4:
-            UploadUniformFloat4(uniform->GetLocation(), *(glm::vec4*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::MAT3:
-            UploadUniformMat3(uniform->GetLocation(), *(glm::mat3*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::MAT4:
-            UploadUniformMat4(uniform->GetLocation(), *(glm::mat4*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::STRUCT:
-            UploadUniformStruct(uniform, buffer.Data, offset);
-            break;
-        default:
-            NR_CORE_ASSERT(false, "Unknown uniform type!");
-        }
+        Renderer::Submit([=]()
+            {
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniform2fv(location, 1, glm::value_ptr(value));
+            });
     }
 
-    void GLShader::ResolveAndSetUniformArray(GLShaderUniformDeclaration* uniform, Buffer buffer)
+    void GLShader::SetUniform(const std::string& fullname, const glm::vec3& value)
     {
-        //NR_CORE_ASSERT(uniform->GetLocation() != -1, "Uniform has invalid location!");
-
-        uint32_t offset = uniform->GetOffset();
-        switch (uniform->GetType())
-        {
-        case GLShaderUniformDeclaration::Type::BOOL:
-            UploadUniformFloat(uniform->GetLocation(), *(bool*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::INT32:
-            UploadUniformInt(uniform->GetLocation(), *(int32_t*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::FLOAT32:
-            UploadUniformFloat(uniform->GetLocation(), *(float*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC2:
-            UploadUniformFloat2(uniform->GetLocation(), *(glm::vec2*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC3:
-            UploadUniformFloat3(uniform->GetLocation(), *(glm::vec3*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC4:
-            UploadUniformFloat4(uniform->GetLocation(), *(glm::vec4*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::MAT3:
-            UploadUniformMat3(uniform->GetLocation(), *(glm::mat3*)&buffer.Data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::MAT4:
-            UploadUniformMat4Array(uniform->GetLocation(), *(glm::mat4*)&buffer.Data[offset], uniform->GetCount());
-            break;
-        case GLShaderUniformDeclaration::Type::STRUCT:
-            UploadUniformStruct(uniform, buffer.Data, offset);
-            break;
-        default:
-            NR_CORE_ASSERT(false, "Unknown uniform type!");
-        }
+        Renderer::Submit([=]()
+            {
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniform3fv(location, 1, glm::value_ptr(value));
+            });
     }
 
-    void GLShader::ResolveAndSetUniformField(const GLShaderUniformDeclaration& field, byte* data, int32_t offset)
+    void GLShader::SetUniform(const std::string& fullname, const glm::vec4& value)
     {
-        switch (field.GetType())
-        {
-        case GLShaderUniformDeclaration::Type::BOOL:
-            UploadUniformFloat(field.GetLocation(), *(bool*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::INT32:
-            UploadUniformInt(field.GetLocation(), *(int32_t*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::FLOAT32:
-            UploadUniformFloat(field.GetLocation(), *(float*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC2:
-            UploadUniformFloat2(field.GetLocation(), *(glm::vec2*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC3:
-            UploadUniformFloat3(field.GetLocation(), *(glm::vec3*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::VEC4:
-            UploadUniformFloat4(field.GetLocation(), *(glm::vec4*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::MAT3:
-            UploadUniformMat3(field.GetLocation(), *(glm::mat3*)&data[offset]);
-            break;
-        case GLShaderUniformDeclaration::Type::MAT4:
-            UploadUniformMat4(field.GetLocation(), *(glm::mat4*)&data[offset]);
-            break;
-        default:
-            NR_CORE_ASSERT(false, "Unknown uniform type!");
-        }
+        Renderer::Submit([=]()
+            {
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniform4fv(location, 1, glm::value_ptr(value));
+            });
     }
 
-    void GLShader::UploadUniformBuffer(const UniformBufferBase& uniformBuffer)
+    void GLShader::SetUniform(const std::string& fullname, const glm::mat3& value)
     {
-        for (unsigned int i = 0; i < uniformBuffer.GetUniformCount(); ++i)
-        {
-            const UniformDecl& decl = uniformBuffer.GetUniforms()[i];
-            switch (decl.Type)
+        Renderer::Submit([=]()
             {
-            case UniformType::Float:
-            {
-                const std::string& name = decl.Name;
-                float value = *(float*)(uniformBuffer.GetBuffer() + decl.Offset);
-                Renderer::Submit([=]() {
-                    UploadUniformFloat(name, value);
-                    });
-            }
-            case UniformType::Float3:
-            {
-                const std::string& name = decl.Name;
-                glm::vec3& values = *(glm::vec3*)(uniformBuffer.GetBuffer() + decl.Offset);
-                Renderer::Submit([=]() {
-                    UploadUniformFloat3(name, values);
-                    });
-            }
-            case UniformType::Float4:
-            {
-                const std::string& name = decl.Name;
-                glm::vec4& values = *(glm::vec4*)(uniformBuffer.GetBuffer() + decl.Offset);
-                Renderer::Submit([=]() {
-                    UploadUniformFloat4(name, values);
-                    });
-            }
-            case UniformType::Matrix4x4:
-            {
-                const std::string& name = decl.Name;
-                glm::mat4& values = *(glm::mat4*)(uniformBuffer.GetBuffer() + decl.Offset);
-                Renderer::Submit([=]() {
-                    UploadUniformMat4(name, values);
-                    });
-            }
-            }
-        }
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+            });
     }
 
-    void GLShader::SetInt(const std::string& name, int value)
+    void GLShader::SetUniform(const std::string& fullname, const glm::mat4& value)
+    {
+        Renderer::Submit([=]()
+            {
+                NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+                GLint location = mUniformLocations.at(fullname);
+                glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+            });
+    }
+
+    void GLShader::SetUInt(const std::string& name, uint32_t value)
     {
         Renderer::Submit([=]() {
-            UploadUniformInt(name, value);
-            });
-    }
-
-    void GLShader::SetBool(const std::string& name, bool value)
-    {
-        Renderer::Submit([=]() {
-            UploadUniformInt(name, value);
+            UploadUniformUInt(name, value);
             });
     }
 
@@ -816,6 +732,13 @@ namespace NR
     {
         Renderer::Submit([=]() {
             UploadUniformFloat(name, value);
+            });
+    }
+
+    void GLShader::SetInt(const std::string& name, int value)
+    {
+        Renderer::Submit([=]() {
+            UploadUniformInt(name, value);
             });
     }
 
@@ -863,10 +786,19 @@ namespace NR
             });
     }
 
+    const ShaderResourceDeclaration* GLShader::GetShaderResource(const std::string& name)
+    {
+        if (mResources.find(name) == mResources.end())
+            return nullptr;
+
+        return &mResources.at(name);
+    }
+
     void GLShader::UploadUniformInt(uint32_t location, int32_t value)
     {
         glUniform1i(location, value);
     }
+
 
     void GLShader::UploadUniformIntArray(uint32_t location, int32_t* values, int32_t count)
     {
@@ -908,22 +840,16 @@ namespace NR
         glUniformMatrix4fv(location, count, GL_FALSE, glm::value_ptr(values));
     }
 
-    void GLShader::UploadUniformStruct(GLShaderUniformDeclaration* uniform, byte* buffer, uint32_t offset)
-    {
-        const ShaderStruct& s = uniform->GetShaderUniformStruct();
-        const auto& fields = s.GetFields();
-        for (size_t k = 0; k < fields.size(); ++k)
-        {
-            GLShaderUniformDeclaration* field = (GLShaderUniformDeclaration*)fields[k];
-            ResolveAndSetUniformField(*field, buffer, offset);
-            offset += field->mSize;
-        }
-    }
-
     void GLShader::UploadUniformInt(const std::string& name, int32_t value)
     {
         int32_t location = GetUniformLocation(name);
         glUniform1i(location, value);
+    }
+
+    void GLShader::UploadUniformUInt(const std::string& name, uint32_t value)
+    {
+        int32_t location = GetUniformLocation(name);
+        glUniform1ui(location, value);
     }
 
     void GLShader::UploadUniformIntArray(const std::string& name, int32_t* values, uint32_t count)
@@ -935,7 +861,6 @@ namespace NR
     void GLShader::UploadUniformFloat(const std::string& name, float value)
     {
         glUseProgram(mID);
-
         auto location = glGetUniformLocation(mID, name.c_str());
         if (location != -1)
         {
@@ -961,6 +886,7 @@ namespace NR
         }
     }
 
+
     void GLShader::UploadUniformFloat3(const std::string& name, const glm::vec3& values)
     {
         glUseProgram(mID);
@@ -978,12 +904,9 @@ namespace NR
     void GLShader::UploadUniformFloat4(const std::string& name, const glm::vec4& values)
     {
         glUseProgram(mID);
-
         auto location = glGetUniformLocation(mID, name.c_str());
         if (location != -1)
-        {
             glUniform4f(location, values.x, values.y, values.z, values.w);
-        }
         else
         {
             NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
@@ -1003,4 +926,5 @@ namespace NR
             NR_LOG_UNIFORM("Uniform '{0}' not found!", name);
         }
     }
+
 }

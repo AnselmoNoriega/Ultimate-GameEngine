@@ -231,9 +231,6 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShaderUniform.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
@@ -508,6 +505,15 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
+    <ClInclude Include="src\NotRed\Renderer\RendererCapabilities.h" />
+    <ClInclude Include="src\NotRed\Renderer\RendererContext.h" />
+    <ClInclude Include="src\NotRed\Renderer\RendererTypes.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLContext.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLImage.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLMaterial.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLMatreial.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -612,13 +618,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRendererAPI.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShaderUniform.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp">
@@ -808,5 +808,10 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Image.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RendererContext.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLContext.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage2D.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderer.cpp" />
   </ItemGroup>
 </Project>

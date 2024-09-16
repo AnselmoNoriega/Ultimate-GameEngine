@@ -1,7 +1,7 @@
 #pragma once
 
 #include "NotRed/Core/Core.h"
-#include "NotRed/Renderer/RendererAPI.h"
+#include "NotRed/Renderer/RendererTypes.h"
 #include "NotRed/Core/Buffer.h"
 #include "NotRed/Renderer/ShaderUniform.h"
 
@@ -11,16 +11,6 @@
 
 namespace NR
 {
-	struct ShaderUniform
-	{
-
-	};
-
-	struct ShaderUniformCollection
-	{
-
-	};
-
 	enum class UniformType
 	{
 		None,
@@ -97,25 +87,77 @@ namespace NR
 		}
 	};
 
+	enum class ShaderUniformType
+	{
+		None, 
+		Bool, Int, UInt, Float, 
+		Vec2, Vec3, Vec4, 
+		Mat3, Mat4
+	};
+
+	class ShaderUniform
+	{
+	public:
+		ShaderUniform() = default;
+		ShaderUniform(const std::string& name, ShaderUniformType type, uint32_t size, uint32_t offset);
+
+		static const std::string& UniformTypeToString(ShaderUniformType type);
+
+		const std::string& GetName() const { return mName; }
+		ShaderUniformType GetType() const { return mType; }
+		uint32_t GetSize() const { return mSize; }
+		uint32_t GetOffset() const { return mOffset; }
+
+	private:
+		std::string mName;
+		ShaderUniformType mType = ShaderUniformType::None;
+		uint32_t mSize = 0;
+		uint32_t mOffset = 0;
+	};
+
+	struct ShaderUniformBuffer
+	{
+		std::string Name;
+		uint32_t Index;
+		uint32_t BindingPoint;
+		uint32_t Size;
+		uint32_t RendererID;
+		std::vector<ShaderUniform> Uniforms;
+	};
+
+	struct ShaderBuffer
+	{
+		std::string Name;
+		uint32_t Size = 0;
+		std::unordered_map<std::string, ShaderUniform> Uniforms;
+	};
+
 	class Shader : public RefCounted
 	{
 	public:
 		using ShaderReloadedCallback = std::function<void()>;
 
-		static Ref<Shader> Create(const std::string& filepath);
-		Ref<Shader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc);
+		static Ref<Shader> Create(const std::string& filepath, bool forceCompile = false);
+		Ref<Shader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc = "");
 
 		virtual void Bind() = 0;
 		virtual RendererID GetRendererID() const = 0;
-		virtual void Reload() = 0;
+		virtual void Reload(bool forceCompile = false) = 0;
 
-		virtual void UploadUniformBuffer(const UniformBufferBase& uniformBuffer) = 0;
+		virtual size_t GetHash() const = 0;
 
-		virtual void SetVSMaterialUniformBuffer(Buffer buffer) = 0;
-		virtual void SetPSMaterialUniformBuffer(Buffer buffer) = 0;
+		virtual void SetUniformBuffer(const std::string& name, const void* data, uint32_t size) = 0;
+		virtual void SetUniform(const std::string& fullname, float value) = 0;
+		virtual void SetUniform(const std::string& fullname, uint32_t value) = 0;
+		virtual void SetUniform(const std::string& fullname, int value) = 0;
+		virtual void SetUniform(const std::string& fullname, const glm::vec2& value) = 0;
+		virtual void SetUniform(const std::string& fullname, const glm::vec3& value) = 0;
+		virtual void SetUniform(const std::string& fullname, const glm::vec4& value) = 0;
+		virtual void SetUniform(const std::string& fullname, const glm::mat3& value) = 0;
+		virtual void SetUniform(const std::string& fullname, const glm::mat4& value) = 0;
 
 		virtual void SetInt(const std::string& name, int value) = 0;
-		virtual void SetBool(const std::string& name, bool value) = 0;
+		virtual void SetUInt(const std::string& name, uint32_t value) = 0;
 		virtual void SetFloat(const std::string& name, float value) = 0;
 		virtual void SetFloat2(const std::string& name, const glm::vec2& value) = 0;
 		virtual void SetFloat3(const std::string& name, const glm::vec3& value) = 0;
@@ -123,18 +165,12 @@ namespace NR
 		virtual void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind = true) = 0;
 		virtual void SetIntArray(const std::string& name, int* values, uint32_t size) = 0;
 
+		virtual const std::unordered_map<std::string, ShaderBuffer>& GetShaderBuffers() const = 0;
+		virtual const std::unordered_map<std::string, ShaderResourceDeclaration>& GetResources() const = 0;
+
 		virtual void AddShaderReloadedCallback(const ShaderReloadedCallback& callback) = 0;
 
 		virtual const std::string& GetName() const = 0;
-
-		virtual const ShaderResourceList& GetResources() const = 0;
-
-		virtual const ShaderUniformBufferList& GetVSRendererUniforms() const = 0;
-		virtual const ShaderUniformBufferList& GetPSRendererUniforms() const = 0;
-		virtual bool HasVSMaterialUniformBuffer() const = 0;
-		virtual bool HasPSMaterialUniformBuffer() const = 0;
-		virtual const ShaderUniformBufferDeclaration& GetVSMaterialUniformBuffer() const = 0;
-		virtual const ShaderUniformBufferDeclaration& GetPSMaterialUniformBuffer() const = 0;
 
 		static std::vector<Ref<Shader>> sAllShaders;
 	};
@@ -146,7 +182,7 @@ namespace NR
 		~ShaderLibrary();
 
 		void Add(const Ref<Shader>& shader);
-		void Load(const std::string& path);
+		void Load(const std::string& path, bool forceCompile = false);
 		void Load(const std::string& name, const std::string& path);
 
 		const Ref<Shader>& Get(const std::string& name) const;
