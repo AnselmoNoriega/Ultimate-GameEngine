@@ -13,8 +13,8 @@
 
 #include "NotRed/Platform/OpenGL/GLFrameBuffer.h"
 #include "NotRed/Platform/OpenGL/GLShader.h"
-#include "NotRed/Platform/Vulkan/VkRenderer.h"
-#include "NotRed/Platform/Vulkan/VkFrameBuffer.h"
+#include "NotRed/Platform/Vulkan/VKRenderer.h"
+#include "NotRed/Platform/Vulkan/VKFrameBuffer.h"
 
 #include "SceneEnvironment.h"
 
@@ -236,7 +236,7 @@ namespace NR
 			sData->SkyboxPipeline = Pipeline::Create(pipelineSpec);
 
 			sData->SkyboxMaterial = Material::Create(skyboxShader);
-			sData->SkyboxMaterial->SetFlag(MaterialFlag::DepthTest, false);
+			sData->SkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
 		}
 	}
 
@@ -442,13 +442,13 @@ namespace NR
 
 					if (RendererAPI::Current() == RendererAPIType::Vulkan)
 					{
-						void* ubPtr = VkShader::MapUniformBuffer(0);
+						void* ubPtr = VKShader::MapUniformBuffer(0);
 						memcpy(ubPtr, &viewProj, sizeof(ViewProj));
-						VkShader::UnmapUniformBuffer(0);
+						VKShader::UnmapUniformBuffer(0);
 
-						ubPtr = VkShader::MapUniformBuffer(2);
+						ubPtr = VKShader::MapUniformBuffer(2);
 						memcpy(ubPtr, &ub, sizeof(SceneData));
-						VkShader::UnmapUniformBuffer(2);
+						VKShader::UnmapUniformBuffer(2);
 					}
 					else
 					{
@@ -477,9 +477,9 @@ namespace NR
 
 					if (RendererAPI::Current() == RendererAPIType::Vulkan)
 					{
-						void* ubPtr = VkShader::MapUniformBuffer(1);
+						void* ubPtr = VKShader::MapUniformBuffer(1);
 						memcpy(ubPtr, &shadowData, sizeof(ShadowData));
-						VkShader::UnmapUniformBuffer(1);
+						VKShader::UnmapUniformBuffer(1);
 					}
 					else
 					{

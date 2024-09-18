@@ -114,7 +114,8 @@ namespace NR
                     layer->Update((float)mTimeFrame);
                 }
                 Application* app = this;
-                Renderer::Submit([app]() { app->RenderImGui(); });				Renderer::Submit([=]() {m_ImGuiLayer->End(); });
+                Renderer::Submit([app]() { app->RenderImGui(); });
+                Renderer::Submit([=]() {mImGuiLayer->End(); });
                 Renderer::EndFrame();
 
                 mWindow->GetRenderContext()->BeginFrame();

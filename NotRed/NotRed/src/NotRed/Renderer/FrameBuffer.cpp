@@ -2,7 +2,7 @@
 #include "FrameBuffer.h"
 
 #include "NotRed/Platform/OpenGL/GLFrameBuffer.h"
-#include "NotRed/Platform/Vulkan/VkFrameBuffer.h"
+#include "NotRed/Platform/Vulkan/VKFrameBuffer.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -16,7 +16,7 @@ namespace NR
 		{
 		case RendererAPIType::None:		return nullptr;			
 		case RendererAPIType::OpenGL:	result = Ref<GLFrameBuffer>::Create(spec); break;
-		case RendererAPIType::Vulkan:	result = Ref<VkFrameBuffer>::Create(spec); break;
+		case RendererAPIType::Vulkan:	result = Ref<VKFrameBuffer>::Create(spec); break;
 		}
 		FrameBufferPool::GetGlobal()->Add(result);
 		return result;

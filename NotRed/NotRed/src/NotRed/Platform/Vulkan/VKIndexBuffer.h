@@ -1,0 +1,34 @@
+#pragma once
+
+#include "NotRed/Renderer/IndexBuffer.h"
+
+#include "VKAllocator.h"
+
+#include "NotRed/Core/Buffer.h"
+
+namespace NR
+{
+	class VKIndexBuffer : public IndexBuffer
+	{
+	public:
+		VKIndexBuffer(uint32_t size);
+		VKIndexBuffer(void* data, uint32_t size = 0);
+
+		virtual void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
+		virtual void Bind() const override;
+
+		virtual uint32_t GetCount() const override { return mSize / sizeof(uint32_t); }
+
+		virtual uint32_t GetSize() const override { return mSize; }
+		virtual RendererID GetRendererID() const override;
+
+		VkBuffer GetVulkanBuffer() { return mVulkanBuffer; }
+
+	private:
+		uint32_t mSize = 0;
+		Buffer mLocalData;
+
+		VkBuffer mVulkanBuffer;
+		VkDeviceMemory mDeviceMemory;
+	};
+}

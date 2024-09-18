@@ -1,7 +1,7 @@
 #include "nrpch.h"
 #include "Image.h"
 
-#include "NotRed/Platform/Vulkan/VkImage.h"
+#include "NotRed/Platform/Vulkan/VKImage.h"
 #include "NotRed/Platform/OpenGL/GLImage.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
@@ -14,7 +14,7 @@ namespace NR
         {
         case RendererAPIType::None:		return nullptr;
         case RendererAPIType::OpenGL:	return Ref<GLImage2D>::Create(format, width, height, buffer);
-        case RendererAPIType::Vulkan:	return Ref<VkImage2D>::Create(format, width, height);
+        case RendererAPIType::Vulkan:	return Ref<VKImage2D>::Create(format, width, height);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -29,7 +29,7 @@ namespace NR
         {
         case RendererAPIType::None: return nullptr;
         case RendererAPIType::OpenGL: return Ref<GLImage2D>::Create(format, width, height, data);
-        case RendererAPIType::Vulkan: return Ref<VkImage2D>::Create(format, width, height);
+        case RendererAPIType::Vulkan: return Ref<VKImage2D>::Create(format, width, height);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

@@ -2,7 +2,7 @@
 #include "Material.h"
 
 #include "NotRed/Platform/OpenGL/GLMaterial.h"
-#include "NotRed/Platform/Vulkan/VkMaterial.h"
+#include "NotRed/Platform/Vulkan/VKMaterial.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -14,7 +14,7 @@ namespace NR
         {
         case RendererAPIType::None: return nullptr;
         case RendererAPIType::OpenGL: return Ref<GLMaterial>::Create(shader, name);
-        case RendererAPIType::Vulkan: return Ref<VkMaterial>::Create(shader, name);
+        case RendererAPIType::Vulkan: return Ref<VKMaterial>::Create(shader, name);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

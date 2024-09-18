@@ -1,7 +1,7 @@
 #include "nrpch.h"
 
 #include "NotRed/Platform/OpenGL/GLVertexBuffer.h"
-#include "NotRed/Platform/Vulkan/VkVertexBuffer.h"
+#include "NotRed/Platform/Vulkan/VKVertexBuffer.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -13,7 +13,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return Ref<GLVertexBuffer>::Create(data, size, usage);
-        case RendererAPIType::Vulkan:  return Ref<VkVertexBuffer>::Create(data, size, usage);
+        case RendererAPIType::Vulkan:  return Ref<VKVertexBuffer>::Create(data, size, usage);
         default:
             NR_CORE_ASSERT(false, "Unknown RendererAPI");
             return nullptr;
@@ -26,7 +26,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return Ref<GLVertexBuffer>::Create(size, usage);
-        case RendererAPIType::Vulkan:  return Ref<VkVertexBuffer>::Create(size, usage);
+        case RendererAPIType::Vulkan:  return Ref<VKVertexBuffer>::Create(size, usage);
         default:
             NR_CORE_ASSERT(false, "Unknown RendererAPI");
             return nullptr;

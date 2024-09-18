@@ -76,8 +76,5 @@ namespace NR
         {
             return width * height * GetImageFormatBPP(format);
         }
-
     }
-
-
 }

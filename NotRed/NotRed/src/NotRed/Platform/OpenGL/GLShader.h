@@ -61,7 +61,7 @@ namespace NR
 		void CompileOrGetVulkanBinary(std::unordered_map<uint32_t, std::vector<uint32_t>>& outputBinary, bool forceCompile = false);
 		void CompileOrGetOpenGLBinary(const std::unordered_map<uint32_t, std::vector<uint32_t>>&, bool forceCompile = false);
 
-		void ParseFile(const std::string& filepath, std::string& output, bool isCompute = false);
+		void ParseFile(const std::string& filepath, std::string& output, bool isCompute = false) const;
 
 		void ParseConstantBuffers(const spirv_cross::CompilerGLSL& compiler);
 		int32_t GetUniformLocation(const std::string& name) const;

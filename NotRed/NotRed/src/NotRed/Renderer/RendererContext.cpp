@@ -4,7 +4,7 @@
 #include "NotRed/Renderer/RendererAPI.h"
 
 #include "NotRed/Platform/OpenGL/GLContext.h"
-#include "NotRed/Platform/Vulkan/VkContext.h"
+#include "NotRed/Platform/Vulkan/VKContext.h"
 
 namespace NR
 {
@@ -14,7 +14,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return Ref<GLContext>::Create(windowHandle);
-        case RendererAPIType::Vulkan:  return Ref<VkContext>::Create(windowHandle);
+        case RendererAPIType::Vulkan:  return Ref<VKContext>::Create(windowHandle);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

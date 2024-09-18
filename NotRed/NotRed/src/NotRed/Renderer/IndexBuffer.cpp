@@ -2,7 +2,7 @@
 #include "IndexBuffer.h"
 
 #include "NotRed/Platform/OpenGL/GLIndexBuffer.h"
-#include "NotRed/Platform/Vulkan/VkIndexBuffer.h"
+#include "NotRed/Platform/Vulkan/VKIndexBuffer.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -14,7 +14,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return Ref<GLIndexBuffer>::Create(data, size);
-        case RendererAPIType::Vulkan:  return Ref<VkIndexBuffer>::Create(size, size);
+        case RendererAPIType::Vulkan:  return Ref<VKIndexBuffer>::Create(size, size);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -29,7 +29,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return Ref<GLIndexBuffer>::Create(size);
-        case RendererAPIType::Vulkan:  return Ref<VkIndexBuffer>::Create(size);
+        case RendererAPIType::Vulkan:  return Ref<VKIndexBuffer>::Create(size);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

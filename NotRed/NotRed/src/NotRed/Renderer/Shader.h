@@ -135,6 +135,8 @@ namespace NR
 	class Shader : public RefCounted
 	{
 	public:
+		virtual ~Shader() = default;
+
 		using ShaderReloadedCallback = std::function<void()>;
 
 		static Ref<Shader> Create(const std::string& filepath, bool forceCompile = false);

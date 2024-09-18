@@ -99,7 +99,7 @@ namespace NR
             });
     }
 
-    void GLShader::ParseFile(const std::string& filepath, std::string& output, bool isCompute)
+    void GLShader::ParseFile(const std::string& filepath, std::string& output, bool isCompute) const
     {
         std::ifstream in(filepath, std::ios::in | std::ios::binary);
 
@@ -114,6 +114,7 @@ namespace NR
         {
             NR_CORE_ASSERT(false, "Could not open file");
         }
+
         in.close();
     }
 
@@ -192,7 +193,8 @@ namespace NR
         for (auto [stage, source] : mShaderSource)
         {
             auto extension = GLShaderStageCachedVulkanFileExtension(stage);
-            std::filesystem::path shaderPath = GetShaderFileExtension(stage, mAssetPath);
+            std::string fullShaderPath = mAssetPath + "/" + mName;
+            std::filesystem::path shaderPath = GetShaderFileExtension(stage, fullShaderPath);
             if (!forceCompile)
             {
                 auto path = cacheDirectory / (shaderPath.filename().string() + extension);
@@ -284,7 +286,8 @@ namespace NR
                 spirv_cross::CompilerGLSL glsl(binary);
                 ParseConstantBuffers(glsl);
 
-                std::filesystem::path shaderPath = GetShaderFileExtension(stage, mAssetPath);
+                std::string fullShaderPath = mAssetPath + "/" + mName;
+                std::filesystem::path shaderPath = GetShaderFileExtension(stage, fullShaderPath);
                 auto path = cacheDirectory / (shaderPath.filename().string() + GLShaderStageCachedOpenGLFileExtension(stage));
                 std::string cachedFilePath = path.string();
 
@@ -400,12 +403,12 @@ namespace NR
         case spirv_cross::SPIRType::Boolean:    return ShaderUniformType::Bool;
         case spirv_cross::SPIRType::Int:        return ShaderUniformType::Int;
         case spirv_cross::SPIRType::UInt:       return ShaderUniformType::UInt;
-        case spirv_cross::SPIRType::Float:      
+        case spirv_cross::SPIRType::Float:
             if (type.vecsize == 1)              return ShaderUniformType::Float;
             if (type.vecsize == 2)              return ShaderUniformType::Vec2;
             if (type.vecsize == 3)              return ShaderUniformType::Vec3;
             if (type.vecsize == 4)              return ShaderUniformType::Vec4;
-                                                
+
             if (type.columns == 3)              return ShaderUniformType::Mat3;
             if (type.columns == 4)              return ShaderUniformType::Mat4;
             break;
@@ -489,7 +492,7 @@ namespace NR
                 NR_CORE_TRACE("Created Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
 
                 glBindBuffer(GL_UNIFORM_BUFFER, 0);
-        }
+            }
             else
             {
                 // Validation
@@ -508,7 +511,7 @@ namespace NR
                     NR_CORE_TRACE("Resized Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
                 }
             }
-    }
+        }
 
         int32_t sampler = 0;
         for (const spirv_cross::Resource& resource : res.sampled_images)
@@ -522,7 +525,7 @@ namespace NR
             mResources[name] = ShaderResourceDeclaration(name, binding, 1);
             glUniform1i(location, binding);
         }
-}
+    }
 
     void GLShader::AddShaderReloadedCallback(const ShaderReloadedCallback& callback)
     {

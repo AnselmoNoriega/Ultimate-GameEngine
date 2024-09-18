@@ -75,7 +75,7 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::OpenGL: return new GLRenderer();
-        case RendererAPIType::Vulkan: return new VkRenderer();
+        case RendererAPIType::Vulkan: return new VKRenderer();
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

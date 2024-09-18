@@ -2,7 +2,7 @@
 #include "Shader.h"
 
 #include "NotRed/Platform/OpenGL/GLShader.h"
-#include "NotRed/Platform/Vulkan/VkShader.h"
+#include "NotRed/Platform/Vulkan/VKShader.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -21,7 +21,7 @@ namespace NR
             result = Ref<GLShader>::Create(filepath, forceCompile);
             break;
         case RendererAPIType::Vulkan:
-            result = Ref<VkShader>::Create(filepath, forceCompile);
+            result = Ref<VKShader>::Create(filepath, forceCompile);
             break;
         }
 

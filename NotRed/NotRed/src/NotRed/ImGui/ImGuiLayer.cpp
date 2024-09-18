@@ -7,7 +7,7 @@
 #include "NotRed/Renderer/RendererAPI.h"
 
 #include "NotRed/Platform/OpenGL/GLImGuiLayer.h"
-#include "NotRed/Platform/Vulkan/VkImGuiLayer.h"
+#include "NotRed/Platform/Vulkan/VKImGuiLayer.h"
 
 namespace NR
 {
@@ -17,7 +17,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return new GLImGuiLayer();
-        case RendererAPIType::Vulkan:  return new VkImGuiLayer();
+        case RendererAPIType::Vulkan:  return new VKImGuiLayer();
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");
