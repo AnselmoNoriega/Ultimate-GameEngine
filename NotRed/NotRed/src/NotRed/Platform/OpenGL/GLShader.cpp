@@ -162,7 +162,7 @@ namespace NR
         }
     }
 
-    std::string GetShaderFileExtension(uint32_t stage, std::string& assetPath)
+    std::string GetGLShaderFileExtension(uint32_t stage, std::string& assetPath)
     {
         switch (stage)
         {
@@ -194,7 +194,7 @@ namespace NR
         {
             auto extension = GLShaderStageCachedVulkanFileExtension(stage);
             std::string fullShaderPath = mAssetPath + "/" + mName;
-            std::filesystem::path shaderPath = GetShaderFileExtension(stage, fullShaderPath);
+            std::filesystem::path shaderPath = GetGLShaderFileExtension(stage, fullShaderPath);
             if (!forceCompile)
             {
                 auto path = cacheDirectory / (shaderPath.filename().string() + extension);
@@ -287,7 +287,7 @@ namespace NR
                 ParseConstantBuffers(glsl);
 
                 std::string fullShaderPath = mAssetPath + "/" + mName;
-                std::filesystem::path shaderPath = GetShaderFileExtension(stage, fullShaderPath);
+                std::filesystem::path shaderPath = GetGLShaderFileExtension(stage, fullShaderPath);
                 auto path = cacheDirectory / (shaderPath.filename().string() + GLShaderStageCachedOpenGLFileExtension(stage));
                 std::string cachedFilePath = path.string();
 

@@ -14,7 +14,7 @@ namespace NR
         {
         case RendererAPIType::None:    return nullptr;
         case RendererAPIType::OpenGL:  return Ref<GLIndexBuffer>::Create(data, size);
-        case RendererAPIType::Vulkan:  return Ref<VKIndexBuffer>::Create(size, size);
+        case RendererAPIType::Vulkan:  return Ref<VKIndexBuffer>::Create(data, size);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

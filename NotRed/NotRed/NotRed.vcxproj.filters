@@ -237,9 +237,6 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLMaterial.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLMatreial.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
@@ -696,6 +693,9 @@
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp">
+      <Filter>src\NotRed\Platform\OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLMaterial.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp">

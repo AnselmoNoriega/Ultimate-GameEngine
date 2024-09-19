@@ -81,15 +81,15 @@ project "NotRed"
 		"Glad",
 		"ImGui",
 		"opengl32.lib",
-		"%{LibraryDir.Vulkan}",
-		"%{LibraryDir.Mono}",
-		"%{LibraryDir.PhysX}",
-		"%{LibraryDir.PhysXCharacterKinematic}",
-		"%{LibraryDir.PhysXCommon}",
-		"%{LibraryDir.PhysXCooking}",
-		"%{LibraryDir.PhysXExtensions}",
-		"%{LibraryDir.PhysXFoundation}",
-		"%{LibraryDir.PhysXPvd}"
+		"%{Library.Vulkan}",
+		"%{Library.Mono}",
+		"%{Library.PhysX}",
+		"%{Library.PhysXCharacterKinematic}",
+		"%{Library.PhysXCommon}",
+		"%{Library.PhysXCooking}",
+		"%{Library.PhysXExtensions}",
+		"%{Library.PhysXFoundation}",
+		"%{Library.PhysXPvd}"
 	}
 
 	defines
@@ -115,9 +115,9 @@ project "NotRed"
 
 		links
 		{
-			"%{LibraryDir.ShaderC_Debug}",
-			"%{LibraryDir.SPIRV_Cross_Debug}",
-			"%{LibraryDir.SPIRV_Cross_GLSL_Debug}"
+			"%{Library.ShaderC_Debug}",
+			"%{Library.SPIRV_Cross_Debug}",
+			"%{Library.SPIRV_Cross_GLSL_Debug}"
 		}
 				
 	filter "configurations:Release"
@@ -130,9 +130,9 @@ project "NotRed"
 		
 		links
 		{
-			"%{LibraryDir.ShaderC_Release}",
-			"%{LibraryDir.SPIRV_Cross_Release}",
-			"%{LibraryDir.SPIRV_Cross_GLSL_Release}"
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
 
 	filter "configurations:Dist"
@@ -141,9 +141,9 @@ project "NotRed"
 		
 		links
 		{
-			"%{LibraryDir.ShaderC_Release}",
-			"%{LibraryDir.SPIRV_Cross_Release}",
-			"%{LibraryDir.SPIRV_Cross_GLSL_Release}"
+			"%{Library.ShaderC_Release}",
+			"%{Library.SPIRV_Cross_Release}",
+			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
 
 project "NotRed-ScriptCore"

@@ -598,7 +598,7 @@ namespace NR
         return (shaderc_shader_kind)0;
     }
 
-    std::string GetShaderFileExtension(uint32_t stage, std::string& assetPath)
+    std::string GetVKShaderFileExtension(uint32_t stage, std::string& assetPath)
     {
         switch (stage)
         {
@@ -618,7 +618,7 @@ namespace NR
         {
             auto extension = VkShaderStageCachedFileExtension(stage);
             std::string fullShaderPath = mAssetPath + "/" + mName;
-            std::filesystem::path shaderPath = GetShaderFileExtension(stage, fullShaderPath);
+            std::filesystem::path shaderPath = GetVKShaderFileExtension(stage, fullShaderPath);
             if (!forceCompile)
             {
                 auto path = cacheDirectory / (shaderPath.filename().string() + extension);

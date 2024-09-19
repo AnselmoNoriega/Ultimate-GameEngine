@@ -91,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\PhysX\lib\Debug.lib;.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;vendor\Vulkan\lib\shaderc_sharedd.lib;vendor\Vulkan\lib\spirv-cross-cored.lib;vendor\Vulkan\lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -117,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\PhysX\lib\Release.lib;.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -143,7 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\PhysX\lib\Dist.lib;.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -198,7 +198,6 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLImage.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLMaterial.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLMatreial.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderer.h" />
@@ -353,6 +352,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage2D.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLMaterial.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderer.cpp" />
