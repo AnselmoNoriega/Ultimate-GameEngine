@@ -2,6 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include "NotRed/Renderer/Renderer.h"
+
 namespace NR::Utils
 {
     inline const char* VKResultToString(VkResult result)
@@ -53,18 +55,24 @@ namespace NR::Utils
     }
 
     void RetrieveDiagnosticCheckpoints();
+
+    inline void VulkanCheckResult(VkResult result)
+    {
+        if (result != VK_SUCCESS)
+        {
+            NR_CORE_ERROR("VkResult is '{0}' in{1}:{2}", ::NR::Utils::VKResultToString(result), __FILE__, __LINE__);
+            if (result == VK_ERROR_DEVICE_LOST)
+            {
+                ::NR::Utils::RetrieveDiagnosticCheckpoints();
+                ::NR::Utils::DumpGPUInfo();
+            }
+            NR_CORE_ASSERT(result == VK_SUCCESS);
+        }
+    }
 }
 
-#define VK_CHECK_RESULT(f)											                                            \
-{																	                                            \
-	VkResult res = (f);												                                            \
-	if (res != VK_SUCCESS)											                                            \
-	{																                                            \
-		NR_CORE_ERROR("VkResult is '{0}' in {1}:{2}", ::NR::Utils::VKResultToString(res), __FILE__ , __LINE__); \
-		if (res == VK_ERROR_DEVICE_LOST)                                                                        \
-        {                                                                                                       \
-            ::NR::Utils::RetrieveDiagnosticCheckpoints();                                                       \
-        }                                                                                                       \
-		NR_CORE_ASSERT(res == VK_SUCCESS);										                                \
-	}																			                                \
+#define VK_CHECK_RESULT(f)\
+{\
+	VkResult res = (f);\
+	::NR::Utils::VulkanCheckResult(res);\
 }

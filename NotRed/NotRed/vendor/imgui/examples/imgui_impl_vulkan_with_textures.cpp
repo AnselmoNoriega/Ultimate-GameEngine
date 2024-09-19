@@ -1253,18 +1253,36 @@ struct VkDetails
 
 static std::unordered_map<void*, VkDetails> s_VulkanCache;
 
-ImTextureID ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
-{
-    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+ImTextureID ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout) {
+    VkResult err;
 
-    VkDescriptorSetAllocateInfo alloc_info = {};
-    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorSetCount = 1;
-    alloc_info.pSetLayouts = &g_DescriptorSetLayout;
+    if (s_VulkanCache.find((void*)image_view) == s_VulkanCache.end())
+    {
+        VkDetails& vulkanDetails = s_VulkanCache[(void*)image_view];
+        vulkanDetails.sampler = sampler;
+        vulkanDetails.image_view = image_view;
+        vulkanDetails.image_layout = image_layout;
 
-    VkDescriptorSet descriptor_set = NR::VKRenderer::RT_AllocateDescriptorSet(alloc_info);
-    ImGui_ImplVulkan_UpdateTextureInfo(descriptor_set, sampler, image_view, image_layout);
-    return (ImTextureID)descriptor_set;
+        ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
+        VkDescriptorSet descriptor_set;
+        // Create Descriptor Set:
+        {
+            VkDescriptorSetAllocateInfo alloc_info = {};
+            alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+            alloc_info.descriptorPool = v->DescriptorPool;
+            alloc_info.descriptorSetCount = 1;
+            alloc_info.pSetLayouts = &g_DescriptorSetLayout;
+            err = vkAllocateDescriptorSets(v->Device, &alloc_info, &descriptor_set);
+            check_vk_result(err);
+        }
+
+        vulkanDetails.descriptor_set = descriptor_set;
+    }
+
+    VkDetails& vulkanDetails = s_VulkanCache.at((void*)image_view);
+    ImGui_ImplVulkan_UpdateTextureInfo(vulkanDetails.descriptor_set, vulkanDetails.sampler, vulkanDetails.image_view, vulkanDetails.image_layout);
+
+    return (ImTextureID)vulkanDetails.descriptor_set;
 }
 
 ImTextureID ImGui_ImplVulkan_AddTexture_Internal(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)

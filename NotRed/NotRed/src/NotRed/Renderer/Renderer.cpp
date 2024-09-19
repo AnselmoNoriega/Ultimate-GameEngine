@@ -60,6 +60,8 @@ namespace NR
 
     struct RendererData
     {
+        RendererConfig Config;
+
         Ref<ShaderLibrary> mShaderLibrary;
 
         Ref<Texture2D> WhiteTexture;
@@ -259,5 +261,10 @@ namespace NR
     RenderCommandQueue& Renderer::GetRenderCommandQueue()
     {
         return *sCommandQueue;
+    }
+
+    RendererConfig& Renderer::GetConfig()
+    {
+        return sData->Config;
     }
 }

@@ -149,6 +149,8 @@ namespace NR
 
 		bool mShowPhysicsSettings = false;
 
+		bool mShowWelcomePopup = true;
+
 		enum class SceneState
 		{
 			Edit,

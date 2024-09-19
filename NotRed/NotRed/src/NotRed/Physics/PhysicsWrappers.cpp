@@ -17,11 +17,11 @@ namespace NR
 {
 	static PhysicsErrorCallback sErrorCallback;
 	static physx::PxDefaultAllocator sAllocator;
-	static physx::PxFoundation* sFoundation;
-	static physx::PxPvd* sPVD;
-	static physx::PxPhysics* sPhysics;
+	static physx::PxFoundation* sFoundation = nullptr;
+	static physx::PxPvd* sPVD = nullptr;
+	static physx::PxPhysics* sPhysics = nullptr;
 	static physx::PxOverlapHit sOverlapBuffer[OVERLAP_MAX_COLLIDERS];
-	static physx::PxDefaultCpuDispatcher* sCpuDispatcher;
+	static physx::PxDefaultCpuDispatcher* sCpuDispatcher = nullptr;
 
 	static ContactListener3D sContactListener3D;
 
@@ -738,12 +738,22 @@ namespace NR
 
 	void PhysicsWrappers::Shutdown()
 	{
-		sCpuDispatcher->release();
+		if (sCpuDispatcher)
+		{
+			sCpuDispatcher->release();
+		}
+		sCpuDispatcher = nullptr;
 
-		sPhysics->release();
+		if (sFoundation)
+		{
+			sPhysics->release();
+		}
 		sPhysics = nullptr;
 
-		sFoundation->release();
+		if (sFoundation)
+		{
+			sFoundation->release();
+		}
 		sFoundation = nullptr;
 	}
 

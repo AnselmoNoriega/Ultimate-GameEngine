@@ -7,7 +7,7 @@ namespace NR
 	struct RendererCapabilities
 	{
 		std::string Vendor;
-		std::string Renderer;
+		std::string Device;
 		std::string Version;
 
 		int MaxSamples = 0;

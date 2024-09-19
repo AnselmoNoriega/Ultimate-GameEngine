@@ -110,6 +110,13 @@ namespace NR
 				glEnable(GL_DEBUG_OUTPUT);
 				glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 
+				auto& caps = sData->RenderCaps;
+				caps.Vendor = (const char*)glGetString(GL_VENDOR);
+				caps.Device = (const char*)glGetString(GL_RENDERER);
+				caps.Version = (const char*)glGetString(GL_VERSION);
+				NR_CORE_TRACE("OpenGLRendererData::Init");
+				Utils::DumpGPUInfo();
+
 				unsigned int va;
 				glGenVertexArrays(1, &va);
 				glBindVertexArray(va);
@@ -124,11 +131,6 @@ namespace NR
 
 				glEnable(GL_MULTISAMPLE);
 				glEnable(GL_STENCIL_TEST);
-
-				auto& caps = sData->RenderCaps;
-				caps.Vendor = (const char*)glGetString(GL_VENDOR);
-				caps.Renderer = (const char*)glGetString(GL_RENDERER);
-				caps.Version = (const char*)glGetString(GL_VERSION);
 
 				glGetIntegerv(GL_MAX_SAMPLES, &caps.MaxSamples);
 				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &caps.MaxAnisotropy);
@@ -277,6 +279,11 @@ namespace NR
 
 	std::pair<Ref<TextureCube>, Ref<TextureCube>> GLRenderer::CreateEnvironmentMap(const std::string& filepath)
 	{
+		if (!Renderer::GetConfig().ComputeEnvironmentMaps)
+		{
+			return { Renderer::GetBlackCubeTexture(), Renderer::GetBlackCubeTexture() };
+		}
+
 		const uint32_t cubemapSize = 2048;
 		const uint32_t irradianceMapSize = 32;
 

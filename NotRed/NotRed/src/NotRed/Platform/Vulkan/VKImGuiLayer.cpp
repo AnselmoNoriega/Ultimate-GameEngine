@@ -20,15 +20,6 @@ namespace NR
 {
     static VkCommandBuffer sImGuiCommandBuffer;
 
-    static void check_vk_result(VkResult err)
-    {
-        if (err == 0)
-            return;
-        fprintf(stderr, "[vulkan] Error: VkResult = %d\n", err);
-        if (err < 0)
-            abort();
-    }
-
     VKImGuiLayer::VKImGuiLayer()
     {
     }
@@ -101,8 +92,7 @@ namespace NR
                 poolInfo.maxSets = 1000 * IM_ARRAYSIZE(poolSizes);
                 poolInfo.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);
                 poolInfo.pPoolSizes = poolSizes;
-                auto err = vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool);
-                check_vk_result(err);
+                VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool));
 
                 // Setup Platform/Renderer bindings
                 ImGui_ImplGlfw_InitForVulkan(window, true);
@@ -117,7 +107,7 @@ namespace NR
                 initInfo.Allocator = nullptr;
                 initInfo.MinImageCount = 2;
                 initInfo.ImageCount = vulkanContext->GetSwapChain().GetImageCount();
-                initInfo.CheckVkResultFn = check_vk_result;
+                initInfo.CheckVkResultFn = Utils::VulkanCheckResult;
                 ImGui_ImplVulkan_Init(&initInfo, vulkanContext->GetSwapChain().GetRenderPass());
 
                 // Load Fonts
@@ -141,8 +131,7 @@ namespace NR
                     ImGui_ImplVulkan_CreateFontsTexture(commandBuffer);
                     vulkanContext->GetCurrentDevice()->FlushCommandBuffer(commandBuffer);
 
-                    err = vkDeviceWaitIdle(device);
-                    check_vk_result(err);
+                    VK_CHECK_RESULT(vkDeviceWaitIdle(device));
                     ImGui_ImplVulkan_DestroyFontUploadObjects();
                 }
 
@@ -156,8 +145,7 @@ namespace NR
             {
                 auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
-                auto err = vkDeviceWaitIdle(device);
-                check_vk_result(err);
+                VK_CHECK_RESULT(vkDeviceWaitIdle(device));
                 ImGui_ImplVulkan_Shutdown();
                 ImGui_ImplGlfw_Shutdown();
                 ImGui::DestroyContext();

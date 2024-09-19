@@ -16,6 +16,11 @@ namespace NR
 {
     class ShaderLibrary;
 
+    struct RendererConfig
+    {
+        bool ComputeEnvironmentMaps = false;
+    };
+
     class Renderer
     {
     public:
@@ -63,7 +68,7 @@ namespace NR
         static void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material);
 
         static void SubmitQuad(Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
-        static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial = nullptr);
+        //static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial = nullptr);
 
         static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
         static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
@@ -76,7 +81,21 @@ namespace NR
         static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);
         static void OnShaderReloaded(size_t hash);
 
+        static RendererConfig& GetConfig();
+
     private:
         static RenderCommandQueue& GetRenderCommandQueue();
     };
+
+    namespace Utils
+    {
+        inline void DumpGPUInfo()
+        {
+            auto& caps = Renderer::GetCapabilities();
+            NR_CORE_TRACE("GPU Info:");
+            NR_CORE_TRACE("  Vendor: {0}", caps.Vendor);
+            NR_CORE_TRACE("  Device: {0}", caps.Device);
+            NR_CORE_TRACE("  Version: {0}", caps.Version);
+        }
+    }
 }

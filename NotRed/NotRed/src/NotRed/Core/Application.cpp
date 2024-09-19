@@ -31,7 +31,7 @@ namespace NR
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
-        mWindow->SetVSync(false);
+        mWindow->SetVSync(true);
         
         Renderer::Init();
         Renderer::WaitAndRender();
@@ -71,7 +71,7 @@ namespace NR
         ImGui::Begin("Renderer");
         auto& caps = Renderer::GetCapabilities();
         ImGui::Text("Vendor: %s", caps.Vendor.c_str());
-        ImGui::Text("Renderer: %s", caps.Renderer.c_str());
+        ImGui::Text("Renderer: %s", caps.Device.c_str());
         ImGui::Text("Version: %s", caps.Version.c_str());
         ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
         ImGui::End();

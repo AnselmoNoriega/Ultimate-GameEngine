@@ -15,6 +15,7 @@
 #include "NotRed/Platform/OpenGL/GLShader.h"
 #include "NotRed/Platform/Vulkan/VKRenderer.h"
 #include "NotRed/Platform/Vulkan/VKFrameBuffer.h"
+#include "NotRed/Platform/Vulkan/VKShader.h"
 
 #include "SceneEnvironment.h"
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RendererTypes.h"
+#include "NotRed/Core/Log.h"
 
 namespace NR
 {

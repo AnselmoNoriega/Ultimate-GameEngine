@@ -28,6 +28,8 @@ namespace NR
 		VkPhysicalDevice GetVulkanPhysicalDevice() const { return mPhysicalDevice; }
 		const QueueFamilyIndices& GetQueueFamilyIndices() const { return mQueueFamilyIndices; }
 
+		const VkPhysicalDeviceProperties& GetProperties() const { return mProperties; }
+
 		VkFormat GetDepthFormat() const { return mDepthFormat; }
 
 		static Ref<VKPhysicalDevice> Select();

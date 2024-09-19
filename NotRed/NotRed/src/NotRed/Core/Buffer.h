@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/Core/Core.h"
+#include "NotRed/Core/Log.h"
 
 namespace NR
 {

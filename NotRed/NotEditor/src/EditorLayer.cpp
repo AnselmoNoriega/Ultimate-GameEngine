@@ -942,6 +942,29 @@ namespace NR
         PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
         ImGui::End();
+
+        if (mShowWelcomePopup)
+        {
+            ImGui::OpenPopup("Welcome");
+            mShowWelcomePopup = false;
+        }
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+        if (ImGui::BeginPopupModal("Welcome", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Welcome to Not-Red!");
+            ImGui::Separator();
+            ImGui::TextWrapped("Environment maps are currently disabled.");
+            UI::BeginPropertyGrid();
+            UI::Property("Enable environment maps?", Renderer::GetConfig().ComputeEnvironmentMaps);
+            UI::EndPropertyGrid();
+            if (ImGui::Button("OK"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
+        }
     }
 
     void EditorLayer::ShowBoundingBoxes(bool show, bool onTop)

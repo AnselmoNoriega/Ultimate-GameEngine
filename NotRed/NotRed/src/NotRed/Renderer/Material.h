@@ -7,10 +7,6 @@
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Texture.h"
 
-#include "NotRed/Platform/Vulkan/VKShader.h"
-
-#include "vulkan/vulkan_core.h"
-
 namespace NR
 {
 	enum class MaterialFlag

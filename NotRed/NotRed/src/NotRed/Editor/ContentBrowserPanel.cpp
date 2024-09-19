@@ -368,7 +368,7 @@ namespace NR
 				{
 					int count = payload->DataSize / sizeof(AssetHandle);
 
-					for (int i = 0; i < count; i++)
+					for (int i = 0; i < count; ++i)
 					{
 						AssetHandle handle = *(((AssetHandle*)payload->Data) + i);
 						Ref<Asset> droppedAsset = AssetManager::GetAsset<Asset>(handle, false);
