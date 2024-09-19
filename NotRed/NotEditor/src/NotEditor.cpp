@@ -3,6 +3,8 @@
 
 #include "EditorLayer.h"
 
+#include "NotRed/Renderer/RendererAPI.h"
+
 class NotEditorApplication : public NR::Application
 {
 public:
@@ -17,7 +19,8 @@ public:
 	}
 };
 
-NR::Application* NR::CreateApplication()
+NR::Application* NR::CreateApplication(int argc, char** argv)
 {
+	NR::RendererAPI::SetAPI(NR::RendererAPIType::Vulkan);
 	return new NotEditorApplication({ "NotEditor", 1600, 900 });
 }

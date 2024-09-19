@@ -124,17 +124,18 @@ namespace NR
 
     static void ShutdownMono()
     {
-        mono_jit_cleanup(sMonoDomain);
     }
 
     static void InitMono()
     {
-        mono_set_assemblies_path("mono/lib");
+        if (!sMonoDomain)
+        {
+            mono_set_assemblies_path("mono/lib");
+            auto domain = mono_jit_init("NotRed");
 
-        auto domain = mono_jit_init("NotRed");
-
-        char* name = (char*)"NotRedRuntime";
-        sMonoDomain = mono_domain_create_appdomain(name, nullptr);
+            char* name = (char*)"NotRedRuntime";
+            sMonoDomain = mono_domain_create_appdomain(name, nullptr);
+        }
     }
 
     static MonoAssembly* LoadAssembly(const std::string& path)
@@ -311,6 +312,7 @@ namespace NR
 
     void ScriptEngine::Shutdown()
     {
+        ShutdownMono();
         sSceneContext = nullptr;
         sEntityInstanceMap.clear();
     }

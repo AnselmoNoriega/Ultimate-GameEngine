@@ -135,7 +135,7 @@ namespace NR
     struct RigidBody2DComponent
     {
         enum class Type { Static, Dynamic, Kinematic };
-        Type BodyType;
+        Type BodyType = Type::Static;
         bool FixedRotation = false;
 
         void* RuntimeBody = nullptr;

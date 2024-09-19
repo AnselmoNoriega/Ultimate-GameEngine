@@ -10,7 +10,7 @@ namespace NR
 {
 	FileSystem::FileSystemChangedCallbackFn FileSystem::sCallback;
 
-	static bool sWatching = true;
+	static bool sWatching = false;
 	static bool sIgnoreNextChange = false;
 	static HANDLE sWatcherThread;
 
@@ -121,14 +121,13 @@ namespace NR
 	unsigned long FileSystem::Watch(void* param)
 	{
 		LPCWSTR	filepath = L"Assets";
-		BYTE* buffer = new BYTE[10 * 1024];
+		std::vector<BYTE> buffer;
+		buffer.resize(10 * 1024);
 		OVERLAPPED overlapped = { 0 };
 		HANDLE handle = NULL;
 		DWORD bytesReturned = 0;
 
-		ZeroMemory(buffer, 1024);
-
-		handle = CreateFile(
+		handle = CreateFileW(
 			filepath,
 			FILE_LIST_DIRECTORY,
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -157,8 +156,8 @@ namespace NR
 		{
 			DWORD status = ReadDirectoryChangesW(
 				handle,
-				buffer,
-				10 * 1024 * sizeof(BYTE),
+				&buffer[0],
+				buffer.size(),
 				TRUE,
 				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
 				&bytesReturned,
@@ -186,12 +185,13 @@ namespace NR
 			std::string oldName;
 			char fileName[MAX_PATH * 10] = "";
 
-			FILE_NOTIFY_INFORMATION* current = (FILE_NOTIFY_INFORMATION*)buffer;
+			BYTE* buf = buffer.data();
 
 			for (;;)
 			{
+				FILE_NOTIFY_INFORMATION& fni = *(FILE_NOTIFY_INFORMATION*)buf;
 				ZeroMemory(fileName, sizeof(fileName));
-				WideCharToMultiByte(CP_ACP, 0, current->FileName, current->FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
+				WideCharToMultiByte(CP_ACP, 0, fni.FileName, fni.FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
 				std::filesystem::path filepath = "assets/" + std::string(fileName);
 
 				FileSystemChangedEvent e;
@@ -200,7 +200,7 @@ namespace NR
 				e.OldName = filepath.filename().string();
 				e.IsDirectory = std::filesystem::is_directory(filepath);
 
-				switch (current->Action)
+				switch (fni.Action)
 				{
 				case FILE_ACTION_ADDED:
 				{
@@ -235,13 +235,12 @@ namespace NR
 				}
 				}
 
-				if (!current->NextEntryOffset)
+				if (!fni.NextEntryOffset)
 				{
-					ZeroMemory(buffer, 1024);
 					break;
 				}
 
-				current += current->NextEntryOffset;
+				buf += fni.NextEntryOffset;
 			}
 		}
 

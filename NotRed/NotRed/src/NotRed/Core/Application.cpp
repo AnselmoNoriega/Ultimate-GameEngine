@@ -37,8 +37,6 @@ namespace NR
         Renderer::WaitAndRender();
 
         mImGuiLayer = ImGuiLayer::Create();
-
-        mImGuiLayer = new ImGuiLayer("ImGui");
         PushOverlay(mImGuiLayer);
 
         ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");

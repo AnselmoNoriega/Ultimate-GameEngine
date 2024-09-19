@@ -12,6 +12,7 @@
 #include "Components.h"
 
 #include "NotRed/Math/Math.h"
+#include "NotRed/Renderer/Renderer.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsActor.h"
@@ -142,8 +143,8 @@ namespace NR
 
     void Scene::Init()
     {
-        auto skyboxShader = Shader::Create("Assets/Shaders/Skybox");
-        mSkyboxMaterial = MaterialInstance::Create(Material::Create(skyboxShader));
+        auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
+        mSkyboxMaterial = Material::Create(skyboxShader);
         mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
     }
 
@@ -239,7 +240,7 @@ namespace NR
         }
 
         {
-            mEnvironment = Ref<Environment>::Create();
+            //mEnvironment = Ref<Environment>::Create();
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             for (auto entity : lights)
             {
@@ -254,14 +255,14 @@ namespace NR
         }
 
         {
-            mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
+            mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
             SceneRenderer::BeginScene(this, { camera, cameraViewMatrix });
             for (auto entity : group)
             {
                 auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
-                if (meshComponent.MeshObj)
+                if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
                 {
                     meshComponent.MeshObj->Update(dt);
                     glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
@@ -295,7 +296,7 @@ namespace NR
         }
 
         {
-            mEnvironment = Ref<Environment>::Create();
+            //mEnvironment = Ref<Environment>::Create();
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             for (auto entity : lights)
             {
@@ -309,14 +310,14 @@ namespace NR
             }
         }
 
-        mSkyboxMaterial->Set("uTextureLod", mSkyboxLod);
+        mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
         auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
         SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
         for (auto entity : group)
         {
             auto&& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
-            if (meshComponent.MeshObj)
+            if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
             {
                 meshComponent.MeshObj->Update(dt);
 
@@ -506,6 +507,20 @@ namespace NR
             }
         }
 
+        {
+            auto view = mRegistry.view<TransformComponent>(entt::exclude<RigidBodyComponent>);
+            for (auto entity : view)
+            {
+                if (mRegistry.any_of<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent>(entity))
+                {
+                    Entity e = { entity, this };
+                    if (!e.HasComponent<RigidBodyComponent>())
+                    {
+                        e.AddComponent<RigidBodyComponent>();
+                    }
+                }
+            }
+        }
 
         {
             auto view = mRegistry.view<RigidBodyComponent>();

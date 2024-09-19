@@ -536,23 +536,17 @@ namespace NR
         out << YAML::EndMap; // Environment
     }
 
-    static bool CheckPath(const std::string& path)
-    {
-        FILE* f = fopen(path.c_str(), "rb");
-        if (f)
-        {
-            fclose(f);
-        }
-        return f != nullptr;
-    }
-
     void SceneSerializer::Serialize(const std::string& filepath)
     {
         YAML::Emitter out;
         out << YAML::BeginMap;
         out << YAML::Key << "Scene";
         out << YAML::Value << "Scene Name";
-        SerializeEnvironment(out, mScene);
+
+        if(mScene->GetEnvironment())
+        {
+            SerializeEnvironment(out, mScene);
+        }
 
         out << YAML::Key << "Entities";
         out << YAML::Value << YAML::BeginSeq;
@@ -606,6 +600,8 @@ namespace NR
     bool SceneSerializer::Deserialize(const std::string& filepath)
     {
         std::ifstream stream(filepath);
+        NR_CORE_ASSERT(stream);
+
         std::stringstream strStream;
         strStream << stream.rdbuf();
 
@@ -738,20 +734,36 @@ namespace NR
                 auto meshComponent = entity["MeshComponent"];
                 if (meshComponent)
                 {
-                    UUID assetID;
+                    auto& component = deserializedEntity.AddComponent<MeshComponent>();
+
+                    AssetHandle assetHandle = 0;
                     if (meshComponent["AssetPath"])
                     {
-                        std::string filepath = meshComponent["AssetPath"].as<std::string>();
-                        assetID = AssetManager::GetAssetHandleFromFilePath(filepath);
+                        assetHandle = AssetManager::GetAssetHandleFromFilePath(meshComponent["AssetPath"].as<std::string>());
                     }
                     else
                     {
-                        assetID = meshComponent["AssetID"].as<uint64_t>();
+                        assetHandle = meshComponent["AssetID"].as<uint64_t>();
                     }
 
-                    if (AssetManager::IsAssetHandleValid(assetID) && !deserializedEntity.HasComponent<MeshComponent>())
+                    if (AssetManager::IsAssetHandleValid(assetHandle))
                     {
-                        deserializedEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>(assetID));
+                        component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+                    }
+                    else
+                    {
+                        component.MeshObj = Ref<Asset>::Create().As<Mesh>();
+                        component.MeshObj->Type = AssetType::Missing;
+
+                        std::string filepath = meshComponent["AssetPath"] ? meshComponent["AssetPath"].as<std::string>() : "";
+                        if (filepath.empty())
+                        {
+                            NR_CORE_ERROR("Tried to load non-existent mesh in Entity: {0}", deserializedEntity.GetID());
+                        }
+                        else
+                        {
+                            NR_CORE_ERROR("Tried to load invalid mesh '{0}' in Entity {1}", filepath, deserializedEntity.GetID());
+                        }
                     }
                 }
 
@@ -810,11 +822,10 @@ namespace NR
                 {
                     auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
 
-                    AssetHandle assetHandle;
+                    AssetHandle assetHandle = 0;
                     if (skyLightComponent["EnvironmentAssetPath"])
                     {
-                        std::string filepath = skyLightComponent["EnvironmentAssetPath"].as<std::string>();
-                        assetHandle = AssetManager::GetAssetHandleFromFilePath(filepath);
+                        assetHandle = AssetManager::GetAssetHandleFromFilePath(skyLightComponent["EnvironmentAssetPath"].as<std::string>());
                     }
                     else
                     {
@@ -824,6 +835,18 @@ namespace NR
                     if (AssetManager::IsAssetHandleValid(assetHandle))
                     {
                         component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
+                    }
+                    else
+                    {
+                        std::string filepath = meshComponent["EnvironmentAssetPath"] ? meshComponent["EnvironmentAssetPath"].as<std::string>() : "";
+                        if (filepath.empty())
+                        {
+                            NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", deserializedEntity.GetID());
+                        }
+                        else
+                        {
+                            NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, deserializedEntity.GetID());
+                        }
                     }
                     component.Intensity = skyLightComponent["Intensity"].as<float>();
                     component.Angle = skyLightComponent["Angle"].as<float>();
@@ -897,9 +920,16 @@ namespace NR
                     component.DebugMesh = MeshFactory::CreateBox(component.Size);
 
                     auto material = boxColliderComponent["Material"];
-                    if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                    if (material)
                     {
-                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                        {
+                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        }
+                        else
+                        {
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                        }
                     }
                 }
 
@@ -912,9 +942,16 @@ namespace NR
                     component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
 
                     auto material = sphereColliderComponent["Material"];
-                    if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                    if (material)
                     {
-                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                        {
+                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        }
+                        else
+                        {
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                        }
                     }
                 }
 
@@ -927,9 +964,16 @@ namespace NR
                     component.IsTrigger = capsuleColliderComponent["IsTrigger"].as<bool>();
 
                     auto material = capsuleColliderComponent["Material"];
-                    if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                    if (material)
                     {
-                        component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                        {
+                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        }
+                        else
+                        {
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                        }
                     }
 
                     component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
@@ -938,53 +982,57 @@ namespace NR
                 auto meshColliderComponent = entity["MeshColliderComponent"];
                 if (meshColliderComponent)
                 {
-                    Ref<Mesh> collisionMesh = deserializedEntity.GetComponent<MeshComponent>().MeshObj;
+                    auto& component = deserializedEntity.AddComponent<MeshColliderComponent>();
+                    component.IsConvex = meshColliderComponent["IsConvex"].as<bool>();
+                    component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
+
+                    component.CollisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().MeshObj : nullptr;
                     bool overrideMesh = meshColliderComponent["OverrideMesh"].as<bool>();
 
                     if (overrideMesh)
                     {
-                        UUID assetID;
-                        if (meshComponent["AssetPath"])
+                        AssetHandle assetHandle = meshColliderComponent["AssetID"] ? meshColliderComponent["AssetID"].as<uint64_t>() : 0;
+
+                        if (AssetManager::IsAssetHandleValid(assetHandle))
                         {
-                            std::string filepath = meshComponent["AssetPath"].as<std::string>();
-                            assetID = AssetManager::GetAssetHandleFromFilePath(filepath);
+                            component.CollisionMesh = AssetManager::GetAsset<Mesh>(assetHandle);
                         }
                         else
                         {
-                            assetID = meshComponent["AssetID"].as<uint64_t>();
-                        }
-
-                        if (AssetManager::IsAssetHandleValid(assetID))
-                        {
-                            collisionMesh = AssetManager::GetAsset<Mesh>(assetID);
+                            overrideMesh = false;
                         }
                     }
 
-                    if (collisionMesh)
+                    if (component.CollisionMesh)
                     {
-                        auto& component = deserializedEntity.AddComponent<MeshColliderComponent>(collisionMesh);
-                        component.IsConvex = meshColliderComponent["IsConvex"].as<bool>();
-                        component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
                         component.OverrideMesh = overrideMesh;
 
-                        auto material = meshColliderComponent["Material"];
-                        if (material && AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                        if (component.IsConvex)
                         {
-                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
-
-                            if (component.IsConvex)
-                            {
-                                PhysicsWrappers::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
-                            }
-                            else
-                            {
-                                PhysicsWrappers::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
-                            }
+                            PhysicsWrappers::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
                         }
                     }
                     else
                     {
                         NR_CORE_WARN("MeshColliderComponent in use without valid mesh!");
+                    }
+
+
+                    auto material = meshColliderComponent["Material"];
+                    if (material)
+                    {
+                        if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
+                        {
+                            component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+                        }
+                        else
+                        {
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                        }
                     }
                 }
             }
@@ -1014,17 +1062,6 @@ namespace NR
             }
         }
 
-        if (missingPaths.size())
-        {
-            NR_CORE_ERROR("The following files could not be loaded:");
-            for (auto& path : missingPaths)
-            {
-                NR_CORE_ERROR("  {0}", path);
-            }
-
-            return false;
-        }
-
         return true;
     }
 
@@ -1033,5 +1070,4 @@ namespace NR
         NR_CORE_ASSERT(false);
         return false;
     }
-
 }

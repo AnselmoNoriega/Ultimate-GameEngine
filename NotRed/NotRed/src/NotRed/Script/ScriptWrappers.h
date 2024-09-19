@@ -76,17 +76,17 @@ namespace NR::Script
     void NR_Material_SetFloat(Ref<Material>* _this, MonoString* uniform, float value);
     void NR_Material_SetTexture(Ref<Material>* _this, MonoString* uniform, Ref<Texture2D>* texture);
 
-    void NR_MaterialInstance_Destructor(Ref<MaterialInstance>* _this);
-    void NR_MaterialInstance_SetFloat(Ref<MaterialInstance>* _this, MonoString* uniform, float value);
-    void NR_MaterialInstance_SetVector3(Ref<MaterialInstance>* _this, MonoString* uniform, glm::vec3* value);
-    void NR_MaterialInstance_SetVector4(Ref<MaterialInstance>* _this, MonoString* uniform, glm::vec4* value);
-    void NR_MaterialInstance_SetTexture(Ref<MaterialInstance>* _this, MonoString* uniform, Ref<Texture2D>* texture);
+    void NR_Material_Destructor(Ref<Material>* _this);
+    void NR_Material_SetFloat(Ref<Material>* _this, MonoString* uniform, float value);
+    void NR_Material_SetVector3(Ref<Material>* _this, MonoString* uniform, glm::vec3* value);
+    void NR_Material_SetVector4(Ref<Material>* _this, MonoString* uniform, glm::vec4* value);
+    void NR_Material_SetTexture(Ref<Material>* _this, MonoString* uniform, Ref<Texture2D>* texture);
 
     // Mesh
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath);
     void NR_Mesh_Destructor(Ref<Mesh>* _this);
     Ref<Material>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
-    Ref<MaterialInstance>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
+    Ref<Material>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
     int NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 
     void* NR_MeshFactory_CreatePlane(float width, float height);

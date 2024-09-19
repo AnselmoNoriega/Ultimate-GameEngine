@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 
 #include "NotRed/Core/Window.h"
+#include "NotRed/Renderer/RendererContext.h"
 
 namespace NR
 {
@@ -12,7 +13,8 @@ namespace NR
         WinWindow(const WindowProps& props);
         ~WinWindow() override;
 
-        void Update() override;
+        void ProcessEvents() override;
+        void SwapBuffers() override;
 
         inline uint32_t GetWidth() const override { return mData.Width; }
         inline uint32_t GetHeight() const override { return mData.Height; }
@@ -29,6 +31,8 @@ namespace NR
         inline void* GetNativeWindow() const override { return mWindow; }
         std::pair<float, float> GetWindowPos() const override;
         std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
+
+        Ref<RendererContext> GetRenderContext() override { return mRendererContext; }
 
     private:
         void Init(const WindowProps& props);
@@ -49,6 +53,7 @@ namespace NR
         WindowData mData;
 
         float mLastFrameTime = 0.0f;
+
+        Ref<RendererContext> mRendererContext;
     };
 }
-

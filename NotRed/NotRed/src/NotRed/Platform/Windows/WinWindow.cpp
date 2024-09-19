@@ -2,13 +2,14 @@
 #include "WinWindow.h"
 
 #include <glad/glad.h>
+#include <imgui.h>
 
 #include "NotRed/Core/Events/ApplicationEvent.h"
 
 #include "NotRed/Core/Events/KeyEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
 
-#include <imgui.h>
+#include "NotRed/Renderer/RendererAPI.h"
 
 namespace NR
 {
@@ -31,6 +32,7 @@ namespace NR
 
     WinWindow::~WinWindow()
     {
+        Shutdown();
     }
 
     void WinWindow::Init(const WindowProps& props)
@@ -50,10 +52,15 @@ namespace NR
             sGLFWInitialized = true;
         }
 
-        mWindow = glfwCreateWindow((uint32_t)props.Width, (uint32_t)props.Height, mData.Title.c_str(), nullptr, nullptr);
-        glfwMakeContextCurrent(mWindow);
-        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-        NR_CORE_ASSERT(status, "Failed to initialize Glad!");
+        if (RendererAPI::Current() == RendererAPIType::Vulkan)
+        {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        }
+        mWindow = glfwCreateWindow((int)props.Width, (int)props.Height, mData.Title.c_str(), nullptr, nullptr);
+
+        mRendererContext = RendererContext::Create(mWindow);
+        mRendererContext->Create();
+
         glfwSetWindowUserPointer(mWindow, &mData);
 
         glfwSetWindowSizeCallback(mWindow, [](GLFWwindow* window, int width, int height)
@@ -171,29 +178,29 @@ namespace NR
         return { x, y };
     }
 
-    void WinWindow::Update()
+    void WinWindow::ProcessEvents()
     {
         glfwPollEvents();
-        glfwSwapBuffers(mWindow);
+        glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
 
-        ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
-        glfwSetCursor(mWindow, mImGuiMouseCursors[imgui_cursor] ? mImGuiMouseCursors[imgui_cursor] : mImGuiMouseCursors[ImGuiMouseCursor_Arrow]);
-
-        float time = glfwGetTime();
-        float delta = time - mLastFrameTime;
-        mLastFrameTime = time;
+    void WinWindow::SwapBuffers()
+    {
+        mRendererContext->SwapBuffers();
     }
 
     void WinWindow::SetVSync(bool enabled)
     {
-        if (enabled)
+        if (RendererAPI::Current() == RendererAPIType::OpenGL)
         {
-            glfwSwapInterval(1);
-        }
-
-        else
-        {
-            glfwSwapInterval(0);
+            if (enabled)
+            {
+                glfwSwapInterval(1);
+            }
+            else
+            {
+                glfwSwapInterval(0);
+            }
         }
 
         mData.VSync = enabled;
@@ -211,6 +218,8 @@ namespace NR
 
     void WinWindow::Shutdown()
     {
+        glfwTerminate();
+        sGLFWInitialized = false;
     }
 
     void WinWindow::SetTitle(const std::string& title)

@@ -62,6 +62,7 @@ namespace NR
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
 		float& GetSkyboxLod() { return mSkyboxLod; }
+		float GetSkyboxLod() const { return mSkyboxLod; }
 
 		Light& GetLight() { return mLight; }
 		const Light& GetLight() const { return mLight; }
@@ -113,7 +114,7 @@ namespace NR
 		Ref<Environment> mEnvironment;
 		float mEnvironmentIntensity = 1.0f;
 		Ref<TextureCube> mSkyboxTexture;
-		Ref<MaterialInstance> mSkyboxMaterial;
+		Ref<Material> mSkyboxMaterial;
 
 		entt::entity mSelectedEntity;
 

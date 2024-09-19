@@ -14,7 +14,7 @@
 #include "imgui/imgui_internal.h"
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
-#include "NotRed/Editor/AssetManagerPanel.h"
+#include "NotRed/Editor/ContentBrowserPanel.h"
 #include "NotRed/Editor/ObjectsPanel.h"
 #include "NotRed/Editor/EditorCamera.h"
 
@@ -44,16 +44,6 @@ namespace NR
 
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
-
-		// ImGui UI helpers
-		bool Property(const std::string& name, bool& value);
-		bool Property(const std::string& name, float& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-		bool Property(const std::string& name, glm::vec2& value, PropertyFlag flags);
-		bool Property(const std::string& name, glm::vec2& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-		bool Property(const std::string& name, glm::vec3& value, PropertyFlag flags);
-		bool Property(const std::string& name, glm::vec3& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
-		bool Property(const std::string& name, glm::vec4& value, PropertyFlag flags);
-		bool Property(const std::string& name, glm::vec4& value, float min = -1.0f, float max = 1.0f, PropertyFlag flags = PropertyFlag::None);
 
 		void ShowBoundingBoxes(bool show, bool onTop = false);
 		void SelectEntity(Entity entity);
@@ -88,7 +78,7 @@ namespace NR
 
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
-		Scope<AssetManagerPanel> mAssetManagerPanel;
+		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
 
 		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
@@ -99,10 +89,6 @@ namespace NR
 
 		Ref<Shader> mBrushShader;
 		Ref<Material> mSphereBaseMaterial;
-
-		Ref<Material> mMeshMaterial;
-		std::vector<Ref<MaterialInstance>> mMetalSphereMaterialInstances;
-		std::vector<Ref<MaterialInstance>> mDielectricSphereMaterialInstances;
 
 		struct AlbedoInput
 		{
@@ -144,8 +130,8 @@ namespace NR
 		SceneType mSceneType;
 
 		// Editor resources
-		Ref<Texture2D> mCheckerboardTex;
-		Ref<Texture2D> mPlayButtonTex;
+		Ref<Texture2D> mCheckerboardTex;		
+		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
 
 		glm::vec2 mViewportBounds[2];
 		float mSnapValue = 0.5f;

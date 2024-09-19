@@ -2,6 +2,8 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #ifdef NR_PLATFORM_WINDOWS
 #include <Windows.h>
 #endif

@@ -9,6 +9,9 @@
 
 #include <imgui/imgui_internal.h>
 
+#include "imgui_internal.h"
+#include "NotRed/ImGui/ImGui.h"
+
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -19,21 +22,11 @@
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Math/Math.h"
 
+#include "NotRed/Renderer/RendererAPI.h"
+#include "NotRed/Platform/OpenGL/GLFramebuffer.h"
+
 namespace NR
 {
-    static void ImGuiShowHelpMarker(const char* desc)
-    {
-        ImGui::TextDisabled("(?)");
-        if (ImGui::IsItemHovered())
-        {
-            ImGui::BeginTooltip();
-            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-            ImGui::TextUnformatted(desc);
-            ImGui::PopTextWrapPos();
-            ImGui::EndTooltip();
-        }
-    }
-
     EditorLayer::EditorLayer()
         : mSceneType(SceneType::Model), mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f))
     {
@@ -49,12 +42,14 @@ namespace NR
 
         mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
         mPlayButtonTex = Texture2D::Create("Assets/Editor/PlayButton.png");
+        mPauseButtonTex = Texture2D::Create("Assets/Editor/PauseButton.png");
+        mStopButtonTex = Texture2D::Create("Assets/Editor/StopButton.png");
 
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
         mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
 
-        mAssetManagerPanel = CreateScope<AssetManagerPanel>();
+        mContentBrowserPanel = CreateScope<ContentBrowserPanel>();
         mObjectsPanel = CreateScope<ObjectsPanel>();
 
         NewScene();
@@ -66,6 +61,7 @@ namespace NR
     void EditorLayer::Detach()
     {
         FileSystem::StopWatching();
+        AssetEditorPanel::UnregisterAllEditors();
     }
 
     void EditorLayer::ScenePlay()
@@ -103,7 +99,8 @@ namespace NR
 
     void EditorLayer::UpdateWindowTitle(const std::string& sceneName)
     {
-        std::string title = sceneName + " - NotEditor - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ")";
+        std::string rendererAPI = RendererAPI::Current() == RendererAPIType::Vulkan ? "Vulkan" : "OpenGL";
+        std::string title = sceneName + " - NotEditor - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ") Renderer: " + rendererAPI;
         Application::Get().GetWindow().SetTitle(title);
     }
 
@@ -121,8 +118,6 @@ namespace NR
     void EditorLayer::Update(float dt)
     {
         auto [x, y] = GetMouseViewportSpace();
-
-        SceneRenderer::SetFocusPoint({ x * 0.5f + 0.5f, y * 0.5f + 0.5f });
 
         switch (mSceneState)
         {
@@ -160,7 +155,7 @@ namespace NR
             {
                 auto& selection = mSelectionContext[0];
 
-                if (selection.EntityObj.HasComponent<BoxCollider2DComponent>())
+                if (selection.EntityObj.HasComponent<BoxCollider2DComponent>() && false)
                 {
                     const auto& size = selection.EntityObj.GetComponent<BoxCollider2DComponent>().Size;
                     const TransformComponent& transform = selection.EntityObj.GetComponent<TransformComponent>();
@@ -212,137 +207,6 @@ namespace NR
         }
     }
 
-    bool EditorLayer::Property(const std::string& name, bool& value)
-    {
-        ImGui::Text(name.c_str());
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        ImGui::Checkbox(id.c_str(), &value);
-        bool result = ImGui::Checkbox(id.c_str(), &value);
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return result;
-    }
-
-    bool EditorLayer::Property(const std::string& name, float& value, float min, float max, EditorLayer::PropertyFlag flags)
-    {
-        ImGui::Text(name.c_str());
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        bool changed = false;
-        if (flags == PropertyFlag::SliderProperty)
-        {
-            changed = ImGui::SliderFloat(id.c_str(), &value, min, max);
-        }
-        else
-        {
-            changed = ImGui::DragFloat(id.c_str(), &value, 1.0f, min, max);
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return changed;
-    }
-
-    bool EditorLayer::Property(const std::string& name, glm::vec2& value, EditorLayer::PropertyFlag flags)
-    {
-        return Property(name, value, -1.0f, 1.0f, flags);
-    }
-
-    bool EditorLayer::Property(const std::string& name, glm::vec2& value, float min, float max, EditorLayer::PropertyFlag flags)
-    {
-        ImGui::Text(name.c_str());
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        bool changed = false;
-        if (flags == PropertyFlag::SliderProperty)
-        {
-            changed = ImGui::SliderFloat2(id.c_str(), glm::value_ptr(value), min, max);
-        }
-        else
-        {
-            changed = ImGui::DragFloat2(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return changed;
-    }
-
-    bool EditorLayer::Property(const std::string& name, glm::vec3& value, EditorLayer::PropertyFlag flags)
-    {
-        return Property(name, value, -1.0f, 1.0f, flags);
-    }
-
-    bool EditorLayer::Property(const std::string& name, glm::vec3& value, float min, float max, EditorLayer::PropertyFlag flags)
-    {
-        ImGui::Text(name.c_str());
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        bool changed = false;
-        if ((int)flags & (int)PropertyFlag::ColorProperty)
-        {
-            changed = ImGui::ColorEdit3(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
-        }
-        else if (flags == PropertyFlag::SliderProperty)
-        {
-            changed = ImGui::SliderFloat3(id.c_str(), glm::value_ptr(value), min, max);
-        }
-        else
-        {
-            changed = ImGui::DragFloat3(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return changed;
-    }
-
-    bool EditorLayer::Property(const std::string& name, glm::vec4& value, EditorLayer::PropertyFlag flags)
-    {
-        return Property(name, value, -1.0f, 1.0f, flags);
-    }
-
-    bool EditorLayer::Property(const std::string& name, glm::vec4& value, float min, float max, EditorLayer::PropertyFlag flags)
-    {
-        ImGui::Text(name.c_str());
-        ImGui::NextColumn();
-        ImGui::PushItemWidth(-1);
-
-        std::string id = "##" + name;
-        bool changed = false;
-        if ((int)flags & (int)PropertyFlag::ColorProperty)
-        {
-            changed = ImGui::ColorEdit4(id.c_str(), glm::value_ptr(value), ImGuiColorEditFlags_NoInputs);
-        }
-        else if (flags == PropertyFlag::SliderProperty)
-        {
-            changed = ImGui::SliderFloat4(id.c_str(), glm::value_ptr(value), min, max);
-        }
-        else
-        {
-            changed = ImGui::DragFloat4(id.c_str(), glm::value_ptr(value), 1.0f, min, max);
-        }
-
-        ImGui::PopItemWidth();
-        ImGui::NextColumn();
-
-        return changed;
-    }
-
     void EditorLayer::NewScene()
     {
         mEditorScene = Ref<Scene>::Create("Scene", true);
@@ -352,6 +216,7 @@ namespace NR
         mSceneFilePath = std::string();
 
         mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        mCurrentScene = mEditorScene;
     }
 
     void EditorLayer::OpenScene()
@@ -465,122 +330,104 @@ namespace NR
         style.WindowMinSize.x = minWinSizeX;
 
         // Editor Panel ------------------------------------------------------------------------------
-        ImGui::Begin("Model");
-
         ImGui::Begin("Environment");
-
-        ImGui::SliderFloat("Skybox LOD", &mEditorScene->GetSkyboxLod(), 0.0f, 11.0f);
-
-        ImGui::Columns(2);
-        ImGui::AlignTextToFramePadding();
-
-        auto& light = mEditorScene->GetLight();
-        Property("Light Direction", light.Direction, PropertyFlag::SliderProperty);
-        Property("Light Radiance", light.Radiance, PropertyFlag::ColorProperty);
-        Property("Light Multiplier", light.Multiplier, 0.0f, 5.0f, PropertyFlag::SliderProperty);
-        Property("Exposure", mEditorCamera.GetExposure(), 0.0f, 5.0f, PropertyFlag::SliderProperty);
-
-        Property("Radiance Prefiltering", mRadiancePrefilter);
-        Property("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f, PropertyFlag::SliderProperty);
-
-        if (mSceneState == SceneState::Edit)
         {
-            float physics2DGravity = mEditorScene->GetPhysics2DGravity();
-            if (Property("Gravity", physics2DGravity, -10000.0f, 10000.0f, PropertyFlag::DragProperty))
+            UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, 11.0f);
+
+            UI::BeginPropertyGrid();
+            ImGui::AlignTextToFramePadding();
+
+            auto& light = mEditorScene->GetLight();
+            UI::PropertySlider("Light Direction", light.Direction, -1.0f, 1.0f);
+            UI::PropertyColor("Light Radiance", light.Radiance);
+            UI::PropertySlider("Light Multiplier", light.Multiplier, 0.0f, 5.0f);
+
+            UI::PropertySlider("Exposure", mEditorCamera.GetExposure(), 0.0f, 5.0f);
+
+            UI::Property("Radiance Prefiltering", mRadiancePrefilter);
+            UI::PropertySlider("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
+
+            if (mSceneState == SceneState::Edit)
             {
-                mEditorScene->SetPhysics2DGravity(physics2DGravity);
+                float physics2DGravity = mEditorScene->GetPhysics2DGravity();
+                if (UI::Property("Gravity", physics2DGravity, -10000.0f, 10000.0f))
+                {
+                    mEditorScene->SetPhysics2DGravity(physics2DGravity);
+                }
             }
-        }
-        else if (mSceneState == SceneState::Play)
-        {
-            float physics2DGravity = mRuntimeScene->GetPhysics2DGravity();
-            if (Property("Gravity", physics2DGravity, -10000.0f, 10000.0f, PropertyFlag::DragProperty))
+            else if (mSceneState == SceneState::Play)
             {
-                mRuntimeScene->SetPhysics2DGravity(physics2DGravity);
+                float physics2DGravity = mRuntimeScene->GetPhysics2DGravity();
+                if (UI::Property("Gravity", physics2DGravity, -10000.0f, 10000.0f))
+                {
+                    mRuntimeScene->SetPhysics2DGravity(physics2DGravity);
+                }
             }
-        }
 
-        if (Property("Show Bounding Boxes", mUIShowBoundingBoxes))
-        {
-            ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
-        }
-        if (mUIShowBoundingBoxes && Property("On Top", mUIShowBoundingBoxesOnTop))
-        {
-            ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
-        }
+            if (UI::Property("Show Bounding Boxes", mUIShowBoundingBoxes))
+            {
+                ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+            }
+            if (mUIShowBoundingBoxes && UI::Property("On Top", mUIShowBoundingBoxesOnTop))
+            {
+                ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+            }
 
-        mAssetManagerPanel->ImGuiRender();
+            const char* label = mSelectionMode == SelectionMode::Entity ? "Entity" : "Mesh";
+            if (ImGui::Button(label))
+            {
+                mSelectionMode = mSelectionMode == SelectionMode::Entity ? SelectionMode::SubMesh : SelectionMode::Entity;
+            }
+
+            UI::EndPropertyGrid();
+        }
+        ImGui::End();
+
+        mContentBrowserPanel->ImGuiRender();
         mObjectsPanel->ImGuiRender();
         AssetEditorPanel::ImGuiRender();
 
-        const char* label = (mSelectionMode == SelectionMode::Entity) ? "Entity" : "Mesh";
-        if (ImGui::Button(label))
-        {
-            mSelectionMode = (mSelectionMode == SelectionMode::Entity) ? SelectionMode::SubMesh : SelectionMode::Entity;
-        }
-
-        ImGui::Columns(1);
-
-        ImGui::End();
-
-        ImGui::Separator();
-        {
-            ImGui::Text("Mesh");
-
-        }
-        ImGui::Separator();
-
-        if (ImGui::TreeNode("Shaders"))
-        {
-            auto& shaders = Shader::sAllShaders;
-            for (auto& shader : shaders)
-            {
-                if (ImGui::TreeNode(shader->GetName().c_str()))
-                {
-                    std::string buttonName = "Reload##" + shader->GetName();
-                    if (ImGui::Button(buttonName.c_str()))
-                        shader->Reload();
-                    ImGui::TreePop();
-                }
-            }
-            ImGui::TreePop();
-        }
-
-        ImGui::End();
-
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(12, 4));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 0.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
-        ImGui::Begin("Toolbar");
-        if (mSceneState == SceneState::Edit)
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.305f, 0.31f, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.15f, 0.1505f, 0.151f, 0.5f));
+
+        ImGui::Begin("##tool_bar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         {
-            if (ImGui::ImageButton((ImTextureID)(mPlayButtonTex->GetRendererID()), ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), ImVec4(0.9f, 0.9f, 0.9f, 1.0f)))
+            float size = ImGui::GetWindowHeight() - 4.0F;
+            ImGui::SameLine((ImGui::GetWindowContentRegionMax().x / 2.0f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)) - (size / 2.0f));
+            Ref<Texture2D> buttonTex = mSceneState == SceneState::Play ? mStopButtonTex : mPlayButtonTex;
+            if (UI::ImageButton(buttonTex, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
             {
-                ScenePlay();
+                if (mSceneState == SceneState::Edit)
+                {
+                    ScenePlay();
+                }
+                else
+                {
+                    SceneStop();
+                }
+            }
+
+            ImGui::SameLine();
+
+            if (UI::ImageButton(mPauseButtonTex, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+            {
+                if (mSceneState == SceneState::Play)
+                {
+                    mSceneState = SceneState::Pause;
+                }
+                else if (mSceneState == SceneState::Pause)
+                {
+                    mSceneState = SceneState::Play;
+                }
             }
         }
-        else if (mSceneState == SceneState::Play)
-        {
-            if (ImGui::ImageButton((ImTextureID)(mPlayButtonTex->GetRendererID()), ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(1.0f, 1.0f, 1.0f, 0.2f)))
-            {
-                SceneStop();
-            }
-        }
-        ImGui::SameLine();
-        if (ImGui::ImageButton((ImTextureID)(mPlayButtonTex->GetRendererID()), ImVec2(32, 32), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), ImVec4(1.0f, 1.0f, 1.0f, 0.6f)))
-        {
-            NR_CORE_INFO("PLAY!");
-        }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar(2);
+
         ImGui::End();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar();
-        ImGui::PopStyleVar();
-        ImGui::PopStyleVar();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::Begin("Viewport");
@@ -599,7 +446,7 @@ namespace NR
         }
         mEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
         mEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-        ImGui::Image((void*)SceneRenderer::GetFinalColorBufferRendererID(), viewportSize, { 0, 1 }, { 1, 0 });
+        UI::Image(SceneRenderer::GetFinalPassImage(), viewportSize, { 0, 1 }, { 1, 0 });
 
         static int counter = 0;
         auto windowSize = ImGui::GetWindowSize();
@@ -736,6 +583,15 @@ namespace NR
                 }
 
                 ImGui::Separator();
+                std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
+                std::string label = std::string("Restart with ") + otherRenderer;
+                if (ImGui::MenuItem(label.c_str()))
+                {
+                    RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
+                    Application::Get().Close();
+                }
+
+                ImGui::Separator();
 
                 if (ImGui::MenuItem("Exit"))
                 {
@@ -775,7 +631,7 @@ namespace NR
             if (selectedEntity.HasComponent<MeshComponent>())
             {
                 Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().MeshObj;
-                if (mesh)
+                if (mesh && mesh->Type == AssetType::Mesh)
                 {
                     auto& materials = mesh->GetMaterials();
                     static uint32_t selectedMaterialIndex = 0;
@@ -808,26 +664,57 @@ namespace NR
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
 
-                                auto& albedoColor = materialInstance->Get<glm::vec3>("uAlbedoColor");
-                                bool useAlbedoMap = materialInstance->Get<float>("uAlbedoTexToggle");
-                                Ref<Texture2D> albedoMap = materialInstance->TryGetResource<Texture2D>("uAlbedoTexture");
-                                ImGui::Image(albedoMap ? (void*)albedoMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+                                auto& albedoColor = materialInstance->GetVector3("uMaterialUniforms.AlbedoColor");
+                                bool useAlbedoMap = true;
+                                Ref<Texture2D> albedoMap = materialInstance->TryGetTexture2D("uAlbedoTexture");
+                                bool hasAlbedoMap = !albedoMap.EqualsObject(Renderer::GetWhiteTexture()) && albedoMap->GetImage();
+                                Ref<Texture2D> albedoUITexture = hasAlbedoMap ? albedoMap : mCheckerboardTex;
+                                UI::Image(albedoUITexture, ImVec2(64, 64));
+
+                                if (ImGui::BeginDragDropTarget())
+                                {
+                                    auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                                    if (data)
+                                    {
+                                        int count = data->DataSize / sizeof(AssetHandle);
+
+                                        for (int i = 0; i < count; ++i)
+                                        {
+                                            if (count > 1)
+                                            {
+                                                break;
+                                            }
+
+                                            AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                                            Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                                            if (asset->Type != AssetType::Texture)
+                                            {
+                                                break;
+                                            }
+
+                                            albedoMap = asset.As<Texture2D>();
+                                            materialInstance->Set("uAlbedoTexture", albedoMap);
+                                        }
+                                    }
+
+                                    ImGui::EndDragDropTarget();
+                                }
                                 ImGui::PopStyleVar();
                                 if (ImGui::IsItemHovered())
                                 {
-                                    if (albedoMap)
+                                    if (hasAlbedoMap)
                                     {
                                         ImGui::BeginTooltip();
                                         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                                         ImGui::TextUnformatted(albedoMap->GetPath().c_str());
                                         ImGui::PopTextWrapPos();
-                                        ImGui::Image((void*)albedoMap->GetRendererID(), ImVec2(384, 384));
+                                        UI::Image(albedoUITexture, ImVec2(384, 384));
                                         ImGui::EndTooltip();
                                     }
                                     if (ImGui::IsItemClicked())
                                     {
                                         std::string filename = Application::Get().OpenFile("");
-                                        if (filename != "")
+                                        if (!filename.empty())
                                         {
                                             albedoMap = Texture2D::Create(filename, true/*m_AlbedoInput.SRGB*/);
                                             materialInstance->Set("uAlbedoTexture", albedoMap);
@@ -836,10 +723,7 @@ namespace NR
                                 }
                                 ImGui::SameLine();
                                 ImGui::BeginGroup();
-                                if (ImGui::Checkbox("Use##AlbedoMap", &useAlbedoMap))
-                                {
-                                    materialInstance->Set<float>("uAlbedoTexToggle", useAlbedoMap ? 1.0f : 0.0f);
-                                }
+                                ImGui::Checkbox("Use##AlbedoMap", &useAlbedoMap);
 
                                 ImGui::EndGroup();
                                 ImGui::SameLine();
@@ -851,9 +735,39 @@ namespace NR
                             if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                                bool useNormalMap = materialInstance->Get<float>("uNormalTexToggle");
-                                Ref<Texture2D> normalMap = materialInstance->TryGetResource<Texture2D>("uNormalTexture");
-                                ImGui::Image(normalMap ? (void*)normalMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+                                bool useNormalMap = materialInstance->GetFloat("uMaterialUniforms.UseNormalMap");
+                                Ref<Texture2D> normalMap = materialInstance->TryGetTexture2D("uNormalTexture");
+                                UI::Image((normalMap && normalMap->GetImage()) ? normalMap : mCheckerboardTex, ImVec2(64, 64));
+
+                                if (ImGui::BeginDragDropTarget())
+                                {
+                                    auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                                    if (data)
+                                    {
+                                        int count = data->DataSize / sizeof(AssetHandle);
+
+                                        for (int i = 0; i < count; ++i)
+                                        {
+                                            if (count > 1)
+                                            {
+                                                break;
+                                            }
+
+                                            AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                                            Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                                            if (asset->Type != AssetType::Texture)
+                                            {
+                                                break;
+                                            }
+
+                                            normalMap = asset.As<Texture2D>();
+                                            materialInstance->Set("uNormalTexture", normalMap);
+                                            materialInstance->Set("uMaterialUniforms.UseNormalMap", true);
+                                        }
+                                    }
+
+                                    ImGui::EndDragDropTarget();
+                                }
                                 ImGui::PopStyleVar();
                                 if (ImGui::IsItemHovered())
                                 {
@@ -863,7 +777,7 @@ namespace NR
                                         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                                         ImGui::TextUnformatted(normalMap->GetPath().c_str());
                                         ImGui::PopTextWrapPos();
-                                        ImGui::Image((void*)normalMap->GetRendererID(), ImVec2(384, 384));
+                                        UI::Image(normalMap, ImVec2(384, 384));
                                         ImGui::EndTooltip();
                                     }
                                     if (ImGui::IsItemClicked())
@@ -879,7 +793,7 @@ namespace NR
                                 ImGui::SameLine();
                                 if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
                                 {
-                                    materialInstance->Set<float>("uNormalTexToggle", useNormalMap ? 1.0f : 0.0f);
+                                    materialInstance->Set("uMaterialUniforms.UseNormalMap", useNormalMap);
                                 }
                             }
                         }
@@ -888,10 +802,39 @@ namespace NR
                             if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                                float& metalnessValue = materialInstance->Get<float>("uMetalness");
-                                bool useMetalnessMap = materialInstance->Get<float>("uMetalnessTexToggle");
-                                Ref<Texture2D> metalnessMap = materialInstance->TryGetResource<Texture2D>("uMetalnessTexture");
-                                ImGui::Image(metalnessMap ? (void*)metalnessMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+                                float& metalnessValue = materialInstance->GetFloat("uMaterialUniforms.Metalness");
+                                bool useMetalnessMap = true;
+                                Ref<Texture2D> metalnessMap = materialInstance->TryGetTexture2D("uMetalnessTexture");
+                                UI::Image((metalnessMap&& metalnessMap->GetImage()) ? metalnessMap : mCheckerboardTex, ImVec2(64, 64));
+
+                                if (ImGui::BeginDragDropTarget())
+                                {
+                                    auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                                    if (data)
+                                    {
+                                        int count = data->DataSize / sizeof(AssetHandle);
+
+                                        for (int i = 0; i < count; ++i)
+                                        {
+                                            if (count > 1)
+                                            {
+                                                break;
+                                            }
+
+                                            AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                                            Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                                            if (asset->Type != AssetType::Texture)
+                                            {
+                                                break;
+                                            }
+
+                                            metalnessMap = asset.As<Texture2D>();
+                                            materialInstance->Set("uMetalnessTexture", metalnessMap);
+                                        }
+                                    }
+
+                                    ImGui::EndDragDropTarget();
+                                }
                                 ImGui::PopStyleVar();
                                 if (ImGui::IsItemHovered())
                                 {
@@ -901,7 +844,7 @@ namespace NR
                                         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                                         ImGui::TextUnformatted(metalnessMap->GetPath().c_str());
                                         ImGui::PopTextWrapPos();
-                                        ImGui::Image((void*)metalnessMap->GetRendererID(), ImVec2(384, 384));
+                                        UI::Image(metalnessMap, ImVec2(384, 384));
                                         ImGui::EndTooltip();
                                     }
                                     if (ImGui::IsItemClicked())
@@ -915,8 +858,8 @@ namespace NR
                                     }
                                 }
                                 ImGui::SameLine();
-                                if (ImGui::Checkbox("Use##MetalnessMap", &useMetalnessMap))
-                                    materialInstance->Set<float>("uMetalnessTexToggle", useMetalnessMap ? 1.0f : 0.0f);
+                                ImGui::Checkbox("Use##MetalnessMap", &useMetalnessMap);
+
                                 ImGui::SameLine();
                                 ImGui::SliderFloat("Value##MetalnessInput", &metalnessValue, 0.0f, 1.0f);
                             }
@@ -926,10 +869,39 @@ namespace NR
                             if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                                float& roughnessValue = materialInstance->Get<float>("uRoughness");
-                                bool useRoughnessMap = materialInstance->Get<float>("uRoughnessTexToggle");
-                                Ref<Texture2D> roughnessMap = materialInstance->TryGetResource<Texture2D>("uRoughnessTexture");
-                                ImGui::Image(roughnessMap ? (void*)roughnessMap->GetRendererID() : (void*)mCheckerboardTex->GetRendererID(), ImVec2(64, 64));
+                                float& roughnessValue = materialInstance->GetFloat("uMaterialUniforms.Roughness");
+                                bool useRoughnessMap = true;
+                                Ref<Texture2D> roughnessMap = materialInstance->TryGetTexture2D("uRoughnessTexture");
+                                UI::Image((roughnessMap&& roughnessMap->GetImage()) ? roughnessMap : mCheckerboardTex, ImVec2(64, 64));
+
+                                if (ImGui::BeginDragDropTarget())
+                                {
+                                    auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                                    if (data)
+                                    {
+                                        int count = data->DataSize / sizeof(AssetHandle);
+
+                                        for (int i = 0; i < count; ++i)
+                                        {
+                                            if (count > 1)
+                                            {
+                                                break;
+                                            }
+
+                                            AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                                            Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                                            if (asset->Type != AssetType::Texture)
+                                            {
+                                                break;
+                                            }
+
+                                            roughnessMap = asset.As<Texture2D>();
+                                            materialInstance->Set("uRoughnessTexture", roughnessMap);
+                                        }
+                                    }
+
+                                    ImGui::EndDragDropTarget();
+                                }
                                 ImGui::PopStyleVar();
                                 if (ImGui::IsItemHovered())
                                 {
@@ -939,7 +911,7 @@ namespace NR
                                         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
                                         ImGui::TextUnformatted(roughnessMap->GetPath().c_str());
                                         ImGui::PopTextWrapPos();
-                                        ImGui::Image((void*)roughnessMap->GetRendererID(), ImVec2(384, 384));
+                                        UI::Image(roughnessMap, ImVec2(384, 384));
                                         ImGui::EndTooltip();
                                     }
                                     if (ImGui::IsItemClicked())
@@ -953,8 +925,7 @@ namespace NR
                                     }
                                 }
                                 ImGui::SameLine();
-                                if (ImGui::Checkbox("Use##RoughnessMap", &useRoughnessMap))
-                                    materialInstance->Set<float>("uRoughnessTexToggle", useRoughnessMap ? 1.0f : 0.0f);
+                                ImGui::Checkbox("Use##RoughnessMap", &useRoughnessMap);
                                 ImGui::SameLine();
                                 ImGui::SliderFloat("Value##RoughnessInput", &roughnessValue, 0.0f, 1.0f);
                             }
@@ -982,12 +953,17 @@ namespace NR
 
     void EditorLayer::SelectEntity(Entity entity)
     {
+        if (!entity)
+        {
+            return;
+        }
+
         SelectedSubmesh selection;
         if (entity.HasComponent<MeshComponent>())
         {
             auto& meshComp = entity.GetComponent<MeshComponent>();
 
-            if (meshComp.MeshObj)
+            if (meshComp.MeshObj && meshComp.MeshObj->Type == AssetType::Mesh)
             {
                 selection.Mesh = &meshComp.MeshObj->GetSubmeshes()[0];
             }
@@ -1066,6 +1042,14 @@ namespace NR
             }
             switch (e.GetKeyCode())
             {
+            case KeyCode::Escape:
+                if (mSelectionContext.size())
+                {
+                    mSelectionContext.clear();
+                    mEditorScene->SetSelectedEntity({});
+                    mSceneHierarchyPanel->SetSelected({});
+                }
+                break;
             case KeyCode::Delete:
                 if (mSelectionContext.size())
                 {
