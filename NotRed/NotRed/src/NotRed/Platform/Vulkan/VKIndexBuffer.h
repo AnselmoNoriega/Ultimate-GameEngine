@@ -13,14 +13,15 @@ namespace NR
 	public:
 		VKIndexBuffer(uint32_t size);
 		VKIndexBuffer(void* data, uint32_t size = 0);
+		~VKIndexBuffer() override = default;
 
-		virtual void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
-		virtual void Bind() const override;
+		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
+		void Bind() const override;
 
 		virtual uint32_t GetCount() const override { return mSize / sizeof(uint32_t); }
 
-		virtual uint32_t GetSize() const override { return mSize; }
-		virtual RendererID GetRendererID() const override;
+		uint32_t GetSize() const override { return mSize; }
+		RendererID GetRendererID() const override;
 
 		VkBuffer GetVulkanBuffer() { return mVulkanBuffer; }
 

@@ -1,45 +1,43 @@
 
 -- NotRed Dependencies
 
---VULKAN_SDK = os.getenv("VULKAN_SDK")
-
 IncludeDir = {}
-IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/Box2D/include"
-IncludeDir["Entt"] = "%{wks.location}/NotRed/vendor/entt/include"
-IncludeDir["FileWatch"] = "%{wks.location}/NotRed/vendor/filewatch"
-IncludeDir["GLFW"] = "%{wks.location}/NotRed/vendor/GLFW/include"
-IncludeDir["Glad"] = "%{wks.location}/NotRed/vendor/Glad/include"
-IncludeDir["Glm"] = "%{wks.location}/NotRed/vendor/glm"
-IncludeDir["ImGui"] = "%{wks.location}/NotRed/vendor/ImGui"
-IncludeDir["ImGuizmo"] = "%{wks.location}/NotRed/vendor/ImGuizmo"
-IncludeDir["Mono"] = "%{wks.location}/NotRed/vendor/mono/include"
-IncludeDir["Stb"] = "%{wks.location}/NotRed/vendor/stb_image"
-IncludeDir["Yaml"] = "%{wks.location}/NotRed/vendor/yaml-cpp/include"
-IncludeDir["MsdfGen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdfgen"
-IncludeDir["MsdfAtlasGen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdf-atlas-gen"
---IncludeDir["Shaderc"] = "%{wks.location}/NotRed/vendor/shaderc/include"
---IncludeDir["SPIRV_Cross"] = "%{wks.location}/NotRed/vendor/SPIRV-Cross"
---IncludeDir["VulkanSDK"] = "%{VULKAN_SDK}/Include"
+IncludeDir["Assimp"] = "NotRed/vendor/assimp/include"
+IncludeDir["Box2D"] = "NotRed/vendor/box2D/include"
+IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
+IncludeDir["FastNoise"] = "NotRed/vendor/FastNoise"
+IncludeDir["Glad"] = "NotRed/vendor/glad/include"
+IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
+IncludeDir["Glm"] = "NotRed/vendor/glm"
+IncludeDir["ImGui"] = "NotRed/vendor/imgui"
+IncludeDir["Mono"] = "NotRed/vendor/mono/include"
+IncludeDir["Stb"] = "NotRed/vendor/stb_image"
+IncludeDir["Yaml"] = "NotRed/vendor/yaml-cpp/include"
+IncludeDir["PhysX"] = "NotRed/vendor/PhysX/include"
+IncludeDir["Vulkan"] = "NotRed/vendor/Vulkan/Include"
 
 LibraryDir = {}
-
-LibraryDir["Mono"] = "%{wks.location}/NotRed/vendor/mono/lib/%{cfg.buildcfg}"
+LibraryDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/lib/%{cfg.buildcfg}"
+LibraryDir["VulkanSDK"] = "%{wks.location}/NotRed/vendor/Vulkan/lib"
 
 Library = {}
-Library["Mono"] = "%{LibraryDir.Mono}/libmono-static-sgen.lib"
+Library["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
+Library["PhysX"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysX_64.lib"
+Library["PhysXCharacterKinematic"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCharacterKinematic_static_64.lib"
+Library["PhysXCommon"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCommon_64.lib"
+Library["PhysXCooking"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCooking_64.lib"
+Library["PhysXExtensions"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXExtensions_static_64.lib"
+Library["PhysXFoundation"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXFoundation_64.lib"
+Library["PhysXPvd"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXPvdSDK_static_64.lib"
 
---Library["Vulkan"] = "%{LibraryDir.VulkanSDK}/vulkan-1.lib"
---Library["VulkanUtils"] = "%{LibraryDir.VulkanSDK}/VkLayer_utils.lib"
+----------Vulkan--------------
+Library ["Vulkan"] = "vendor/Vulkan/lib/vulkan-1.lib"
 
---Library["ShaderC_Debug"] = "%{LibraryDir.VulkanSDK}/shaderc_sharedd.lib"
---Library["SPIRV_Cross_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-cored.lib"
---Library["SPIRV_Cross_GLSL_Debug"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsld.lib"
---Library["SPIRV_Tools_Debug"] = "%{LibraryDir.VulkanSDK}/SPIRV-Toolsd.lib"
---Library["ShaderC_Release"] = "%{LibraryDir.VulkanSDK}/shaderc_shared.lib"
---Library["SPIRV_Cross_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-core.lib"
---Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.VulkanSDK}/spirv-cross-glsl.lib"
+Library["ShaderC_Debug"] = "vendor/Vulkan/lib/shaderc_sharedd.lib"
+Library["SPIRV_Cross_Debug"] = "vendor/Vulkan/lib/spirv-cross-cored.lib"
+Library["SPIRV_Cross_GLSL_Debug"] = "vendor/Vulkan/lib/spirv-cross-glsld.lib"
+Library["SPIRV_Tools_Debug"] = "vendor/Vulkan/lib/SPIRV-Toolsd.lib"
 
-Library["WinSock"] = "Ws2_32.lib"
-Library["WinMM"] = "Winmm.lib"
-Library["WinVersion"] = "Version.lib"
-Library["BCrypt"] = "Bcrypt.lib"
+Library["ShaderC_Release"] = "vendor/Vulkan/lib/shaderc_shared.lib"
+Library["SPIRV_Cross_Release"] = "vendor/Vulkan/lib/spirv-cross-core.lib"
+Library["SPIRV_Cross_GLSL_Release"] = "vendor/Vulkan/lib/spirv-cross-glsl.lib"

@@ -513,7 +513,7 @@ namespace NR::UI
 			}
 			else
 			{
-				ImGui::InputText("##assetRef", "Missing", 256, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputText("##assetRef", (char*)"Missing", 256, ImGuiInputTextFlags_ReadOnly);
 			}
 		}
 		else

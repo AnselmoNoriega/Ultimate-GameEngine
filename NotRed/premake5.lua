@@ -18,40 +18,7 @@ workspace "NotRed"
 	
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
--- Include directories relative to root folder (solution directory)
-IncludeDir = {}
-IncludeDir["Box2D"] = "NotRed/vendor/box2D/include"
-IncludeDir["Entt"] = "NotRed/vendor/Entt/include"
-IncludeDir["FastNoise"] = "NotRed/vendor/FastNoise"
-IncludeDir["Glad"] = "NotRed/vendor/glad/include"
-IncludeDir["GLFW"] = "NotRed/vendor/GLFW/include"
-IncludeDir["Glm"] = "NotRed/vendor/glm"
-IncludeDir["ImGui"] = "NotRed/vendor/imgui"
-IncludeDir["Mono"] = "NotRed/vendor/mono/include"
-IncludeDir["PhysX"] = "NotRed/vendor/PhysX/include"
-IncludeDir["Vulkan"] = "NotRed/vendor/Vulkan/Include"
-
-LibraryDir = {}
-LibraryDir["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
-LibraryDir["PhysX"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysX_64.lib"
-LibraryDir["PhysXCharacterKinematic"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCharacterKinematic_static_64.lib"
-LibraryDir["PhysXCommon"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCommon_64.lib"
-LibraryDir["PhysXCooking"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXCooking_64.lib"
-LibraryDir["PhysXExtensions"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXExtensions_static_64.lib"
-LibraryDir["PhysXFoundation"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXFoundation_64.lib"
-LibraryDir["PhysXPvd"] = "vendor/PhysX/lib/%{cfg.buildcfg}/PhysXPvdSDK_static_64.lib"
-
-----------Vulkan--------------
-LibraryDir["Vulkan"] = "vendor/Vulkan/lib/vulkan-1.lib"
-
-LibraryDir["ShaderC_Debug"] = "vendor/Vulkan/lib/shaderc_sharedd.lib"
-LibraryDir["SPIRV_Cross_Debug"] = "vendor/Vulkan/lib/spirv-cross-cored.lib"
-LibraryDir["SPIRV_Cross_GLSL_Debug"] = "vendor/Vulkan/lib/spirv-cross-glsld.lib"
-LibraryDir["SPIRV_Tools_Debug"] = "vendor/Vulkan/lib/SPIRV-Toolsd.lib"
-
-LibraryDir["ShaderC_Release"] = "vendor/Vulkan/lib/shaderc_shared.lib"
-LibraryDir["SPIRV_Cross_Release"] = "vendor/Vulkan/lib/spirv-cross-core.lib"
-LibraryDir["SPIRV_Cross_GLSL_Release"] = "vendor/Vulkan/lib/spirv-cross-glsl.lib"
+include "Dependencies.lua"
 
 group "Dependencies"
 include "NotRed/vendor/GLFW"
@@ -92,19 +59,19 @@ project "NotRed"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/vendor",
+		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.Glm}",
+		"%{IncludeDir.Yaml}",
+		"%{IncludeDir.Stb}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
-		"%{IncludeDir.Vulkan}",
-		"%{prj.name}/vendor/assimp/include",
-		"%{prj.name}/vendor/stb_image",
-		"%{prj.name}/vendor/yaml-cpp/include"
+		"%{IncludeDir.Vulkan}"
 	}
 	
 	links 

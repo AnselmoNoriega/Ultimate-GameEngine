@@ -14,10 +14,10 @@ namespace NR
 
 		operator uint64_t () { return mID; }
 		operator const uint64_t() const { return mID; }
+
 	private:
 		uint64_t mID;
 	};
-
 }
 
 namespace std {

@@ -758,11 +758,11 @@ namespace NR
                         std::string filepath = meshComponent["AssetPath"] ? meshComponent["AssetPath"].as<std::string>() : "";
                         if (filepath.empty())
                         {
-                            NR_CORE_ERROR("Tried to load non-existent mesh in Entity: {0}", deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load non-existent mesh in Entity: {0}", (uint64_t)deserializedEntity.GetID());
                         }
                         else
                         {
-                            NR_CORE_ERROR("Tried to load invalid mesh '{0}' in Entity {1}", filepath, deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load invalid mesh '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
                         }
                     }
                 }
@@ -841,11 +841,11 @@ namespace NR
                         std::string filepath = meshComponent["EnvironmentAssetPath"] ? meshComponent["EnvironmentAssetPath"].as<std::string>() : "";
                         if (filepath.empty())
                         {
-                            NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", (uint64_t)deserializedEntity.GetID());
                         }
                         else
                         {
-                            NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
                         }
                     }
                     component.Intensity = skyLightComponent["Intensity"].as<float>();
@@ -928,7 +928,7 @@ namespace NR
                         }
                         else
                         {
-                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", (uint64_t)deserializedEntity.GetID());
                         }
                     }
                 }
@@ -950,7 +950,7 @@ namespace NR
                         }
                         else
                         {
-                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", (uint64_t)deserializedEntity.GetID());
                         }
                     }
                 }
@@ -972,7 +972,7 @@ namespace NR
                         }
                         else
                         {
-                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", (uint64_t)deserializedEntity.GetID());
                         }
                     }
 
@@ -1031,7 +1031,7 @@ namespace NR
                         }
                         else
                         {
-                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
+                            NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", (uint64_t)deserializedEntity.GetID());
                         }
                     }
                 }
