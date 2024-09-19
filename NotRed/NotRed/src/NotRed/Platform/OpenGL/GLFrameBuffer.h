@@ -11,6 +11,7 @@ namespace NR
 		~GLFrameBuffer() override;
 
 		void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) override;
+		void AddResizeCallback(const std::function<void(Ref<FrameBuffer>)>& func) {};
 
 		void Bind() const override;
 		void Unbind() const override;

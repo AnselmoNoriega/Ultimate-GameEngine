@@ -9,19 +9,24 @@ layout(location = 4) in vec2 aTexCoord;
 layout(location = 5) in ivec4 aBoneIndices;
 layout(location = 6) in vec4 aBoneWeights;
 
-uniform mat4 uViewProjectionMatrix;
-uniform mat4 uViewMatrix;
-uniform mat4 uTransform;
+layout (std140, binding = 0) uniform Camera
+{
+	mat4 uViewProjectionMatrix;
+};
 
 uniform mat4 uLightMatrixCascade0;
 uniform mat4 uLightMatrixCascade1;
 uniform mat4 uLightMatrixCascade2;
 uniform mat4 uLightMatrixCascade3;
 
-const int MAXBONES = 100;
-uniform mat4 uBoneTransforms[100];
+const int MAX_BONES = 100;
+layout (std140, binding = 1) uniform Transform
+{
+	mat4 uTransform;
+	mat4 uBoneTransforms[100];
+};
 
-out VertexOutput
+struct VertexOutput
 {
 	vec3 WorldPosition;
     vec3 Normal;
@@ -29,9 +34,9 @@ out VertexOutput
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
-	vec4 ShadowMapCoords[4];
-	vec3 ViewPosition;
-} vsOutput;
+};
+
+layout (location = 0) out VertexOutput Output;
 
 void main()
 {
@@ -42,18 +47,11 @@ void main()
 
 	vec4 localPosition = boneTransform * vec4(aPosition, 1.0);
 
-	vsOutput.WorldPosition = vec3(uTransform * boneTransform * vec4(aPosition, 1.0));
-    vsOutput.Normal = mat3(uTransform) * mat3(boneTransform) * aNormal;
-	vsOutput.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	vsOutput.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
-	vsOutput.WorldTransform = mat3(uTransform);
-	vsOutput.Binormal = aBinormal;
+	Output.WorldPosition = vec3(uTransform * boneTransform * vec4(aPosition, 1.0));
+    Output.Normal = mat3(uTransform) * mat3(boneTransform) * aNormal;
+	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
+	Output.WorldNormals = mat3(uTransform) * mat3(aTangent, aBinormal, aNormal);
+	Output.Binormal = mat3(boneTransform) * aBinormal;
 
-	vsOutput.ShadowMapCoords[0] = uLightMatrixCascade0 * vec4(vsOutput.WorldPosition, 1.0);
-	vsOutput.ShadowMapCoords[1] = uLightMatrixCascade1 * vec4(vsOutput.WorldPosition, 1.0);
-	vsOutput.ShadowMapCoords[2] = uLightMatrixCascade2 * vec4(vsOutput.WorldPosition, 1.0);
-	vsOutput.ShadowMapCoords[3] = uLightMatrixCascade3 * vec4(vsOutput.WorldPosition, 1.0);
-	vsOutput.ViewPosition = vec3(uViewMatrix * vec4(vsOutput.WorldPosition, 1.0));
-	
 	gl_Position = uViewProjectionMatrix * uTransform * localPosition;
 }

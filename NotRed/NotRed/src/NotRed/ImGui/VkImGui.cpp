@@ -22,7 +22,7 @@ namespace NR::UI
 		}
 		else
 		{
-			Ref<VkImage2D> VkImage = image.As<VkImage2D>();
+			Ref<VKImage2D> VkImage = image.As<VKImage2D>();
 			const auto& imageInfo = VkImage->GetImageInfo();
 			if (!imageInfo.ImageView)
 			{
@@ -43,8 +43,8 @@ namespace NR::UI
 		}
 		else
 		{
-			Ref<VkTexture2D> VkTexture = texture.As<VkTexture2D>();
-			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVkDescriptorInfo();
+			Ref<VKTexture2D> VkTexture = texture.As<VKTexture2D>();
+			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVulkanDescriptorInfo();
 			auto textureID = ImGui_ImplVulkan_AddTexture(imageInfo.sampler, imageInfo.imageView, imageInfo.imageLayout);
 			ImGui::Image((ImTextureID)textureID, size, uv0, uv1, tint_col, border_col);
 		}
@@ -59,7 +59,7 @@ namespace NR::UI
 		}
 		else
 		{
-			Ref<VkImage2D> VkImage = image.As<VkImage2D>();
+			Ref<VKImage2D> VkImage = image.As<VKImage2D>();
 			const auto& imageInfo = VkImage->GetImageInfo();
 			if (!imageInfo.ImageView)
 				return false;
@@ -77,8 +77,8 @@ namespace NR::UI
 		}
 		else
 		{
-			Ref<VkTexture2D> VkTexture = texture.As<VkTexture2D>();
-			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVkDescriptorInfo();
+			Ref<VKTexture2D> VkTexture = texture.As<VKTexture2D>();
+			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVulkanDescriptorInfo();
 			auto textureID = ImGui_ImplVulkan_AddTexture(imageInfo.sampler, imageInfo.imageView, imageInfo.imageLayout);
 			return ImGui::ImageButton((ImTextureID)textureID, size, uv0, uv1, frame_padding, bg_col, tint_col);
 		}

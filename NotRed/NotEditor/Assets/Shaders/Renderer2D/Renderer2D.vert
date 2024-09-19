@@ -6,18 +6,26 @@ layout(location = 2) in vec2 aTexCoord;
 layout(location = 3) in float aTexIndex;
 layout(location = 4) in float aTilingFactor;
 
-uniform mat4 uViewProjection;
+layout (std140, binding = 0) uniform Camera
+{
+	mat4 uViewProjection;
+};
 
-out vec4 vColor;
-out vec2 vTexCoord;
-out float vTexIndex;
-out float vTilingFactor;
+struct VertexOutput
+{
+	vec4 Color;
+	vec2 TexCoord;
+	float TexIndex;
+	float TilingFactor;
+};
+
+layout (location = 0) out VertexOutput Output;
 
 void main()
 {
-	vColor = aColor;
-	vTexCoord = aTexCoord;
-	vTexIndex = aTexIndex;
-	vTilingFactor = aTilingFactor;
+	Output.Color = aColor;
+	Output.TexCoord = aTexCoord;
+	Output.TexIndex = aTexIndex;
+	Output.TilingFactor = aTilingFactor;
 	gl_Position = uViewProjection * vec4(aPosition, 1.0);
 }

@@ -3,6 +3,8 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "NotRed/Asset/Asset.h"
+
 #include "NotRed/Renderer/Pipeline.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"

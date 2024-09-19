@@ -1,11 +1,15 @@
 #version 450 core
 
-layout(location = 0) out vec4 aColor;
+layout(location = 0) out vec4 color;
+layout(location = 1) out vec4 unused;
 
-uniform float uScale;
-uniform float uRes;
+layout (pushconstant) uniform Settings
+{
+	layout (offset = 64) float Scale;
+	float Size;
+} uSettings;
 
-in vec2 vTexCoord;
+layout (location = 0) in vec2 vTexCoord;
 
 float grid(vec2 st, float res)
 {
@@ -15,9 +19,7 @@ float grid(vec2 st, float res)
 
 void main()
 {
-	float scale = uScale;
-	float resolution = uRes;
-
-	float x = grid(vTexCoord * scale, resolution);
-	aColor = vec4(vec3(0.2), 0.5) * (1.0 - x);
+	float x = grid(vTexCoord * uSettings.Scale, uSettings.Size);
+	color = vec4(vec3(0.2), 0.5) * (1.0 - x);
+	unused = vec4(0.0);
 }

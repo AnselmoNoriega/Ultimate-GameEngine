@@ -518,7 +518,7 @@ namespace NR::UI
 		}
 		else
 		{
-			ImGui::InputText("##assetRef", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+			ImGui::InputText((const char*)"##assetRef", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
 		}
 
 		if (ImGui::BeginDragDropTarget())

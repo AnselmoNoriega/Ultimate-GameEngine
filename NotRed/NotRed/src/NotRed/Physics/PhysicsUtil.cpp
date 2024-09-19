@@ -158,4 +158,5 @@ namespace NR
         }
 
         return buffer;
+    }
 }

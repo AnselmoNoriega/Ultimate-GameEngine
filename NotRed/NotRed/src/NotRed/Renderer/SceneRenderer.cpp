@@ -109,7 +109,7 @@ namespace NR
 	{
 		sData = new SceneRendererData();
 
-		sData->CompositeShader = Renderer::GetShaderLibrary()->Get("SceneComposite");
+		sData->CompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
 		sData->CompositeMaterial = Material::Create(sData->CompositeShader);
 		sData->BRDFLUT = Texture2D::Create("Assets/Textures/BRDF_LUT.tga");
 
@@ -157,13 +157,13 @@ namespace NR
 				{ ShaderDataType::Float3, "aPosition" },
 				{ ShaderDataType::Float2, "aTexCoord" }
 			};
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HDR");
 
 			RenderPassSpecification renderPassSpec;
 			renderPassSpec.TargetFrameBuffer = FrameBuffer;
 			renderPassSpec.DebugName = "Composite";
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
-			pipelineSpecification.DebugName = "SceneComposite";
+			pipelineSpecification.DebugName = "HDR";
 			sData->CompositePipeline = Pipeline::Create(pipelineSpecification);
 		}
 
@@ -429,7 +429,7 @@ namespace NR
 					struct SceneData
 					{
 						Light lights;
-						glm::vec3 u_CameraPosition;
+						glm::vec3 uCameraPosition;
 					};
 
 
@@ -438,7 +438,7 @@ namespace NR
 					ub.lights.Radiance = directionalLight.Radiance;
 					ub.lights.Multiplier = directionalLight.Multiplier;
 
-					ub.u_CameraPosition = cameraPosition;
+					ub.uCameraPosition = cameraPosition;
 
 					if (RendererAPI::Current() == RendererAPIType::Vulkan)
 					{

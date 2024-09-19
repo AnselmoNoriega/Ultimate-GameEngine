@@ -97,7 +97,7 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentIrradiance");
 
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/SceneComposite");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Texture");

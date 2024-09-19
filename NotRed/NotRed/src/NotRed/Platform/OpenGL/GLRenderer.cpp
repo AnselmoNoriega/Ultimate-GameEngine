@@ -314,7 +314,7 @@ namespace NR
 			for (int level = 1, size = cubemapSize / 2; level < envFiltered->GetMipLevelCount(); ++level, size /= 2)
 			{
 				glBindImageTexture(0, envFiltered->GetRendererID(), level, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-				GLint roughnessUniformLocation = glGetUniformLocation(envFilteringShader->GetRendererID(), "u_Uniforms.Roughness");
+				GLint roughnessUniformLocation = glGetUniformLocation(envFilteringShader->GetRendererID(), "uUniforms.Roughness");
 				NR_CORE_ASSERT(roughnessUniformLocation != -1);
 				glUniform1f(roughnessUniformLocation, (float)level * deltaRoughness);
 

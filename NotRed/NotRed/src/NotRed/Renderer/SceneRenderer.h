@@ -56,7 +56,5 @@ namespace NR
 		static void CompositePass();
 		static void ShadowMapPass();
 		static void BloomBlurPass();
-
-		static void ShadowMapPass();
 	};
 }

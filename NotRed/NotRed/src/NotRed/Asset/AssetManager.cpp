@@ -151,7 +151,7 @@ namespace NR
         return assetHandle != 0 && sLoadedAssets.find(assetHandle) != sLoadedAssets.end();
     }
 
-    void AssetManager::Rename(AssetHandle assetHandle, const std::string & newName)
+    void AssetManager::Rename(AssetHandle assetHandle, const std::string& newName)
     {
         Ref<Asset>& asset = sLoadedAssets[assetHandle];
         AssetMetadata& metadata = sAssetRegistry[asset->FilePath];
@@ -334,7 +334,7 @@ namespace NR
 
     void AssetManager::ImportAsset(const std::string& filepath, AssetHandle parentHandle)
     {
-        std::string extension = Utils::GetExtension(filepath);		
+        std::string extension = Utils::GetExtension(filepath);
         AssetType type = GetAssetTypeForFileType(extension);
         Ref<Asset> asset = CreateAsset(filepath, type, parentHandle);
 
@@ -450,7 +450,7 @@ namespace NR
         fout << out.c_str();
     }
 
-    std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sLoadedAssets;	
+    std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sLoadedAssets;
     std::unordered_map<std::string, AssetManager::AssetMetadata> AssetManager::sAssetRegistry;
     AssetManager::AssetsChangeEventFn AssetManager::sAssetsChangeCallback;
 }
