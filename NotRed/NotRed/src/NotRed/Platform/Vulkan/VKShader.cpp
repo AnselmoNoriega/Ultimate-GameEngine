@@ -651,6 +651,7 @@ namespace NR
                 // Compile shader
                 {
                     auto& shaderSource = mShaderSource.at(stage);
+                    shaderSource.erase(0, shaderSource.find_first_not_of("\xEF\xBB\xBF"));
                     shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
                         shaderSource,
                         VkShaderStageToShaderC(stage),

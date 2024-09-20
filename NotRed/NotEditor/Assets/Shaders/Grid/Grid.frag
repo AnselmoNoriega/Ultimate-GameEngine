@@ -3,7 +3,7 @@
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 unused;
 
-layout (pushconstant) uniform Settings
+layout (push_constant) uniform Settings
 {
 	layout (offset = 64) float Scale;
 	float Size;

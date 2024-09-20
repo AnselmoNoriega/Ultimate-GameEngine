@@ -27,8 +27,8 @@ namespace NR
 		mAssetIconMap["png"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/png.png");
 		mAssetIconMap["nrsc"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/notred.png");
 
-		mBackbtnTex = AssetManager::GetAsset<Texture2D>("assets/editor/back.png");
-		mFwrdbtnTex = AssetManager::GetAsset<Texture2D>("assets/editor/fwrd.png");
+		mBackbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/back.png");
+		mFwrdbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/fwrd.png");
 
 		mBaseDirectoryHandle = AssetManager::GetAssetHandleFromFilePath("Assets");
 		mBaseDirectory = AssetManager::GetAsset<Directory>(mBaseDirectoryHandle);
