@@ -396,8 +396,6 @@ namespace NR
 #if DEBUG_PRINT_ALL_PROPS
                     NR_MESH_LOG("Material Property:");
                     NR_MESH_LOG("  Name = {0}", prop->mKey.data);
-                    // HZ_MESH_LOG("  Type = {0}", prop->mType);
-                    // HZ_MESH_LOG("  Size = {0}", prop->mDataLength);
                     float data = *(float*)prop->mData;
                     NR_MESH_LOG("  Value = {0}", data);
 

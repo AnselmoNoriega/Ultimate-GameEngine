@@ -42,8 +42,8 @@ namespace NR
 
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "Hazel";
-		appInfo.pEngineName = "Hazel";
+		appInfo.pApplicationName = "Not-Red";
+		appInfo.pEngineName = "Not-Red";
 		appInfo.apiVersion = VK_API_VERSION_1_2;
 
 		// Extensions and Validation----------------------------------------
