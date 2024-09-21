@@ -420,6 +420,11 @@ namespace NR
 
 	VKTextureCube::~VKTextureCube()
 	{
+		auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
+		vkDestroyImageView(vulkanDevice, mDescriptorImageInfo.imageView, nullptr);
+		vkDestroyImage(vulkanDevice, mImage, nullptr);
+		vkDestroySampler(vulkanDevice, mDescriptorImageInfo.sampler, nullptr);
+		vkFreeMemory(vulkanDevice, mDeviceMemory, nullptr);
 	}
 
 	static void SetImageLayout(

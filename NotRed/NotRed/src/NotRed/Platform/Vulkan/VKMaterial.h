@@ -154,7 +154,7 @@ namespace NR
         Ref<Shader> mShader;
         std::string mName;
 
-        std::vector<std::shared_ptr<PendingDescriptor>> mResidentDescriptors;
+        std::unordered_map<uint32_t, std::shared_ptr<PendingDescriptor>> mResidentDescriptors;
         std::vector<std::shared_ptr<PendingDescriptor>> mPendingDescriptors;
 
         uint32_t mMaterialFlags = 0;

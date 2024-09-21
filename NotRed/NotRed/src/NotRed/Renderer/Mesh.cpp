@@ -385,7 +385,7 @@ namespace NR
                 else
                 {
                     NR_MESH_LOG("    No metalness texture");
-                    mi->Set("uMetalness", metalness);
+                    //TODO: mi->Set("uMetalness", metalness);
                 }
 
                 bool metalnessTextureFound = false;

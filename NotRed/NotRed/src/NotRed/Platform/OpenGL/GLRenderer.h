@@ -20,6 +20,7 @@ namespace NR
 		void SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material) override;
 
 		void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow) override;
+		virtual Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination) override { NR_CORE_ASSERT(false); return nullptr; }
 		std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath) override;
 
 		void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) override;

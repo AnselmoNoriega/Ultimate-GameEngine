@@ -97,6 +97,7 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentMipFilter");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EquirectangularToCubeMap");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentIrradiance");
+        //TODO: Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreethamSky");
 
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
@@ -251,7 +252,6 @@ namespace NR
         return sData->BlackCubeTexture;
     }
 
-
     Ref<Environment> Renderer::GetEmptyEnvironment()
     {
         return sData->EmptyEnvironment;
@@ -265,5 +265,10 @@ namespace NR
     RendererConfig& Renderer::GetConfig()
     {
         return sData->Config;
+    }
+
+    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    {
+        return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
     }
 }

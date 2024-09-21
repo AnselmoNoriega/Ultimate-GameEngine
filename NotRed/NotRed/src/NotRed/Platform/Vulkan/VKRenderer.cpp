@@ -258,11 +258,17 @@ namespace NR
                 vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
                 // Bind descriptor sets describing shader binding points
-                vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &vulkanMaterial->GetDescriptorSet().DescriptorSets[0], 0, nullptr);
+                const auto& descriptorSets = vulkanMaterial->GetDescriptorSet().DescriptorSets;
+                if (!descriptorSets.empty())
+                {
+                    vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSets[0], 0, nullptr);
+                }
 
                 Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
-
-                vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+                if (uniformStorageBuffer.Size)
+                {
+                    vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+                }
                 vkCmdDrawIndexed(sData->ActiveCommandBuffer, sData->QuadIndexBuffer->GetCount(), 1, 0, 0, 0);
             });
     }
@@ -270,7 +276,9 @@ namespace NR
     void VKRenderer::SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow)
     {
         if (!environment)
+        {
             environment = Renderer::GetEmptyEnvironment();
+        }
 
         Renderer::Submit([environment, shadow]() mutable
             {
@@ -508,5 +516,33 @@ namespace NR
             });
 
         return { envFiltered, irradianceMap };
+    }
+
+    Ref<TextureCube> VKRenderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    {
+        const uint32_t cubemapSize = 2048;
+        const uint32_t irradianceMapSize = 32;
+        Ref<TextureCube> envUnfiltered = TextureCube::Create(ImageFormat::RGBA32F, cubemapSize, cubemapSize);
+        Ref<Shader> preethamSkyShader = Renderer::GetShaderLibrary()->Get("PreethamSky");
+        Ref<VKComputePipeline> preethamSkyComputePipeline = Ref<VKComputePipeline>::Create(preethamSkyShader);
+        glm::vec3 params = { turbidity, azimuth, inclination };
+        Renderer::Submit([preethamSkyComputePipeline, envUnfiltered, cubemapSize, params]() mutable
+            {
+                VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                Ref<VKShader> shader = preethamSkyComputePipeline->GetShader();
+                std::array<VkWriteDescriptorSet, 1> writeDescriptors;
+                auto descriptorSet = shader->CreateDescriptorSets();
+                Ref<VKTextureCube> envUnfilteredCubemap = envUnfiltered.As<VKTextureCube>();
+                writeDescriptors[0] = *shader->GetDescriptorSet("oCubeMap");
+                writeDescriptors[0].dstSet = descriptorSet.DescriptorSets[0];
+                writeDescriptors[0].pImageInfo = &envUnfilteredCubemap->GetVulkanDescriptorInfo();
+                vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, NULL);
+                preethamSkyComputePipeline->Begin();
+                preethamSkyComputePipeline->SetPushConstants(&params, sizeof(glm::vec3));
+                preethamSkyComputePipeline->Dispatch(descriptorSet.DescriptorSets[0], cubemapSize / 32, cubemapSize / 32, 6);
+                preethamSkyComputePipeline->End();
+                envUnfilteredCubemap->GenerateMips(true);
+            });
+        return envUnfiltered;
     }
 }

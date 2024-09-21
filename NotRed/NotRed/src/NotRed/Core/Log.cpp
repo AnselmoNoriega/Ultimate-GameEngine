@@ -3,8 +3,8 @@
 
 #include <filesystem>
 
-#include "spdlog/sinks/stdout_sinks.h"
-#include <spdlog/sinks/basic_file_sink.h>
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace NR
@@ -21,16 +21,21 @@ namespace NR
 		}
 
 		std::vector<spdlog::sink_ptr> engineSinks =
-		{
-			std::make_shared<spdlog::sinks::stdout_sink_mt>(),
-			std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/NOTRED.log", true)
+		{ 
+			std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
+			std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/NOT-RED.log", true)
 		};
 
 		std::vector<spdlog::sink_ptr> appSinks =
-		{
-			std::make_shared<spdlog::sinks::stdout_sink_mt>(),
+		{ 
+			std::make_shared<spdlog::sinks::stdout_color_sink_mt>(),
 			std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/APP.log", true)
 		};
+
+		engineSinks[0]->set_pattern("%^[%T] %n: %v%$");
+		engineSinks[1]->set_pattern("[%T] [%l] %n: %v");
+		appSinks[0]->set_pattern("%^[%T] %n: %v%$");
+		appSinks[1]->set_pattern("[%T] [%l] %n: %v");
 
 		sCoreLogger = std::make_shared<spdlog::logger>("NOT-RED", engineSinks.begin(), engineSinks.end());
 		sCoreLogger->set_pattern("\033[1;34m[%Y-%m-%d %H:%M:%S.%e]\033[0m %^[%l]%$ \033[4;31m%n\033[0m: %v");

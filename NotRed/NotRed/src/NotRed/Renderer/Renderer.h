@@ -61,6 +61,7 @@ namespace NR
 
         static void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow);
         static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
+        static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
 
         static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
         static void RenderMeshWithoutMaterial(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);

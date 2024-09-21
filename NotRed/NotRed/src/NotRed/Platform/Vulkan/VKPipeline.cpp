@@ -230,23 +230,27 @@ namespace NR
                 std::vector<VkWriteDescriptorSet> writeDescriptors;
 
                 const auto& shaderDescriptorSets = vulkanShader->GetShaderDescriptorSets();
-                for (auto&& [set, shaderDescriptorSet] : shaderDescriptorSets)
+                if (!shaderDescriptorSets.empty())
                 {
-                    for (auto&& [binding, uniformBuffer] : shaderDescriptorSet.UniformBuffers)
+                    instance->mDescriptorSet = vulkanShader->CreateDescriptorSets();
+                    std::vector<VkWriteDescriptorSet> writeDescriptors;
+                    for (auto&& [set, shaderDescriptorSet] : shaderDescriptorSets)
                     {
-                        VkWriteDescriptorSet writeDescriptorSet = {};
-                        writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        writeDescriptorSet.descriptorCount = 1;
-                        writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                        writeDescriptorSet.pBufferInfo = &uniformBuffer->Descriptor;
-                        writeDescriptorSet.dstBinding = binding;
-                        writeDescriptorSet.dstSet = instance->mDescriptorSet.DescriptorSets[0];
-                        writeDescriptors.push_back(writeDescriptorSet);
+                        for (auto&& [binding, uniformBuffer] : shaderDescriptorSet.UniformBuffers)
+                        {
+                            VkWriteDescriptorSet writeDescriptorSet = {};
+                            writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                            writeDescriptorSet.descriptorCount = 1;
+                            writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                            writeDescriptorSet.pBufferInfo = &uniformBuffer->Descriptor;
+                            writeDescriptorSet.dstBinding = binding;
+                            writeDescriptorSet.dstSet = instance->mDescriptorSet.DescriptorSets[0];
+                            writeDescriptors.push_back(writeDescriptorSet);
+                        }
                     }
+                    NR_CORE_WARN("VulkanPipeline - Updating {0} descriptor sets", writeDescriptors.size());
+                    vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
                 }
-
-                NR_CORE_WARN("VKPipeline - Updating {0} descriptor sets", writeDescriptors.size());
-                vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
             });
     }
 

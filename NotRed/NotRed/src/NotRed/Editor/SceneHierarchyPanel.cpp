@@ -18,6 +18,7 @@
 #include "NotRed/Math/Math.h"
 #include "NotRed/Core/Application.h"
 #include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/MeshFactory.h"
 
@@ -396,6 +397,7 @@ namespace NR
         const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
         if (entity.HasComponent<T>())
         {
+            ImGui::PushID((void*)typeid(T).hash_code());
             auto& component = entity.GetComponent<T>();
             ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
@@ -794,6 +796,19 @@ namespace NR
                 UI::BeginPropertyGrid();
                 UI::PropertyAssetReference("Environment Map", slc.SceneEnvironment, AssetType::EnvMap);
                 UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
+                ImGui::Separator();
+                UI::Property("Dynamic Sky", slc.DynamicSky);
+                if (slc.DynamicSky)
+                {
+                    bool changed = UI::Property("Turbidity", slc.TurbidityAzimuthInclination.x, 0.01f);
+                    changed |= UI::Property("Azimuth", slc.TurbidityAzimuthInclination.y, 0.01f);
+                    changed |= UI::Property("Inclination", slc.TurbidityAzimuthInclination.z, 0.01f);
+                    if (changed)
+                    {
+                        Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(slc.TurbidityAzimuthInclination.x, slc.TurbidityAzimuthInclination.y, slc.TurbidityAzimuthInclination.z);
+                        slc.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
+                    }
+                }
                 UI::EndPropertyGrid();
             });
 

@@ -502,8 +502,7 @@ namespace NR::UI
 		ImGui::Text(label);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-
-		char* assetName = ((Ref<Asset>&)object)->FileName.data();
+		
 		if (object)
 		{
 			if (object->Type != AssetType::Missing)
