@@ -9,7 +9,7 @@
 
 namespace NR
 {
-	static int sColumnCount = 10;
+	static int sColumnCount = 2;
 
 	ContentBrowserPanel::ContentBrowserPanel()
 	{
@@ -197,7 +197,6 @@ namespace NR
 				ImGui::NextColumn();
 				ImGui::NextColumn();
 				ImGui::SetNextItemWidth(ImGui::GetColumnWidth());
-				ImGui::SliderInt("##column_count", &sColumnCount, 2, 15);
 			}
 			ImGui::EndChild();
 
