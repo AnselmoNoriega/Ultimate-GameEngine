@@ -56,5 +56,4 @@ namespace NR::Utils
 		}
 		__debugbreak();
 	}
-
 }

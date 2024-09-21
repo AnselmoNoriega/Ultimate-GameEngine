@@ -1,0 +1,88 @@
+Scene: Scene Name
+Environment:
+  AssetHandle: 13844228668173632535
+  Light:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 10166313038533509910
+    TagComponent:
+      Tag: Empty Mesh
+    TransformComponent:
+      Position: [0, 13.1935139, 0]
+      Rotation: [0, 0, 0]
+      Scale: [0.330000043, 0.330000043, 0.330000043]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 3424232314052899863
+    RigidBodyComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDrag: 0
+      AngularDrag: 0.0500000007
+      DisableGravity: false
+      IsKinematic: false
+      Layer: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [1, 1, 1]
+      IsTrigger: false
+      Material: 0
+  - Entity: 8277159369368544585
+    TagComponent:
+      Tag: Empty Mesh
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 15897242330202141131
+    RigidBodyComponent:
+      BodyType: 0
+      Mass: 1
+      LinearDrag: 0
+      AngularDrag: 0.0500000007
+      DisableGravity: false
+      IsKinematic: false
+      Layer: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [1, 1, 1]
+      IsTrigger: false
+      Material: 0
+  - Entity: 3463541907105798789
+    TagComponent:
+      Tag: Sky Light
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    SkyLightComponent:
+      EnvironmentMap: 13844228668173632535
+      Intensity: 1
+      Angle: 0
+PhysicsLayers:
+  []
