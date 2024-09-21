@@ -25,7 +25,9 @@ namespace NR
 	bool AssetImporter::TryLoadData(Ref<Asset>& asset)
 	{
 		if (asset->Type == AssetType::Directory)
+		{
 			return false;
+		}
 
 		if (sSerializers.find(asset->Type) == sSerializers.end())
 		{
