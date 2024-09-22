@@ -39,5 +39,4 @@ namespace NR
 	}
 
 	std::unordered_map<AssetType, Scope<AssetSerializer>> AssetImporter::sSerializers;
-
 }
