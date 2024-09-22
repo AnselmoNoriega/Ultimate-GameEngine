@@ -22,6 +22,33 @@ namespace NR
         Depth = DEPTH24STENCIL8
     };
 
+    enum class TextureWrap
+    {
+        None,
+        Clamp,
+        Repeat
+    };
+    enum class TextureFilter
+    {
+        None,
+        Linear,
+        Nearest
+    };
+    enum class TextureType
+    {
+        None,
+        Texture2D,
+        TextureCube
+    };
+
+    struct TextureProperties
+    {
+        TextureWrap SamplerWrap = TextureWrap::Repeat;
+        TextureFilter SamplerFilter = TextureFilter::Linear;
+        bool GenerateMips = true;
+        bool StandardRGB = false;
+    };
+
     class Image : public RefCounted
     {
     public:

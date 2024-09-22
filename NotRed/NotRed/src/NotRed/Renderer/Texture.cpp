@@ -9,26 +9,26 @@
 
 namespace NR
 {
-	Ref<Texture2D> Texture2D::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data)
+	Ref<Texture2D> Texture2D::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
     {
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(format, width, height, data);
-		case RendererAPIType::Vulkan: return Ref<VKTexture2D>::Create(format, width, height, data);
+		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(format, width, height, data, properties);
+		case RendererAPIType::Vulkan: return Ref<VKTexture2D>::Create(format, width, height, data, properties);
         default:
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");
 			return nullptr;
         }
     }
 
-	Ref<Texture2D> Texture2D::Create(const std::string& path, bool standardRGB)
+	Ref<Texture2D> Texture2D::Create(const std::string& path, TextureProperties properties)
 	{
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(path, standardRGB);
-		case RendererAPIType::Vulkan: return Ref<VKTexture2D>::Create(path, standardRGB);
+		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(path, properties);
+		case RendererAPIType::Vulkan: return Ref<VKTexture2D>::Create(path, properties);
 		default:
 		{
 			return nullptr;
@@ -36,25 +36,26 @@ namespace NR
 		}
 	}
 
-	Ref<TextureCube> TextureCube::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data)
+	Ref<TextureCube> TextureCube::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
 	{
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(format, width, height, data);
-		case RendererAPIType::Vulkan: return Ref<VKTextureCube>::Create(format, width, height, data);
+		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(format, width, height, data, properties);
+		case RendererAPIType::Vulkan: return Ref<VKTextureCube>::Create(format, width, height, data, properties);
 		default:
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");
 			return nullptr;
 		}
 	}
 
-	Ref<TextureCube> TextureCube::Create(const std::string& path)
+	Ref<TextureCube> TextureCube::Create(const std::string& path, TextureProperties properties)
 	{
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(path);
+		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(path, properties);
+		case RendererAPIType::Vulkan: return Ref<VKTextureCube>::Create(path, properties);
 		default:
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");
 			return nullptr;

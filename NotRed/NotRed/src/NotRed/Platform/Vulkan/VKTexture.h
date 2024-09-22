@@ -11,8 +11,8 @@ namespace NR
 	class VKTexture2D : public Texture2D
 	{
 	public:
-		VKTexture2D(const std::string& path, bool srgb = false);
-		VKTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureWrap wrap = TextureWrap::Clamp);
+		VKTexture2D(const std::string& path, TextureProperties properties);
+		VKTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
 		~VKTexture2D() override;
 
 		void Invalidate();
@@ -43,6 +43,8 @@ namespace NR
 		uint32_t mWidth;
 		uint32_t mHeight;
 
+		TextureProperties mProperties;
+
 		Buffer mImageData;
 
 		Ref<Image2D> mImage;
@@ -53,8 +55,8 @@ namespace NR
 	class VKTextureCube : public TextureCube
 	{
 	public:
-		VKTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
-		VKTextureCube(const std::string& path);
+		VKTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
+		VKTextureCube(const std::string& path, TextureProperties properties);
 		~VKTextureCube() override;
 
 		const std::string& GetPath() const override { return ""; }
@@ -80,6 +82,8 @@ namespace NR
 	private:
 		ImageFormat mFormat = ImageFormat::None;
 		uint32_t mWidth = 0, mHeight = 0;
+
+		TextureProperties mProperties;
 
 		bool mMipsGenerated = false;
 

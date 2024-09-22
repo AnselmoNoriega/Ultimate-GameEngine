@@ -17,8 +17,8 @@ namespace NR
 {
     // Texture2D-----------------------------------------------------------------------
 
-    GLTexture2D::GLTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data)
-        : mWidth(width), mHeight(height)
+    GLTexture2D::GLTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
+        : mWidth(width), mHeight(height), mProperties(properties)
     {
         mImage = Image2D::Create(format, width, height, data);
         Renderer::Submit([=]()
@@ -27,13 +27,13 @@ namespace NR
             });
     }
 
-    GLTexture2D::GLTexture2D(const std::string& path, bool standardRGB)
-        : mFilePath(path)
+    GLTexture2D::GLTexture2D(const std::string& path, TextureProperties properties)
+        : mFilePath(path), mProperties(properties)
     {
         int width, height, channels;
         if (stbi_is_hdr(path.c_str()))
         {
-            NR_CORE_INFO("Loading HDR texture {0}, srgb = {1}", path, standardRGB);
+            NR_CORE_INFO("Loading HDR texture {0}, srgb = {1}", path, properties.StandardRGB);
 
             float* imageData = stbi_loadf(path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
             NR_CORE_ASSERT(imageData);
@@ -42,14 +42,16 @@ namespace NR
         }
         else
         {
-            NR_CORE_INFO("Loading texture {0}, srgb = {1}", path, standardRGB);
+            NR_CORE_INFO("Loading texture {0}, srgb = {1}", path, properties.StandardRGB);
 
-            stbi_uc* imageData = stbi_load(path.c_str(), &width, &height, &channels, standardRGB ? STBI_rgb : STBI_rgb_alpha);
+            stbi_uc* imageData = stbi_load(path.c_str(), &width, &height, &channels, properties.StandardRGB ? STBI_rgb : STBI_rgb_alpha);
             NR_CORE_ASSERT(imageData);
-            ImageFormat format = standardRGB ? ImageFormat::RGB : ImageFormat::RGBA;
+            ImageFormat format = properties.StandardRGB ? ImageFormat::RGB : ImageFormat::RGBA;
             Buffer buffer(imageData, Utils::GetImageMemorySize(format, width, height));
             mImage = Image2D::Create(format, width, height, buffer);
         }
+
+        mImage.As<GLImage2D>()->CreateSampler(mProperties);
 
         mWidth = width;
         mHeight = height;
@@ -118,12 +120,9 @@ namespace NR
 
     // TextureCube-----------------------------------------------------------------------
 
-    GLTextureCube::GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data)
+    GLTextureCube::GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
+        : mWidth(width), mHeight(height), mFormat(format), mProperties(properties)
     {
-        mWidth = width;
-        mHeight = height;
-        mFormat = format;
-
         if (data)
         {
             uint32_t size = width * height * 4 * 6; // six layers
@@ -144,16 +143,16 @@ namespace NR
                     Utils::OpenGLImageFormat(instance->mFormat), 
                     Utils::OpenGLFormatDataType(instance->mFormat), instance->mLocalStorage.Data);
             }
-            glTextureParameteri(instance->mID, GL_TEXTURE_MIN_FILTER, levels > 1 ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-            glTextureParameteri(instance->mID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_REPEAT);
+
+            glTextureParameteri(instance->mID, GL_TEXTURE_MIN_FILTER, Utils::OpenGLSamplerFilter(instance->mProperties.SamplerFilter, instance->mProperties.GenerateMips));
+            glTextureParameteri(instance->mID, GL_TEXTURE_MAG_FILTER, Utils::OpenGLSamplerFilter(instance->mProperties.SamplerFilter, false));
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, Utils::OpenGLSamplerWrap(instance->mProperties.SamplerWrap));
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, Utils::OpenGLSamplerWrap(instance->mProperties.SamplerWrap));
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, Utils::OpenGLSamplerWrap(instance->mProperties.SamplerWrap));
             });
     }
-
-    GLTextureCube::GLTextureCube(const std::string& path)
-        : mFilePath(path)
+    GLTextureCube::GLTextureCube(const std::string& path, TextureProperties properties)
+        : mFilePath(path), mProperties(properties)
     {
         NR_CORE_ASSERT(false, "Not yet set!");
 #if 0

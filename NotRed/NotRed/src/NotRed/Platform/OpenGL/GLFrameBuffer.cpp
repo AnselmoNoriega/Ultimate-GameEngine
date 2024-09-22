@@ -68,6 +68,7 @@ namespace NR
             }
 
             Ref<GLImage2D> glImage = image.As<GLImage2D>();
+            glImage->CreateSampler(TextureProperties());
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, TextureTarget(multisampled), glImage->GetRendererID(), 0);
             return image;
         }
@@ -87,6 +88,7 @@ namespace NR
             }
 
             Ref<GLImage2D> glImage = image.As<GLImage2D>();
+            glImage->CreateSampler(TextureProperties());
             glFramebufferTexture2D(GL_FRAMEBUFFER, Utils::DepthAttachmentType(format), TextureTarget(multisampled), glImage->GetRendererID(), 0);
             return image;
         }

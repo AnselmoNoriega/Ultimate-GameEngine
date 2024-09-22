@@ -716,7 +716,9 @@ namespace NR
                                         std::string filename = Application::Get().OpenFile("");
                                         if (!filename.empty())
                                         {
-                                            albedoMap = Texture2D::Create(filename, true/*m_AlbedoInput.SRGB*/);
+                                            TextureProperties props;
+                                            props.StandardRGB = true;
+                                            albedoMap = Texture2D::Create(filename, props);
                                             materialInstance->Set("uAlbedoTexture", albedoMap);
                                         }
                                     }

@@ -354,7 +354,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLContext.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage2D.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLMaterial.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />

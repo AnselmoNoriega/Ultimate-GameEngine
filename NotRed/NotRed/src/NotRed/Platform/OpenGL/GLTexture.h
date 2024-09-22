@@ -8,8 +8,8 @@ namespace NR
 	class GLTexture2D : public Texture2D
 	{
 	public:
-		GLTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data);
-		GLTexture2D(const std::string& path, bool standardRGB);
+		GLTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
+		GLTexture2D(const std::string& path, TextureProperties properties);
 		~GLTexture2D() override;
 
 		void Bind(uint32_t slot = 0) const override;
@@ -34,6 +34,7 @@ namespace NR
 
 	private:
 		Ref<Image2D> mImage;
+		TextureProperties mProperties;
 
 		bool mLocked = false;
 		bool mIsHDR = false;
@@ -41,7 +42,6 @@ namespace NR
 
 		uint32_t mWidth, mHeight;
 		Buffer mImageData;
-		TextureWrap mWrap = TextureWrap::Clamp;
 
 		std::string mFilePath;
 	};
@@ -49,8 +49,8 @@ namespace NR
 	class GLTextureCube : public TextureCube
 	{
 	public:
-		GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
-		GLTextureCube(const std::string& path);
+		GLTextureCube(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
+		GLTextureCube(const std::string& path, TextureProperties properties);
 		~GLTextureCube() override;
 
 		void Bind(uint32_t slot = 0) const override;
@@ -70,9 +70,10 @@ namespace NR
 		RendererID mID;
 
 		ImageFormat mFormat;
-		TextureWrap mWrap = TextureWrap::Clamp;
 		uint32_t mWidth, mHeight;
+
 		Buffer mLocalStorage;
+		TextureProperties mProperties;
 
 		std::string mFilePath;
 	};

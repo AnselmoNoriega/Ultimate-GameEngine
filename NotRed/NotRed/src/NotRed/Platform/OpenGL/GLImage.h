@@ -17,6 +17,8 @@ namespace NR
         void Invalidate() override;
         void Release() override;
 
+        void CreateSampler(TextureProperties properties);
+
         ImageFormat GetFormat() const override { return mFormat; }
         uint32_t GetWidth() const override { return mWidth; }
         uint32_t GetHeight() const override { return mHeight; }
@@ -40,7 +42,7 @@ namespace NR
         Buffer mImageData;
     };
 
-    namespace Utils 
+    namespace Utils
     {
         inline GLenum OpenGLImageFormat(ImageFormat format)
         {
@@ -85,6 +87,30 @@ namespace NR
             case ImageFormat::RGBA32F: return GL_FLOAT;
             default:
                 NR_CORE_ASSERT(false, "Unknown image format");
+                return 0;
+            }
+        }
+
+        inline GLenum OpenGLSamplerWrap(TextureWrap wrap)
+        {
+            switch (wrap)
+            {
+            case TextureWrap::Clamp:   return GL_CLAMP_TO_EDGE;
+            case TextureWrap::Repeat:  return GL_REPEAT;
+            default:
+                NR_CORE_ASSERT(false, "Unknown wrap mode");
+                return 0;
+            }
+        }
+
+        inline GLenum OpenGLSamplerFilter(TextureFilter filter, bool mipmap)
+        {
+            switch (filter)
+            {
+            case TextureFilter::Linear:   return mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+            case TextureFilter::Nearest:  return mipmap ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST;
+            default:
+                NR_CORE_ASSERT(false, "Unknown wrap mode");
                 return 0;
             }
         }

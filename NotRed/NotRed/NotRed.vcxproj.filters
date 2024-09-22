@@ -707,7 +707,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage2D.cpp">
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp">
