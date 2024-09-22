@@ -114,8 +114,8 @@ namespace NR
 		enabledFeatures.samplerAnisotropy = true;
 		enabledFeatures.robustBufferAccess = true;
 		mDevice = Ref<VKDevice>::Create(mPhysicalDevice, enabledFeatures);
-		
-		mAllocator = VKAllocator(mDevice, "Default");
+
+		VKAllocator::Init(mDevice);
 
 		mSwapChain.Init(sVKInstance, mDevice);
 		mSwapChain.InitSurface(mWindowHandle);

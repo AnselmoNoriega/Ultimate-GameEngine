@@ -3,6 +3,7 @@
 #include "vulkan/vulkan.h"
 
 #include "NotRed/Renderer/Image.h"
+#include "VulkanMemoryAllocator/vk_mem_alloc.h"
 
 namespace NR
 {
@@ -12,6 +13,7 @@ namespace NR
         VkImageView ImageView;
         VkSampler Sampler;
         VkDeviceMemory Memory;
+        VmaAllocation MemoryAlloc = nullptr;
     };
 
     class VKImage2D : public Image2D

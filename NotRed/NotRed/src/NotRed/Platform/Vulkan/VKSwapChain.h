@@ -85,7 +85,7 @@ namespace NR
 		struct
 		{
 			VkImage Image;
-			VkDeviceMemory DeviceMemory;
+			VmaAllocation MemoryAlloc;
 			VkImageView ImageView;
 		} mDepthStencil;
 

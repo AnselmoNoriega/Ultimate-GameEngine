@@ -37,6 +37,9 @@
     <Filter Include="src\NotRed\Platform\Vulkan">
       <UniqueIdentifier>{7CD8FA40-68E8-A611-D1A1-0B30BDD095AA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Platform\Vulkan\Debug">
+      <UniqueIdentifier>{F24F9C73-DEA0-87B5-0705-7677F3B41A1F}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Platform\Windows">
       <UniqueIdentifier>{B6D47291-22E2-A077-ABC8-9C6217D56C2E}</UniqueIdentifier>
     </Filter>
@@ -57,6 +60,9 @@
     </Filter>
     <Filter Include="vendor\FastNoise">
       <UniqueIdentifier>{EEFAAAA2-DAF3-C9F4-0326-AF79EF7DA900}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="vendor\VulkanMemoryAllocator">
+      <UniqueIdentifier>{CD0FE8DE-B9CA-D78A-6282-50D54E1C221B}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor\yaml-cpp">
       <UniqueIdentifier>{C5B3FC54-313F-6A19-3A50-ED0DA65AC619}</UniqueIdentifier>
@@ -255,6 +261,15 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h">
+      <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h">
+      <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.h">
+      <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKAllocator.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
@@ -410,6 +425,9 @@
     </ClInclude>
     <ClInclude Include="src\nrpch.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="vendor\VulkanMemoryAllocator\vk_mem_alloc.h">
+      <Filter>vendor\VulkanMemoryAllocator</Filter>
     </ClInclude>
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\anchor.h">
       <Filter>vendor\yaml-cpp\include\yaml-cpp</Filter>
@@ -716,6 +734,12 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp">
+      <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp">
+      <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
@@ -862,6 +886,9 @@
     </ClCompile>
     <ClCompile Include="vendor\FastNoise\FastNoise.cpp">
       <Filter>vendor\FastNoise</Filter>
+    </ClCompile>
+    <ClCompile Include="vendor\VulkanMemoryAllocator\vk_mem_alloc.cpp">
+      <Filter>vendor\VulkanMemoryAllocator</Filter>
     </ClCompile>
     <ClCompile Include="vendor\yaml-cpp\src\binary.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>

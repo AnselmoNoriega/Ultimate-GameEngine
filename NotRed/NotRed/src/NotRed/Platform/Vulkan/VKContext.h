@@ -42,7 +42,6 @@ namespace NR
 		VkDebugReportCallbackEXT mDebugReportCallback = VK_NULL_HANDLE;
 		VkPipelineCache mPipelineCache = nullptr;
 
-		VKAllocator mAllocator;
 		VKSwapChain mSwapChain;
 	};
 }

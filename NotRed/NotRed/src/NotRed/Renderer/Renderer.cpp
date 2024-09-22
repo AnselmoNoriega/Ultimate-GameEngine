@@ -97,7 +97,7 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentMipFilter");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EquirectangularToCubeMap");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentIrradiance");
-        //TODO: Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreethamSky");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreethamSky");
 
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");

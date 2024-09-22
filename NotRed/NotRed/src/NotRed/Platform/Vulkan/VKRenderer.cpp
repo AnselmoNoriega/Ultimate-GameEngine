@@ -3,6 +3,9 @@
 
 #include <glm/glm.hpp>
 
+#include "GFSDK_Aftermath.h"
+#include "GFSDK_Aftermath_GpuCrashDump.h"
+
 #include "Vulkan.h"
 #include "VkContext.h"
 
@@ -53,6 +56,27 @@ namespace NR
             default: return "Unknown";
             }
         }
+    }
+
+    // Static wrapper for the GPU crash dump handler. See the 'Handling GPU crash dump Callbacks' section for details.
+    static void GpuCrashDumpCallback(const void* pGpuCrashDump, const uint32_t gpuCrashDumpSize, void* pUserData)
+    {
+        NR_CORE_ERROR("GpuCrashDumpCallback");
+        __debugbreak();
+    }
+
+    // Static wrapper for the shader debug information handler. See the 'Handling Shader Debug Information callbacks' section for details.
+    static void ShaderDebugInfoCallback(const void* pShaderDebugInfo, const uint32_t shaderDebugInfoSize, void* pUserData)
+    {
+        NR_CORE_ERROR("ShaderDebugInfoCallback");
+        __debugbreak();
+    }
+
+    // Static wrapper for the GPU crash dump description handler. See the 'Handling GPU Crash Dump Description Callbacks' section for details.
+    static void CrashDumpDescriptionCallback(PFN_GFSDK_Aftermath_AddGpuCrashDumpDescription addDescription, void* pUserData)
+    {
+        NR_CORE_ERROR("CrashDumpDescriptionCallback");
+        __debugbreak();
     }
 
     static VKRendererData* sData = nullptr;

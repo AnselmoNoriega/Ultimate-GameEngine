@@ -50,7 +50,6 @@ namespace NR
 	{
 		mInstance = instance;
 		mDevice = device;
-		mAllocator = VKAllocator(device, "SwapChain");
 
 		VkDevice vulkanDevice = mDevice->GetVulkanDevice();
 		GET_DEVICE_PROC_ADDR(vulkanDevice, CreateSwapchainKHR);
@@ -417,6 +416,8 @@ namespace NR
 
 	void VKSwapChain::CreateDepthStencil()
 	{
+		VkDevice device = mDevice->GetVulkanDevice();
+
 		VkFormat depthFormat = mDevice->GetPhysicalDevice()->GetDepthFormat();
 
 		VkImageCreateInfo imageCI{};
@@ -430,12 +431,8 @@ namespace NR
 		imageCI.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageCI.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-		VkDevice device = mDevice->GetVulkanDevice();
-		VK_CHECK_RESULT(vkCreateImage(device, &imageCI, nullptr, &mDepthStencil.Image));
-		VkMemoryRequirements memReqs{};
-		vkGetImageMemoryRequirements(device, mDepthStencil.Image, &memReqs);
-		mAllocator.Allocate(memReqs, &mDepthStencil.DeviceMemory);
-		VK_CHECK_RESULT(vkBindImageMemory(device, mDepthStencil.Image, mDepthStencil.DeviceMemory, 0));
+		VKAllocator allocator("SwapChain");
+		mDepthStencil.MemoryAlloc = allocator.AllocateImage(imageCI, VMA_MEMORY_USAGE_GPU_ONLY, mDepthStencil.Image);
 
 		VkImageViewCreateInfo imageViewCI{};
 		imageViewCI.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -512,8 +509,9 @@ namespace NR
 		Create(&width, &height);
 		// Recreate the frame buffers
 		vkDestroyImageView(device, mDepthStencil.ImageView, nullptr);
-		vkDestroyImage(device, mDepthStencil.Image, nullptr);
-		vkFreeMemory(device, mDepthStencil.DeviceMemory, nullptr);
+
+		VKAllocator allocator("SwapChain");
+		allocator.DestroyImage(mDepthStencil.Image, mDepthStencil.MemoryAlloc);
 		CreateDepthStencil();
 
 		for (auto& frameBuffer : mFrameBuffers)

@@ -23,9 +23,10 @@ namespace NR
 	{
 		auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 		vkDestroyImageView(vulkanDevice, mInfo.ImageView, nullptr);
-		vkDestroyImage(vulkanDevice, mInfo.Image, nullptr);
-		vkDestroySampler(vulkanDevice, mInfo.Sampler, nullptr);
-		vkFreeMemory(vulkanDevice, mInfo.Memory, nullptr);
+		vkDestroySampler(vulkanDevice, mInfo.Sampler, nullptr);	
+		
+		VKAllocator allocator("VulkanImage2D");
+		allocator.DestroyImage(mInfo.Image, mInfo.MemoryAlloc);
 
 		NR_CORE_WARN("VKImage2D::Release ImageView = {0}", (const void*)mInfo.ImageView);
 	}

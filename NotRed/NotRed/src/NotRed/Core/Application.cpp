@@ -15,6 +15,7 @@
 #include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
+#include "NotRed/Platform/Vulkan/VKAllocator.h"
 
 extern bool gApplicationRunning;
 
@@ -72,8 +73,19 @@ namespace NR
         auto& caps = Renderer::GetCapabilities();
         ImGui::Text("Vendor: %s", caps.Vendor.c_str());
         ImGui::Text("Renderer: %s", caps.Device.c_str());
-        ImGui::Text("Version: %s", caps.Version.c_str());
+        ImGui::Text("Version: %s", caps.Version.c_str()); 
+        ImGui::Separator();
         ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+
+        if (RendererAPI::Current() == RendererAPIType::Vulkan)
+        {
+            GPUMemoryStats memoryStats = VKAllocator::GetStats();
+            std::string used = Utils::BytesToString(memoryStats.Used);
+            std::string free = Utils::BytesToString(memoryStats.Free);
+            ImGui::Text("Used VRAM: %s", used.c_str());
+            ImGui::Text("Free VRAM: %s", free.c_str());
+        }
+
         ImGui::End();
 
         for (Layer* layer : mLayerStack)

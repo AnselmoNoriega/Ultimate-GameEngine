@@ -557,17 +557,9 @@ namespace NR
         // This buffer will be used as a uniform buffer
         bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
-        VKAllocator allocator("UniformBuffer");
-
         // Create a new buffer
-        VK_CHECK_RESULT(vkCreateBuffer(device, &bufferInfo, nullptr, &uniformBuffer.Buffer));
-
-        VkMemoryRequirements memoryRequirements;
-        vkGetBufferMemoryRequirements(device, uniformBuffer.Buffer, &memoryRequirements);
-        allocInfo.allocationSize = memoryRequirements.size;
-
-        allocator.Allocate(memoryRequirements, &uniformBuffer.Memory, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        VK_CHECK_RESULT(vkBindBufferMemory(device, uniformBuffer.Buffer, uniformBuffer.Memory, 0));
+        VKAllocator allocator("UniformBuffer");
+        uniformBuffer.MemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, uniformBuffer.Buffer);
 
         // Store information in the uniform's descriptor that is used by the descriptor set
         uniformBuffer.Descriptor.buffer = uniformBuffer.Buffer;
@@ -799,9 +791,8 @@ namespace NR
         NR_CORE_ASSERT(sUniformBuffers.at(set).find(bindingPoint) != sUniformBuffers.at(set).end());
         NR_CORE_ASSERT(sUniformBuffers.at(set).at(bindingPoint));
 
-        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-        uint8_t* pData;
-        VK_CHECK_RESULT(vkMapMemory(device, sUniformBuffers.at(set).at(bindingPoint)->Memory, 0, sUniformBuffers.at(set).at(bindingPoint)->Size, 0, (void**)&pData));
+        VKAllocator allocator("VulkanShader");
+        uint8_t* pData = allocator.MapMemory<uint8_t>(sUniformBuffers.at(set).at(bindingPoint)->MemoryAlloc);
         return pData;
     }
 
@@ -811,7 +802,7 @@ namespace NR
         NR_CORE_ASSERT(sUniformBuffers.at(set).find(bindingPoint) != sUniformBuffers.at(set).end());
         NR_CORE_ASSERT(sUniformBuffers.at(set).at(bindingPoint));
 
-        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-        vkUnmapMemory(device, sUniformBuffers.at(set).at(bindingPoint)->Memory);
+        VKAllocator allocator("VulkanShader");
+        allocator.UnmapMemory(sUniformBuffers.at(set).at(bindingPoint)->MemoryAlloc);
     }
 }

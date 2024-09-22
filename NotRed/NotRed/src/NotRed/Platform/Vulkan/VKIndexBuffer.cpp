@@ -22,24 +22,17 @@ namespace NR
 			{
 				auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
-				VkBufferCreateInfo indexbufferInfo = {};
-				indexbufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-				indexbufferInfo.size = instance->mSize;
-				indexbufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-
-				VK_CHECK_RESULT(vkCreateBuffer(device, &indexbufferInfo, nullptr, &instance->mVulkanBuffer));
-				VkMemoryRequirements memoryRequirements;
-				vkGetBufferMemoryRequirements(device, instance->mVulkanBuffer, &memoryRequirements);
+				VkBufferCreateInfo indexbufferCreateInfo = {};
+				indexbufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				indexbufferCreateInfo.size = instance->mSize;
+				indexbufferCreateInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 
 				VKAllocator allocator("IndexBuffer");
-				allocator.Allocate(memoryRequirements, &instance->mDeviceMemory, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+				auto bufferAlloc = allocator.AllocateBuffer(indexbufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, instance->mVulkanBuffer);
 
-				void* dstBuffer;
-				VK_CHECK_RESULT(vkMapMemory(device, instance->mDeviceMemory, 0, instance->mSize, 0, &dstBuffer));
+				void* dstBuffer = allocator.MapMemory<void>(bufferAlloc);
 				memcpy(dstBuffer, instance->mLocalData.Data, instance->mSize);
-				vkUnmapMemory(device, instance->mDeviceMemory);
-
-				VK_CHECK_RESULT(vkBindBufferMemory(device, instance->mVulkanBuffer, instance->mDeviceMemory, 0));
+				allocator.UnmapMemory(bufferAlloc);
 			});
 	}
 

@@ -120,14 +120,7 @@ namespace NR
                         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
                         // We will sample directly from the color attachment
                         imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-                        VK_CHECK_RESULT(vkCreateImage(device, &imageCreateInfo, nullptr, &info.Image));
-
-                        VkMemoryRequirements memReqs;
-                        vkGetImageMemoryRequirements(device, info.Image, &memReqs);
-
-                        allocator.Allocate(memReqs, &info.Memory);
-
-                        VK_CHECK_RESULT(vkBindImageMemory(device, info.Image, info.Memory, 0));
+                        info.MemoryAlloc = allocator.AllocateImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, info.Image);
 
                         VkImageViewCreateInfo colorImageViewCreateInfo = {};
                         colorImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -195,13 +188,7 @@ namespace NR
                         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
                         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
                         imageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-
-                        VK_CHECK_RESULT(vkCreateImage(device, &imageCreateInfo, nullptr, &info.Image));
-                        VkMemoryRequirements memoryRequirements;
-                        vkGetImageMemoryRequirements(device, info.Image, &memoryRequirements);
-                        allocator.Allocate(memoryRequirements, &info.Memory);
-
-                        VK_CHECK_RESULT(vkBindImageMemory(device, info.Image, info.Memory, 0));
+                        info.MemoryAlloc = allocator.AllocateImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, info.Image);
 
                         VkImageViewCreateInfo depthStencilImageViewCreateInfo = {};
                         depthStencilImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

@@ -63,7 +63,8 @@ namespace NR::Utils
             NR_CORE_ERROR("VkResult is '{0}' in{1}:{2}", ::NR::Utils::VKResultToString(result), __FILE__, __LINE__);
             if (result == VK_ERROR_DEVICE_LOST)
             {
-                ::NR::Utils::RetrieveDiagnosticCheckpoints();
+                using namespace std::chrono_literals;
+                std::this_thread::sleep_for(3s);
                 ::NR::Utils::DumpGPUInfo();
             }
             NR_CORE_ASSERT(result == VK_SUCCESS);

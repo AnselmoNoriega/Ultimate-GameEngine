@@ -84,7 +84,7 @@ namespace NR
 		bool mMipsGenerated = false;
 
 		Buffer mLocalStorage;
-		VkDeviceMemory mDeviceMemory;
+		VmaAllocation mMemoryAlloc;
 		VkImage mImage;
 		VkDescriptorImageInfo mDescriptorImageInfo = {};
 	};

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/Renderer/Shader.h"
+#include "VulkanMemoryAllocator/vk_mem_alloc.h"
 
 #include "Vulkan.h"
 
@@ -13,6 +14,7 @@ namespace NR
         {
             std::string Name;
             VkDeviceMemory Memory = nullptr;
+            VmaAllocation MemoryAlloc = nullptr;
             VkBuffer Buffer;
             uint32_t Size = 0;
             VkDescriptorBufferInfo Descriptor;

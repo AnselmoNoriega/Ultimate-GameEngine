@@ -52,7 +52,9 @@ project "NotRed"
 
 		"%{prj.name}/vendor/yaml-cpp/src/**.cpp",
 		"%{prj.name}/vendor/yaml-cpp/src/**.h",
-		"%{prj.name}/vendor/yaml-cpp/include/**.h"
+		"%{prj.name}/vendor/yaml-cpp/include/**.h",
+		"%{prj.name}/vendor/VulkanMemoryAllocator/**.h",
+		"%{prj.name}/vendor/VulkanMemoryAllocator/**.cpp"
 	}
 
 	includedirs
@@ -71,7 +73,8 @@ project "NotRed"
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
-		"%{IncludeDir.Vulkan}"
+		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.NsightAftermath}"
 	}
 	
 	links 
@@ -89,7 +92,8 @@ project "NotRed"
 		"%{Library.PhysXCooking}",
 		"%{Library.PhysXExtensions}",
 		"%{Library.PhysXFoundation}",
-		"%{Library.PhysXPvd}"
+		"%{Library.PhysXPvd}",
+		"%{Library.NsightAftermath}"
 	}
 
 	defines

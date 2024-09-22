@@ -13,19 +13,6 @@
     <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\Collider\Collider.vert" />
-    <None Include="Assets\Shaders\Collider\Collider.frag" />
-    <None Include="Assets\Shaders\BloomBlend\BloomBlend.vert" />
-    <None Include="Assets\Shaders\BloomBlend\BloomBlend.frag" />
-    <None Include="Assets\Shaders\BloomBlur\BloomBlur.vert" />
-    <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
-    <None Include="Assets\Shaders\ShadowMap\ShadowMap.vert" />
-    <None Include="Assets\Shaders\ShadowMap\ShadowMap.frag" />
-    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.vert" />
-    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.frag" />
-    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.vert" />
-    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.frag" />
-    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.frag" />
-    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.vert" />
+    <None Include="Assets\Shaders\PreethamSky\PreethamSky.comp" />
   </ItemGroup>
 </Project>
