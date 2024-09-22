@@ -283,14 +283,17 @@ namespace NR
     {
         static bool p_open = true;
 
-        static bool opt_fullscreen_persistant = true;
-        static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
-        bool opt_fullscreen = opt_fullscreen_persistant;
+        static bool optFullscreenPersistant = true;
+        static ImGuiDockNodeFlags optFlags = ImGuiDockNodeFlags_None;
+        bool optFullscreen = optFullscreenPersistant;
 
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
+        ImGuiIO& io = ImGui::GetIO();
+        ImGuiStyle& style = ImGui::GetStyle();
+        auto boldFont = io.Fonts->Fonts[0];
+        auto largeFont = io.Fonts->Fonts[1];
+
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
+        if (optFullscreen)
         {
             ImGuiViewport* viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(viewport->Pos);
@@ -304,49 +307,38 @@ namespace NR
 
         // When using ImGuiDockNodeFlags_PassthruDockspace, DockSpace() will render our background and handle the pass-thru hole, so we ask Begin() to not render a background.
         ImGuiDockNodeFlags ImGuiDockNodeFlags_PassthruDockspace = ImGuiDockNodeFlags_NoSplit | ImGuiDockNodeFlags_NoResize | ImGuiDockNodeFlags_NoDockingInCentralNode;
-        //if (opt_flags & ImGuiDockNodeFlags_PassthruDockspace)
-        //{
-        //	window_flags |= ImGuiWindowFlags_NoBackground;
-        //}
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::Begin("DockSpace Demo", &p_open, window_flags);
         ImGui::PopStyleVar();
 
-        if (opt_fullscreen)
+        if (optFullscreen)
         {
             ImGui::PopStyleVar(2);
         }
 
         // Dockspace
-        ImGuiIO& io = ImGui::GetIO();
-        ImGuiStyle& style = ImGui::GetStyle();
         float minWinSizeX = style.WindowMinSize.x;
         style.WindowMinSize.x = 370.0f;
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
             ImGuiID dockspace_id = ImGui::GetID("MyDockspace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), opt_flags);
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), optFlags);
         }
 
         style.WindowMinSize.x = minWinSizeX;
 
         // Editor Panel ------------------------------------------------------------------------------
-        ImGui::Begin("Environment");
+        ImGui::Begin("Settings");
         {
-            UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, 11.0f);
+            auto& rendererConfig = Renderer::GetConfig();
 
             UI::BeginPropertyGrid();
             ImGui::AlignTextToFramePadding();
-
-            auto& light = mEditorScene->GetLight();
-            UI::PropertySlider("Light Direction", light.Direction, -1.0f, 1.0f);
-            UI::PropertyColor("Light Radiance", light.Radiance);
-            UI::PropertySlider("Light Multiplier", light.Multiplier, 0.0f, 5.0f);
+            UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, Utils::CalculateMipCount(rendererConfig.EnvironmentMapResolution, rendererConfig.EnvironmentMapResolution));
 
             UI::PropertySlider("Exposure", mEditorCamera.GetExposure(), 0.0f, 5.0f);
 
-            UI::Property("Radiance Prefiltering", mRadiancePrefilter);
             UI::PropertySlider("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
 
             if (mSceneState == SceneState::Edit)
@@ -381,6 +373,30 @@ namespace NR
                 mSelectionMode = mSelectionMode == SelectionMode::Entity ? SelectionMode::SubMesh : SelectionMode::Entity;
             }
 
+            UI::EndPropertyGrid();
+
+            ImGui::Separator();
+            ImGui::PushFont(boldFont);
+            ImGui::Text("Renderer Settings");
+            ImGui::PopFont();
+            UI::BeginPropertyGrid();
+            UI::Property("Enable HDR environment maps", rendererConfig.ComputeEnvironmentMaps);
+            {
+                const char* environmentMapSizes[] = { "128", "256", "512", "1024", "2048", "4096" };
+                int currentSize = (int)glm::log2((float)rendererConfig.EnvironmentMapResolution) - 7;
+                if (UI::PropertyDropdown("Environment Map Size", environmentMapSizes, 6, &currentSize))
+                {
+                    rendererConfig.EnvironmentMapResolution = glm::pow(2, currentSize + 7);
+                }
+            }
+            {
+                const char* irradianceComputeSamples[] = { "128", "256", "512", "1024", "2048", "4096" };
+                int currentSamples = (int)glm::log2((float)rendererConfig.IrradianceMapComputeSamples) - 7;
+                if (UI::PropertyDropdown("Irradiance Map Compute Samples", irradianceComputeSamples, 6, &currentSamples))
+                {
+                    rendererConfig.IrradianceMapComputeSamples = glm::pow(2, currentSamples + 7);
+                }
+            }
             UI::EndPropertyGrid();
         }
         ImGui::End();

@@ -288,7 +288,7 @@ namespace NR
 			return { Renderer::GetBlackCubeTexture(), Renderer::GetBlackCubeTexture() };
 		}
 
-		const uint32_t cubemapSize = 2048;
+		const uint32_t cubemapSize = Renderer::GetConfig().EnvironmentMapResolution;
 		const uint32_t irradianceMapSize = 32;
 
 		Ref<GLTextureCube> envUnfiltered = TextureCube::Create(ImageFormat::RGBA32F, cubemapSize, cubemapSize).As<GLTextureCube>();
@@ -340,9 +340,15 @@ namespace NR
 		Ref<GLTextureCube> irradianceMap = TextureCube::Create(ImageFormat::RGBA32F, irradianceMapSize, irradianceMapSize).As<GLTextureCube>();
 		envIrradianceShader->Bind();
 		envFiltered->Bind(1);
-		Renderer::Submit([irradianceMap]()
+		Renderer::Submit([irradianceMap, envIrradianceShader]()
 			{
 				glBindImageTexture(0, irradianceMap->GetRendererID(), 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+				
+				GLint samplesUniformLocation = glGetUniformLocation(envIrradianceShader->GetRendererID(), "uUniforms.Samples");
+				NR_CORE_ASSERT(samplesUniformLocation != -1);
+				uint32_t samples = Renderer::GetConfig().IrradianceMapComputeSamples;
+				glUniform1ui(samplesUniformLocation, samples);
+
 				glDispatchCompute(irradianceMap->GetWidth() / 32, irradianceMap->GetHeight() / 32, 6);
 				glMemoryBarrier(GL_TEXTURE_FETCH_BARRIER_BIT | GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 				glGenerateTextureMipmap(irradianceMap->GetRendererID());

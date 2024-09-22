@@ -118,8 +118,6 @@ namespace NR
 			bool UseTexture = false;
 		};
 
-		bool mRadiancePrefilter = false;
-
 		float mEnvMapRotation = 0.0f;
 
 		enum class SceneType : uint32_t

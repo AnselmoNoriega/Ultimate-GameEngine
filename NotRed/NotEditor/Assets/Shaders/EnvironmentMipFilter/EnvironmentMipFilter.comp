@@ -126,7 +126,8 @@ void main(void)
 
 	// Convolve environment map using GGX NDF importance sampling.
 	// Weight by cosine term since Epic claims it generally improves quality.
-	for(uint i = 0; i < NumSamples; i++) {
+	for(uint i = 0; i < NumSamples; i++)
+	{
 		vec2 u = sampleHammersley(i);
 		vec3 Lh = tangentToWorld(sampleGGX(u.x, u.y, PARAM_ROUGHNESS), N, S, T);
 

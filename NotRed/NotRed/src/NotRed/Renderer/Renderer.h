@@ -19,6 +19,10 @@ namespace NR
     struct RendererConfig
     {
         bool ComputeEnvironmentMaps = false;
+
+        //Tiering Settings
+        uint32_t EnvironmentMapResolution = 1024;
+        uint32_t IrradianceMapComputeSamples = 512;
     };
 
     class Renderer
