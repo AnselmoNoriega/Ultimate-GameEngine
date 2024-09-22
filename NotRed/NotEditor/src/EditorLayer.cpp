@@ -209,6 +209,8 @@ namespace NR
 
     void EditorLayer::NewScene()
     {
+        mSelectionContext = {};
+
         mEditorScene = Ref<Scene>::Create("Scene", true);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);

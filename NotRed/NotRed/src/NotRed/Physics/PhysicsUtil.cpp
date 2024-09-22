@@ -7,6 +7,20 @@
 
 namespace NR
 {
+    namespace Utils 
+    {
+        static const char* GetCacheDirectory()
+        {
+            return "Assets/Cache/Colliders/";
+        }
+        static void CreateCacheDirectoryIfNeeded()
+        {
+            std::string cacheDirectory = GetCacheDirectory();
+            if (!std::filesystem::exists(cacheDirectory))
+                std::filesystem::create_directories(cacheDirectory);
+        }
+    }
+
     physx::PxTransform ToPhysicsTransform(const TransformComponent& transform)
     {
         physx::PxQuat r = ToPhysicsQuat(glm::normalize(glm::quat(transform.Rotation)));
@@ -103,8 +117,13 @@ namespace NR
 
     void PhysicsMeshSerializer::Delete(const std::string& filepath)
     {
+        if (!FileSystem::Exists(Utils::GetCacheDirectory()))
+        {
+            FileSystem::CreateFolder(Utils::GetCacheDirectory());
+        }
+
         std::filesystem::path path = filepath;
-        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        std::string cachePath = Utils::GetCacheDirectory() + path.filename().string() + ".pxm";
         
         if (IsSerialized(filepath))
         {
@@ -114,8 +133,13 @@ namespace NR
 
     void PhysicsMeshSerializer::SerializeMesh(const std::string& filepath, const Buffer& data)
     {
+        if (!FileSystem::Exists(Utils::GetCacheDirectory()))
+        {
+            FileSystem::CreateFolder(Utils::GetCacheDirectory());
+        }
+
         std::filesystem::path path = filepath;
-        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        std::string cachePath = Utils::GetCacheDirectory() + path.filename().string() + ".pxm";
 
         FILE* f = fopen(cachePath.c_str(), "wb");
         if (f)
@@ -131,15 +155,25 @@ namespace NR
 
     bool PhysicsMeshSerializer::IsSerialized(const std::string& filepath)
     {
+        if (!FileSystem::Exists(Utils::GetCacheDirectory()))
+        {
+            FileSystem::CreateFolder(Utils::GetCacheDirectory());
+        }
+
         std::filesystem::path path = filepath;
-        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        std::string cachePath = Utils::GetCacheDirectory() + path.filename().string() + ".pxm";
         return FileSystem::Exists(cachePath);
     }
 
     Buffer PhysicsMeshSerializer::DeserializeMesh(const std::string& filepath)
     {
+        if (!FileSystem::Exists(Utils::GetCacheDirectory()))
+        {
+            FileSystem::CreateFolder(Utils::GetCacheDirectory());
+        }
+
         std::filesystem::path path = filepath;
-        std::string cachePath = "DataCache/Colliders/" + path.filename().string() + ".pxm";
+        std::string cachePath = Utils::GetCacheDirectory() + path.filename().string() + ".pxm";
         FILE* f = fopen(cachePath.c_str(), "rb");
         uint32_t size = 0;
 

@@ -181,7 +181,6 @@ namespace NR
     void WinWindow::ProcessEvents()
     {
         glfwPollEvents();
-        glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 
     void WinWindow::SwapBuffers()

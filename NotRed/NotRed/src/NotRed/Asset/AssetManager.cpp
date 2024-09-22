@@ -254,12 +254,12 @@ namespace NR
 
     void AssetManager::LoadAssetRegistry()
     {
-        if (!FileSystem::Exists("DataCache/AssetRegistryCache.nrr"))
+        if (!FileSystem::Exists("Assets/Cache/AssetRegistryCache.nrr"))
         {
             return;
         }
 
-        std::ifstream stream("DataCache/AssetRegistryCache.nrr");
+        std::ifstream stream("Assets/Cache/AssetRegistryCache.nrr");
         NR_CORE_ASSERT(stream);
         std::stringstream strStream;
         strStream << stream.rdbuf();
@@ -446,7 +446,7 @@ namespace NR
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::ofstream fout("DataCache/AssetRegistryCache.nrr");
+        std::ofstream fout("Assets/Cache/AssetRegistryCache.nrr");
         fout << out.c_str();
     }
 
