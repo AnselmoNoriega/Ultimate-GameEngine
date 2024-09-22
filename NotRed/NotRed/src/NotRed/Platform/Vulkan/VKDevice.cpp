@@ -251,9 +251,6 @@ namespace NR
     VKDevice::VKDevice(const Ref<VKPhysicalDevice>& physicalDevice, VkPhysicalDeviceFeatures enabledFeatures)
         : mPhysicalDevice(physicalDevice), mEnabledFeatures(enabledFeatures)
     {
-        GpuCrashTracker* gpuCrashTracker = new GpuCrashTracker({});
-        gpuCrashTracker->Initialize();
-
         std::vector<const char*> deviceExtensions;
         // If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
         NR_CORE_ASSERT(mPhysicalDevice->IsExtensionSupported(VK_KHR_SWAPCHAIN_EXTENSION_NAME));
@@ -269,16 +266,25 @@ namespace NR
             deviceExtensions.push_back(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
         }
 
-        VkDeviceDiagnosticsConfigFlagBitsNV aftermathFlags = (VkDeviceDiagnosticsConfigFlagBitsNV)(VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV |
-            VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV |
-            VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV);
         VkDeviceDiagnosticsConfigCreateInfoNV aftermathInfo = {};
-        aftermathInfo.sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV;
-        aftermathInfo.flags = aftermathFlags;
+        bool canEnableAftermath = mPhysicalDevice->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME) && mPhysicalDevice->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
+        if (canEnableAftermath)
+        {
+            GpuCrashTracker* gpuCrashTracker = new GpuCrashTracker({});
+            gpuCrashTracker->Initialize();
+            VkDeviceDiagnosticsConfigFlagBitsNV aftermathFlags = (VkDeviceDiagnosticsConfigFlagBitsNV)(VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV |
+                VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV |
+                VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV);
+            aftermathInfo.sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV;
+            aftermathInfo.flags = aftermathFlags;
+        }
 
         VkDeviceCreateInfo deviceCreateInfo = {};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        deviceCreateInfo.pNext = &aftermathInfo;
+        if (canEnableAftermath)
+        {
+            deviceCreateInfo.pNext = &aftermathInfo;
+        }
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(physicalDevice->mQueueCreateInfos.size());;
         deviceCreateInfo.pQueueCreateInfos = physicalDevice->mQueueCreateInfos.data();
         deviceCreateInfo.pEnabledFeatures = &enabledFeatures;
