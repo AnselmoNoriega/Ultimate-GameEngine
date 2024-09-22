@@ -202,7 +202,11 @@ project "NotEditor"
 
 	postbuildcommands 
 	{
-		'{COPY} "../NotEditor/Assets" "%{cfg.targetdir}/Assets"'
+		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysX_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 	}
 	
 	filter "system:windows"
@@ -225,7 +229,8 @@ project "NotEditor"
 		postbuildcommands 
 		{
 			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
-			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+		    '{COPY} "../NotRed/vendor/Vulkan/win64/shaderc_sharedd.dll" "%{cfg.targetdir}"'
 		}
 				
 	filter "configurations:Release"
