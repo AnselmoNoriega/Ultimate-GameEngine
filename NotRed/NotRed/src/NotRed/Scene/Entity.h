@@ -32,6 +32,13 @@ namespace NR
 		}
 
 		template<typename T>
+		T& GetComponent() const
+		{
+			NR_CORE_ASSERT(HasComponent<T>(), "This Entity does not have this component!");
+			return mScene->mRegistry.get<T>(mEntityHandle);
+		}
+
+		template<typename T>
 		bool HasComponent()
 		{
 			return mScene->mRegistry.all_of<T>(mEntityHandle);

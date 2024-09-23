@@ -219,12 +219,6 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsManager.h">
       <Filter>src\NotRed\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Physics\PhysicsUtil.h">
-      <Filter>src\NotRed\Physics</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Physics\PhysicsWrappers.h">
-      <Filter>src\NotRed\Physics</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLContext.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
@@ -606,6 +600,13 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\ContactListener.h" />
+    <ClInclude Include="src\NotRed\Physics\CookingFactory.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsInternal.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsUtils.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsScene.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsSettings.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsShapes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -690,12 +691,6 @@
       <Filter>src\NotRed\Physics</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp">
-      <Filter>src\NotRed\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Physics\PhysicsUtil.cpp">
-      <Filter>src\NotRed\Physics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Physics\PhysicsWrappers.cpp">
       <Filter>src\NotRed\Physics</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLContext.cpp">
@@ -983,5 +978,11 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\ContactListener.cpp" />
+    <ClCompile Include="src\NotRed\Physics\CookingFactory.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsInternal.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsUtils.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsScene.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsShapes.cpp" />
   </ItemGroup>
 </Project>

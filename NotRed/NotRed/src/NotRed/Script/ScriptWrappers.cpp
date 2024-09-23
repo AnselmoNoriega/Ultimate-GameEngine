@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "ScriptWrappers.h"
 
+#define OVERLAP_MAX_COLLIDERS 1
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -12,8 +14,7 @@
 #include <box2d/box2d.h>
 
 #include <PxPhysicsAPI.h>
-#include "NotRed/Physics/PhysicsUtil.h"
-#include "NotRed/Physics/PhysicsWrappers.h"
+#include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsActor.h"
 
 #include "NotRed/Math/Noise.h"
@@ -199,11 +200,6 @@ namespace NR::Script
         return Input::GetCursorMode();
     }
 
-    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit)
-    {
-        return PhysicsWrappers::Raycast(*origin, *direction, maxDistance, hit);
-    }
-
     static void AddCollidersToArray(MonoArray* array, const std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
     {
         uint32_t arrayIndex = 0;
@@ -281,11 +277,6 @@ namespace NR::Script
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
         uint32_t count;
-        if (PhysicsWrappers::OverlapBox(*origin, *halfSize, sOverlapBuffer, &count))
-        {
-            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
-            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
-        }
 
         return outColliders;
     }
@@ -296,11 +287,6 @@ namespace NR::Script
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
         uint32_t count;
-        if (PhysicsWrappers::OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, &count))
-        {
-            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
-            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
-        }
         return outColliders;
     }
 
@@ -311,15 +297,6 @@ namespace NR::Script
         uint64_t arrayLength = mono_array_length(outColliders);
 
         uint32_t count;
-        if (PhysicsWrappers::OverlapBox(*origin, *halfSize, sOverlapBuffer, &count))
-        {
-            if (count > arrayLength)
-            {
-                count = arrayLength;
-            }
-
-            AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
-        }
 
         return count;
     }
@@ -331,15 +308,6 @@ namespace NR::Script
         uint64_t arrayLength = mono_array_length(outColliders);
 
         uint32_t count;
-        if (PhysicsWrappers::OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, &count))
-        {
-            if (count > arrayLength)
-            {
-                count = arrayLength;
-            }
-
-            AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
-        }
 
         return count;
     }
@@ -351,15 +319,6 @@ namespace NR::Script
         uint64_t arrayLength = mono_array_length(outColliders);
 
         uint32_t count;
-        if (PhysicsWrappers::OverlapSphere(*origin, radius, sOverlapBuffer, &count))
-        {
-            if (count > arrayLength)
-            {
-                count = arrayLength;
-            }
-
-            AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
-        }
 
         return count;
     }
@@ -370,11 +329,6 @@ namespace NR::Script
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
         uint32_t count;
-        if (PhysicsWrappers::OverlapSphere(*origin, radius, sOverlapBuffer, &count))
-        {
-            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
-            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
-        }
 
         return outColliders;
     }
@@ -476,7 +430,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->AddForce(*force, forceMode);
     }
 
@@ -497,7 +451,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->AddTorque(*torque, forceMode);
     }
 
@@ -513,7 +467,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
         NR_CORE_ASSERT(outVelocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         *outVelocity = actor->GetVelocity();
     }
 
@@ -529,7 +483,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
         NR_CORE_ASSERT(velocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetVelocity(*velocity);
     }
 
@@ -545,7 +499,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
         NR_CORE_ASSERT(outVelocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         *outVelocity = actor->GetAngularVelocity();
     }
 
@@ -561,7 +515,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
         NR_CORE_ASSERT(velocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetAngularVelocity(*velocity);
     }
 
@@ -577,7 +531,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
         NR_CORE_ASSERT(rotation);
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->Rotate(*rotation);
     }
 
@@ -605,7 +559,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        const Ref<PhysicsActor>& actor = PhysicsManager::GetActorForEntity(entity);
+        const Ref<PhysicsActor>& actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetMass();
     }
 
@@ -620,7 +574,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetActorForEntity(entity);
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetMass(mass);
     }
 

@@ -200,8 +200,19 @@ namespace NR
         RigidBodyComponent(const RigidBodyComponent& other) = default;
     };
 
+
+    enum class ColliderComponentType
+    {
+        BoxCollider, 
+        SphereCollider, 
+        CapsuleCollider, 
+        MeshCollider
+    };
+
     struct BoxColliderComponent
     {
+        static constexpr ColliderComponentType Type = ColliderComponentType::BoxCollider;
+
         glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
@@ -216,8 +227,10 @@ namespace NR
 
     struct SphereColliderComponent
     {
+        static constexpr ColliderComponentType Type = ColliderComponentType::SphereCollider;
+
         float Radius = 0.5f;
-        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 Offset = glm::vec3(0.0f);
 
         bool IsTrigger = false;
         Ref<PhysicsMaterial> Material;
@@ -230,9 +243,11 @@ namespace NR
 
     struct CapsuleColliderComponent
     {
+        static constexpr ColliderComponentType Type = ColliderComponentType::CapsuleCollider;
+
         float Radius = 0.5f;
         float Height = 1.0f;
-        glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+        glm::vec3 Offset = glm::vec3(0.0f);
 
         bool IsTrigger = false;
         Ref<PhysicsMaterial> Material;
@@ -245,6 +260,8 @@ namespace NR
 
     struct MeshColliderComponent
     {
+        static constexpr ColliderComponentType Type = ColliderComponentType::MeshCollider;
+
         Ref<Mesh> CollisionMesh;
         std::vector<Ref<Mesh>> ProcessedMeshes;
         bool IsConvex = false;

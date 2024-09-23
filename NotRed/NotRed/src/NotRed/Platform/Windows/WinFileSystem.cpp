@@ -246,4 +246,33 @@ namespace NR
 
 		return 0;
 	}
+
+	bool FileSystem::WriteBytes(const std::string& filepath, const Buffer& buffer)
+	{
+		FILE* f = fopen(filepath.c_str(), "wb");
+		if (f)
+		{
+			fwrite(buffer.Data, sizeof(byte), buffer.Size / sizeof(byte), f);
+			fclose(f);
+			return true;
+		}
+		return false;
+	}
+
+	Buffer FileSystem::ReadBytes(const std::string& filepath)
+	{
+		Buffer buffer;
+		FILE* f = fopen(filepath.c_str(), "rb");
+		uint32_t size = 0;
+		if (f)
+		{
+			fseek(f, 0, SEEK_END);
+			size = ftell(f);
+			fseek(f, 0, SEEK_SET);
+			buffer.Allocate(size);
+			fread(buffer.Data, sizeof(byte), size / sizeof(byte), f);
+			fclose(f);
+		}
+		return buffer;
+	}
 }

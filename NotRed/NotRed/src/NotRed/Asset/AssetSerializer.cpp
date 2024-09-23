@@ -34,7 +34,7 @@ namespace NR
 		Ref<Asset> temp = asset;
 		asset = Ref<Mesh>::Create(asset->FilePath);
 		CopyMetadata(temp, asset);
-		return (asset.As<Mesh>())->GetStaticVertices().size() > 0;
+		return (asset.As<Mesh>())->GetVertices().size() > 0;
 	}
 
 	bool EnvironmentSerializer::TryLoadData(Ref<Asset>& asset) const

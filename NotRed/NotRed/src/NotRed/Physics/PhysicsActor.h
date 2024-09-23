@@ -1,14 +1,8 @@
 #pragma once
 
+#include "PhysicsUtils.h"
+#include "PhysicsShapes.h"
 #include "NotRed/Scene/Entity.h"
-#include "NotRed/Physics/PhysicsManager.h"
-
-namespace physx
-{
-	class PxRigidActor;
-	class PxShape;
-	class PxMaterial;
-}
 
 namespace NR
 {
@@ -18,8 +12,6 @@ namespace NR
 		PhysicsActor(Entity entity);
 		~PhysicsActor();
 
-		glm::vec3 GetPosition();
-		glm::quat GetRotation();
 		void Rotate(const glm::vec3& rotation);
 
 		float GetMass() const;
@@ -28,38 +20,54 @@ namespace NR
 		void AddForce(const glm::vec3& force, ForceMode forceMode);
 		void AddTorque(const glm::vec3& torque, ForceMode forceMode);
 
-		glm::vec3 GetVelocity() const;
+		const glm::vec3& GetVelocity() const;
 		void SetVelocity(const glm::vec3& velocity);
-		glm::vec3 GetAngularVelocity() const;
+		const glm::vec3& GetAngularVelocity() const;
 		void SetAngularVelocity(const glm::vec3& velocity);
 
-		void SetDrag(float drag) const;
+		void SetLinearDrag(float drag) const;
 		void SetAngularDrag(float drag) const;
 
 		void SetLayer(uint32_t layerId);
 
-		bool IsDynamic() const { return mRigidBody.BodyType == RigidBodyComponent::Type::Dynamic; }
+		bool IsDynamic() const { return mRigidBodyData.BodyType == RigidBodyComponent::Type::Dynamic; }
 
-		Entity& GetEntity() { return mEntity; }
+		bool IsKinematic() const { return IsDynamic() && mRigidBodyData.IsKinematic; }
+		void SetKinematic(bool isKinematic);
+
+		bool IsGravityDisabled() const { return mRigidActor->getActorFlags().isSet(physx::PxActorFlag::eDISABLE_GRAVITY); }
+		void SetGravityDisabled(bool disable);
+
+		bool GetLockFlag(ActorLockFlag flag) const { return (uint32_t)flag & mLockFlags; }
+		void ModifyLockFlag(ActorLockFlag flag, bool addFlag);
+
+		void AddCollider(BoxColliderComponent& collider);
+		void AddCollider(SphereColliderComponent& collider);
+		void AddCollider(CapsuleColliderComponent& collider);
+		void AddCollider(MeshColliderComponent& collider);
+
+		Entity GetEntity() const { return mEntity; }
+		const TransformComponent& GetTransform() const { return mEntity.GetComponent<TransformComponent>(); }
+
+		physx::PxRigidActor& GetPhysicsActor() const { return *mRigidActor; }
+
+		const glm::vec3& GetPosition() const { return PhysicsUtils::FromPhysicsVector(mRigidActor->getGlobalPose().p); }
+		const glm::vec3& GetRotation() const { return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(mRigidActor->getGlobalPose().q)); }
 
 	private:
-		void Initialize();
-		void Spawn();
-		void Update(float FixedDeltaTime);
-
+		void CreateRigidActor();
 		void SynchronizeTransform();
-		void AddCollisionShape(physx::PxShape* shape);
 
 	private:
 		Entity mEntity;
-		RigidBodyComponent& mRigidBody;
+		RigidBodyComponent& mRigidBodyData;
+		uint32_t mLockFlags = 0;
 
-		physx::PxRigidActor* mActorInternal;
-		std::unordered_map<int, std::vector<physx::PxShape*>> mShapes;
+		physx::PxRigidActor* mRigidActor;
+		std::vector<Ref<ColliderShape>> mColliders;
 
 	private:
-		friend class PhysicsManager;
-		friend class PhysicsWrappers;
+		friend class PhysicsScene;
 	};
 
 }

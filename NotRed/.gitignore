@@ -5,7 +5,8 @@
 bin-int/
 Intermediates/
 obj/
-cache/
+NotEditor/assets/cache/shader/
+NotEditor/logs/
 
 # NotRed files
 *.log
@@ -19,6 +20,8 @@ cache/
 **.nsight-gfxproj
 
 **.meta
+**.pxd2
+**.pvd
 
 # Directories
 NotRed/vendor/VulkanSDK

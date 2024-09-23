@@ -15,7 +15,6 @@
 #include "NotRed/Renderer/Renderer.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsActor.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -125,7 +124,7 @@ namespace NR
 
         if (!isEditorScene)
         {
-            PhysicsManager::CreateScene();
+            PhysicsManager::RuntimePlay();
         }
 
         Init();
@@ -545,7 +544,7 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                PhysicsManager::CreateActor(e);
+                PhysicsManager::GetScene()->CreateActor(e);
             }
         }
 
@@ -557,7 +556,7 @@ namespace NR
         Input::SetCursorMode(CursorMode::Normal);
 
         delete[] mPhysics2DBodyEntityBuffer;
-        PhysicsManager::DestroyScene();
+        PhysicsManager::RuntimeStop();
         mIsPlaying = false;
     }
 

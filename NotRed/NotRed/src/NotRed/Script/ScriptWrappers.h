@@ -24,7 +24,6 @@ namespace NR::Script
     CursorMode NR_Input_GetCursorMode();
 
     // Physics
-    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit);
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize);
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius);
     MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight);

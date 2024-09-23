@@ -12,7 +12,6 @@
 #include "Entity.h"
 #include "Components.h"
 #include "NotRed/Script/ScriptEngine.h"
-#include "NotRed/Physics/PhysicsWrappers.h"
 #include "NotRed/Renderer/MeshFactory.h"
 #include "NotRed/Physics/PhysicsLayer.h"
 
@@ -1006,15 +1005,6 @@ namespace NR
                     if (component.CollisionMesh && component.CollisionMesh->Type == AssetType::Mesh)
                     {
                         component.OverrideMesh = overrideMesh;
-
-                        if (component.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(component, deserializedEntity.Transform().Scale);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(component, deserializedEntity.Transform().Scale);
-                        }
                     }
                     else
                     {

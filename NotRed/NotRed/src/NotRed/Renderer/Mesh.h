@@ -141,7 +141,7 @@ namespace NR
 		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
-		const std::vector<Vertex>& GetStaticVertices() const { return mStaticVertices; }
+		const std::vector<Vertex>& GetVertices() const { return mStaticVertices; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
 
 		Ref<Shader> GetMeshShader() { return mMeshShader; }		

@@ -22,10 +22,8 @@
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/MeshFactory.h"
 
-#include "NotRed/Physics/PhysicsWrappers.h"
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsLayer.h"
-#include "NotRed/Physics/PhysicsActor.h"
 
 namespace NR
 {
@@ -182,7 +180,10 @@ namespace NR
                         {
                             auto newEntity = mContext->CreateEntity("Capsule");
                             newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Capsule.fbx"));
-                            newEntity.AddComponent<CapsuleColliderComponent>();
+                            auto& component = newEntity.AddComponent<CapsuleColliderComponent>();
+                            component.Material = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+                            component.Material->FilePath = "None";
+                            component.Material->FileName = "None";
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Mesh"))
@@ -681,7 +682,6 @@ namespace NR
                     if (mSelectionContext.HasComponent<MeshComponent>())
                     {
                         component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
-                        PhysicsWrappers::CreateTriangleMesh(component);
                     }
 
                     ImGui::CloseCurrentPopup();
@@ -708,14 +708,6 @@ namespace NR
                     {
                         auto& mcc = entity.GetComponent<MeshColliderComponent>();
                         mcc.CollisionMesh = mc.MeshObj;
-                        if (mcc.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                        }
                     }
                 }
                 UI::EndPropertyGrid();
@@ -1035,6 +1027,7 @@ namespace NR
                 {
                     bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                 }
+                UI::Property("Offset", bcc.Offset);
                 UI::Property("Is Trigger", bcc.IsTrigger);
                 UI::PropertyAssetReference("Material", bcc.Material, AssetType::PhysicsMat);
 
@@ -1086,27 +1079,11 @@ namespace NR
                 {
                     if (UI::PropertyAssetReference("Mesh", mcc.CollisionMesh, AssetType::Mesh))
                     {
-                        if (mcc.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                        }
                     }
                 }
 
                 if (UI::Property("Is Convex", mcc.IsConvex))
                 {
-                    if (mcc.IsConvex)
-                    {
-                        PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                    }
-                    else
-                    {
-                        PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                    }
                 }
 
                 UI::Property("Is Trigger", mcc.IsTrigger);
@@ -1117,15 +1094,6 @@ namespace NR
                     if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
                     {
                         mcc.CollisionMesh = entity.GetComponent<MeshComponent>().MeshObj;
-
-                        if (mcc.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                        }
                     }
                 }
                 UI::EndPropertyGrid();

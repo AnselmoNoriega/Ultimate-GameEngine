@@ -1,76 +1,49 @@
 #include "nrpch.h"
 #include "PhysicsActor.h"
 
-#include <PxPhysicsAPI.h>
-
-#include <glm/gtx/compatibility.hpp>
-
-#include "NotRed/Script/ScriptEngine.h"
-
-#include "PhysicsUtil.h"
-#include "PhysicsWrappers.h"
+#include "PhysicsManager.h"
+#include "PhysicsInternal.h"
 #include "PhysicsLayer.h"
-
 
 namespace NR
 {
 	PhysicsActor::PhysicsActor(Entity entity)
-		: mEntity(entity), mRigidBody(entity.GetComponent<RigidBodyComponent>())
+		: mEntity(entity), mRigidBodyData(entity.GetComponent<RigidBodyComponent>()), mRigidActor(nullptr)
 	{
-		Initialize();
+		CreateRigidActor();
 	}
 
 	PhysicsActor::~PhysicsActor()
 	{
-		if (mActorInternal && mActorInternal->isReleasable())
-		{
-			mActorInternal->release();
-			mActorInternal = nullptr;
-		}
-	}
-
-	glm::vec3 PhysicsActor::GetPosition()
-	{
-		return FromPhysicsVector(mActorInternal->getGlobalPose().p);
-	}
-
-	glm::quat PhysicsActor::GetRotation()
-	{
-		return FromPhysicsQuat(mActorInternal->getGlobalPose().q);
+		mColliders.clear();
 	}
 
 	void PhysicsActor::Rotate(const glm::vec3& rotation)
 	{
-		physx::PxTransform transform = mActorInternal->getGlobalPose();
+		physx::PxTransform transform = mRigidActor->getGlobalPose();
 		transform.q *= (physx::PxQuat(glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f })
 			* physx::PxQuat(glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f })
 			* physx::PxQuat(glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }));
-		mActorInternal->setGlobalPose(transform);
+		mRigidActor->setGlobalPose(transform);
 	}
 
 	float PhysicsActor::GetMass() const
 	{
-		if (!IsDynamic())
-		{
-			NR_CORE_WARN("Trying to set mass of non-dynamic PhysicsActor.");
-			return 0.0f;
-		}
-
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		return actor->getMass();
+		return !IsDynamic() ? mRigidBodyData.Mass : mRigidActor->is<physx::PxRigidDynamic>()->getMass();
 	}
 
 	void PhysicsActor::SetMass(float mass)
 	{
 		if (!IsDynamic())
 		{
-			NR_CORE_WARN("Trying to set mass of non-dynamic PhysicsActor.");
+			NR_CORE_WARN("Cannot set mass of non-dynamic PhysicsActor.");
 			return;
 		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
 		physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
-		mRigidBody.Mass = mass;
+		mRigidBodyData.Mass = mass;
 	}
 
 	void PhysicsActor::AddForce(const glm::vec3& force, ForceMode forceMode)
@@ -81,8 +54,9 @@ namespace NR
 			return;
 		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		actor->addForce(ToPhysicsVector(force), (physx::PxForceMode::Enum)forceMode);
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->addForce(PhysicsUtils::ToPhysicsVector(force), (physx::PxForceMode::Enum)forceMode);
 	}
 
 	void PhysicsActor::AddTorque(const glm::vec3& torque, ForceMode forceMode)
@@ -93,20 +67,22 @@ namespace NR
 			return;
 		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		actor->addTorque(ToPhysicsVector(torque), (physx::PxForceMode::Enum)forceMode);
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->addTorque(PhysicsUtils::ToPhysicsVector(torque), (physx::PxForceMode::Enum)forceMode);
 	}
 
-	glm::vec3 PhysicsActor::GetVelocity() const
+	const glm::vec3& PhysicsActor::GetVelocity() const
 	{
 		if (!IsDynamic())
 		{
 			NR_CORE_WARN("Trying to get velocity of non-dynamic PhysicsActor.");
-			return glm::vec3(0.0f);
+			return glm::vec3(0.0F);
 		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		return FromPhysicsVector(actor->getLinearVelocity());
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		return PhysicsUtils::FromPhysicsVector(actor->getLinearVelocity());
 	}
 
 	void PhysicsActor::SetVelocity(const glm::vec3& velocity)
@@ -117,25 +93,22 @@ namespace NR
 			return;
 		}
 
-		if (!glm::all(glm::isfinite(velocity)))
-		{
-			return;
-		}
-
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		actor->setLinearVelocity(ToPhysicsVector(velocity));
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->setLinearVelocity(PhysicsUtils::ToPhysicsVector(velocity));
 	}
 
-	glm::vec3 PhysicsActor::GetAngularVelocity() const
+	const glm::vec3& PhysicsActor::GetAngularVelocity() const
 	{
 		if (!IsDynamic())
 		{
 			NR_CORE_WARN("Trying to get angular velocity of non-dynamic PhysicsActor.");
-			return glm::vec3(0.0f);
+			return glm::vec3(0.0F);
 		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		return FromPhysicsVector(actor->getAngularVelocity());
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		return PhysicsUtils::FromPhysicsVector(actor->getAngularVelocity());
 	}
 
 	void PhysicsActor::SetAngularVelocity(const glm::vec3& velocity)
@@ -146,36 +119,38 @@ namespace NR
 			return;
 		}
 
-		if (!glm::all(glm::isfinite(velocity)))
-			return;
-
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
-		actor->setAngularVelocity(ToPhysicsVector(velocity));
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->setAngularVelocity(PhysicsUtils::ToPhysicsVector(velocity));
 	}
 
-	void PhysicsActor::SetDrag(float drag) const
+	void PhysicsActor::SetLinearDrag(float drag) const
 	{
 		if (!IsDynamic())
 		{
+			NR_CORE_WARN("Trying to set linear drag of non-dynamic PhysicsActor.");
 			return;
 		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
 		actor->setLinearDamping(drag);
 	}
 
 	void PhysicsActor::SetAngularDrag(float drag) const
 	{
 		if (!IsDynamic())
-			return;
+		{
+			NR_CORE_WARN("Trying to set angular drag of non-dynamic PhysicsActor.");
+		}
 
-		physx::PxRigidDynamic* actor = (physx::PxRigidDynamic*)mActorInternal;
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
 		actor->setAngularDamping(drag);
 	}
 
 	void PhysicsActor::SetLayer(uint32_t layerId)
 	{
-		physx::PxAllocatorCallback& allocator = PhysicsWrappers::GetAllocator();
 		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layerId);
 
 		if (layerInfo.CollidesWith == 0)
@@ -187,92 +162,135 @@ namespace NR
 		filterData.word0 = layerInfo.BitValue;
 		filterData.word1 = layerInfo.CollidesWith;
 
-		const physx::PxU32 numShapes = mActorInternal->getNbShapes();
-		physx::PxShape** shapes = (physx::PxShape**)allocator.allocate(sizeof(physx::PxShape*) * numShapes, "", "", 0);
-		mActorInternal->getShapes(shapes, numShapes);
-
-		for (physx::PxU32 i = 0; i < numShapes; ++i)
+		for (auto& collider : mColliders)
 		{
-			shapes[i]->setSimulationFilterData(filterData);
+			collider->SetFilterData(filterData);
 		}
-
-		allocator.deallocate(shapes);
 	}
 
-	void PhysicsActor::Initialize()
+	void PhysicsActor::SetKinematic(bool isKinematic)
 	{
-		physx::PxPhysics& physics = PhysicsWrappers::GetPhysics();
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Static PhysicsActor can't be kinematic.");
+			return;
+		}
+
+		mRigidBodyData.IsKinematic = isKinematic;
+		mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, isKinematic);
+	}
+
+	void PhysicsActor::SetGravityDisabled(bool disable)
+	{
+		mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, disable);
+	}
+
+	void PhysicsActor::ModifyLockFlag(ActorLockFlag flag, bool addFlag)
+	{
+		if (addFlag)
+		{
+			mLockFlags |= (uint32_t)flag;
+		}
+		else
+		{
+			mLockFlags &= ~(uint32_t)flag;
+		}
+
+		if (!IsDynamic())
+		{
+			return;
+		}
+
+		mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(PhysicsUtils::ToPhysicsActorLockFlag(flag), addFlag);
+	}
+
+	void PhysicsActor::AddCollider(BoxColliderComponent& collider)
+	{
+		mColliders.push_back(Ref<BoxColliderShape>::Create(collider, *this));
+	}
+
+	void PhysicsActor::AddCollider(SphereColliderComponent& collider)
+	{
+		mColliders.push_back(Ref<SphereColliderShape>::Create(collider, *this));
+	}
+
+	void PhysicsActor::AddCollider(CapsuleColliderComponent& collider)
+	{
+		mColliders.push_back(Ref<CapsuleColliderShape>::Create(collider, *this));
+	}
+
+	void PhysicsActor::AddCollider(MeshColliderComponent& collider)
+	{
+		if (collider.IsConvex)
+		{
+			mColliders.push_back(Ref<ConvexMeshShape>::Create(collider, *this));
+		}
+		else
+		{
+			mColliders.push_back(Ref<TriangleMeshShape>::Create(collider, *this));
+		}
+	}
+
+	void PhysicsActor::CreateRigidActor()
+	{
+		auto& sdk = PhysicsInternal::GetPhysicsSDK();
 
 		Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
 		glm::mat4 transform = scene->GetTransformRelativeToParent(mEntity);
 
-		if (mRigidBody.BodyType == RigidBodyComponent::Type::Static)
+		if (mRigidBodyData.BodyType == RigidBodyComponent::Type::Static)
 		{
-			mActorInternal = physics.createRigidStatic(ToPhysicsTransform(transform));
+			mRigidActor = sdk.createRigidStatic(PhysicsUtils::ToPhysicsTransform(transform));
 		}
 		else
 		{
 			const PhysicsSettings& settings = PhysicsManager::GetSettings();
 
-			physx::PxRigidDynamic* actor = physics.createRigidDynamic(ToPhysicsTransform(transform));
-			actor->setLinearDamping(mRigidBody.LinearDrag);
-			actor->setAngularDamping(mRigidBody.AngularDrag);
-			actor->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, mRigidBody.IsKinematic);
+			mRigidActor = sdk.createRigidDynamic(PhysicsUtils::ToPhysicsTransform(transform));
 
-			actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X, mRigidBody.LockPositionX);
-			actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y, mRigidBody.LockPositionY);
-			actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z, mRigidBody.LockPositionZ);
+			SetLinearDrag(mRigidBodyData.LinearDrag);
+			SetAngularDrag(mRigidBodyData.AngularDrag);
 
-			actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X, mRigidBody.LockRotationX);
-			actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y, mRigidBody.LockRotationY);
-			actor->setRigidDynamicLockFlag(physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z, mRigidBody.LockRotationZ);
+			SetKinematic(mRigidBodyData.IsKinematic);
 
-			actor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, mRigidBody.DisableGravity);
-			actor->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
+			ModifyLockFlag(ActorLockFlag::PositionX, mRigidBodyData.LockPositionX);
+			ModifyLockFlag(ActorLockFlag::PositionY, mRigidBodyData.LockPositionY);
+			ModifyLockFlag(ActorLockFlag::PositionZ, mRigidBodyData.LockPositionZ);
+			ModifyLockFlag(ActorLockFlag::RotationX, mRigidBodyData.LockRotationX);
+			ModifyLockFlag(ActorLockFlag::RotationY, mRigidBodyData.LockRotationY);
+			ModifyLockFlag(ActorLockFlag::RotationZ, mRigidBodyData.LockRotationZ);
 
-			physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mRigidBody.Mass);
-			mActorInternal = actor;
+			SetGravityDisabled(mRigidBodyData.DisableGravity);
+
+			mRigidActor->is<physx::PxRigidDynamic>()->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
+
+			SetMass(mRigidBodyData.Mass);
 		}
 
-		if (mEntity.HasComponent<BoxColliderComponent>()) 
+		if (!PhysicsLayerManager::IsLayerValid(mRigidBodyData.Layer))
 		{
-			PhysicsWrappers::AddBoxCollider(*this);
+			mRigidBodyData.Layer = 0;
+		}
+
+		if (mEntity.HasComponent<BoxColliderComponent>())
+		{
+			AddCollider(mEntity.GetComponent<BoxColliderComponent>());
 		}
 		if (mEntity.HasComponent<SphereColliderComponent>()) 
 		{
-			PhysicsWrappers::AddSphereCollider(*this);
+			AddCollider(mEntity.GetComponent<SphereColliderComponent>());
 		}
 		if (mEntity.HasComponent<CapsuleColliderComponent>()) 
 		{
-			PhysicsWrappers::AddCapsuleCollider(*this);
+			AddCollider(mEntity.GetComponent<CapsuleColliderComponent>());
 		}
 		if (mEntity.HasComponent<MeshColliderComponent>()) 
 		{
-			PhysicsWrappers::AddMeshCollider(*this);
+			AddCollider(mEntity.GetComponent<MeshColliderComponent>());
 		}
 
-		if (!PhysicsLayerManager::IsLayerValid(mRigidBody.Layer))
-		{
-			mRigidBody.Layer = 0;
-		}
-
-		SetLayer(mRigidBody.Layer);
-		mActorInternal->userData = &mEntity;
-	}
-
-	void PhysicsActor::Spawn()
-	{
-		((physx::PxScene*)PhysicsManager::GetPhysicsScene())->addActor(*mActorInternal);
-	}
-
-	void PhysicsActor::Update(float fixedTimestep)
-	{
-		if (!ScriptEngine::IsEntityModuleValid(mEntity))
-		{
-			return;
-		}
-
-		ScriptEngine::UpdateEntityPhysics(mEntity, fixedTimestep);
+		SetLayer(mRigidBodyData.Layer);
+		mRigidActor->userData = &mEntity;
 	}
 
 	void PhysicsActor::SynchronizeTransform()
@@ -280,24 +298,14 @@ namespace NR
 		if (IsDynamic())
 		{
 			TransformComponent& transform = mEntity.Transform();
-			physx::PxTransform actorPose = mActorInternal->getGlobalPose();
-			transform.Translation = FromPhysicsVector(actorPose.p);
-			transform.Rotation = glm::eulerAngles(FromPhysicsQuat(actorPose.q));
+			physx::PxTransform actorPose = mRigidActor->getGlobalPose();
+			transform.Translation = PhysicsUtils::FromPhysicsVector(actorPose.p);
+			transform.Rotation = glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(actorPose.q));
 		}
 		else
 		{
 			Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
-			mActorInternal->setGlobalPose(ToPhysicsTransform(scene->GetTransformRelativeToParent(mEntity)));
-		}
-	}
-
-	void PhysicsActor::AddCollisionShape(physx::PxShape* shape)
-	{
-		bool status = mActorInternal->attachShape(*shape);
-		shape->release();
-		if (!status)
-		{
-			shape = nullptr;
+			mRigidActor->setGlobalPose(PhysicsUtils::ToPhysicsTransform(scene->GetTransformRelativeToParent(mEntity)));
 		}
 	}
 }

@@ -38,7 +38,11 @@ project "NotEditor"
 		symbols "on"
 
 	filter "configurations:Release"
-		defines "NR_RELEASE"
+		defines
+		{
+			"NR_RELEASE",
+			"NDEBUG"
+		}
 		runtime "Release"
 		optimize "on"
 
