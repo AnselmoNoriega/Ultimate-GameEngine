@@ -121,7 +121,7 @@ namespace NR
 		mSwapChain.InitSurface(mWindowHandle);
 
 		uint32_t width = 1280, height = 720;
-		mSwapChain.Create(&width, &height);
+		mSwapChain.Create(&width, &height, true);
 
 		// Pipeline Cache
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};

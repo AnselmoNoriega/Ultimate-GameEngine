@@ -63,7 +63,11 @@ namespace NR
             }
             else
             {
-                image = Image2D::Create(format, width, height);
+                ImageSpecification spec;
+                spec.Format = format;
+                spec.Width = width;
+                spec.Height = height;
+                image = Image2D::Create(spec);
                 image->Invalidate();
             }
 
@@ -83,7 +87,11 @@ namespace NR
             }
             else
             {
-                image = Image2D::Create(format, width, height);
+                ImageSpecification spec;
+                spec.Format = format;
+                spec.Width = width;
+                spec.Height = height;
+                image = Image2D::Create(spec);
                 image->Invalidate();
             }
 
@@ -92,22 +100,11 @@ namespace NR
             glFramebufferTexture2D(GL_FRAMEBUFFER, Utils::DepthAttachmentType(format), TextureTarget(multisampled), glImage->GetRendererID(), 0);
             return image;
         }
-
-        static bool IsDepthFormat(ImageFormat format)
-        {
-            switch (format)
-            {
-            case ImageFormat::DEPTH24STENCIL8:
-            case ImageFormat::DEPTH32F:
-                return true;
-            }
-            return false;
-        }
     }
 
     GLFrameBuffer::GLFrameBuffer(const FrameBufferSpecification& spec)
         : mSpecification(spec), mWidth(spec.Width), mHeight(spec.Height)
-    {
+    { 
         NR_CORE_ASSERT(spec.Attachments.Attachments.size());
 
         for (auto format : mSpecification.Attachments.Attachments)

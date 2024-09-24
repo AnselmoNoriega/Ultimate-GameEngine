@@ -5,6 +5,7 @@
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/RenderPass.h"
+#include "NotRed/Renderer/UniformBuffer.h"
 
 namespace NR
 {
@@ -26,6 +27,7 @@ namespace NR
 		virtual const PipelineSpecification& GetSpecification() const = 0;
 
 		virtual void Invalidate() = 0;
+		virtual void SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t binding, uint32_t set = 0) = 0;
 
 		virtual void Bind() = 0;
 

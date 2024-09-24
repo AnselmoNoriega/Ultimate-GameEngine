@@ -209,6 +209,7 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h" />
@@ -218,7 +219,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKContext.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDevice.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDiagnostics.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFramebuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFrameBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImGuiLayer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImage.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKShader.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKSwapChain.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKTexture.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Vulkan.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
@@ -253,6 +255,7 @@
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
+    <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
@@ -373,6 +376,7 @@
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp" />
@@ -392,6 +396,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKSwapChain.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKTexture.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Vulkan.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
@@ -414,6 +419,7 @@
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />

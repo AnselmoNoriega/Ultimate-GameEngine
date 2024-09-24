@@ -155,7 +155,7 @@ namespace NR
         for (auto [stage, data] : shaderData)
         {
             NR_CORE_ASSERT(data.size());
-            // Create a new shader module that will be used for pipeline creation
+
             VkShaderModuleCreateInfo moduleCreateInfo{};
             moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
             moduleCreateInfo.codeSize = data.size() * sizeof(uint32_t);
@@ -204,8 +204,13 @@ namespace NR
             uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t size = compiler.get_declared_struct_size(bufferType);
 
+            if (descriptorSet >= mShaderDescriptorSets.size())
+            {
+                mShaderDescriptorSets.resize(descriptorSet + 1);
+            }
+
             ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
-            //NR_CORE_ASSERT(shaderDescriptorSet.UniformBuffers.find(binding) == shaderDescriptorSet.UniformBuffers.end());
+
             if (sUniformBuffers[descriptorSet].find(binding) == sUniformBuffers[descriptorSet].end())
             {
                 UniformBuffer* uniformBuffer = new UniformBuffer();
@@ -214,19 +219,14 @@ namespace NR
                 uniformBuffer->Name = name;
                 uniformBuffer->ShaderStage = shaderStage;
                 sUniformBuffers.at(descriptorSet)[binding] = uniformBuffer;
-
-                AllocateUniformBuffer(*uniformBuffer);
             }
             else
             {
                 UniformBuffer* uniformBuffer = sUniformBuffers.at(descriptorSet).at(binding);
                 if (size > uniformBuffer->Size)
                 {
-                    NR_CORE_TRACE("Resizing uniform buffer (binding = {0}, set = {1}) to {2} bytes", binding, descriptorSet, size);
                     uniformBuffer->Size = size;
-                    AllocateUniformBuffer(*uniformBuffer);
                 }
-
             }
 
             shaderDescriptorSet.UniformBuffers[binding] = sUniformBuffers.at(descriptorSet).at(binding);
@@ -290,6 +290,11 @@ namespace NR
             uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t dimension = type.image.dim;
 
+            if (descriptorSet >= mShaderDescriptorSets.size())
+            {
+                mShaderDescriptorSets.resize(descriptorSet + 1);
+            }
+
             ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
             auto& imageSampler = shaderDescriptorSet.ImageSamplers[binding];
             imageSampler.BindingPoint = binding;
@@ -310,6 +315,11 @@ namespace NR
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t dimension = type.image.dim;
+
+            if (descriptorSet >= mShaderDescriptorSets.size())
+            {
+                mShaderDescriptorSets.resize(descriptorSet + 1);
+            }
 
             ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
             auto& imageSampler = shaderDescriptorSet.StorageImages[binding];
@@ -333,8 +343,10 @@ namespace NR
         // Descriptor Pool---------------------------------------------------
 
         mTypeCounts.clear();
-        for (auto&& [set, shaderDescriptorSet] : mShaderDescriptorSets)
+        for (uint32_t set = 0; set < mShaderDescriptorSets.size(); ++set)
         {
+            auto& shaderDescriptorSet = mShaderDescriptorSets[set];
+
             if (shaderDescriptorSet.UniformBuffers.size())
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
@@ -426,6 +438,11 @@ namespace NR
                 shaderDescriptorSet.UniformBuffers.size(),
                 shaderDescriptorSet.ImageSamplers.size(),
                 shaderDescriptorSet.StorageImages.size());
+
+            if (set >= mDescriptorSetLayouts.size())
+            {
+                mDescriptorSetLayouts.resize(set + 1);
+            }
             VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorLayout, nullptr, &mDescriptorSetLayouts[set]));
         }
     }
@@ -447,7 +464,6 @@ namespace NR
 
         VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &result.Pool));
 
-        // Allocate a new descriptor set from the global descriptor pool
         VkDescriptorSetAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = result.Pool;
@@ -466,8 +482,14 @@ namespace NR
         VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
         std::unordered_map<uint32_t, std::vector<VkDescriptorPoolSize>> poolSizes;
-        for (auto&& [set, shaderDescriptorSet] : mShaderDescriptorSets)
+        for (uint32_t set = 0; set < mShaderDescriptorSets.size(); set++)
         {
+            auto& shaderDescriptorSet = mShaderDescriptorSets[set];
+            if (!shaderDescriptorSet)
+            {
+                continue;
+            }
+
             if (shaderDescriptorSet.UniformBuffers.size())
             {
                 VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
@@ -514,10 +536,79 @@ namespace NR
         }
         return result;
     }
+    
+    VKShader::ShaderMaterialDescriptorSet VKShader::AllocateDescriptorSets()
+    {
+        ShaderMaterialDescriptorSet result;
+        if (mShaderDescriptorSets.empty())
+        {
+            return result;
+        }
+
+        std::vector<VkDescriptorPoolSize> poolSizes;
+        for (uint32_t set = 0; set < mShaderDescriptorSets.size(); ++set)
+        {
+            auto& shaderDescriptorSet = mShaderDescriptorSets[set];
+            if (!shaderDescriptorSet)
+            {
+                continue;
+            }
+
+            if (shaderDescriptorSet.UniformBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                typeCount.descriptorCount = shaderDescriptorSet.UniformBuffers.size();
+            }
+            if (shaderDescriptorSet.ImageSamplers.size())
+            {
+                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                typeCount.descriptorCount = shaderDescriptorSet.ImageSamplers.size();
+            }
+            if (shaderDescriptorSet.StorageImages.size())
+            {
+                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
+            }
+        }
+
+        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+
+        VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
+        descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        descriptorPoolInfo.pNext = nullptr;
+        descriptorPoolInfo.poolSizeCount = poolSizes.size();
+        descriptorPoolInfo.pPoolSizes = poolSizes.data();
+        descriptorPoolInfo.maxSets = mShaderDescriptorSets.size();
+
+        VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &result.Pool));
+
+        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
+        descriptorSetLayouts.reserve(mDescriptorSetLayouts.size());
+        for (auto& shaderDescriptorSet : mDescriptorSetLayouts)
+        {
+            descriptorSetLayouts.emplace_back(shaderDescriptorSet);
+        }
+
+        VkDescriptorSetAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = result.Pool;
+        allocInfo.descriptorSetCount = descriptorSetLayouts.size();
+        allocInfo.pSetLayouts = descriptorSetLayouts.data();
+        result.DescriptorSets.resize(mShaderDescriptorSets.size());
+
+        VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, result.DescriptorSets.data()));
+
+        return result;
+    }
 
     const VkWriteDescriptorSet* VKShader::GetDescriptorSet(const std::string& name, uint32_t set) const
     {
-        NR_CORE_ASSERT(mShaderDescriptorSets.find(set) != mShaderDescriptorSets.end());
+        NR_CORE_ASSERT(set < mShaderDescriptorSets.size());
+        NR_CORE_ASSERT(mShaderDescriptorSets[set]);
+
         if (mShaderDescriptorSets.at(set).WriteDescriptorSets.find(name) == mShaderDescriptorSets.at(set).WriteDescriptorSets.end())
         {
             NR_CORE_WARN("Shader {0} does not contain requested descriptor set {1}", mName, name);
@@ -530,41 +621,12 @@ namespace NR
     {
         std::vector<VkDescriptorSetLayout> result;
         result.reserve(mDescriptorSetLayouts.size());
-        for (auto [set, layout] : mDescriptorSetLayouts)
+        for (auto& layout : mDescriptorSetLayouts)
         {
             result.emplace_back(layout);
         }
 
         return result;
-    }
-
-    void VKShader::AllocateUniformBuffer(UniformBuffer& dst)
-    {
-        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-
-        UniformBuffer& uniformBuffer = dst;
-
-        // Vertex shader uniform buffer block
-        VkBufferCreateInfo bufferInfo = {};
-        VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.pNext = nullptr;
-        allocInfo.allocationSize = 0;
-        allocInfo.memoryTypeIndex = 0;
-
-        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = uniformBuffer.Size;
-        // This buffer will be used as a uniform buffer
-        bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-
-        // Create a new buffer
-        VKAllocator allocator("UniformBuffer");
-        uniformBuffer.MemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, uniformBuffer.Buffer);
-
-        // Store information in the uniform's descriptor that is used by the descriptor set
-        uniformBuffer.Descriptor.buffer = uniformBuffer.Buffer;
-        uniformBuffer.Descriptor.offset = 0;
-        uniformBuffer.Descriptor.range = uniformBuffer.Size;
     }
 
     static const char* VkShaderStageCachedFileExtension(VkShaderStageFlagBits stage)
@@ -697,85 +759,6 @@ namespace NR
         in.close();
     }
 
-    void VKShader::Bind()
-    {
-    }
-
-    RendererID VKShader::GetRendererID() const
-    {
-        return 0;
-    }
-
-    void VKShader::SetUniformBuffer(const std::string& name, const void* data, uint32_t size)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, float value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, int value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, const glm::vec2& value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, const glm::vec3& value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, const glm::vec4& value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, const glm::mat3& value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, const glm::mat4& value)
-    {
-    }
-
-    void VKShader::SetUniform(const std::string& fullname, uint32_t value)
-    {
-
-    }
-
-    void VKShader::SetUInt(const std::string& name, uint32_t value)
-    {
-
-    }
-
-    void VKShader::SetFloat(const std::string& name, float value)
-    {
-    }
-
-    void VKShader::SetInt(const std::string& name, int value)
-    {
-    }
-
-    void VKShader::SetFloat2(const std::string& name, const glm::vec2& value)
-    {
-    }
-
-    void VKShader::SetFloat3(const std::string& name, const glm::vec3& value)
-    {
-    }
-
-    void VKShader::SetMat4(const std::string& name, const glm::mat4& value)
-    {
-    }
-
-    void VKShader::SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind /*= true*/)
-    {
-    }
-
-    void VKShader::SetIntArray(const std::string& name, int* values, uint32_t size)
-    {
-    }
-
     const std::unordered_map<std::string, ShaderResourceDeclaration>& VKShader::GetResources() const
     {
         return mResources;
@@ -783,26 +766,5 @@ namespace NR
 
     void VKShader::AddShaderReloadedCallback(const ShaderReloadedCallback& callback)
     {
-    }
-
-    void* VKShader::MapUniformBuffer(uint32_t bindingPoint, uint32_t set)
-    {
-        NR_CORE_ASSERT(sUniformBuffers.find(set) != sUniformBuffers.end());
-        NR_CORE_ASSERT(sUniformBuffers.at(set).find(bindingPoint) != sUniformBuffers.at(set).end());
-        NR_CORE_ASSERT(sUniformBuffers.at(set).at(bindingPoint));
-
-        VKAllocator allocator("VulkanShader");
-        uint8_t* pData = allocator.MapMemory<uint8_t>(sUniformBuffers.at(set).at(bindingPoint)->MemoryAlloc);
-        return pData;
-    }
-
-    void VKShader::UnmapUniformBuffer(uint32_t bindingPoint, uint32_t set)
-    {
-        NR_CORE_ASSERT(sUniformBuffers.find(set) != sUniformBuffers.end());
-        NR_CORE_ASSERT(sUniformBuffers.at(set).find(bindingPoint) != sUniformBuffers.at(set).end());
-        NR_CORE_ASSERT(sUniformBuffers.at(set).at(bindingPoint));
-
-        VKAllocator allocator("VulkanShader");
-        allocator.UnmapMemory(sUniformBuffers.at(set).at(bindingPoint)->MemoryAlloc);
     }
 }

@@ -188,9 +188,6 @@ namespace NR
         sData.CameraViewProj = viewProj;
         sData.DepthTest = depthTest;
 
-        sData.TextureShader->Bind();
-        sData.TextureShader->SetMat4("uViewProjection", viewProj);
-
         sData.QuadIndexCount = 0;
         sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
 

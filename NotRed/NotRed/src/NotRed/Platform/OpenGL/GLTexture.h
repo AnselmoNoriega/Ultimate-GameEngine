@@ -24,7 +24,7 @@ namespace NR
 		bool Loaded() const override { return mLoaded; }
 
 		Ref<Image2D> GetImage() const override { return mImage; }
-		ImageFormat GetFormat() const override { return mImage->GetFormat(); }
+		ImageFormat GetFormat() const override { return mImage->GetSpecification().Format; }
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 

@@ -115,8 +115,9 @@ namespace NR
         Buffer GetUniformStorageBuffer() { return mUniformStorageBuffer; }
 
         void UpdateForRendering();
+        void RT_UpdateForRendering();
 
-        const VKShader::ShaderMaterialDescriptorSet& GetDescriptorSet() { return mDescriptorSet; }
+        VkDescriptorSet GetDescriptorSet() const { return !mDescriptorSet.DescriptorSets.empty() ? mDescriptorSet.DescriptorSets[0] : nullptr; }
 
     private:
         void Init();
@@ -170,5 +171,4 @@ namespace NR
 
         std::unordered_map<std::string, VkDescriptorImageInfo> mImageInfos;
     };
-
 }

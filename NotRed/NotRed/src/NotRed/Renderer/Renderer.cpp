@@ -2,6 +2,7 @@
 #include "Renderer.h"
 
 #include <glad/glad.h>
+#include <map>
 
 #include "RendererAPI.h"
 #include "SceneRenderer.h"
@@ -67,6 +68,7 @@ namespace NR
         Ref<Texture2D> WhiteTexture;
         Ref<TextureCube> BlackCubeTexture;
         Ref<Environment> EmptyEnvironment;
+        std::map<uint32_t, std::map<uint32_t, Ref<UniformBuffer>>> UniformBuffers;
     };
 
     static RendererData* sData = nullptr;
@@ -101,7 +103,7 @@ namespace NR
 
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
 
@@ -182,9 +184,9 @@ namespace NR
         sRendererAPI->RenderMesh(pipeline, mesh, transform);
     }
 
-    void Renderer::RenderMeshWithoutMaterial(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
     {
-        sRendererAPI->RenderMeshWithoutMaterial(pipeline, mesh, transform);
+        sRendererAPI->RenderMesh(pipeline, mesh, material, transform, additionalUniforms);
     }
 
     void Renderer::RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform)
@@ -240,6 +242,18 @@ namespace NR
         {
             Renderer2D::DrawLine(corners[i], corners[i + 4], color);
         }
+    }
+
+    void Renderer::SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t set)
+    {
+        sData->UniformBuffers[set][uniformBuffer->GetBinding()] = uniformBuffer;
+    }
+
+    Ref<UniformBuffer> Renderer::GetUniformBuffer(uint32_t binding, uint32_t set)
+    {
+        NR_CORE_ASSERT(sData->UniformBuffers.find(set) != sData->UniformBuffers.end());
+        NR_CORE_ASSERT(sData->UniformBuffers.at(set).find(binding) != sData->UniformBuffers.at(set).end());
+        return sData->UniformBuffers.at(set).at(binding);
     }
 
     Ref<Texture2D> Renderer::GetWhiteTexture()

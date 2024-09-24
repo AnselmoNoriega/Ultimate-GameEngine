@@ -8,13 +8,13 @@
 
 namespace NR
 {
-    Ref<Image2D> Image2D::Create(ImageFormat format, uint32_t width, uint32_t height, Buffer buffer)
+    Ref<Image2D> Image2D::Create(ImageSpecification specification, Buffer buffer)
     {
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None:		return nullptr;
-        case RendererAPIType::OpenGL:	return Ref<GLImage2D>::Create(format, width, height, buffer);
-        case RendererAPIType::Vulkan:	return Ref<VKImage2D>::Create(format, width, height);
+        case RendererAPIType::OpenGL:	return Ref<GLImage2D>::Create(specification, buffer);
+        case RendererAPIType::Vulkan:	return Ref<VKImage2D>::Create(specification);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -23,13 +23,13 @@ namespace NR
         }
     }
 
-    Ref<Image2D> Image2D::Create(ImageFormat format, uint32_t width, uint32_t height, const void* data)
+    Ref<Image2D> Image2D::Create(ImageSpecification specification, const void* data)
     {
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL: return Ref<GLImage2D>::Create(format, width, height, data);
-        case RendererAPIType::Vulkan: return Ref<VKImage2D>::Create(format, width, height);
+        case RendererAPIType::OpenGL: return Ref<GLImage2D>::Create(specification, data);
+        case RendererAPIType::Vulkan: return Ref<VKImage2D>::Create(specification);
         default:
         {
             NR_CORE_ASSERT(false, "Unknown RendererAPI");

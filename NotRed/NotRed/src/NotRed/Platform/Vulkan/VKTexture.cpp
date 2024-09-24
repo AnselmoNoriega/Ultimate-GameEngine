@@ -88,6 +88,12 @@ namespace NR
         }
 
         NR_CORE_ASSERT(mImageData.Data, "Failed to load image!");
+
+        if (!mImageData.Data)
+        {
+            return;
+        }
+
         mWidth = width;
         mHeight = height;
 
@@ -134,16 +140,23 @@ namespace NR
         auto vulkanDevice = device->GetVulkanDevice();
 
         if (mImage)
+        {
             mImage->Release();
+        }
 
-        mImage = Image2D::Create(ImageFormat::RGBA, mWidth, mHeight);
+        uint32_t mipCount = GetMipLevelCount();
+        ImageSpecification imageSpec;
+        imageSpec.Format = mFormat;
+        imageSpec.Width = mWidth;
+        imageSpec.Height = mHeight;
+        imageSpec.Mips = mipCount;
+        mImage = Image2D::Create(imageSpec);
         Ref<VKImage2D> image = mImage.As<VKImage2D>();
+        image->RT_Invalidate();
+
         auto& info = image->GetImageInfo();
 
         VkDeviceSize size = mImageData.Size;
-
-        VkFormat format = Utils::VulkanImageFormat(mFormat);
-        uint32_t mipCount = GetMipLevelCount();
 
         VkMemoryAllocateInfo memAllocInfo{};
         memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -161,22 +174,9 @@ namespace NR
 
         // Copy data to staging buffer
         uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
+        NR_CORE_ASSERT(mImageData.Data);
         memcpy(destData, mImageData.Data, size);
         allocator.UnmapMemory(stagingBufferAllocation);
-
-        VkImageCreateInfo imageCreateInfo{};
-        imageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.format = format;
-        imageCreateInfo.mipLevels = mipCount;
-        imageCreateInfo.arrayLayers = 1;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageCreateInfo.extent = { mWidth, mHeight, 1 };
-        imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-        info.MemoryAlloc = allocator.AllocateImage(imageCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, info.Image);
 
         VkCommandBuffer copyCmd = device->GetCommandBuffer(true);
 
@@ -268,14 +268,10 @@ namespace NR
         sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
         VK_CHECK_RESULT(vkCreateSampler(vulkanDevice, &sampler, nullptr, &info.Sampler));
 
-        // Create image view
-        // Textures are not directly accessed by the shaders and
-        // are abstracted by image views containing additional
-        // information and sub resource ranges
         VkImageViewCreateInfo view{};
         view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         view.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        view.format = format;
+        view.format = Utils::VulkanImageFormat(mFormat);
         view.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
         // The subresource range describes the set of mip levels (and array layers) that can be accessed through this image view
         // It's possible to create multiple image views for a single image referring to different (and/or overlapping) ranges of the image

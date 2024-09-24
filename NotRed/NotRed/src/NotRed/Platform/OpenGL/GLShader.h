@@ -14,33 +14,23 @@ namespace NR
 		GLShader(const std::string& filepath, bool forceCompile);
 		static Ref<GLShader> CreateFromString(const std::string& vertSrc, const std::string& fragSrc, const std::string& computeSrc);
 
-		void Bind() override;
-		RendererID GetRendererID() const override { return mID; }
+		void Bind();
+		RendererID GetRendererID() const { return mID; }
 
 		void Reload(bool forceCompile = false) override;
 
 		size_t GetHash() const override;
 
-		void SetUniformBuffer(const std::string& name, const void* data, uint32_t size) override;
-
-		void SetUniform(const std::string& fullname, uint32_t value) override;
-		void SetUniform(const std::string& fullname, int value) override;
-		void SetUniform(const std::string& fullname, float value) override;
-		void SetUniform(const std::string& fullname, const glm::vec2& value) override;
-		void SetUniform(const std::string& fullname, const glm::vec3& value) override;
-		void SetUniform(const std::string& fullname, const glm::vec4& value) override;
-		void SetUniform(const std::string& fullname, const glm::mat3& value) override;
-		void SetUniform(const std::string& fullname, const glm::mat4& value) override;
-
-		void UploadUniformUInt(const std::string& name, uint32_t value);
-		void SetUInt(const std::string& name, uint32_t value) override;
-		void SetInt(const std::string& name, int value) override;
-		void SetFloat(const std::string& name, float value) override;
-		void SetFloat2(const std::string& name, const glm::vec2& value) override;
-		void SetFloat3(const std::string& name, const glm::vec3& value) override;
-		void SetMat4(const std::string& name, const glm::mat4& value) override;
-		void SetMat4FromRenderThread(const std::string& name, const glm::mat4& value, bool bind = true) override;
-		void SetIntArray(const std::string& name, int* values, uint32_t size) override;
+		void SetUniformBuffer(const std::string& name, const void* data, uint32_t size);
+		void SetUniform(const std::string& fullname, uint32_t value);
+		void SetUniform(const std::string& fullname, int value);
+		void SetUniform(const std::string& fullname, float value);
+		void SetUniform(const std::string& fullname, const glm::vec2& value);
+		void SetUniform(const std::string& fullname, const glm::vec3& value);
+		void SetUniform(const std::string& fullname, const glm::vec4& value);
+		void SetUniform(const std::string& fullname, const glm::mat3& value);
+		void SetUniform(const std::string& fullname, const glm::mat4& value);
+		void SetIntArray(const std::string& name, int* values, uint32_t size);
 
 		void AddShaderReloadedCallback(const ShaderReloadedCallback& callback) override;
 
@@ -66,6 +56,7 @@ namespace NR
 		void ParseConstantBuffers(const spirv_cross::CompilerGLSL& compiler);
 		int32_t GetUniformLocation(const std::string& name) const;
 
+		void UploadUniformUInt(const std::string& name, uint32_t value);
 		void UploadUniformInt(uint32_t location, int32_t value);
 		void UploadUniformInt(const std::string& name, int32_t value);
 

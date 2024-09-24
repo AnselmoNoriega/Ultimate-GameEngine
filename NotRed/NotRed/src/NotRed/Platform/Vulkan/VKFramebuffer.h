@@ -27,10 +27,10 @@ namespace NR
 		RendererID GetColorAttachmentRendererID() const { return 0; }
 		RendererID GetDepthAttachmentRendererID() const { return 0; }
 
-		Ref<Image2D> GetImage(uint32_t attachmentIndex = 0) const override { NR_CORE_ASSERT(attachmentIndex < mAttachments.size()); return mAttachments[attachmentIndex]; }
-		Ref<Image2D> GetDepthImage() const override { return mDepthAttachment; }
+		Ref<Image2D> GetImage(uint32_t attachmentIndex = 0) const override { NR_CORE_ASSERT(attachmentIndex < mAttachmentImages.size()); return mAttachmentImages[attachmentIndex]; }
+		Ref<Image2D> GetDepthImage() const override { return mDepthAttachmentImage; }
 
-		size_t GetColorAttachmentCount() const { return mAttachments.size(); }
+		size_t GetColorAttachmentCount() const { return mAttachmentImages.size(); }
 
 		VkRenderPass GetRenderPass() const { return mRenderPass; }
 		VkFramebuffer GetVulkanFrameBuffer() const { return mFrameBuffer; }
@@ -38,13 +38,16 @@ namespace NR
 
 		const FrameBufferSpecification& GetSpecification() const override { return mSpecification; }
 		
+		void Invalidate();
+		void RT_Invalidate();
+
 	private:
 		FrameBufferSpecification mSpecification;
 		RendererID mID = 0;
 		uint32_t mWidth = 0, mHeight = 0;
 
-		std::vector<Ref<Image2D>> mAttachments;
-		Ref<Image2D> mDepthAttachment;
+		std::vector<Ref<Image2D>> mAttachmentImages;
+		Ref<Image2D> mDepthAttachmentImage;
 
 		std::vector<VkClearValue> mClearValues;
 

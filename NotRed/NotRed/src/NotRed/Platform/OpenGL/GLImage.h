@@ -10,8 +10,8 @@ namespace NR
     class GLImage2D : public Image2D
     {
     public:
-        GLImage2D(ImageFormat format, uint32_t width, uint32_t height, Buffer buffer);
-        GLImage2D(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr);
+        GLImage2D(ImageSpecification specification, Buffer buffer);
+        GLImage2D(ImageSpecification specification, const void* data = nullptr);
         ~GLImage2D() override;
 
         void Invalidate() override;
@@ -19,9 +19,13 @@ namespace NR
 
         void CreateSampler(TextureProperties properties);
 
-        ImageFormat GetFormat() const override { return mFormat; }
+        void CreatePerLayerImageViews() override {}
+
         uint32_t GetWidth() const override { return mWidth; }
         uint32_t GetHeight() const override { return mHeight; }
+
+        ImageSpecification& GetSpecification() override { return mSpecification; }
+        const ImageSpecification& GetSpecification() const override { return mSpecification; }
 
         Buffer GetBuffer() const override { return mImageData; }
         Buffer& GetBuffer() override { return mImageData; }
@@ -36,8 +40,9 @@ namespace NR
     private:
         RendererID mID = 0;
         RendererID mSamplerRendererID = 0;
+
+        ImageSpecification mSpecification;
         uint32_t mWidth, mHeight;
-        ImageFormat mFormat;
 
         Buffer mImageData;
     };

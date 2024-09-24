@@ -5,17 +5,17 @@
 
 namespace NR
 {
-    GLImage2D::GLImage2D(ImageFormat format, uint32_t width, uint32_t height, const void* data)
-        : mWidth(width), mHeight(height), mFormat(format)
+    GLImage2D::GLImage2D(ImageSpecification specification, const void* data)
+        : mSpecification(specification), mWidth(specification.Width), mHeight(specification.Height)
     {
         if (data)
         {
-            mImageData = Buffer::Copy(data, Utils::GetImageMemorySize(format, width, height));
+            mImageData = Buffer::Copy(data, Utils::GetImageMemorySize(specification.Format, specification.Width, specification.Height));
         }
     }
 
-    GLImage2D::GLImage2D(ImageFormat format, uint32_t width, uint32_t height, Buffer buffer)
-        : mWidth(width), mHeight(height), mFormat(format), mImageData(buffer)
+    GLImage2D::GLImage2D(ImageSpecification specification, Buffer buffer)
+        : mSpecification(specification), mWidth(specification.Width), mHeight(specification.Height), mImageData(buffer)
     {
     }
 
@@ -41,13 +41,13 @@ namespace NR
 
         glCreateTextures(GL_TEXTURE_2D, 1, &mID);
 
-        GLenum internalFormat = Utils::OpenGLImageInternalFormat(mFormat);
+        GLenum internalFormat = Utils::OpenGLImageInternalFormat(mSpecification.Format);
         uint32_t mipCount = Utils::CalculateMipCount(mWidth, mHeight);
         glTextureStorage2D(mID, mipCount, internalFormat, mWidth, mHeight);
         if (mImageData)
         {
-            GLenum format = Utils::OpenGLImageFormat(mFormat);
-            GLenum dataType = Utils::OpenGLFormatDataType(mFormat);
+            GLenum format = Utils::OpenGLImageFormat(mSpecification.Format);
+            GLenum dataType = Utils::OpenGLFormatDataType(mSpecification.Format);
             glTextureSubImage2D(mID, 0, 0, 0, mWidth, mHeight, format, dataType, mImageData.Data);
             glGenerateTextureMipmap(mID);
         }

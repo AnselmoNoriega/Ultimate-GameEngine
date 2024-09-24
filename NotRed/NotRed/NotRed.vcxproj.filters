@@ -279,7 +279,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDiagnostics.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFramebuffer.h">
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFrameBuffer.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImGuiLayer.h">
@@ -608,6 +608,9 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsSettings.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsShapes.h" />
     <ClInclude Include="src\NotRed\Physics\Debug\PhysicsDebugger.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -986,5 +989,8 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsScene.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsShapes.cpp" />
     <ClCompile Include="src\NotRed\Physics\Debug\PhysicsDebugger.cpp" />
+    <ClCompile Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
   </ItemGroup>
 </Project>

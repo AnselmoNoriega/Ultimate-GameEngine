@@ -15,6 +15,8 @@ namespace NR
 
 		void Invalidate() override;
 
+		void SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t binding, uint32_t set = 0) override {}
+
 		void Bind() override;
 
 	private:
