@@ -1,5 +1,7 @@
 #pragma once
 
+#define OVERLAP_MAX_COLLIDERS 10
+
 #include <PxPhysicsAPI.h>
 
 #include "PhysicsSettings.h"
@@ -7,6 +9,14 @@
 
 namespace NR
 {
+	struct RaycastHit
+	{
+		uint64_t HitEntity;
+		glm::vec3 Position;
+		glm::vec3 Normal;
+		float Distance;
+	};
+
 	class PhysicsScene : public RefCounted
 	{
 	public:
@@ -21,6 +31,13 @@ namespace NR
 		Ref<PhysicsActor> CreateActor(Entity entity);
 		void RemoveActor(Ref<PhysicsActor> actor);
 
+		bool Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* outHit);
+		bool OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
+		bool OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
+		bool OverlapSphere(const glm::vec3& origin, float radius, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
+
+		bool IsValid() const { return mPhysicsScene != nullptr; }
+
 	private:
 		void CreateRegions();
 
@@ -28,6 +45,8 @@ namespace NR
 		void SubstepStrategy(float dt, uint32_t& substepCount, float& substepSize);
 
 		void Destroy();
+
+		bool OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
 
 	private:
 		physx::PxScene* mPhysicsScene;

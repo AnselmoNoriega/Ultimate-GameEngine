@@ -27,9 +27,6 @@ namespace NR
 		static void Initialize();
 		static void Shutdown();
 
-		static void StartDebugger(const std::string& filepath, bool networkDebugging = false);
-		static void StopDebugger();
-
 		static physx::PxFoundation& GetFoundation();
 		static physx::PxPhysics& GetPhysicsSDK();
 		static physx::PxCpuDispatcher* GetCPUDispatcher();

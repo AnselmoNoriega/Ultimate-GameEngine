@@ -607,6 +607,7 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsScene.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsSettings.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsShapes.h" />
+    <ClInclude Include="src\NotRed\Physics\Debug\PhysicsDebugger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -984,5 +985,6 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsUtils.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsScene.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsShapes.cpp" />
+    <ClCompile Include="src\NotRed\Physics\Debug\PhysicsDebugger.cpp" />
   </ItemGroup>
 </Project>

@@ -29,5 +29,6 @@ namespace NR
 		FrictionType FrictionModel = FrictionType::Patch;
 		uint32_t SolverIterations = 6;
 		uint32_t SolverVelocityIterations = 1;
+		bool DebugOnPlay = true;
 	};
 }

@@ -57,18 +57,28 @@ namespace NR
         public Vector3 Normalized()
         {
             float length = Length();
-            float x = this.x / length;
-            float y = this.y / length;
-            float z = this.z / length;
+            float x = this.x;
+            float y = this.y;
+            float z = this.z;
+
+            if (length > 0.0f)
+            {
+                x /= length;
+                y /= length;
+                z /= length;
+            }
+
             return new Vector3(x, y, z);
         }
 
         public void Normalize()
         {
-            float length = Length();
-            this.x = this.x / length;
-            this.y = this.y / length;
-            this.z = this.z / length;
+            float length = Length(); if (length > 0.0f)
+            {
+                x = x / length;
+                y = y / length;
+                z = z / length;
+            }
         }
         public static Vector3 operator +(Vector3 left, float right)
         {

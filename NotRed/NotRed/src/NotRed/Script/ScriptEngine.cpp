@@ -379,7 +379,7 @@ namespace NR
         }
     }
 
-    void ScriptEngine::UpdateEntityPhysics(Entity entity, float fixedDeltaTime)
+    void ScriptEngine::UpdatePhysicsEntity(Entity entity, float fixedDeltaTime)
     {
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->UpdatePhysics)

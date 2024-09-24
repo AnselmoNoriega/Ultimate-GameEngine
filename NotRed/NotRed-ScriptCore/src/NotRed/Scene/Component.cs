@@ -203,7 +203,63 @@ namespace NR
             set { SetMass_Native(Entity.ID, value); }
         }
 
-        public uint Layer { get { return GetLayer_Native(Entity.ID); } }
+        public Vector3 Velocity
+        {
+            get
+            {
+                GetVelocity_Native(Entity.ID, out Vector3 velocity);
+                return velocity;
+            }
+            set 
+            {
+                SetVelocity_Native(Entity.ID, ref value); 
+            }
+        }
+
+        public Vector3 AngularVelocity
+        {
+            get
+            {
+                GetAngularVelocity_Native(Entity.ID, out Vector3 velocity);
+                return velocity;
+            }
+            set 
+            { 
+                SetAngularVelocity_Native(Entity.ID, ref value); 
+            }
+        }
+
+        public float MaxLinearVelocity
+        {
+            get 
+            {
+                return GetMaxVelocity_Native(Entity.ID); 
+            }
+            set 
+            { 
+                SetMaxVelocity_Native(Entity.ID, value); 
+            }
+        }
+
+        public float MaxAngularVelocity
+        {
+            get 
+            { 
+                return GetMaxAngularVelocity_Native(Entity.ID); 
+            }
+            set 
+            { 
+                SetMaxAngularVelocity_Native(Entity.ID, value); 
+            }
+        }
+
+        public uint Layer 
+        { 
+            get 
+            { 
+                return GetLayer_Native(Entity.ID);
+            } 
+        }
 
         public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
         {
@@ -215,28 +271,10 @@ namespace NR
             AddTorque_Native(Entity.ID, ref torque, forceMode);
         }
 
-        public Vector3 GetVelocity()
+        public void Rotate(Vector3 rotation)
         {
-            GetVelocity_Native(Entity.ID, out Vector3 velocity);
-            return velocity;
+            Rotate_Native(Entity.ID, ref rotation);
         }
-
-        public void SetVelocity(Vector3 velocity)
-        {
-            SetVelocity_Native(Entity.ID, ref velocity);
-        }
-
-        public Vector3 GetAngularVelocity()
-        {
-            GetAngularVelocity_Native(Entity.ID, out Vector3 velocity);
-            return velocity;
-        }
-
-        public void SetAngularVelocity(Vector3 velocity)
-        {
-            SetAngularVelocity_Native(Entity.ID, ref velocity);
-        }
-
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void AddForce_Native(ulong entityID, ref Vector3 force, ForceMode forceMode);
@@ -253,6 +291,17 @@ namespace NR
         internal static extern void SetAngularVelocity_Native(ulong entityID, ref Vector3 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern uint GetLayer_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetMaxVelocity_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetMaxVelocity_Native(ulong entityID, float maxVelocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetMaxAngularVelocity_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetMaxAngularVelocity_Native(ulong entityID, float maxVelocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Rotate_Native(ulong entityID, ref Vector3 rotation);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float GetMass_Native(ulong entityID);

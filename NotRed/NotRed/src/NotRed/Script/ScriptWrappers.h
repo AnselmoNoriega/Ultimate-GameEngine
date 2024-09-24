@@ -48,17 +48,21 @@ namespace NR::Script
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
-    void NR_RigidBody2DComponent_ApplyLinearImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
-    void NR_RigidBody2DComponent_GetLinearVelocity(uint64_t entityID, glm::vec2* outVelocity);
-    void NR_RigidBody2DComponent_SetLinearVelocity(uint64_t entityID, glm::vec2* velocity);
+    void NR_RigidBody2DComponent_ApplyImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
+    void NR_RigidBody2DComponent_GetVelocity(uint64_t entityID, glm::vec2* outVelocity);
+    void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* velocity);
 
     RigidBodyComponent::Type NR_RigidBodyComponent_GetBodyType(uint64_t entityID);
     void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode foceMode);
     void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
-    void NR_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity);
-    void NR_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* velocity);
+    void NR_RigidBodyComponent_GetVelocity(uint64_t entityID, glm::vec3* outVelocity);
+    void NR_RigidBodyComponent_SetVelocity(uint64_t entityID, glm::vec3* velocity);
     void NR_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity);
     void NR_RigidBodyComponent_SetAngularVelocity(uint64_t entityID, glm::vec3* velocity);
+    float NR_RigidBodyComponent_GetMaxVelocity(uint64_t entityID);
+    void NR_RigidBodyComponent_SetMaxVelocity(uint64_t entityID, float maxVelocity);
+    float NR_RigidBodyComponent_GetMaxAngularVelocity(uint64_t entityID);
+    void NR_RigidBodyComponent_SetMaxAngularVelocity(uint64_t entityID, float maxVelocity);
     void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation);
     uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID);
     float NR_RigidBodyComponent_GetMass(uint64_t entityID);

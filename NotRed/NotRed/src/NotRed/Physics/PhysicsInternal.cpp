@@ -3,12 +3,13 @@
 
 #include "CookingFactory.h"
 
+#include "Debug/PhysicsDebugger.h"
+
 namespace NR
 {
 	struct PhysicsData
 	{
 		physx::PxFoundation* Foundation;
-		physx::PxPvd* Debugger;
 		physx::PxDefaultCpuDispatcher* CPUDispatcher;
 		physx::PxPhysics* PhysicsSDK;
 
@@ -76,8 +77,6 @@ namespace NR
 		physx::platformAlignedFree(ptr);
 	}
 
-	static physx::PxPvdTransport* sTransport;
-
 	void PhysicsInternal::Initialize()
 	{
 		NR_CORE_ASSERT(!sPhysicsData, "Trying to initialize the PhysX SDK multiple times!");
@@ -87,18 +86,17 @@ namespace NR
 		sPhysicsData->Foundation = PxCreateFoundation(PX_PHYSICS_VERSION, sPhysicsData->Allocator, sPhysicsData->ErrorCallback);
 		NR_CORE_ASSERT(sPhysicsData->Foundation, "PxCreateFoundation failed.");
 
-		sPhysicsData->Debugger = PxCreatePvd(*sPhysicsData->Foundation);
-		NR_CORE_ASSERT(sPhysicsData->Debugger, "PxCreatePvd failed");
-
 		physx::PxTolerancesScale scale = physx::PxTolerancesScale();
 		scale.length = 1.0f;
 		scale.speed = 9.81f;
 
+		PhysicsDebugger::Initialize();
+
 		static bool s_TrackMemoryAllocations = true; // Disable for release builds
-		sPhysicsData->PhysicsSDK = PxCreatePhysics(PX_PHYSICS_VERSION, *sPhysicsData->Foundation, scale, s_TrackMemoryAllocations, sPhysicsData->Debugger);
+		sPhysicsData->PhysicsSDK = PxCreatePhysics(PX_PHYSICS_VERSION, *sPhysicsData->Foundation, scale, s_TrackMemoryAllocations, PhysicsDebugger::GetDebugger());
 		NR_CORE_ASSERT(sPhysicsData->PhysicsSDK, "PxCreatePhysics failed.");
 
-		NR_CORE_ASSERT(PxInitExtensions(*sPhysicsData->PhysicsSDK, sPhysicsData->Debugger), "Failed to initialize PhysX Extensions.");
+		NR_CORE_ASSERT(PxInitExtensions(*sPhysicsData->PhysicsSDK, PhysicsDebugger::GetDebugger()), "Failed to initialize PhysX Extensions.");
 
 		sPhysicsData->CPUDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 
@@ -114,51 +112,38 @@ namespace NR
 
 		PxCloseExtensions();
 
-		StopDebugger();
+		PhysicsDebugger::StopDebugging();
 
 		sPhysicsData->PhysicsSDK->release();
 		sPhysicsData->PhysicsSDK = nullptr;
 
-		sPhysicsData->Debugger->release();
-		sTransport->release();
+		PhysicsDebugger::Shutdown();
 
 		sPhysicsData->Foundation->release();
 		sPhysicsData->Foundation = nullptr;
 
 		delete sPhysicsData;
+		sPhysicsData = nullptr;
 	}
 
-	physx::PxFoundation& PhysicsInternal::GetFoundation() { return *sPhysicsData->Foundation; }
-	physx::PxPhysics& PhysicsInternal::GetPhysicsSDK() { return *sPhysicsData->PhysicsSDK; }
-	physx::PxCpuDispatcher* PhysicsInternal::GetCPUDispatcher() { return sPhysicsData->CPUDispatcher; }
-	PhysicsAllocator& PhysicsInternal::GetAllocator() { return sPhysicsData->Allocator; }
-
-	// TODO: Move to debug file
-	void PhysicsInternal::StartDebugger(const std::string& filepath, bool networkDebugging /*= false*/)
-	{
-		StopDebugger();
-
-		if (!networkDebugging)
-		{
-			sTransport = physx::PxDefaultPvdFileTransportCreate((filepath + ".pxd2").c_str());
-			sPhysicsData->Debugger->connect(*sTransport, physx::PxPvdInstrumentationFlag::eALL);
-		}
-		else
-		{
-			sTransport = physx::PxDefaultPvdSocketTransportCreate("localhost", 5425, 1000);
-			sPhysicsData->Debugger->connect(*sTransport, physx::PxPvdInstrumentationFlag::eALL);
-		}
+	physx::PxFoundation& PhysicsInternal::GetFoundation() 
+	{ 
+		return *sPhysicsData->Foundation; 
 	}
 
-	// TODO: Move to debug file
-	void PhysicsInternal::StopDebugger()
-	{
-		if (!sPhysicsData->Debugger->isConnected())
-		{
-			return;
-		}
+	physx::PxPhysics& PhysicsInternal::GetPhysicsSDK() 
+	{ 
+		return *sPhysicsData->PhysicsSDK; 
+	
+	}
+	physx::PxCpuDispatcher* PhysicsInternal::GetCPUDispatcher() 
+	{ 
+		return sPhysicsData->CPUDispatcher; 
+	}
 
-		sPhysicsData->Debugger->disconnect();
+	PhysicsAllocator& PhysicsInternal::GetAllocator() 
+	{ 
+		return sPhysicsData->Allocator; 
 	}
 
 	physx::PxFilterFlags PhysicsInternal::FilterShader(physx::PxFilterObjectAttributes attributes0, physx::PxFilterData filterData0, physx::PxFilterObjectAttributes attributes1, physx::PxFilterData filterData1, physx::PxPairFlags& pairFlags, const void* constantBlock, physx::PxU32 constantBlockSize)

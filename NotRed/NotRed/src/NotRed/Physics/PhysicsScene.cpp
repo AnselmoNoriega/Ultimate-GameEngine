@@ -36,7 +36,10 @@ namespace NR
 
 	void PhysicsScene::Simulate(float dt)
 	{
-		// TODO: Call FixedUpdate
+		for (auto& actor : mActors)
+		{
+			actor->FixedUpdate(mSubStepSize);
+		}
 
 		bool advanced = Advance(dt);
 
@@ -102,6 +105,49 @@ namespace NR
 				break;
 			}
 		}
+	}
+
+	bool PhysicsScene::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* outHit)
+	{
+		physx::PxRaycastBuffer hitInfo;
+		bool result = mPhysicsScene->raycast(PhysicsUtils::ToPhysicsVector(origin), PhysicsUtils::ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
+		if (result)
+		{
+			Entity& entity = *(Entity*)hitInfo.block.actor->userData;
+			outHit->HitEntity = entity.GetID();
+			outHit->Position = PhysicsUtils::FromPhysicsVector(hitInfo.block.position);
+			outHit->Normal = PhysicsUtils::FromPhysicsVector(hitInfo.block.normal);
+			outHit->Distance = hitInfo.block.distance;
+		}
+		return result;
+	}
+
+	bool PhysicsScene::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	{
+		return OverlapGeometry(origin, physx::PxBoxGeometry(halfSize.x, halfSize.y, halfSize.z), buffer, count);
+	}
+
+	bool PhysicsScene::OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	{
+		return OverlapGeometry(origin, physx::PxCapsuleGeometry(radius, halfHeight), buffer, count);
+	}
+
+	bool PhysicsScene::OverlapSphere(const glm::vec3& origin, float radius, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	{
+		return OverlapGeometry(origin, physx::PxSphereGeometry(radius), buffer, count);
+	}
+
+	bool PhysicsScene::OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	{
+		physx::PxOverlapBuffer buf(buffer.data(), OVERLAP_MAX_COLLIDERS);
+		physx::PxTransform pose = PhysicsUtils::ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
+		bool result = mPhysicsScene->overlap(geometry, pose, buf);
+		if (result)
+		{
+			memcpy(buffer.data(), buf.touches, buf.nbTouches * sizeof(physx::PxOverlapHit));
+			count = buf.nbTouches;
+		}
+		return result;
 	}
 
 	void PhysicsScene::CreateRegions()

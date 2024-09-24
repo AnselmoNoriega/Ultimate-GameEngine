@@ -3,6 +3,7 @@
 
 #include "PhysicsInternal.h"
 #include "PhysicsLayer.h"
+#include "Debug/PhysicsDebugger.h"
 
 namespace NR
 {
@@ -24,13 +25,20 @@ namespace NR
 
 	void PhysicsManager::RuntimePlay()
 	{
-		sScene = Ref<PhysicsScene>::Create(sSettings);
-		PhysicsInternal::StartDebugger("Physics DebugInfo");
+		sScene = Ref<PhysicsScene>::Create(sSettings);	
+		
+		if (sSettings.DebugOnPlay)
+		{
+			PhysicsDebugger::StartDebugging("PhysicsDebugInfo");
+		}
 	}
 
 	void PhysicsManager::RuntimeStop()
 	{
-		PhysicsInternal::StopDebugger();
+		if (sSettings.DebugOnPlay)
+		{
+			PhysicsDebugger::StopDebugging();
+		}
 		sScene->Destroy();
 	}
 

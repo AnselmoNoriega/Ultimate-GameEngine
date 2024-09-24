@@ -1,9 +1,13 @@
 #include "nrpch.h"
 #include "PhysicsActor.h"
 
+#include <glm/gtx/compatibility.hpp>
+
 #include "PhysicsManager.h"
 #include "PhysicsInternal.h"
 #include "PhysicsLayer.h"
+
+#include "NotRed/Script/ScriptEngine.h"
 
 namespace NR
 {
@@ -77,7 +81,7 @@ namespace NR
 		if (!IsDynamic())
 		{
 			NR_CORE_WARN("Trying to get velocity of non-dynamic PhysicsActor.");
-			return glm::vec3(0.0F);
+			return glm::vec3(0.0f);
 		}
 
 		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
@@ -103,7 +107,7 @@ namespace NR
 		if (!IsDynamic())
 		{
 			NR_CORE_WARN("Trying to get angular velocity of non-dynamic PhysicsActor.");
-			return glm::vec3(0.0F);
+			return glm::vec3(0.0f);
 		}
 
 		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
@@ -122,6 +126,54 @@ namespace NR
 		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
 		NR_CORE_ASSERT(actor);
 		actor->setAngularVelocity(PhysicsUtils::ToPhysicsVector(velocity));
+	}
+
+	float PhysicsActor::GetMaxVelocity() const
+	{
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Trying to get max linear velocity of non-dynamic PhysicsActor.");
+			return 0.0f;
+		}
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		return actor->getMaxLinearVelocity();
+	}
+
+	void PhysicsActor::SetMaxVelocity(float maxVelocity)
+	{
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Trying to set max linear velocity of non-dynamic PhysicsActor.");
+			return;
+		}
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->setMaxLinearVelocity(maxVelocity);
+	}
+
+	float PhysicsActor::GetMaxAngularVelocity() const
+	{
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Trying to get max angular velocity of non-dynamic PhysicsActor.");
+			return 0.0f;
+		}
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		return actor->getMaxAngularVelocity();
+	}
+
+	void PhysicsActor::SetMaxAngularVelocity(float maxVelocity)
+	{
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Trying to set max angular velocity of non-dynamic PhysicsActor.");
+			return;
+		}
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->setMaxAngularVelocity(maxVelocity);
 	}
 
 	void PhysicsActor::SetLinearDrag(float drag) const
@@ -202,6 +254,15 @@ namespace NR
 		}
 
 		mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(PhysicsUtils::ToPhysicsActorLockFlag(flag), addFlag);
+	}
+
+	void PhysicsActor::FixedUpdate(float fixedDeltaTime)
+	{
+		if (!ScriptEngine::IsEntityModuleValid(mEntity))
+		{
+			return;
+		}
+		ScriptEngine::UpdatePhysicsEntity(mEntity, fixedDeltaTime);
 	}
 
 	void PhysicsActor::AddCollider(BoxColliderComponent& collider)
@@ -291,6 +352,11 @@ namespace NR
 
 		SetLayer(mRigidBodyData.Layer);
 		mRigidActor->userData = &mEntity;
+
+#ifdef NR_DEBUG
+		auto& name = mEntity.GetComponent<TagComponent>().Tag;
+		mRigidActor->setName(name.c_str());
+#endif
 	}
 
 	void PhysicsActor::SynchronizeTransform()

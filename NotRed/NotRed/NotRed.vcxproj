@@ -189,6 +189,7 @@
     <ClInclude Include="src\NotRed\Math\Ray.h" />
     <ClInclude Include="src\NotRed\Physics\ContactListener.h" />
     <ClInclude Include="src\NotRed\Physics\CookingFactory.h" />
+    <ClInclude Include="src\NotRed\Physics\Debug\PhysicsDebugger.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsInternal.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsLayer.h" />
@@ -353,6 +354,7 @@
     <ClCompile Include="src\NotRed\Math\Noise.cpp" />
     <ClCompile Include="src\NotRed\Physics\ContactListener.cpp" />
     <ClCompile Include="src\NotRed\Physics\CookingFactory.cpp" />
+    <ClCompile Include="src\NotRed\Physics\Debug\PhysicsDebugger.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsInternal.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />

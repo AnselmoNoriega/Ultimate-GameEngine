@@ -8,6 +8,7 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "NotRed/ImGui/ImGui.h"
 
 namespace NR
 {
@@ -64,6 +65,8 @@ namespace NR
 
 		Property("Solver Iterations", settings.SolverIterations, 1, 512);
 		Property("Solver Velocity Iterations", settings.SolverVelocityIterations, 1, 512);
+		
+		UI::Property("Debug On Play", settings.DebugOnPlay);
 	}
 
 	void PhysicsSettingsWindow::RenderLayerList()
@@ -232,5 +235,4 @@ namespace NR
 
 		return changed;
 	}
-
 }

@@ -169,7 +169,7 @@ namespace NR
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
 
 		Utils::CreateCacheDirectoryIfNeeded();
-		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + ".pxm";
+		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + "_convex.pxm";
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookConvexMesh(component.CollisionMesh, cookedData);
@@ -243,7 +243,7 @@ namespace NR
 
 	void ConvexMeshShape::SerializeData(const std::string& filepath, const std::vector<MeshColliderData>& data)
 	{
-		uint32_t bufferSize = 3;
+		uint32_t bufferSize = 0;
 		uint32_t offset = 0;
 
 		for (auto& colliderData : data)
@@ -255,10 +255,6 @@ namespace NR
 
 		Buffer colliderBuffer;
 		colliderBuffer.Allocate(bufferSize);
-
-		const char header[3] = { 'C', 'X', 'M' };
-		colliderBuffer.Write((void*)header, 3, offset);
-		offset += 3;
 
 		uint32_t offset = 0;
 		for (auto& colliderData : data)
@@ -277,16 +273,6 @@ namespace NR
 	{
 		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
 		uint32_t offset = 0;
-
-		std::string headerString = std::string((char*)colliderBuffer.ReadBytes(3, offset), 3);
-		if (headerString != "CXM" && headerString == "TRI")
-		{
-			NR_CORE_WARN("Tried to load non-convex collider as convex collider.");
-			colliderBuffer.Release();
-			return;
-		}
-
-		offset += 3;
 
 		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
 		{
@@ -371,7 +357,7 @@ namespace NR
 
 		Utils::CreateCacheDirectoryIfNeeded();
 
-		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + ".pxm";
+		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + "_tri.pxm";
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookTriangleMesh(component.CollisionMesh, cookedData);
@@ -439,7 +425,7 @@ namespace NR
 
 	void TriangleMeshShape::SerializeData(const std::string& filepath, const std::vector<MeshColliderData>& data)
 	{
-		uint32_t bufferSize = 3;
+		uint32_t bufferSize = 0;
 		uint32_t offset = 0;
 
 		for (auto& colliderData : data)
@@ -451,9 +437,6 @@ namespace NR
 
 		Buffer colliderBuffer;
 		colliderBuffer.Allocate(bufferSize);
-		const char header[3] = { 'T', 'R', 'I' };
-		colliderBuffer.Write((void*)header, 3, offset);
-		offset += 3;
 
 		for (auto& colliderData : data)
 		{
@@ -471,16 +454,7 @@ namespace NR
 	{
 		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
 		uint32_t offset = 0;
-		std::string headerString = std::string((char*)colliderBuffer.ReadBytes(3, offset), 3);
 
-		if (headerString != "TRI" && headerString == "CXM")
-		{
-			NR_CORE_WARN("Tried to load non-triangle collider as triangle collider.");
-			colliderBuffer.Release();
-			return;
-		}
-
-		offset += 3;
 		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
 		{
 			MeshColliderData& data = outData.emplace_back();

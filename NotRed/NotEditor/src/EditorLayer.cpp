@@ -19,6 +19,8 @@
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Editor/PhysicsSettingsWindow.h"
+#include "NotRed/Physics/Debug/PhysicsDebugger.h"
+
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Math/Math.h"
 
@@ -635,6 +637,27 @@ namespace NR
 
                 ImGui::EndMenu();
             }
+
+#ifdef NR_DEBUG
+            if (ImGui::BeginMenu("Debugging"))
+            {
+                if (PhysicsDebugger::IsDebugging())
+                {
+                    if (ImGui::MenuItem("Stop Physics Debugging"))
+                    {
+                        PhysicsDebugger::StopDebugging();
+                    }
+                }
+                else
+                {
+                    if (ImGui::MenuItem("Start Physics Debugging"))
+                    {
+                        PhysicsDebugger::StartDebugging("PhysXDebugInfo");
+                    }
+                }
+                ImGui::EndMenu();
+            }
+#endif
 
             ImGui::EndMenuBar();
         }

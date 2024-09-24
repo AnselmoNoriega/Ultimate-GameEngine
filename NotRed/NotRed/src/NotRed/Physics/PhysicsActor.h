@@ -25,6 +25,11 @@ namespace NR
 		const glm::vec3& GetAngularVelocity() const;
 		void SetAngularVelocity(const glm::vec3& velocity);
 
+		float GetMaxVelocity() const;
+		void SetMaxVelocity(float maxVelocity);
+		float GetMaxAngularVelocity() const;
+		void SetMaxAngularVelocity(float maxVelocity);
+
 		void SetLinearDrag(float drag) const;
 		void SetAngularDrag(float drag) const;
 
@@ -40,6 +45,8 @@ namespace NR
 
 		bool GetLockFlag(ActorLockFlag flag) const { return (uint32_t)flag & mLockFlags; }
 		void ModifyLockFlag(ActorLockFlag flag, bool addFlag);
+
+		void FixedUpdate(float fixedDeltaTime);
 
 		void AddCollider(BoxColliderComponent& collider);
 		void AddCollider(SphereColliderComponent& collider);
