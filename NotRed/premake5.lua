@@ -74,7 +74,8 @@ project "NotRed"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
 		"%{IncludeDir.Vulkan}",
-		"%{IncludeDir.NsightAftermath}"
+		"%{IncludeDir.NsightAftermath}",
+		"%{IncludeDir.MiniAudio}"
 	}
 	
 	links 
@@ -197,7 +198,8 @@ project "NotEditor"
 		"%{IncludeDir.Glm}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Vulkan}",
-		"%{IncludeDir.Glad}"
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.MiniAudio}"
 	}
 
 	postbuildcommands 

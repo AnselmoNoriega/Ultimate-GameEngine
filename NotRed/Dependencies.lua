@@ -1,4 +1,3 @@
-
 -- NotRed Dependencies
 
 IncludeDir = {}
@@ -16,6 +15,7 @@ IncludeDir["Yaml"] = "%{wks.location}/NotRed/vendor/yaml-cpp/include"
 IncludeDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/include"
 IncludeDir["Vulkan"] = "%{wks.location}/NotRed/vendor/Vulkan/Include"
 IncludeDir["NsightAftermath"] = "%{wks.location}/NotRed/vendor/NsightAftermath/include"
+IncludeDir["MiniAudio"] = "%{wks.location}/NotRed/vendor/MiniAudio/include"
 
 LibraryDir = {}
 LibraryDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/lib/%{cfg.buildcfg}"

@@ -147,7 +147,7 @@ namespace NR
     {
         public void ApplyImpulse(Vector2 impulse, Vector2 offset, bool wake)
         {
-            ApplyLinearImpulse_Native(Entity.ID, ref impulse, ref offset, wake);
+            ApplyImpulse_Native(Entity.ID, ref impulse, ref offset, wake);
         }
 
         public Vector2 GetVelocity()
@@ -167,7 +167,7 @@ namespace NR
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void ApplyLinearImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
+        internal static extern void ApplyImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetVelocity_Native(ulong entityID, out Vector2 velocity);
@@ -229,7 +229,7 @@ namespace NR
             }
         }
 
-        public float MaxLinearVelocity
+        public float MaxVelocity
         {
             get 
             {
@@ -309,5 +309,91 @@ namespace NR
         internal static extern float SetMass_Native(ulong entityID, float mass);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Type GetBodyType_Native(ulong entityID);
+    }
+
+    public class AudioListenerComponent : Component
+    {
+    }
+    public class AudioComponent : Component
+    {
+        public bool IsPlaying()
+        {
+            return IsPlaying_Native(Entity.ID);
+        }
+
+        public bool Play(float startTime = 0.0f)
+        {
+            return Play_Native(Entity.ID, startTime);
+        }
+
+        public bool Stop()
+        {
+            return Stop_Native(Entity.ID);
+        }
+
+        public bool Pause()
+        {
+            return Pause_Native(Entity.ID);
+        }
+
+        public float VolumeMultiplier
+        {
+            get { return GetVolumeMult_Native(Entity.ID); }
+            set { SetVolumeMult_Native(Entity.ID, value); }
+        }
+
+        public float PitchMultiplier
+        {
+            get { return GetPitchMult_Native(Entity.ID); }
+            set { SetPitchMult_Native(Entity.ID, value); }
+        }
+
+        public bool Looping
+        {
+            get { return GetLooping_Native(Entity.ID); }
+            set { SetLooping_Native(Entity.ID, value); }
+        }
+
+        public void SetSound(SimpleSound sound)
+        {
+            SetSound_Native(Entity.ID, sound._unmanagedInstance);
+        }
+
+        public void SetSound(string assetPath)
+        {
+            SetSoundPath_Native(Entity.ID, assetPath);
+        }
+
+        public SimpleSound GetSound()
+        {
+            return new SimpleSound(GetSound_Native(Entity.ID));
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsPlaying_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Play_Native(ulong entityID, float startTime);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Stop_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Pause_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetVolumeMult_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetVolumeMult_Native(ulong entityID, float volumeMult);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetPitchMult_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetPitchMult_Native(ulong entityID, float pitchMult);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool GetLooping_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetLooping_Native(ulong entityID, bool volumeMult);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetSound_Native(ulong entityID, IntPtr simpleSound);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetSoundPath_Native(ulong entityID, string assetPath);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern string GetSound_Native(ulong entityID);
     }
 }
