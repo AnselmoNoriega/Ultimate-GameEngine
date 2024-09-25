@@ -195,6 +195,8 @@ namespace NR
 			}
 		}
 
+		swapchainPresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+
 		// Determine the number of images
 		uint32_t desiredNumberOfSwapchainImages = surfCaps.minImageCount + 1;
 		if ((surfCaps.maxImageCount > 0) && (desiredNumberOfSwapchainImages > surfCaps.maxImageCount))
@@ -532,8 +534,10 @@ namespace NR
 		NR_SCOPE_PERF("VulkanSwapChain::BeginFrame");
 
 		VK_CHECK_RESULT(vkWaitForFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex], VK_TRUE, UINT64_MAX));
-		VK_CHECK_RESULT(AcquireNextImage(mSemaphores.PresentComplete, &mCurrentBufferIndex));
-		VK_CHECK_RESULT(vkResetCommandPool(mDevice->GetVulkanDevice(), mCommandPool, 0));
+
+		uint32_t imageIndex;
+		VK_CHECK_RESULT(AcquireNextImage(mSemaphores.PresentComplete, &imageIndex));
+		NR_CORE_WARN("Staring frame {0} (image {1})", mCurrentBufferIndex, imageIndex);
 	}
 
 	void VKSwapChain::Present()
@@ -541,9 +545,6 @@ namespace NR
 		NR_SCOPE_PERF("VulkanSwapChain::Present");
 
 		const uint64_t DEFAULT_FENCE_TIMEOUT = 100000000000;
-
-		// Use a fence to wait until the command buffer has finished execution before using it again
-		VK_CHECK_RESULT(vkResetFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex]));
 
 		// Pipeline stage at which the queue submission will wait (via pWaitSemaphores)
 		VkPipelineStageFlags waitStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -559,11 +560,13 @@ namespace NR
 		submitInfo.commandBufferCount = 1;
 
 		// Submit to the graphics queue passing a wait fence
+		VK_CHECK_RESULT(vkResetFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex]));
 		VK_CHECK_RESULT(vkQueueSubmit(mDevice->GetQueue(), 1, &submitInfo, mWaitFences[mCurrentBufferIndex]));
 
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
 		// This ensures that the image is not presented to the windowing system until all commands have been submitted
+
 		VkResult result;
 		{
 			NR_SCOPE_PERF("VulkanSwapChain::Present - QueuePresent");
@@ -583,6 +586,16 @@ namespace NR
 				VK_CHECK_RESULT(result);
 			}
 		}
+
+		mCurrentBufferIndex = (mCurrentBufferIndex + 1) % 3;
+
+		// Resource release queue
+		uint32_t index = mCurrentBufferIndex;
+		Renderer::Submit([index]()
+			{
+				auto& queue = Renderer::GetRenderResourceReleaseQueue(index);
+				queue.Execute();
+			});
 	}
 
 	VkResult VKSwapChain::AcquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex)

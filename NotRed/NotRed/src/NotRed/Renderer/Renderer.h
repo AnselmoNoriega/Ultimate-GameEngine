@@ -55,6 +55,21 @@ namespace NR
             new (storageBuffer) FuncT(std::forward<FuncT>(func));
         }
 
+        template<typename FuncT>
+        static void SubmitResourceFree(FuncT&& func)
+        {
+            auto renderCmd = [](void* ptr) {
+                auto pFunc = (FuncT*)ptr;
+                (*pFunc)();
+                pFunc->~FuncT();
+                };
+
+            uint32_t index = Renderer::GetCurrentImageIndex();
+            index = (index + 2) % 3;
+            auto storageBuffer = GetRenderResourceReleaseQueue(index).Allocate(renderCmd, sizeof(func));
+            new (storageBuffer) FuncT(std::forward<FuncT>(func));
+        }
+
         static void WaitAndRender();
 
         static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
@@ -89,7 +104,11 @@ namespace NR
         static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);
         static void OnShaderReloaded(size_t hash);
 
+        static uint32_t GetCurrentImageIndex();
+
         static RendererConfig& GetConfig();
+        
+        static RenderCommandQueue& GetRenderResourceReleaseQueue(uint32_t index);
 
     private:
         static RenderCommandQueue& GetRenderCommandQueue();
