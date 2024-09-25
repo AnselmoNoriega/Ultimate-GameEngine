@@ -10,8 +10,10 @@
 #include "NotRed/Scene/Entity.h"
 #include "ScriptWrappers.h"
 
-namespace NR {
+#include "NotRed/Audio/AudioComponent.h"
 
+namespace NR 
+{
 	std::unordered_map<MonoType*, std::function<bool(Entity&)>> sHasComponentFuncs;
 	std::unordered_map<MonoType*, std::function<void(Entity&)>> sCreateComponentFuncs;
 
@@ -42,6 +44,8 @@ namespace NR {
 		Component_RegisterType(RigidBodyComponent);
 		Component_RegisterType(BoxColliderComponent);
 		Component_RegisterType(SphereColliderComponent);
+		Component_RegisterType(AudioListenerComponent);
+		Component_RegisterType(Audio::AudioComponent);
 	}
 
 	void ScriptEngineRegistry::RegisterAll()
@@ -121,6 +125,29 @@ namespace NR {
 		mono_add_internal_call("NR.RigidBodyComponent::SetMaxAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxAngularVelocity);
 
 		mono_add_internal_call("NR.MeshFactory::CreatePlane_Native", NR::Script::NR_MeshFactory_CreatePlane);
-	}
 
+		mono_add_internal_call("NR.AudioComponent::IsPlaying_Native", Script::NR_AudioComponent_IsPlaying);
+		mono_add_internal_call("NR.AudioComponent::Play_Native", Script::NR_AudioComponent_Play);
+		mono_add_internal_call("NR.AudioComponent::Stop_Native", Script::NR_AudioComponent_Stop);
+		mono_add_internal_call("NR.AudioComponent::Pause_Native", Script::NR_AudioComponent_Pause);
+		mono_add_internal_call("NR.AudioComponent::GetVolumeMult_Native", Script::NR_AudioComponent_GetVolumeMult);
+		mono_add_internal_call("NR.AudioComponent::SetVolumeMult_Native", Script::NR_AudioComponent_SetVolumeMult);
+		mono_add_internal_call("NR.AudioComponent::GetPitchMult_Native", Script::NR_AudioComponent_GetPitchMult);
+		mono_add_internal_call("NR.AudioComponent::SetPitchMult_Native", Script::NR_AudioComponent_SetPitchMult);
+		mono_add_internal_call("NR.AudioComponent::GetLooping_Native", Script::NR_AudioComponent_GetLooping);
+		mono_add_internal_call("NR.AudioComponent::SetLooping_Native", Script::NR_AudioComponent_SetLooping);
+		mono_add_internal_call("NR.AudioComponent::SetSound_Native", Script::NR_AudioComponent_SetSound);
+		mono_add_internal_call("NR.AudioComponent::SetSoundPath_Native", Script::NR_AudioComponent_SetSoundPath);
+		mono_add_internal_call("NR.AudioComponent::GetSound_Native", Script::NR_AudioComponent_GetSound);
+		mono_add_internal_call("NR.Audio::PlaySound2DAsset_Native", Script::NR_Audio_PlaySound2DAsset);
+		mono_add_internal_call("NR.Audio::PlaySound2DAssetPath_Native", Script::NR_Audio_PlaySound2DAssetPath);
+		mono_add_internal_call("NR.Audio::PlaySoundAtLocationAsset_Native", Script::NR_Audio_PlaySoundAtLocationAsset);
+		mono_add_internal_call("NR.Audio::PlaySoundAtLocationAssetPath_Native", Script::NR_Audio_PlaySoundAtLocationAssetPath);
+		mono_add_internal_call("NR.SimpleSound::Constructor_Native", Script::NR_SimpleSound_Constructor);
+		mono_add_internal_call("NR.SimpleSound::Destructor_Native", Script::NR_SimpleSound_Destructor);
+		mono_add_internal_call("NR.Audio::CreateSound2DAsset_Native", Script::NR_AudioCreateSound2DAsset);
+		mono_add_internal_call("NR.Audio::CreateSound2DAssetPath_Native", Script::NR_AudioCreateSound2DPath);
+		mono_add_internal_call("NR.Audio::CreateSoundAtLocationAsset_Native", Script::NR_AudioCreateSound3DAsset);
+		mono_add_internal_call("NR.Audio::CreateSoundAtLocationAssetPath_Native", Script::NR_AudioCreateSound3DPath);
+	}
 }

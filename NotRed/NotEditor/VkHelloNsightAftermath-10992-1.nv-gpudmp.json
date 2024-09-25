@@ -1,0 +1,565 @@
+[
+  {
+    "Base info": {
+      "Application name": "noteditor.exe",
+      "Dump date": "Wed Sep 25 16:43:14 2024",
+      "Dump tick count": 4620402,
+      "Graphics API": "Vulkan",
+      "PID": 10992
+    }
+  },
+  {
+    "Display driver info": {
+      "Version": "561.09"
+    }
+  },
+  {
+    "OS info": {
+      "Build number": 22631,
+      "Service pack major version": 0,
+      "Service pack minor version": 0,
+      "Windows major version": 10,
+      "Windows minor version": 0,
+      "Windows product type": 1
+    }
+  },
+  {
+    "GPU info": {
+      "Adapter LUID": 51982,
+      "Adapter name": "GP104-A"
+    }
+  },
+  {
+    "Page fault info": {
+      "Access Type": "Write",
+      "Client": "Render Output Unit (ROP)",
+      "Engine": "Graphics",
+      "Fault Type": "Failed to translate the virtual address.",
+      "GPU virtual address": 404000768,
+      "Resource": {
+        "Context pointer": 2614487152384,
+        "Create destroy tick count": 4620395,
+        "Depth": 1,
+        "Destroyed": false,
+        "GPU virtual address": 392167424,
+        "Height": 678,
+        "Mip levels": 1,
+        "Name": "",
+        "Size": 12681216,
+        "Width": 1032
+      },
+      "Resources": [
+        {
+          "Resource": {
+            "Context pointer": 2614487152384,
+            "Create destroy tick count": 4620395,
+            "Depth": 1,
+            "Destroyed": false,
+            "GPU virtual address": 392167424,
+            "Height": 678,
+            "Mip levels": 1,
+            "Name": "",
+            "Resource Pointer/Handle": 2614487152464,
+            "Size": 12681216,
+            "Width": 1032
+          }
+        },
+        {
+          "Resource": {
+            "Context pointer": 2614487164064,
+            "Create destroy tick count": 4620389,
+            "Depth": 1,
+            "Destroyed": true,
+            "GPU virtual address": 377487360,
+            "Height": 985,
+            "Mip levels": 1,
+            "Name": "",
+            "Resource Pointer/Handle": 2614487164144,
+            "Size": 31457280,
+            "Width": 1920
+          }
+        },
+        {
+          "Resource": {
+            "Context pointer": 2614488675056,
+            "Create destroy tick count": 4620376,
+            "Depth": 1,
+            "Destroyed": true,
+            "GPU virtual address": 394264576,
+            "Height": 720,
+            "Mip levels": 1,
+            "Name": "",
+            "Resource Pointer/Handle": 2614488675136,
+            "Size": 15728640,
+            "Width": 1280
+          }
+        }
+      ]
+    }
+  },
+  {
+    "Device info": {
+      "Adapter reset occurred": false,
+      "Device state": "Error_DMA_PageFault",
+      "Engine reset occurred": true
+    }
+  },
+  {
+    "Aftermath markers": {
+      "Context": {
+        "Events": [
+          {
+            "Event": {
+              "Callstack": {
+                "Stack": [
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728383654727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728384587727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "vulkan-1.dll",
+                      "Pointer": 140729191465683
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963707428
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963695385
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963672547
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963104335
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697961521418
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960523441
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697959280687
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106617
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106338
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106014
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106766
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "KERNEL32.DLL",
+                      "Pointer": 140731678664061
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "ntdll.dll",
+                      "Pointer": 140731712450344
+                    }
+                  }
+                ]
+              },
+              "Pipe": "Unknown",
+              "Status": "NotStarted",
+              "Type": "Automatic"
+            }
+          },
+          {
+            "Event": {
+              "Callstack": {
+                "Stack": [
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728383654727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728384587727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "vulkan-1.dll",
+                      "Pointer": 140729191465683
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963990231
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697965137743
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960516354
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960516169
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960486691
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963104335
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697961521418
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960523441
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697959280687
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106617
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106338
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106014
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106766
+                    }
+                  }
+                ]
+              },
+              "Pipe": "Bottom",
+              "Status": "Finished",
+              "Type": "Automatic"
+            }
+          },
+          {
+            "Event": {
+              "Callstack": {
+                "Stack": [
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728383654727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728384587727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "vulkan-1.dll",
+                      "Pointer": 140729191465683
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963704327
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963695161
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963672387
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963104335
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697961521418
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960523441
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697959280687
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106617
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106338
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106014
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106766
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "KERNEL32.DLL",
+                      "Pointer": 140731678664061
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "ntdll.dll",
+                      "Pointer": 140731712450344
+                    }
+                  }
+                ]
+              },
+              "Pipe": "Top",
+              "Status": "Executing",
+              "Type": "Automatic"
+            }
+          },
+          {
+            "Event": {
+              "Callstack": {
+                "Stack": [
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728383654727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "nvoglv64.dll",
+                      "Pointer": 140728384587727
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "vulkan-1.dll",
+                      "Pointer": 140729191465683
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963707428
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963695385
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963672547
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697963104335
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697961521418
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697960523441
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697959280687
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106617
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106338
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106014
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "NotEditor.exe",
+                      "Pointer": 140697971106766
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "KERNEL32.DLL",
+                      "Pointer": 140731678664061
+                    }
+                  },
+                  {
+                    "Entry": {
+                      "Module name": "ntdll.dll",
+                      "Pointer": 140731712450344
+                    }
+                  }
+                ]
+              },
+              "Pipe": "Top",
+              "Status": "Executing",
+              "Type": "Automatic"
+            }
+          }
+        ],
+        "Type": "CommandQueue"
+      }
+    }
+  },
+  {
+    "ApplicationName": "VkHelloNsightAftermath"
+  },
+  {
+    "ApplicationVersion": "v1.0"
+  },
+  {
+    "UserDefined+0": "This is a GPU crash dump example."
+  },
+  {
+    "UserDefined+1": "Engine State: Rendering."
+  },
+  {
+    "UserDefined+2": "More user-defined information..."
+  },
+  {
+    "Fingerprint": {
+      "Hash": 12853018400995282328,
+      "Quality": 0
+    }
+  }
+]

@@ -641,6 +641,8 @@
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
+    <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
+    <ClInclude Include="src\NotRed\Audio\SourceManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1047,5 +1049,8 @@
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp" />
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
+    <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />
+    <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
   </ItemGroup>
 </Project>

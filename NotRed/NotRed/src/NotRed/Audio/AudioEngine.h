@@ -186,22 +186,22 @@ namespace NR::Audio
         }
     };
 
-    class MiniAudioEngine
+    class AudioEngine
     {
     public:
-        MiniAudioEngine();
-        ~MiniAudioEngine();
+        AudioEngine();
+        ~AudioEngine();
 
         static void Init();
 
         static void Shutdown();
 
-        static inline MiniAudioEngine& Get() { return *sInstance; }
+        static inline AudioEngine& Get() { return *sInstance; }
 
         static void SetSceneContext(const Ref<Scene>& scene);
         static Ref<Scene>& GetCurrentSceneContext();
-        static void OnRuntimePlaying(UUID sceneID);
-        static void OnSceneDestruct(UUID sceneID);
+        static void RuntimePlaying(UUID sceneID);
+        static void SceneDestruct(UUID sceneID);
 
         static Stats GetStats();
 
@@ -220,12 +220,6 @@ namespace NR::Audio
         void Update(TimeFrame dt);
 
         void SubmitSourceUpdateData(std::vector<SoundSourceUpdateData> updateData);
-
-        /* Update positions of sound sources from game Entities.*/
-        void UpdateSoundPositions(std::vector<std::pair<uint64_t, glm::vec3>>& positions);
-
-        /* Update velocities of sound sources from game Entities.*/
-        void UpdateSoundVelocities(std::vector<std::pair<uint64_t, glm::vec3>>& velocities);
 
         /* Update Audio Listener position from game Entity owning active AudioListenerComponent.
             Called from Game Thread.*/
@@ -351,7 +345,7 @@ namespace NR::Audio
         std::vector<SoundSourceUpdateData> mSourceUpdateData;
 
         //==============================================
-        static MiniAudioEngine* sInstance;
+        static AudioEngine* sInstance;
 
         static Stats sStats;
         AllocationCallbackData mEngineCallbackData{ false, sStats };

@@ -91,6 +91,9 @@ namespace NR
 
 		static Ref<Scene> GetScene(UUID uuid);
 
+		bool IsEditorScene() const { return mIsEditorScene; }
+		bool IsPlaying() const { return mIsPlaying; }
+
 		float GetPhysics2DGravity() const;
 		void SetPhysics2DGravity(float gravity);
 
@@ -102,6 +105,7 @@ namespace NR
 		entt::registry mRegistry;
 
 		std::string mDebugName;
+		bool mIsEditorScene = false;
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 
 		EntityMap mEntityIDMap;
@@ -130,5 +134,7 @@ namespace NR
 
 		friend void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
 		friend void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
+		friend void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
+		friend void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
 	};
 }

@@ -8,7 +8,7 @@
 
 namespace NR::Audio
 {
-	class MiniAudioEngine;
+	class AudioEngine;
 	enum class AttenuationModel
 	{
 		None,          // No distance attenuation and no spatialization.
@@ -29,16 +29,16 @@ namespace NR::Audio
 		float ConeOuterGain{ 0.0f };                                      // Attenuation multiplier when direction of the emmiter falls outside of the ConeOuterAngle
 		float DopplerFactor{ 1.0f };                                      // The amount of doppler effect to apply. Set to 0 to disables doppler effect. 
 		float Rolloff{ 0.6f };                                            // Affects steepness of the attenuation curve. At 1.0 Inverse model is the same as Exponential
-		bool bAirAbsorptionEnabled{ true };                               // Enable Air Absorption filter
+		bool AirAbsorptionEnabled{ true };                               // Enable Air Absorption filter
 	};
 
 	struct SoundConfig : public Asset
 	{
 		Ref<Asset> FileAsset;
-		bool bLooping = false;
+		bool Looping = false;
 		float VolumeMultiplier = 1.0f;
 		float PitchMultiplier = 1.0f;
-		bool bSpatializationEnabled = false;
+		bool SpatializationEnabled = false;
 		SpatializationConfig Spatialization;
 		glm::vec3 SpawnLocation{ 0.0f, 0.0f, 0.0f };
 	};
@@ -71,13 +71,13 @@ namespace NR::Audio
 
 			@returns true - if successfully initialized data source
 		 */
-		bool InitializeDataSource(const SoundConfig& soundConfig, MiniAudioEngine* audioEngine);
+		bool InitializeDataSource(const SoundConfig& soundConfig, AudioEngine* audioEngine);
 
 		void SetLocation(const glm::vec3& location);
 		void SetVelocity(const glm::vec3& velocity = { 0.0f, 0.0f, 0.0f });
 
 		/* @return true - if has a valid data source */
-		bool IsReadyToPlay() const { return IsReadyToPlay; }
+		bool IsReadyToPlay() const { return mIsReadyToPlay; }
 
 		void Update(TimeFrame dt) override;
 
@@ -156,11 +156,11 @@ namespace NR::Audio
 			in the future SoundObject will access data source via SoundSource class.
 		 */
 		ma_sound mSound;
-		bool IsReadyToPlay = false;
+		bool mIsReadyToPlay = false;
 		
 		uint8_t mPriority = 64;
-		bool Looping = false;
-		bool Finished = false;
+		bool mLooping = false;
+		bool mFinished = false;
 
 		/* Stored Fader "resting" value. Used to restore Fader before restarting playback if a fade has occured. */
 		float mStoredFaderValue = 1.0f;
@@ -176,6 +176,6 @@ namespace NR::Audio
 		uint64_t mSceneID = 0;
 
 	private:
-		friend class MiniAudioEngine;
+		friend class AudioEngine;
 	};
 }

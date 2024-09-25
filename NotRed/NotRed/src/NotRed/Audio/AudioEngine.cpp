@@ -3,10 +3,10 @@
 
 namespace NR::Audio
 {
-	MiniAudioEngine* MiniAudioEngine::sInstance = nullptr;
-	Stats MiniAudioEngine::sStats;
+	AudioEngine* AudioEngine::sInstance = nullptr;
+	Stats AudioEngine::sStats;
 
-	void MiniAudioEngine::ExecuteOnAudioThread(AudioThreadCallbackFunction func, const char* jobID/* = "NONE"*/)
+	void AudioEngine::ExecuteOnAudioThread(AudioThreadCallbackFunction func, const char* jobID/* = "NONE"*/)
 	{
 		AudioThread::AddTask(new AudioFunctionCallback(std::move(func), jobID));
 	}
@@ -95,15 +95,15 @@ namespace NR::Audio
 		NR_CORE_INFO(message);
 	}
 
-	MiniAudioEngine::MiniAudioEngine()
+	AudioEngine::AudioEngine()
 	{
 		AudioThread::BindUpdateFunction([this](TimeFrame dt) { Update(dt); });
 		AudioThread::Start();
 
-		MiniAudioEngine::ExecuteOnAudioThread([this] { Initialize(); }, "InitializeAudioEngine");
+		AudioEngine::ExecuteOnAudioThread([this] { Initialize(); }, "InitializeAudioEngine");
 	}
 
-	MiniAudioEngine::~MiniAudioEngine()
+	AudioEngine::~AudioEngine()
 	{
 		if (bInitialized)
 		{
@@ -111,13 +111,13 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::Init()
+	void AudioEngine::Init()
 	{
 		NR_CORE_ASSERT(sInstance == nullptr, "Audio Engine already initialized.");
-		MiniAudioEngine::sInstance = new MiniAudioEngine();
+		AudioEngine::sInstance = new AudioEngine();
 	}
 
-	void MiniAudioEngine::Shutdown()
+	void AudioEngine::Shutdown()
 	{
 		NR_CORE_ASSERT(sInstance, "Audio Engine was not initialized.");
 		sInstance->Uninitialize();
@@ -125,7 +125,7 @@ namespace NR::Audio
 		sInstance = nullptr;
 	}
 
-	bool MiniAudioEngine::Initialize()
+	bool AudioEngine::Initialize()
 	{
 		if (bInitialized)
 			return true;
@@ -171,7 +171,7 @@ namespace NR::Audio
 		return true;
 	}
 
-	bool MiniAudioEngine::Uninitialize()
+	bool AudioEngine::Uninitialize()
 	{
 		StopAll(true);
 
@@ -193,7 +193,7 @@ namespace NR::Audio
 		return true;
 	}
 
-	void MiniAudioEngine::CreateSources()
+	void AudioEngine::CreateSources()
 	{
 		mSoundSources.reserve(mNumSources);
 		for (int i = 0; i < mNumSources; i++)
@@ -205,7 +205,7 @@ namespace NR::Audio
 		}
 	}
 
-	Sound* MiniAudioEngine::FreeLowestPrioritySource()
+	Sound* AudioEngine::FreeLowestPrioritySource()
 	{
 		NR_CORE_ASSERT(mSourceManager.mFreeSourcIDs.empty());
 
@@ -255,7 +255,7 @@ namespace NR::Audio
 				}
 				else
 				{
-					if (!source->Looping)
+					if (!source->mLooping)
 					{
 						// Checking playback percentage here, in case the volume weighted prioprity is the same
 						lowestPriNonLoopingSource = getLowerPriority(source, lowestPriNonLoopingSource, true);
@@ -284,13 +284,13 @@ namespace NR::Audio
 		return releasedSoundSource;
 	}
 
-	Sound* Audio::MiniAudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID)
+	Sound* Audio::AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID)
 	{
 		auto sceneID = sInstance->mCurrentSceneID;
 		return mComponentSoundMap.Get(sceneID, audioComponentID).value_or(nullptr);
 	}
 
-	Sound* MiniAudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID, const SoundConfig& sourceConfig)
+	Sound* AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID, const SoundConfig& sourceConfig)
 	{
 		NR_CORE_ASSERT(AudioThread::IsAudioThread());
 
@@ -331,7 +331,7 @@ namespace NR::Audio
 		return sound;
 	}
 
-	void MiniAudioEngine::SubmitSoundToPlay(uint64_t audioComponentID, const SoundConfig& sourceConfig)
+	void AudioEngine::SubmitSoundToPlay(uint64_t audioComponentID, const SoundConfig& sourceConfig)
 	{
 		auto startSound = [this, audioComponentID, sourceConfig]
 			{
@@ -353,7 +353,7 @@ namespace NR::Audio
 		AudioThread::IsAudioThread() ? startSound() : ExecuteOnAudioThread(startSound, "StartSound");
 	}
 
-	bool MiniAudioEngine::SubmitSoundToPlay(uint64_t audioComponentID)
+	bool AudioEngine::SubmitSoundToPlay(uint64_t audioComponentID)
 	{
 		auto* ac = GetAudioComponentFromID(mCurrentSceneID, audioComponentID);
 		if (ac == nullptr)
@@ -372,7 +372,7 @@ namespace NR::Audio
 		return true;
 	}
 
-	bool MiniAudioEngine::StopActiveSoundSource(uint64_t audioComponentID)
+	bool AudioEngine::StopActiveSoundSource(uint64_t audioComponentID)
 	{
 		if (!mComponentSoundMap.Get(mCurrentSceneID, audioComponentID).has_value())
 		{
@@ -392,7 +392,7 @@ namespace NR::Audio
 		return true;
 	}
 
-	bool MiniAudioEngine::PauseActiveSoundSource(uint64_t audioComponentID)
+	bool AudioEngine::PauseActiveSoundSource(uint64_t audioComponentID)
 	{
 		if (!mComponentSoundMap.Get(mCurrentSceneID, audioComponentID).has_value())
 		{
@@ -410,12 +410,12 @@ namespace NR::Audio
 		return true;
 	}
 
-	bool MiniAudioEngine::IsSoundForComponentPlaying(uint64_t audioComponentID)
+	bool AudioEngine::IsSoundForComponentPlaying(uint64_t audioComponentID)
 	{
 		return mComponentSoundMap.Get(mCurrentSceneID, audioComponentID).has_value();
 	}
 
-	void MiniAudioEngine::UpdateSources()
+	void AudioEngine::UpdateSources()
 	{
 		// Bulk update all of the sources
 		std::scoped_lock lock{ mUpdateSourcesLock };
@@ -431,13 +431,13 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::SubmitSourceUpdateData(std::vector<SoundSourceUpdateData> updateData)
+	void AudioEngine::SubmitSourceUpdateData(std::vector<SoundSourceUpdateData> updateData)
 	{
 		std::scoped_lock lock{ mUpdateSourcesLock };
 		mSourceUpdateData.swap(updateData);
 	}
 
-	void MiniAudioEngine::UpdateListener()
+	void AudioEngine::UpdateListener()
 	{
 		if (mAudioListener.HasChanged(true))
 		{
@@ -450,7 +450,7 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::UpdateListenerPosition(const glm::vec3& newTranslation, const glm::vec3& newDirection)
+	void AudioEngine::UpdateListenerPosition(const glm::vec3& newTranslation, const glm::vec3& newDirection)
 	{
 		if (mAudioListener.PositionNeedsUpdate(newTranslation, newDirection))
 		{
@@ -458,12 +458,12 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::UpdateListenerVelocity(const glm::vec3& newVelocity)
+	void AudioEngine::UpdateListenerVelocity(const glm::vec3& newVelocity)
 	{
 		mAudioListener.SetVelocity(newVelocity);
 	}
 
-	void MiniAudioEngine::ReleaseFinishedSources()
+	void AudioEngine::ReleaseFinishedSources()
 	{
 		for (int i = mActiveSounds.size() - 1; i >= 0; --i)
 		{
@@ -482,7 +482,7 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::Update(TimeFrame dt)
+	void AudioEngine::Update(TimeFrame dt)
 	{
 		UpdateListener();
 
@@ -504,17 +504,17 @@ namespace NR::Audio
 		ReleaseFinishedSources();
 	}
 
-	void MiniAudioEngine::RegisterNewListener(AudioListenerComponent& listenerComponent)
+	void AudioEngine::RegisterNewListener(AudioListenerComponent& listenerComponent)
 	{
 	}
 
-	Stats MiniAudioEngine::GetStats()
+	Stats AudioEngine::GetStats()
 	{
 		sStats.FrameTime = AudioThread::GetFrameTime();
-		return MiniAudioEngine::sStats;
+		return AudioEngine::sStats;
 	}
 
-	void MiniAudioEngine::StopAll(bool stopNow /*= false*/)
+	void AudioEngine::StopAll(bool stopNow /*= false*/)
 	{
 		auto stopAll = [&, stopNow]
 			{
@@ -536,7 +536,7 @@ namespace NR::Audio
 		AudioThread::IsAudioThread() ? stopAll() : ExecuteOnAudioThread(stopAll, "StopAll");
 	}
 
-	void MiniAudioEngine::SetSceneContext(const Ref<Scene>& scene)
+	void AudioEngine::SetSceneContext(const Ref<Scene>& scene)
 	{
 		auto& audioEngine = Get();
 
@@ -559,7 +559,7 @@ namespace NR::Audio
 		}
 	}
 
-	void Audio::MiniAudioEngine::OnRuntimePlaying(UUID sceneID)
+	void Audio::AudioEngine::RuntimePlaying(UUID sceneID)
 	{
 		auto& audioEngine = Get();
 
@@ -588,22 +588,22 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::OnSceneDestruct(UUID sceneID)
+	void AudioEngine::SceneDestruct(UUID sceneID)
 	{
 		Get().mAudioComponentRegistry.Clear(sceneID);
 	}
 
-	Ref<Scene>& MiniAudioEngine::GetCurrentSceneContext()
+	Ref<Scene>& AudioEngine::GetCurrentSceneContext()
 	{
 		return Get().mSceneContext;
 	}
 
-	AudioComponent* Audio::MiniAudioEngine::GetAudioComponentFromID(UUID sceneID, uint64_t audioComponentID)
+	AudioComponent* Audio::AudioEngine::GetAudioComponentFromID(UUID sceneID, uint64_t audioComponentID)
 	{
 		return mAudioComponentRegistry.GetAudioComponent(sceneID, audioComponentID);
 	}
 
-	void MiniAudioEngine::RegisterAudioComponent(Entity audioEntity)
+	void AudioEngine::RegisterAudioComponent(Entity audioEntity)
 	{
 		const auto sceneID = audioEntity.GetSceneID();
 		mAudioComponentRegistry.Add(sceneID, audioEntity.GetID(), audioEntity);
@@ -625,7 +625,7 @@ namespace NR::Audio
 		}
 	}
 
-	void MiniAudioEngine::UnregisterAudioComponent(UUID sceneID, UUID entityID)
+	void AudioEngine::UnregisterAudioComponent(UUID sceneID, UUID entityID)
 	{
 		mAudioComponentRegistry.Remove(sceneID, entityID);
 		sStats.NumAudioComps = mAudioComponentRegistry.Count(sceneID);

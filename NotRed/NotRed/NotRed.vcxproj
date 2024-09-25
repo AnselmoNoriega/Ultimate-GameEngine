@@ -157,6 +157,8 @@
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
+    <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
+    <ClInclude Include="src\NotRed\Audio\SourceManager.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
@@ -343,6 +345,8 @@
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp" />
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
+    <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />
+    <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
@@ -439,6 +443,7 @@
     <ClCompile Include="src\NotRed\Script\ScriptEngineRegistry.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

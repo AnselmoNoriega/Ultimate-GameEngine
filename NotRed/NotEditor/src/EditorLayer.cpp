@@ -27,6 +27,8 @@
 #include "NotRed/Renderer/RendererAPI.h"
 #include "NotRed/Platform/OpenGL/GLFramebuffer.h"
 
+#include "NotRed/Audio/AudioEngine.h"
+
 namespace NR
 {
     EditorLayer::EditorLayer()
@@ -93,6 +95,7 @@ namespace NR
 
         mSelectionContext.clear();
         ScriptEngine::SetSceneContext(mEditorScene);
+        Audio::AudioEngine::SetSceneContext(mEditorScene);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         mCurrentScene = mEditorScene;
 
@@ -216,6 +219,7 @@ namespace NR
         mEditorScene = Ref<Scene>::Create("Scene", true);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
+        Audio::AudioEngine::SetSceneContext(mEditorScene);
         UpdateWindowTitle("Scene");
         mSceneFilePath = std::string();
 
@@ -246,6 +250,7 @@ namespace NR
         UpdateWindowTitle(path.filename().string());
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
+        Audio::AudioEngine::SetSceneContext(mEditorScene);
 
         mEditorScene->SetSelectedEntity({});
         mSelectionContext.clear();

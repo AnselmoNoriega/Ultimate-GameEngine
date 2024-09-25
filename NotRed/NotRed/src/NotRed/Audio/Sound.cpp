@@ -49,9 +49,9 @@ namespace NR::Audio
 		}
 	}
 
-	bool Sound::InitializeDataSource(const SoundConfig& config, MiniAudioEngine* audioEngine)
+	bool Sound::InitializeDataSource(const SoundConfig& config, AudioEngine* audioEngine)
 	{
-		if (IsReadyToPlay)
+		if (mIsReadyToPlay)
 		{
 			if (IsPlaying())
 			{
@@ -65,14 +65,14 @@ namespace NR::Audio
 		}
 
 		ma_result result;
-		result = ma_sound_init_from_file(&audioEngine->mEngine, config.FileAsset->FilePath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, &mSound);
+		result = ma_sound_init_from_file(&audioEngine->mEngine, config.FileAsset->FilePath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, &mSound);
 
 		if (result != MA_SUCCESS)
 		{
 			return false;
 		}
 
-		const bool isSpatializationEnabled = config.bSpatializationEnabled;
+		const bool isSpatializationEnabled = config.SpatializationEnabled;
 
 		auto& spatializer = mSound.engineNode.spatializer;
 		mSound.engineNode.isSpatializationDisabled = !isSpatializationEnabled;
@@ -110,10 +110,10 @@ namespace NR::Audio
 			spatializer.rolloff = spatialization.Rolloff;
 		}
 
-		SetLooping(config.bLooping);
+		SetLooping(config.Looping);
 		SetLocation(config.SpawnLocation);
 
-		IsReadyToPlay = result == MA_SUCCESS;
+		mIsReadyToPlay = result == MA_SUCCESS;
 		return result == MA_SUCCESS;
 	}
 
@@ -130,7 +130,7 @@ namespace NR::Audio
 		{
 		case ESoundPlayState::Stopped:
 		{
-			Finished = false;
+			mFinished = false;
 			result = ma_sound_start(&mSound);
 			mPlayState = ESoundPlayState::Starting;
 			break;
@@ -138,7 +138,7 @@ namespace NR::Audio
 		case ESoundPlayState::Playing:
 		{
 			StopNow(false, true);
-			Finished = false;
+			mFinished = false;
 			result = ma_sound_start(&mSound);
 			mPlayState = ESoundPlayState::Starting;
 			break;
@@ -280,7 +280,7 @@ namespace NR::Audio
 
 	bool Sound::IsFinished() const
 	{
-		return Finished;
+		return mFinished;
 	}
 
 	bool Sound::IsStopping() const
@@ -300,8 +300,8 @@ namespace NR::Audio
 
 	void Sound::SetLooping(bool looping)
 	{
-		Looping = looping;
-		ma_sound_set_looping(&mSound, Looping);
+		mLooping = looping;
+		ma_sound_set_looping(&mSound, mLooping);
 	}
 
 	float Sound::GetVolume()
@@ -361,7 +361,7 @@ namespace NR::Audio
 			if (ma_sound_is_playing(&mSound) == MA_FALSE)
 			{
 				mPlayState = ESoundPlayState::Stopped;
-				Finished = true;
+				mFinished = true;
 				notifyIfFinished();
 			}
 			break;
@@ -403,7 +403,7 @@ namespace NR::Audio
 			ma_sound_seek_to_pcm_frame(&mSound, 0);
 
 			// Mark this voice to be released.
-			Finished = true;
+			mFinished = true;
 		}
 		mSound.engineNode.fader.volumeEnd = 1.0f;
 

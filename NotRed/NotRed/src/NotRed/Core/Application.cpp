@@ -14,6 +14,8 @@
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Asset/AssetManager.h"
 
+#include "NotRed/Audio/AudioEngine.h"
+
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 #include "NotRed/Platform/Vulkan/VKAllocator.h"
 
@@ -44,6 +46,7 @@ namespace NR
 
         ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
         PhysicsManager::Init();
+        Audio::AudioEngine::Init();
 
         AssetManager::Init();
     }
@@ -62,6 +65,7 @@ namespace NR
         ScriptEngine::Shutdown();
 
         AssetManager::Shutdown();
+        Audio::AudioEngine::Shutdown();
 
         Renderer::WaitAndRender();
         Renderer::Shutdown();
@@ -74,36 +78,64 @@ namespace NR
     {
         mImGuiLayer->Begin();
 
-        ImGui::Begin("Renderer");
-        auto& caps = Renderer::GetCapabilities();
-        ImGui::Text("Vendor: %s", caps.Vendor.c_str());
-        ImGui::Text("Renderer: %s", caps.Device.c_str());
-        ImGui::Text("Version: %s", caps.Version.c_str()); 
-        ImGui::Separator();
-        ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-
-        if (RendererAPI::Current() == RendererAPIType::Vulkan)
         {
-            GPUMemoryStats memoryStats = VKAllocator::GetStats();
-            std::string used = Utils::BytesToString(memoryStats.Used);
-            std::string free = Utils::BytesToString(memoryStats.Free);
-            ImGui::Text("Used VRAM: %s", used.c_str());
-            ImGui::Text("Free VRAM: %s", free.c_str());
+            ImGui::Begin("Renderer");
+            auto& caps = Renderer::GetCapabilities();
+            ImGui::Text("Vendor: %s", caps.Vendor.c_str());
+            ImGui::Text("Renderer: %s", caps.Device.c_str());
+            ImGui::Text("Version: %s", caps.Version.c_str());
+            ImGui::Separator();
+            ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+
+            if (RendererAPI::Current() == RendererAPIType::Vulkan)
+            {
+                GPUMemoryStats memoryStats = VKAllocator::GetStats();
+                std::string used = Utils::BytesToString(memoryStats.Used);
+                std::string free = Utils::BytesToString(memoryStats.Free);
+                ImGui::Text("Used VRAM: %s", used.c_str());
+                ImGui::Text("Free VRAM: %s", free.c_str());
+            }
         }
-
         ImGui::End();
-
-        ImGui::Begin("Performance");
-        ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-
-        const auto& perFrameData = mProfiler->GetPerFrameData();
-        for (auto&& [name, time] : perFrameData)
         {
-            ImGui::Text("%s: %.3fms\n", name, time);
-        }
+            ImGui::Begin("Performance");
+            ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
 
-        ImGui::End();
-        mProfiler->Clear();
+            const auto& perFrameData = mProfiler->GetPerFrameData();
+            for (auto&& [name, time] : perFrameData)
+            {
+                ImGui::Text("%s: %.3fms\n", name, time);
+            }
+
+            ImGui::End();
+            mProfiler->Clear();
+        }
+        {
+            ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+            ImGui::Begin("Audio Stats");
+
+            ImGui::Separator();
+
+            Audio::Stats audioStats = Audio::AudioEngine::GetStats();
+            std::string active = std::to_string(audioStats.NumActiveSounds);
+
+            std::string max = std::to_string(audioStats.TotalSources);
+            std::string numAC = std::to_string(audioStats.NumAudioComps);
+            std::string ramEn = Utils::BytesToString(audioStats.MemEngine);
+            std::string ramRM = Utils::BytesToString(audioStats.MemResManager);
+
+            ImGui::Text("Active Sounds: %s", active.c_str());
+            ImGui::Text("Max Sources: %s", max.c_str());
+            ImGui::Text("Audio Components: %s", numAC.c_str());
+
+            ImGui::Separator();
+
+            ImGui::Text("Frame Time: %.3fms\n", audioStats.FrameTime);
+            ImGui::Text("Used RAM (Engine - backend): %s", ramEn.c_str());
+            ImGui::Text("Used RAM (Resource Manager): %s", ramRM.c_str());
+
+            ImGui::End();
+        }
 
         for (Layer* layer : mLayerStack)
         {

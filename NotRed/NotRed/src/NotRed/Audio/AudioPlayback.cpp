@@ -12,21 +12,21 @@ namespace NR::Audio
 {
     bool AudioPlayback::PlaySound2D(const SoundConfig& sound, float volume, float pitch)
     {
-        auto& engine = MiniAudioEngine::Get();
+        auto& engine = AudioEngine::Get();
         auto& scene = engine.GetCurrentSceneContext();
         auto entity = scene->CreateEntityWithID(UUID(), "OneShot2D");
 
         auto& audioComponent = entity.AddComponent<AudioComponent>(entity.GetID());
         audioComponent.SoundConfig = sound;
-        audioComponent.SoundConfig.bSpatializationEnabled = false;
+        audioComponent.SoundConfig.SpatializationEnabled = false;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
         audioComponent.AutoDestroy = true;
 
         uint64_t handle = entity.GetID();
-        MiniAudioEngine::ExecuteOnAudioThread([handle, sound]
+        AudioEngine::ExecuteOnAudioThread([handle, sound]
             {
-                MiniAudioEngine::Get().SubmitSoundToPlay(handle, sound);
+                AudioEngine::Get().SubmitSoundToPlay(handle, sound);
             }, "PlaySound2D()");
 
         return true;
@@ -41,7 +41,7 @@ namespace NR::Audio
 
     bool AudioPlayback::PlaySoundAtLocation(const SoundConfig& sound, glm::vec3 location, float volume, float pitch)
     {
-        auto& engine = MiniAudioEngine::Get();
+        auto& engine = AudioEngine::Get();
         auto& scene = engine.GetCurrentSceneContext();
         auto entity = scene->CreateEntityWithID(UUID(), "OneShot3D");
 
@@ -50,16 +50,16 @@ namespace NR::Audio
         auto& audioComponent = entity.AddComponent<AudioComponent>(entity.GetID());
         audioComponent.SoundConfig = sound;
         audioComponent.SoundConfig.SpawnLocation = location;
-        audioComponent.SoundConfig.bSpatializationEnabled = true;
+        audioComponent.SoundConfig.SpatializationEnabled = true;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
         audioComponent.SourcePosition = location;
         audioComponent.AutoDestroy = true;
         SoundConfig config = audioComponent.SoundConfig;
         uint64_t handle = entity.GetID();
-        MiniAudioEngine::ExecuteOnAudioThread([handle, config]
+        AudioEngine::ExecuteOnAudioThread([handle, config]
             {
-                MiniAudioEngine::Get().SubmitSoundToPlay(handle, config);
+                AudioEngine::Get().SubmitSoundToPlay(handle, config);
             }, "PlaySoundAtLocation()");
         return true;
     }
@@ -73,25 +73,25 @@ namespace NR::Audio
 
     bool AudioPlayback::Play(uint64_t audioComponentID, float startTime)
     {
-        auto& engine = MiniAudioEngine::Get();
+        auto& engine = AudioEngine::Get();
         return engine.SubmitSoundToPlay(audioComponentID);
     }
 
     bool AudioPlayback::StopActiveSound(uint64_t audioComponentID)
     {
-        auto& engine = MiniAudioEngine::Get();
+        auto& engine = AudioEngine::Get();
         return engine.StopActiveSoundSource(audioComponentID);
     }
 
     bool AudioPlayback::PauseActiveSound(uint64_t audioComponentID)
     {
-        auto& engine = MiniAudioEngine::Get();
+        auto& engine = AudioEngine::Get();
         return engine.PauseActiveSoundSource(audioComponentID);
     }
 
     bool AudioPlayback::IsPlaying(uint64_t audioComponentID)
     {
-        auto& engine = MiniAudioEngine::Get();
+        auto& engine = AudioEngine::Get();
         return engine.IsSoundForComponentPlaying(audioComponentID);
     }
 }

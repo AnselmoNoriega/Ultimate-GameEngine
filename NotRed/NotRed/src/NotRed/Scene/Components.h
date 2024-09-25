@@ -279,4 +279,17 @@ namespace NR
 
         operator Ref<Mesh>() { return CollisionMesh; }
     };
+
+    struct AudioListenerComponent
+    {
+        bool Active = false;
+
+        float ConeInnerAngleInRadians = 6.283185f;
+        float ConeOuterAngleInRadians = 6.283185f;
+
+        float ConeOuterGain = 0.0f;
+
+        AudioListenerComponent() = default;
+        AudioListenerComponent(const AudioListenerComponent& other) = default;
+    };
 }

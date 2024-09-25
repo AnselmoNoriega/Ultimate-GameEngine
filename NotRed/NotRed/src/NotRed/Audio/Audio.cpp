@@ -7,7 +7,7 @@ namespace NR::Audio
     {
         if (sThreadActive)
         {
-            return;
+            return false;
         }
 
         sThreadActive = true;

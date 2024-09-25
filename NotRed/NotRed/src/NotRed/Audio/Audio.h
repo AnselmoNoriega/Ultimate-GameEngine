@@ -53,13 +53,13 @@ namespace NR::Audio
         template<typename C, void (C::* Function)(TimeFrame)>
         static void BindUpdateFunction(C* instance)
         {
-            mUpdateCallback = [instance](Timestep ts) {(static_cast<C*>(instance)->*Function)(ts); };
+            mUpdateCallback = [instance](TimeFrame dt) {(static_cast<C*>(instance)->*Function)(dt); };
         }
 
         template<typename FuncT>
         static void BindUpdateFunction(FuncT&& func)
         {
-            mUpdateCallback = [func](Timestep ts) { func(ts); };
+            mUpdateCallback = [func](TimeFrame dt) { func(dt); };
         }
 
     private:
@@ -76,7 +76,7 @@ namespace NR::Audio
         static std::atomic<float> sLastFrameTime;
         
     private:
-        friend class MiniAudioEngine;
+        friend class AudioEngine;
     };
 
     static inline bool IsAudioThread()

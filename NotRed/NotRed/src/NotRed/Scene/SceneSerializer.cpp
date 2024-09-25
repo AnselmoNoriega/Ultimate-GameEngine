@@ -17,6 +17,8 @@
 
 #include "NotRed/Asset/AssetManager.h"
 
+#include "NotRed/Audio/AudioComponent.h"
+
 #include "yaml-cpp/yaml.h"
 
 namespace YAML
@@ -514,6 +516,60 @@ namespace NR
             }
 
             out << YAML::EndMap; // MeshColliderComponent
+        }
+
+        if (entity.HasComponent<Audio::AudioComponent>())
+        {
+            out << YAML::Key << "AudioComponent";
+            out << YAML::BeginMap; // AudioComponent
+
+            auto& audioComponent = entity.GetComponent<Audio::AudioComponent>();
+            const auto& soundCofig = audioComponent.SoundConfig;
+
+            if (soundCofig.FileAsset)
+            {
+                out << YAML::Key << "AssetID" << YAML::Value << soundCofig.FileAsset->Handle;
+            }
+
+            out << YAML::Key << "IsLooping" << YAML::Value << (bool)soundCofig.Looping;
+            out << YAML::Key << "VolumeMultiplier" << YAML::Value << audioComponent.VolumeMultiplier;
+            out << YAML::Key << "PitchMultiplier" << YAML::Value << audioComponent.PitchMultiplier;
+            out << YAML::Key << "AutoDestroy" << YAML::Value << audioComponent.AutoDestroy;
+            out << YAML::Key << "PlayOnAwake" << YAML::Value << audioComponent.PlayOnAwake;
+
+            out << YAML::Key << "Spatialization";
+            out << YAML::BeginMap; // Spatialization
+
+            auto& spatialConfig = soundCofig.Spatialization;
+            out << YAML::Key << "Enabled" << YAML::Value << soundCofig.SpatializationEnabled;
+            out << YAML::Key << "AttenuationModel" << YAML::Value << (int)spatialConfig.AttenuationMod;
+            out << YAML::Key << "MinGain" << YAML::Value << spatialConfig.MinGain;
+            out << YAML::Key << "MaxGain" << YAML::Value << spatialConfig.MaxGain;
+            out << YAML::Key << "MinDistance" << YAML::Value << spatialConfig.MinDistance;
+            out << YAML::Key << "MaxDistance" << YAML::Value << spatialConfig.MaxDistance;
+            out << YAML::Key << "ConeInnerAngle" << YAML::Value << spatialConfig.ConeInnerAngleInRadians;
+            out << YAML::Key << "ConeOuterAngle" << YAML::Value << spatialConfig.ConeOuterAngleInRadians;
+            out << YAML::Key << "ConeOuterGain" << YAML::Value << spatialConfig.ConeOuterGain;
+            out << YAML::Key << "DopplerFactor" << YAML::Value << spatialConfig.DopplerFactor;
+            out << YAML::Key << "Rollor" << YAML::Value << spatialConfig.Rolloff;
+            out << YAML::Key << "AirAbsorptionEnabled" << YAML::Value << spatialConfig.AirAbsorptionEnabled;
+
+            out << YAML::EndMap; // Spatialization
+            out << YAML::EndMap; // AudioComponent
+        }
+
+        if (entity.HasComponent<AudioListenerComponent>())
+        {
+            out << YAML::Key << "AudioListenerComponent";
+            out << YAML::BeginMap; // AudioComponent
+
+            auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
+            out << YAML::Key << "Active" << YAML::Value << audioListenerComponent.Active;
+            out << YAML::Key << "ConeInnerAngle" << YAML::Value << audioListenerComponent.ConeInnerAngleInRadians;
+            out << YAML::Key << "ConeOuterAngle" << YAML::Value << audioListenerComponent.ConeOuterAngleInRadians;
+            out << YAML::Key << "ConeOuterGain" << YAML::Value << audioListenerComponent.ConeOuterGain;
+
+            out << YAML::EndMap; // AudioComponent
         }
 
         out << YAML::EndMap; // Entity
@@ -1024,6 +1080,68 @@ namespace NR
                             NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", (uint64_t)deserializedEntity.GetID());
                         }
                     }
+                }
+
+                auto audioComponent = entity["AudioComponent"];
+                if (audioComponent)
+                {
+                    auto& component = deserializedEntity.AddComponent<Audio::AudioComponent>();
+                    Audio::SoundConfig soundConfig;
+
+                    AssetHandle assetHandle = audioComponent["AssetID"] ? audioComponent["AssetID"].as<uint64_t>() : 0;
+                    if (AssetManager::IsAssetHandleValid(assetHandle))
+                    {
+                        soundConfig.FileAsset = AssetManager::GetAsset<Asset>(assetHandle);
+                    }
+                    else
+                    {
+                        NR_CORE_ERROR("Tried to load invalid Audio File asset in Entity {0}", (uint64_t)deserializedEntity.GetID());
+                    }
+
+                    soundConfig.Looping = audioComponent["IsLooping"].as<bool>();
+                    component.AutoDestroy = audioComponent["AutoDestroy"].as<bool>();
+                    component.PlayOnAwake = audioComponent["PlayOnAwake"].as<bool>();
+                    component.VolumeMultiplier = audioComponent["VolumeMultiplier"].as<float>();
+                    component.PitchMultiplier = audioComponent["PitchMultiplier"].as<float>();
+                    soundConfig.VolumeMultiplier = audioComponent["VolumeMultiplier"].as<float>();
+                    soundConfig.PitchMultiplier = audioComponent["PitchMultiplier"].as<float>();
+
+                    auto spConfig = audioComponent["Spatialization"];
+                    if (spConfig)
+                    {
+                        bool spatialEnabled = spConfig["Enabled"].as<bool>();
+                        soundConfig.SpatializationEnabled = spConfig["Enabled"].as<bool>();
+
+                        auto& spatialConfig = soundConfig.Spatialization;
+                        spatialConfig.AttenuationMod = static_cast<Audio::AttenuationModel>(spConfig["AttenuationModel"].as<int>());
+
+                        spatialConfig.MinGain = spConfig["MinGain"].as<float>();
+                        spatialConfig.MaxGain = spConfig["MaxGain"].as<float>();
+
+                        spatialConfig.MinDistance = spConfig["MinDistance"].as<float>();
+                        spatialConfig.MaxDistance = spConfig["MaxDistance"].as<float>();
+
+                        spatialConfig.ConeInnerAngleInRadians = spConfig["ConeInnerAngle"].as<float>();
+                        spatialConfig.ConeOuterAngleInRadians = spConfig["ConeOuterAngle"].as<float>();
+
+                        spatialConfig.ConeOuterGain = spConfig["ConeOuterGain"].as<float>();
+                        spatialConfig.DopplerFactor = spConfig["DopplerFactor"].as<float>();
+                        spatialConfig.Rolloff = spConfig["Rollor"] ? spConfig["Rollor"].as<float>() : 1.0f;
+
+                        spatialConfig.AirAbsorptionEnabled = spConfig["AirAbsorptionEnabled"].as<bool>();
+                    }
+
+                    component.SoundConfig = soundConfig;
+                }
+
+                auto audioListener = entity["AudioListenerComponent"];
+                if (audioListener)
+                {
+                    auto& component = deserializedEntity.AddComponent<AudioListenerComponent>();
+                    component.Active = audioListener["Active"].as<bool>();
+                    component.ConeInnerAngleInRadians = audioListener["ConeInnerAngle"].as<float>();
+                    component.ConeOuterAngleInRadians = audioListener["ConeOuterAngle"].as<float>();
+                    component.ConeOuterGain = audioListener["ConeOuterGain"].as<float>();
                 }
             }
         }

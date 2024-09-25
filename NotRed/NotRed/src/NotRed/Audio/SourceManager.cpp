@@ -5,7 +5,7 @@
 
 namespace NR::Audio
 {
-    SourceManager::SourceManager(MiniAudioEngine& audioEngine)
+    SourceManager::SourceManager(AudioEngine& audioEngine)
         : mAudioEngine(audioEngine) {}
 
     SourceManager::~SourceManager()

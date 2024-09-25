@@ -5,12 +5,12 @@
 
 namespace NR::Audio
 {
-    class MiniAudioEngine;
+    class AudioEngine;
 
     class SourceManager
     {
     public:
-        SourceManager(MiniAudioEngine& audioEngine);
+        SourceManager(AudioEngine& audioEngine);
         ~SourceManager();
 
         void Initialize();
@@ -21,10 +21,10 @@ namespace NR::Audio
         bool GetFreeSourceId(int& sourceIDOut);
 
     private:
-        MiniAudioEngine& mAudioEngine;
+        AudioEngine& mAudioEngine;
         std::queue<int> mFreeSourcIDs;
 
     private:
-        friend class MiniAudioEngine;
+        friend class AudioEngine;
     };
 }
