@@ -9,6 +9,8 @@
 
 #include "NotRed/Renderer/Renderer.h"
 
+#include "NotRed/Core/Timer.h"
+
 namespace NR
 {
     VKMaterial::VKMaterial(const Ref<Shader>& shader, const std::string& name)
@@ -341,6 +343,8 @@ namespace NR
 
     void VKMaterial::RT_UpdateForRendering()
     {
+        NR_SCOPE_PERF("VulkanMaterial::RT_UpdateForRendering");
+
         auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
         for (auto&& [binding, descriptor] : mResidentDescriptors)

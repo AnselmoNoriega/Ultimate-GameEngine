@@ -13,6 +13,8 @@
 #include "NotRed/Platform/OpenGL/GLRenderer.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 
+#include "NotRed/Core/Timer.h"
+
 namespace NR
 {
     static std::unordered_map<size_t, Ref<Pipeline>> sPipelineCache;
@@ -144,6 +146,7 @@ namespace NR
 
     void Renderer::WaitAndRender()
     {
+        NR_SCOPE_PERF("Renderer::WaitAndRender");
         sCommandQueue->Execute();
     }
 

@@ -26,6 +26,8 @@
 
 #include "imgui.h"
 
+#include "NotRed/Core/Timer.h"
+
 namespace NR
 {
 	struct VKRendererData
@@ -126,7 +128,10 @@ namespace NR
 	{
 		Renderer::Submit([pipeline, mesh, transform]() mutable
 			{
-				auto vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
+				NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
+
+				Ref<VKVertexBuffer> vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
+
 				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
 				VkDeviceSize offsets[1] = { 0 };
 				vkCmdBindVertexBuffers(sData->ActiveCommandBuffer, 0, 1, &vbMeshBuffer, offsets);
@@ -192,30 +197,28 @@ namespace NR
 
 		Renderer::Submit([pipeline, mesh, vulkanMaterial, transform, pushConstantBuffer]() mutable
 			{
+				Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
+				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
+				VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
+
+				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+				// Bind descriptor sets describing shader binding points
+				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet();
+				if (descriptorSet)
+				{
+					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
+				}
+
 				auto& submeshes = mesh->GetSubmeshes();
 				for (Submesh& submesh : submeshes)
 				{
-					Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
-					VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
-					VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
-					vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-					// Bind descriptor sets describing shader binding points
-					VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet();
-					if (descriptorSet)
-					{
-						vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
-					}
-
 					glm::mat4 worldTransform = transform * submesh.Transform;
 					pushConstantBuffer.Write(&worldTransform, sizeof(glm::mat4));
 					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, pushConstantBuffer.Size, pushConstantBuffer.Data);
 					vkCmdDrawIndexed(sData->ActiveCommandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
 				}
-			});
 
-		Renderer::Submit([pushConstantBuffer]() mutable
-			{
 				pushConstantBuffer.Release();
 			});
 	}

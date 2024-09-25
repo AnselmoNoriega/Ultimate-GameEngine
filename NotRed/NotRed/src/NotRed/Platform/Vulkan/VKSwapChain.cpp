@@ -529,12 +529,17 @@ namespace NR
 
 	void VKSwapChain::BeginFrame()
 	{
+		NR_SCOPE_PERF("VulkanSwapChain::BeginFrame");
+
 		VK_CHECK_RESULT(vkWaitForFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex], VK_TRUE, UINT64_MAX));
 		VK_CHECK_RESULT(AcquireNextImage(mSemaphores.PresentComplete, &mCurrentBufferIndex));
+		VK_CHECK_RESULT(vkResetCommandPool(mDevice->GetVulkanDevice(), mCommandPool, 0));
 	}
 
 	void VKSwapChain::Present()
 	{
+		NR_SCOPE_PERF("VulkanSwapChain::Present");
+
 		const uint64_t DEFAULT_FENCE_TIMEOUT = 100000000000;
 
 		// Use a fence to wait until the command buffer has finished execution before using it again
@@ -559,7 +564,11 @@ namespace NR
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
 		// This ensures that the image is not presented to the windowing system until all commands have been submitted
-		VkResult result = QueuePresent(mDevice->GetQueue(), mCurrentBufferIndex, mSemaphores.RenderComplete);
+		VkResult result;
+		{
+			NR_SCOPE_PERF("VulkanSwapChain::Present - QueuePresent");
+			result = QueuePresent(mDevice->GetQueue(), mCurrentBufferIndex, mSemaphores.RenderComplete);
+		}
 
 		if (result != VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
 		{
