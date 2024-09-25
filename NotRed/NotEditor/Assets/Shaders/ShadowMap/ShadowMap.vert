@@ -8,15 +8,16 @@ layout(location = 4) in vec2 aTexCoord;
 
 layout (std140, binding = 1) uniform ShadowData
 {
-	mat4 uViewProjectionMatrix;
+	mat4 uViewProjectionMatrix[4];
 };
 
 layout (push_constant) uniform Transform
 {
 	mat4 Transform;
+	uint Cascade;
 } uRenderer;
 
 void main()
 {
-	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
+	gl_Position = uViewProjectionMatrix[uRenderer.Cascade] * uRenderer.Transform * vec4(aPosition, 1.0);
 }

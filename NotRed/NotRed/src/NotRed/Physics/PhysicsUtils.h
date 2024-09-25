@@ -1,6 +1,6 @@
 #pragma once
 
-#include <PxPhysicsAPI.h>
+#include <PhysX/include/PxPhysicsAPI.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "NotRed/Scene/Components.h"

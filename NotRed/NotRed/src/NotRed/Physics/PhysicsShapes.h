@@ -119,8 +119,6 @@ namespace NR
 		ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor);
 		~ConvexMeshShape() override = default;
 
-		void DetachFromActor(physx::PxRigidActor* actor) override;
-
 		void SetOffset(const glm::vec3& offset) override {};
 		void SetTrigger(bool isTrigger) override;
 
@@ -148,7 +146,7 @@ namespace NR
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
 
-		void SetOffset(const glm::vec3& offset) override;
+		void SetOffset(const glm::vec3& offset) override {};
 		void SetTrigger(bool isTrigger) override;
 
 		const glm::vec3& GetOffset() const override { return glm::vec3(0.0f); }

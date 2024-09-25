@@ -17,7 +17,7 @@ namespace NR
 		for (uint32_t i = 0; i < count; ++i)
 		{
 			physx::PxActor& actor = *actors[i]; Entity& entity = *(Entity*)actor.userData;
-			NR_CORE_INFO("Physics Actor waking up: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+			NR_CORE_INFO("Physics Actor waking up: ID: {0}, Name: {1}", (uint64_t)entity.GetID(), entity.GetComponent<TagComponent>().Tag);
 		}
 	}
 
@@ -27,7 +27,7 @@ namespace NR
 		{
 			physx::PxActor& actor = *actors[i]; 
 			Entity& entity = *(Entity*)actor.userData; 
-			NR_CORE_INFO("Physics Actor going to sleep: ID: {0}, Name: {1}", entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+			NR_CORE_INFO("Physics Actor going to sleep: ID: {0}, Name: {1}", (uint64_t)entity.GetID(), entity.GetComponent<TagComponent>().Tag);
 		}
 	}
 

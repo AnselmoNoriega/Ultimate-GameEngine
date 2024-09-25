@@ -10,11 +10,12 @@ layout (std140, binding = 0) uniform Camera
 {
 	mat4 uViewProjectionMatrix;
 	mat4 uInverseViewProjectionMatrix;
+	mat4 uViewMatrix;
 };
 
 layout (std140, binding = 1) uniform ShadowData
 {
-	mat4 uLightMatrixCascade0;
+	mat4 uLightMatrix[4];
 };
 
 layout (push_constant) uniform Transform
@@ -30,9 +31,9 @@ struct VertexOutput
 	mat3 WorldNormals;
 	mat3 WorldTransform;
 	vec3 Binormal;
-
-	vec4 ShadowMapCoords;
-	vec4 ShadowMapCoordsBiased;
+	
+	vec4 ShadowMapCoords[4];
+	vec3 ViewPosition;
 };
 
 layout (location = 0) out VertexOutput Output;
@@ -41,13 +42,16 @@ void main()
 {
 	Output.WorldPosition = vec3(uRenderer.Transform * vec4(aPosition, 1.0));
     Output.Normal = mat3(uRenderer.Transform) * aNormal;
-	Output.TexCoord = aTexCoord;
+	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
 	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(aTangent, aBinormal, aNormal);
 	Output.WorldTransform = mat3(uRenderer.Transform);
 	Output.Binormal = aBinormal;
-
-	Output.ShadowMapCoords = uLightMatrixCascade0 * vec4(Output.WorldPosition, 1.0);
-	Output.ShadowMapCoordsBiased = uLightMatrixCascade0 * vec4(Output.WorldPosition, 1.0);
+	
+	Output.ShadowMapCoords[0] = uLightMatrix[0] * vec4(Output.WorldPosition, 1.0);
+	Output.ShadowMapCoords[1] = uLightMatrix[1] * vec4(Output.WorldPosition, 1.0);
+	Output.ShadowMapCoords[2] = uLightMatrix[2] * vec4(Output.WorldPosition, 1.0);
+	Output.ShadowMapCoords[3] = uLightMatrix[3] * vec4(Output.WorldPosition, 1.0);
+	Output.ViewPosition = vec3(uViewMatrix * vec4(Output.WorldPosition, 1.0));
 
 	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
 }

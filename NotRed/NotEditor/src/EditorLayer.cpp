@@ -170,7 +170,7 @@ namespace NR
                     Renderer::EndRenderPass();
                 }
 
-                if (selection.EntityObj.HasComponent<CircleCollider2DComponent>())
+                if (selection.EntityObj.HasComponent<CircleCollider2DComponent>() && false)
                 {
                     const auto& size = selection.EntityObj.GetComponent<CircleCollider2DComponent>().Radius;
                     const TransformComponent& transform = selection.EntityObj.GetComponent<TransformComponent>();

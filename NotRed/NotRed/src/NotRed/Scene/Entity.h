@@ -45,6 +45,12 @@ namespace NR
 		}
 
 		template<typename T>
+		bool HasComponent() const
+		{
+			return mScene->mRegistry.all_of<T>(mEntityHandle);
+		}
+
+		template<typename T>
 		void RemoveComponent()
 		{
 			NR_CORE_ASSERT(HasComponent<T>(), "This Entity does not have this component!");

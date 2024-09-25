@@ -24,6 +24,11 @@ namespace NR
 			return physx::PxTransform(p, r);
 		}
 
+		physx::PxTransform ToPhysicsTransform(const glm::vec3& translation, const glm::vec3& rotation)
+		{
+			return physx::PxTransform(ToPhysicsVector(translation), ToPhysicsQuat(glm::quat(rotation)));
+		}
+
 		physx::PxTransform ToPhyscsTransform(const glm::vec3& translation, const glm::vec3& rotation)
 		{
 			return physx::PxTransform(ToPhysicsVector(translation), ToPhysicsQuat(glm::quat(rotation)));

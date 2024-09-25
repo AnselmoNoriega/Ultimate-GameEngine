@@ -2,7 +2,7 @@
 
 #define OVERLAP_MAX_COLLIDERS 10
 
-#include <PxPhysicsAPI.h>
+#include <PhysX/include/PxPhysicsAPI.h>
 
 #include "PhysicsSettings.h"
 #include "PhysicsActor.h"

@@ -12,7 +12,7 @@ namespace NR
 		UUID(uint64_t uuid);
 		UUID(const UUID& other);
 
-		operator uint64_t () { return mID; }
+		operator uint64_t() { return mID; }
 		operator const uint64_t() const { return mID; }
 
 	private:
@@ -20,8 +20,8 @@ namespace NR
 	};
 }
 
-namespace std {
-
+namespace std 
+{
 	template <>
 	struct hash<NR::UUID>
 	{

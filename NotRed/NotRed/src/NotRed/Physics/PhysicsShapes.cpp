@@ -256,7 +256,6 @@ namespace NR
 		Buffer colliderBuffer;
 		colliderBuffer.Allocate(bufferSize);
 
-		uint32_t offset = 0;
 		for (auto& colliderData : data)
 		{
 			colliderBuffer.Write((void*)&colliderData.Size, sizeof(uint32_t), offset);
