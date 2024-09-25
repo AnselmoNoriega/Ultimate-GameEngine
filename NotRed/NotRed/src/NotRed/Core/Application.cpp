@@ -29,6 +29,8 @@ namespace NR
     {
         sInstance = this;
 
+        mProfiler = new PerformanceProfiler();
+
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
@@ -63,6 +65,9 @@ namespace NR
 
         Renderer::WaitAndRender();
         Renderer::Shutdown();
+
+        delete mProfiler;
+        mProfiler = nullptr;
     }
 
     void Application::RenderImGui()
@@ -87,6 +92,18 @@ namespace NR
         }
 
         ImGui::End();
+
+        ImGui::Begin("Performance");
+        ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+
+        const auto& perFrameData = mProfiler->GetPerFrameData();
+        for (auto&& [name, time] : perFrameData)
+        {
+            ImGui::Text("%s: %.3fms\n", name, time);
+        }
+
+        ImGui::End();
+        mProfiler->Clear();
 
         for (Layer* layer : mLayerStack)
         {

@@ -3,6 +3,7 @@
 #include "NotRed/Core/Core.h"
 #include "NotRed/Core/Window.h"
 #include "NotRed/Core/TimeFrame.h"
+#include "NotRed/Core/Timer.h"
 #include "NotRed/Core/LayerStack.h"
 
 #include "NotRed/Core/Events/ApplicationEvent.h"
@@ -49,6 +50,8 @@ namespace NR
         static const char* GetConfigurationName();
         static const char* GetPlatformName();
 
+        PerformanceProfiler* GetPerformanceProfiler() { return mProfiler; }
+
     private:
         bool OnWindowResize(WindowResizeEvent& e);
         bool OnWindowClose(WindowCloseEvent& e);
@@ -64,6 +67,8 @@ namespace NR
 
         TimeFrame mTimeFrame;
         float mLastFrameTime = 0.0f;
+
+        PerformanceProfiler* mProfiler = nullptr;
     };
 
     Application* CreateApplication(int argc, char** argv);
