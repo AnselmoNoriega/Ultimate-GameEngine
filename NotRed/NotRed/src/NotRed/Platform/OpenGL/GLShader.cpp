@@ -85,7 +85,7 @@ namespace NR
         else
         {
             mIsCompute = true;
-            mShaderSource.insert({ GL_VERTEX_SHADER, vertSrc });
+            mShaderSource.insert({ GL_COMPUTE_SHADER, computeSrc });
         }
 
         Utils::CreateCacheDirectoryIfNeeded();
@@ -227,6 +227,7 @@ namespace NR
                 // Compile shader
                 {
                     auto& shaderSource = mShaderSource.at(stage);
+                    shaderSource.erase(0, shaderSource.find_first_not_of("\xEF\xBB\xBF"));
                     shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
                         shaderSource,
                         GLShaderStageToShaderC(stage),
@@ -443,7 +444,7 @@ namespace NR
             ShaderBuffer& buffer = mBuffers[bufferName];
             buffer.Name = bufferName;
             buffer.Size = bufferSize - mConstantBufferOffset;
-            for (int i = 0; i < memberCount; i++)
+            for (int i = 0; i < memberCount; ++i)
             {
                 auto type = compiler.get_type(bufferType.member_types[i]);
                 const auto& memberName = compiler.get_member_name(bufferType.self, i);

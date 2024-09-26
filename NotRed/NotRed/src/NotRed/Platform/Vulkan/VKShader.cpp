@@ -54,7 +54,7 @@ namespace NR
         }
     }
 
-    static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::UniformBuffer*>> sUniformBuffers; // set -> binding point -> buffer
+    static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::UniformBuffer*>> sUniformBuffers;
 
     VKShader::VKShader(const std::string& path, bool forceCompile)
         : mAssetPath(path)

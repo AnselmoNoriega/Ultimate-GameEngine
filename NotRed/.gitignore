@@ -23,6 +23,8 @@ NotEditor/logs/
 **.pxd2
 **.pvd
 
+!AssetRegistryCache.nrr
+
 # Directories
 NotRed/vendor/VulkanSDK
 NotEditor/assets/cache
