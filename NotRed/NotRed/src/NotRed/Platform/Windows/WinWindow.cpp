@@ -56,6 +56,10 @@ namespace NR
         {
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         }
+        else
+        {
+           // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        }
         mWindow = glfwCreateWindow((int)props.Width, (int)props.Height, mData.Title.c_str(), nullptr, nullptr);
 
         mRendererContext = RendererContext::Create(mWindow);

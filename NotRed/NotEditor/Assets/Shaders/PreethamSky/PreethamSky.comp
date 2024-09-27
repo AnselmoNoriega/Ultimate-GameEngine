@@ -5,10 +5,16 @@ const float PI = 3.141592;
 
 layout(binding = 0, rgba32f) restrict writeonly uniform imageCube o_CubeMap;
 
+#ifdef OPENGL
+layout (std140, binding = 0) uniform Uniforms {
+	vec3 TurbidityAzimuthInclination;
+} uUniforms;
+#else
 layout (push_constant) uniform Uniforms
 {
 	vec3 TurbidityAzimuthInclination;
-} u_Uniforms;
+} uUniforms;
+#endif
 
 vec3 GetCubeMapTexCoord()
 {
@@ -126,9 +132,9 @@ void main()
 {
 	vec3 cubeTC = GetCubeMapTexCoord();
 
-	float turbidity     =  u_Uniforms.TurbidityAzimuthInclination.x;
-    float azimuth       = u_Uniforms.TurbidityAzimuthInclination.y;;
-    float inclination   = u_Uniforms.TurbidityAzimuthInclination.z;
+	float turbidity     =  uUniforms.TurbidityAzimuthInclination.x;
+    float azimuth       = uUniforms.TurbidityAzimuthInclination.y;;
+    float inclination   = uUniforms.TurbidityAzimuthInclination.z;
     vec3 sunDir     	= normalize( vec3( sin(inclination) * cos(azimuth), cos(inclination), sin(inclination) * sin(azimuth) ) );
     vec3 viewDir  		= cubeTC;
     vec3 skyLuminance 	= calculateSkyLuminanceRGB( sunDir, viewDir, turbidity );

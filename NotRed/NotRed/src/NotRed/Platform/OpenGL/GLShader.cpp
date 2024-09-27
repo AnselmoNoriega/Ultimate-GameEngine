@@ -153,9 +153,9 @@ namespace NR
     {
         switch (stage)
         {
-        case GL_VERTEX_SHADER:    return shaderc_vertex_shader;
-        case GL_FRAGMENT_SHADER:  return shaderc_fragment_shader;
-        case GL_COMPUTE_SHADER:   return shaderc_compute_shader;
+        case GL_VERTEX_SHADER:    return shaderc_glsl_vertex_shader;
+        case GL_FRAGMENT_SHADER:  return shaderc_glsl_fragment_shader;
+        case GL_COMPUTE_SHADER:   return shaderc_glsl_compute_shader;
         default:
             NR_CORE_ASSERT(false);
             return (shaderc_shader_kind)0;
@@ -281,11 +281,18 @@ namespace NR
         {
             shaderc::Compiler compiler;
             shaderc::CompileOptions options;
-            options.SetTargetEnvironment(shaderc_target_env_opengl_compat, shaderc_env_version_opengl_4_5);
+            options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
 
             {
                 spirv_cross::CompilerGLSL glsl(binary);
                 ParseConstantBuffers(glsl);
+
+				spirv_cross::CompilerGLSL::Options glslOptions = glsl.get_common_options();
+                glslOptions.version = 450;
+                glslOptions.es = false;
+                glslOptions.vulkan_semantics = false;
+                glslOptions.emit_push_constant_as_uniform_buffer = true;
+				glsl.set_common_options(glslOptions);
 
                 std::string fullShaderPath = mAssetPath + "/" + mName;
                 std::filesystem::path shaderPath = GetGLShaderFileExtension(stage, fullShaderPath);

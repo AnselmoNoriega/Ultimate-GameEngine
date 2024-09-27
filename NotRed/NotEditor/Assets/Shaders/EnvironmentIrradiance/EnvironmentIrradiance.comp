@@ -12,10 +12,16 @@ const float PI = 3.141592;
 const float TwoPI = 2 * PI;
 const float Epsilon = 0.00001;
 
+#ifdef OPENGL
+layout (std140, binding = 0) uniform Uniforms {
+	uint Samples;
+} uUniforms;
+#else
 layout(push_constant) uniform Uniforms
 {
 	uint Samples;
 } uUniforms;
+#endif
 
 // Compute Van der Corput radical inverse
 // See: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
