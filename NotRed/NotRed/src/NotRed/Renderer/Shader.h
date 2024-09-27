@@ -16,7 +16,8 @@ namespace NR
 		None, 
 		Bool, Int, UInt, Float, 
 		Vec2, Vec3, Vec4, 
-		Mat3, Mat4
+		Mat3, Mat4,
+		Struct
 	};
 
 	class ShaderUniform

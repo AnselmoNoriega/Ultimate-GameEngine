@@ -50,17 +50,14 @@ namespace NR
 	{
 		const auto& shaderBuffers = mShader->GetShaderBuffers();
 
-		NR_CORE_ASSERT(shaderBuffers.size() <= 1, "Currently only support ONE material buffer!");
+		NR_CORE_ASSERT(shaderBuffers.size() <= 1 || true, "Currently only support ONE material buffer!");
 
-		if (shaderBuffers.size() > 0)
+		for (auto& [buffName, buffer] : shaderBuffers)
 		{
-			const ShaderBuffer& buffer = (*shaderBuffers.begin()).second;
-			if (buffer.Uniforms.find(name) == buffer.Uniforms.end())
+			if (buffer.Uniforms.find(name) != buffer.Uniforms.end())
 			{
-				return nullptr;
+				return &buffer.Uniforms.at(name);
 			}
-
-			return &buffer.Uniforms.at(name);
 		}
 		return nullptr;
 	}
