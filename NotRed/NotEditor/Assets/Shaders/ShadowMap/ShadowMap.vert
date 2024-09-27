@@ -11,11 +11,23 @@ layout (std140, binding = 1) uniform ShadowData
 	mat4 uViewProjectionMatrix[4];
 };
 
+#ifdef OPENGL
+
+layout (std140, binding = 14) uniform Transform
+{
+	mat4 Transform;
+	uint Cascade;
+} uRenderer;
+
+#else
+
 layout (push_constant) uniform Transform
 {
 	mat4 Transform;
 	uint Cascade;
 } uRenderer;
+
+#endif
 
 void main()
 {

@@ -4,16 +4,20 @@ layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 unused;
 
 #ifdef OPENGL
-layout (std140, binding = 1) uniform Settings {
+
+layout (std140, binding = 8) uniform Settings {
 	layout (offset = 64) float Scale;
 	float Size;
 } uSettings;
+
 #else
+
 layout (push_constant) uniform Settings
 {
 	layout (offset = 64) float Scale;
 	float Size;
 } uSettings;
+
 #endif
 
 layout (location = 0) in vec2 vTexCoord;

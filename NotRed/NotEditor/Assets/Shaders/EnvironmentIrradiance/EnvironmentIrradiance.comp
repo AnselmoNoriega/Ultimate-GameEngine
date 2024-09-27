@@ -13,14 +13,18 @@ const float TwoPI = 2 * PI;
 const float Epsilon = 0.00001;
 
 #ifdef OPENGL
-layout (std140, binding = 0) uniform Uniforms {
+
+layout (std140, binding = 9) uniform Uniforms {
 	uint Samples;
 } uUniforms;
+
 #else
+
 layout(push_constant) uniform Uniforms
 {
 	uint Samples;
 } uUniforms;
+
 #endif
 
 // Compute Van der Corput radical inverse

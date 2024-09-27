@@ -17,14 +17,19 @@ layout(binding = 0, rgba32f) restrict writeonly uniform imageCube outputTexture[
 layout(binding = 1) uniform samplerCube inputTexture;
 
 #ifdef OPENGL
-layout (std140, binding = 0) uniform Uniforms {
+
+layout (std140, binding = 12) uniform Uniforms 
+{
     float Roughness;
 } uUniforms;
+
 #else
+
 layout (push_constant) uniform Uniforms
 {
 	float Roughness;
 } uUniforms;
+
 #endif
 
 #define PARAM_LEVEL     0

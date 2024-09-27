@@ -5,10 +5,21 @@ layout(location = 1) out vec4 oBloom;
 
 layout (binding = 1) uniform samplerCube uTexture;
 
+#ifdef OPENGL
+
+layout (std140, binding = 13) uniform Uniforms 
+{
+	float TextureLod;
+} uUniforms;
+
+#else
+
 layout (push_constant) uniform Uniforms
 {
 	float TextureLod;
 } uUniforms;
+
+#endif
 
 layout (location = 0) in vec3 vPosition;
 

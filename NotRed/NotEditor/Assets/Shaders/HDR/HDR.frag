@@ -11,10 +11,20 @@ layout (location = 0) in OutputBlock Input;
 
 layout (binding = 0) uniform sampler2D uTexture;
 
+#ifdef OPENGL
+
+layout (std140, binding = 10) uniform Uniforms {
+	float Exposure;
+} uUniforms;
+
+#else
+
 layout(push_constant) uniform Uniforms
 {
 	float Exposure;
 } uUniforms;
+
+#endif
 
 void main()
 {

@@ -285,14 +285,15 @@ namespace NR
 
             {
                 spirv_cross::CompilerGLSL glsl(binary);
-                ParseConstantBuffers(glsl);
 
-				spirv_cross::CompilerGLSL::Options glslOptions = glsl.get_common_options();
+                spirv_cross::CompilerGLSL::Options glslOptions = glsl.get_common_options();
                 glslOptions.version = 450;
                 glslOptions.es = false;
                 glslOptions.vulkan_semantics = false;
                 glslOptions.emit_push_constant_as_uniform_buffer = true;
-				glsl.set_common_options(glslOptions);
+                glsl.set_common_options(glslOptions);
+
+                ParseConstantBuffers(glsl);
 
                 std::string fullShaderPath = mAssetPath + "/" + mName;
                 std::filesystem::path shaderPath = GetGLShaderFileExtension(stage, fullShaderPath);

@@ -68,6 +68,21 @@ layout (set = 1, binding = 10) uniform sampler2D uBRDFLUTTexture;
 // Shadow maps
 layout (set = 1, binding = 11) uniform sampler2DArray uShadowMapTexture;
 
+#ifdef OPENGL
+
+layout (std140, binding = 6) uniform Material
+{
+	layout (offset = 64) vec3 AlbedoColor;
+	float Metalness;
+	float Roughness;
+
+	float EnvMapRotation;
+
+	bool UseNormalMap;
+} uMaterialUniforms;
+
+#else
+
 layout (push_constant) uniform Material
 {
 	layout (offset = 64) vec3 AlbedoColor;
@@ -78,6 +93,8 @@ layout (push_constant) uniform Material
 
 	bool UseNormalMap;
 } uMaterialUniforms;
+
+#endif
 
 struct PBRParameters
 {
