@@ -15,8 +15,6 @@
 
 #include "NotRed/Core/Timer.h"
 
-#include "NotRed/Platform/Vulkan/VKContext.h"
-
 namespace NR
 {
     static std::unordered_map<size_t, Ref<Pipeline>> sPipelineCache;
@@ -58,11 +56,6 @@ namespace NR
         }
     }
 
-    uint32_t Renderer::GetCurrentImageIndex()
-    {
-        return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
-    }
-
     void RendererAPI::SetAPI(RendererAPIType api)
     {
         sCurrentRendererAPI = api;
@@ -82,7 +75,6 @@ namespace NR
 
     static RendererData* sData = nullptr;
     static RenderCommandQueue* sCommandQueue = nullptr;
-    static RenderCommandQueue sResourceFreeQueue[3];
 
     static RendererAPI* InitRendererAPI()
     {
@@ -285,11 +277,6 @@ namespace NR
     RenderCommandQueue& Renderer::GetRenderCommandQueue()
     {
         return *sCommandQueue;
-    }
-
-    RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
-    {
-        return sResourceFreeQueue[index];
     }
 
     RendererConfig& Renderer::GetConfig()
