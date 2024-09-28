@@ -200,6 +200,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
     <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.vert" />
     <None Include="Assets\Shaders\Outline\Outline.frag" />
     <None Include="Assets\Shaders\Outline\Outline.vert" />
+    <None Include="Assets\Shaders\Particle\Particle.frag" />
     <None Include="Assets\Shaders\Particle\Particle.vert" />
     <None Include="Assets\Shaders\PBR_Anim\PBR_Anim.frag" />
     <None Include="Assets\Shaders\PBR_Anim\PBR_Anim.vert" />

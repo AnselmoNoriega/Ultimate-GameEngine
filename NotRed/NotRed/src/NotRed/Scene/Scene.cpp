@@ -278,10 +278,10 @@ namespace NR
 				}
 			}
 
-			auto group = mRegistry.group<ParticleComponent>(entt::get<TransformComponent>);
-			for (auto entity : group)
+			auto groupParticles = mRegistry.group<ParticleComponent>(entt::get<TransformComponent>);
+			for (auto entity : groupParticles)
 			{
-				auto [transformComponent, particleComponent] = group.get<TransformComponent, ParticleComponent>(entity);
+				auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
 
 				particleComponent.MeshObj->Update(dt);
 				glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));

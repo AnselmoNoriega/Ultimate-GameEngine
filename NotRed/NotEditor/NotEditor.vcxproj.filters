@@ -50,5 +50,6 @@
     <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.vert" />
     <None Include="Assets\Shaders\Skybox\Skybox.frag" />
     <None Include="Assets\Shaders\Particle\Particle.vert" />
+    <None Include="Assets\Shaders\Particle\Particle.frag" />
   </ItemGroup>
 </Project>
