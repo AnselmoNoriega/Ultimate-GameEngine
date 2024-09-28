@@ -180,6 +180,45 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Assets\Shaders\Base\Base.frag" />
+    <None Include="Assets\Shaders\Base\Base.vert" />
+    <None Include="Assets\Shaders\BloomBlend\BloomBlend.frag" />
+    <None Include="Assets\Shaders\BloomBlend\BloomBlend.vert" />
+    <None Include="Assets\Shaders\BloomBlur\BloomBlur.frag" />
+    <None Include="Assets\Shaders\BloomBlur\BloomBlur.vert" />
+    <None Include="Assets\Shaders\Collider\Collider.frag" />
+    <None Include="Assets\Shaders\Collider\Collider.vert" />
+    <None Include="Assets\Shaders\EnvironmentIrradiance\EnvironmentIrradiance.comp" />
+    <None Include="Assets\Shaders\EnvironmentMipFilter\EnvironmentMipFilter.comp" />
+    <None Include="Assets\Shaders\EquirectangularToCubeMap\EquirectangularToCubeMap.comp" />
+    <None Include="Assets\Shaders\Grid\Grid.frag" />
+    <None Include="Assets\Shaders\Grid\Grid.vert" />
+    <None Include="Assets\Shaders\HDR\HDR.frag" />
+    <None Include="Assets\Shaders\HDR\HDR.vert" />
+    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.frag" />
+    <None Include="Assets\Shaders\OutlineAnim\OutlineAnim.vert" />
+    <None Include="Assets\Shaders\Outline\Outline.frag" />
+    <None Include="Assets\Shaders\Outline\Outline.vert" />
+    <None Include="Assets\Shaders\Particle\Particle.vert" />
+    <None Include="Assets\Shaders\PBR_Anim\PBR_Anim.frag" />
+    <None Include="Assets\Shaders\PBR_Anim\PBR_Anim.vert" />
+    <None Include="Assets\Shaders\PBR_Static\PBR_Static.frag" />
+    <None Include="Assets\Shaders\PBR_Static\PBR_Static.vert" />
+    <None Include="Assets\Shaders\PreethamSky\PreethamSky.comp" />
+    <None Include="Assets\Shaders\Renderer2D\Renderer2D.frag" />
+    <None Include="Assets\Shaders\Renderer2D\Renderer2D.vert" />
+    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.frag" />
+    <None Include="Assets\Shaders\Renderer2D_Circle\Renderer2D_Circle.vert" />
+    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_Line.frag" />
+    <None Include="Assets\Shaders\Renderer2D_Line\Renderer2D_Line.vert" />
+    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.frag" />
+    <None Include="Assets\Shaders\ShadowMapAnim\ShadowMapAnim.vert" />
+    <None Include="Assets\Shaders\ShadowMap\ShadowMap.frag" />
+    <None Include="Assets\Shaders\ShadowMap\ShadowMap.vert" />
+    <None Include="Assets\Shaders\Skybox\Skybox.frag" />
+    <None Include="Assets\Shaders\Skybox\Skybox.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -34,6 +34,7 @@ namespace NR {
 		Component_RegisterType(TagComponent);
 		Component_RegisterType(TransformComponent);
 		Component_RegisterType(MeshComponent);
+		Component_RegisterType(ParticleComponent);
 		Component_RegisterType(ScriptComponent);
 		Component_RegisterType(CameraComponent);
 		Component_RegisterType(SpriteRendererComponent);
@@ -70,6 +71,7 @@ namespace NR {
 		mono_add_internal_call("NR.TransformComponent::SetTransform_Native", NR::Script::NR_TransformComponent_SetTransform);
 
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
+		mono_add_internal_call("NR.Entity::InstantiateEntity_Native", NR::Script::NR_Entity_InstantiateEntity);
 
 		mono_add_internal_call("NR.MeshComponent::GetMesh_Native", NR::Script::NR_MeshComponent_GetMesh);
 		mono_add_internal_call("NR.MeshComponent::SetMesh_Native", NR::Script::NR_MeshComponent_SetMesh);

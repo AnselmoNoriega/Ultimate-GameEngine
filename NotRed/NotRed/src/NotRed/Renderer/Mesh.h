@@ -129,6 +129,7 @@ namespace NR
 	public:
 		Mesh(const std::string& filename);
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		Mesh(int particleCount);
 		~Mesh();
 
 		void Update(float dt);

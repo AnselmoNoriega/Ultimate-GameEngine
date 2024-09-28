@@ -35,6 +35,7 @@ namespace NR::Script
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
+    uint64_t NR_Entity_InstantiateEntity();
 
     void NR_TransformComponent_GetTransform(uint64_t entityID, TransformComponent* outTransform);
     void NR_TransformComponent_SetTransform(uint64_t entityID, TransformComponent* inTransform);

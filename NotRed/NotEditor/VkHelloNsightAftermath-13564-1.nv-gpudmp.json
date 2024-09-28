@@ -1,0 +1,202 @@
+[
+  {
+    "Base info": {
+      "Application name": "noteditor.exe",
+      "Dump date": "Fri Sep 27 18:37:03 2024",
+      "Dump tick count": 93548338,
+      "Graphics API": "Vulkan",
+      "PID": 13564
+    }
+  },
+  {
+    "Display driver info": {
+      "Version": "561.09"
+    }
+  },
+  {
+    "OS info": {
+      "Build number": 22631,
+      "Service pack major version": 0,
+      "Service pack minor version": 0,
+      "Windows major version": 10,
+      "Windows minor version": 0,
+      "Windows product type": 1
+    }
+  },
+  {
+    "GPU info": {
+      "Adapter LUID": 51969,
+      "Adapter name": "GP104-A"
+    }
+  },
+  {
+    "Page fault info": {
+      "Access Type": "Read",
+      "Client": "Graphics Processing Cluster",
+      "Engine": "Graphics",
+      "Fault Type": "Failed to translate the virtual address.",
+      "GPU virtual address": 189050880
+    }
+  },
+  {
+    "Device info": {
+      "Adapter reset occurred": false,
+      "Device state": "Error_DMA_PageFault",
+      "Engine reset occurred": true
+    }
+  },
+  {
+    "Aftermath markers": {
+      "Context": {
+        "Events": {
+          "Event": {
+            "Callstack": {
+              "Stack": [
+                {
+                  "Entry": {
+                    "Module name": "nvoglv64.dll",
+                    "Pointer": 140731355056967
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "nvoglv64.dll",
+                    "Pointer": 140731355989967
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "vulkan-1.dll",
+                    "Pointer": 140731284423379
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703095820423
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703095985343
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703092628050
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703092627865
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703092600675
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703094940911
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703093532746
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703092634609
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703091394671
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703101940009
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703101939730
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703101939406
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140703101940158
+                  }
+                }
+              ]
+            },
+            "Pipe": "Unknown",
+            "Status": "NotStarted",
+            "Type": "Automatic"
+          }
+        },
+        "Type": "CommandQueue"
+      }
+    }
+  },
+  {
+    "Shader infos": {
+      "Info": {
+        "Shader hash": 5853944967064805082,
+        "Shader name": "fragment_02",
+        "Shader size": 512,
+        "Shader type": "Fragment"
+      }
+    }
+  },
+  {
+    "ApplicationName": "VkHelloNsightAftermath"
+  },
+  {
+    "ApplicationVersion": "v1.0"
+  },
+  {
+    "UserDefined+0": "This is a GPU crash dump example."
+  },
+  {
+    "UserDefined+1": "Engine State: Rendering."
+  },
+  {
+    "UserDefined+2": "More user-defined information..."
+  },
+  {
+    "Active Warps": [
+      {
+        "GPU PC Address": "fragment_02 @ 0x00000078",
+        "Shader mapping": "frag.10000.spv:50",
+        "Warp count": 911
+      }
+    ]
+  },
+  {
+    "Fingerprint": {
+      "Hash": 5178273384597159266,
+      "Quality": 0
+    }
+  }
+]

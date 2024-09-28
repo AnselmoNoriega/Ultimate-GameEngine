@@ -79,6 +79,26 @@ namespace NR
         operator Ref<Mesh>() { return MeshObj; }
     };
 
+    struct ParticleComponent
+    {
+        Ref<Mesh> MeshObj;
+
+        int ParticleCount = 10000;
+
+        ParticleComponent()
+        {
+            MeshObj = Ref<Mesh>::Create(ParticleCount);
+        }
+        ParticleComponent(const ParticleComponent& other) = default;
+        ParticleComponent(const int particleNum)
+        {
+            ParticleCount = particleNum;
+            MeshObj = Ref<Mesh>::Create(particleNum);
+        }
+
+        operator Ref<Mesh>() { return MeshObj; }
+    };
+
     enum class LightType
     {
         None, Directional, Point, Spot
