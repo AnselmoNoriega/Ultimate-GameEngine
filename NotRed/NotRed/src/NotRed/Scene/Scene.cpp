@@ -284,7 +284,7 @@ namespace NR
 				auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
 
 				glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
-				SceneRenderer::SubmitMesh(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
+				SceneRenderer::SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
 			}
 			SceneRenderer::EndScene();
 		}
@@ -371,11 +371,11 @@ namespace NR
 
 				if (mSelectedEntity == entity)
 				{
-					SceneRenderer::SubmitMesh(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
+					SceneRenderer::SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
 				}
 				else
 				{
-					SceneRenderer::SubmitMesh(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
+					SceneRenderer::SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
 				}
 			}
 
