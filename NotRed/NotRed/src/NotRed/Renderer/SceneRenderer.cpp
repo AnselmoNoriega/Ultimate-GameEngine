@@ -109,6 +109,7 @@ namespace NR
 		Ref<Material> CompositeMaterial;
 
 		Ref<Pipeline> GeometryPipeline;
+		Ref<Pipeline> ParticlePipeline;
 		Ref<Pipeline> CompositePipeline;
 		Ref<Pipeline> ShadowPassPipeline;
 		Ref<Material> ShadowPassMaterial;
@@ -122,6 +123,7 @@ namespace NR
 			glm::mat4 Transform;
 		};
 		std::vector<DrawCommand> DrawList;
+		std::vector<DrawCommand> DrawListParticles;
 		std::vector<DrawCommand> SelectedMeshDrawList;
 		std::vector<DrawCommand> ColliderDrawList;
 		std::vector<DrawCommand> ShadowPassDrawList;
@@ -188,6 +190,33 @@ namespace NR
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 			pipelineSpecification.DebugName = "PBR-Static";
 			sData->GeometryPipeline = Pipeline::Create(pipelineSpecification);
+		}
+		{
+			FrameBufferSpecification geoFrameBufferSpec;
+			geoFrameBufferSpec.Width = 1280;
+			geoFrameBufferSpec.Height = 720;
+			geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA32F, ImageFormat::Depth };
+			geoFrameBufferSpec.Samples = 1;
+			geoFrameBufferSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+
+			Ref<FrameBuffer> FrameBuffer = FrameBuffer::Create(geoFrameBufferSpec);
+
+			PipelineSpecification pipelineSpecification;
+			pipelineSpecification.Layout = {
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float3, "aNormal" },
+				{ ShaderDataType::Float3, "aTangent" },
+				{ ShaderDataType::Float3, "aBinormal" },
+				{ ShaderDataType::Float2, "aTexCoord" },
+			};
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
+
+			RenderPassSpecification renderPassSpec;
+			renderPassSpec.TargetFrameBuffer = FrameBuffer;
+			renderPassSpec.DebugName = "Particles";
+			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+			pipelineSpecification.DebugName = "Particles";
+			sData->ParticlePipeline = Pipeline::Create(pipelineSpecification);
 		}
 
 		// Composite Pass
@@ -457,6 +486,7 @@ namespace NR
 		if (sData->NeedsResize)
 		{
 			sData->GeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
+			sData->ParticlePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
 			sData->CompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
 			sData->NeedsResize = false;
 		}
@@ -514,6 +544,11 @@ namespace NR
 	{
 		sData->DrawList.push_back({ mesh, overrideMaterial, transform });
 		sData->ShadowPassDrawList.push_back({ mesh, overrideMaterial, transform });
+	}
+
+	void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	{
+		sData->DrawListParticles.push_back({ mesh, overrideMaterial, transform });
 	}
 
 	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, const glm::mat4& transform)
@@ -598,6 +633,11 @@ namespace NR
 		for (auto& dc : sData->SelectedMeshDrawList)
 		{
 			Renderer::RenderMesh(sData->GeometryPipeline, dc.Mesh, dc.Transform);
+		}
+
+		for (auto& dc : sData->DrawListParticles)
+		{
+			Renderer::RenderMesh(sData->ParticlePipeline, dc.Mesh, dc.Transform);
 		}
 
 		// Grid

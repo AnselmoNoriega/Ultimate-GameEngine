@@ -731,8 +731,8 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
                 
-                int t = pc.ParticleCount;
                 UI::Property("Particle Count", pc.ParticleCount);
+                UI::PropertyAssetReference("Mesh", pc.MeshObj, AssetType::Mesh);
 
                 UI::EndPropertyGrid();
             });

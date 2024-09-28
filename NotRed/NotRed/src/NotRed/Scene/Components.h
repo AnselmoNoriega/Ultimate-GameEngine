@@ -83,7 +83,7 @@ namespace NR
     {
         Ref<Mesh> MeshObj;
 
-        int ParticleCount = 10000;
+        int ParticleCount = 4;
 
         ParticleComponent()
         {

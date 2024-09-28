@@ -395,56 +395,6 @@ namespace NR
 				{
 					auto prop = aiMaterial->mProperties[p];
 
-#if DEBUG_PRINT_ALL_PROPS
-					NR_MESH_LOG("Material Property:");
-					NR_MESH_LOG("  Name = {0}", prop->mKey.data);
-					float data = *(float*)prop->mData;
-					NR_MESH_LOG("  Value = {0}", data);
-
-					switch (prop->mSemantic)
-					{
-					case aiTextureType_NONE:
-						NR_MESH_LOG("  Semantic = aiTextureType_NONE");
-						break;
-					case aiTextureType_DIFFUSE:
-						NR_MESH_LOG("  Semantic = aiTextureType_DIFFUSE");
-						break;
-					case aiTextureType_SPECULAR:
-						NR_MESH_LOG("  Semantic = aiTextureType_SPECULAR");
-						break;
-					case aiTextureType_AMBIENT:
-						NR_MESH_LOG("  Semantic = aiTextureType_AMBIENT");
-						break;
-					case aiTextureType_EMISSIVE:
-						NR_MESH_LOG("  Semantic = aiTextureType_EMISSIVE");
-						break;
-					case aiTextureType_HEIGHT:
-						NR_MESH_LOG("  Semantic = aiTextureType_HEIGHT");
-						break;
-					case aiTextureType_NORMALS:
-						NR_MESH_LOG("  Semantic = aiTextureType_NORMALS");
-						break;
-					case aiTextureType_SHININESS:
-						NR_MESH_LOG("  Semantic = aiTextureType_SHININESS");
-						break;
-					case aiTextureType_OPACITY:
-						NR_MESH_LOG("  Semantic = aiTextureType_OPACITY");
-						break;
-					case aiTextureType_DISPLACEMENT:
-						NR_MESH_LOG("  Semantic = aiTextureType_DISPLACEMENT");
-						break;
-					case aiTextureType_LIGHTMAP:
-						NR_MESH_LOG("  Semantic = aiTextureType_LIGHTMAP");
-						break;
-					case aiTextureType_REFLECTION:
-						NR_MESH_LOG("  Semantic = aiTextureType_REFLECTION");
-						break;
-					case aiTextureType_UNKNOWN:
-						NR_MESH_LOG("  Semantic = aiTextureType_UNKNOWN");
-						break;
-					}
-#endif
-
 					if (prop->mType == aiPTI_String)
 					{
 						uint32_t strLength = *(uint32_t*)prop->mData;
@@ -554,6 +504,7 @@ namespace NR
 		mStaticVertices = std::vector<Vertex>(particleCount * 4);
 		mIndices = std::vector<Index>(particleCount * 6);
 
+		//mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
 		mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
 		auto mi = Material::Create(mMeshShader, "Particle-Effect");
 		//mi->Set("uMaterialUniforms.AlbedoTexToggle", 0.0f);
@@ -564,6 +515,8 @@ namespace NR
 		submesh.BaseIndex = 0;
 		submesh.IndexCount = mIndices.size() * 3;
 		submesh.Transform = glm::mat4(0.0f);
+		submesh.MaterialIndex = 0;
+		submesh.MeshName = "Particles";
 		mSubmeshes.push_back(submesh);
 
 		mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));

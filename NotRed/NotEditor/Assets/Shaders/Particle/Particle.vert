@@ -23,6 +23,11 @@ layout (std140, binding = 0) uniform Camera
 	mat4 uViewMatrix;
 };
 
+layout (std140, binding = 1) uniform ShadowData
+{
+	mat4 uLightMatrix[4];
+};
+
 layout (push_constant) uniform Transform
 {
 	mat4 Transform;
@@ -47,6 +52,6 @@ void main()
 {
 	vec3 a_pos = VERTICES[gl_VertexIndex % NUM_VERTICES];
 	vec2 a_texPos = VERTICES[gl_VertexIndex % NUM_VERTICES].xz + vec2(0.5);
-
-	 gl_Position = uViewProjectionMatrix * vec4(a_pos, 1.0);
+	
+	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
 }

@@ -283,9 +283,8 @@ namespace NR
 			{
 				auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
 
-				particleComponent.MeshObj->Update(dt);
 				glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
-				SceneRenderer::SubmitMesh(particleComponent, transform);
+				SceneRenderer::SubmitMesh(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
 			}
 			SceneRenderer::EndScene();
 		}
@@ -361,25 +360,24 @@ namespace NR
 			}
 		}
 
-		{
 			auto groupParticle = mRegistry.group<ParticleComponent>(entt::get<TransformComponent>);
 			for (auto entity : groupParticle)
 			{
-				auto&& [particleComponent, transformComponent] = group.get<ParticleComponent, TransformComponent>(entity);
+				auto& particleComponent = groupParticle.get<ParticleComponent>(entity);
+				auto& transformComponent = groupParticle.get<TransformComponent>(entity);
 				particleComponent.MeshObj->Update(dt);
 
 				glm::mat4 transform = GetTransformRelativeToParent(Entity{ entity, this });
 
 				if (mSelectedEntity == entity)
 				{
-					SceneRenderer::SubmitSelectedMesh(particleComponent, transform);
+					SceneRenderer::SubmitMesh(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
 				}
 				else
 				{
-					SceneRenderer::SubmitMesh(particleComponent, transform);
+					SceneRenderer::SubmitMesh(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
 				}
 			}
-		}
 
 		{
 			auto view = mRegistry.view<BoxColliderComponent>();
