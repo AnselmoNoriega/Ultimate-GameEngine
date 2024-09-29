@@ -683,6 +683,7 @@ namespace NR
 		BloomBlurPass();
 
 		sData->DrawList.clear();
+		sData->DrawListParticles.clear();
 		sData->SelectedMeshDrawList.clear();
 		sData->ShadowPassDrawList.clear();
 		sData->ColliderDrawList.clear();

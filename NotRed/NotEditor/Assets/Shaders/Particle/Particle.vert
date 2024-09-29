@@ -50,8 +50,8 @@ layout (location = 0) out VertexOutput Output;
 
 void main()
 {
-	vec3 a_pos = VERTICES[gl_VertexIndex % NUM_VERTICES];
-	vec2 a_texPos = VERTICES[gl_VertexIndex % NUM_VERTICES].xz + vec2(0.5);
+	//vec3 a_pos = VERTICES[gl_VertexIndex % NUM_VERTICES];
+	//vec2 a_texPos = VERTICES[gl_VertexIndex % NUM_VERTICES].xz + vec2(0.5);
 	
 	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
 }
