@@ -501,8 +501,28 @@ namespace NR
 	Mesh::Mesh(int particleCount)
 		: mIsAnimated(false)
 	{
-		mStaticVertices = std::vector<Vertex>(particleCount * 4);
-		mIndices = std::vector<Index>(particleCount * 6);
+		{
+			Vertex leftBot;
+			leftBot.Position = { -0.5f, -0.5f, 0.0f };
+			Vertex rightBot;
+			rightBot.Position = { 0.5f, -0.5f, 0.0f };
+			Vertex leftTop;
+			leftTop.Position = { -0.5f,  0.5f, 0.0f };
+			Vertex rightTop;
+			rightTop.Position = { 0.5f,  0.5f, 0.0f };
+
+			for (size_t i = 0; i < particleCount; ++i)
+			{
+				mStaticVertices.push_back(leftBot);
+				mStaticVertices.push_back(rightBot);
+				mStaticVertices.push_back(leftTop);
+				mStaticVertices.push_back(rightTop);
+
+				unsigned int index = i * 4;
+				mIndices.push_back({index + 0, index + 1, index + 2});
+				mIndices.push_back({index + 1, index + 3, index + 2});
+			}
+		}
 
 		//mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
 		mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
