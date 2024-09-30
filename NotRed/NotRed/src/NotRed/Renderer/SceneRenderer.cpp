@@ -203,11 +203,7 @@ namespace NR
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float3, "aNormal" },
-				{ ShaderDataType::Float3, "aTangent" },
-				{ ShaderDataType::Float3, "aBinormal" },
-				{ ShaderDataType::Float2, "aTexCoord" },
+				{ ShaderDataType::Float3, "aPosition" }
 			};
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
 

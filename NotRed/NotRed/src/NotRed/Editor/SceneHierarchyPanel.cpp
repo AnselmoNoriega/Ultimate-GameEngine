@@ -731,9 +731,14 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
                 
-                UI::Property("Particle Count", pc.ParticleCount);
-                //Todo: temp
-                UI::PropertyAssetReference("Mesh", pc.MeshObj, AssetType::Mesh);
+                if (UI::Property("Particle Count", pc.ParticleCount, 0, 100000))
+                {
+                    if (pc.ParticleCount < 1)
+                    {
+                        pc.ParticleCount = 1;
+                    }
+                    pc.MeshObj = Ref<Mesh>::Create(pc.ParticleCount);
+                }
 
                 UI::EndPropertyGrid();
             });

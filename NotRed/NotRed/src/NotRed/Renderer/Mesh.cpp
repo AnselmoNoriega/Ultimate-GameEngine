@@ -502,51 +502,48 @@ namespace NR
 		: mIsAnimated(false)
 	{
 		{
-			Vertex leftBot;
-			leftBot.Position = { -0.5f, -0.5f, 0.0f };
-			Vertex rightBot;
-			rightBot.Position = { 0.5f, -0.5f, 0.0f };
-			Vertex leftTop;
-			leftTop.Position = { -0.5f,  0.5f, 0.0f };
-			Vertex rightTop;
-			rightTop.Position = { 0.5f,  0.5f, 0.0f };
+			ParticleVertex leftBot;
+			leftBot.Position = { -0.5f, 0.0f, -0.5f };
+			ParticleVertex rightBot;
+			rightBot.Position = { 0.5f, 0.0f, -0.5f };
+			ParticleVertex leftTop;	
+			leftTop.Position = { -0.5f, 0.0f,  0.5f };
+			ParticleVertex rightTop;
+			rightTop.Position = { 0.5f, 0.0f,  0.5f };
 
 			for (size_t i = 0; i < particleCount; ++i)
 			{
-				mStaticVertices.push_back(leftBot);
-				mStaticVertices.push_back(rightBot);
-				mStaticVertices.push_back(leftTop);
-				mStaticVertices.push_back(rightTop);
+				mParticleVertices.push_back(leftBot);
+				mParticleVertices.push_back(rightBot);
+				mParticleVertices.push_back(leftTop);
+				mParticleVertices.push_back(rightTop);
 
-				unsigned int index = i * 4;
-				mIndices.push_back({index + 0, index + 1, index + 2});
-				mIndices.push_back({index + 1, index + 3, index + 2});
+				unsigned int index = i * 2;
+				Index indexA = { index + 0, index + 1, index + 2 };
+				Index indexB = { index + 1, index + 3, index + 2 };
+				mIndices.push_back(indexA);
+				mIndices.push_back(indexB);
 			}
 		}
 
-		//mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
 		mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
 		auto mi = Material::Create(mMeshShader, "Particle-Effect");
 		//mi->Set("uMaterialUniforms.AlbedoTexToggle", 0.0f);
 		mMaterials.push_back(mi);
 
-		Submesh submesh;
+		Submesh& submesh = mSubmeshes.emplace_back();
 		submesh.BaseVertex = 0;
 		submesh.BaseIndex = 0;
 		submesh.IndexCount = mIndices.size() * 3;
-		submesh.Transform = glm::mat4(0.0f);
+		submesh.VertexCount = mParticleVertices.size();
+		submesh.Transform = glm::mat4(1.0f);
 		submesh.MaterialIndex = 0;
 		submesh.MeshName = "Particles";
-		mSubmeshes.push_back(submesh);
 
-		mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+		mVertexBuffer = VertexBuffer::Create(mParticleVertices.data(), mParticleVertices.size() * sizeof(ParticleVertex));
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
 		mVertexBufferLayout = {
-			{ ShaderDataType::Float3, "aPosition" },
-			{ ShaderDataType::Float3, "aNormal" },
-			{ ShaderDataType::Float3, "aTangent" },
-			{ ShaderDataType::Float3, "aBinormal" },
-			{ ShaderDataType::Float2, "aTexCoord" }
+			{ ShaderDataType::Float3, "aPosition" }
 		};
 	}
 
