@@ -158,7 +158,7 @@ namespace NR
 						descriptorSet,
 						sData->RendererDescriptorSet.DescriptorSets[0]
 					};
-
+					//dewd;
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
 					glm::mat4 worldTransform = transform * submesh.Transform;
@@ -549,6 +549,67 @@ namespace NR
 			});
 
 		return { envFiltered, irradianceMap };
+	}
+
+	void VKRenderer::GenerateParticles()
+	{
+		// Convert equirectangular to cubemap
+		Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");
+		Ref<VKComputePipeline> particleGenPipeline = Ref<VKComputePipeline>::Create(particleGenShader);
+
+		Renderer::Submit([particleGenPipeline]() mutable
+			{
+				VKAllocator allocator("Particles");
+
+				size_t dataCount = 200;  // Example number of elements
+				VkDeviceSize bufferSize = sizeof(Particles) * dataCount;
+
+				// Create staging buffer
+				VkBufferCreateInfo bufferCreateInfo{};
+				bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				bufferCreateInfo.size = bufferSize;
+				bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  // Staging buffer usage
+				bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				VkBuffer stagingBuffer;
+				VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+
+				Particles* srcData = new Particles[dataCount];
+				uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
+				memcpy(destData, srcData, bufferSize);
+				allocator.UnmapMemory(stagingBufferAllocation);
+
+				// Copy data to staging buffer
+				bufferCreateInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+				VkBuffer dataBuffer;
+				VmaAllocation dataBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, dataBuffer);
+
+				// Copy data from staging buffer to GPU buffer (dataBuffer)
+				Utils::CopyBuffer(stagingBuffer, dataBuffer, bufferSize);
+
+				// Destroy staging buffer after copying
+				allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);
+
+				// Create descriptor set and bind buffer to the compute shader
+				VKShader::ShaderMaterialDescriptorSet descriptorSet = particleGenPipeline->GetShader()->CreateDescriptorSets();
+
+				VkDescriptorBufferInfo bufferInfo = {};
+				bufferInfo.buffer = dataBuffer;
+				bufferInfo.offset = 0;
+				bufferInfo.range = bufferSize;
+
+				// Write the descriptor set to bind the storage buffer
+				VkWriteDescriptorSet descriptorWrite = {};
+				descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptorWrite.dstSet = descriptorSet.DescriptorSets[0];
+				descriptorWrite.dstBinding = 0;  // Binding index 0 (match the shader binding)
+				descriptorWrite.dstArrayElement = 0;
+				descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				descriptorWrite.descriptorCount = 1;
+				descriptorWrite.pBufferInfo = &bufferInfo;
+
+				vkUpdateDescriptorSets(VKContext::GetCurrentDevice()->GetVulkanDevice(), 1, &descriptorWrite, 0, nullptr);
+			});
 	}
 
 	Ref<TextureCube> VKRenderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)

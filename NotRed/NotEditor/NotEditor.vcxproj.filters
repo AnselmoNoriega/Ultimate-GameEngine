@@ -51,5 +51,6 @@
     <None Include="Assets\Shaders\Skybox\Skybox.frag" />
     <None Include="Assets\Shaders\Particle\Particle.vert" />
     <None Include="Assets\Shaders\Particle\Particle.frag" />
+    <None Include="Assets\Shaders\ParticleGen\ParticleGen.comp" />
   </ItemGroup>
 </Project>

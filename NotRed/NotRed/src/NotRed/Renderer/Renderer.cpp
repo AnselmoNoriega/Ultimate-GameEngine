@@ -107,6 +107,7 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Particle", true);
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ParticleGen", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
 
@@ -181,6 +182,11 @@ namespace NR
     std::pair<Ref<TextureCube>, Ref<TextureCube>> Renderer::CreateEnvironmentMap(const std::string& filepath)
     {
         return sRendererAPI->CreateEnvironmentMap(filepath);
+    }
+
+    void Renderer::GenerateParticles()
+    {
+        sRendererAPI->GenerateParticles();
     }
 
     void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)

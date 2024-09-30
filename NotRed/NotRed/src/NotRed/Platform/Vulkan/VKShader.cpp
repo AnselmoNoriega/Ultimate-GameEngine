@@ -55,6 +55,7 @@ namespace NR
     }
 
     static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::UniformBuffer*>> sUniformBuffers; // set -> binding point -> buffer
+    static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::StorageBuffer*>> sStorageBuffers; // set -> binding point -> buffer
 
     VKShader::VKShader(const std::string& path, bool forceCompile)
         : mAssetPath(path)
@@ -333,6 +334,48 @@ namespace NR
             NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
         }
 
+        for (const auto& resource : resources.storage_buffers)
+        {
+            const auto& name = resource.name;
+            auto& bufferType = compiler.get_type(resource.base_type_id);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t size = compiler.get_declared_struct_size(bufferType);
+
+            // Ensure that the descriptor set vector is resized to accommodate new sets
+            if (descriptorSet >= mShaderDescriptorSets.size()) 
+            {
+                mShaderDescriptorSets.resize(descriptorSet + 1);
+            }
+
+            ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
+
+            // Here we handle the storage buffer just like we did with the uniform buffer
+            if (sStorageBuffers[descriptorSet].find(binding) == sStorageBuffers[descriptorSet].end()) 
+            {
+                StorageBuffer* storageBuffer = new StorageBuffer(); // Assuming StorageBuffer is defined similarly to UniformBuffer
+                storageBuffer->BindingPoint = binding;
+                storageBuffer->Size = size;
+                storageBuffer->Name = name;
+                storageBuffer->ShaderStage = shaderStage;
+                sStorageBuffers.at(descriptorSet)[binding] = storageBuffer;
+            }
+            else 
+            {
+                StorageBuffer* storageBuffer = sStorageBuffers.at(descriptorSet).at(binding);
+                if (size > storageBuffer->Size) 
+                {
+                    storageBuffer->Size = size;
+                }
+            }
+
+            shaderDescriptorSet.StorageBuffers[binding] = sStorageBuffers.at(descriptorSet).at(binding);
+
+            NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
+            NR_CORE_TRACE("  Size: {0}", size);
+            NR_CORE_TRACE("-------------------");
+        }
+
         NR_CORE_TRACE("===========================");
     }
 
@@ -363,6 +406,12 @@ namespace NR
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
+            }
+            if (shaderDescriptorSet.StorageBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
                 typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
             }
 

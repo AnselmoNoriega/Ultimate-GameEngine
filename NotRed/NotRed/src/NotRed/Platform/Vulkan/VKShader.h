@@ -20,6 +20,16 @@ namespace NR
             VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         };
 
+        struct StorageBuffer 
+        {
+            std::string Name;
+            VkDeviceMemory Memory = nullptr;
+            uint32_t Size = 0;
+            VkDescriptorBufferInfo Descriptor;
+            uint32_t BindingPoint = 0;
+            VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+        };
+
         struct ImageSampler
         {
             std::string Name;
@@ -38,6 +48,7 @@ namespace NR
         struct ShaderDescriptorSet
         {
             std::unordered_map<uint32_t, UniformBuffer*> UniformBuffers;
+            std::unordered_map<uint32_t, StorageBuffer*> StorageBuffers;
             std::unordered_map<uint32_t, ImageSampler> ImageSamplers;
             std::unordered_map<uint32_t, ImageSampler> StorageImages;
 

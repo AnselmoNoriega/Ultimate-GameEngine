@@ -37,5 +37,4 @@ layout (location = 0) out VertexOutput Output;
 void main()
 {
 	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
-	//gl_Position = uViewProjectionMatrix  * vec4(aPosition, 1.0);
 }
