@@ -38,6 +38,8 @@ namespace NR
 		Ref<Texture2D> BRDFLut;
 		VKShader::ShaderMaterialDescriptorSet RendererDescriptorSet;
 
+		VKShader::ShaderMaterialDescriptorSet ParticleDescriptorSet;
+
 		Ref<VertexBuffer> QuadVertexBuffer;
 		Ref<IndexBuffer> QuadIndexBuffer;
 		VKShader::ShaderMaterialDescriptorSet QuadDescriptorSet;
@@ -155,6 +157,55 @@ namespace NR
 
 					// Bind descriptor sets describing shader binding points
 					std::array<VkDescriptorSet, 2> descriptorSets = {
+						descriptorSet,
+						sData->RendererDescriptorSet.DescriptorSets[0]
+					};
+					//dewd;
+					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+
+					glm::mat4 worldTransform = transform * submesh.Transform;
+
+					Buffer uniformStorageBuffer = material->GetUniformStorageBuffer();
+					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &worldTransform);
+					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+					vkCmdDrawIndexed(sData->ActiveCommandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
+				}
+			});
+	}
+
+	void VKRenderer::RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+	{
+		Renderer::Submit([pipeline, mesh, transform]() mutable
+			{
+				NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
+
+				Ref<VKVertexBuffer> vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
+
+				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
+				VkDeviceSize offsets[1] = { 0 };
+				vkCmdBindVertexBuffers(sData->ActiveCommandBuffer, 0, 1, &vbMeshBuffer, offsets);
+
+				auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
+				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
+				vkCmdBindIndexBuffer(sData->ActiveCommandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+				Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
+				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
+				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+				auto& submeshes = mesh->GetSubmeshes();
+				for (Submesh& submesh : submeshes)
+				{
+					auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
+					material->RT_UpdateForRendering();
+
+					VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
+					VkDescriptorSet descriptorSet = material->GetDescriptorSet();
+
+					auto descriptorSetCompute = Renderer::GetShaderLibrary()->Get("ParticleGen").As<VKShader>()->GetDescriptorSet();
+
+					// Bind descriptor sets describing shader binding points
+					std::array<VkDescriptorSet, 3> descriptorSets = {
 						descriptorSet,
 						sData->RendererDescriptorSet.DescriptorSets[0]
 					};
@@ -591,7 +642,7 @@ namespace NR
 				allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);
 
 				// Create descriptor set and bind buffer to the compute shader
-				VKShader::ShaderMaterialDescriptorSet descriptorSet = particleGenPipeline->GetShader()->CreateDescriptorSets();
+				sData->ParticleDescriptorSet = particleGenPipeline->GetShader()->CreateDescriptorSets();
 
 				VkDescriptorBufferInfo bufferInfo = {};
 				bufferInfo.buffer = dataBuffer;
@@ -601,7 +652,7 @@ namespace NR
 				// Write the descriptor set to bind the storage buffer
 				VkWriteDescriptorSet descriptorWrite = {};
 				descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-				descriptorWrite.dstSet = descriptorSet.DescriptorSets[0];
+				descriptorWrite.dstSet = sData->ParticleDescriptorSet.DescriptorSets[0];
 				descriptorWrite.dstBinding = 0;  // Binding index 0 (match the shader binding)
 				descriptorWrite.dstArrayElement = 0;
 				descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -609,6 +660,10 @@ namespace NR
 				descriptorWrite.pBufferInfo = &bufferInfo;
 
 				vkUpdateDescriptorSets(VKContext::GetCurrentDevice()->GetVulkanDevice(), 1, &descriptorWrite, 0, nullptr);
+
+				particleGenPipeline->Begin();
+				particleGenPipeline->Dispatch(sData->ParticleDescriptorSet.DescriptorSets[0], dataCount / 32, 1, 1);
+				particleGenPipeline->End();
 			});
 	}
 

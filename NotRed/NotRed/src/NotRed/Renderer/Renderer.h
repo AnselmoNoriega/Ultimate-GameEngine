@@ -69,6 +69,7 @@ namespace NR
         static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
 
         static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
         static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer());
         static void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform);
         static void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material);

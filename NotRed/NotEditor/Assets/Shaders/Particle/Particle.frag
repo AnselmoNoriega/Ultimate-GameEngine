@@ -1,5 +1,7 @@
 #version 450 core
 
+layout(location = 16) in vec4 fragColor;
+
 const float PI = 3.141592;
 const float Epsilon = 0.00001;
 
@@ -97,5 +99,5 @@ PBRParameters mParams;
 void main() 
 {
 	oBloomColor = vec4(1.0, 0.0, 1.0, 1.0);
-    color = vec4(1.0, 0.0, 0.0, 1.0);  // Red color
+    color = fragColor;  // Red color
 }

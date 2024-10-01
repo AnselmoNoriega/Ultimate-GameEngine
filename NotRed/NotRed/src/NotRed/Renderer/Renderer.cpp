@@ -194,6 +194,11 @@ namespace NR
         sRendererAPI->RenderMesh(pipeline, mesh, transform);
     }
 
+    void Renderer::RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    {
+        sRendererAPI->RenderParticles(pipeline, mesh, transform);
+    }
+
     void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
     {
         sRendererAPI->RenderMesh(pipeline, mesh, material, transform, additionalUniforms);

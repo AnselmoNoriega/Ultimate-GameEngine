@@ -633,7 +633,7 @@ namespace NR
 
 		for (auto& dc : sData->DrawListParticles)
 		{
-			Renderer::RenderMesh(sData->ParticlePipeline, dc.Mesh, dc.Transform);
+			Renderer::RenderParticles(sData->ParticlePipeline, dc.Mesh, dc.Transform);
 		}
 
 		// Grid

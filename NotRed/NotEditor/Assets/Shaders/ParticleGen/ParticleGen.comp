@@ -7,10 +7,11 @@ struct Particle {
     int id;
 };
 
-layout(std430, binding = 0) buffer MyDataBuffer {
+layout(std430, binding = 8) buffer MyDataBuffer {
     Particle data[200];
 };
 
 void main() 
 {
+    data[0].id = 2;
 }
