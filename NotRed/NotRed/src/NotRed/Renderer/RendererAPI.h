@@ -29,7 +29,7 @@ namespace NR
 		glm::vec4 position;
 		glm::vec4 velocity;
 		float mass;
-		int id;
+		int id = -1;
 	};
 
 	class RendererAPI

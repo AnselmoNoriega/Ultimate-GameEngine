@@ -664,6 +664,32 @@ namespace NR
 				particleGenPipeline->Begin();
 				particleGenPipeline->Dispatch(sData->ParticleDescriptorSet.DescriptorSets[0], dataCount / 32, 1, 1);
 				particleGenPipeline->End();
+
+				//--------------------------------------------------
+				//--------------Test-----------------------------
+				//--------------------------------------------------
+				VkBufferCreateInfo readbackBufferInfo{};
+				readbackBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				readbackBufferInfo.size = bufferSize;
+				readbackBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+				readbackBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				VkBuffer readbackBuffer;
+				VmaAllocation readbackBufferAllocation = allocator.AllocateBuffer(readbackBufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, readbackBuffer);
+
+				Utils::CopyBuffer(dataBuffer, readbackBuffer, bufferSize);
+
+				uint8_t* readbackData = allocator.MapMemory<uint8_t>(readbackBufferAllocation);
+				Particles* particleData = reinterpret_cast<Particles*>(readbackData);
+
+				// You can now inspect the `particleData` array to check if the memory was changed
+				for (size_t i = 0; i < dataCount; i++) 
+				{
+					// Debugging or validation code here
+					int j = particleData[i].id;
+				}
+
+				allocator.UnmapMemory(readbackBufferAllocation);
 			});
 	}
 
