@@ -205,9 +205,8 @@ namespace NR
 					auto descriptorSetCompute = Renderer::GetShaderLibrary()->Get("ParticleGen").As<VKShader>()->GetDescriptorSet();
 
 					// Bind descriptor sets describing shader binding points
-					std::array<VkDescriptorSet, 3> descriptorSets = {
-						descriptorSet,
-						sData->RendererDescriptorSet.DescriptorSets[0]
+					std::array<VkDescriptorSet, 1> descriptorSets = {
+						descriptorSet
 					};
 					//dewd;
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
@@ -216,7 +215,6 @@ namespace NR
 
 					Buffer uniformStorageBuffer = material->GetUniformStorageBuffer();
 					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &worldTransform);
-					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
 					vkCmdDrawIndexed(sData->ActiveCommandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
 				}
 			});
