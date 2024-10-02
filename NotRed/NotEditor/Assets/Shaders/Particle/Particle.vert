@@ -23,7 +23,7 @@ struct Particle {
     int id;
 };
 
-layout(std430, binding = 8) buffer MyDataBuffer {
+layout(set = 0, binding = 8) buffer ParticleData {
     Particle data[200];
 };
 //---------------------------------------------------

@@ -54,7 +54,7 @@ namespace NR
 
             std::unordered_map<std::string, VkWriteDescriptorSet> WriteDescriptorSets;
 
-            operator bool() const { return !(UniformBuffers.empty() && ImageSamplers.empty() && StorageImages.empty()); }
+            operator bool() const { return !(UniformBuffers.empty() && ImageSamplers.empty() && StorageImages.empty() && StorageBuffers.empty()); }
         };
 
         struct ShaderMaterialDescriptorSet

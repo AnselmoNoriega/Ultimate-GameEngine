@@ -7,14 +7,15 @@ struct Particle {
     int id;
 };
 
-layout(std430, binding = 8) buffer MyDataBuffer {
+layout(set = 0, binding = 8) buffer ParticleData {
     Particle data[200];
 };
 
 void main() 
 {
-    for(int i = 0; i < 200; ++i)
+    uint id = gl_GlobalInvocationID.x;
+    if (id < 200) // Ensure we're within bounds
     {
-        data[i].id = 2;
+        data[id].id = 5; // Set the ID for the current particle
     }
 }

@@ -180,6 +180,7 @@ namespace NR
 			{
 				NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
 
+				auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 				Ref<VKVertexBuffer> vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
 
 				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
@@ -203,7 +204,56 @@ namespace NR
 					VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
 					VkDescriptorSet descriptorSet = material->GetDescriptorSet();
 
-					VkDescriptorSet descriptorSetCompute = Renderer::GetShaderLibrary()->Get("ParticleGen").As<VKShader>()->GetDescriptorSet();
+					VkDescriptorSet descriptorSetCompute = Renderer::GetShaderLibrary()->Get("Particle").As<VKShader>()->GetDescriptorSet();
+
+					VKAllocator allocator("Particles");
+
+					size_t dataCount = 200;  // Number of particles
+					VkDeviceSize bufferSize = sizeof(Particles) * dataCount;
+
+					VkBufferCreateInfo bufferCreateInfo{};
+					bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+					bufferCreateInfo.size = bufferSize;
+					bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+					bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+					VkBuffer stagingBuffer;
+					VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+
+					Particles* srcData = new Particles[dataCount];  // Fill with initial particle data
+
+					for (size_t i = 0; i < dataCount; i++)
+					{
+						srcData[i].id = 2;
+					}
+
+					uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
+					memcpy(destData, srcData, bufferSize);
+					allocator.UnmapMemory(stagingBufferAllocation);
+
+					// Create GPU buffer to store the particle data
+					bufferCreateInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+					VkBuffer dataBuffer;
+					VmaAllocation dataBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, dataBuffer);
+
+					// Copy data from staging buffer to the GPU buffer
+					Utils::CopyBuffer(stagingBuffer, dataBuffer, bufferSize);
+					allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);
+
+					// Create descriptor info for ParticleData buffer
+					VkDescriptorBufferInfo particleBufferInfo = {};
+					particleBufferInfo.buffer = dataBuffer; // This should be the GPU buffer storing particle data
+					particleBufferInfo.offset = 0;
+					particleBufferInfo.range = sizeof(Particles) * 200; // Size of the particle buffer
+
+					std::array<VkWriteDescriptorSet, 1> writeDescriptors;
+					writeDescriptors[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+					writeDescriptors[0].dstSet = descriptorSetCompute;
+					writeDescriptors[0].dstBinding = 8; // Ensure this matches the shader binding
+					writeDescriptors[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+					writeDescriptors[0].descriptorCount = 1;
+					writeDescriptors[0].pBufferInfo = &particleBufferInfo;
+
 
 					// Bind descriptor sets describing shader binding points
 					std::array<VkDescriptorSet, 1> descriptorSets = {
@@ -211,6 +261,8 @@ namespace NR
 					};
 					//dewd;
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+					// Update the descriptor sets
+					vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
 
 					glm::mat4 worldTransform = transform * submesh.Transform;
 

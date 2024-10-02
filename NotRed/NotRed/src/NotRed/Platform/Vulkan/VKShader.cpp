@@ -692,7 +692,7 @@ namespace NR
     const VkWriteDescriptorSet* VKShader::GetDescriptorSet(const std::string& name, uint32_t set) const
     {
         NR_CORE_ASSERT(set < mShaderDescriptorSets.size());
-        NR_CORE_ASSERT(mShaderDescriptorSets[set]);
+        NR_CORE_ASSERT(mShaderDescriptorSets.at(set));
 
         if (mShaderDescriptorSets.at(set).WriteDescriptorSets.find(name) == mShaderDescriptorSets.at(set).WriteDescriptorSets.end())
         {
