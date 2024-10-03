@@ -1,5 +1,7 @@
 #version 450
 
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
 struct Particle {
     vec4 position;
     vec4 velocity;
@@ -7,8 +9,9 @@ struct Particle {
     int id;
 };
 
-layout(set = 0, binding = 8) buffer ParticleData {
-    Particle data[200];
+layout(set = 0, binding = 8) buffer ParticleData 
+{
+    Particle data[];
 };
 
 void main() 

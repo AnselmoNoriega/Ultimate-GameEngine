@@ -23,8 +23,9 @@ struct Particle {
     int id;
 };
 
-layout(set = 0, binding = 8) buffer ParticleData {
-    Particle data[200];
+layout(set = 0, binding = 8) buffer ParticleData 
+{
+    Particle data[];
 };
 //---------------------------------------------------
 

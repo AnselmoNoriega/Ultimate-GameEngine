@@ -651,16 +651,22 @@ namespace NR
 
 				std::array<VkWriteDescriptorSet, 1> writeDescriptors;
 				writeDescriptors[0] = *shader->GetDescriptorSet("ParticleData");  // Assuming this is the shader binding name
+				writeDescriptors[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				writeDescriptors[0].dstBinding = 8;       // Matches binding in the shader
+				writeDescriptors[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				writeDescriptors[0].descriptorCount = 1;
 				writeDescriptors[0].dstSet = descriptorSet.DescriptorSets[0];
 				writeDescriptors[0].pBufferInfo = &bufferInfo;
 
 				vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+				
+				uint32_t workgroupCountX = (dataCount + 256 - 1) / 256;
 
 				// Step 5: Push constants and dispatch the compute shader
 				uint32_t particleCount = static_cast<uint32_t>(dataCount);
 				particleGenPipeline->Begin();
 				particleGenPipeline->SetPushConstants(&particleCount, sizeof(uint32_t));  // Assuming push constant is particle count
-				particleGenPipeline->Dispatch(descriptorSet.DescriptorSets[0], dataCount, 0, 0);
+				particleGenPipeline->Dispatch(descriptorSet.DescriptorSets[0], workgroupCountX, 1, 1);
 				particleGenPipeline->End();
 
 				//--------------------------------------------------
@@ -690,7 +696,7 @@ namespace NR
 				// Step 7: Inspect the generated particle data
 				for (size_t i = 0; i < dataCount; i++)
 				{
-					NR_CORE_ASSERT(particleData[i].id < 0);
+					NR_CORE_ASSERT(particleData[i].id != 5);
 
 					// Add your debugging or validation logic here
 				}
