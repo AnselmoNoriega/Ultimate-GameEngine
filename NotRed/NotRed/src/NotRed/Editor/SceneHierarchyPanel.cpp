@@ -155,6 +155,12 @@ namespace NR
                             newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Plane.fbx"));
                             SetSelected(newEntity);
                         }
+                        if (ImGui::MenuItem("Particles"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Particles");
+                            newEntity.AddComponent<ParticleComponent>();
+                            SetSelected(newEntity);
+                        }
                         ImGui::EndMenu();
                     }
                     if (ImGui::BeginMenu("Physics"))
@@ -589,6 +595,14 @@ namespace NR
                     ImGui::CloseCurrentPopup();
                 }
             }
+            if (!mSelectionContext.HasComponent<ParticleComponent>())
+            {
+                if (ImGui::Button("Particle"))
+                {
+                    mSelectionContext.AddComponent<ParticleComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
             if (!mSelectionContext.HasComponent<DirectionalLightComponent>())
             {
                 if (ImGui::Button("Directional Light"))
@@ -734,6 +748,22 @@ namespace NR
                         mcc.CollisionMesh = mc.MeshObj;
                     }
                 }
+                UI::EndPropertyGrid();
+            });
+
+        DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
+            {
+                UI::BeginPropertyGrid();
+                
+                if (UI::Property("Particle Count", pc.ParticleCount, 0, 100000))
+                {
+                    if (pc.ParticleCount < 1)
+                    {
+                        pc.ParticleCount = 1;
+                    }
+                    pc.MeshObj = Ref<Mesh>::Create(pc.ParticleCount);
+                }
+
                 UI::EndPropertyGrid();
             });
 

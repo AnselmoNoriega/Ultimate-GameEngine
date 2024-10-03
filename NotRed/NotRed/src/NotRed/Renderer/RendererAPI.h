@@ -24,6 +24,14 @@ namespace NR
 		Triangles
 	};
 
+	struct Particles
+	{
+		glm::vec4 position;
+		glm::vec4 velocity;
+		float mass;
+		int id = -1;
+	};
+
 	class RendererAPI
 	{
 	public:
@@ -39,11 +47,13 @@ namespace NR
 
 		virtual void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow) = 0;
 		virtual std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath) = 0;
+		virtual void GenerateParticles() = 0;
 		virtual Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination) = 0;
 
 		virtual void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) = 0;
 		virtual void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer()) = 0;
 		virtual void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform) = 0;
+		virtual void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) = 0;
 
 		virtual RendererCapabilities& GetCapabilities() = 0;
 

@@ -80,6 +80,21 @@ namespace NR
                 z = z / length;
             }
         }
+
+        public float Distance(Vector3 other)
+        {
+            return (float)Math.Sqrt(Math.Pow(other.x - x, 2) +
+                                    Math.Pow(other.y - y, 2) +
+                                    Math.Pow(other.z - z, 2));
+        }
+
+        public static float Distance(Vector3 p1, Vector3 p2)
+        {
+            return (float)Math.Sqrt(Math.Pow(p2.x - p1.x, 2) +
+                                    Math.Pow(p2.y - p1.y, 2) +
+                                    Math.Pow(p2.z - p1.z, 2));
+        }
+
         public static Vector3 operator +(Vector3 left, float right)
         {
             return new Vector3(left.x + right, left.y + right, left.z + right);

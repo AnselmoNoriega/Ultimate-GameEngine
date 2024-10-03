@@ -32,6 +32,53 @@ namespace NR
             }
             return std::string(buffer);
         }
+
+        void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+        {
+            Ref<VKDevice> vkDevice = VKContext::GetCurrentDevice();
+            VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+            VkCommandPool commandPool = vkDevice->GetCommandPool();
+            VkQueue graphicsQueue = vkDevice->GetQueue();
+
+            // Allocate command buffer
+            VkCommandBufferAllocateInfo allocInfo{};
+            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            allocInfo.commandPool = commandPool;
+            allocInfo.commandBufferCount = 1;
+
+            VkCommandBuffer commandBuffer;
+            vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+
+            // Begin recording commands
+            VkCommandBufferBeginInfo beginInfo{};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+            vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+            // Copy command
+            VkBufferCopy copyRegion{};
+            copyRegion.srcOffset = 0;
+            copyRegion.dstOffset = 0;
+            copyRegion.size = size;
+            vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+            // End recording
+            vkEndCommandBuffer(commandBuffer);
+
+            // Submit the command buffer
+            VkSubmitInfo submitInfo{};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &commandBuffer;
+
+            vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+            vkQueueWaitIdle(graphicsQueue);  // Wait for the copy to finish
+
+            // Clean up command buffer
+            vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+        }
     }
 
     struct VKAllocatorData

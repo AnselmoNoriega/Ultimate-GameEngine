@@ -75,6 +75,8 @@ namespace NR
 
 		const Ref<VKPhysicalDevice>& GetPhysicalDevice() const { return mPhysicalDevice; }
 		VkDevice GetVulkanDevice() const { return mLogicalDevice; }
+		
+		VkCommandPool GetCommandPool() const { return mCommandPool; }
 
 	private:
 		Ref<VKPhysicalDevice> mPhysicalDevice;

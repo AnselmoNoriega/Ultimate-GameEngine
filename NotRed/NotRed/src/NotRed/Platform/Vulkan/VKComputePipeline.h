@@ -22,6 +22,9 @@ namespace NR
 
 		void SetPushConstants(const void* data, uint32_t size);
 
+		VkPipeline GetVulkanPipeline() { return mComputePipeline; }
+		VkPipelineLayout GetVulkanPipelineLayout() { return mComputePipelineLayout; }
+
 	private:
 		void CreatePipeline();
 
@@ -34,5 +37,4 @@ namespace NR
 
 		VkCommandBuffer mActiveComputeCommandBuffer = nullptr;
 	};
-
 }

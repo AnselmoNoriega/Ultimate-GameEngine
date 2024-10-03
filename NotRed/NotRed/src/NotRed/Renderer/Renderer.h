@@ -63,7 +63,6 @@ namespace NR
                 (*pFunc)();
                 pFunc->~FuncT();
                 };
-
             uint32_t index = Renderer::GetCurrentImageIndex();
             index = (index + 2) % 3;
             auto storageBuffer = GetRenderResourceReleaseQueue(index).Allocate(renderCmd, sizeof(func));
@@ -80,9 +79,11 @@ namespace NR
 
         static void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow);
         static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
+        static void GenerateParticles();
         static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
 
         static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
         static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer());
         static void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform);
         static void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material);

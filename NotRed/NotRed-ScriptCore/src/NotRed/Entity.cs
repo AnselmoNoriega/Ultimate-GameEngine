@@ -94,6 +94,12 @@ namespace NR
             return new Entity(entityID);
         }
 
+        public Entity Instantiate()
+        {
+            ulong entityID = InstantiateEntity_Native();
+            return new Entity(entityID);
+        }
+
         public Entity FindEntityByID(ulong entityID)
         {
             return new Entity(entityID);
@@ -177,6 +183,8 @@ namespace NR
         private static extern bool HasComponent_Native(ulong entityID, Type type);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong FindEntityByTag_Native(string tag);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ulong InstantiateEntity_Native();
 
     }
 }

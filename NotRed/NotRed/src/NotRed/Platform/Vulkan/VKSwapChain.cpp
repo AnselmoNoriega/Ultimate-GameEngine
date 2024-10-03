@@ -566,7 +566,6 @@ namespace NR
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
 		// This ensures that the image is not presented to the windowing system until all commands have been submitted
-
 		VkResult result;
 		{
 			NR_SCOPE_PERF("VulkanSwapChain::Present - QueuePresent");
@@ -588,7 +587,6 @@ namespace NR
 		}
 
 		mCurrentBufferIndex = (mCurrentBufferIndex + 1) % 3;
-
 		// Resource release queue
 		uint32_t index = mCurrentBufferIndex;
 		Renderer::Submit([index]()

@@ -113,7 +113,7 @@ namespace NR::UI
 		return modified;
 	}
 
-	static bool Property(const char* label, int& value)
+	static bool Property(const char* label, int& value, int min = 0, int max = 0)
 	{
 		bool modified = false;
 
@@ -125,7 +125,7 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		itoa(sCounter++, sIDBuffer + 2, 16);
-		if (ImGui::DragInt(sIDBuffer, &value))
+		if (ImGui::DragInt(sIDBuffer, &value, 1.0f, min, max))
 		{
 			modified = true;
 		}

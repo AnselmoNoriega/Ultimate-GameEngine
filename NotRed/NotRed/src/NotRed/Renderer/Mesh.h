@@ -25,6 +25,11 @@ namespace Assimp
 
 namespace NR
 {
+	struct ParticleVertex
+	{
+		glm::vec3 Position;
+	};
+
 	struct Vertex
 	{
 		glm::vec3 Position;
@@ -129,6 +134,7 @@ namespace NR
 	public:
 		Mesh(const std::string& filename);
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		Mesh(int particleCount);
 		~Mesh();
 
 		void Update(float dt);
@@ -185,6 +191,7 @@ namespace NR
 		VertexBufferLayout mVertexBufferLayout;
 
 		std::vector<Vertex> mStaticVertices;
+		std::vector<ParticleVertex> mParticleVertices;
 		std::vector<AnimatedVertex> mAnimatedVertices;
 		std::vector<Index> mIndices;
 		std::unordered_map<std::string, uint32_t> mBoneMapping;

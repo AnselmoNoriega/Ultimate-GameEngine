@@ -38,6 +38,8 @@ namespace NR
 		Ref<Texture2D> BRDFLut;
 		VKShader::ShaderMaterialDescriptorSet RendererDescriptorSet;
 
+		VKShader::ShaderMaterialDescriptorSet ParticleDescriptorSet;
+
 		Ref<VertexBuffer> QuadVertexBuffer;
 		Ref<IndexBuffer> QuadIndexBuffer;
 		VKShader::ShaderMaterialDescriptorSet QuadDescriptorSet;
@@ -158,7 +160,7 @@ namespace NR
 						descriptorSet,
 						sData->RendererDescriptorSet.DescriptorSets[0]
 					};
-
+					//dewd;
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
 					glm::mat4 worldTransform = transform * submesh.Transform;
@@ -166,6 +168,54 @@ namespace NR
 					Buffer uniformStorageBuffer = material->GetUniformStorageBuffer();
 					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &worldTransform);
 					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+					vkCmdDrawIndexed(sData->ActiveCommandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
+				}
+			});
+	}
+
+	void VKRenderer::RenderParticles(Ref<Pipeline> particlePipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+	{
+		GenerateParticles();
+		Renderer::Submit([particlePipeline, mesh, transform]() mutable
+			{
+				NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
+
+				Ref<VKVertexBuffer> vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
+
+				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
+				VkDeviceSize offsets[1] = { 0 };
+				vkCmdBindVertexBuffers(sData->ActiveCommandBuffer, 0, 1, &vbMeshBuffer, offsets);
+
+				auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
+				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
+				vkCmdBindIndexBuffer(sData->ActiveCommandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+				Ref<VKPipeline> vulkanPipeline = particlePipeline.As<VKPipeline>();
+				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
+				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+				auto& submeshes = mesh->GetSubmeshes();
+				for (Submesh& submesh : submeshes)
+				{
+					auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
+					material->RT_UpdateForRendering();
+
+					VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
+					VkDescriptorSet descriptorSet = material->GetDescriptorSet();
+
+					VkDescriptorSet descriptorSetCompute = Renderer::GetShaderLibrary()->Get("ParticleGen").As<VKShader>()->GetDescriptorSet();
+
+					// Bind descriptor sets describing shader binding points
+					std::array<VkDescriptorSet, 1> descriptorSets = {
+						descriptorSet
+					};
+					//dewd;
+					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+
+					glm::mat4 worldTransform = transform * submesh.Transform;
+
+					Buffer uniformStorageBuffer = material->GetUniformStorageBuffer();
+					vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &worldTransform);
 					vkCmdDrawIndexed(sData->ActiveCommandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
 				}
 			});
@@ -188,12 +238,10 @@ namespace NR
 				auto vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
 				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
 				VkDeviceSize offsets[1] = { 0 };
-
 				vkCmdBindVertexBuffers(sData->ActiveCommandBuffer, 0, 1, &vbMeshBuffer, offsets);
 
 				auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
 				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
-
 				vkCmdBindIndexBuffer(sData->ActiveCommandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 				
 				vulkanMaterial->RT_UpdateForRendering();
@@ -550,6 +598,111 @@ namespace NR
 			});
 
 		return { envFiltered, irradianceMap };
+	}
+
+	void VKRenderer::GenerateParticles()
+	{
+		// Convert equirectangular to cubemap
+		Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");
+		Ref<VKComputePipeline> particleGenPipeline = Ref<VKComputePipeline>::Create(particleGenShader);
+
+		Renderer::Submit([particleGenPipeline]() mutable
+			{
+				VKAllocator allocator("Particles");
+
+				size_t dataCount = 200;  // Number of particles
+				VkDeviceSize bufferSize = sizeof(Particles) * dataCount;
+
+				// Create staging buffer to hold initial particle data (CPU-side)
+				VkBufferCreateInfo bufferCreateInfo{};
+				bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				bufferCreateInfo.size = bufferSize;
+				bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+				bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				VkBuffer stagingBuffer;
+				VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+
+				Particles* srcData = new Particles[dataCount];  // Fill with initial particle data
+				uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
+				memcpy(destData, srcData, bufferSize);
+				allocator.UnmapMemory(stagingBufferAllocation);
+
+				// Create GPU buffer to store the particle data
+				bufferCreateInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+				VkBuffer dataBuffer;
+				VmaAllocation dataBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_GPU_ONLY, dataBuffer);
+
+				// Copy data from staging buffer to the GPU buffer
+				Utils::CopyBuffer(stagingBuffer, dataBuffer, bufferSize);
+				allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);  // Clean up staging buffer
+
+				// Step 4: Set up descriptor sets and update them
+				VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				Ref<VKShader> shader = particleGenPipeline->GetShader();
+				auto descriptorSet = shader->CreateDescriptorSets();
+
+				// Prepare descriptor set for the storage buffer
+				VkDescriptorBufferInfo bufferInfo = {};
+				bufferInfo.buffer = dataBuffer;
+				bufferInfo.offset = 0;
+				bufferInfo.range = bufferSize;
+
+				std::array<VkWriteDescriptorSet, 1> writeDescriptors;
+				writeDescriptors[0] = *shader->GetDescriptorSet("ParticleData");  // Assuming this is the shader binding name
+				writeDescriptors[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				writeDescriptors[0].dstBinding = 8;       // Matches binding in the shader
+				writeDescriptors[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				writeDescriptors[0].descriptorCount = 1;
+				writeDescriptors[0].dstSet = descriptorSet.DescriptorSets[0];
+				writeDescriptors[0].pBufferInfo = &bufferInfo;
+
+				vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+
+				uint32_t workgroupCountX = (dataCount + 256 - 1) / 256;
+
+				// Step 5: Push constants and dispatch the compute shader
+				uint32_t particleCount = static_cast<uint32_t>(dataCount);
+				particleGenPipeline->Begin();
+				particleGenPipeline->SetPushConstants(&particleCount, sizeof(uint32_t));  // Assuming push constant is particle count
+				particleGenPipeline->Dispatch(descriptorSet.DescriptorSets[0], workgroupCountX, 1, 1);
+				particleGenPipeline->End();
+
+				//--------------------------------------------------
+				//--------------Test-----------------------------
+				//--------------------------------------------------
+
+				// Wait for the compute pipeline to finish execution
+				vkQueueWaitIdle(VKContext::GetCurrentDevice()->GetComputeQueue());
+				vkQueueWaitIdle(VKContext::GetCurrentDevice()->GetQueue());
+
+				VkBufferCreateInfo readbackBufferInfo{};
+				readbackBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+				readbackBufferInfo.size = bufferSize;
+				readbackBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+				readbackBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+				VkBuffer readbackBuffer;
+				VmaAllocation readbackBufferAllocation = allocator.AllocateBuffer(readbackBufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, readbackBuffer);
+
+				// Copy data back from the GPU buffer to CPU-readable buffer
+				Utils::CopyBuffer(dataBuffer, readbackBuffer, bufferSize);
+
+				// Map the readback buffer to CPU memory
+				uint8_t* readbackData = allocator.MapMemory<uint8_t>(readbackBufferAllocation);
+				Particles* particleData = reinterpret_cast<Particles*>(readbackData);
+
+				// Step 7: Inspect the generated particle data
+				for (size_t i = 0; i < dataCount; i++)
+				{
+					NR_CORE_ASSERT(particleData[i].id != 5);
+
+					// Add your debugging or validation logic here
+				}
+
+				allocator.UnmapMemory(readbackBufferAllocation);
+				allocator.DestroyBuffer(readbackBuffer, readbackBufferAllocation);  // Clean up
+			});
 	}
 
 	Ref<TextureCube> VKRenderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)

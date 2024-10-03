@@ -13,9 +13,9 @@
 #include "NotRed/Platform/OpenGL/GLRenderer.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 
-#include "NotRed/Core/Timer.h"
-
 #include "NotRed/Platform/Vulkan/VKContext.h"
+
+#include "NotRed/Core/Timer.h"
 
 namespace NR
 {
@@ -58,14 +58,14 @@ namespace NR
         }
     }
 
-    uint32_t Renderer::GetCurrentImageIndex()
-    {
-        return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
-    }
-
     void RendererAPI::SetAPI(RendererAPIType api)
     {
         sCurrentRendererAPI = api;
+    }
+
+    uint32_t Renderer::GetCurrentImageIndex()
+    {
+        return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
     }
 
     struct RendererData
@@ -114,6 +114,8 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static", true);
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Particle", true);
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ParticleGen", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
 
@@ -190,9 +192,19 @@ namespace NR
         return sRendererAPI->CreateEnvironmentMap(filepath);
     }
 
+    void Renderer::GenerateParticles()
+    {
+        sRendererAPI->GenerateParticles();
+    }
+
     void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
     {
         sRendererAPI->RenderMesh(pipeline, mesh, transform);
+    }
+
+    void Renderer::RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    {
+        sRendererAPI->RenderParticles(pipeline, mesh, transform);
     }
 
     void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
@@ -287,11 +299,6 @@ namespace NR
         return *sCommandQueue;
     }
 
-    RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
-    {
-        return sResourceFreeQueue[index];
-    }
-
     RendererConfig& Renderer::GetConfig()
     {
         return sData->Config;
@@ -300,5 +307,10 @@ namespace NR
     Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
     {
         return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
+    }
+
+    RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
+    {
+        return sResourceFreeQueue[index];
     }
 }

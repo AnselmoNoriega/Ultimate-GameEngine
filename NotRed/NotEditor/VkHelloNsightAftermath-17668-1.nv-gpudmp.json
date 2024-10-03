@@ -1,0 +1,177 @@
+[
+  {
+    "Base info": {
+      "Application name": "noteditor.exe",
+      "Dump date": "Sat Sep 28 13:53:46 2024",
+      "Dump tick count": 162952822,
+      "Graphics API": "Vulkan",
+      "PID": 17668
+    }
+  },
+  {
+    "Display driver info": {
+      "Version": "561.09"
+    }
+  },
+  {
+    "OS info": {
+      "Build number": 22631,
+      "Service pack major version": 0,
+      "Service pack minor version": 0,
+      "Windows major version": 10,
+      "Windows minor version": 0,
+      "Windows product type": 1
+    }
+  },
+  {
+    "GPU info": {
+      "Adapter LUID": 51969,
+      "Adapter name": "GP104-A"
+    }
+  },
+  {
+    "Page fault info": null
+  },
+  {
+    "Device info": {
+      "Adapter reset occurred": false,
+      "Device state": "Error_DMA_PageFault",
+      "Engine reset occurred": true
+    }
+  },
+  {
+    "Aftermath markers": {
+      "Context": {
+        "Events": {
+          "Event": {
+            "Callstack": {
+              "Stack": [
+                {
+                  "Entry": {
+                    "Module name": "nvoglv64.dll",
+                    "Pointer": 140732710996807
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "nvoglv64.dll",
+                    "Pointer": 140732711929807
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "vulkan-1.dll",
+                    "Pointer": 140733420241619
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698921808948
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698921797721
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698921772275
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698921196431
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698919785178
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698918821457
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698917581519
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698928204713
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698928204434
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698928204110
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "NotEditor.exe",
+                    "Pointer": 140698928204862
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "KERNEL32.DLL",
+                    "Pointer": 140734329660797
+                  }
+                },
+                {
+                  "Entry": {
+                    "Module name": "ntdll.dll",
+                    "Pointer": 140734352895784
+                  }
+                }
+              ]
+            },
+            "Pipe": "Unknown",
+            "Status": "NotStarted",
+            "Type": "Automatic"
+          }
+        },
+        "Type": "CommandQueue"
+      }
+    }
+  },
+  {
+    "ApplicationName": "VkHelloNsightAftermath"
+  },
+  {
+    "ApplicationVersion": "v1.0"
+  },
+  {
+    "UserDefined+0": "This is a GPU crash dump example."
+  },
+  {
+    "UserDefined+1": "Engine State: Rendering."
+  },
+  {
+    "UserDefined+2": "More user-defined information..."
+  },
+  {
+    "Fingerprint": {
+      "Hash": 16278729523590493358,
+      "Quality": 0
+    }
+  }
+]

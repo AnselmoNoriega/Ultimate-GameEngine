@@ -99,6 +99,20 @@ namespace NR::Script
         return 0;
     }
 
+    uint64_t NR_Entity_InstantiateEntity()
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        Entity entity = scene->CreateEntity();
+        if (entity)
+        {
+            return entity.GetComponent<IDComponent>().ID;
+        }
+
+        return 0;
+    }
+
     void NR_TransformComponent_GetTransform(uint64_t entityID, TransformComponent* outTransform)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

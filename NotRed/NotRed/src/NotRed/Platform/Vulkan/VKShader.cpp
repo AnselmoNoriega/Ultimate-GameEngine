@@ -54,7 +54,8 @@ namespace NR
         }
     }
 
-    static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::UniformBuffer*>> sUniformBuffers;
+    static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::UniformBuffer*>> sUniformBuffers; // set -> binding point -> buffer
+    static std::unordered_map<uint32_t, std::unordered_map<uint32_t, VKShader::StorageBuffer*>> sStorageBuffers; // set -> binding point -> buffer
 
     VKShader::VKShader(const std::string& path, bool forceCompile)
         : mAssetPath(path)
@@ -333,6 +334,48 @@ namespace NR
             NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
         }
 
+        for (const auto& resource : resources.storage_buffers)
+        {
+            const auto& name = resource.name;
+            auto& bufferType = compiler.get_type(resource.base_type_id);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t size = compiler.get_declared_struct_size(bufferType);
+
+            // Ensure that the descriptor set vector is resized to accommodate new sets
+            if (descriptorSet >= mShaderDescriptorSets.size()) 
+            {
+                mShaderDescriptorSets.resize(descriptorSet + 1);
+            }
+
+            ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
+
+            // Here we handle the storage buffer just like we did with the uniform buffer
+            if (sStorageBuffers[descriptorSet].find(binding) == sStorageBuffers[descriptorSet].end()) 
+            {
+                StorageBuffer* storageBuffer = new StorageBuffer(); // Assuming StorageBuffer is defined similarly to UniformBuffer
+                storageBuffer->BindingPoint = binding;
+                storageBuffer->Size = size;
+                storageBuffer->Name = name;
+                storageBuffer->ShaderStage = shaderStage;
+                sStorageBuffers.at(descriptorSet)[binding] = storageBuffer;
+            }
+            else 
+            {
+                StorageBuffer* storageBuffer = sStorageBuffers.at(descriptorSet).at(binding);
+                if (size > storageBuffer->Size) 
+                {
+                    storageBuffer->Size = size;
+                }
+            }
+
+            shaderDescriptorSet.StorageBuffers[binding] = sStorageBuffers.at(descriptorSet).at(binding);
+
+            NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
+            NR_CORE_TRACE("  Size: {0}", size);
+            NR_CORE_TRACE("-------------------");
+        }
+
         NR_CORE_TRACE("===========================");
     }
 
@@ -364,6 +407,12 @@ namespace NR
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                 typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
+            }
+            if (shaderDescriptorSet.StorageBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size();
             }
 
             // Descriptor Set Layout-------------------------------------------------------
@@ -421,6 +470,30 @@ namespace NR
                 NR_CORE_ASSERT(shaderDescriptorSet.ImageSamplers.find(binding) == shaderDescriptorSet.ImageSamplers.end(), "Binding is already present!");
 
                 VkWriteDescriptorSet& set = shaderDescriptorSet.WriteDescriptorSets[imageSampler.Name];
+                set = {};
+                set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                set.descriptorType = layoutBinding.descriptorType;
+                set.descriptorCount = 1;
+                set.dstBinding = layoutBinding.binding;
+            }
+            
+            for (auto& [binding, storageBuffer] : shaderDescriptorSet.StorageBuffers)
+            {
+                // Create the layout binding for the storage buffer
+                auto& layoutBinding = layoutBindings.emplace_back();
+                layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;  // Storage buffer type
+                layoutBinding.descriptorCount = 1;
+                layoutBinding.stageFlags = storageBuffer->ShaderStage;  // Shader stage flags
+                layoutBinding.pImmutableSamplers = nullptr;
+                layoutBinding.binding = binding;  // The binding index for the buffer
+
+                // Assert to make sure there's no conflict with other descriptors
+                NR_CORE_ASSERT(shaderDescriptorSet.UniformBuffers.find(binding) == shaderDescriptorSet.UniformBuffers.end(), "Binding is already present!");
+                NR_CORE_ASSERT(shaderDescriptorSet.ImageSamplers.find(binding) == shaderDescriptorSet.ImageSamplers.end(), "Binding is already present!");
+                NR_CORE_ASSERT(shaderDescriptorSet.StorageImages.find(binding) == shaderDescriptorSet.StorageImages.end(), "Binding is already present!");
+
+                // Create the write descriptor set for the storage buffer
+                VkWriteDescriptorSet& set = shaderDescriptorSet.WriteDescriptorSets[storageBuffer->Name];
                 set = {};
                 set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 set.descriptorType = layoutBinding.descriptorType;
@@ -508,6 +581,12 @@ namespace NR
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                 typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size() * numberOfSets;
             }
+            if (shaderDescriptorSet.StorageBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size() * numberOfSets;
+            }
 
         }
 
@@ -572,6 +651,12 @@ namespace NR
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
                 typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
             }
+            if (shaderDescriptorSet.StorageBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size();
+            }
         }
 
         VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
@@ -607,7 +692,7 @@ namespace NR
     const VkWriteDescriptorSet* VKShader::GetDescriptorSet(const std::string& name, uint32_t set) const
     {
         NR_CORE_ASSERT(set < mShaderDescriptorSets.size());
-        NR_CORE_ASSERT(mShaderDescriptorSets[set]);
+        NR_CORE_ASSERT(mShaderDescriptorSets.at(set));
 
         if (mShaderDescriptorSets.at(set).WriteDescriptorSets.find(name) == mShaderDescriptorSets.at(set).WriteDescriptorSets.end())
         {
