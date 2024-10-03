@@ -20,22 +20,12 @@ layout (std140, binding = 1) uniform ShadowData
 
 #ifdef OPENGL
 
-layout (std140, binding = 4) uniform Uniforms 
-{
-	vec3 TurbidityAzimuthInclination;
-} uUniforms;
-
 layout (std140, binding = 5) uniform Transform
 {
 	mat4 Transform;
 } uRenderer;
 
 #else
-
-layout (push_constant) uniform Uniforms
-{
-	vec3 TurbidityAzimuthInclination;
-} uUniforms;
 
 layout (push_constant) uniform Transform
 {

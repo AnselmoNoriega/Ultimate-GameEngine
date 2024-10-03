@@ -10,6 +10,9 @@
     <Filter Include="src\NotRed\Asset">
       <UniqueIdentifier>{B7D7F607-A3D0-155A-CC02-FBDEB85AF565}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Audio">
+      <UniqueIdentifier>{29B1F707-15AA-165A-3EDC-FBDE2A34F665}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Core">
       <UniqueIdentifier>{80820827-EC0D-76EB-F51E-F9DF6129D2EB}</UniqueIdentifier>
     </Filter>
@@ -57,6 +60,9 @@
     </Filter>
     <Filter Include="src\NotRed\Util">
       <UniqueIdentifier>{75751227-E100-80EB-EA11-03E0561CDCEB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Vendor">
+      <UniqueIdentifier>{650ACE36-D120-CCCC-1A98-57EE86ED9C54}</UniqueIdentifier>
     </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
@@ -107,6 +113,27 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h">
       <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\Audio.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioComponent.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioEngine.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioPlayback.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\Sound.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\SoundObject.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\SourceManager.h">
+      <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\Application.h">
       <Filter>src\NotRed\Core</Filter>
@@ -429,6 +456,9 @@
     <ClInclude Include="src\NotRed\Scene\Entity.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\EntityFactory.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Scene.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
@@ -636,13 +666,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Audio\Audio.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
-    <ClInclude Include="src\NotRed\Audio\Sound.h" />
-    <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
-    <ClInclude Include="src\NotRed\Audio\SourceManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -653,6 +676,27 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp">
       <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\Audio.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioComponent.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\Sound.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\SoundObject.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\SourceManager.cpp">
+      <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Application.cpp">
       <Filter>src\NotRed\Core</Filter>
@@ -921,6 +965,9 @@
     <ClCompile Include="src\NotRed\Scene\Entity.cpp">
       <Filter>src\NotRed\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\EntityFactory.cpp">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Scene.cpp">
       <Filter>src\NotRed\Scene</Filter>
     </ClCompile>
@@ -941,6 +988,9 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp">
       <Filter>src\NotRed\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp">
+      <Filter>src\NotRed\Vendor</Filter>
     </ClCompile>
     <ClCompile Include="src\nrpch.cpp">
       <Filter>src</Filter>
@@ -1044,13 +1094,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Audio\Audio.cpp" />
-    <ClCompile Include="src\NotRed\Audio\AudioComponent.cpp" />
-    <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp" />
-    <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp" />
-    <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
-    <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />
-    <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
-    <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
   </ItemGroup>
 </Project>

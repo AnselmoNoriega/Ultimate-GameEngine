@@ -10,6 +10,8 @@
 
 namespace NR
 {
+    static const char* sAssetRegistryPath = "Assets/AssetRegistry.nrr";
+
     void AssetManager::Init()
     {
         AssetImporter::Init();
@@ -254,12 +256,12 @@ namespace NR
 
     void AssetManager::LoadAssetRegistry()
     {
-        if (!FileSystem::Exists("Assets/Cache/AssetRegistryCache.nrr"))
+        if (!FileSystem::Exists(sAssetRegistryPath))
         {
             return;
         }
 
-        std::ifstream stream("Assets/Cache/AssetRegistryCache.nrr");
+        std::ifstream stream(sAssetRegistryPath);
         NR_CORE_ASSERT(stream);
         std::stringstream strStream;
         strStream << stream.rdbuf();
@@ -446,7 +448,7 @@ namespace NR
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::ofstream fout("Assets/Cache/AssetRegistryCache.nrr");
+        std::ofstream fout(sAssetRegistryPath);
         fout << out.c_str();
     }
 

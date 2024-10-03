@@ -18,11 +18,6 @@ namespace NR
 		PhysicsInternal::Shutdown();
 	}
 
-	void PhysicsManager::Simulate(float dt)
-	{
-		sScene->Simulate(dt);
-	}
-
 	void PhysicsManager::RuntimePlay()
 	{
 		sScene = Ref<PhysicsScene>::Create(sSettings);	

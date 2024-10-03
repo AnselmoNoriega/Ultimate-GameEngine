@@ -42,6 +42,8 @@ namespace NR
         glm::vec3 Right = { 1.0f, 0.0f, 0.0f };
         glm::vec3 Forward = { 0.0f, 0.0f, -1.0f };
 
+        glm::vec3 WorldTranslation = { 0.0f, 0.0f, 0.0f };
+
         TransformComponent() = default;
         TransformComponent(const TransformComponent& other) = default;
         TransformComponent(const glm::vec3& translation)
@@ -70,6 +72,8 @@ namespace NR
     struct MeshComponent
     {
         Ref<Mesh> MeshObj;
+
+        bool IsFractured = false;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent& other) = default;
@@ -198,6 +202,7 @@ namespace NR
     struct RigidBodyComponent
     {
         enum class Type { Static, Dynamic };
+        enum class CollisionDetectionType { Discrete, Continuous, ContinuousSpeculative };
 
         Type BodyType;
         float Mass = 1.0f;
@@ -206,6 +211,8 @@ namespace NR
         bool DisableGravity = false;
         bool IsKinematic = false;
         uint32_t Layer = 0;
+
+        CollisionDetectionType CollisionDetection = CollisionDetectionType::Discrete;
 
         bool LockPositionX = false;
         bool LockRotationX = false;

@@ -513,22 +513,24 @@ namespace NR
 
                 if (ImGuizmo::IsUsing())
                 {
-                    glm::vec3 translation, rotation, scale;
-                    Math::DecomposeTransform(transform, translation, rotation, scale);
-
                     Entity parent = mCurrentScene->FindEntityByID(selection.EntityObj.GetParentID());
                     if (parent)
                     {
-                        glm::vec3 parentTranslation, parentRotation, parentScale;
-                        Math::DecomposeTransform(mCurrentScene->GetTransformRelativeToParent(parent), parentTranslation, parentRotation, parentScale);
+                        glm::mat4 parentMatrix = mCurrentScene->GetTransformRelativeToParent(parent);
+                        transform = glm::inverse(parentMatrix) * transform;
+                        glm::vec3 translation, rotation, scale;
+                        Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                        glm::vec3 deltaRotation = (rotation - parentRotation) - entityTransform.Rotation;
-                        entityTransform.Translation = translation - parentTranslation;
+                        glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
+                        entityTransform.Translation = translation;
                         entityTransform.Rotation += deltaRotation;
                         entityTransform.Scale = scale;
                     }
                     else
                     {
+                        glm::vec3 translation, rotation, scale;
+                        Math::DecomposeTransform(transform, translation, rotation, scale);
+
                         glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
                         entityTransform.Translation = translation;
                         entityTransform.Rotation += deltaRotation;

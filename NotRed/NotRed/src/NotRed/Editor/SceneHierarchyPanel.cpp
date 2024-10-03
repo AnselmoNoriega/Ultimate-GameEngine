@@ -28,6 +28,8 @@
 #include "NotRed/Audio/AudioEngine.h"
 #include "NotRed/Audio/AudioComponent.h"
 
+#include "NotRed/Scene/EntityFactory.h"
+
 namespace NR
 {
     glm::mat4 AssimpMat4ToMat4(const aiMatrix4x4& matrix);
@@ -312,7 +314,9 @@ namespace NR
                     glm::vec3 parentTranslation, parentRotation, parentScale;
                     Math::DecomposeTransform(parentTransform, parentTranslation, parentRotation, parentScale);
 
-                    e.Transform().Translation = e.Transform().Translation - parentTranslation;
+                    auto& entityTransform = e.Transform();
+                    entityTransform.Translation = entityTransform.Translation - parentTranslation;
+                    entityTransform.Rotation = entityTransform.Rotation - parentRotation;
 
                     e.SetParentID(entity.GetID());
                     entity.Children().push_back(droppedHandle);
@@ -748,6 +752,13 @@ namespace NR
                         mcc.CollisionMesh = mc.MeshObj;
                     }
                 }
+
+                if (UI::Button("Fracture"))
+                {
+                    EntityFactory::Fracture(entity);
+                    mc.IsFractured = true;
+                }
+
                 UI::EndPropertyGrid();
             });
 
@@ -1047,6 +1058,10 @@ namespace NR
                     UI::Property("Angular Drag", rbc.AngularDrag);
                     UI::Property("Disable Gravity", rbc.DisableGravity);
                     UI::Property("Is Kinematic", rbc.IsKinematic);
+                    
+                    const char* rbCollisionDetectionNames[] = { "Discrete", "Continuous", "Continuous Speculative" };
+                    UI::PropertyDropdown("Collision Detection", rbCollisionDetectionNames, 3, (int32_t*)&rbc.CollisionDetection);
+
                     UI::EndPropertyGrid();
 
                     if (ImGui::TreeNode("Constraints", "Constraints"))

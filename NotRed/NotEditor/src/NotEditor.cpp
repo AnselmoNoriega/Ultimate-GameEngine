@@ -21,6 +21,6 @@ public:
 
 NR::Application* NR::CreateApplication(int argc, char** argv)
 {
-	NR::RendererAPI::SetAPI(NR::RendererAPIType::OpenGL);
+	NR::RendererAPI::SetAPI(NR::RendererAPIType::Vulkan);
 	return new NotEditorApplication({ "NotEditor", 1600, 900 });
 }

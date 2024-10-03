@@ -487,6 +487,13 @@ namespace NR::UI
 		return modified;
 	}
 
+	static bool Button(const char* label, const ImVec2& size = ImVec2(0, 0))
+	{
+		bool result = ImGui::Button(label, size);
+		ImGui::NextColumn();
+		return result;
+	}
+
 	static void EndCheckboxGroup()
 	{
 		ImGui::PopItemWidth();

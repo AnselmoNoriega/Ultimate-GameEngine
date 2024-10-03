@@ -156,6 +156,12 @@ namespace NR
 
 		pairFlags = physx::PxPairFlag::eCONTACT_DEFAULT;
 
+		if (filterData0.word2 == (uint32_t)RigidBodyComponent::CollisionDetectionType::Continuous || filterData1.word2 == (uint32_t)RigidBodyComponent::CollisionDetectionType::Continuous)
+		{
+			pairFlags |= physx::PxPairFlag::eDETECT_DISCRETE_CONTACT;
+			pairFlags |= physx::PxPairFlag::eDETECT_CCD_CONTACT;
+		}
+
 		if ((filterData0.word0 & filterData1.word1) || (filterData1.word0 & filterData0.word1))
 		{
 			pairFlags |= physx::PxPairFlag::eNOTIFY_TOUCH_FOUND;

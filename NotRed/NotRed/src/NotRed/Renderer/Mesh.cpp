@@ -547,6 +547,47 @@ namespace NR
 		};
 	}
 
+	Mesh::Mesh(Ref<Mesh> originalMesh, Submesh submesh)
+	{
+		uint32_t materialIndex = submesh.MaterialIndex;
+		uint32_t currentFace = 0;
+		for (uint32_t face = submesh.BaseIndex; face < submesh.BaseIndex + (submesh.IndexCount / 3); face++)
+		{
+			Index index = originalMesh->mIndices[face];
+
+			Vertex v1 = originalMesh->mStaticVertices[index.V1 + submesh.BaseVertex];
+			Vertex v2 = originalMesh->mStaticVertices[index.V2 + submesh.BaseVertex];
+			Vertex v3 = originalMesh->mStaticVertices[index.V3 + submesh.BaseVertex];
+			mStaticVertices.push_back(v1);
+			mStaticVertices.push_back(v2);
+			mStaticVertices.push_back(v3);
+			Index newIndex = { currentFace + 0, currentFace + 1, currentFace + 2 };
+			mIndices.push_back(newIndex);
+			currentFace++;
+		}
+
+		submesh.BaseVertex = 0;
+		submesh.BaseIndex = 0;
+		submesh.MaterialIndex = 0;
+
+		mMaterials.push_back(originalMesh->mMaterials[materialIndex]);
+		mSubmeshes.push_back(submesh);
+		mMeshShader = Renderer::GetShaderLibrary()->Get("PBR_Static");
+
+		mTextures = originalMesh->mTextures;
+		mNormalMaps = originalMesh->mNormalMaps;
+
+		mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+		mVertexBufferLayout = {
+			{ ShaderDataType::Float3, "aPosition" },
+			{ ShaderDataType::Float3, "aNormal" },
+			{ ShaderDataType::Float3, "aTangent" },
+			{ ShaderDataType::Float3, "aBinormal" },
+			{ ShaderDataType::Float2, "aTexCoord" },
+		};
+		mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
+	}
+
 	Mesh::~Mesh()
 	{
 	}
@@ -662,7 +703,6 @@ namespace NR
 		q = q.Normalize();
 		return glm::quat(q.w, q.x, q.y, q.z);
 	}
-
 
 	glm::vec3 Mesh::InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim)
 	{

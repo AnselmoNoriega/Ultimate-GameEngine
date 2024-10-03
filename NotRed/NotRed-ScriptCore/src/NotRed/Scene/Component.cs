@@ -85,6 +85,14 @@ namespace NR
                 SetScale_Native(Entity.ID, ref value);
             }
         }
+        public Vector3 WorldTranslation
+        {
+            get
+            {
+                GetWorldTranslation_Native(Entity.ID, out Vector3 result);
+                return result;
+            }
+        }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetTransform_Native(ulong entityID, out Transform outTransform);
@@ -101,7 +109,9 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetScale_Native(ulong entityID, out Vector3 outScale);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale);
+        internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale); 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetWorldTranslation_Native(ulong entityID, out Vector3 outTranslation);
     }
 
     public class MeshComponent : Component
@@ -306,7 +316,7 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float GetMass_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern float SetMass_Native(ulong entityID, float mass);
+        internal static extern void SetMass_Native(ulong entityID, float mass);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Type GetBodyType_Native(ulong entityID);
     }

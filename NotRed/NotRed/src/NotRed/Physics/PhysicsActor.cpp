@@ -213,6 +213,7 @@ namespace NR
 		physx::PxFilterData filterData;
 		filterData.word0 = layerInfo.BitValue;
 		filterData.word1 = layerInfo.CollidesWith;
+		filterData.word2 = (uint32_t)mRigidBodyData.CollisionDetection;
 
 		for (auto& collider : mColliders)
 		{
@@ -324,6 +325,8 @@ namespace NR
 			SetGravityDisabled(mRigidBodyData.DisableGravity);
 
 			mRigidActor->is<physx::PxRigidDynamic>()->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
+			mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, mRigidBodyData.CollisionDetection == RigidBodyComponent::CollisionDetectionType::Continuous);
+			mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, mRigidBodyData.CollisionDetection == RigidBodyComponent::CollisionDetectionType::ContinuousSpeculative);
 
 			SetMass(mRigidBodyData.Mass);
 		}

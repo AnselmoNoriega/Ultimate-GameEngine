@@ -16,6 +16,7 @@ namespace NR
 		: mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
 		sceneDesc.gravity = PhysicsUtils::ToPhysicsVector(settings.Gravity);
 		sceneDesc.broadPhaseType = PhysicsInternal::ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
 		sceneDesc.cpuDispatcher = PhysicsInternal::GetCPUDispatcher();

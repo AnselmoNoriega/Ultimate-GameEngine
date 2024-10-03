@@ -122,11 +122,6 @@ namespace NR
 
 		sActiveScenes[mSceneID] = this;
 
-		if (!isEditorScene)
-		{
-			PhysicsManager::RuntimePlay();
-		}
-
 		Init();
 	}
 
@@ -179,7 +174,9 @@ namespace NR
 			for (auto entity : view)
 			{
 				auto& transformComponent = view.get<TransformComponent>(entity);
-				glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+
+				Entity e = Entity(entity, this);
+				glm::mat4 transform = GetTransformRelativeToParent(e);
 				glm::vec3 translation;
 				glm::vec3 rotation;
 				glm::vec3 scale;
@@ -189,10 +186,25 @@ namespace NR
 				transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
 				transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
 				transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
+
+				Entity parent = FindEntityByID(e.GetParentID());
+				if (parent)
+				{
+					glm::vec3 parentTranslation, parentRotation, parentScale;
+					Math::DecomposeTransform(GetTransformRelativeToParent(parent), parentTranslation, parentRotation, parentScale);
+					transformComponent.WorldTranslation = parentTranslation + transformComponent.Translation;
+				}
+				else
+				{
+					transformComponent.WorldTranslation = transformComponent.Translation;
+				}
 			}
 		}
 
-		PhysicsManager::Simulate(dt);
+		if (mIsPlaying)
+		{
+			PhysicsManager::GetScene()->Simulate(dt);
+		}
 
 		{
 			auto view = mRegistry.view<ScriptComponent>();
@@ -553,6 +565,8 @@ namespace NR
 				}
 			}
 		}
+
+		PhysicsManager::RuntimePlay();
 
 		{
 			auto view = mRegistry.view<TransformComponent>(entt::exclude<RigidBodyComponent>);
