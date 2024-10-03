@@ -36,13 +36,16 @@ namespace NR
 
 		VkCommandBuffer ActiveCommandBuffer = nullptr;
 		Ref<Texture2D> BRDFLut;
-		VKShader::ShaderMaterialDescriptorSet RendererDescriptorSet;
 
 		VKShader::ShaderMaterialDescriptorSet ParticleDescriptorSet;
 
 		Ref<VertexBuffer> QuadVertexBuffer;
 		Ref<IndexBuffer> QuadIndexBuffer;
 		VKShader::ShaderMaterialDescriptorSet QuadDescriptorSet;
+
+		std::vector<VKShader::ShaderMaterialDescriptorSet> RendererDescriptorSet;
+		std::vector<VkDescriptorPool> DescriptorPools;
+		std::vector<uint32_t> DescriptorPoolAllocationCount;
 	};
 
 	namespace Utils
@@ -65,6 +68,10 @@ namespace NR
 	void VKRenderer::Init()
 	{
 		sData = new VKRendererData();
+		const auto& config = Renderer::GetConfig();
+		sData->RendererDescriptorSet.resize(config.FramesInFlight);
+		sData->DescriptorPools.resize(config.FramesInFlight);
+		sData->DescriptorPoolAllocationCount.resize(config.FramesInFlight);
 
 		auto& caps = sData->RenderCaps;
 		auto& properties = VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetProperties();
@@ -72,6 +79,40 @@ namespace NR
 		caps.Device = properties.deviceName;
 		caps.Version = std::to_string(properties.driverVersion);
 		Utils::DumpGPUInfo();
+
+		// Create descriptor pools
+		Renderer::Submit([]() mutable
+			{
+				VkDescriptorPoolSize pool_sizes[] =
+				{
+					{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+					{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+					{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+					{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+					{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+					{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+					{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+					{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+					{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+					{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+					{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+				};
+
+				VkDescriptorPoolCreateInfo pool_info = {};
+				pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+				pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+				pool_info.maxSets = 10000;
+				pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
+				pool_info.pPoolSizes = pool_sizes;
+
+				VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+				for (int i = 0; i < framesInFlight; ++i)
+				{
+					VK_CHECK_RESULT(vkCreateDescriptorPool(device, &pool_info, nullptr, &sData->DescriptorPools[i]));
+					sData->DescriptorPoolAllocationCount[i] = 0;
+				}
+			});
 
 		float x = -1;
 		float y = -1;
@@ -110,7 +151,12 @@ namespace NR
 			{
 				auto shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
 				Ref<VKShader> pbrShader = shader.As<VKShader>();
-				sData->RendererDescriptorSet = pbrShader->CreateDescriptorSets(1);
+
+				uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+				for (int i = 0; i < framesInFlight; i++)
+				{
+					sData->RendererDescriptorSet[i] = pbrShader->CreateDescriptorSets(1);
+				}
 			});
 
 	}
@@ -146,6 +192,8 @@ namespace NR
 				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
 				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+				uint32_t bufferIndex = VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+
 				auto& submeshes = mesh->GetSubmeshes();
 				for (Submesh& submesh : submeshes)
 				{
@@ -153,12 +201,12 @@ namespace NR
 					material->RT_UpdateForRendering();
 
 					VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
-					VkDescriptorSet descriptorSet = material->GetDescriptorSet();
+					VkDescriptorSet descriptorSet = material->GetDescriptorSet(bufferIndex);
 
 					// Bind descriptor sets describing shader binding points
 					std::array<VkDescriptorSet, 2> descriptorSets = {
 						descriptorSet,
-						sData->RendererDescriptorSet.DescriptorSets[0]
+						sData->RendererDescriptorSet[bufferIndex].DescriptorSets[0]
 					};
 					//dewd;
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptorSets.size(), descriptorSets.data(), 0, nullptr);
@@ -194,6 +242,8 @@ namespace NR
 				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
 				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+				uint32_t bufferIndex = VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+
 				auto& submeshes = mesh->GetSubmeshes();
 				for (Submesh& submesh : submeshes)
 				{
@@ -201,7 +251,7 @@ namespace NR
 					material->RT_UpdateForRendering();
 
 					VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
-					VkDescriptorSet descriptorSet = material->GetDescriptorSet();
+					VkDescriptorSet descriptorSet = material->GetDescriptorSet(bufferIndex);
 
 					VkDescriptorSet descriptorSetCompute = Renderer::GetShaderLibrary()->Get("ParticleGen").As<VKShader>()->GetDescriptorSet();
 
@@ -243,7 +293,7 @@ namespace NR
 				auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
 				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
 				vkCmdBindIndexBuffer(sData->ActiveCommandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
-				
+
 				vulkanMaterial->RT_UpdateForRendering();
 
 				Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
@@ -253,7 +303,8 @@ namespace NR
 				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 				// Bind descriptor sets describing shader binding points
-				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet();
+				uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
 				if (descriptorSet)
 				{
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
@@ -296,7 +347,8 @@ namespace NR
 				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 				// Bind descriptor sets describing shader binding points
-				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet();
+				uint32_t bufferIndex = VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(bufferIndex);
 				if (descriptorSet)
 				{
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
@@ -308,6 +360,19 @@ namespace NR
 				vkCmdPushConstants(sData->ActiveCommandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
 				vkCmdDrawIndexed(sData->ActiveCommandBuffer, sData->QuadIndexBuffer->GetCount(), 1, 0, 0, 0);
 			});
+	}
+
+	VkDescriptorSet VKRenderer::RT_AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
+	{
+		uint32_t bufferIndex = VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+		allocInfo.descriptorPool = sData->DescriptorPools[bufferIndex];
+
+		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+		VkDescriptorSet result;
+		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &result));
+
+		sData->DescriptorPoolAllocationCount[bufferIndex] += allocInfo.descriptorSetCount;
+		return result;
 	}
 
 	void VKRenderer::SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
@@ -334,7 +399,8 @@ namespace NR
 				vkCmdBindPipeline(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
 				// Bind descriptor sets describing shader binding points
-				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet();
+				uint32_t bufferIndex = VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+				VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(bufferIndex);
 				if (descriptorSet)
 				{
 					vkCmdBindDescriptorSets(sData->ActiveCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
@@ -365,24 +431,25 @@ namespace NR
 
 				Ref<VKTextureCube> radianceMap = environment->RadianceMap.As<VKTextureCube>();
 				Ref<VKTextureCube> irradianceMap = environment->IrradianceMap.As<VKTextureCube>();
+				uint32_t bufferIndex = VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
 
 				writeDescriptors[0] = *pbrShader->GetDescriptorSet("uEnvRadianceTex", 1);
-				writeDescriptors[0].dstSet = sData->RendererDescriptorSet.DescriptorSets[0];
+				writeDescriptors[0].dstSet = sData->RendererDescriptorSet[bufferIndex].DescriptorSets[0];
 				const auto& radianceMapImageInfo = radianceMap->GetVulkanDescriptorInfo();
 				writeDescriptors[0].pImageInfo = &radianceMapImageInfo;
 
 				writeDescriptors[1] = *pbrShader->GetDescriptorSet("uEnvIrradianceTex", 1);
-				writeDescriptors[1].dstSet = sData->RendererDescriptorSet.DescriptorSets[0];
+				writeDescriptors[1].dstSet = sData->RendererDescriptorSet[bufferIndex].DescriptorSets[0];
 				const auto& irradianceMapImageInfo = irradianceMap->GetVulkanDescriptorInfo();
 				writeDescriptors[1].pImageInfo = &irradianceMapImageInfo;
 
 				writeDescriptors[2] = *pbrShader->GetDescriptorSet("uBRDFLUTTexture", 1);
-				writeDescriptors[2].dstSet = sData->RendererDescriptorSet.DescriptorSets[0];
+				writeDescriptors[2].dstSet = sData->RendererDescriptorSet[bufferIndex].DescriptorSets[0];
 				const auto& brdfLutImageInfo = sData->BRDFLut.As<VKTexture2D>()->GetVulkanDescriptorInfo();
 				writeDescriptors[2].pImageInfo = &brdfLutImageInfo;
 
 				writeDescriptors[3] = *pbrShader->GetDescriptorSet("uShadowMapTexture", 1);
-				writeDescriptors[3].dstSet = sData->RendererDescriptorSet.DescriptorSets[0];
+				writeDescriptors[3].dstSet = sData->RendererDescriptorSet[bufferIndex].DescriptorSets[0];
 				const auto& shadowImageInfo = shadow.As<VKImage2D>()->GetDescriptor();
 				writeDescriptors[3].pImageInfo = &shadowImageInfo;
 
@@ -397,6 +464,12 @@ namespace NR
 			{
 				Ref<VKContext> context = VKContext::Get();
 				VKSwapChain& swapChain = context->GetSwapChain();
+
+				// Reset descriptor pools here
+				VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				uint32_t bufferIndex = swapChain.GetCurrentBufferIndex();
+				vkResetDescriptorPool(device, sData->DescriptorPools[bufferIndex], 0);
+				memset(sData->DescriptorPoolAllocationCount.data(), 0, sData->DescriptorPoolAllocationCount.size() * sizeof(uint32_t));
 
 				VkCommandBufferBeginInfo cmdBufInfo = {};
 				cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

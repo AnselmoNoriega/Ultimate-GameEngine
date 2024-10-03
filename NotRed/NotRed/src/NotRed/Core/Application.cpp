@@ -7,6 +7,7 @@
 #include <Windows.h>
 
 #include <imgui/imgui.h>
+#include "imgui/imgui_internal.h"
 
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Framebuffer.h"
@@ -20,6 +21,7 @@
 #include "NotRed/Platform/Vulkan/VKAllocator.h"
 
 extern bool gApplicationRunning;
+extern ImGuiContext* GImGui;
 
 namespace NR
 {

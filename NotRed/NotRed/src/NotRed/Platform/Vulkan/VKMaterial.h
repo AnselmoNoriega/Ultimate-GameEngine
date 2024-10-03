@@ -116,8 +116,9 @@ namespace NR
 
         void UpdateForRendering();
         void RT_UpdateForRendering();
+        void InvalidateDescriptorSets();
 
-        VkDescriptorSet GetDescriptorSet() const { return !mDescriptorSet.DescriptorSets.empty() ? mDescriptorSet.DescriptorSets[0] : nullptr; }
+        VkDescriptorSet GetDescriptorSet(uint32_t index) const { return !mDescriptorSets[index].DescriptorSets.empty() ? mDescriptorSets[index].DescriptorSets[0] : nullptr; }
 
     private:
         void Init();
@@ -127,7 +128,6 @@ namespace NR
         void SetVulkanDescriptor(const std::string& name, const Ref<Texture2D>& texture);
         void SetVulkanDescriptor(const std::string& name, const Ref<TextureCube>& texture);
         void SetVulkanDescriptor(const std::string& name, const Ref<Image2D>& image);
-        void SetVulkanDescriptor(const std::string& name, const VkDescriptorImageInfo& imageInfo);
 
         const ShaderUniform* FindUniformDeclaration(const std::string& name);
         const ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
@@ -166,8 +166,11 @@ namespace NR
 
         std::unordered_map<uint32_t, uint64_t> mImageHashes;
 
-        VKShader::ShaderMaterialDescriptorSet mDescriptorSet;
-        std::vector<VkWriteDescriptorSet> mWriteDescriptors;
+        VKShader::ShaderMaterialDescriptorSet mDescriptorSets[3];
+
+        std::vector<std::vector<VkWriteDescriptorSet>> mWriteDescriptors;
+        std::vector<std::vector<VkWriteDescriptorSet>> mUBWriteDescriptors;
+        std::vector<bool> mDirtyDescriptorSets;
 
         std::unordered_map<std::string, VkDescriptorImageInfo> mImageInfos;
     };

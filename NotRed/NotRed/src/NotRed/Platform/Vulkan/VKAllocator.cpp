@@ -3,6 +3,12 @@
 
 #include "VKContext.h"
 
+#if NR_LOG_RENDERER_ALLOCATIONS
+    #define NR_ALLOCATOR_LOG(...) NR_CORE_TRACE(__VA_ARGS__)
+#else
+    #define NR_ALLOCATOR_LOG(...)
+#endif
+
 namespace NR
 {
     namespace Utils {
@@ -106,10 +112,10 @@ namespace NR
 
         VmaAllocationInfo allocInfo;
         vmaGetAllocationInfo(sData->Allocator, allocation, &allocInfo);
-        NR_CORE_TRACE("VKAllocator ({0}): allocating buffer; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
+        NR_ALLOCATOR_LOG("VKAllocator ({0}): allocating buffer; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
 
         sData->TotalAllocatedBytes += allocInfo.size;
-        NR_CORE_TRACE("VKAllocator ({0}): total allocated since start is {1}", mTag, Utils::BytesToString(sData->TotalAllocatedBytes));
+        NR_ALLOCATOR_LOG("VKAllocator ({0}): total allocated since start is {1}", mTag, Utils::BytesToString(sData->TotalAllocatedBytes));
 
         return allocation;
     }
@@ -124,10 +130,10 @@ namespace NR
 
         VmaAllocationInfo allocInfo;
         vmaGetAllocationInfo(sData->Allocator, allocation, &allocInfo);
-        NR_CORE_TRACE("VKAllocator ({0}): allocating image; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
+        NR_ALLOCATOR_LOG("VKAllocator ({0}): allocating image; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
 
         sData->TotalAllocatedBytes += allocInfo.size;
-        NR_CORE_TRACE("VKAllocator ({0}): total allocated since start is {1}", mTag, Utils::BytesToString(sData->TotalAllocatedBytes));
+        NR_ALLOCATOR_LOG("VKAllocator ({0}): total allocated since start is {1}", mTag, Utils::BytesToString(sData->TotalAllocatedBytes));
 
         return allocation;
     }

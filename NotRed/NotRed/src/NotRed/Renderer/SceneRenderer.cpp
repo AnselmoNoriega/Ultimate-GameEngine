@@ -52,14 +52,14 @@ namespace NR
 			glm::mat4 View;
 		} 
 		CameraData;
-		Ref<UniformBuffer> CameraUniformBuffer;
+		std::vector<Ref<UniformBuffer>> CameraUniformBuffer;
 
 		struct UBShadow
 		{
 			glm::mat4 ViewProjection[4];
 		} 
 		ShadowData;
-		Ref<UniformBuffer> ShadowUniformBuffer;
+		std::vector<Ref<UniformBuffer>> ShadowUniformBuffer;
 
 		struct Light
 		{
@@ -74,7 +74,7 @@ namespace NR
 			glm::vec3 uCameraPosition;
 		}
 		SceneDataUB;
-		Ref<UniformBuffer> SceneUniformBuffer;
+		std::vector<Ref<UniformBuffer>> SceneUniformBuffer;
 
 		struct UBRendererData
 		{
@@ -91,12 +91,12 @@ namespace NR
 			float CascadeTransitionFade = 1.0f;
 		} 
 		RendererDataUB;
-		Ref<UniformBuffer> RendererDataUniformBuffer;
+		std::vector<Ref<UniformBuffer>> RendererDataUniformBuffer;
 
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
 		Ref<RenderPass> ShadowMapRenderPass[4];
 		float LightDistance = 0.1f;
-		float CascadeSplitLambda = 0.91f;
+		float CascadeSplitLambda = 0.98f;
 		glm::vec4 CascadeSplits;
 		float CascadeFarPlaneOffset = 15.0f, CascadeNearPlaneOffset = -15.0f;
 
@@ -149,15 +149,23 @@ namespace NR
 		sData->BRDFLUT = Texture2D::Create("assets/textures/BRDF_LUT.tga");
 
 		// Create uniform buffers
-		sData->CameraUniformBuffer = UniformBuffer::Create(sizeof(SceneRendererData::UBCamera), 0);
-		sData->ShadowUniformBuffer = UniformBuffer::Create(sizeof(SceneRendererData::UBShadow), 1);
-		sData->SceneUniformBuffer = UniformBuffer::Create(sizeof(SceneRendererData::UBScene), 2);
-		sData->RendererDataUniformBuffer = UniformBuffer::Create(sizeof(SceneRendererData::UBRendererData), 3);
+		uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+		sData->CameraUniformBuffer.resize(framesInFlight);
+		sData->ShadowUniformBuffer.resize(framesInFlight);
+		sData->SceneUniformBuffer.resize(framesInFlight);
+		sData->RendererDataUniformBuffer.resize(framesInFlight);
 
-		Renderer::SetUniformBuffer(sData->CameraUniformBuffer, 0);
-		Renderer::SetUniformBuffer(sData->ShadowUniformBuffer, 0);
-		Renderer::SetUniformBuffer(sData->SceneUniformBuffer, 0);
-		Renderer::SetUniformBuffer(sData->RendererDataUniformBuffer, 0);
+		for (uint32_t i = 0; i < framesInFlight; ++i)
+		{
+			sData->CameraUniformBuffer[i] = UniformBuffer::Create(sizeof(SceneRendererData::UBCamera), 0);
+			sData->ShadowUniformBuffer[i] = UniformBuffer::Create(sizeof(SceneRendererData::UBShadow), 1);
+			sData->SceneUniformBuffer[i] = UniformBuffer::Create(sizeof(SceneRendererData::UBScene), 2);
+			sData->RendererDataUniformBuffer[i] = UniformBuffer::Create(sizeof(SceneRendererData::UBRendererData), 3);
+			Renderer::SetUniformBuffer(sData->CameraUniformBuffer[i], i, 0);
+			Renderer::SetUniformBuffer(sData->ShadowUniformBuffer[i], i, 0);
+			Renderer::SetUniformBuffer(sData->SceneUniformBuffer[i], i, 0);
+			Renderer::SetUniformBuffer(sData->RendererDataUniformBuffer[i], i, 0);
+		}
 
 		sData->CompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
 		sData->CompositeMaterial = Material::Create(sData->CompositeShader);
@@ -487,7 +495,6 @@ namespace NR
 			sData->NeedsResize = false;
 		}
 
-		Renderer::SetSceneEnvironment(sData->SceneData.SceneEnvironment, sData->ShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
 		SceneRendererData::UBCamera& cameraData = sData->CameraData; 
 		SceneRendererData::UBScene& sceneData = sData->SceneDataUB; 
 		SceneRendererData::UBShadow& shadowData = sData->ShadowData; 
@@ -503,7 +510,11 @@ namespace NR
 		cameraData.InverseViewProjection = inverseVP;
 		cameraData.View = sceneCamera.ViewMatrix;
 
-		sData->CameraUniformBuffer->SetData(&cameraData, sizeof(cameraData));
+		Renderer::Submit([cameraData]()
+			{
+				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+				sData->CameraUniformBuffer[bufferIndex]->RT_SetData(&cameraData, sizeof(cameraData));
+			});
 
 		const auto& directionalLight = sData->SceneData.SceneLightEnvironment.DirectionalLights[0];
 		sceneData.lights.Direction = directionalLight.Direction;
@@ -511,7 +522,11 @@ namespace NR
 		sceneData.lights.Multiplier = directionalLight.Multiplier;
 		sceneData.uCameraPosition = cameraPosition;
 
-		sData->SceneUniformBuffer->SetData(&sceneData, sizeof(sceneData));
+		Renderer::Submit([sceneData]()
+			{
+				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+				sData->SceneUniformBuffer[bufferIndex]->RT_SetData(&sceneData, sizeof(sceneData));
+			});
 
 		CascadeData cascades[4];
 		CalculateCascades(cascades, sceneCamera, directionalLight.Direction);
@@ -521,10 +536,20 @@ namespace NR
 			sData->CascadeSplits[i] = cascades[i].SplitDepth;
 			shadowData.ViewProjection[i] = cascades[i].ViewProj;
 		}
-		sData->ShadowUniformBuffer->SetData(&shadowData, sizeof(shadowData));
+
+		Renderer::Submit([shadowData]()
+			{
+				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+				sData->ShadowUniformBuffer[bufferIndex]->RT_SetData(&shadowData, sizeof(shadowData));
+			});
 
 		rendererData.uCascadeSplits = sData->CascadeSplits;
-		sData->RendererDataUniformBuffer->SetData(&rendererData, sizeof(rendererData));
+		
+		Renderer::Submit([rendererData]()
+			{
+				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+				sData->RendererDataUniformBuffer[bufferIndex]->RT_SetData(&rendererData, sizeof(rendererData));
+			});
 	}
 
 	void SceneRenderer::EndScene()

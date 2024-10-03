@@ -1263,7 +1263,7 @@ namespace NR
                 {
                     Entity entity = { e, mCurrentScene.Raw() };
                     auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
-                    if (!mesh)
+                    if (!mesh || mesh->Type == AssetType::Missing)
                     {
                         continue;
                     }

@@ -432,7 +432,7 @@ namespace NR
         VkSampler sampler = mDescriptorImageInfo.sampler;
         VkImage image = mImage;
         VmaAllocation allocation = mMemoryAlloc;
-        Renderer::Submit([imageView, sampler, image, allocation]()
+        Renderer::SubmitResourceFree([imageView, sampler, image, allocation]()
             {
                 NR_CORE_TRACE("Destroying VulkanTextureCube");
                 auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();

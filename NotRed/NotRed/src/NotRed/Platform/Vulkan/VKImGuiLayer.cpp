@@ -18,7 +18,7 @@
 
 namespace NR
 {
-    static VkCommandBuffer sImGuiCommandBuffer;
+    static std::vector<VkCommandBuffer> sImGuiCommandBuffers;
 
     VKImGuiLayer::VKImGuiLayer()
     {
@@ -75,22 +75,22 @@ namespace NR
 
                 VkDescriptorPoolSize poolSizes[] =
                 {
-                    { VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-                    { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-                    { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-                    { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-                    { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-                    { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-                    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-                    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-                    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-                    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-                    { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+                    { VK_DESCRIPTOR_TYPE_SAMPLER, 100 },
+                    { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100 },
+                    { VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100 },
+                    { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100 },
+                    { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 100 },
+                    { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 100 },
+                    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100 },
+                    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 100 },
+                    { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100 },
+                    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100 },
+                    { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100 }
                 };
                 VkDescriptorPoolCreateInfo poolInfo = {};
                 poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
                 poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-                poolInfo.maxSets = 1000 * IM_ARRAYSIZE(poolSizes);
+                poolInfo.maxSets = 100 * IM_ARRAYSIZE(poolSizes);
                 poolInfo.poolSizeCount = (uint32_t)IM_ARRAYSIZE(poolSizes);
                 poolInfo.pPoolSizes = poolSizes;
                 VK_CHECK_RESULT(vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool));
@@ -136,7 +136,13 @@ namespace NR
                     ImGui_ImplVulkan_DestroyFontUploadObjects();
                 }
 
-                sImGuiCommandBuffer = VKContext::GetCurrentDevice()->CreateSecondaryCommandBuffer();
+
+                uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+                sImGuiCommandBuffers.resize(framesInFlight);
+                for (uint32_t i = 0; i < framesInFlight; ++i)
+                {
+                    sImGuiCommandBuffers[i] = VKContext::GetCurrentDevice()->CreateSecondaryCommandBuffer();
+                }
             });
     }
 
@@ -176,6 +182,8 @@ namespace NR
         uint32_t width = swapChain.GetWidth();
         uint32_t height = swapChain.GetHeight();
 
+        uint32_t commandBufferIndex = swapChain.GetCurrentBufferIndex();
+
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.pNext = nullptr;
@@ -200,7 +208,7 @@ namespace NR
         cmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
         cmdBufInfo.pInheritanceInfo = &inheritanceInfo;
 
-        VK_CHECK_RESULT(vkBeginCommandBuffer(sImGuiCommandBuffer, &cmdBufInfo));
+        VK_CHECK_RESULT(vkBeginCommandBuffer(sImGuiCommandBuffers[commandBufferIndex], &cmdBufInfo));
 
         VkViewport viewport = {};
         viewport.x = 0.0f;
@@ -209,22 +217,22 @@ namespace NR
         viewport.width = (float)width;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(sImGuiCommandBuffer, 0, 1, &viewport);
+        vkCmdSetViewport(sImGuiCommandBuffers[commandBufferIndex], 0, 1, &viewport);
 
         VkRect2D scissor = {};
         scissor.extent.width = width;
         scissor.extent.height = height;
         scissor.offset.x = 0;
         scissor.offset.y = 0;
-        vkCmdSetScissor(sImGuiCommandBuffer, 0, 1, &scissor);
+        vkCmdSetScissor(sImGuiCommandBuffers[commandBufferIndex], 0, 1, &scissor);
 
         ImDrawData* main_draw_data = ImGui::GetDrawData();
-        ImGui_ImplVulkan_RenderDrawData(main_draw_data, sImGuiCommandBuffer);
+        ImGui_ImplVulkan_RenderDrawData(main_draw_data, sImGuiCommandBuffers[commandBufferIndex]);
 
-        VK_CHECK_RESULT(vkEndCommandBuffer(sImGuiCommandBuffer));
+        VK_CHECK_RESULT(vkEndCommandBuffer(sImGuiCommandBuffers[commandBufferIndex]));
 
         std::vector<VkCommandBuffer> commandBuffers;
-        commandBuffers.push_back(sImGuiCommandBuffer);
+        commandBuffers.push_back(sImGuiCommandBuffers[commandBufferIndex]);
 
         vkCmdExecuteCommands(drawCommandBuffer, commandBuffers.size(), commandBuffers.data());
 

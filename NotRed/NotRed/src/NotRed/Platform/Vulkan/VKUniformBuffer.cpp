@@ -26,26 +26,25 @@ namespace NR
 	{
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
-		// Vertex shader uniform buffer block
-		VkBufferCreateInfo bufferInfo = {};
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.pNext = nullptr;
 		allocInfo.allocationSize = 0;
 		allocInfo.memoryTypeIndex = 0;
 
+		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = mSize;
 		bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		bufferInfo.size = mSize;
 
 		// Create a new buffer
 		VKAllocator allocator("UniformBuffer");
 		mMemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, mBuffer);
 
 		// Store information in the uniform's descriptor that is used by the descriptor set
-		mDescriptor.buffer = mBuffer;
-		mDescriptor.offset = 0;
-		mDescriptor.range = mSize;
+		mDescriptorInfo.buffer = mBuffer;
+		mDescriptorInfo.offset = 0;
+		mDescriptorInfo.range = mSize;
 	}
 
 	void VKUniformBuffer::SetData(const void* data, uint32_t size, uint32_t offset)

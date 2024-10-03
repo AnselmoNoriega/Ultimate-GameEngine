@@ -533,11 +533,11 @@ namespace NR
 	{
 		NR_SCOPE_PERF("VulkanSwapChain::BeginFrame");
 
-		VK_CHECK_RESULT(vkWaitForFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex], VK_TRUE, UINT64_MAX));
+		// Resource release queue
+		auto& queue = Renderer::GetRenderResourceReleaseQueue(mCurrentBufferIndex);
+		queue.Execute();
 
-		uint32_t imageIndex;
-		VK_CHECK_RESULT(AcquireNextImage(mSemaphores.PresentComplete, &imageIndex));
-		NR_CORE_WARN("Staring frame {0} (image {1})", mCurrentBufferIndex, imageIndex);
+		VK_CHECK_RESULT(AcquireNextImage(mSemaphores.PresentComplete, &mCurrentImageIndex));
 	}
 
 	void VKSwapChain::Present()
@@ -556,7 +556,7 @@ namespace NR
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = &mSemaphores.RenderComplete;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pCommandBuffers = &mDrawCommandBuffers[mCurrentBufferIndex];
+		submitInfo.pCommandBuffers = &mDrawCommandBuffers[mCurrentImageIndex];
 		submitInfo.commandBufferCount = 1;
 
 		// Submit to the graphics queue passing a wait fence
@@ -569,7 +569,7 @@ namespace NR
 		VkResult result;
 		{
 			NR_SCOPE_PERF("VulkanSwapChain::Present - QueuePresent");
-			result = QueuePresent(mDevice->GetQueue(), mCurrentBufferIndex, mSemaphores.RenderComplete);
+			result = QueuePresent(mDevice->GetQueue(), mCurrentImageIndex, mSemaphores.RenderComplete);
 		}
 
 		if (result != VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
@@ -586,14 +586,10 @@ namespace NR
 			}
 		}
 
-		mCurrentBufferIndex = (mCurrentBufferIndex + 1) % 3;
-		// Resource release queue
-		uint32_t index = mCurrentBufferIndex;
-		Renderer::Submit([index]()
-			{
-				auto& queue = Renderer::GetRenderResourceReleaseQueue(index);
-				queue.Execute();
-			});
+
+		const auto& config = Renderer::GetConfig();
+		mCurrentBufferIndex = (mCurrentBufferIndex + 1) % config.FramesInFlight;
+		VK_CHECK_RESULT(vkWaitForFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex], VK_TRUE, UINT64_MAX));
 	}
 
 	VkResult VKSwapChain::AcquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex)

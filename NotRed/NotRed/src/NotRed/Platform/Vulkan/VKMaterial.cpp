@@ -14,7 +14,10 @@
 namespace NR
 {
     VKMaterial::VKMaterial(const Ref<Shader>& shader, const std::string& name)
-        : mShader(shader), mName(name)
+        : mShader(shader), mName(name),
+        mWriteDescriptors(Renderer::GetConfig().FramesInFlight),
+        mUBWriteDescriptors(Renderer::GetConfig().FramesInFlight),
+        mDirtyDescriptorSets(Renderer::GetConfig().FramesInFlight, true)
     {
         Init();
         Renderer::RegisterShaderDependency(shader, this);
@@ -31,31 +34,45 @@ namespace NR
         mMaterialFlags |= (uint32_t)MaterialFlag::DepthTest;
         mMaterialFlags |= (uint32_t)MaterialFlag::Blend;
 
+#define INVALIDATE_ON_RT 1
+#if INVALIDATE_ON_RT
+        Ref<VKMaterial> instance = this;
+        Renderer::Submit([instance]() mutable
+            {
+                instance->Invalidate();
+            });
+#else
         Invalidate();
+#endif
     }
 
     void VKMaterial::Invalidate()
     {
+        uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+
         auto shader = mShader.As<VKShader>();
         if (shader->HasDescriptorSet(0))
         {
             const auto& shaderDescriptorSets = shader->GetShaderDescriptorSets();
             if (!shaderDescriptorSets.empty())
             {
-                mDescriptorSet = shader->CreateDescriptorSets();
-
                 Ref<VKShader> vulkanShader = mShader.As<VKShader>();
                 for (auto&& [binding, shaderUB] : shaderDescriptorSets[0].UniformBuffers)
                 {
-                    Ref<VKUniformBuffer> uniformBuffer = Renderer::GetUniformBuffer(binding, 0).As<VKUniformBuffer>();
-                    VkWriteDescriptorSet writeDescriptorSet = {};
-                    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                    writeDescriptorSet.descriptorCount = 1;
-                    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                    writeDescriptorSet.pBufferInfo = &uniformBuffer->GetDescriptorBufferInfo();
-                    writeDescriptorSet.dstBinding = uniformBuffer->GetBinding();
-                    mWriteDescriptors.push_back(writeDescriptorSet);
+                    for (int frame = 0; frame < framesInFlight; ++frame)
+                    {
+                        Ref<VKUniformBuffer> uniformBuffer = Renderer::GetUniformBuffer(frame, binding, 0).As<VKUniformBuffer>(); // set = 0 for now
+
+                        VkWriteDescriptorSet writeDescriptorSet = {};
+                        writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        writeDescriptorSet.descriptorCount = 1;
+                        writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                        writeDescriptorSet.pBufferInfo = &uniformBuffer->GetDescriptorBufferInfo();
+                        writeDescriptorSet.dstBinding = uniformBuffer->GetBinding();
+                        mUBWriteDescriptors[frame].push_back(writeDescriptorSet);
+                    }
                 }
+
                 for (auto&& [binding, descriptor] : mResidentDescriptors)
                 {
                     mPendingDescriptors.push_back(descriptor);
@@ -138,6 +155,8 @@ namespace NR
         NR_CORE_ASSERT(wds);
         mResidentDescriptors[binding] = std::make_shared<PendingDescriptor>(PendingDescriptor{ PendingDescriptorType::Texture2D, *wds, {}, texture.As<Texture>(), nullptr });
         mPendingDescriptors.push_back(mResidentDescriptors.at(binding));
+
+        InvalidateDescriptorSets();
     }
 
     void VKMaterial::SetVulkanDescriptor(const std::string& name, const Ref<TextureCube>& texture)
@@ -161,26 +180,8 @@ namespace NR
         NR_CORE_ASSERT(wds);
         mResidentDescriptors[binding] = std::make_shared<PendingDescriptor>(PendingDescriptor{ PendingDescriptorType::TextureCube, *wds, {}, texture.As<Texture>(), nullptr });
         mPendingDescriptors.push_back(mResidentDescriptors.at(binding));
-    }
-
-    void VKMaterial::SetVulkanDescriptor(const std::string& name, const VkDescriptorImageInfo& imageInfo)
-    {
-        const VkWriteDescriptorSet* wds = mShader.As<VKShader>()->GetDescriptorSet(name);
-        NR_CORE_ASSERT(wds);
-
-        if (mImageInfos.find(name) != mImageInfos.end())
-        {
-            if (mImageInfos.at(name).imageView == imageInfo.imageView)
-            {
-                return;
-            }
-        }
-
-        mImageInfos[name] = imageInfo;
-
-        VkWriteDescriptorSet descriptorSet = *wds;
-        descriptorSet.pImageInfo = &mImageInfos.at(name);
-        mWriteDescriptors.push_back(descriptorSet);
+        
+        InvalidateDescriptorSets();
     }
 
     void VKMaterial::SetVulkanDescriptor(const std::string& name, const Ref<Image2D>& image)
@@ -205,6 +206,8 @@ namespace NR
         NR_CORE_ASSERT(wds);
         mResidentDescriptors[binding] = std::make_shared<PendingDescriptor>(PendingDescriptor{ PendingDescriptorType::Image2D, *wds, {}, nullptr, image.As<Image>() });
         mPendingDescriptors.push_back(mResidentDescriptors.at(binding));
+        
+        InvalidateDescriptorSets();
     }
 
     void VKMaterial::Set(const std::string& name, uint32_t value)
@@ -357,45 +360,68 @@ namespace NR
                 {
                     NR_CORE_WARN("Out of date Image2D descriptor ({0} vs. {1})", (void*)image->GetImageInfo().ImageView, (void*)descriptor->WDS.pImageInfo->imageView);
                     mPendingDescriptors.emplace_back(descriptor);
+                    
+                    InvalidateDescriptorSets();
                 }
             }
         }
 
-        for (auto& pd : mPendingDescriptors)
+        uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+        if (mDirtyDescriptorSets[frameIndex])
         {
-            if (pd->Type == PendingDescriptorType::Texture2D)
+            mDirtyDescriptorSets[frameIndex] = false;
+            mWriteDescriptors[frameIndex].clear();
+
+            for (auto& wd : mUBWriteDescriptors[frameIndex])
             {
-                Ref<VKTexture2D> texture = pd->Texture.As<VKTexture2D>();
-                pd->ImageInfo = texture->GetVulkanDescriptorInfo();
-                pd->WDS.pImageInfo = &pd->ImageInfo;
-            }
-            else if (pd->Type == PendingDescriptorType::TextureCube)
-            {
-                Ref<VKTextureCube> texture = pd->Texture.As<VKTextureCube>();
-                pd->ImageInfo = texture->GetVulkanDescriptorInfo();
-                pd->WDS.pImageInfo = &pd->ImageInfo;
-            }
-            else if (pd->Type == PendingDescriptorType::Image2D)
-            {
-                Ref<VKImage2D> image = pd->Image.As<VKImage2D>();
-                pd->ImageInfo = image->GetDescriptor();
-                pd->WDS.pImageInfo = &pd->ImageInfo;
+                mWriteDescriptors[frameIndex].push_back(wd);
             }
 
-            mWriteDescriptors.push_back(pd->WDS);
+            for (auto&& [binding, pd] : mResidentDescriptors)
+            {
+                if (pd->Type == PendingDescriptorType::Texture2D)
+                {
+                    Ref<VKTexture2D> texture = pd->Texture.As<VKTexture2D>();
+                    pd->ImageInfo = texture->GetVulkanDescriptorInfo();
+                    pd->WDS.pImageInfo = &pd->ImageInfo;
+                }
+                else if (pd->Type == PendingDescriptorType::TextureCube)
+                {
+                    Ref<VKTextureCube> texture = pd->Texture.As<VKTextureCube>();
+                    pd->ImageInfo = texture->GetVulkanDescriptorInfo();
+                    pd->WDS.pImageInfo = &pd->ImageInfo;
+                }
+                else if (pd->Type == PendingDescriptorType::Image2D)
+                {
+                    Ref<VKImage2D> image = pd->Image.As<VKImage2D>();
+                    pd->ImageInfo = image->GetDescriptor();
+                    pd->WDS.pImageInfo = &pd->ImageInfo;
+                }
+
+                mWriteDescriptors[frameIndex].push_back(pd->WDS);
+            }
         }
 
-        if (mWriteDescriptors.size())
-        {
-            for (auto& writeDescriptor : mWriteDescriptors)
-            {
-                writeDescriptor.dstSet = mDescriptorSet.DescriptorSets[0];
-            }
+        auto vulkanShader = mShader.As<VKShader>();
+        auto descriptorSet = vulkanShader->AllocateDescriptorSet();
+        mDescriptorSets[frameIndex] = descriptorSet;
 
-            NR_CORE_WARN("VulkanMaterial - Updating {0} descriptor sets", mWriteDescriptors.size());
-            vkUpdateDescriptorSets(vulkanDevice, mWriteDescriptors.size(), mWriteDescriptors.data(), 0, nullptr);
+        for (auto& writeDescriptor : mWriteDescriptors[frameIndex])
+        {
+            writeDescriptor.dstSet = descriptorSet.DescriptorSets[0];
         }
+
+        vkUpdateDescriptorSets(vulkanDevice, mWriteDescriptors[frameIndex].size(), mWriteDescriptors[frameIndex].data(), 0, nullptr);
+
         mPendingDescriptors.clear();
-        mWriteDescriptors.clear();
+    }
+
+    void VKMaterial::InvalidateDescriptorSets()
+    {
+        uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+        for (int i = 0; i < framesInFlight; ++i)
+        {
+            mDirtyDescriptorSets[i] = true;
+        }
     }
 }

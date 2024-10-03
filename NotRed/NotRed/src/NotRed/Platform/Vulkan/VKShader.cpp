@@ -9,7 +9,8 @@
 
 #include "NotRed/Renderer/Renderer.h"
 
-#include "NotRed/Platform/Vulkan/VKContext.h"
+#include "VKContext.h"
+#include "VKRenderer.h"
 
 namespace NR
 {
@@ -616,75 +617,26 @@ namespace NR
         return result;
     }
     
-    VKShader::ShaderMaterialDescriptorSet VKShader::AllocateDescriptorSets()
+    VKShader::ShaderMaterialDescriptorSet VKShader::AllocateDescriptorSet(uint32_t set)
     {
+        NR_CORE_ASSERT(set < mDescriptorSetLayouts.size());
+
         ShaderMaterialDescriptorSet result;
         if (mShaderDescriptorSets.empty())
         {
             return result;
         }
 
-        std::vector<VkDescriptorPoolSize> poolSizes;
-        for (uint32_t set = 0; set < mShaderDescriptorSets.size(); ++set)
-        {
-            auto& shaderDescriptorSet = mShaderDescriptorSets[set];
-            if (!shaderDescriptorSet)
-            {
-                continue;
-            }
-
-            if (shaderDescriptorSet.UniformBuffers.size())
-            {
-                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
-                typeCount.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                typeCount.descriptorCount = shaderDescriptorSet.UniformBuffers.size();
-            }
-            if (shaderDescriptorSet.ImageSamplers.size())
-            {
-                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
-                typeCount.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                typeCount.descriptorCount = shaderDescriptorSet.ImageSamplers.size();
-            }
-            if (shaderDescriptorSet.StorageImages.size())
-            {
-                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
-                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-                typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
-            }
-            if (shaderDescriptorSet.StorageBuffers.size())
-            {
-                VkDescriptorPoolSize& typeCount = poolSizes.emplace_back();
-                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size();
-            }
-        }
-
-        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-
-        VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
-        descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        descriptorPoolInfo.pNext = nullptr;
-        descriptorPoolInfo.poolSizeCount = poolSizes.size();
-        descriptorPoolInfo.pPoolSizes = poolSizes.data();
-        descriptorPoolInfo.maxSets = mShaderDescriptorSets.size();
-
-        VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &result.Pool));
-
-        std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-        descriptorSetLayouts.reserve(mDescriptorSetLayouts.size());
-        for (auto& shaderDescriptorSet : mDescriptorSetLayouts)
-        {
-            descriptorSetLayouts.emplace_back(shaderDescriptorSet);
-        }
+        result.Pool = nullptr;
 
         VkDescriptorSetAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        allocInfo.descriptorPool = result.Pool;
-        allocInfo.descriptorSetCount = descriptorSetLayouts.size();
-        allocInfo.pSetLayouts = descriptorSetLayouts.data();
-        result.DescriptorSets.resize(mShaderDescriptorSets.size());
-
-        VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, result.DescriptorSets.data()));
+        allocInfo.descriptorSetCount = 1;
+        allocInfo.pSetLayouts = &mDescriptorSetLayouts[set];
+        VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+        
+        NR_CORE_ASSERT(descriptorSet);
+        result.DescriptorSets.push_back(descriptorSet);
 
         return result;
     }

@@ -59,7 +59,7 @@ namespace NR
 
         struct ShaderMaterialDescriptorSet
         {
-            VkDescriptorPool Pool;
+            VkDescriptorPool Pool = nullptr;
             std::vector<VkDescriptorSet> DescriptorSets;
         };
 
@@ -100,7 +100,7 @@ namespace NR
 
         const std::vector<PushConstantRange>& GetPushConstantRanges() const { return mPushConstantRanges; }
 
-        ShaderMaterialDescriptorSet AllocateDescriptorSets();
+        ShaderMaterialDescriptorSet AllocateDescriptorSet(uint32_t set = 0);
         ShaderMaterialDescriptorSet CreateDescriptorSets(uint32_t set = 0);
         ShaderMaterialDescriptorSet CreateDescriptorSets(uint32_t set, uint32_t numberOfSets);
         const VkWriteDescriptorSet* GetDescriptorSet(const std::string& name, uint32_t set = 0) const;
@@ -131,7 +131,6 @@ namespace NR
 
         std::vector<VkDescriptorSetLayout> mDescriptorSetLayouts;
         VkDescriptorSet mDescriptorSet;
-        VkDescriptorPool mDescriptorPool;
 
         std::unordered_map<uint32_t, std::vector<VkDescriptorPoolSize>> mTypeCounts;
     };

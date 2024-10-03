@@ -76,7 +76,13 @@ namespace NR
 
 		if (mFrameBuffer)
 		{
-			vkDestroyFramebuffer(device, mFrameBuffer, nullptr);
+			VkFramebuffer framebuffer = mFrameBuffer;
+			Renderer::SubmitResourceFree([framebuffer]()
+				{
+					auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+					vkDestroyFramebuffer(device, framebuffer, nullptr);
+				});
+
 			for (auto image : mAttachmentImages)
 			{
 				image->Release();

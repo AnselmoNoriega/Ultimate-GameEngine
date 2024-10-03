@@ -38,14 +38,17 @@ namespace NR
 
 	void VKImage2D::Release()
 	{
-		auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
-		vkDestroyImageView(vulkanDevice, mInfo.ImageView, nullptr);
-		vkDestroySampler(vulkanDevice, mInfo.Sampler, nullptr);	
-		
-		VKAllocator allocator("VKImage2D");
-		allocator.DestroyImage(mInfo.Image, mInfo.MemoryAlloc);
+		VKImageInfo info = mInfo;
+		Renderer::SubmitResourceFree([info]() mutable
+			{
+				auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				NR_CORE_WARN("VulkanImage2D::Release ImageView = {0}", (const void*)info.ImageView);
+				vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
+				vkDestroySampler(vulkanDevice, info.Sampler, nullptr);
 
-		NR_CORE_WARN("VKImage2D::Release ImageView = {0}", (const void*)mInfo.ImageView);
+				VKAllocator allocator("VulkanImage2D");
+				allocator.DestroyImage(info.Image, info.MemoryAlloc);
+			});
 
 		mInfo.Image = nullptr;
 		mInfo.ImageView = nullptr;
@@ -182,7 +185,5 @@ namespace NR
 		}
 		mDescriptorImageInfo.imageView = mInfo.ImageView;
 		mDescriptorImageInfo.sampler = mInfo.Sampler;
-
-		NR_CORE_WARN("VulkanImage2D::UpdateDescriptor to ImageView = {0}", (const void*)mInfo.ImageView);
 	}
 }

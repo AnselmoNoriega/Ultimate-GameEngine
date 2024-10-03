@@ -38,8 +38,12 @@ namespace NR
 		Ref<GLUniformBuffer> instance = this;
 		Renderer::Submit([instance, size, offset]() mutable
 			{
-				glNamedBufferSubData(instance->mID, offset, size, instance->mLocalStorage);
+				instance->RT_SetData(instance->mLocalStorage, size, offset);
 			});
 	}
 
+	void GLUniformBuffer::RT_SetData(const void* data, uint32_t size, uint32_t offset)
+	{
+		glNamedBufferSubData(mID, offset, size, mLocalStorage);
+	}
 }

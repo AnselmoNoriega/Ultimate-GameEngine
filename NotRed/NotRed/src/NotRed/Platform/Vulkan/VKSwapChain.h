@@ -33,8 +33,8 @@ namespace NR
 
 		VkRenderPass GetRenderPass() { return mRenderPass; }
 
-		VkFramebuffer GetCurrentFramebuffer() { return GetFramebuffer(mCurrentBufferIndex); }
-		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentBufferIndex); }
+		VkFramebuffer GetCurrentFramebuffer() { return GetFramebuffer(mCurrentImageIndex); }
+		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentImageIndex); }
 
 		VkFormat GetColorFormat() { return mColorFormat; }
 
@@ -107,6 +107,7 @@ namespace NR
 
 		VkRenderPass mRenderPass;
 		uint32_t mCurrentBufferIndex = 0;
+		uint32_t mCurrentImageIndex = 0;
 
 		uint32_t mQueueNodeIndex = UINT32_MAX;
 		uint32_t mWidth = 0, mHeight = 0;

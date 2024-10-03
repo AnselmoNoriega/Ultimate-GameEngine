@@ -5,6 +5,7 @@
 bin-int/
 Intermediates/
 obj/
+**/cache/**
 NotEditor/assets/cache/shader/
 NotEditor/logs/
 

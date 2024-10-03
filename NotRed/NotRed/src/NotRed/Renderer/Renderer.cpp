@@ -63,7 +63,7 @@ namespace NR
         sCurrentRendererAPI = api;
     }
 
-    uint32_t Renderer::GetCurrentImageIndex()
+    uint32_t Renderer::GetCurrentFrameIndex()
     {
         return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
     }
@@ -77,7 +77,7 @@ namespace NR
         Ref<Texture2D> WhiteTexture;
         Ref<TextureCube> BlackCubeTexture;
         Ref<Environment> EmptyEnvironment;
-        std::map<uint32_t, std::map<uint32_t, Ref<UniformBuffer>>> UniformBuffers;
+        std::map<uint32_t, std::map<uint32_t, std::map<uint32_t, Ref<UniformBuffer>>>> UniformBuffers;
     };
 
     static RendererData* sData = nullptr;
@@ -102,6 +102,8 @@ namespace NR
     {
         sData = new RendererData();
         sCommandQueue = new RenderCommandQueue();
+
+        sData->Config.FramesInFlight = 3;
         sRendererAPI = InitRendererAPI();
 
         sData->mShaderLibrary = Ref<ShaderLibrary>::Create();
@@ -267,16 +269,18 @@ namespace NR
         }
     }
 
-    void Renderer::SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t set)
+    void Renderer::SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t frame, uint32_t set)
     {
-        sData->UniformBuffers[set][uniformBuffer->GetBinding()] = uniformBuffer;
+        sData->UniformBuffers[frame][set][uniformBuffer->GetBinding()] = uniformBuffer;
     }
 
-    Ref<UniformBuffer> Renderer::GetUniformBuffer(uint32_t binding, uint32_t set)
+    Ref<UniformBuffer> Renderer::GetUniformBuffer(uint32_t frame, uint32_t binding, uint32_t set)
     {
-        NR_CORE_ASSERT(sData->UniformBuffers.find(set) != sData->UniformBuffers.end());
-        NR_CORE_ASSERT(sData->UniformBuffers.at(set).find(binding) != sData->UniformBuffers.at(set).end());
-        return sData->UniformBuffers.at(set).at(binding);
+        NR_CORE_ASSERT(sData->UniformBuffers.find(frame) != sData->UniformBuffers.end());
+        NR_CORE_ASSERT(sData->UniformBuffers.at(frame).find(set) != sData->UniformBuffers.at(frame).end());
+        NR_CORE_ASSERT(sData->UniformBuffers.at(frame).at(set).find(binding) != sData->UniformBuffers.at(frame).at(set).end());
+
+        return sData->UniformBuffers.at(frame).at(set).at(binding);
     }
 
     Ref<Texture2D> Renderer::GetWhiteTexture()
