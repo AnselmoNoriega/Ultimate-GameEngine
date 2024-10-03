@@ -56,6 +56,9 @@ namespace NR
 		void RuntimeStart();
 		void RuntimeStop();
 
+		void SimulationStart();
+		void SimulationEnd();
+
 		void SetViewportSize(uint32_t width, uint32_t height);
 
 		const Ref<Environment>& GetEnvironment() const { return mEnvironment; }
@@ -126,6 +129,7 @@ namespace NR
 
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;
+		bool mShouldSimulate = false;
 
 		friend class Entity;
 		friend class SceneRenderer;

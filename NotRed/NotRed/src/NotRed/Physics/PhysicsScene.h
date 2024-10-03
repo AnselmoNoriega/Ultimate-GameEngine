@@ -23,7 +23,7 @@ namespace NR
 		PhysicsScene(const PhysicsSettings& settings);
 		~PhysicsScene();
 
-		void Simulate(float dt);
+		void Simulate(float dt, bool callFixedUpdate = true);
 
 		Ref<PhysicsActor> GetActor(Entity entity);
 		const Ref<PhysicsActor>& GetActor(Entity entity) const;

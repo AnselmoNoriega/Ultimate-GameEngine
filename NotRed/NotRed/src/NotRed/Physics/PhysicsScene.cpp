@@ -35,11 +35,14 @@ namespace NR
 
 	}
 
-	void PhysicsScene::Simulate(float dt)
+	void PhysicsScene::Simulate(float dt, bool callFixedUpdate)
 	{
-		for (auto& actor : mActors)
+		if (callFixedUpdate)
 		{
-			actor->FixedUpdate(mSubStepSize);
+			for (auto& actor : mActors)
+			{
+				actor->FixedUpdate(mSubStepSize);
+			}
 		}
 
 		bool advanced = Advance(dt);
@@ -47,7 +50,9 @@ namespace NR
 		if (advanced)
 		{
 			for (auto& actor : mActors)
+			{
 				actor->SynchronizeTransform();
+			}
 		}
 	}
 

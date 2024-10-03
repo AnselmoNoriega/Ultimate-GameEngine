@@ -102,6 +102,36 @@ namespace NR
         Input::SetCursorMode(CursorMode::Normal);
     }
 
+    void EditorLayer::SceneStartSimulation()
+    {
+        mSelectionContext.clear();
+
+        mSceneState = SceneState::Simulate;
+        mSimulationScene = Ref<Scene>::Create();
+
+        mEditorScene->CopyTo(mSimulationScene);
+        mSimulationScene->SimulationStart();
+        mSceneHierarchyPanel->SetContext(mSimulationScene);
+
+        mCurrentScene = mSimulationScene;
+    }
+
+    void EditorLayer::SceneEndSimulation()
+    {
+        mSimulationScene->SimulationEnd();
+
+        mSceneState = SceneState::Edit;
+        mSimulationScene = nullptr;
+
+        mSelectionContext.clear();
+
+        ScriptEngine::SetSceneContext(mEditorScene);
+
+        mSceneHierarchyPanel->SetContext(mEditorScene);
+
+        mCurrentScene = mEditorScene;
+    }
+
     void EditorLayer::UpdateWindowTitle(const std::string& sceneName)
     {
         std::string rendererAPI = RendererAPI::Current() == RendererAPIType::Vulkan ? "Vulkan" : "OpenGL";
@@ -448,6 +478,22 @@ namespace NR
                     mSceneState = SceneState::Play;
                 }
             }
+
+            ImGui::SameLine();
+            ImGui::PushFont(boldFont);
+            if (ImGui::Button("Simulate", ImVec2(0, size)))
+            {
+                if (mSceneState == SceneState::Edit)
+                {
+                    SceneStartSimulation();
+                }
+                else
+                {
+                    SceneEndSimulation();
+                }
+            }
+
+            ImGui::PopFont();
         }
         ImGui::PopStyleColor(3);
         ImGui::PopStyleVar(2);
@@ -1045,9 +1091,16 @@ namespace NR
         mSelectionContext.clear();
         mSelectionContext.push_back(selection);
 
-        mEditorScene->SetSelectedEntity(entity);
-
-        mCurrentScene = mEditorScene;
+        if (mSceneState == SceneState::Edit)
+        {
+            mEditorScene->SetSelectedEntity(entity);
+            mCurrentScene = mEditorScene;
+        }
+        else if (mSceneState == SceneState::Simulate)
+        {
+            mEditorScene->SetSelectedEntity(entity);
+            mCurrentScene = mSimulationScene;
+        }
     }
 
     void EditorLayer::OnEvent(Event& e)
@@ -1204,11 +1257,11 @@ namespace NR
                 auto [origin, direction] = CastRay(mouseX, mouseY);
 
                 mSelectionContext.clear();
-                mEditorScene->SetSelectedEntity({});
-                auto meshEntities = mEditorScene->GetAllEntitiesWith<MeshComponent>();
+                mCurrentScene->SetSelectedEntity({});
+                auto meshEntities = mCurrentScene->GetAllEntitiesWith<MeshComponent>();
                 for (auto e : meshEntities)
                 {
-                    Entity entity = { e, mEditorScene.Raw() };
+                    Entity entity = { e, mCurrentScene.Raw() };
                     auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
                     if (!mesh)
                     {
@@ -1282,7 +1335,7 @@ namespace NR
     void EditorLayer::Selected(const SelectedSubmesh& selectionContext)
     {
         mSceneHierarchyPanel->SetSelected(selectionContext.EntityObj);
-        mEditorScene->SetSelectedEntity(selectionContext.EntityObj);
+        mCurrentScene->SetSelectedEntity(selectionContext.EntityObj);
     }
 
     void EditorLayer::EntityDeleted(Entity e)

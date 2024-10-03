@@ -1,6 +1,7 @@
 #include "nrpch.h"
 #include "ContactListener.h"
 
+#include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Script/ScriptEngine.h"
 
@@ -36,6 +37,11 @@ namespace NR
 		Entity& a = *(Entity*)pairHeader.actors[0]->userData;
 		Entity& b = *(Entity*)pairHeader.actors[1]->userData;
 
+		if (!Scene::GetScene(a.GetSceneID())->IsPlaying())
+		{
+			return;
+		}
+
 		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
 		{
 			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionBegin(a);
@@ -52,6 +58,11 @@ namespace NR
 	{
 		Entity& a = *(Entity*)pairs->triggerActor->userData;
 		Entity& b = *(Entity*)pairs->otherActor->userData;
+
+		if (!Scene::GetScene(a.GetSceneID())->IsPlaying())
+		{
+			return;
+		}
 
 		if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
 		{

@@ -129,7 +129,7 @@ namespace NR
                     {
                         if (ImGui::MenuItem("Empty Mesh"))
                         {
-                            auto newEntity = mContext->CreateEntity("Empty Mesh");
+                            auto newEntity = mContext->CreateEntity("Mesh");
                             newEntity.AddComponent<MeshComponent>();
                             SetSelected(newEntity);
                         }
@@ -202,6 +202,14 @@ namespace NR
                             auto newEntity = mContext->CreateEntity("Mesh");
                             newEntity.AddComponent<MeshComponent>();
                             newEntity.AddComponent<MeshColliderComponent>();
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Plane"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Plane");
+                            const auto& mesh = AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Plane.fbx");
+                            newEntity.AddComponent<MeshComponent>(mesh);
+                            newEntity.AddComponent<MeshColliderComponent>(mesh);
                             SetSelected(newEntity);
                         }
                         ImGui::EndMenu();

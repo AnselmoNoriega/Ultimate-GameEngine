@@ -72,6 +72,9 @@ namespace NR
 		void ScenePlay();
 		void SceneStop();
 
+		void SceneStartSimulation();
+		void SceneEndSimulation();
+
 		void UpdateWindowTitle(const std::string& sceneName);
 
 		float GetSnapValue();
@@ -81,7 +84,7 @@ namespace NR
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
 
-		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
+		Ref<Scene> mRuntimeScene, mEditorScene, mSimulationScene, mCurrentScene;
 		std::string mSceneFilePath;
 		bool mReloadScriptOnPlay = true;
 
@@ -153,7 +156,8 @@ namespace NR
 		{
 			Edit,
 			Play,
-			Pause
+			Pause, 
+			Simulate
 		};
 		SceneState mSceneState = SceneState::Edit;
 
