@@ -223,8 +223,18 @@ namespace NR
 
 	void VKRenderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
 	{
-		Renderer::Submit([pipeline, mesh, transform]() mutable
+		Buffer pushConstantBuffer;
+		pushConstantBuffer.Allocate(sizeof(glm::mat4) + additionalUniforms.Size);
+		if (additionalUniforms.Size)
+		{
+			pushConstantBuffer.Write(additionalUniforms.Data, additionalUniforms.Size, sizeof(glm::mat4));
+		}
+
+		Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
+		Renderer::Submit([pipeline, mesh, vulkanMaterial, transform, pushConstantBuffer]() mutable
 			{
+				NR_SCOPE_PERF("VulkanRenderer::RenderMeshWithMaterial");
+
 				auto vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
 				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
 				VkDeviceSize offsets[1] = { 0 };
@@ -233,20 +243,9 @@ namespace NR
 				auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
 				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
 				vkCmdBindIndexBuffer(sData->ActiveCommandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
-			});
+				
+				vulkanMaterial->RT_UpdateForRendering();
 
-		Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
-		vulkanMaterial->UpdateForRendering();
-
-		Buffer pushConstantBuffer;
-		pushConstantBuffer.Allocate(sizeof(glm::mat4) + additionalUniforms.Size);
-		if (additionalUniforms.Size)
-		{
-			pushConstantBuffer.Write(additionalUniforms.Data, additionalUniforms.Size, sizeof(glm::mat4));
-		}
-
-		Renderer::Submit([pipeline, mesh, vulkanMaterial, transform, pushConstantBuffer]() mutable
-			{
 				Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
 				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
 				VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
@@ -659,7 +658,7 @@ namespace NR
 				writeDescriptors[0].pBufferInfo = &bufferInfo;
 
 				vkUpdateDescriptorSets(device, writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
-				
+
 				uint32_t workgroupCountX = (dataCount + 256 - 1) / 256;
 
 				// Step 5: Push constants and dispatch the compute shader

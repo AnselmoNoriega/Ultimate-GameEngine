@@ -13,6 +13,8 @@
 #include "NotRed/Platform/OpenGL/GLRenderer.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 
+#include "NotRed/Platform/Vulkan/VKContext.h"
+
 #include "NotRed/Core/Timer.h"
 
 namespace NR
@@ -61,6 +63,11 @@ namespace NR
         sCurrentRendererAPI = api;
     }
 
+    uint32_t Renderer::GetCurrentImageIndex()
+    {
+        return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+    }
+
     struct RendererData
     {
         RendererConfig Config;
@@ -75,6 +82,7 @@ namespace NR
 
     static RendererData* sData = nullptr;
     static RenderCommandQueue* sCommandQueue = nullptr;
+    static RenderCommandQueue sResourceFreeQueue[3];
 
     static RendererAPI* InitRendererAPI()
     {
@@ -299,5 +307,10 @@ namespace NR
     Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
     {
         return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
+    }
+
+    RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
+    {
+        return sResourceFreeQueue[index];
     }
 }

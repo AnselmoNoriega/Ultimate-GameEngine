@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace NR
 {
@@ -29,6 +30,16 @@ namespace NR
         {
             x = Mathf.Clamp(x, min.x, max.x);
             y = Mathf.Clamp(y, min.y, max.y);
+        }
+
+        public float Distance(Vector3 other)
+        {
+            return (float)Math.Sqrt(Math.Pow(other.x - x, 2) + Math.Pow(other.y - y, 2));
+        }
+
+        public static float Distance(Vector3 p1, Vector3 p2)
+        {
+            return (float)Math.Sqrt(Math.Pow(p2.x - p1.x, 2) + Math.Pow(p2.y - p1.y, 2));
         }
 
         public static Vector2 operator -(Vector2 left, Vector2 right)
