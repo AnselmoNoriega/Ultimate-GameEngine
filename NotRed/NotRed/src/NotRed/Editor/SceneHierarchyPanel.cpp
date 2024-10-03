@@ -90,21 +90,8 @@ namespace NR
                 {
                     UUID droppedHandle = *((UUID*)payload->Data);
                     Entity e = mContext->FindEntityByID(droppedHandle);
-                    Entity previousParent = mContext->FindEntityByID(e.GetParentID());
 
-                    if (previousParent)
-                    {
-                        auto& children = previousParent.Children();
-                        children.erase(std::remove(children.begin(), children.end(), droppedHandle), children.end());
-
-                        glm::mat4 parentTransform = mContext->GetTransformRelativeToParent(previousParent);
-                        glm::vec3 parentTranslation, parentRotation, parentScale;
-                        Math::DecomposeTransform(parentTransform, parentTranslation, parentRotation, parentScale);
-
-                        e.Transform().Translation = e.Transform().Translation + parentTranslation;
-                    }
-
-                    e.SetParentID(0);
+                    mContext->UnparentEntity(e);
                 }
 
                 ImGui::EndDragDropTarget();
@@ -307,28 +294,7 @@ namespace NR
             {
                 UUID droppedHandle = *((UUID*)payload->Data);
                 Entity e = mContext->FindEntityByID(droppedHandle);
-
-                if (!entity.IsDescendantOf(e))
-                {
-                    // Remove from previous parent
-                    Entity previousParent = mContext->FindEntityByID(e.GetParentID());
-                    if (previousParent)
-                    {
-                        auto& parentChildren = previousParent.Children();
-                        parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), droppedHandle), parentChildren.end());
-                    }
-
-                    glm::mat4 parentTransform = mContext->GetTransformRelativeToParent(entity);
-                    glm::vec3 parentTranslation, parentRotation, parentScale;
-                    Math::DecomposeTransform(parentTransform, parentTranslation, parentRotation, parentScale);
-
-                    auto& entityTransform = e.Transform();
-                    entityTransform.Translation = entityTransform.Translation - parentTranslation;
-                    entityTransform.Rotation = entityTransform.Rotation - parentRotation;
-
-                    e.SetParentID(entity.GetID());
-                    entity.Children().push_back(droppedHandle);
-                }
+                mContext->ParentEntity(e, entity);
             }
 
             ImGui::EndDragDropTarget();

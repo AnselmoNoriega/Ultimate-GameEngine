@@ -150,6 +150,17 @@ namespace NR
         return 0.0f;
     }
 
+    void EditorLayer::DeleteEntity(Entity entity)
+    {
+        for (auto childId : entity.Children())
+        {
+            DeleteEntity(mEditorScene->FindEntityByID(childId));
+        }
+
+        mEditorScene->UnparentEntity(entity);
+        mEditorScene->DestroyEntity(entity);
+    }
+
     void EditorLayer::Update(float dt)
     {
         auto [x, y] = GetMouseViewportSpace();
@@ -562,8 +573,8 @@ namespace NR
                     Entity parent = mCurrentScene->FindEntityByID(selection.EntityObj.GetParentID());
                     if (parent)
                     {
-                        glm::mat4 parentMatrix = mCurrentScene->GetTransformRelativeToParent(parent);
-                        transform = glm::inverse(parentMatrix) * transform;
+                        glm::mat4 parentTransform = mCurrentScene->GetTransformRelativeToParent(parent);
+                        transform = glm::inverse(parentTransform) * transform;
                         glm::vec3 translation, rotation, scale;
                         Math::DecomposeTransform(transform, translation, rotation, scale);
 
@@ -1179,8 +1190,7 @@ namespace NR
             case KeyCode::Delete:
                 if (mSelectionContext.size())
                 {
-                    Entity selectedEntity = mSelectionContext[0].EntityObj;
-                    mEditorScene->DestroyEntity(selectedEntity);
+                    DeleteEntity(mSelectionContext[0].EntityObj);
                     mSelectionContext.clear();
                     mEditorScene->SetSelectedEntity({});
                     mSceneHierarchyPanel->SetSelected({});

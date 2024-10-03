@@ -69,6 +69,8 @@ namespace NR
 		void EntityDeleted(Entity e);
 		Ray CastMouseRay();
 
+		void DeleteEntity(Entity entity);
+
 		void ScenePlay();
 		void SceneStop();
 

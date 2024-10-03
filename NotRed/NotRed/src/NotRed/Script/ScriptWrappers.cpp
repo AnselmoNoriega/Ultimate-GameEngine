@@ -201,17 +201,6 @@ namespace NR::Script
         entity.GetComponent<TransformComponent>().Scale = *inScale;
     }
 
-    void NR_TransformComponent_GetWorldTranslation(uint64_t entityID, glm::vec3* outTranslation)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        *outTranslation = entity.GetComponent<TransformComponent>().WorldTranslation;
-    }
-
     void NR_Input_GetMousePosition(glm::vec2* outPosition)
     {
         auto [x, y] = Input::GetMousePosition();

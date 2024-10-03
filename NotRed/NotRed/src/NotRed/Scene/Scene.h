@@ -79,7 +79,14 @@ namespace NR
 		Entity FindEntityByTag(const std::string& tag);
 		Entity FindEntityByID(UUID id);
 
+		void ConvertToLocalSpace(Entity entity);
+		void ConvertToWorldSpace(Entity entity);
+
 		glm::mat4 GetTransformRelativeToParent(Entity entity);
+		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+
+		void ParentEntity(Entity entity, Entity parent);
+		void UnparentEntity(Entity entity);
 
 		template<typename T>
 		auto GetAllEntitiesWith()

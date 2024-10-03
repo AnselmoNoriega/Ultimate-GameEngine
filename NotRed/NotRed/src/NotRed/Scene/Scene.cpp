@@ -183,38 +183,6 @@ namespace NR
 			}
 		}
 
-		{
-			auto view = mRegistry.view<TransformComponent>();
-			for (auto entity : view)
-			{
-				auto& transformComponent = view.get<TransformComponent>(entity);
-
-				Entity e = Entity(entity, this);
-				glm::mat4 transform = GetTransformRelativeToParent(e);
-				glm::vec3 translation;
-				glm::vec3 rotation;
-				glm::vec3 scale;
-				Math::DecomposeTransform(transform, translation, rotation, scale);
-
-				glm::quat rotationQuat = glm::quat(rotation);
-				transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
-				transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
-				transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
-
-				Entity parent = FindEntityByID(e.GetParentID());
-				if (parent)
-				{
-					glm::vec3 parentTranslation, parentRotation, parentScale;
-					Math::DecomposeTransform(GetTransformRelativeToParent(parent), parentTranslation, parentRotation, parentScale);
-					transformComponent.WorldTranslation = parentTranslation + transformComponent.Translation;
-				}
-				else
-				{
-					transformComponent.WorldTranslation = transformComponent.Translation;
-				}
-			}
-		}
-
 		if (mShouldSimulate)
 		{
 			PhysicsManager::GetScene()->Simulate(dt, mIsPlaying);
@@ -867,6 +835,42 @@ namespace NR
 		return Entity{};
 	}
 
+	void Scene::ConvertToLocalSpace(Entity entity)
+	{
+		Entity parent = FindEntityByID(entity.GetParentID());
+		if (!parent)
+		{
+			return;
+		}
+
+		glm::mat4 transform = GetWorldSpaceTransformMatrix(entity);
+		glm::vec3 localTranslation, localRotation, localScale;
+		Math::DecomposeTransform(transform, localTranslation, localRotation, localScale);
+
+		auto& entityTransform = entity.Transform();
+		entityTransform.Translation = localTranslation;
+		entityTransform.Rotation = localRotation;
+		entityTransform.Scale = localScale;
+	}
+
+	void Scene::ConvertToWorldSpace(Entity entity)
+	{
+		Entity parent = FindEntityByID(entity.GetParentID());
+		if (!parent)
+		{
+			return;
+		}
+
+		glm::mat4 transform = GetTransformRelativeToParent(entity);
+		glm::vec3 localTranslation, localRotation, localScale;
+		Math::DecomposeTransform(transform, localTranslation, localRotation, localScale);
+
+		auto& entityTransform = entity.Transform();
+		entityTransform.Translation = localTranslation;
+		entityTransform.Rotation = localRotation;
+		entityTransform.Scale = localScale;
+	}
+
 	Entity Scene::FindEntityByID(UUID id)
 	{
 		auto view = mRegistry.view<IDComponent>();
@@ -893,6 +897,49 @@ namespace NR
 		}
 
 		return transform * entity.Transform().GetTransform();
+	}
+
+	glm::mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
+	{
+		glm::mat4 transform = entity.Transform().GetTransform();
+		while (Entity parent = FindEntityByID(entity.GetParentID()))
+		{
+			transform = parent.Transform().GetTransform() * transform;
+			entity = parent;
+		}
+		return transform;
+	}
+
+	void Scene::ParentEntity(Entity entity, Entity parent)
+	{
+		if (parent.IsDescendantOf(entity))
+		{
+			return;
+		}
+
+		Entity previousParent = FindEntityByID(entity.GetParentID());
+		if (previousParent)
+		{
+			UnparentEntity(entity);
+		}
+
+		entity.SetParentID(parent.GetID());
+		parent.Children().push_back(entity.GetID());
+		ConvertToLocalSpace(entity);
+	}
+
+	void Scene::UnparentEntity(Entity entity)
+	{
+		Entity parent = FindEntityByID(entity.GetParentID());
+		if (!parent)
+		{
+			return;
+		}
+
+		auto& parentChildren = parent.Children();
+		parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetID()), parentChildren.end());
+		ConvertToWorldSpace(entity);
+		entity.SetParentID(0);
 	}
 
 	void Scene::CopyTo(Ref<Scene>& target)
