@@ -673,7 +673,7 @@
     <ClInclude Include="src\NotRed\Audio\DSP\Components\revmodel.hpp" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\tuning.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\SceneAudio.h" />
+    <ClInclude Include="src\NotRed\Audio\SceneAudio.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1106,6 +1106,6 @@
     <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\revmodel.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\SceneAudio.cpp" />
+    <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp" />
   </ItemGroup>
 </Project>
