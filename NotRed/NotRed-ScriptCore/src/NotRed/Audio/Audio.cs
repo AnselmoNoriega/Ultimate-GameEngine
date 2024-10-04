@@ -81,6 +81,11 @@ namespace NR
             get { return entity.Translation; }
             set { entity.Translation = value; }
         }
+        public float MasterReverbSend
+        {
+            get { return _audioComponent.MasterReverbSend; }
+            set { _audioComponent.MasterReverbSend = value; }
+        }
     }
 
     public static class Audio

@@ -3,6 +3,7 @@
 
 #include "AudioEngine.h"
 #include "AudioComponent.h"
+#include "SourceManager.h"
 
 #include "NotRed/Scene/Components.h"
 #include "NotRed/Scene/Scene.h"
@@ -93,5 +94,29 @@ namespace NR::Audio
     {
         auto& engine = AudioEngine::Get();
         return engine.IsSoundForComponentPlaying(audioComponentID);
+    }
+
+    void AudioPlayback::SetMasterReverbSend(uint64_t audioComponetnID, float sendLevel)
+    {
+        auto& engine = AudioEngine::Get();
+        if (auto* sound = engine.GetSoundForAudioComponent(audioComponetnID))
+        {
+            SourceManager::SetMasterReverbSendForSource(sound, sendLevel);
+            if (auto* audioComponent = engine.GetAudioComponentFromID(engine.mCurrentSceneID, audioComponetnID))
+            {
+                audioComponent->SoundConfig.MasterReverbSend = sendLevel;
+            }
+        }
+    }
+
+    float AudioPlayback::GetMasterReverbSend(uint64_t audioComponetnID)
+    {
+        auto& engine = AudioEngine::Get();
+        if (auto* audioComponent = engine.GetAudioComponentFromID(engine.mCurrentSceneID, audioComponetnID))
+        {
+            return audioComponent->SoundConfig.MasterReverbSend;
+        }
+
+        return 0.0f;
     }
 }

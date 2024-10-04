@@ -21,14 +21,14 @@ namespace NR::Audio
 
 		SoundConfig SoundConfig;
 
-		bool AutoDestroy = false;
-
 		bool PlayOnAwake = false;
 
 		float VolumeMultiplier = 1.0f;
 		float PitchMultiplier = 1.0f;
 
 		glm::vec3 SourcePosition = { 0.0f, 0.0f, 0.0f };
+
+		bool AutoDestroy = false;
 
 		std::atomic<bool> MarkedForDestroy = false;
 

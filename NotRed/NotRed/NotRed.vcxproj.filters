@@ -666,6 +666,14 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\comb.hpp" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\denormals.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\revmodel.hpp" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\tuning.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\SceneAudio.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1094,5 +1102,10 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Components\revmodel.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\SceneAudio.cpp" />
   </ItemGroup>
 </Project>

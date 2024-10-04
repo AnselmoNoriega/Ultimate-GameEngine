@@ -18,6 +18,7 @@
 #include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Audio/AudioComponent.h"
+#include "NotRed/Audio/AudioEngine.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -532,6 +533,7 @@ namespace NR
             }
 
             out << YAML::Key << "IsLooping" << YAML::Value << (bool)soundCofig.Looping;
+            out << YAML::Key << "MasterReverbSend" << YAML::Value << soundCofig.MasterReverbSend;
             out << YAML::Key << "VolumeMultiplier" << YAML::Value << audioComponent.VolumeMultiplier;
             out << YAML::Key << "PitchMultiplier" << YAML::Value << audioComponent.PitchMultiplier;
             out << YAML::Key << "AutoDestroy" << YAML::Value << audioComponent.AutoDestroy;
@@ -639,6 +641,9 @@ namespace NR
             out << YAML::EndMap;
         }
         out << YAML::EndSeq;
+
+        // Scene Audio
+        Audio::AudioEngine::Get().SerializeSceneAudio(out, mScene);
 
         out << YAML::EndMap;
 
@@ -1105,6 +1110,7 @@ namespace NR
                     component.PitchMultiplier = audioComponent["PitchMultiplier"].as<float>();
                     soundConfig.VolumeMultiplier = audioComponent["VolumeMultiplier"].as<float>();
                     soundConfig.PitchMultiplier = audioComponent["PitchMultiplier"].as<float>();
+                    soundConfig.MasterReverbSend = audioComponent["MasterReverbSend"] ? audioComponent["MasterReverbSend"].as<float>() : 0.0f;
 
                     auto spConfig = audioComponent["Spatialization"];
                     if (spConfig)
@@ -1168,6 +1174,12 @@ namespace NR
                     }
                 }
             }
+        }
+
+        auto sceneAudio = data["SceneAudio"];
+        if (sceneAudio)
+        {
+            Audio::AudioEngine::Get().DeserializeSceneAudio(sceneAudio);
         }
 
         return true;

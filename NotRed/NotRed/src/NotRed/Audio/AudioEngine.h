@@ -20,6 +20,12 @@
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 
+namespace YAML
+{
+    class Emitter;
+    class Node;
+}
+
 namespace NR::Audio
 {
 
@@ -28,15 +34,33 @@ namespace NR::Audio
     class SoundSource;
     class AudioComponent;
 
+    namespace DSP
+    {
+        struct Reverb;
+    }
 
     struct Stats
     {
+        Stats() = default;
+        Stats(const Stats& other)
+        {
+            std::shared_lock lock{ other.mutex };
+            NumActiveSounds = other.NumActiveSounds;
+            TotalSources = other.TotalSources;
+            MemEngine = other.MemEngine;
+            MemResManager = other.MemResManager;
+            FrameTime = other.FrameTime;
+            NumAudioComps = other.NumAudioComps;
+        }
+
         uint32_t NumActiveSounds = 0;
         uint32_t TotalSources = 0;
         uint64_t MemEngine = 0;
         uint64_t MemResManager = 0;
         float FrameTime = 0.0f;
         uint64_t NumAudioComps = 0;
+
+        mutable std::shared_mutex mutex;
     };
 
     struct AllocationCallbackData
@@ -203,6 +227,9 @@ namespace NR::Audio
         static void RuntimePlaying(UUID sceneID);
         static void SceneDestruct(UUID sceneID);
 
+        void SerializeSceneAudio(YAML::Emitter& out, const Ref<Scene>& scene);
+        void DeserializeSceneAudio(YAML::Node& data);
+
         static Stats GetStats();
 
         bool Initialize();
@@ -215,6 +242,8 @@ namespace NR::Audio
 
         SourceManager& GetSourceManager() { return mSourceManager; }
         const SourceManager& GetSourceManager() const { return mSourceManager; }
+
+        DSP::Reverb* GetMasterReverb() { return mMasterReverb.get(); }
 
         /* Main Audio Thread tick update function */
         void Update(TimeFrame dt);
@@ -253,6 +282,7 @@ namespace NR::Audio
         /* Update back-end audio listener from AudioListener state object */
         void UpdateListener();
 
+        /* Internal function call to update sound sources to new values recieved from Game Thread */
         void UpdateSources();
 
         /* This attempts to find ActiveSound for the AudioComponent.
@@ -323,6 +353,8 @@ namespace NR::Audio
         ma_engine mEngine;
         bool bInitialized = false;
         ma_sound mTestSound;
+
+        Scope<DSP::Reverb> mMasterReverb = nullptr;
 
         SourceManager mSourceManager{ *this };
 

@@ -1,6 +1,10 @@
 #include "nrpch.h"
 #include "AudioEngine.h"
 
+#include "DSP/Reverb/Reverb.h"
+
+#include "yaml-cpp/yaml.h"
+
 namespace NR::Audio
 {
 	AudioEngine* AudioEngine::sInstance = nullptr;
@@ -24,13 +28,16 @@ namespace NR::Audio
 		int* sizeBox = (int*)buffer;
 
 		auto* alData = (AllocationCallbackData*)pUserData;
-		if (alData->isResourceManager)
 		{
-			alData->Stats.MemResManager -= *sizeBox;
-		}
-		else
-		{
-			alData->Stats.MemEngine -= *sizeBox;
+			std::scoped_lock lock{ alData->Stats.mutex };
+			if (alData->isResourceManager) 
+			{
+				alData->Stats.MemResManager -= *sizeBox;
+			}
+			else                           
+			{
+				alData->Stats.MemEngine -= *sizeBox;
+			}
 		}
 
 		std::free(buffer);
@@ -47,13 +54,16 @@ namespace NR::Audio
 		}
 
 		auto* alData = (AllocationCallbackData*)pUserData;
-		if (alData->isResourceManager)
 		{
-			alData->Stats.MemResManager += sz;
-		}
-		else
-		{
-			alData->Stats.MemEngine += sz;
+			std::scoped_lock lock{ alData->Stats.mutex };
+			if (alData->isResourceManager) 
+			{
+				alData->Stats.MemResManager += sz;
+			}
+			else                           
+			{
+				alData->Stats.MemEngine += sz;
+			}
 		}
 
 		int* sizeBox = (int*)buffer;
@@ -70,13 +80,16 @@ namespace NR::Audio
 		int* sizeBox = (int*)buffer;
 
 		auto* alData = (AllocationCallbackData*)pUserData;
-		if (alData->isResourceManager)
 		{
-			alData->Stats.MemResManager += sz - *sizeBox;
-		}
-		else
-		{
-			alData->Stats.MemEngine += sz - *sizeBox;
+			std::scoped_lock lock{ alData->Stats.mutex };
+			if (alData->isResourceManager) 
+			{
+				alData->Stats.MemResManager += sz - *sizeBox;
+			}
+			else                           
+			{
+				alData->Stats.MemEngine += sz - *sizeBox;
+			}
 		}
 
 		*sizeBox = sz;
@@ -132,7 +145,6 @@ namespace NR::Audio
 
 		ma_result result;
 		ma_engine_config engineConfig = ma_engine_config_init();
-		engineConfig.periodSizeInFrames = PCM_FRAME_CHUNK_SIZE;
 
 		ma_allocation_callbacks allocationCallbacks{ &mEngineCallbackData, &MemAllocCallback, &MemReallocCallback, &MemFreeCallback };
 		engineConfig.allocationCallbacks = allocationCallbacks;
@@ -146,6 +158,9 @@ namespace NR::Audio
 
 		allocationCallbacks.pUserData = &mRMCallbackData;
 		mEngine.pResourceManager->config.allocationCallbacks = allocationCallbacks;
+
+		mMasterReverb = CreateScope<DSP::Reverb>();
+		mMasterReverb->InitNode(&mEngine.nodeGraph, mEngine.pDevice->playback.internalSampleRate);
 
 		mNumSources = 32;
 		CreateSources();
@@ -180,6 +195,8 @@ namespace NR::Audio
 		mAudioComponentRegistry.Clear(0);
 
 		AudioThread::Stop();
+
+		mMasterReverb.reset();
 
 		ma_engine_uninit(&mEngine);
 
@@ -284,7 +301,7 @@ namespace NR::Audio
 		return releasedSoundSource;
 	}
 
-	Sound* Audio::AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID)
+	Sound* AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID)
 	{
 		auto sceneID = sInstance->mCurrentSceneID;
 		return mComponentSoundMap.Get(sceneID, audioComponentID).value_or(nullptr);
@@ -579,7 +596,7 @@ namespace NR::Audio
 				auto newScene = Scene::GetScene(currentSceneID);
 				if (!newScene->IsEditorScene() && newScene->IsPlaying())
 				{
-					auto translation = audioEntity.GetComponent<TransformComponent>().Translation;
+					auto translation = audioEntity.GetComponent<TransformComponent>().WorldTranslation;
 					ac.SourcePosition = translation;
 					ac.SoundConfig.SpawnLocation = translation;
 					audioEngine.SubmitSoundToPlay(audioEntity.GetID());
@@ -617,7 +634,7 @@ namespace NR::Audio
 
 			if (!newScene->IsEditorScene() && newScene->IsPlaying())
 			{
-				auto translation = audioEntity.GetComponent<TransformComponent>().Translation;
+				auto translation = audioEntity.GetComponent<TransformComponent>().WorldTranslation;
 				ac->SourcePosition = translation;
 				ac->SoundConfig.SpawnLocation = translation;
 				SubmitSoundToPlay(entityID);
@@ -629,5 +646,43 @@ namespace NR::Audio
 	{
 		mAudioComponentRegistry.Remove(sceneID, entityID);
 		sStats.NumAudioComps = mAudioComponentRegistry.Count(sceneID);
+	}
+
+
+	void AudioEngine::SerializeSceneAudio(YAML::Emitter& out, const Ref<Scene>& scene)
+	{
+		out << YAML::Key << "SceneAudio";
+		out << YAML::BeginMap; // SceneAudio
+		if (mMasterReverb)
+		{
+			out << YAML::Key << "MasterReverb";
+			out << YAML::BeginMap; // MasterReverb
+			auto storeParameter = [this, &out](DSP::EReverbParameters type)
+				{
+					out << YAML::Key << mMasterReverb->GetParameterName(type) << YAML::Value << mMasterReverb->GetParameter(type);
+				};
+			storeParameter(DSP::EReverbParameters::PreDelay);
+			storeParameter(DSP::EReverbParameters::RoomSize);
+			storeParameter(DSP::EReverbParameters::Damp);
+			storeParameter(DSP::EReverbParameters::Width);
+			out << YAML::EndMap; // MasterReverb
+		}
+		out << YAML::EndMap; // SceneAudio
+	}
+
+	void AudioEngine::DeserializeSceneAudio(YAML::Node& data)
+	{
+		auto masterReverb = data["MasterReverb"];
+		if (masterReverb && mMasterReverb)
+		{
+			auto setParam = [this, masterReverb](DSP::EReverbParameters type)
+				{
+					mMasterReverb->SetParameter(type, masterReverb[mMasterReverb->GetParameterName(type)].as<float>());
+				};
+			setParam(DSP::EReverbParameters::PreDelay);
+			setParam(DSP::EReverbParameters::RoomSize);
+			setParam(DSP::EReverbParameters::Damp);
+			setParam(DSP::EReverbParameters::Width);
+		}
 	}
 }

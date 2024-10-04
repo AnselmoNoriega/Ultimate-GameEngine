@@ -1234,6 +1234,8 @@ namespace NR
                 UI::Property("Play on Awake", ac.PlayOnAwake);
                 UI::Property("Looping", soundConfig.Looping);
 
+                UI::Property("Master Reverb send", soundConfig.MasterReverbSend, 0.01f, 0.0f, 1.0f);
+
                 UI::EndPropertyGrid();
                 UI::PopID();
 

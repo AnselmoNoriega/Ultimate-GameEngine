@@ -85,14 +85,6 @@ namespace NR
                 SetScale_Native(Entity.ID, ref value);
             }
         }
-        public Vector3 WorldTranslation
-        {
-            get
-            {
-                GetWorldTranslation_Native(Entity.ID, out Vector3 result);
-                return result;
-            }
-        }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetTransform_Native(ulong entityID, out Transform outTransform);
@@ -109,9 +101,7 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetScale_Native(ulong entityID, out Vector3 outScale);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale); 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetWorldTranslation_Native(ulong entityID, out Vector3 outTranslation);
+        internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale);
     }
 
     public class MeshComponent : Component
@@ -379,6 +369,18 @@ namespace NR
             return new SimpleSound(GetSound_Native(Entity.ID));
         }
 
+        public float MasterReverbSend
+        {
+            get 
+            {
+                return GetMasterReverbSend_Native(Entity.ID); 
+            }
+            set 
+            { 
+                SetMasterReverbSend_Native(Entity.ID, value); 
+            }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool IsPlaying_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -405,5 +407,9 @@ namespace NR
         internal static extern void SetSoundPath_Native(ulong entityID, string assetPath);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern string GetSound_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetMasterReverbSend_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetMasterReverbSend_Native(ulong entityID, float sendLevel);
     }
 }

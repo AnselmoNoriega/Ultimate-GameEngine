@@ -109,6 +109,8 @@ namespace NR::Script
     void NR_AudioComponent_SetVolumeMult(uint64_t entityID, float volumeMult);
     void NR_AudioComponent_SetPitchMult(uint64_t entityID, float pitchMult);
     void NR_AudioComponent_SetLooping(uint64_t entityID, bool looping);
+    float NR_AudioComponent_GetMasterReverbSend(uint64_t entityID);
+    void NR_AudioComponent_SetMasterReverbSend(uint64_t entityID, float sendLevel);
 
     MonoString* NR_AudioComponent_GetSound(uint64_t entityID);
     float NR_AudioComponent_GetVolumeMult(uint64_t entityID);

@@ -62,6 +62,8 @@ namespace NR::Audio
 			{
 				ma_sound_uninit(&mSound);
 			}
+
+			ma_node_uninit(&mMasterSplitter, &mSound.engineNode.pEngine->pResourceManager->config.allocationCallbacks);
 		}
 
 		ma_result result;
@@ -71,6 +73,8 @@ namespace NR::Audio
 		{
 			return false;
 		}
+
+		InitializeEffects();
 
 		const bool isSpatializationEnabled = config.SpatializationEnabled;
 
@@ -115,6 +119,40 @@ namespace NR::Audio
 
 		mIsReadyToPlay = result == MA_SUCCESS;
 		return result == MA_SUCCESS;
+	}
+
+	void Sound::InitializeEffects()
+	{
+		ma_result result = MA_SUCCESS;
+		ma_splitter_node_config splitterConfig = ma_splitter_node_config_init(mSound.engineNode.baseNode.pOutputBuses[0].channels);
+
+		result = ma_splitter_node_init(
+			mSound.engineNode.baseNode.pNodeGraph,
+			&splitterConfig,
+			&mSound.engineNode.pEngine->pResourceManager->config.allocationCallbacks,
+			&mMasterSplitter);
+
+		NR_CORE_ASSERT(result == MA_SUCCESS);
+
+		// Store the node the sound was connected to
+		auto* oldOutput = mSound.engineNode.baseNode.pOutputBuses[0].pInputNode;
+
+		// Attach splitter node to the old output of the sound
+		result = ma_node_attach_output_bus(&mMasterSplitter, 0, oldOutput, 0);
+		NR_CORE_ASSERT(result == MA_SUCCESS);
+
+		// Attach sound node to splitter node
+		result = ma_node_attach_output_bus(&mSound, 0, &mMasterSplitter, 0);
+		NR_CORE_ASSERT(result == MA_SUCCESS);
+
+		//result = ma_node_attach_output_bus(&m_MasterSplitter, 0, oldOutput, 0);
+		// Set volume of the main pass-through output of the splitter to 1.0
+		result = ma_node_set_output_bus_volume(&mMasterSplitter, 0, 1.0f);
+		NR_CORE_ASSERT(result == MA_SUCCESS);
+
+		// Mute the "FX send" output of the splitter
+		result = ma_node_set_output_bus_volume(&mMasterSplitter, 1, 0.0f);
+		NR_CORE_ASSERT(result == MA_SUCCESS);
 	}
 
 	bool Sound::Play()

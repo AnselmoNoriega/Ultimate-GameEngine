@@ -28,6 +28,7 @@
 #include "NotRed/Platform/OpenGL/GLFramebuffer.h"
 
 #include "NotRed/Audio/AudioEngine.h"
+#include "NotRed/Audio/SceneAudio.h"
 
 namespace NR
 {
@@ -1046,6 +1047,7 @@ namespace NR
 
         ScriptEngine::ImGuiRender();
         SceneRenderer::ImGuiRender();
+        Audio::SceneAudio::ImGuiRender();
         PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
         ImGui::End();

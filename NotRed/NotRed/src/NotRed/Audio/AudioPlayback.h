@@ -17,5 +17,8 @@ namespace NR::Audio
         static bool PauseActiveSound(uint64_t audioComponentID);
 
         static bool IsPlaying(uint64_t audioComponentID);
+
+        static void SetMasterReverbSend(uint64_t audioComponetnID, float sendLevel);
+        static float GetMasterReverbSend(uint64_t audioComponetnID);
     };
 }

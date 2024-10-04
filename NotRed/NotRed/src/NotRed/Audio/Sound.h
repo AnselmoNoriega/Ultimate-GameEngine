@@ -20,6 +20,7 @@ namespace NR::Audio
 	struct SpatializationConfig : public Asset
 	{
 		AttenuationModel AttenuationMod{ AttenuationModel::Inverse };     // Distance attenuation function
+		
 		float MinGain{ 0.0f };                                            // Minumum volume muliplier
 		float MaxGain{ 1.0f };                                            // Maximum volume multiplier
 		float MinDistance{ 1.0f };                                        // Distance where to start attenuation
@@ -29,18 +30,23 @@ namespace NR::Audio
 		float ConeOuterGain{ 0.0f };                                      // Attenuation multiplier when direction of the emmiter falls outside of the ConeOuterAngle
 		float DopplerFactor{ 1.0f };                                      // The amount of doppler effect to apply. Set to 0 to disables doppler effect. 
 		float Rolloff{ 0.6f };                                            // Affects steepness of the attenuation curve. At 1.0 Inverse model is the same as Exponential
+
 		bool AirAbsorptionEnabled{ true };                               // Enable Air Absorption filter
 	};
 
 	struct SoundConfig : public Asset
 	{
 		Ref<Asset> FileAsset;
+
 		bool Looping = false;
 		float VolumeMultiplier = 1.0f;
 		float PitchMultiplier = 1.0f;
 		bool SpatializationEnabled = false;
+
 		SpatializationConfig Spatialization;
 		glm::vec3 SpawnLocation{ 0.0f, 0.0f, 0.0f };
+
+		float MasterReverbSend = 0.0f;
 	};
 
 	class Sound : public SoundObject
@@ -144,6 +150,8 @@ namespace NR::Audio
 		*/
 		int StopNow(bool notifyPlaybackComplete = true, bool resetPlaybackPosition = true);
 
+		void InitializeEffects();
+
 		static const std::string StringFromState(Sound::ESoundPlayState state);
 
 	private:
@@ -156,6 +164,8 @@ namespace NR::Audio
 			in the future SoundObject will access data source via SoundSource class.
 		 */
 		ma_sound mSound;
+		ma_splitter_node mMasterSplitter;
+
 		bool mIsReadyToPlay = false;
 		
 		uint8_t mPriority = 64;
@@ -177,5 +187,6 @@ namespace NR::Audio
 
 	private:
 		friend class AudioEngine;
+		friend class SourceManager;
 	};
 }

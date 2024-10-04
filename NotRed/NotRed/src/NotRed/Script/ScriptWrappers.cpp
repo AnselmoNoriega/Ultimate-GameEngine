@@ -900,6 +900,16 @@ namespace NR::Script
         GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.Looping = looping;
     }
 
+    float NR_AudioComponent_GetMasterReverbSend(uint64_t entityID)
+    {
+        return Audio::AudioPlayback::GetMasterReverbSend(entityID);
+    }
+
+    void NR_AudioComponent_SetMasterReverbSend(uint64_t entityID, float sendLevel)
+    {
+        Audio::AudioPlayback::SetMasterReverbSend(entityID, sendLevel);
+    }
+
     void NR_AudioComponent_SetSound(uint64_t entityID, Ref<Asset>* sound)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
