@@ -1,9 +1,6 @@
 #include "nrpch.h"
 #include "Reverb.h"
 
-#include "NotRed/Audio/DSP/Components/revmodel.hpp"
-#include "NotRed/Audio/DSP/Components/DelayLine.h"
-
 namespace NR::Audio
 {
     namespace DSP
@@ -14,7 +11,7 @@ namespace NR::Audio
             ma_node_base* pNodeBase = &node->base;
             ma_uint32 outBuses = ma_node_get_output_bus_count(pNodeBase);
 
-            if (ppFramesIn == nullptr)
+            if (ppFramesIn == nullptr) 
             {
                 for (int oBus = 0; oBus < outBuses; ++oBus)
                 {
@@ -77,7 +74,7 @@ namespace NR::Audio
         }
 
         static ma_node_vtable reverb_vtable = {
-            reverb_node_process_pcmframes,
+            reverb_node_process_pcm_frames,
             nullptr,
             2, // 1 input bus.
             1, // 1 output bus.
@@ -85,19 +82,27 @@ namespace NR::Audio
         };
 
         //===========================================================================
+        static ma_allocation_callbacks allocation_callbacks;
+
         Reverb::~Reverb()
         {
-            ma_node_uninit(&mNode, nullptr);
+            if (((ma_node_base*)&mNode)->vtable != nullptr)
+            {
+                ma_node_uninit(&mNode, &allocation_callbacks);
+            }
         }
 
-        bool Reverb::InitNode(ma_node_graph* nodeGraph, double sampleRate)
+        bool Reverb::Initialize(ma_engine* engine, ma_node_base* nodeToAttachTo)
         {
+            double sampleRate = ma_engine_get_sample_rate(engine);
+            uint8_t numChannels = ma_node_get_output_channels(nodeToAttachTo, 0);
+
             // Setting max pre-delay time to 1 second
             mDelayLine = std::make_unique<DelayLine>(sampleRate + 1);
-            mRevModel = std::make_unique<revmodel>();
+            mRevModel = std::make_unique<revmodel>(sampleRate);
 
-            uint32_t inputChannels[2] = { 2, 2 };
-            uint32_t outputChannels[1] = { 2 };
+            uint32_t inputChannels[2] = { numChannels, numChannels };
+            uint32_t outputChannels[1] = { numChannels };
 
             ma_node_config nodeConfig = ma_node_config_init();
             nodeConfig.vtable = &reverb_vtable;
@@ -106,7 +111,9 @@ namespace NR::Audio
             nodeConfig.initialState = ma_node_state_started;
 
             ma_result result;
-            result = ma_node_init(nodeGraph, &nodeConfig, NULL, &mNode);
+            allocation_callbacks = engine->pResourceManager->config.allocationCallbacks;
+            result = ma_node_init(&engine->nodeGraph, &nodeConfig, &allocation_callbacks, &mNode);
+
             if (result != MA_SUCCESS)
             {
                 NR_CORE_ASSERT(false, "Node Init failed");
@@ -119,7 +126,7 @@ namespace NR::Audio
             mNode.delayLine = mDelayLine.get();
             mNode.reverb = mRevModel.get();
 
-            result = ma_node_attach_output_bus(&mNode, 0, &nodeGraph->endpoint, 0);
+            result = ma_node_attach_output_bus(&mNode, 0, &nodeToAttachTo, 0);
             return result == MA_SUCCESS;
         }
 

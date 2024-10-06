@@ -6,6 +6,9 @@
 #include "miniaudioInc.h"
 #include "NotRed/Asset/Asset.h"
 
+#include "DSP/Filters/LowPassFilter.h"
+#include "DSP/Filters/HighPassFilter.h"
+
 namespace NR::Audio
 {
 	class AudioEngine;
@@ -47,6 +50,9 @@ namespace NR::Audio
 		glm::vec3 SpawnLocation{ 0.0f, 0.0f, 0.0f };
 
 		float MasterReverbSend = 0.0f;
+
+		float LPFilterValue = 1.0f;
+		float HPFilterValue = 0.0f;
 	};
 
 	class Sound : public SoundObject
@@ -150,7 +156,7 @@ namespace NR::Audio
 		*/
 		int StopNow(bool notifyPlaybackComplete = true, bool resetPlaybackPosition = true);
 
-		void InitializeEffects();
+		void InitializeEffects(const SoundConfig& config);
 
 		static const std::string StringFromState(Sound::ESoundPlayState state);
 
@@ -184,6 +190,9 @@ namespace NR::Audio
 
 		/* ID of the scene this voice belongs to. */
 		uint64_t mSceneID = 0;
+
+		DSP::LowPassFilter mLowPass;
+		DSP::HighPassFilter mHighPass;
 
 	private:
 		friend class AudioEngine;

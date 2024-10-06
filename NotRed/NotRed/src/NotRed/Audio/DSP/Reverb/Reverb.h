@@ -4,13 +4,15 @@
 
 #include "miniaudio.h"
 
+#include "NotRed/Audio/DSP/Components/revmodel.hpp"
+#include "NotRed/Audio/DSP/Components/DelayLine.h"
+
 class revmodel;
 
 namespace NR::Audio
 {
     namespace DSP
     {
-        class DelayLine;
         enum EReverbParameters
         {
             PreDelay, Mode, RoomSize, Damp, Width, Wet, Dry,
@@ -23,7 +25,7 @@ namespace NR::Audio
             Reverb() = default;
             ~Reverb();
 
-            bool InitNode(ma_node_graph* nodeGraph, double sampleRate);
+            bool Initialize(ma_engine* engine, ma_node_base* nodeToAttachTo);
 
             void SetParameter(EReverbParameters parameter, float value);
 

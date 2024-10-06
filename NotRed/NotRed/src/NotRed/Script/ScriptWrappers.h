@@ -48,6 +48,10 @@ namespace NR::Script
     void NR_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation);
     void NR_TransformComponent_GetScale(uint64_t entityID, glm::vec3* outScale);
     void NR_TransformComponent_SetScale(uint64_t entityID, glm::vec3* inScale);
+    void NR_TransformComponent_GetWorldSpaceTransform(uint64_t entityID, TransformComponent* outTransform);
+
+    MonoString* NR_TagComponent_GetTag(uint64_t entityID);
+    void NR_TagComponent_SetTag(uint64_t entityID, MonoString* tag);
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);

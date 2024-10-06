@@ -200,6 +200,44 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         entity.GetComponent<TransformComponent>().Scale = *inScale;
     }
+    
+    void NR_TransformComponent_GetWorldSpaceTransform(uint64_t entityID, TransformComponent* outTransform)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        *outTransform = scene->GetWorldSpaceTransform(entity);
+    }
+
+    MonoString* NR_TagComponent_GetTag(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        auto& tagComponent = entity.GetComponent<TagComponent>();
+        return mono_string_new(mono_domain_get(), tagComponent.Tag.c_str());
+    }
+
+    void NR_TagComponent_SetTag(uint64_t entityID, MonoString* tag)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        auto& tagComponent = entity.GetComponent<TagComponent>();
+        tagComponent.Tag = mono_string_to_utf8(tag);
+    }
 
     void NR_Input_GetMousePosition(glm::vec2* outPosition)
     {

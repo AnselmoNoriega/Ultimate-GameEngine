@@ -68,6 +68,7 @@ namespace NR
 		mono_add_internal_call("NR.TransformComponent::SetRotation_Native", NR::Script::NR_TransformComponent_SetRotation);
 		mono_add_internal_call("NR.TransformComponent::GetScale_Native", NR::Script::NR_TransformComponent_GetScale);
 		mono_add_internal_call("NR.TransformComponent::SetScale_Native", NR::Script::NR_TransformComponent_SetScale);
+		mono_add_internal_call("NR.TransformComponent::GetWorldSpaceTransform_Native", NR::Script::NR_TransformComponent_GetWorldSpaceTransform);
 
 		mono_add_internal_call("NR.Entity::CreateComponent_Native", NR::Script::NR_Entity_CreateComponent);
 		mono_add_internal_call("NR.Entity::HasComponent_Native", NR::Script::NR_Entity_HasComponent);
@@ -77,6 +78,9 @@ namespace NR
 
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
 		mono_add_internal_call("NR.Entity::InstantiateEntity_Native", NR::Script::NR_Entity_InstantiateEntity);
+
+		mono_add_internal_call("NR.TagComponent::GetTag_Native", NR::Script::NR_TagComponent_GetTag);
+		mono_add_internal_call("NR.TagComponent::SetTag_Native", NR::Script::NR_TagComponent_SetTag);
 
 		mono_add_internal_call("NR.MeshComponent::GetMesh_Native", NR::Script::NR_MeshComponent_GetMesh);
 		mono_add_internal_call("NR.MeshComponent::SetMesh_Native", NR::Script::NR_MeshComponent_SetMesh);

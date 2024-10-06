@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cassert>
 #include <algorithm>
 #include <cmath>
 
@@ -15,7 +16,7 @@ namespace NR::Audio
 		public:
 			explicit DelayLine(int maximumDelayInSamples = 0)
 			{
-				NR_CORE_ASSERT(maximumDelayInSamples >= 0);
+				assert(maximumDelayInSamples >= 0);
 				mTotalSize = std::max(4, maximumDelayInSamples + 1);
 				mSampleRate = 44100.0;
 			}
@@ -27,7 +28,7 @@ namespace NR::Audio
 				{
 					newDelayInSamples = 1;
 				}
-				NR_CORE_ASSERT(newDelayInSamples > 0 && newDelayInSamples < upperLimit);
+				assert(newDelayInSamples > 0 && newDelayInSamples < upperLimit);
 
 				mDelay = std::clamp(newDelayInSamples, (float)0, upperLimit);
 				mDelayInt = static_cast<int> (std::floor(mDelay));
@@ -40,7 +41,7 @@ namespace NR::Audio
 
 			void SetConfig(uint32_t numChannels, double sampleRate)
 			{
-				NR_CORE_ASSERT(numChannels > 0);
+				assert(numChannels > 0);
 				mBufferData.resize(numChannels);
 
 				for (auto& ch : mBufferData)

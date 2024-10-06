@@ -160,7 +160,7 @@ namespace NR::Audio
 		mEngine.pResourceManager->config.allocationCallbacks = allocationCallbacks;
 
 		mMasterReverb = CreateScope<DSP::Reverb>();
-		mMasterReverb->InitNode(&mEngine.nodeGraph, mEngine.pDevice->playback.internalSampleRate);
+		mMasterReverb->Initialize(&mEngine, &mEngine.nodeGraph.endpoint);
 
 		mNumSources = 32;
 		CreateSources();
@@ -180,7 +180,10 @@ namespace NR::Audio
 			engineConfig.periodSizeInFrames,
 			mNumSources);
 
-		sStats.TotalSources = mNumSources;
+		{
+			std::scoped_lock lock{ sStats.mutex };
+			sStats.TotalSources = mNumSources;
+		}
 
 		bInitialized = true;
 		return true;
@@ -336,13 +339,12 @@ namespace NR::Audio
 
 		sound->mSceneID = sceneID;
 
-		mComponentSoundMap.Add(sceneID, audioComponentID, sound);
-
 		if (!mSourceManager.InitializeSource(freeID, sourceConfig))
 		{
 			return nullptr;
 		}
 
+		mComponentSoundMap.Add(sceneID, audioComponentID, sound);
 		mActiveSounds.push_back(sound);
 
 		return sound;
@@ -493,7 +495,10 @@ namespace NR::Audio
 
 					// Return Sound Source for reuse
 					mSourceManager.mFreeSourcIDs.push(source->mSoundSourceID);
-					sStats.NumActiveSounds = mActiveSounds.size();
+					{
+						std::scoped_lock lock{ sStats.mutex };
+						sStats.NumActiveSounds = mActiveSounds.size();
+					}
 				}
 			}
 		}
@@ -509,7 +514,10 @@ namespace NR::Audio
 		for (auto* sound : mSoundsToStart)
 		{
 			sound->Play();
-			sStats.NumActiveSounds = mActiveSounds.size();
+			{
+				std::scoped_lock lock{ sStats.mutex };
+				sStats.NumActiveSounds = mActiveSounds.size();
+			}
 		}
 		mSoundsToStart.clear();
 
@@ -527,7 +535,10 @@ namespace NR::Audio
 
 	Stats AudioEngine::GetStats()
 	{
-		sStats.FrameTime = AudioThread::GetFrameTime();
+		{
+			std::scoped_lock lock{ sStats.mutex };
+			sStats.FrameTime = AudioThread::GetFrameTime();
+		}
 		return AudioEngine::sStats;
 	}
 
@@ -564,7 +575,10 @@ namespace NR::Audio
 		const auto newSceneID = newScene->GetID();
 		audioEngine.mCurrentSceneID = newSceneID;
 
-		sStats.NumAudioComps = sInstance->mAudioComponentRegistry.Count(newSceneID);
+		{
+			std::scoped_lock lock{ sStats.mutex };
+			sStats.NumAudioComps = sInstance->mAudioComponentRegistry.Count(newSceneID);
+		}
 
 		auto view = newScene->GetAllEntitiesWith<Audio::AudioComponent>();
 		for (auto entity : view)
@@ -596,7 +610,7 @@ namespace NR::Audio
 				auto newScene = Scene::GetScene(currentSceneID);
 				if (!newScene->IsEditorScene() && newScene->IsPlaying())
 				{
-					auto translation = audioEntity.GetComponent<TransformComponent>().WorldTranslation;
+					auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
 					ac.SourcePosition = translation;
 					ac.SoundConfig.SpawnLocation = translation;
 					audioEngine.SubmitSoundToPlay(audioEntity.GetID());
@@ -624,7 +638,10 @@ namespace NR::Audio
 	{
 		const auto sceneID = audioEntity.GetSceneID();
 		mAudioComponentRegistry.Add(sceneID, audioEntity.GetID(), audioEntity);
-		sStats.NumAudioComps = mAudioComponentRegistry.Count(sceneID);
+		{
+			std::scoped_lock lock{ sStats.mutex };
+			sStats.NumAudioComps = mAudioComponentRegistry.Count(sceneID);
+		}
 
 		uint64_t entityID = audioEntity.GetID();
 		auto* ac = GetAudioComponentFromID(sceneID, entityID);
@@ -634,7 +651,7 @@ namespace NR::Audio
 
 			if (!newScene->IsEditorScene() && newScene->IsPlaying())
 			{
-				auto translation = audioEntity.GetComponent<TransformComponent>().WorldTranslation;
+				auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
 				ac->SourcePosition = translation;
 				ac->SoundConfig.SpawnLocation = translation;
 				SubmitSoundToPlay(entityID);
@@ -645,7 +662,10 @@ namespace NR::Audio
 	void AudioEngine::UnregisterAudioComponent(UUID sceneID, UUID entityID)
 	{
 		mAudioComponentRegistry.Remove(sceneID, entityID);
-		sStats.NumAudioComps = mAudioComponentRegistry.Count(sceneID);
+		{
+			std::scoped_lock lock{ sStats.mutex };
+			sStats.NumAudioComps = mAudioComponentRegistry.Count(sceneID);
+		}
 	}
 
 

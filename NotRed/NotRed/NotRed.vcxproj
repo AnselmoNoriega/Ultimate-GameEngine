@@ -162,7 +162,9 @@
     <ClInclude Include="src\NotRed\Audio\DSP\Components\denormals.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\revmodel.hpp" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\tuning.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\SceneAudio.h" />
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
@@ -356,6 +358,8 @@
     <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\revmodel.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp" />
     <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp" />
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />

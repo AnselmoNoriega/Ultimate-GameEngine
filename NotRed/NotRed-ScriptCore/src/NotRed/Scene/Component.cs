@@ -18,7 +18,7 @@ namespace NR
             }
             set
             {
-                SetTag_Native(value);
+                SetTag_Native(Entity.ID, value);
             }
         }
 
@@ -26,7 +26,7 @@ namespace NR
         public static extern string GetTag_Native(ulong entityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void SetTag_Native(string tag);
+        public static extern void SetTag_Native(ulong entityID, string tag);
 
     }
 
@@ -86,6 +86,12 @@ namespace NR
             }
         }
 
+        public Transform GetWorldSpaceTransform()
+        {
+            GetWorldSpaceTransform_Native(Entity.ID, out Transform transform);
+            return transform;
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetTransform_Native(ulong entityID, out Transform outTransform);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -102,6 +108,8 @@ namespace NR
         internal static extern void GetScale_Native(ulong entityID, out Vector3 outScale);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetWorldSpaceTransform_Native(ulong entityID, out Transform outTransform);
     }
 
     public class MeshComponent : Component

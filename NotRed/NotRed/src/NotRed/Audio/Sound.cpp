@@ -74,7 +74,7 @@ namespace NR::Audio
 			return false;
 		}
 
-		InitializeEffects();
+		InitializeEffects(config);
 
 		const bool isSpatializationEnabled = config.SpatializationEnabled;
 
@@ -121,8 +121,19 @@ namespace NR::Audio
 		return result == MA_SUCCESS;
 	}
 
-	void Sound::InitializeEffects()
+	void Sound::InitializeEffects(const SoundConfig& config)
 	{
+		ma_node_base* currentHeaderNode = &mSound.engineNode.baseNode;
+
+		// High-Pass, Low-Pass filters
+		mLowPass.Initialize(mSound.engineNode.pEngine, currentHeaderNode);
+		currentHeaderNode = mLowPass.GetNode();
+		mHighPass.Initialize(mSound.engineNode.pEngine, currentHeaderNode);
+		currentHeaderNode = mHighPass.GetNode();
+
+		mLowPass.SetCutoffValue(config.LPFilterValue);
+		mHighPass.SetCutoffValue(config.HPFilterValue);
+
 		ma_result result = MA_SUCCESS;
 		ma_splitter_node_config splitterConfig = ma_splitter_node_config_init(mSound.engineNode.baseNode.pOutputBuses[0].channels);
 
@@ -135,14 +146,14 @@ namespace NR::Audio
 		NR_CORE_ASSERT(result == MA_SUCCESS);
 
 		// Store the node the sound was connected to
-		auto* oldOutput = mSound.engineNode.baseNode.pOutputBuses[0].pInputNode;
+		auto* oldOutput = currentHeaderNode->pOutputBuses[0].pInputNode;
 
 		// Attach splitter node to the old output of the sound
 		result = ma_node_attach_output_bus(&mMasterSplitter, 0, oldOutput, 0);
 		NR_CORE_ASSERT(result == MA_SUCCESS);
 
 		// Attach sound node to splitter node
-		result = ma_node_attach_output_bus(&mSound, 0, &mMasterSplitter, 0);
+		result = ma_node_attach_output_bus(currentHeaderNode, 0, &mMasterSplitter, 0);
 		NR_CORE_ASSERT(result == MA_SUCCESS);
 
 		//result = ma_node_attach_output_bus(&m_MasterSplitter, 0, oldOutput, 0);

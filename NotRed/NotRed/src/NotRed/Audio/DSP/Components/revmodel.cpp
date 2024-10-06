@@ -6,34 +6,63 @@
 // This code is public domain
 #include "revmodel.hpp"
 
-revmodel::revmodel()
+revmodel::revmodel(double sampleRate)
 {
-	// Tie the components to their buffers
-	combL[0].setbuffer(bufcombL1, combtuningL1);
-	combR[0].setbuffer(bufcombR1, combtuningR1);
-	combL[1].setbuffer(bufcombL2, combtuningL2);
-	combR[1].setbuffer(bufcombR2, combtuningR2);
-	combL[2].setbuffer(bufcombL3, combtuningL3);
-	combR[2].setbuffer(bufcombR3, combtuningR3);
-	combL[3].setbuffer(bufcombL4, combtuningL4);
-	combR[3].setbuffer(bufcombR4, combtuningR4);
-	combL[4].setbuffer(bufcombL5, combtuningL5);
-	combR[4].setbuffer(bufcombR5, combtuningR5);
-	combL[5].setbuffer(bufcombL6, combtuningL6);
-	combR[5].setbuffer(bufcombR6, combtuningR6);
-	combL[6].setbuffer(bufcombL7, combtuningL7);
-	combR[6].setbuffer(bufcombR7, combtuningR7);
-	combL[7].setbuffer(bufcombL8, combtuningL8);
-	combR[7].setbuffer(bufcombR8, combtuningR8);
+	// the tuning values are set for 44100Hz sample rate, need to adjust accordingly
+	const double srCoef = 44100.0 / sampleRate;
 
-	allpassL[0].setbuffer(bufallpassL1, allpasstuningL1);
-	allpassR[0].setbuffer(bufallpassR1, allpasstuningR1);
-	allpassL[1].setbuffer(bufallpassL2, allpasstuningL2);
-	allpassR[1].setbuffer(bufallpassR2, allpasstuningR2);
-	allpassL[2].setbuffer(bufallpassL3, allpasstuningL3);
-	allpassR[2].setbuffer(bufallpassR3, allpasstuningR3);
-	allpassL[3].setbuffer(bufallpassL4, allpasstuningL4);
-	allpassR[3].setbuffer(bufallpassR4, allpasstuningR4);
+	bufcombL1.resize((int)combtuningL1 / srCoef);
+	bufcombR1.resize((int)combtuningR1 / srCoef);
+	bufcombL2.resize((int)combtuningL2 / srCoef);
+	bufcombR2.resize((int)combtuningR2 / srCoef);
+	bufcombL3.resize((int)combtuningL3 / srCoef);
+	bufcombR3.resize((int)combtuningR3 / srCoef);
+	bufcombL4.resize((int)combtuningL4 / srCoef);
+	bufcombR4.resize((int)combtuningR4 / srCoef);
+	bufcombL5.resize((int)combtuningL5 / srCoef);
+	bufcombR5.resize((int)combtuningR5 / srCoef);
+	bufcombL6.resize((int)combtuningL6 / srCoef);
+	bufcombR6.resize((int)combtuningR6 / srCoef);
+	bufcombL7.resize((int)combtuningL7 / srCoef);
+	bufcombR7.resize((int)combtuningR7 / srCoef);
+	bufcombL8.resize((int)combtuningL8 / srCoef);
+	bufcombR8.resize((int)combtuningR8 / srCoef);
+
+	bufallpassL1.resize((int)allpasstuningL1 / srCoef);
+	bufallpassR1.resize((int)allpasstuningR1 / srCoef);
+	bufallpassL2.resize((int)allpasstuningL2 / srCoef);
+	bufallpassR2.resize((int)allpasstuningR2 / srCoef);
+	bufallpassL3.resize((int)allpasstuningL3 / srCoef);
+	bufallpassR3.resize((int)allpasstuningR3 / srCoef);
+	bufallpassL4.resize((int)allpasstuningL4 / srCoef);
+	bufallpassR4.resize((int)allpasstuningR4 / srCoef);
+
+	// Tie the components to their buffers
+	combL[0].setbuffer(bufcombL1.data(), bufcombL1.size());
+	combR[0].setbuffer(bufcombR1.data(), bufcombR1.size());
+	combL[1].setbuffer(bufcombL2.data(), bufcombL2.size());
+	combR[1].setbuffer(bufcombR2.data(), bufcombR2.size());
+	combL[2].setbuffer(bufcombL3.data(), bufcombL3.size());
+	combR[2].setbuffer(bufcombR3.data(), bufcombR3.size());
+	combL[3].setbuffer(bufcombL4.data(), bufcombL4.size());
+	combR[3].setbuffer(bufcombR4.data(), bufcombR4.size());
+	combL[4].setbuffer(bufcombL5.data(), bufcombL5.size());
+	combR[4].setbuffer(bufcombR5.data(), bufcombR5.size());
+	combL[5].setbuffer(bufcombL6.data(), bufcombL6.size());
+	combR[5].setbuffer(bufcombR6.data(), bufcombR6.size());
+	combL[6].setbuffer(bufcombL7.data(), bufcombL7.size());
+	combR[6].setbuffer(bufcombR7.data(), bufcombR7.size());
+	combL[7].setbuffer(bufcombL8.data(), bufcombL8.size());
+	combR[7].setbuffer(bufcombR8.data(), bufcombR8.size());
+	
+	allpassL[0].setbuffer(bufallpassL1.data(), bufallpassL1.size());
+	allpassR[0].setbuffer(bufallpassR1.data(), bufallpassR1.size());
+	allpassL[1].setbuffer(bufallpassL2.data(), bufallpassL2.size());
+	allpassR[1].setbuffer(bufallpassR2.data(), bufallpassR2.size());
+	allpassL[2].setbuffer(bufallpassL3.data(), bufallpassL3.size());
+	allpassR[2].setbuffer(bufallpassR3.data(), bufallpassR3.size());
+	allpassL[3].setbuffer(bufallpassL4.data(), bufallpassL4.size());
+	allpassR[3].setbuffer(bufallpassR4.data(), bufallpassR4.size());
 
 	// Set default values
 	allpassL[0].setfeedback(0.5f);

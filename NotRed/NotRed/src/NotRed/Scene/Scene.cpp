@@ -214,23 +214,6 @@ namespace NR
 			}
 		}
 		{
-			auto getParentForwardToWorld = [this](TransformComponent& transformComponent, Entity e)
-				{
-					Entity parent = FindEntityByID(e.GetParentID());
-					if (parent)
-					{
-						glm::mat4 parentMatrix = GetTransformRelativeToParent(parent);
-						glm::vec3 translation, rotation, scale;
-						Math::DecomposeTransform(parentMatrix, translation, rotation, scale);
-						glm::quat rotationQuat = glm::quat(rotation);
-						return glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
-					}
-					else
-					{
-						return transformComponent.Forward;
-					}
-				};
-
 			auto view = mRegistry.view<AudioListenerComponent>();
 			Entity listener;
 			for (auto entity : view)
@@ -239,9 +222,9 @@ namespace NR
 				if (e.GetComponent<AudioListenerComponent>().Active)
 				{
 					listener = e;
-					auto& transform = listener.Transform();
+					auto worldSpaceTransform = GetWorldSpaceTransform(listener);
+					Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
 
-					Audio::AudioEngine::Get().UpdateListenerPosition(transform.WorldTranslation, getParentForwardToWorld(transform, e));
 					if (auto physicsActor = PhysicsManager::GetScene()->GetActor(listener))
 					{
 						if (physicsActor->IsDynamic())
@@ -263,8 +246,8 @@ namespace NR
 						listener.AddComponent<AudioListenerComponent>();
 					}
 
-					auto& transform = listener.Transform();
-					Audio::AudioEngine::Get().UpdateListenerPosition(transform.WorldTranslation, getParentForwardToWorld(transform, listener));
+					auto worldSpaceTransform = GetWorldSpaceTransform(listener);
+					Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
 
 					if (auto physicsActor = PhysicsManager::GetScene()->GetActor(listener))
 					{
@@ -295,7 +278,7 @@ namespace NR
 					deadEntities.push_back(e);
 					continue;
 				}
-				auto& transform = e.Transform();
+				const auto& worldSpaceTransform = GetWorldSpaceTransform(e);
 
 				glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
 				if (const auto& physicsActor = PhysicsManager::GetScene()->GetActor(e))
@@ -310,7 +293,7 @@ namespace NR
 					e.GetID(),
 					audioComponent.VolumeMultiplier,
 					audioComponent.PitchMultiplier,
-					transform.WorldTranslation,
+					worldSpaceTransform.Translation,
 					velocity });
 			}
 
@@ -586,13 +569,14 @@ namespace NR
 					continue;
 				}
 
-				auto& transform = e.Transform();
+				const auto& worldSpaceTransform = GetWorldSpaceTransform(e);
+
 				glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
 				updateData.emplace_back(Audio::SoundSourceUpdateData{
 					e.GetID(),
 					audioComponent.VolumeMultiplier,
 					audioComponent.PitchMultiplier,
-					transform.WorldTranslation,
+					worldSpaceTransform.Translation,
 					velocity });
 			}
 
@@ -777,28 +761,8 @@ namespace NR
 
 			if (listener.mEntityHandle != entt::null)
 			{
-				auto getParentForwardToWorld = [this](TransformComponent& transformComponent, Entity e)
-					{
-						glm::mat4 transform = GetTransformRelativeToParent(e);
-						Entity parent = FindEntityByID(e.GetParentID());
-						if (parent)
-						{
-							glm::mat4 parentMatrix = GetTransformRelativeToParent(parent);
-							glm::vec3 translation, rotation, scale;
-
-							Math::DecomposeTransform(parentMatrix, translation, rotation, scale);
-							glm::quat rotationQuat = glm::quat(rotation);
-
-							return glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
-						}
-						else
-						{
-							return transformComponent.Forward;
-						}
-					};
-
-				auto& transform = listener.Transform();
-				Audio::AudioEngine::Get().UpdateListenerPosition(transform.WorldTranslation, getParentForwardToWorld(transform, listener));
+				const auto& worldSpaceTransform = GetWorldSpaceTransform(listener);
+				Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
 			}
 		}
 		{
@@ -811,15 +775,15 @@ namespace NR
 				const auto& [audioComponent] = view.get(entity);
 
 				Entity e = { entity, this };
-				auto& transform = e.Transform();
-				audioComponent.SourcePosition = transform.WorldTranslation;
+				const auto& worldSpaceTransform = GetWorldSpaceTransform(e);
+				audioComponent.SourcePosition = worldSpaceTransform.Translation;
 
 				glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
 				updateData.emplace_back(Audio::SoundSourceUpdateData{
 					e.GetID(),
 					audioComponent.VolumeMultiplier,
 					audioComponent.PitchMultiplier,
-					transform.WorldTranslation,
+					worldSpaceTransform.Translation,
 					velocity });
 			}
 
@@ -1183,6 +1147,21 @@ namespace NR
 			entity = parent;
 		}
 		return transform;
+	}
+
+	TransformComponent Scene::GetWorldSpaceTransform(Entity entity)
+	{
+		glm::mat4 transform = GetWorldSpaceTransformMatrix(entity);
+
+		TransformComponent transformComponent;
+		Math::DecomposeTransform(transform, transformComponent.Translation, transformComponent.Rotation, transformComponent.Scale);
+		glm::quat rotationQuat = glm::quat(transformComponent.Rotation);
+
+		transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
+		transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
+		transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
+
+		return transformComponent;
 	}
 
 	void Scene::ParentEntity(Entity entity, Entity parent)

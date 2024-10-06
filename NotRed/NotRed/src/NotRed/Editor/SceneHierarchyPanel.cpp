@@ -294,6 +294,7 @@ namespace NR
             {
                 UUID droppedHandle = *((UUID*)payload->Data);
                 Entity e = mContext->FindEntityByID(droppedHandle);
+
                 mContext->ParentEntity(e, entity);
             }
 
@@ -1222,6 +1223,8 @@ namespace NR
                 }
 
                 propertyGridSpacing();
+                propertyGridSpacing();
+
                 if (UI::Property("Volume Multiplier", soundConfig.VolumeMultiplier, 0.01f, 0.0f, 1.0f))
                 {
                     ac.VolumeMultiplier = soundConfig.VolumeMultiplier;
@@ -1230,9 +1233,44 @@ namespace NR
                 {
                     ac.PitchMultiplier = soundConfig.PitchMultiplier;
                 }
+
                 propertyGridSpacing();
+                propertyGridSpacing();
+
                 UI::Property("Play on Awake", ac.PlayOnAwake);
                 UI::Property("Looping", soundConfig.Looping);
+
+                singleColumnSeparator();
+                propertyGridSpacing();
+                propertyGridSpacing();
+
+                auto logFrequencyToNormScale = [](float frequencyN)
+                    {
+                        return (log2(frequencyN) + 8.0f) / 8.0f;
+                    };
+
+                auto sliderScaleToLogFreq = [](float sliderValue)
+                    {
+                        return pow(2.0f, 8.0f * sliderValue - 8.0f);
+                    };
+
+                float lpfFreq = 1.0f - soundConfig.LPFilterValue;
+                if (UI::Property("Low-Pass Filter", lpfFreq, 0.0f, 0.0f, 1.0f))
+                {
+                    lpfFreq = std::clamp(lpfFreq, 0.0f, 1.0f);
+                    soundConfig.LPFilterValue = 1.0f - lpfFreq;
+                }
+
+                float hpfFreq = soundConfig.HPFilterValue;
+                if (UI::Property("High-Pass Filter", hpfFreq, 0.0f, 0.0f, 1.0f))
+                {
+                    hpfFreq = std::clamp(hpfFreq, 0.0f, 1.0f);
+                    soundConfig.HPFilterValue = hpfFreq;
+                }
+
+                singleColumnSeparator();
+                propertyGridSpacing();
+                propertyGridSpacing();
 
                 UI::Property("Master Reverb send", soundConfig.MasterReverbSend, 0.01f, 0.0f, 1.0f);
 

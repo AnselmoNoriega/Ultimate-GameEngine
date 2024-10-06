@@ -38,6 +38,8 @@ namespace NR
 	};
 
 	class Entity;
+	struct TransformComponent;
+
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
 	class Scene : public RefCounted
@@ -84,6 +86,8 @@ namespace NR
 
 		glm::mat4 GetTransformRelativeToParent(Entity entity);
 		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+
+		TransformComponent GetWorldSpaceTransform(Entity entity);
 
 		void ParentEntity(Entity entity, Entity parent);
 		void UnparentEntity(Entity entity);
