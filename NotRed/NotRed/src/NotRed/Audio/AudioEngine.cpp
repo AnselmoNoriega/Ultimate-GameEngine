@@ -141,8 +141,11 @@ namespace NR::Audio
 	bool AudioEngine::Initialize()
 	{
 		if (bInitialized)
+		{
 			return true;
+		}
 
+		//TODO: The problem
 		ma_result result;
 		ma_engine_config engineConfig = ma_engine_config_init();
 
@@ -159,6 +162,7 @@ namespace NR::Audio
 		allocationCallbacks.pUserData = &mRMCallbackData;
 		mEngine.pResourceManager->config.allocationCallbacks = allocationCallbacks;
 
+		//TODO: The problem
 		mMasterReverb = CreateScope<DSP::Reverb>();
 		mMasterReverb->Initialize(&mEngine, &mEngine.nodeGraph.endpoint);
 

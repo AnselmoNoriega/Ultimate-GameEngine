@@ -71474,7 +71474,6 @@ static ma_uint32 ma_node_input_bus_get_next_counter(ma_node_input_bus* pInputBus
     return ma_atomic_load_32(&pInputBus->nextCounter);
 }
 
-
 static ma_uint32 ma_node_input_bus_get_channels(const ma_node_input_bus* pInputBus)
 {
     return pInputBus->channels;
