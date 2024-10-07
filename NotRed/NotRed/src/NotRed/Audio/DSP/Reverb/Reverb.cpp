@@ -118,9 +118,20 @@ namespace NR::Audio
             {
                 NR_CORE_ASSERT(false, "Node Init failed");
             }
+            result = ma_node_init(&engine->nodeGraph, &nodeConfig, &allocation_callbacks, &nodeToAttachTo);
+
+            if (result != MA_SUCCESS)
+            {
+                NR_CORE_ASSERT(false, "NodeToAttachTo Init failed");
+            }
 
             mDelayLine->SetConfig(ma_node_get_input_channels(&mNode, 0), sampleRate);
-            
+
+            ma_node_config endpointNodeConfig = ma_node_config_init();
+            endpointNodeConfig.pInputChannels = inputChannels;
+            endpointNodeConfig.pOutputChannels = outputChannels;
+            endpointNodeConfig.initialState = ma_node_state_started;
+
             // Set default pre-delay time to 50ms
             mDelayLine->SetDelayMs(50);
             mNode.delayLine = mDelayLine.get();

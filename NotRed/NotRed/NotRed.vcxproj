@@ -156,15 +156,15 @@
     <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\comb.hpp" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\denormals.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\revmodel.hpp" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\tuning.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\SceneAudio.h" />
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />

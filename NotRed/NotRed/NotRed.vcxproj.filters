@@ -13,6 +13,18 @@
     <Filter Include="src\NotRed\Audio">
       <UniqueIdentifier>{29B1F707-15AA-165A-3EDC-FBDE2A34F665}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Audio\DSP">
+      <UniqueIdentifier>{BF0F69B1-AB9E-F27A-54BD-0676402B0321}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Audio\DSP\Components">
+      <UniqueIdentifier>{743F0183-E022-10C3-E925-3EFF5588D613}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Audio\DSP\Filters">
+      <UniqueIdentifier>{076A34A7-F324-2453-9CDC-9C9D88766EE3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Audio\DSP\Reverb">
+      <UniqueIdentifier>{344A7EEA-A057-ACD0-293E-A8BB954A7887}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Core">
       <UniqueIdentifier>{80820827-EC0D-76EB-F51E-F9DF6129D2EB}</UniqueIdentifier>
     </Filter>
@@ -124,6 +136,36 @@
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\comb.hpp">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\denormals.h">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\revmodel.hpp">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Components\tuning.h">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.h">
+      <Filter>src\NotRed\Audio\DSP\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.h">
+      <Filter>src\NotRed\Audio\DSP\Filters</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h">
+      <Filter>src\NotRed\Audio\DSP\Reverb</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\SceneAudio.h">
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\Sound.h">
@@ -666,16 +708,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\comb.hpp" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\denormals.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\revmodel.hpp" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Components\tuning.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
-    <ClInclude Include="src\NotRed\Audio\SceneAudio.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -697,6 +729,27 @@
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Components\revmodel.cpp">
+      <Filter>src\NotRed\Audio\DSP\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.cpp">
+      <Filter>src\NotRed\Audio\DSP\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.cpp">
+      <Filter>src\NotRed\Audio\DSP\Filters</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp">
+      <Filter>src\NotRed\Audio\DSP\Reverb</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp">
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\Sound.cpp">
@@ -1104,12 +1157,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Components\revmodel.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp" />
-    <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.cpp" />
   </ItemGroup>
 </Project>
