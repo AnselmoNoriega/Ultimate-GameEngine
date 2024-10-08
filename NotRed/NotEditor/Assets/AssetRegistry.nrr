@@ -26,6 +26,9 @@ Assets:
   - Handle: 17020068888007024329
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/FlowerPot.png
     Type: 2
+  - Handle: 12687988793264789444
+    FilePath: Assets/Editor/font.png
+    Type: 2
   - Handle: 12703738426241712065
     FilePath: Assets/Editor/back2.png
     Type: 2
@@ -47,9 +50,6 @@ Assets:
   - Handle: 1154413097016288232
     FilePath: Assets/Editor/back.png
     Type: 2
-  - Handle: 3838498696308912365
-    FilePath: Assets/Cache/Shader/OpenGL
-    Type: 7
   - Handle: 11935831928330170918
     FilePath: Assets/Editor/fbx.png
     Type: 2
@@ -59,9 +59,6 @@ Assets:
   - Handle: 12432399643059205152
     FilePath: Assets/Editor/blend.png
     Type: 2
-  - Handle: 2149991680889024920
-    FilePath: Assets/Models/Sphere1m.fbx
-    Type: 1
   - Handle: 9450386441640844101
     FilePath: Assets/Editor/csc.png
     Type: 2
@@ -155,9 +152,6 @@ Assets:
   - Handle: 1915328201075283353
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Briefcase.png
     Type: 2
-  - Handle: 6123500233340813385
-    FilePath: Assets/Meshes/TestScene.fbx
-    Type: 1
   - Handle: 10166540633052031465
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Car.png
     Type: 2
@@ -380,15 +374,9 @@ Assets:
   - Handle: 17788364174091495204
     FilePath: Assets/Meshes
     Type: 7
-  - Handle: 14316231546829118191
-    FilePath: Assets/Meshes/ZIS101Sport.fbx
-    Type: 1
   - Handle: 2302489424656499241
     FilePath: Assets/Models
     Type: 7
-  - Handle: 7732213708915711552
-    FilePath: Assets/Models/Cube.fbx
-    Type: 1
   - Handle: 14870272503760469901
     FilePath: Assets/Models/m1911
     Type: 7
@@ -410,12 +398,6 @@ Assets:
   - Handle: 8906091305100063436
     FilePath: Assets/Models/m1911/m1911_roughness.png
     Type: 2
-  - Handle: 3937985312472161452
-    FilePath: Assets/Models/Plane1m.fbx
-    Type: 1
-  - Handle: 17586604007167872285
-    FilePath: Assets/Models/Plane1m.obj
-    Type: 1
   - Handle: 17476702133636542418
     FilePath: Assets/Models/sci-fi-rifle-m13-gaus
     Type: 7
@@ -488,3 +470,9 @@ Assets:
   - Handle: 3428303769076886653
     FilePath: Assets/Shaders/Skybox
     Type: 7
+  - Handle: 6040597869422331435
+    FilePath: Assets/Meshes/Default
+    Type: 7
+  - Handle: 5280813482203559802
+    FilePath: Assets/Models/TestScene.fbx
+    Type: 1
