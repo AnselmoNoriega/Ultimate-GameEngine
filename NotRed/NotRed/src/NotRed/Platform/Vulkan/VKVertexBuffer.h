@@ -14,7 +14,7 @@ namespace NR
 		VKVertexBuffer(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);
 		VKVertexBuffer(uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);
 
-		~VKVertexBuffer() override = default;
+		~VKVertexBuffer() override;
 
 		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override {}
 		void Bind() const override {}
@@ -31,7 +31,7 @@ namespace NR
 		uint32_t mSize = 0;
 		Buffer mLocalData;
 
-		VkBuffer mVulkanBuffer;
-		VkDeviceMemory mDeviceMemory;
+		VkBuffer mVulkanBuffer = nullptr;
+		VmaAllocation mMemoryAllocation;
 	};
 }

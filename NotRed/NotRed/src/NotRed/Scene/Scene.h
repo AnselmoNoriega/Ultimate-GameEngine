@@ -86,7 +86,6 @@ namespace NR
 
 		glm::mat4 GetTransformRelativeToParent(Entity entity);
 		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
-
 		TransformComponent GetWorldSpaceTransform(Entity entity);
 
 		void ParentEntity(Entity entity, Entity parent);

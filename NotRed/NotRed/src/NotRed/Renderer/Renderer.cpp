@@ -103,7 +103,6 @@ namespace NR
         sData = new RendererData();
         sCommandQueue = new RenderCommandQueue();
 
-        sData->Config.FramesInFlight = 3;
         sRendererAPI = InitRendererAPI();
 
         sData->mShaderLibrary = Ref<ShaderLibrary>::Create();

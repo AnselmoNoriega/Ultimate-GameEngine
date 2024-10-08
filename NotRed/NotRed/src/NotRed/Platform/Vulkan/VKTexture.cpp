@@ -127,11 +127,10 @@ namespace NR
 
     VKTexture2D::~VKTexture2D()
     {
-        Ref<Image2D> image = mImage;
-        Renderer::Submit([image]() mutable
-            {
-                image->Release();
-            });
+        if (mImage)
+        {
+            mImage->Release();
+        }
     }
 
     void VKTexture2D::Invalidate()
@@ -302,11 +301,6 @@ namespace NR
     Buffer VKTexture2D::GetWriteableBuffer()
     {
         return mImageData;
-    }
-
-    bool VKTexture2D::Loaded() const
-    {
-        return true;
     }
 
     const std::string& VKTexture2D::GetPath() const

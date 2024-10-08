@@ -6,8 +6,10 @@ bin-int/
 Intermediates/
 obj/
 **/cache/**
-NotEditor/assets/cache/shader/
-NotEditor/logs/
+NotEditor/Assets/Cache/Shader/
+NotEditor/Logs/
+NotEditor/Assets/Cache/
+NotEditor/Assets/Scripts/
 
 # NotRed files
 *.log

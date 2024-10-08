@@ -112,7 +112,6 @@ namespace NR
 		VkPhysicalDeviceFeatures enabledFeatures;
 		memset(&enabledFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
 		enabledFeatures.samplerAnisotropy = true;
-		enabledFeatures.robustBufferAccess = true;
 		mDevice = Ref<VKDevice>::Create(mPhysicalDevice, enabledFeatures);
 
 		VKAllocator::Init(mDevice);
