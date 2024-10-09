@@ -55,6 +55,8 @@ namespace NR
 		virtual void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform) = 0;
 		virtual void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) = 0;
 
+		virtual void DispatchComputeShader(const glm::ivec3& workGroups, Ref<Material> material) = 0;
+
 		virtual RendererCapabilities& GetCapabilities() = 0;
 
 		static RendererAPIType Current() { return sCurrentRendererAPI; }

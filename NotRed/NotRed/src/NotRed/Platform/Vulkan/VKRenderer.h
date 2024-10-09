@@ -21,6 +21,8 @@ namespace NR
 		void EndRenderPass() override;
 		void SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material) override;
 
+		void DispatchComputeShader(const glm::ivec3& workGroups, Ref<Material> material) override;
+
 		void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow) override;
 		std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath) override;
 		void GenerateParticles() override;

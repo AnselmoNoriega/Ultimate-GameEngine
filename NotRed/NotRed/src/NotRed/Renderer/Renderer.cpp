@@ -75,6 +75,7 @@ namespace NR
         Ref<ShaderLibrary> mShaderLibrary;
 
         Ref<Texture2D> WhiteTexture;
+        Ref<Texture2D> BlackTexture;
         Ref<TextureCube> BlackCubeTexture;
         Ref<Environment> EmptyEnvironment;
         std::map<uint32_t, std::map<uint32_t, std::map<uint32_t, Ref<UniformBuffer>>>> UniformBuffers;
@@ -119,6 +120,10 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ParticleGen", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/LightCulling", true);
+        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim.glsl");
+        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth_Anim.glsl");
 
         // Compile shaders
         Renderer::WaitAndRender();
@@ -126,8 +131,11 @@ namespace NR
         uint32_t whiteTextureData = 0xffffffff;
         sData->WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 
-        uint32_t blackTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
-        sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackTextureData);
+        uint32_t blackTextureData = 0xff000000;
+        sData->BlackTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &blackTextureData);
+
+        uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+        sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackCubeTextureData);
 
         sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
 
@@ -201,6 +209,11 @@ namespace NR
     void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
     {
         sRendererAPI->RenderMesh(pipeline, mesh, transform);
+    }
+
+    void Renderer::DispatchComputeShader(const glm::ivec3& workGroups, Ref <Material> material)
+    {
+        sRendererAPI->DispatchComputeShader(workGroups, material);
     }
 
     void Renderer::RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
@@ -285,6 +298,11 @@ namespace NR
     Ref<Texture2D> Renderer::GetWhiteTexture()
     {
         return sData->WhiteTexture;
+    }
+
+    Ref<Texture2D> Renderer::GetBlackTexture()
+    {
+        return sData->BlackTexture;
     }
 
     Ref<TextureCube> Renderer::GetBlackCubeTexture()

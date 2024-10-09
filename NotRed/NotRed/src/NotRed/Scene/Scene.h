@@ -32,9 +32,21 @@ namespace NR
 		bool CastShadows = true;
 	};
 
+	struct PointLight
+	{
+		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+		float Multiplier = 0.0f;
+		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
+		float NearPlane = 0.001f;
+		float FarPlane = 25.0f;
+		bool CastsShadows = true;
+		glm::vec2 Padding{};
+	};
+
 	struct LightEnvironment
 	{
 		DirectionalLight DirectionalLights[4];
+		std::vector<PointLight> PointLights;
 	};
 
 	class Entity;

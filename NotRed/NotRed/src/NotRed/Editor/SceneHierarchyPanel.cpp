@@ -209,6 +209,13 @@ namespace NR
                         newEntity.GetComponent<TransformComponent>().GetTransform() = glm::toMat4(glm::quat(glm::radians(glm::vec3{ 80.0f, 10.0f, 0.0f })));
                         SetSelected(newEntity);
                     }
+                    if (ImGui::MenuItem("Point Light"))
+                    {
+                        auto newEntity = mContext->CreateEntity("Point Light");
+                        newEntity.AddComponent<PointLightComponent>();
+                        newEntity.GetComponent<TransformComponent>().Translation = glm::vec3{ 0 };
+                        SetSelected(newEntity);
+                    }
                     if (ImGui::MenuItem("Sky Light"))
                     {
                         auto newEntity = mContext->CreateEntity("Sky Light");
@@ -329,7 +336,7 @@ namespace NR
     {
         static char imguiName[128];
         memset(imguiName, 0, 128);
-        sprintf(imguiName, "Mesh##%d", imguiMeshID++);
+        sprintf_s(imguiName, "Mesh##%d", imguiMeshID++);
 
         // Mesh Hierarchy
         if (ImGui::TreeNode(imguiName))
@@ -590,6 +597,14 @@ namespace NR
                     ImGui::CloseCurrentPopup();
                 }
             }
+            if (!mSelectionContext.HasComponent<PointLightComponent>())
+            {
+                if (ImGui::Button("Point Light"))
+                {
+                    mSelectionContext.AddComponent<PointLightComponent>();
+                    ImGui::CloseCurrentPopup();
+                }
+            }
             if (!mSelectionContext.HasComponent<SkyLightComponent>())
             {
                 if (ImGui::Button("Sky Light"))
@@ -820,6 +835,19 @@ namespace NR
                 UI::Property("Cast Shadows", dlc.CastShadows);
                 UI::Property("Soft Shadows", dlc.SoftShadows);
                 UI::Property("Source Size", dlc.LightSize);
+                UI::EndPropertyGrid();
+            });
+
+        DrawComponent<PointLightComponent>("Point Light", entity, [](PointLightComponent& dlc)
+            {
+                UI::BeginPropertyGrid();
+                UI::PropertyColor("Radiance", dlc.Radiance);
+                UI::Property("Intensity", dlc.Intensity);
+                UI::Property("Source Size", dlc.LightSize);
+                UI::Property("Near Plane", dlc.NearPlane);
+                UI::Property("Far Plane", dlc.FarPlane);
+                UI::Property("Cast Shadows", dlc.CastsShadows);
+                UI::Property("Soft Shadows", dlc.SoftShadows);
                 UI::EndPropertyGrid();
             });
 

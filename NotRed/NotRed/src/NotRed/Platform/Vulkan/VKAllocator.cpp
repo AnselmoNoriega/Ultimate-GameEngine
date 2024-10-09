@@ -110,7 +110,7 @@ namespace NR
         VmaAllocation allocation;
         vmaCreateBuffer(sData->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, nullptr);
 
-        VmaAllocationInfo allocInfo;
+        VmaAllocationInfo allocInfo {};
         vmaGetAllocationInfo(sData->Allocator, allocation, &allocInfo);
         NR_ALLOCATOR_LOG("VKAllocator ({0}): allocating buffer; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
 
@@ -128,7 +128,7 @@ namespace NR
         VmaAllocation allocation;
         vmaCreateImage(sData->Allocator, &imageCreateInfo, &allocCreateInfo, &outImage, &allocation, nullptr);
 
-        VmaAllocationInfo allocInfo;
+        VmaAllocationInfo allocInfo {};
         vmaGetAllocationInfo(sData->Allocator, allocation, &allocInfo);
         NR_ALLOCATOR_LOG("VKAllocator ({0}): allocating image; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
 

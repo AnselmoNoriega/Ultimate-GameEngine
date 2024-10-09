@@ -61,6 +61,7 @@ namespace NR
         TextureFilter SamplerFilter = TextureFilter::Linear;
         bool GenerateMips = true;
         bool StandardRGB = false;
+        bool Flip = true;
     };
 
     class Image : public RefCounted
@@ -113,7 +114,7 @@ namespace NR
 
         inline uint32_t CalculateMipCount(uint32_t width, uint32_t height)
         {
-            return std::floor(std::log2(glm::min(width, height))) + 1;
+            return uint32_t(std::floor(std::log2(glm::min(width, height))) + 1);
         }
 
         inline uint32_t GetImageMemorySize(ImageFormat format, uint32_t width, uint32_t height)

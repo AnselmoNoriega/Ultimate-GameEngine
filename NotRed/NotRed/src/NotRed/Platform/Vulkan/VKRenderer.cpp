@@ -381,6 +381,10 @@ namespace NR
 		return result;
 	}
 
+	void VKRenderer::DispatchComputeShader(const glm::ivec3& workGroups, Ref<Material> material)
+	{
+	}
+
 	void VKRenderer::SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
 	{
 		Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();

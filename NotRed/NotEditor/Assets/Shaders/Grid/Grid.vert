@@ -7,6 +7,8 @@ layout (std140, binding = 0) uniform Camera
 {
 	mat4 uViewProjectionMatrix;
 	mat4 uInverseViewProjection;
+	mat4 uProjectionMatrix;
+	mat4 uViewMatrix;
 };
 
 #ifdef OPENGL

@@ -73,6 +73,15 @@ namespace NR
         : mPath(path), mProperties(properties)
     {
         int width, height, channels;
+        if (properties.Flip)
+        {
+            stbi_set_flip_vertically_on_load(1);
+        }
+        else
+        {
+            stbi_set_flip_vertically_on_load(0);
+        }
+
         if (stbi_is_hdr(path.c_str()))
         {
             mImageData.Data = (byte*)stbi_loadf(path.c_str(), &width, &height, &channels, 4);
@@ -169,7 +178,7 @@ namespace NR
         bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         VkBuffer stagingBuffer;
-        VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+        VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, stagingBuffer);
 
         // Copy data to staging buffer
         uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
@@ -619,7 +628,7 @@ namespace NR
             bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
             bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             VkBuffer stagingBuffer;
-            VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+            VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, stagingBuffer);
 
             // Copy data to staging buffer
             uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);

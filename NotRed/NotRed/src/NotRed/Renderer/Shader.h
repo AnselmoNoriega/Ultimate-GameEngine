@@ -13,8 +13,8 @@ namespace NR
 {
 	enum class ShaderUniformType
 	{
-		None, 
-		Bool, Int, UInt, Float, 
+		None,
+		Bool, Int, IVec2, IVec3, IVec4, UInt, Float, 
 		Vec2, Vec3, Vec4, 
 		Mat3, Mat4,
 		Struct
@@ -48,6 +48,15 @@ namespace NR
 		uint32_t Size;
 		uint32_t RendererID;
 		std::vector<ShaderUniform> Uniforms;
+	};
+
+	struct ShaderStorageBuffer
+	{
+		std::string Name;
+		uint32_t Index;
+		uint32_t BindingPoint;
+		uint32_t Size;
+		uint32_t RendererID;
 	};
 
 	struct ShaderBuffer

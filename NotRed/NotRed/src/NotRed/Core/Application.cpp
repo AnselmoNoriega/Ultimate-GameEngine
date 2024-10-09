@@ -98,6 +98,13 @@ namespace NR
                 ImGui::Text("Free VRAM: %s", free.c_str());
             }
         }
+
+        bool vsync = mWindow->IsVSync();
+        if (ImGui::Checkbox("Vsync", &vsync))
+        {
+            mWindow->SetVSync(vsync);
+        }
+
         ImGui::End();
         {
             ImGui::Begin("Performance");

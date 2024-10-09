@@ -347,19 +347,40 @@ namespace NR
         // Process lights
         {
             mLightEnvironment = LightEnvironment();
-            auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
-            uint32_t directionalLightIndex = 0;
-            for (auto entity : lights)
+            // Directional Lights	
             {
-                auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>(entity);
-                glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
-                mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+                uint32_t directionalLightIndex = 0;
+                for (auto entity : lights)
                 {
-                    direction,
-                    lightComponent.Radiance,
-                    lightComponent.Intensity,
-                    lightComponent.CastShadows
-                };
+                    auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>(entity);
+                    glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
+                    mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                    {
+                        direction,
+                        lightComponent.Radiance,
+                        lightComponent.Intensity,
+                        lightComponent.CastShadows
+                    };
+                }
+                //Point Light
+                {
+                    auto pointLights = mRegistry.group<PointLightComponent>(entt::get<TransformComponent>);
+                    mLightEnvironment.PointLights.resize(pointLights.size());
+                    uint32_t pointLightIndex = 0;
+                    for (auto entity : pointLights)
+                    {
+                        auto [transformComponent, lightComponent] = pointLights.get<TransformComponent, PointLightComponent>(entity);
+                        mLightEnvironment.PointLights[pointLightIndex++] = {
+                            transformComponent.Translation,
+                            lightComponent.Intensity,
+                            lightComponent.Radiance,
+                            lightComponent.NearPlane,
+                            lightComponent.FarPlane,
+                            lightComponent.CastsShadows,
+                        };
+                    }
+                }
             }
         }
 
@@ -429,19 +450,40 @@ namespace NR
         // Process lights
         {
             mLightEnvironment = LightEnvironment();
-            auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
-            uint32_t directionalLightIndex = 0;
-            for (auto entity : lights)
+            //Directional Lights
             {
-                auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>(entity);
-                glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
-                mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                auto dirLights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+                uint32_t directionalLightIndex = 0;
+                for (auto entity : dirLights)
                 {
-                    direction,
-                    lightComponent.Radiance,
-                    lightComponent.Intensity,
-                    lightComponent.CastShadows
-                };
+                    auto [transformComponent, lightComponent] = dirLights.get<TransformComponent, DirectionalLightComponent>(entity);
+                    glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
+                    mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                    {
+                        direction,
+                        lightComponent.Radiance,
+                        lightComponent.Intensity,
+                        lightComponent.CastShadows
+                    };
+                }
+            }
+            //Point Lights
+            {
+                auto pointLights = mRegistry.group<PointLightComponent>(entt::get<TransformComponent>);
+                mLightEnvironment.PointLights.resize(pointLights.size());
+                uint32_t pointLightIndex = 0;
+                for (auto entity : pointLights)
+                {
+                    auto [transformComponent, lightComponent] = pointLights.get<TransformComponent, PointLightComponent>(entity);
+                    mLightEnvironment.PointLights[pointLightIndex++] = {
+                        transformComponent.Translation,
+                        lightComponent.Intensity,
+                        lightComponent.Radiance,
+                        lightComponent.NearPlane,
+                        lightComponent.FarPlane,
+                        lightComponent.CastsShadows,
+                    };
+                }
             }
         }
 
@@ -1097,6 +1139,7 @@ namespace NR
         CopyComponentIfExists<ParticleComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1277,6 +1320,7 @@ namespace NR
         CopyComponent<ParticleComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SkyLightComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);

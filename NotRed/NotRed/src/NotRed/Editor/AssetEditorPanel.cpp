@@ -43,17 +43,17 @@ namespace NR
 		if (width <= 0) width = 200;
 		if (height <= 0) height = 400;
 
-		mMinSize = ImVec2(width, height);
+		mMinSize = ImVec2((float)width, (float)height);
 	}
 
 	void AssetEditor::SetMaxSize(uint32_t width, uint32_t height)
 	{
 		if (width <= 0) width = 2000;
 		if (height <= 0) height = 2000;
-		if (width <= mMinSize.x) width = mMinSize.x * 2;
-		if (height <= mMinSize.y) height = mMinSize.y * 2;
+		if (float(width) <= mMinSize.x) width = mMinSize.x * 2.f;
+		if (float(height) <= mMinSize.y) height = mMinSize.y * 2.f;
 
-		mMaxSize = ImVec2(width, height);
+		mMaxSize = ImVec2((float)width, (float)height);
 	}
 
 	void AssetEditorPanel::RegisterDefaultEditors()

@@ -24,7 +24,9 @@ namespace NR
 	bool TextureSerializer::TryLoadData(Ref<Asset>& asset) const
 	{
 		Ref<Asset> temp = asset;
-		asset = Texture2D::Create(asset->FilePath);
+		TextureProperties properties{};
+		properties.Flip = false;
+		asset = Texture2D::Create(asset->FilePath, properties);
 		CopyMetadata(temp, asset);
 		return (asset.As<Texture2D>())->Loaded();
 	}

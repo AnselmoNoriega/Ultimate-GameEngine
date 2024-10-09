@@ -453,7 +453,7 @@ namespace NR
 
 			ImGui::SameLine();
 
-			int size = strlen(mBreadCrumbData[i]->FileName.c_str()) * 7;
+			const int size = int(strlen(mBreadCrumbData[i]->FileName.c_str()) * 7);
 
 			if (ImGui::Selectable(mBreadCrumbData[i]->FileName.c_str(), false, 0, ImVec2(size, 22)))
 			{

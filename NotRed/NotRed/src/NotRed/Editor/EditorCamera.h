@@ -6,62 +6,77 @@
 
 namespace NR
 {
-	class EditorCamera : public Camera
-	{
-	public:
-		EditorCamera() = default;
-		EditorCamera(const glm::mat4& projectionMatrix);
+    class EditorCamera : public Camera
+    {
+    public:
+        enum class CameraMode
+        {
+            NONE, FLYCAM, ARCBALL
+        };
 
-		void Update(float dt);
-		void OnEvent(Event& e);
-		
-		void Focus(const glm::vec3& focusPoint);
+    public:
+        EditorCamera() = default;
+        EditorCamera(const glm::mat4& projectionMatrix);
 
-		inline float GetDistance() const { return mDistance; }
-		inline void SetDistance(float distance) { mDistance = distance; }
+        void CalculateYaw(float degrees);
+        void CalculatePitch(float degrees);
 
-		inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
+        void Update(float dt);
+        void OnEvent(Event& e);
 
-		glm::vec3 GetUpDirection();
-		glm::vec3 GetRightDirection();
-		glm::vec3 GetForwardDirection();
-		glm::quat GetOrientation() const;
+        void Focus(const glm::vec3& focusPoint);
+        void SetCameraMode(const CameraMode cameraMode);
 
-		const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
-		glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
-		const glm::vec3& GetPosition() const { return mPosition; }
+        inline float GetDistance() const { return mDistance; }
+        inline void SetDistance(float distance) { mDistance = distance; }
 
-		float GetPitch() const { return mPitch; }
-		float GetYaw() const { return mYaw; }
-		
-	private:
-		void UpdateCameraView();
+        inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
 
-		bool OnMouseScroll(MouseScrolledEvent& e);
+        glm::vec3 GetUpDirection();
+        glm::vec3 GetRightDirection();
+        glm::vec3 GetForwardDirection();
+        glm::quat GetOrientation() const;
 
-		void MousePan(const glm::vec2& delta);
-		void MouseRotate(const glm::vec2& delta);
-		void MouseZoom(float delta);
+        const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
+        glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
+        const glm::vec3& GetPosition() const { return mPosition; }
 
-		glm::vec3 CalculatePosition();
+        float GetPitch() const { return mPitch; }
+        float GetYaw() const { return mYaw; }
 
-		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed() const;
-		float ZoomSpeed() const;
+    private:
+        void UpdateCameraView();
 
-	private:
-		glm::mat4 mViewMatrix;
-		glm::vec3 mPosition, mRotation, mFocalPoint;
+        bool OnMouseScroll(MouseScrolledEvent& e);
 
-		bool mPanning, mRotating;
-		glm::vec2 mInitialMousePosition;
-		glm::vec3 mInitialFocalPoint, mInitialRotation;
+        void MousePan(const glm::vec2& delta);
+        void MouseRotate(const glm::vec2& delta);
+        void MouseZoom(float delta);
 
-		float mDistance;
-		float mPitch, mYaw;
+        glm::vec3 CalculatePosition();
 
-		float mMinFocusDistance = 100.0f;
+        std::pair<float, float> PanSpeed() const;
+        float RotationSpeed() const;
+        float ZoomSpeed() const;
 
-		uint32_t mViewportWidth = 1280, mViewportHeight = 720;
-	};
+    private:
+        glm::mat4 mViewMatrix;
+        glm::vec3 mPosition, mRotation, mFocalPoint;
+
+        bool mPanning, mRotating;
+        glm::vec2 mInitialMousePosition {};
+        glm::vec3 mInitialFocalPoint, mInitialRotation;
+
+        float mDistance;
+        float mSpeed = 0.03f;
+        float mPitch, mYaw;
+
+        glm::vec3 mCameraPositionDelta;
+        glm::vec3 mRightDirection {};
+        CameraMode mCameraMode = CameraMode::NONE;
+
+        float mMinFocusDistance = 100.0f;
+
+        uint32_t mViewportWidth = 1280, mViewportHeight = 720;
+    };
 }

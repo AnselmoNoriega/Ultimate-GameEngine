@@ -12,21 +12,24 @@ namespace NR
     public:
         struct UniformBuffer
         {
-            std::string Name;
-            VkDeviceMemory Memory = nullptr;
-            uint32_t Size = 0;
+            VmaAllocation MemoryAlloc = nullptr;
+            VkBuffer Buffer;
             VkDescriptorBufferInfo Descriptor;
+            uint32_t Size = 0;
             uint32_t BindingPoint = 0;
+            std::string Name;
             VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         };
 
-        struct StorageBuffer 
+
+        struct StorageBuffer
         {
-            std::string Name;
-            VkDeviceMemory Memory = nullptr;
-            uint32_t Size = 0;
+            VmaAllocation MemoryAlloc = nullptr;
+            VkBuffer Buffer;
             VkDescriptorBufferInfo Descriptor;
+            uint32_t Size = 0;
             uint32_t BindingPoint = 0;
+            std::string Name;
             VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         };
 
@@ -115,6 +118,9 @@ namespace NR
         void ReflectAllShaderStages(const std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& shaderData);
 
         void CreateDescriptors();
+
+        void AllocateUniformBuffer(UniformBuffer& dst);
+        void AllocateStorageBuffer(StorageBuffer& dst);
 
     private:
         std::vector<VkPipelineShaderStageCreateInfo> mPipelineShaderStageCreateInfos;

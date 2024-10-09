@@ -5,7 +5,9 @@
 
 #include "imgui.h"
 
-#define IMGUI_IMPL_API
+#ifndef IMGUI_IMPL_API
+    #define IMGUI_IMPL_API
+#endif
 #include "backends/imgui_impl_glfw.h"
 #include "examples/imgui_impl_vulkan_with_textures.h"
 

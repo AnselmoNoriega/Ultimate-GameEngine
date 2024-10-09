@@ -36,16 +36,20 @@ namespace NR
             {
             case spirv_cross::SPIRType::Boolean:  return ShaderUniformType::Bool;
             case spirv_cross::SPIRType::UInt:     return ShaderUniformType::UInt;
-            case spirv_cross::SPIRType::Int:      return ShaderUniformType::Int;
+            case spirv_cross::SPIRType::Int:
+                if (type.vecsize == 1)            return ShaderUniformType::Int;
+                if (type.vecsize == 2)            return ShaderUniformType::IVec2;
+                if (type.vecsize == 3)            return ShaderUniformType::IVec3;
+                if (type.vecsize == 4)            return ShaderUniformType::IVec4;
             case spirv_cross::SPIRType::Float:
             {
+                if (type.columns == 3)            return ShaderUniformType::Mat3;
+                if (type.columns == 4)            return ShaderUniformType::Mat4;
+
                 if (type.vecsize == 1)            return ShaderUniformType::Float;
                 if (type.vecsize == 2)            return ShaderUniformType::Vec2;
                 if (type.vecsize == 3)            return ShaderUniformType::Vec3;
                 if (type.vecsize == 4)            return ShaderUniformType::Vec4;
-
-                if (type.columns == 3)            return ShaderUniformType::Mat3;
-                if (type.columns == 4)            return ShaderUniformType::Mat4;
                 break;
             }
             default:
@@ -74,6 +78,7 @@ namespace NR
     void VKShader::ClearUniformBuffers()
     {
         sUniformBuffers.clear();
+        sStorageBuffers.clear();
     }
 
     /*TODO: Check if this is better than a method
@@ -196,47 +201,91 @@ namespace NR
         spirv_cross::Compiler compiler(shaderData);
         auto resources = compiler.get_shader_resources();
 
-        NR_CORE_TRACE("Uniform Buffers:");
-        for (const auto& resource : resources.uniform_buffers)
+        // Uniform Buffers
         {
-            const auto& name = resource.name;
-            auto& bufferType = compiler.get_type(resource.base_type_id);
-            int memberCount = bufferType.member_types.size();
-            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            uint32_t size = compiler.get_declared_struct_size(bufferType);
-
-            if (descriptorSet >= mShaderDescriptorSets.size())
+            NR_CORE_TRACE("Uniform Buffers:");
+            for (const auto& resource : resources.uniform_buffers)
             {
-                mShaderDescriptorSets.resize(descriptorSet + 1);
-            }
+                const auto& name = resource.name;
+                auto& bufferType = compiler.get_type(resource.base_type_id);
+                int memberCount = bufferType.member_types.size();
 
-            ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
+                uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+                uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+                uint32_t size = compiler.get_declared_struct_size(bufferType);
 
-            if (sUniformBuffers[descriptorSet].find(binding) == sUniformBuffers[descriptorSet].end())
-            {
-                UniformBuffer* uniformBuffer = new UniformBuffer();
-                uniformBuffer->BindingPoint = binding;
-                uniformBuffer->Size = size;
-                uniformBuffer->Name = name;
-                uniformBuffer->ShaderStage = shaderStage;
-                sUniformBuffers.at(descriptorSet)[binding] = uniformBuffer;
-            }
-            else
-            {
-                UniformBuffer* uniformBuffer = sUniformBuffers.at(descriptorSet).at(binding);
-                if (size > uniformBuffer->Size)
+                ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
+
+                if (sUniformBuffers[descriptorSet].find(binding) == sUniformBuffers[descriptorSet].end())
                 {
+                    auto* uniformBuffer = new UniformBuffer();
+                    uniformBuffer->BindingPoint = binding;
                     uniformBuffer->Size = size;
+                    uniformBuffer->Name = name;
+                    uniformBuffer->ShaderStage = shaderStage;
+                    sUniformBuffers.at(descriptorSet)[binding] = uniformBuffer;
+                    AllocateUniformBuffer(*uniformBuffer);
                 }
+                else
+                {
+                    UniformBuffer* uniformBuffer = sUniformBuffers.at(descriptorSet).at(binding);
+                    if (size > uniformBuffer->Size)
+                    {
+                        NR_CORE_TRACE("Resizing uniform buffer (binding = {0}, set = {1}) to {2} bytes", binding, descriptorSet, size);
+                        uniformBuffer->Size = size;
+                        AllocateUniformBuffer(*uniformBuffer);
+                    }
+
+                }
+                shaderDescriptorSet.UniformBuffers[binding] = sUniformBuffers.at(descriptorSet).at(binding);
+                NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
+                NR_CORE_TRACE("  Member Count: {0}", memberCount);
+                NR_CORE_TRACE("  Size: {0}", size);
+                NR_CORE_TRACE("-------------------");
             }
+        }
+        //Storage Buffers
+        {
+            NR_CORE_TRACE("Storage Buffers:");
+            for (const auto& resource : resources.storage_buffers)
+            {
+                const auto& name = resource.name;
+                auto& bufferType = compiler.get_type(resource.base_type_id);
+                int memberCount = bufferType.member_types.size();
+                uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+                uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+                uint32_t size = compiler.get_declared_struct_size(bufferType);
 
-            shaderDescriptorSet.UniformBuffers[binding] = sUniformBuffers.at(descriptorSet).at(binding);
+                ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
 
-            NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
-            NR_CORE_TRACE("  Member Count: {0}", memberCount);
-            NR_CORE_TRACE("  Size: {0}", size);
-            NR_CORE_TRACE("-------------------");
+                if (sStorageBuffers[descriptorSet].find(binding) == sStorageBuffers[descriptorSet].end())
+                {
+                    auto* storageBuffer = new StorageBuffer();
+                    storageBuffer->BindingPoint = binding;
+                    storageBuffer->Size = size;
+                    storageBuffer->Name = name;
+                    storageBuffer->ShaderStage = shaderStage;
+                    sStorageBuffers.at(descriptorSet)[binding] = storageBuffer;
+                    AllocateStorageBuffer(*storageBuffer);
+                }
+                else
+                {
+                    StorageBuffer* storageBuffer = sStorageBuffers.at(descriptorSet).at(binding);
+                    if (size > storageBuffer->Size)
+                    {
+                        NR_CORE_TRACE("Resizing storage buffer (binding = {0}, set = {1}) to {2} bytes", binding, descriptorSet, size);
+                        storageBuffer->Size = size;
+                        AllocateStorageBuffer(*storageBuffer);
+                    }
+
+                }
+
+                shaderDescriptorSet.StorageBuffers[binding] = sStorageBuffers.at(descriptorSet).at(binding);
+                NR_CORE_TRACE("  {0} ({1}, {2})", name, descriptorSet, binding);
+                NR_CORE_TRACE("  Member Count: {0}", memberCount);
+                NR_CORE_TRACE("  Size: {0}", size);
+                NR_CORE_TRACE("-------------------");
+            }
         }
 
         NR_CORE_TRACE("Push Constant Buffers:");
@@ -344,7 +393,7 @@ namespace NR
             uint32_t size = compiler.get_declared_struct_size(bufferType);
 
             // Ensure that the descriptor set vector is resized to accommodate new sets
-            if (descriptorSet >= mShaderDescriptorSets.size()) 
+            if (descriptorSet >= mShaderDescriptorSets.size())
             {
                 mShaderDescriptorSets.resize(descriptorSet + 1);
             }
@@ -352,7 +401,7 @@ namespace NR
             ShaderDescriptorSet& shaderDescriptorSet = mShaderDescriptorSets[descriptorSet];
 
             // Here we handle the storage buffer just like we did with the uniform buffer
-            if (sStorageBuffers[descriptorSet].find(binding) == sStorageBuffers[descriptorSet].end()) 
+            if (sStorageBuffers[descriptorSet].find(binding) == sStorageBuffers[descriptorSet].end())
             {
                 StorageBuffer* storageBuffer = new StorageBuffer(); // Assuming StorageBuffer is defined similarly to UniformBuffer
                 storageBuffer->BindingPoint = binding;
@@ -361,10 +410,10 @@ namespace NR
                 storageBuffer->ShaderStage = shaderStage;
                 sStorageBuffers.at(descriptorSet)[binding] = storageBuffer;
             }
-            else 
+            else
             {
                 StorageBuffer* storageBuffer = sStorageBuffers.at(descriptorSet).at(binding);
-                if (size > storageBuffer->Size) 
+                if (size > storageBuffer->Size)
                 {
                     storageBuffer->Size = size;
                 }
@@ -477,7 +526,7 @@ namespace NR
                 set.descriptorCount = 1;
                 set.dstBinding = layoutBinding.binding;
             }
-            
+
             for (auto& [binding, storageBuffer] : shaderDescriptorSet.StorageBuffers)
             {
                 // Create the layout binding for the storage buffer
@@ -616,7 +665,7 @@ namespace NR
         }
         return result;
     }
-    
+
     VKShader::ShaderMaterialDescriptorSet VKShader::AllocateDescriptorSet(uint32_t set)
     {
         NR_CORE_ASSERT(set < mDescriptorSetLayouts.size());
@@ -634,7 +683,7 @@ namespace NR
         allocInfo.descriptorSetCount = 1;
         allocInfo.pSetLayouts = &mDescriptorSetLayouts[set];
         VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
-        
+
         NR_CORE_ASSERT(descriptorSet);
         result.DescriptorSets.push_back(descriptorSet);
 
@@ -664,6 +713,65 @@ namespace NR
         }
 
         return result;
+    }
+
+    void VKShader::AllocateUniformBuffer(UniformBuffer& dst)
+    {
+        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+
+        UniformBuffer& uniformBuffer = dst;
+
+        // Vertex shader uniform buffer block
+        VkBufferCreateInfo bufferInfo = {};
+        VkMemoryAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.pNext = nullptr;
+        allocInfo.allocationSize = 0;
+        allocInfo.memoryTypeIndex = 0;
+
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = uniformBuffer.Size;
+        // This buffer will be used as a uniform buffer
+        bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+
+        // Create a new buffer
+        VKAllocator allocator("UniformBuffer");
+        uniformBuffer.MemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_GPU_TO_CPU, uniformBuffer.Buffer);
+
+        // Store information in the uniform's descriptor that is used by the descriptor set
+        uniformBuffer.Descriptor.buffer = uniformBuffer.Buffer;
+        uniformBuffer.Descriptor.offset = 0;
+        uniformBuffer.Descriptor.range = uniformBuffer.Size;
+    }
+
+    void VKShader::AllocateStorageBuffer(StorageBuffer& dst)
+    {
+        VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+
+        StorageBuffer& storageBuffer = dst;
+
+        VkBufferCreateInfo bufferInfo = {};
+        VkMemoryAllocateInfo allocInfo = {};
+
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.pNext = nullptr;
+        allocInfo.allocationSize = 0;
+        allocInfo.memoryTypeIndex = 0;
+
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = storageBuffer.Size;
+
+        // This buffer will be used as a uniform buffer
+        bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+
+        // Create a new buffer
+        VKAllocator allocator("StorageBuffer");
+        storageBuffer.MemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_GPU_ONLY, storageBuffer.Buffer); //Stored on GPU only for now
+
+        // Store information in the uniform's descriptor that is used by the descriptor set
+        storageBuffer.Descriptor.buffer = storageBuffer.Buffer;
+        storageBuffer.Descriptor.offset = 0;
+        storageBuffer.Descriptor.range = storageBuffer.Size;
     }
 
     static const char* VkShaderStageCachedFileExtension(VkShaderStageFlagBits stage)

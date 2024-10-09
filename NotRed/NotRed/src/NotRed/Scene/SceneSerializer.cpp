@@ -330,6 +330,21 @@ namespace NR
 			out << YAML::EndMap; // DirectionalLightComponent
 		}
 
+		if (entity.HasComponent<PointLightComponent>())
+		{
+			out << YAML::Key << "PointLightComponent";
+			out << YAML::BeginMap; // PointLightComponent
+			auto& directionalLightComponent = entity.GetComponent<PointLightComponent>();
+			out << YAML::Key << "Radiance" << YAML::Value << directionalLightComponent.Radiance;
+			out << YAML::Key << "Intensity" << YAML::Value << directionalLightComponent.Intensity;
+			out << YAML::Key << "CastShadows" << YAML::Value << directionalLightComponent.CastsShadows;
+			out << YAML::Key << "SoftShadows" << YAML::Value << directionalLightComponent.SoftShadows;
+			out << YAML::Key << "NearPlane" << YAML::Value << directionalLightComponent.NearPlane;
+			out << YAML::Key << "FarPlane" << YAML::Value << directionalLightComponent.FarPlane;
+			out << YAML::Key << "LightSize" << YAML::Value << directionalLightComponent.LightSize;
+			out << YAML::EndMap; // PointLightComponent
+		}
+
 		if (entity.HasComponent<SkyLightComponent>())
 		{
 			out << YAML::Key << "SkyLightComponent";
@@ -869,14 +884,25 @@ namespace NR
 					component.Primary = cameraComponent["Primary"].as<bool>();
 				}
 
-				auto directionalLightComponent = entity["DirectionalLightComponent"];
-				if (directionalLightComponent)
+				if (auto directionalLightComponent = entity["DirectionalLightComponent"]; directionalLightComponent)
 				{
 					auto& component = deserializedEntity.AddComponent<DirectionalLightComponent>();
 					component.Radiance = directionalLightComponent["Radiance"].as<glm::vec3>();
 					component.CastShadows = directionalLightComponent["CastShadows"].as<bool>();
 					component.SoftShadows = directionalLightComponent["SoftShadows"].as<bool>();
 					component.LightSize = directionalLightComponent["LightSize"].as<float>();
+				}
+
+				if (auto pointLightComponent = entity["PointLightComponent"]; pointLightComponent)
+				{
+					auto& component = deserializedEntity.AddComponent<PointLightComponent>();
+					component.Radiance = pointLightComponent["Radiance"].as<glm::vec3>();
+					component.Intensity = pointLightComponent["Intensity"].as<float>();
+					component.CastsShadows = pointLightComponent["CastShadows"].as<bool>();
+					component.SoftShadows = pointLightComponent["SoftShadows"].as<bool>();
+					component.LightSize = pointLightComponent["LightSize"].as<float>();
+					component.FarPlane = pointLightComponent["FarPlane"].as<float>();
+					component.NearPlane = pointLightComponent["NearPlane"].as<float>();
 				}
 
 				auto skyLightComponent = entity["SkyLightComponent"];

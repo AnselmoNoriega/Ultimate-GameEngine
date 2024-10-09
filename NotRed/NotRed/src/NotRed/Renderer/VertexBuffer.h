@@ -89,12 +89,12 @@ namespace NR
 
         uint32_t GetStride() const { return mStride; }
         const std::vector<VertexBufferElement>& GetElements() const { return mElements; }
-        uint32_t GetElementCount() const { return mElements.size(); }
+        uint32_t GetElementCount() const { return (uint32_t)mElements.size(); }
 
-        std::vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
-        std::vector<VertexBufferElement>::iterator end() { return mElements.end(); }
-        std::vector<VertexBufferElement>::const_iterator begin() const { return mElements.begin(); }
-        std::vector<VertexBufferElement>::const_iterator end() const { return mElements.end(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::iterator end() { return mElements.end(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::const_iterator begin() const { return mElements.begin(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::const_iterator end() const { return mElements.end(); }
 
     private:
         void CalculateOffsetsAndStride()

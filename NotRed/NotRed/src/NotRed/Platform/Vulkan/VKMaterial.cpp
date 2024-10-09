@@ -230,6 +230,21 @@ namespace NR
         Set<float>(name, value);
     }
 
+    void VKMaterial::Set(const std::string& name, const glm::ivec2& value)
+    {
+        Set<glm::ivec2>(name, value);
+    }
+
+    void VKMaterial::Set(const std::string& name, const glm::ivec3& value)
+    {
+        Set<glm::ivec3>(name, value);
+    }
+
+    void VKMaterial::Set(const std::string& name, const glm::ivec4& value)
+    {
+        Set<glm::ivec4>(name, value);
+    }
+
     void VKMaterial::Set(const std::string& name, const glm::vec2& value)
     {
         Set<glm::vec2>(name, value);

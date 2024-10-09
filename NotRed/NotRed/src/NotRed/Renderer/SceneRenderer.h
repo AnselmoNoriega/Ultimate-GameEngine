@@ -55,7 +55,8 @@ namespace NR
 		static void FlushDrawList();
 		static void GeometryPass();
 		static void CompositePass();
-		static void ShadowMapPass();
+		static void DepthPass();
+		static void LightCullingPass();
 		static void BloomBlurPass();
 	};
 }

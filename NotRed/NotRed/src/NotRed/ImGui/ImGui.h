@@ -12,7 +12,7 @@
 #include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Renderer/Texture.h"
-
+ 
 #include "imgui/imgui.h"
 
 namespace NR::UI 
@@ -48,12 +48,12 @@ namespace NR::UI
 		ImGui::PushItemWidth(-1);
 
 		char buffer[256];
-		strcpy(buffer, value.c_str());
+		strcpy_s(buffer, value.c_str());
 
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
 		if (error)
 		{
@@ -83,7 +83,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		ImGui::InputText(sIDBuffer, (char*)value, 256, ImGuiInputTextFlags_ReadOnly);
 
 		ImGui::PopItemWidth();
@@ -101,7 +101,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::Checkbox(sIDBuffer, &value))
 		{
 			modified = true;
@@ -124,7 +124,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::DragInt(sIDBuffer, &value, 1.0f, min, max))
 		{
 			modified = true;
@@ -147,7 +147,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::SliderInt(sIDBuffer, &value, min, max))
 		{
 			modified = true;
@@ -170,7 +170,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::SliderFloat(sIDBuffer, &value, min, max))
 		{
 			modified = true;
@@ -193,7 +193,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::SliderFloat2(sIDBuffer, glm::value_ptr(value), min, max))
 		{
 			modified = true;
@@ -216,7 +216,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::SliderFloat3(sIDBuffer, glm::value_ptr(value), min, max))
 			modified = true;
 
@@ -237,7 +237,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::SliderFloat4(sIDBuffer, glm::value_ptr(value), min, max))
 			modified = true;
 
@@ -258,7 +258,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
 		if (!readOnly)
 		{
@@ -289,7 +289,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::DragFloat2(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
@@ -312,7 +312,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::ColorEdit3(sIDBuffer, glm::value_ptr(value)))
 		{
 			modified = true;
@@ -335,7 +335,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
@@ -358,7 +358,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::DragFloat4(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
@@ -377,12 +377,12 @@ namespace NR::UI
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		bool changed = false;
-		std::string id = "##" + std::string(label);
+		const std::string id = "##" + std::string(label);
 		if (ImGui::BeginCombo(id.c_str(), current))
 		{
 			for (int i = 0; i < optionCount; ++i)
 			{
-				bool is_selected = (current == options[i]);
+				const bool is_selected = (current == options[i]);
 				if (ImGui::Selectable(options[i], is_selected))
 				{
 					current = options[i];
@@ -408,12 +408,12 @@ namespace NR::UI
 
 		bool changed = false;
 
-		std::string id = "##" + std::string(label);
+		const std::string id = "##" + std::string(label);
 		if (ImGui::BeginCombo(id.c_str(), current))
 		{
 			for (int i = 0; i < optionCount; ++i)
 			{
-				bool is_selected = (current == options[i]);
+				const bool is_selected = (current == options[i]);
 				if (ImGui::Selectable(options[i].c_str(), is_selected))
 				{
 					current = options[i].c_str();
@@ -478,7 +478,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		itoa(sCounter++, sIDBuffer + 2, 16);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (ImGui::Checkbox(sIDBuffer, &value))
 		{
 			modified = true;

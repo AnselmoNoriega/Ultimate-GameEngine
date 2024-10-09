@@ -40,6 +40,7 @@ namespace NR
 		Ref<Shader> BloomBlurShader;
 		Ref<Shader> BloomBlendShader;
 
+		Ref<RenderPass> PreDepthRenderPass;
 		Ref<RenderPass> GeoPass;
 		Ref<RenderPass> CompositePass;
 		Ref<RenderPass> BloomBlurPass[2];
@@ -106,7 +107,8 @@ namespace NR
 		glm::vec2 FocusPoint = { 0.5f, 0.5f };
 
 		RendererID ShadowMapSampler;
-		Ref<Material> CompositeMaterial;
+
+		glm::ivec3 LightCullingWorkGroups;
 
 		Ref<Pipeline> GeometryPipeline;
 		Ref<Pipeline> ParticlePipeline;
@@ -114,7 +116,7 @@ namespace NR
 		Ref<Pipeline> ShadowPassPipeline;
 		Ref<Material> ShadowPassMaterial;
 		Ref<Pipeline> SkyboxPipeline;
-		Ref<Material> SkyboxMaterial;
+		Ref<Pipeline> PreDepthPipeline;
 
 		struct DrawCommand
 		{
@@ -133,6 +135,10 @@ namespace NR
 		Ref<Material> GridMaterial;
 		Ref<Material> OutlineMaterial, OutlineAnimMaterial;
 		Ref<Material> ColliderMaterial;
+
+		Ref<Material> CompositeMaterial;
+		Ref<Material> SkyboxMaterial;
+		Ref<Material> LightCullingMaterial;
 
 		SceneRendererOptions Options;
 
@@ -167,6 +173,7 @@ namespace NR
 			Renderer::SetUniformBuffer(sData->RendererDataUniformBuffer[i], i, 0);
 		}
 
+		sData->LightCullingMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("LightCulling"), "LightCulling");
 		sData->CompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
 		sData->CompositeMaterial = Material::Create(sData->CompositeShader);
 		sData->BRDFLUT = Texture2D::Create("Assets/Textures/BRDF_LUT.tga");
@@ -295,6 +302,35 @@ namespace NR
 			sData->ShadowPassPipeline = Pipeline::Create(pipelineSpec);
 
 			sData->ShadowPassMaterial = Material::Create(shadowPassShader, "ShadowPass");
+		}
+
+		// PreDepth
+		{
+			FrameBufferSpecification preDepthFramebufferSpec;
+			preDepthFramebufferSpec.Width = 1280;
+			preDepthFramebufferSpec.Height = 720;
+			preDepthFramebufferSpec.Attachments = { ImageFormat::DEPTH32F };
+			preDepthFramebufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+			RenderPassSpecification preDepthRenderPassSpec;
+			preDepthRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(preDepthFramebufferSpec);
+			preDepthRenderPassSpec.DebugName = "PreDepth";
+
+			sData->PreDepthRenderPass = RenderPass::Create(preDepthRenderPassSpec);
+			auto PreDepthShader = Renderer::GetShaderLibrary()->Get("PreDepth");
+
+			PipelineSpecification pipelineSpec;
+			pipelineSpec.DebugName = "PreDepthPass";
+			pipelineSpec.Shader = PreDepthShader;
+			pipelineSpec.Layout = {
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float3, "aNormal" },
+				{ ShaderDataType::Float3, "aTangent" },
+				{ ShaderDataType::Float3, "aBinormal" },
+				{ ShaderDataType::Float2, "aTexCoord" }
+			};
+			pipelineSpec.RenderPass = sData->PreDepthRenderPass;
+			sData->PreDepthPipeline = Pipeline::Create(pipelineSpec);
 		}
 
 		// Grid
@@ -485,70 +521,156 @@ namespace NR
 		sData->SceneData.ActiveLight = scene->mLight;
 		sData->SceneData.SceneLightEnvironment = scene->mLightEnvironment;
 		sData->SceneData.SkyboxLod = scene->mSkyboxLod;
-		sData->SceneData.ActiveLight = scene->mLight;
 
 		if (sData->NeedsResize)
 		{
+			sData->PreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
 			sData->GeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
 			sData->ParticlePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
 			sData->CompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(sData->ViewportWidth, sData->ViewportHeight);
-			sData->NeedsResize = false;
-		}
+			
+			sData->LightCullingWorkGroups = { (sData->ViewportWidth + sData->ViewportWidth % 16) / 16, (sData->ViewportHeight + sData->ViewportHeight % 16) / 16, 1 };
 
-		SceneRendererData::UBCamera& cameraData = sData->CameraData; 
-		SceneRendererData::UBScene& sceneData = sData->SceneDataUB; 
-		SceneRendererData::UBShadow& shadowData = sData->ShadowData; 
-		SceneRendererData::UBRendererData& rendererData = sData->RendererDataUB;
+			Renderer::Submit([=]
+				{
+					auto shader = sData->LightCullingMaterial->GetShader();
+
+					if (RendererAPI::Current() == RendererAPIType::Vulkan)
+					{
+					}
+					else
+					{
+						shader.As<GLShader>()->ResizeStorageBuffer(14, sData->LightCullingWorkGroups.x * sData->LightCullingWorkGroups.y * 4 * 1024);
+					}
+				});
+		}
+		Renderer::SetSceneEnvironment(sData->SceneData.SceneEnvironment, sData->ShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFramebuffer->GetDepthImage());
 
 		auto& sceneCamera = sData->SceneData.SceneCamera;
-		auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+		auto& viewMatrix = sceneCamera.ViewMatrix;
+		auto& projectionMatrix = sceneCamera.CameraObj.GetProjectionMatrix();
+		auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sData->SceneData.SceneCamera.ViewMatrix;
 		glm::vec3 cameraPosition = glm::inverse(sceneCamera.ViewMatrix)[3];
 
-		auto inverseVP = glm::inverse(viewProjection);
-
-		cameraData.ViewProjection = viewProjection;
-		cameraData.InverseViewProjection = inverseVP;
-		cameraData.View = sceneCamera.ViewMatrix;
-
-		Renderer::Submit([cameraData]()
+		// TODO: handle uniform buffers better
+		const DirectionalLight& directionalLight = sData->SceneData.SceneLightEnvironment.DirectionalLights[0];
+		Renderer::Submit([viewMatrix, projectionMatrix, viewProjection, sceneCamera, cameraPosition, directionalLight, pointLights = scene->m_LightEnvironment.PointLights]
 			{
-				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				sData->CameraUniformBuffer[bufferIndex]->RT_SetData(&cameraData, sizeof(cameraData));
-			});
+				{
+					auto inverseVP = glm::inverse(viewProjection);
+					struct CameraMatrices
+					{
+						glm::mat4 ViewProjection;
+						glm::mat4 InverseViewProjection;
+						glm::mat4 ProjectionMatrix;
+						glm::mat4 ViewMatrix;
+					} matrices;
+					matrices = { viewProjection, inverseVP, projectionMatrix, viewMatrix };
+					//viewProj.LightMatrixCascade = sData->LightMatrices[0];
+					struct DirLight
+					{
+						glm::vec3 Direction;
+						float Padding = 0.0f;
+						glm::vec3 Radiance;
+						float Multiplier;
+					};
 
-		const auto& directionalLight = sData->SceneData.SceneLightEnvironment.DirectionalLights[0];
-		sceneData.lights.Direction = directionalLight.Direction;
-		sceneData.lights.Radiance = directionalLight.Radiance;
-		sceneData.lights.Multiplier = directionalLight.Multiplier;
-		sceneData.uCameraPosition = cameraPosition;
+					struct SceneData
+					{
+						DirLight lights;
+						glm::vec3 uCameraPosition{};
+					};
 
-		Renderer::Submit([sceneData]()
-			{
-				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				sData->SceneUniformBuffer[bufferIndex]->RT_SetData(&sceneData, sizeof(sceneData));
-			});
+					struct RendererDataBuffer
+					{
+						bool ShowCascades;
+						bool SoftShadows;
+						float LightSize;
+						float MaxShadowDistance;
+						float ShadowFade;
+						bool CascadeFading;
+						float CascadeTransitionFade;
+						int TilesCountX;
+					} rendererDataBuffer;
+					rendererDataBuffer = {
+						sData->ShowCascades,
+						sData->SoftShadows,
+						sData->LightSize,
+						sData->MaxShadowDistance,
+						sData->ShadowFade,
+						sData->CascadeFading,
+						sData->CascadeTransitionFade,
+						sData->LightCullingWorkGroups.x
+					};
 
-		CascadeData cascades[4];
-		CalculateCascades(cascades, sceneCamera, directionalLight.Direction);
 
-		for (int i = 0; i < 4; ++i)
-		{
-			sData->CascadeSplits[i] = cascades[i].SplitDepth;
-			shadowData.ViewProjection[i] = cascades[i].ViewProj;
-		}
+					const uint32_t pointLightCount = pointLights.size();
+					SceneData ub;
+					ub.lights.Direction = directionalLight.Direction;
+					ub.lights.Radiance = directionalLight.Radiance;
+					ub.lights.Multiplier = directionalLight.Multiplier;
+					ub.uCameraPosition = cameraPosition;
+					if (RendererAPI::Current() == RendererAPIType::Vulkan)
+					{
+						void* ubPtr = VKShader::MapUniformBuffer(0);
+						memcpy(ubPtr, &matrices, sizeof(CameraMatrices));
+						VKShader::UnmapUniformBuffer(0);
 
-		Renderer::Submit([shadowData]()
-			{
-				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				sData->ShadowUniformBuffer[bufferIndex]->RT_SetData(&shadowData, sizeof(shadowData));
-			});
+						ubPtr = VKShader::MapUniformBuffer(2);
+						memcpy(ubPtr, &ub, sizeof(SceneData));
+						VKShader::UnmapUniformBuffer(2);
 
-		rendererData.uCascadeSplits = sData->CascadeSplits;
-		
-		Renderer::Submit([rendererData]()
-			{
-				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				sData->RendererDataUniformBuffer[bufferIndex]->RT_SetData(&rendererData, sizeof(rendererData));
+						ubPtr = VKShader::MapUniformBuffer(3);
+						memcpy(ubPtr, &ub, sizeof(RendererDataBuffer));
+						VKShader::UnmapUniformBuffer(3);
+
+						ubPtr = VKShader::MapUniformBuffer(4);
+						memcpy(ubPtr, &pointLightCount, 4);
+						memcpy(static_cast<byte*>(ubPtr) + 16, pointLights.data(), sizeof(PointLight) * pointLightCount);
+						VKShader::UnmapUniformBuffer(4);
+
+					}
+					else
+					{
+						auto shader = sData->GeometryPipeline->GetSpecification().Shader.As<GLShader>();
+						shader->SetUniformBuffer("Camera", &matrices, sizeof(CameraMatrices));
+						shader->SetUniformBuffer("SceneData", &ub, sizeof(SceneData));
+						shader->SetUniformBuffer("RendererData", &rendererDataBuffer, sizeof(RendererDataBuffer));
+						const auto& buffer = GLShader::FindUniformBuffer("PointLightData");
+						shader->SetUniformBuffer(buffer, &pointLightCount, 16);
+						shader->SetUniformBuffer(buffer, pointLights.data(), sizeof(PointLight) * pointLightCount, 16);
+					}
+				}
+
+				{
+					CascadeData cascades[4];
+					CalculateCascades(cascades, sceneCamera, directionalLight.Direction);
+					sData->LightViewMatrix = cascades[0].View;
+
+					for (int i = 0; i < 1; i++)
+					{
+						sData->CascadeSplits[i] = cascades[i].SplitDepth;
+					}
+
+					struct ShadowData
+					{
+						glm::mat4 ViewProjection;
+					};
+					ShadowData shadowData;
+					shadowData.ViewProjection = cascades[0].ViewProj;
+					if (RendererAPI::Current() == RendererAPIType::Vulkan)
+					{
+						void* ubPtr = VKShader::MapUniformBuffer(1);
+						memcpy(ubPtr, &shadowData, sizeof(ShadowData));
+						VKShader::UnmapUniformBuffer(1);
+					}
+					else
+					{
+						auto shadowPassShader = sData->ShadowPassPipeline->GetSpecification().Shader;
+						auto shader = shadowPassShader.As<GLShader>();
+						shader->SetUniformBuffer("ShadowData", &shadowData, sizeof(ShadowData));
+					}
+				}
 			});
 	}
 
@@ -606,33 +728,55 @@ namespace NR
 		return Renderer::CreateEnvironmentMap(filepath);
 	}
 
-	void SceneRenderer::ShadowMapPass()
+	void SceneRenderer::DepthPass()
 	{
-		auto& directionalLights = sData->SceneData.SceneLightEnvironment.DirectionalLights;
-		if (directionalLights[0].Multiplier == 0.0f || !directionalLights[0].CastShadows)
 		{
-			for (int i = 0; i < 4; ++i)
+			auto& directionalLights = sData->SceneData.SceneLightEnvironment.DirectionalLights;
+			if (directionalLights[0].Multiplier == 0.0f || !directionalLights[0].CastShadows)
 			{
-				// Clear shadow maps
+				for (int i = 0; i < 4; ++i)
+				{
+					// Clear shadow maps
+					Renderer::BeginRenderPass(sData->ShadowMapRenderPass[i]);
+					Renderer::EndRenderPass();
+				}
+				return;
+			}
+
+			for (int i = 0; i < 1; ++i)
+			{
 				Renderer::BeginRenderPass(sData->ShadowMapRenderPass[i]);
+				// static glm::mat4 scaleBiasMatrix = glm::scale(glm::mat4(1.0f), { 0.5f, 0.5f, 0.5f }) * glm::translate(glm::mat4(1.0f), { 1, 1, 1 });
+				// Render entities
+				for (auto& dc : sData->ShadowPassDrawList)
+				{
+					Renderer::RenderMesh(sData->ShadowPassPipeline, dc.Mesh, dc.Transform);
+				}
 				Renderer::EndRenderPass();
 			}
-			return;
 		}
 
-		for (int i = 0; i < 4; ++i)
+		// PreDepth Pass, used for light culling
 		{
-			Renderer::BeginRenderPass(sData->ShadowMapRenderPass[i]);
-
-			// Render entities
-			Buffer cascade(&i, sizeof(uint32_t));
-			for (auto& dc : sData->ShadowPassDrawList)
+			Renderer::BeginRenderPass(sData->PreDepthRenderPass);
+			for (auto& dc : sData->DrawList)
 			{
-				Renderer::RenderMesh(sData->ShadowPassPipeline, dc.Mesh, sData->ShadowPassMaterial, dc.Transform, cascade);
+				Renderer::RenderMesh(sData->PreDepthPipeline, dc.Mesh, dc.Transform);
 			}
-
-			Renderer::EndRenderPass();
+			for (auto& dc : sData->SelectedMeshDrawList)
+			{
+				Renderer::RenderMesh(sData->PreDepthPipeline, dc.Mesh, dc.Transform);
+			}
 		}
+	}
+
+	void SceneRenderer::LightCullingPass()
+	{
+		sData->LightCullingMaterial->Set("uPreDepthMap", sData->PreDepthRenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
+		sData->LightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ sData->ViewportWidth, sData->ViewportHeight });
+
+
+		Renderer::DispatchComputeShader(sData->LightCullingWorkGroups, sData->LightCullingMaterial);
 	}
 
 	void SceneRenderer::GeometryPass()
@@ -641,7 +785,7 @@ namespace NR
 
 		// Skybox
 		sData->SkyboxMaterial->Set("uUniforms.TextureLod", sData->SceneData.SkyboxLod);
-		Ref<TextureCube> radianceMap = sData->SceneData.SceneEnvironment ? sData->SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
+		const Ref<TextureCube> radianceMap = sData->SceneData.SceneEnvironment ? sData->SceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
 		sData->SkyboxMaterial->Set("uTexture", radianceMap);
 		Renderer::SubmitFullscreenQuad(sData->SkyboxPipeline, sData->SkyboxMaterial);
 
@@ -698,6 +842,8 @@ namespace NR
 	{
 		NR_CORE_ASSERT(!sData->ActiveScene);
 
+		DepthPass();
+		LightCullingPass();
 		ShadowMapPass();
 		GeometryPass();
 		CompositePass();

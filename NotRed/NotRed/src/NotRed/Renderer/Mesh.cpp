@@ -39,6 +39,7 @@ namespace NR
 		aiProcess_GenNormals |              // Make sure we have normals
 		aiProcess_GenUVCoords |             // Convert UVs if required 
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
+		aiProcess_JoinIdenticalVertices |
 		aiProcess_ValidateDataStructure;    // Validation
 
 	struct LogStream : public Assimp::LogStream
@@ -231,6 +232,7 @@ namespace NR
 			mMaterials.resize(scene->mNumMaterials);
 
 			Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
+			Ref<Texture2D> blackTexture = Renderer::GetBlackTexture();
 
 			for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
 			{
@@ -432,7 +434,7 @@ namespace NR
 				if (fallback)
 				{
 					NR_MESH_LOG("    No metalness map");
-					mi->Set("uMetalnessTexture", whiteTexture);
+					mi->Set("uMetalnessTexture", blackTexture);
 					mi->Set("uMaterialUniforms.Metalness", metalness);
 				}
 			}

@@ -18,6 +18,9 @@ namespace NR
         void Set(const std::string& name, bool value) override;
         void Set(const std::string& name, int value) override;
         void Set(const std::string& name, float value) override;
+        void Set(const std::string& name, const glm::ivec2& value) override;
+        void Set(const std::string& name, const glm::ivec3& value) override;
+        void Set(const std::string& name, const glm::ivec4& value) override;
         void Set(const std::string& name, const glm::vec2& value) override;
         void Set(const std::string& name, const glm::vec3& value) override;
         void Set(const std::string& name, const glm::vec4& value) override;

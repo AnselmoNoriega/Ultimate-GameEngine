@@ -115,6 +115,17 @@ namespace NR
         float LightSize = 0.5f; // For PCSS
     };
 
+    struct PointLightComponent
+    {
+        glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+        float Intensity = 1.0f;
+        float LightSize = 0.5f; // For PCSS
+        float NearPlane = 1.f;
+        float FarPlane = 25.f;
+        bool CastsShadows = true;
+        bool SoftShadows = true;
+    };
+
     struct SkyLightComponent
     {
         Ref<Environment> SceneEnvironment;

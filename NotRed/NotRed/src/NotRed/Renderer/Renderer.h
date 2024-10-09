@@ -96,10 +96,13 @@ namespace NR
         static void SubmitQuad(Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
         //static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial = nullptr);
 
+        static void DispatchComputeShader(const glm::ivec3& workGroups, Ref <Material> material);
+
         static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
         static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
 
         static Ref<Texture2D> GetWhiteTexture();
+        static Ref<Texture2D> GetBlackTexture();
         static Ref<TextureCube> GetBlackCubeTexture();
         static Ref<Environment> GetEmptyEnvironment();
 
