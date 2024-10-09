@@ -17,13 +17,14 @@ namespace NR
         AssetImporter::Init();
 
         LoadAssetRegistry();
-        FileSystem::SetChangeCallback(AssetManager::FileSystemChanged);
         ReloadAssets();
-        UpdateRegistryCache();
+        WriteRegistryToFile();
     }
 
     void AssetManager::Shutdown()
     {
+        WriteRegistryToFile();
+
         sAssetRegistry.clear();
         sLoadedAssets.clear();
     }
@@ -35,17 +36,31 @@ namespace NR
 
     std::vector<Ref<Asset>> AssetManager::GetAssetsInDirectory(AssetHandle directoryHandle)
     {
-        std::vector<Ref<Asset>> results;
-
-        for (auto& asset : sLoadedAssets)
+        std::vector<Ref<Asset>> result;
+        Ref<Directory> directory = sLoadedAssets[directoryHandle].As<Directory>();
+        result.reserve(directory->ChildDirectories.size() + directory->Assets.size());
+        
+        for (auto& assetHandle : directory->ChildDirectories)
         {
-            if (asset.second && asset.second->ParentDirectory == directoryHandle && asset.second->Handle != directoryHandle)
+            if (!IsAssetHandleValid(assetHandle))
             {
-                results.push_back(asset.second);
+                continue;
             }
+
+            result.push_back(sLoadedAssets[assetHandle]);
         }
 
-        return results;
+        for (auto& assetHandle : directory->Assets)
+        {
+            if (!IsAssetHandleValid(assetHandle))
+            {
+                continue;
+            }
+
+            result.push_back(sLoadedAssets[assetHandle]);
+        }
+
+        return result;
     }
 
     void AssetManager::FileSystemChanged(FileSystemChangedEvent e)
@@ -100,33 +115,48 @@ namespace NR
     {
         std::vector<Ref<Asset>> results;
 
-        if (!searchPath.empty())
+        if (searchPath.empty())
         {
-            for (const auto& [key, asset] : sLoadedAssets)
+            return results;
+        }
+
+        std::string queryLowerCase = Utils::ToLower(query);
+        Ref<Directory> searchOrigin = GetAsset<Directory>(searchPath);
+
+        for (auto& childHandle : searchOrigin->ChildDirectories)
+        {
+            std::vector<Ref<Asset>> childResults = SearchAssets(query, sLoadedAssets[childHandle]->FilePath, desiredType);
+            results.insert(results.end(), childResults.begin(), childResults.end());
+        }
+
+        for (auto& assetHandle : searchOrigin->Assets)
+        {
+            const auto& asset = sLoadedAssets[assetHandle];
+            
+            if (desiredType == AssetType::None && asset->Type == AssetType::Directory)
             {
-                if (desiredType == AssetType::None && asset->Type == AssetType::Directory)
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                if (desiredType != AssetType::None && asset->Type != desiredType)
-                {
-                    continue;
-                }
+            if (desiredType != AssetType::None && asset->Type != desiredType)
+            {
+                continue;
+            }
 
-                if (asset->FileName.find(query) != std::string::npos && asset->FilePath.find(searchPath) != std::string::npos)
-                {
-                    results.push_back(asset);
-                }
+            std::string filename = Utils::ToLower(asset->FileName);
+            if (filename.find(queryLowerCase) != std::string::npos)
+            {
+                results.push_back(asset);
+            }
 
-                // Search extensions
-                if (query[0] == '.')
-                {
-                    if (asset->Extension.find(std::string(&query[1])) != std::string::npos && asset->FilePath.find(searchPath) != std::string::npos)
-                    {
-                        results.push_back(asset);
-                    }
-                }
+            if (queryLowerCase[0] != '.')
+            {
+                continue;
+            }
+
+            if (asset->Extension.find(std::string(&queryLowerCase[1])) != std::string::npos)
+            {
+                results.push_back(asset);
             }
         }
 
@@ -148,20 +178,45 @@ namespace NR
         return 0;
     }
 
-    bool AssetManager::IsAssetHandleValid(AssetHandle assetHandle)
-    {
-        return assetHandle != 0 && sLoadedAssets.find(assetHandle) != sLoadedAssets.end();
-    }
-
     void AssetManager::Rename(AssetHandle assetHandle, const std::string& newName)
     {
         Ref<Asset>& asset = sLoadedAssets[assetHandle];
-        AssetMetadata& metadata = sAssetRegistry[asset->FilePath];
+        AssetMetadata metadata = sAssetRegistry[asset->FilePath];
         std::string newFilePath = FileSystem::Rename(asset->FilePath, newName);
         asset->FilePath = newFilePath;
         asset->FileName = newName;
+
+        sAssetRegistry.erase(metadata.FilePath);
         metadata.FilePath = newFilePath;
-        UpdateRegistryCache();
+
+        sAssetRegistry[metadata.FilePath] = metadata;
+        WriteRegistryToFile();
+    }
+
+    void AssetManager::MoveAsset(AssetHandle assetHandle, AssetHandle newDirectory)
+    {
+        Ref<Asset>& asset = sLoadedAssets[assetHandle];
+        Ref<Directory> directory = sLoadedAssets[newDirectory].As<Directory>();
+        Ref<Directory> currentDirectory = sLoadedAssets[asset->ParentDirectory].As<Directory>();
+
+        AssetMetadata metadata = sAssetRegistry[asset->FilePath];
+        bool result = FileSystem::MoveFile(asset->FilePath, directory->FilePath);
+        if (!result)
+        {
+            return;
+        }
+
+        asset->FilePath = directory->FilePath + "/" + asset->FileName + "." + asset->Extension;
+        sAssetRegistry.erase(metadata.FilePath);
+        metadata.FilePath = asset->FilePath;
+
+        sAssetRegistry[metadata.FilePath] = metadata;
+
+        asset->ParentDirectory = currentDirectory->Handle;
+        directory->Assets.push_back(assetHandle);
+        currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), assetHandle), currentDirectory->Assets.end());
+        
+        WriteRegistryToFile();
     }
 
     AssetHandle AssetManager::FindParentHandleInChildren(Ref<Directory>& dir, const std::string& dirName)
@@ -211,35 +266,41 @@ namespace NR
         Ref<Asset> asset = sLoadedAssets[assetHandle];
         if (asset->Type == AssetType::Directory)
         {
+            Ref<Directory> dir = asset.As<Directory>();
+
             if (IsAssetHandleValid(asset->ParentDirectory))
             {
                 auto& childList = sLoadedAssets[asset->ParentDirectory].As<Directory>()->ChildDirectories;
                 childList.erase(std::remove(childList.begin(), childList.end(), assetHandle), childList.end());
             }
 
-            for (auto child : asset.As<Directory>()->ChildDirectories)
+            for (auto child : dir->ChildDirectories)
             {
                 RemoveAsset(child);
             }
 
-            for (auto it = sLoadedAssets.begin(); it != sLoadedAssets.end(); )
+            for (auto childHandle : dir->Assets)
             {
-                if (it->second->ParentDirectory != assetHandle)
-                {
-                    ++it;
-                    continue;
-                }
-
-                sAssetRegistry.erase(it->second->FilePath);
-                it = sLoadedAssets.erase(it);
+                auto child = sLoadedAssets[childHandle];
+                sAssetRegistry.erase(child->FilePath);
+                sLoadedAssets.erase(childHandle);
             }
+
+            dir->ChildDirectories.clear();
+            dir->Assets.clear();
+        }
+        else
+        {
+            auto parent = sLoadedAssets[asset->ParentDirectory].As<Directory>();
+            parent->Assets.erase(std::remove(parent->Assets.begin(), parent->Assets.end(), assetHandle), parent->Assets.end());
         }
 
         sAssetRegistry.erase(asset->FilePath);
         sLoadedAssets.erase(assetHandle);
-
-        UpdateRegistryCache();
+        
+        WriteRegistryToFile();
     }
+
     AssetType AssetManager::GetAssetTypeForFileType(const std::string& extension)
     {
         if (extension == "hsc") return AssetType::Scene;
@@ -270,7 +331,7 @@ namespace NR
         auto handles = data["Assets"];
         if (!handles)
         {
-            NR_CORE_ERROR("Failed to read Asset Registry file.");
+            NR_CORE_ERROR("AssetRegistry appears to be corrupted!");
             return;
         }
 
@@ -283,8 +344,55 @@ namespace NR
 
             if (!FileSystem::Exists(metadata.FilePath))
             {
-                NR_CORE_WARN("Tried to load metadata for non-existing asset: {0}", metadata.FilePath);
-                continue;
+                NR_CORE_WARN("Missing asset '{0}' detected in registry file, trying to locate...", metadata.FilePath);
+                
+                std::string mostLikelyCandiate;
+                uint32_t bestScore = 0;
+
+                for (auto& pathEntry : std::filesystem::recursive_directory_iterator("Assets/"))
+                {
+                    const std::filesystem::path& path = pathEntry.path();
+                    if (path.filename() != Utils::GetFilename(metadata.FilePath))
+                    {
+                        continue;
+                    }
+
+                    if (bestScore > 0)
+                    {
+                        NR_CORE_WARN("Multiple candiates found...");
+                    }
+
+                    std::vector<std::string> candiateParts = Utils::SplitString(path.string(), "/\\");
+                    uint32_t score = 0;
+                    for (const auto& part : candiateParts)
+                    {
+                        if (metadata.FilePath.find(part) != std::string::npos)
+                            score++;
+                    }
+
+                    NR_CORE_WARN("'{0}' has a score of {1}, best score is {2}", path.string(), score, bestScore);
+                    if (bestScore > 0 && score == bestScore)
+                    {
+                    }
+
+                    if (score <= bestScore)
+                    {
+                        continue;
+                    }
+
+                    bestScore = score;
+                    mostLikelyCandiate = path.string();
+                }
+
+                if (mostLikelyCandiate.empty() && bestScore == 0)
+                {
+                    NR_CORE_ERROR("Failed to locate a potential match for '{0}'", metadata.FilePath);
+                    continue;
+                }
+
+                metadata.FilePath = mostLikelyCandiate;
+                std::replace(metadata.FilePath.begin(), metadata.FilePath.end(), '\\', '/');
+                NR_CORE_WARN("Found most likely match '{0}'", metadata.FilePath);
             }
 
             if (metadata.Handle == 0)
@@ -355,6 +463,9 @@ namespace NR
         }
 
         sLoadedAssets[asset->Handle] = asset;
+
+        Ref<Directory> directory = sLoadedAssets[parentHandle];
+        directory->Assets.push_back(asset->Handle);
     }
 
     AssetHandle AssetManager::ProcessDirectory(const std::string& directoryPath, AssetHandle parentHandle)
@@ -397,26 +508,6 @@ namespace NR
     {
         ProcessDirectory("Assets", 0);
 
-        // Sort the assets alphabetically (not the best impl)
-        std::vector<std::pair<std::string, Ref<Asset>>> sortedVec;
-        for (auto& [handle, asset] : sLoadedAssets)
-        {
-            std::string filename = asset->FileName;
-            std::for_each(filename.begin(), filename.end(), [](char& c)
-                {
-                    c = std::tolower(c);
-                });
-            sortedVec.push_back(std::make_pair(filename, asset));
-        }
-
-        std::sort(sortedVec.begin(), sortedVec.end());
-        sLoadedAssets.clear();
-
-        for (auto& p : sortedVec)
-        {
-            sLoadedAssets[p.second->Handle] = p.second;
-        }
-
         // Remove any non-existent assets from the asset registry
         for (auto it = sAssetRegistry.begin(); it != sAssetRegistry.end(); )
         {
@@ -429,9 +520,11 @@ namespace NR
                 ++it;
             }
         }
+
+        WriteRegistryToFile();
     }
 
-    void AssetManager::UpdateRegistryCache()
+    void AssetManager::WriteRegistryToFile()
     {
         YAML::Emitter out;
         out << YAML::BeginMap;

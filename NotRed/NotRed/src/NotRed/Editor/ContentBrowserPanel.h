@@ -32,10 +32,17 @@ namespace NR
 
 		bool IsSelected(AssetHandle item) const
 		{
+			if (mSelections.size() == 0)
+			{
+				return false;
+			}
+
 			for (auto selection : mSelections)
 			{
 				if (selection == item)
+				{
 					return true;
+				}
 			}
 
 			return false;
@@ -43,7 +50,10 @@ namespace NR
 
 		void Clear()
 		{
-			mSelections.clear();
+			if (mSelections.size() > 0)
+			{
+				mSelections.clear();
+			}
 		}
 
 		size_t SelectionCount() const
@@ -54,6 +64,12 @@ namespace NR
 		AssetHandle* GetSelectionData()
 		{
 			return mSelections.data();
+		}
+
+		AssetHandle operator[](size_t index) const
+		{
+			NR_CORE_ASSERT(index >= 0 && index < mSelections.size());
+			return mSelections[index];
 		}
 
 	private:
@@ -73,6 +89,7 @@ namespace NR
 		void RenderAsset(Ref<Asset>& assetHandle);
 		void HandleDragDrop(Ref<Image2D> icon, Ref<Asset>& asset);
 		void RenderBreadCrumbs();
+		void RenderBottomBar();
 
 		void HandleRenaming(Ref<Asset>& asset);
 

@@ -60,12 +60,10 @@ namespace NR
         NewScene();
 
         AssetEditorPanel::RegisterDefaultEditors();
-        FileSystem::StartWatching();
     }
 
     void EditorLayer::Detach()
     {
-        FileSystem::StopWatching();
         AssetEditorPanel::UnregisterAllEditors();
     }
 
@@ -323,9 +321,14 @@ namespace NR
     void EditorLayer::SaveSceneAs()
     {
         auto& app = Application::Get();
-        std::string filepath = app.SaveFile("NotRed Scene (*.nsc)\0*.nsc\0");
+        std::string filepath = app.SaveFile("NotRed Scene (*.nsc)\0*.nsc\0\0");
         if (!filepath.empty())
         {
+            if (filepath.find(".nsc") == std::string::npos)
+            {
+                filepath += ".nsc";
+            }
+
             SceneSerializer serializer(mEditorScene);
             serializer.Serialize(filepath);
 

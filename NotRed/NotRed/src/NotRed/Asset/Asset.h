@@ -64,6 +64,7 @@ namespace NR
 	{
 	public:
 		std::vector<AssetHandle> ChildDirectories;
+		std::vector<AssetHandle> Assets;
 
 		Directory() = default;
 	};

@@ -33,9 +33,10 @@ namespace NR
         static bool IsDirectory(const std::string& filepath);
 
         static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
-        static bool IsAssetHandleValid(AssetHandle assetHandle);
+        static bool IsAssetHandleValid(AssetHandle assetHandle) { return assetHandle != 0 && sLoadedAssets.find(assetHandle) != sLoadedAssets.end(); }
 
         static void Rename(AssetHandle assetHandle, const std::string& newName);
+        static void MoveAsset(AssetHandle assetHandle, AssetHandle newDirectory);
         static void RemoveAsset(AssetHandle assetHandle);
 
         static AssetType GetAssetTypeForFileType(const std::string& extension);
@@ -63,7 +64,7 @@ namespace NR
             metadata.FilePath = asset->FilePath;
             metadata.Type = asset->Type;
             sAssetRegistry[asset->FilePath] = metadata;
-            UpdateRegistryCache();
+            WriteRegistryToFile();
 
             return asset;
         }
@@ -94,7 +95,7 @@ namespace NR
         static void ImportAsset(const std::string& filepath, AssetHandle parentHandle);
         static AssetHandle ProcessDirectory(const std::string& directoryPath, AssetHandle parentHandle);
         static void ReloadAssets();
-        static void UpdateRegistryCache();
+        static void WriteRegistryToFile();
 
         static void FileSystemChanged(FileSystemChangedEvent e);
 

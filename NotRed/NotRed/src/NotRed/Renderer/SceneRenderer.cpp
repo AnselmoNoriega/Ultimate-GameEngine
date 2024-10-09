@@ -844,7 +844,6 @@ namespace NR
 
 		DepthPass();
 		LightCullingPass();
-		ShadowMapPass();
 		GeometryPass();
 		CompositePass();
 		BloomBlurPass();

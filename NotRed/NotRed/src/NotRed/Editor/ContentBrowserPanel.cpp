@@ -34,7 +34,6 @@ namespace NR
 		mBaseDirectory = AssetManager::GetAsset<Directory>(mBaseDirectoryHandle);
 		UpdateCurrentDirectory(mBaseDirectoryHandle);
 
-		memset(mRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 		memset(mSearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 	}
 
@@ -79,7 +78,7 @@ namespace NR
 
 			ImGui::NextColumn();
 
-			ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - 60));
+			ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - 65));
 			{
 				ImGui::BeginChild("##top_bar", ImVec2(0, 30));
 				{
@@ -171,15 +170,7 @@ namespace NR
 			}
 			ImGui::EndChild();
 
-			ImGui::BeginChild("##panel_controls", ImVec2(ImGui::GetColumnWidth() - 12, 20), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-			{
-				ImGui::Columns(4, 0, false);
-				ImGui::NextColumn();
-				ImGui::NextColumn();
-				ImGui::NextColumn();
-				ImGui::SetNextItemWidth(ImGui::GetColumnWidth());
-			}
-			ImGui::EndChild();
+			RenderBottomBar();
 
 			UI::EndPropertyGrid();
 		}
@@ -196,7 +187,8 @@ namespace NR
 
 		Ref<Image2D> iconRef = mAssetIconMap.find(asset->Extension) != mAssetIconMap.end() ? mAssetIconMap[asset->Extension]->GetImage() : mFileTex->GetImage();
 
-		if (mSelectedAssets.IsSelected(assetHandle))
+		bool selected = mSelectedAssets.IsSelected(assetHandle);
+		if (selected)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 0.75f));
 		}
@@ -204,7 +196,7 @@ namespace NR
 		float buttonWidth = ImGui::GetColumnWidth() - 15.0f;
 		UI::ImageButton(iconRef, { buttonWidth, buttonWidth });
 
-		if (mSelectedAssets.IsSelected(assetHandle))
+		if (selected)
 		{
 			ImGui::PopStyleColor();
 		}
@@ -239,7 +231,7 @@ namespace NR
 					mSelectedAssets.Clear();
 				}
 
-				if (mSelectedAssets.IsSelected(assetHandle))
+				if (selected)
 				{
 					mSelectedAssets.Deselect(assetHandle);
 				}
@@ -252,8 +244,17 @@ namespace NR
 
 		bool openDeleteModal = false;
 
-		if (ImGui::BeginPopupContextItem())
+		if (selected && Input::IsKeyPressed(KeyCode::Delete) && !openDeleteModal && mSelectedAssets.SelectionCount() == 1)
 		{
+			openDeleteModal = true;
+		}
+
+		if (ImGui::BeginPopupContextItem("ContextMenu"))
+		{
+			ImGui::Text(asset->FilePath.c_str());
+			
+			ImGui::Separator();
+
 			if (ImGui::MenuItem("Rename"))
 			{
 				mSelectedAssets.Select(assetHandle);			
@@ -322,12 +323,12 @@ namespace NR
 		{
 			ImGui::SetNextItemWidth(buttonWidth);
 
-			if (!mSelectedAssets.IsSelected(assetHandle) || !mRenamingSelected)
+			if (!selected || !mRenamingSelected)
 			{
 				ImGui::TextWrapped(filename.c_str());
 			}
 
-			if (mSelectedAssets.IsSelected(assetHandle))
+			if (selected)
 			{
 				HandleRenaming(asset);
 			}
@@ -351,11 +352,8 @@ namespace NR
 					for (int i = 0; i < count; ++i)
 					{
 						AssetHandle handle = *(((AssetHandle*)payload->Data) + i);
-						Ref<Asset> droppedAsset = AssetManager::GetAsset<Asset>(handle, false);
 
-						bool result = FileSystem::MoveFile(droppedAsset->FilePath, asset->FilePath);
-						if (result)
-							droppedAsset->ParentDirectory = asset->Handle;
+						AssetManager::MoveAsset(handle, asset->Handle);
 					}
 
 					mUpdateDirectoryNextFrame = true;
@@ -444,30 +442,49 @@ namespace NR
 			mUpdateBreadCrumbs = false;
 		}
 
-		for (int i = 0; i < mBreadCrumbData.size(); ++i)
+		for (const auto& directory : mBreadCrumbData)
 		{
-			if (mBreadCrumbData[i]->FileName != "Assets")
+			if (directory->FileName != "Assets")
 			{
 				ImGui::Text("/");
 			}
 
 			ImGui::SameLine();
 
-			const int size = int(strlen(mBreadCrumbData[i]->FileName.c_str()) * 7);
-
-			if (ImGui::Selectable(mBreadCrumbData[i]->FileName.c_str(), false, 0, ImVec2(size, 22)))
+			ImVec2 textSize = ImGui::CalcTextSize(directory->FileName.c_str());
+			if (ImGui::Selectable(directory->FileName.c_str(), false, 0, ImVec2(textSize.x, 22)))
 			{
-				UpdateCurrentDirectory(mBreadCrumbData[i]->Handle);
+				UpdateCurrentDirectory(directory->Handle);
 			}
 
 			ImGui::SameLine();
 		}
+	}
 
-		ImGui::SameLine();
+	void ContentBrowserPanel::RenderBottomBar()
+	{
+		ImGui::BeginChild("##panel_controls", ImVec2(ImGui::GetColumnWidth() - 12, 30), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		{
+			ImGui::Separator();
 
-		ImGui::Dummy(ImVec2(ImGui::GetColumnWidth() - 400, 0));
-		ImGui::SameLine();
+			ImGui::Columns(4, 0, false);
+			if (mSelectedAssets.SelectionCount() == 1)
+			{
+				const Ref<Asset>& asset = AssetManager::GetAsset<Asset>(mSelectedAssets[0], false);
+				ImGui::Text(asset->FilePath.c_str());
+			}
+			else if (mSelectedAssets.SelectionCount() > 1)
+			{
+				ImGui::Text("%d items selected", mSelectedAssets.SelectionCount());
+			}
+			ImGui::NextColumn();
+			ImGui::NextColumn();
+			ImGui::NextColumn();
+			ImGui::SetNextItemWidth(ImGui::GetColumnWidth());
+			ImGui::SliderInt("##column_count", &sColumnCount, 2, 15);
+		}
 
+		ImGui::EndChild();
 	}
 
 	void ContentBrowserPanel::HandleRenaming(Ref<Asset>& asset)
@@ -499,6 +516,8 @@ namespace NR
 
 	void ContentBrowserPanel::UpdateCurrentDirectory(AssetHandle directoryHandle)
 	{
+		mSelectedAssets.Clear();
+
 		mUpdateBreadCrumbs = true;		
 		mCurrentDirFiles.clear();
 		mCurrentDirFolders.clear();
@@ -507,6 +526,11 @@ namespace NR
 		mCurrentDirectory = AssetManager::GetAsset<Directory>(mCurrentDirHandle);
 
 		std::vector<Ref<Asset>> assets = AssetManager::GetAssetsInDirectory(mCurrentDirHandle);
+		std::sort(assets.begin(), assets.end(), [](const Ref<Asset>& a1, const Ref<Asset>& a2)
+			{
+				return Utils::ToLower(a1->FileName) < Utils::ToLower(a2->FileName);
+			});
+
 		for (auto& asset : assets)
 		{
 			if (asset->Type == AssetType::Directory)
