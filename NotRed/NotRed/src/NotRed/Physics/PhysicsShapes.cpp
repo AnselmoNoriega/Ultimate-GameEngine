@@ -46,17 +46,17 @@ namespace NR
 		mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
 	}
 
-	BoxColliderShape::BoxColliderShape(BoxColliderComponent& component, const PhysicsActor& actor)
+	BoxColliderShape::BoxColliderShape(BoxColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::Box), mComponent(component)
 	{
 		SetMaterial(mComponent.Material);
 
-		glm::vec3 colliderSize = actor.GetTransform().Scale * mComponent.Size;
+		glm::vec3 colliderSize = entity.Transform().Scale * mComponent.Size;
 		physx::PxBoxGeometry geometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
 		mShape = physx::PxRigidActorExt::createExclusiveShape(actor.GetPhysicsActor(), geometry, *mMaterial);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(mComponent.Offset, glm::vec3(0.0f)));
+		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f)));
 	}
 
 	void BoxColliderShape::SetOffset(const glm::vec3& offset)
@@ -82,19 +82,19 @@ namespace NR
 		mShape->setSimulationFilterData(filterData);
 	}
 
-	SphereColliderShape::SphereColliderShape(SphereColliderComponent& component, const PhysicsActor& actor)
+	SphereColliderShape::SphereColliderShape(SphereColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::Sphere), mComponent(component)
 	{
 		SetMaterial(mComponent.Material);
 
-		auto& actorScale = actor.GetTransform().Scale;
+		auto& actorScale = entity.Transform().Scale;
 		float largestComponent = glm::max(actorScale.x, glm::max(actorScale.y, actorScale.z));
 
 		physx::PxSphereGeometry geometry = physx::PxSphereGeometry(largestComponent * mComponent.Radius);
 		mShape = physx::PxRigidActorExt::createExclusiveShape(actor.GetPhysicsActor(), geometry, *mMaterial);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(mComponent.Offset, glm::vec3(0.0f)));
+		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f)));
 	}
 
 	void SphereColliderShape::SetOffset(const glm::vec3& offset)
@@ -120,19 +120,19 @@ namespace NR
 		mShape->setSimulationFilterData(filterData);
 	}
 
-	CapsuleColliderShape::CapsuleColliderShape(CapsuleColliderComponent& component, const PhysicsActor& actor)
+	CapsuleColliderShape::CapsuleColliderShape(CapsuleColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::Capsule), mComponent(component)
 	{
 		SetMaterial(mComponent.Material);
 
-		auto& actorScale = actor.GetTransform().Scale;
+		auto& actorScale = entity.Transform().Scale;
 		float radiusScale = glm::max(actorScale.x, actorScale.z);
 
 		physx::PxCapsuleGeometry geometry = physx::PxCapsuleGeometry(mComponent.Radius * radiusScale, (mComponent.Height / 2.0f) * actorScale.y);
 		mShape = physx::PxRigidActorExt::createExclusiveShape(actor.GetPhysicsActor(), geometry, *mMaterial);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(mComponent.Offset, glm::vec3(0.0f, 0.0f, physx::PxHalfPi)));
+		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f, 0.0f, physx::PxHalfPi)));
 	}
 
 	void CapsuleColliderShape::SetOffset(const glm::vec3& offset)
@@ -158,7 +158,7 @@ namespace NR
 		mShape->setSimulationFilterData(filterData);
 	}
 
-	ConvexMeshShape::ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor)
+	ConvexMeshShape::ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::ConvexMesh), mComponent(component)
 	{
 		NR_CORE_ASSERT(component.IsConvex);
@@ -189,13 +189,13 @@ namespace NR
 
 			physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
 			physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
-			physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * actor.GetTransform().Scale)));
+			physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
 			convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
 
 			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(convexGeometry, *mMaterial, true);
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submeshTranslation, submeshRotation));
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + submeshTranslation, submeshRotation));
 
 			actor.GetPhysicsActor().attachShape(*shape);
 
@@ -345,7 +345,7 @@ namespace NR
 		}
 	}
 	
-	TriangleMeshShape::TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor)
+	TriangleMeshShape::TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::TriangleMesh), mComponent(component)
 	{
 		NR_CORE_ASSERT(!component.IsConvex);
@@ -376,12 +376,12 @@ namespace NR
 
 			physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
 			physx::PxTriangleMesh* trimesh = PhysicsInternal::GetPhysicsSDK().createTriangleMesh(input);
-			physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * actor.GetTransform().Scale)));
+			physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
 			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(triangleGeometry, *mMaterial, true);
 
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submeshTranslation, submeshRotation));
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + submeshTranslation, submeshRotation));
 
 			actor.GetPhysicsActor().attachShape(*shape);
 			mShapes.push_back(shape);

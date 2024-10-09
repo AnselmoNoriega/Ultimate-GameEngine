@@ -201,7 +201,7 @@ namespace NR
 		actor->setAngularDamping(drag);
 	}
 
-	void PhysicsActor::SetLayer(uint32_t layerId)
+	void PhysicsActor::SetSimulationData(uint32_t layerId)
 	{
 		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layerId);
 
@@ -266,30 +266,30 @@ namespace NR
 		ScriptEngine::UpdatePhysicsEntity(mEntity, fixedDeltaTime);
 	}
 
-	void PhysicsActor::AddCollider(BoxColliderComponent& collider)
+	void PhysicsActor::AddCollider(BoxColliderComponent& collider, Entity entity, const glm::vec3& offset)
 	{
-		mColliders.push_back(Ref<BoxColliderShape>::Create(collider, *this));
+		mColliders.push_back(Ref<BoxColliderShape>::Create(collider, *this, entity, offset));
 	}
 
-	void PhysicsActor::AddCollider(SphereColliderComponent& collider)
+	void PhysicsActor::AddCollider(SphereColliderComponent& collider, Entity entity, const glm::vec3& offset)
 	{
-		mColliders.push_back(Ref<SphereColliderShape>::Create(collider, *this));
+		mColliders.push_back(Ref<SphereColliderShape>::Create(collider, *this, entity, offset));
 	}
 
-	void PhysicsActor::AddCollider(CapsuleColliderComponent& collider)
+	void PhysicsActor::AddCollider(CapsuleColliderComponent& collider, Entity entity, const glm::vec3& offset)
 	{
-		mColliders.push_back(Ref<CapsuleColliderShape>::Create(collider, *this));
+		mColliders.push_back(Ref<CapsuleColliderShape>::Create(collider, *this, entity, offset));
 	}
 
-	void PhysicsActor::AddCollider(MeshColliderComponent& collider)
+	void PhysicsActor::AddCollider(MeshColliderComponent& collider, Entity entity, const glm::vec3& offset)
 	{
 		if (collider.IsConvex)
 		{
-			mColliders.push_back(Ref<ConvexMeshShape>::Create(collider, *this));
+			mColliders.push_back(Ref<ConvexMeshShape>::Create(collider, *this, entity, offset));
 		}
 		else
 		{
-			mColliders.push_back(Ref<TriangleMeshShape>::Create(collider, *this));
+			mColliders.push_back(Ref<TriangleMeshShape>::Create(collider, *this, entity, offset));
 		}
 	}
 
@@ -338,22 +338,21 @@ namespace NR
 
 		if (mEntity.HasComponent<BoxColliderComponent>())
 		{
-			AddCollider(mEntity.GetComponent<BoxColliderComponent>());
+			AddCollider(mEntity.GetComponent<BoxColliderComponent>(), mEntity);
 		}
 		if (mEntity.HasComponent<SphereColliderComponent>()) 
 		{
-			AddCollider(mEntity.GetComponent<SphereColliderComponent>());
+			AddCollider(mEntity.GetComponent<SphereColliderComponent>(), mEntity);
 		}
 		if (mEntity.HasComponent<CapsuleColliderComponent>()) 
 		{
-			AddCollider(mEntity.GetComponent<CapsuleColliderComponent>());
+			AddCollider(mEntity.GetComponent<CapsuleColliderComponent>(), mEntity);
 		}
 		if (mEntity.HasComponent<MeshColliderComponent>()) 
 		{
-			AddCollider(mEntity.GetComponent<MeshColliderComponent>());
+			AddCollider(mEntity.GetComponent<MeshColliderComponent>(), mEntity);
 		}
 
-		SetLayer(mRigidBodyData.Layer);
 		mRigidActor->userData = &mEntity;
 
 #ifdef NR_DEBUG

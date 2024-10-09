@@ -50,6 +50,17 @@ namespace NR
 			return mScene->mRegistry.all_of<T>(mEntityHandle);
 		}
 
+		template<typename...T>
+		bool HasAny()
+		{
+			return mScene->mRegistry.any_of<T...>(mEntityHandle);
+		}
+		template<typename...T>
+		bool HasAny() const
+		{
+			return mScene->mRegistry.any_of<T...>(mEntityHandle);
+		}
+
 		template<typename T>
 		void RemoveComponent()
 		{

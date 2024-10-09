@@ -1,36 +1,27 @@
 Assets:
-  - Handle: 14945790883675606037
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/PetBrush.png
-    Type: 2
-  - Handle: 18378218064366566521
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential
+  - Handle: 16855676771756226658
+    FilePath: Assets
+    Type: 7
+  - Handle: 12466658244246396414
+    FilePath: Assets/Models/sci-fi-rifle-m13-gaus/textures
     Type: 7
   - Handle: 1859066440309238674
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Gamepad2.png
     Type: 2
-  - Handle: 5458541082087165111
-    FilePath: Assets/Editor
+  - Handle: 18378218064366566521
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential
     Type: 7
+  - Handle: 14945790883675606037
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/PetBrush.png
+    Type: 2
   - Handle: 2120946477856187690
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Gamepad.png
     Type: 2
+  - Handle: 5458541082087165111
+    FilePath: Assets/Editor
+    Type: 7
   - Handle: 10768294415936480051
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/CD.png
-    Type: 2
-  - Handle: 12466658244246396414
-    FilePath: Assets/Models/sci-fi-rifle-m13-gaus/textures
-    Type: 7
-  - Handle: 16855676771756226658
-    FilePath: Assets
-    Type: 7
-  - Handle: 17020068888007024329
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/FlowerPot.png
-    Type: 2
-  - Handle: 12703738426241712065
-    FilePath: Assets/Editor/back2.png
-    Type: 2
-  - Handle: 16987257010059232655
-    FilePath: Assets/Editor/folderHierarchy.png
     Type: 2
   - Handle: 3126098804432793660
     FilePath: Assets/Textures
@@ -38,6 +29,15 @@ Assets:
   - Handle: 16928766315702730163
     FilePath: Assets/Cache
     Type: 7
+  - Handle: 12703738426241712065
+    FilePath: Assets/Editor/back2.png
+    Type: 2
+  - Handle: 16987257010059232655
+    FilePath: Assets/Editor/folderHierarchy.png
+    Type: 2
+  - Handle: 17020068888007024329
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/FlowerPot.png
+    Type: 2
   - Handle: 5331939526848275186
     FilePath: Assets/Cache/Shader/Vulkan
     Type: 7
@@ -50,11 +50,11 @@ Assets:
   - Handle: 3838498696308912365
     FilePath: Assets/Cache/Shader/OpenGL
     Type: 7
-  - Handle: 11935831928330170918
-    FilePath: Assets/Editor/fbx.png
-    Type: 2
   - Handle: 4094164814726244607
     FilePath: Assets/Editor/asset.png
+    Type: 2
+  - Handle: 11935831928330170918
+    FilePath: Assets/Editor/fbx.png
     Type: 2
   - Handle: 12432399643059205152
     FilePath: Assets/Editor/blend.png
@@ -65,29 +65,29 @@ Assets:
   - Handle: 9450386441640844101
     FilePath: Assets/Editor/csc.png
     Type: 2
+  - Handle: 3327976644213508657
+    FilePath: Assets/Editor/favourites.png
+    Type: 2
   - Handle: 10847667268745976088
     FilePath: Assets/Scenes
     Type: 7
   - Handle: 14362235082908934888
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Gear.png
     Type: 2
-  - Handle: 3327976644213508657
-    FilePath: Assets/Editor/favourites.png
-    Type: 2
   - Handle: 10670341330926444531
     FilePath: Assets/Editor/file.png
-    Type: 2
-  - Handle: 7628558103444165494
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Lightbulb.png
-    Type: 2
-  - Handle: 15043649837666562354
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Cash2.png
     Type: 2
   - Handle: 13710590703215717249
     FilePath: Assets/Editor/folder.png
     Type: 2
-  - Handle: 556085850922951654
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/MouseComputer.png
+  - Handle: 15043649837666562354
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Cash2.png
+    Type: 2
+  - Handle: 7628558103444165494
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Lightbulb.png
+    Type: 2
+  - Handle: 8383398801401587610
+    FilePath: Assets/Editor/fwrd.png
     Type: 2
   - Handle: 10407341853087067385
     FilePath: Assets/Shaders/ShadowMapAnim
@@ -98,11 +98,8 @@ Assets:
   - Handle: 987708573806476449
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons
     Type: 7
-  - Handle: 8383398801401587610
-    FilePath: Assets/Editor/fwrd.png
-    Type: 2
-  - Handle: 14010328593582380255
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Key.png
+  - Handle: 556085850922951654
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/MouseComputer.png
     Type: 2
   - Handle: 15561918325918067596
     FilePath: Assets/Shaders/EquirectangularToCubeMap
@@ -116,11 +113,17 @@ Assets:
   - Handle: 11638291962464024014
     FilePath: Assets/Editor/grid.png
     Type: 2
-  - Handle: 5369644307560279826
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Keyboard.png
+  - Handle: 14010328593582380255
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Key.png
     Type: 2
   - Handle: 13308189764476909368
     FilePath: Assets/Editor/Icons_Essential
+    Type: 7
+  - Handle: 5369644307560279826
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Keyboard.png
+    Type: 2
+  - Handle: 3655104786494705054
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2
     Type: 7
   - Handle: 6741390734022632673
     FilePath: Assets/Editor/right.png
@@ -128,29 +131,26 @@ Assets:
   - Handle: 9954493630057150436
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Home.png
     Type: 2
-  - Handle: 3655104786494705054
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2
-    Type: 7
   - Handle: 3876743705601862696
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Aseprite
     Type: 7
-  - Handle: 9652970468188863974
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Hammer.png
-    Type: 2
   - Handle: 8577171518888080985
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Backpack.png
+    Type: 2
+  - Handle: 9652970468188863974
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Hammer.png
     Type: 2
   - Handle: 13457384540697924469
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Basket.png
     Type: 2
-  - Handle: 6724887078630610966
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Medicine.png
+  - Handle: 10924263674307232299
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Bottle.png
     Type: 2
   - Handle: 15936988673346565138
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Enter2.png
     Type: 2
-  - Handle: 10924263674307232299
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Bottle.png
+  - Handle: 6724887078630610966
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Medicine.png
     Type: 2
   - Handle: 1915328201075283353
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Briefcase.png
@@ -161,20 +161,20 @@ Assets:
   - Handle: 10166540633052031465
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Car.png
     Type: 2
-  - Handle: 4347332049775423538
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/PaintBrush.png
-    Type: 2
   - Handle: 3927021725496467821
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/CatchingNet.png
+    Type: 2
+  - Handle: 4347332049775423538
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/PaintBrush.png
     Type: 2
   - Handle: 9279917417886889583
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/CatHead.png
     Type: 2
-  - Handle: 12947130997501233351
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Pencil.png
-    Type: 2
   - Handle: 978329539474881118
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Cloud.png
+    Type: 2
+  - Handle: 12947130997501233351
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Pencil.png
     Type: 2
   - Handle: 3090203239949761251
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Coin.png
@@ -200,11 +200,11 @@ Assets:
   - Handle: 16588236394417306223
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Exit.png
     Type: 2
-  - Handle: 8280000919443105036
-    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Piano.png
-    Type: 2
   - Handle: 5806981909076847494
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Eye.png
+    Type: 2
+  - Handle: 8280000919443105036
+    FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Piano.png
     Type: 2
   - Handle: 11492273091442490388
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/FloppyDisk.png
@@ -281,12 +281,12 @@ Assets:
   - Handle: 7104953628716872640
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Telephone.png
     Type: 2
-  - Handle: 14350291570392597811
-    FilePath: Assets/Textures/Environments
-    Type: 7
   - Handle: 8093214425402643753
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Touch.png
     Type: 2
+  - Handle: 14350291570392597811
+    FilePath: Assets/Textures/Environments
+    Type: 7
   - Handle: 4567401718888135298
     FilePath: Assets/Editor/Icons_Essential/Icons_Essential/v1.2/Icons/Trashbin.png
     Type: 2
@@ -347,12 +347,12 @@ Assets:
   - Handle: 12857406514881151732
     FilePath: Assets/Editor/script.png
     Type: 2
-  - Handle: 10652278301154478342
-    FilePath: Assets/Shaders/ShadowMap
-    Type: 7
   - Handle: 12290588346851029197
     FilePath: Assets/Editor/search.png
     Type: 2
+  - Handle: 10652278301154478342
+    FilePath: Assets/Shaders/ShadowMap
+    Type: 7
   - Handle: 6955736608648404187
     FilePath: Assets/Editor/sound.png
     Type: 2
@@ -371,12 +371,12 @@ Assets:
   - Handle: 3230833590890432003
     FilePath: Assets/Fonts
     Type: 7
-  - Handle: 15186900239545049480
-    FilePath: Assets/Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
-    Type: 1
   - Handle: 7879288327839729559
     FilePath: Assets/Fonts/Roboto
     Type: 7
+  - Handle: 15186900239545049480
+    FilePath: Assets/Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
+    Type: 1
   - Handle: 17788364174091495204
     FilePath: Assets/Meshes
     Type: 7
@@ -392,12 +392,12 @@ Assets:
   - Handle: 14870272503760469901
     FilePath: Assets/Models/m1911
     Type: 7
-  - Handle: 2371843166189071170
-    FilePath: Assets/Shaders/EnvironmentIrradiance
-    Type: 7
   - Handle: 16556322965394133445
     FilePath: Assets/Models/m1911/M1911Materials.fbx
     Type: 1
+  - Handle: 2371843166189071170
+    FilePath: Assets/Shaders/EnvironmentIrradiance
+    Type: 7
   - Handle: 9273176557717426706
     FilePath: Assets/Models/m1911/m1911_color.png
     Type: 2

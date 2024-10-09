@@ -287,6 +287,7 @@ namespace NR
 					{
 						mTextures[i] = texture;
 						mi->Set("uAlbedoTexture", texture);
+						mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(1.0f));
 					}
 					else
 					{
@@ -302,7 +303,6 @@ namespace NR
 				}
 
 				// Normal maps
-				mi->Set("uMaterialUniforms.UseNormalMap", (uint32_t)false);
 				bool hasNormalMap = aiMaterial->GetTexture(aiTextureType_NORMALS, 0, &aiTexPath) == AI_SUCCESS;
 				fallback = !hasNormalMap;
 				if (hasNormalMap)
@@ -331,6 +331,7 @@ namespace NR
 				{
 					NR_MESH_LOG("   Mesh has no normal map");
 					mi->Set("uNormalTexture", whiteTexture);
+					mi->Set("uMaterialUniforms.UseNormalMap", false);
 				}
 
 				// Roughness map
@@ -349,6 +350,7 @@ namespace NR
 					{
 						mTextures.push_back(texture);
 						mi->Set("uRoughnessTexture", texture);
+						mi->Set("uMaterialUniforms.Roughness", 1.0f);
 					}
 					else
 					{
@@ -415,6 +417,7 @@ namespace NR
 								metalnessTextureFound = true;
 								mTextures.push_back(texture);
 								mi->Set("uMetalnessTexture", texture);
+								mi->Set("uMaterialUniforms.Metalness", 1.0f);
 							}
 							else
 							{

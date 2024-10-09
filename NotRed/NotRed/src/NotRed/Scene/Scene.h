@@ -53,6 +53,7 @@ namespace NR
 		void Update(float dt);
 		void RenderRuntime(float dt);
 		void RenderEditor(float dt, const EditorCamera& editorCamera);
+		void RenderSimulation(float dt, const EditorCamera& editorCamera);
 		void OnEvent(Event& e);
 
 		void RuntimeStart();

@@ -251,6 +251,13 @@ namespace NR
             mRuntimeScene->RenderRuntime(dt);
             break;
         }
+        case SceneState::Simulate:
+        {
+            mEditorCamera.Update(dt);
+            mSimulationScene->Update(dt);
+            mSimulationScene->RenderSimulation(dt, mEditorCamera);
+            break;
+        }
         }
     }
 
@@ -1126,6 +1133,13 @@ namespace NR
             }
 
             mEditorScene->OnEvent(e);
+        }
+        else if (mSceneState == SceneState::Simulate)
+        {
+            if (mViewportPanelMouseOver)
+            {
+                mEditorCamera.OnEvent(e);
+            }
         }
         else if (mSceneState == SceneState::Play)
         {

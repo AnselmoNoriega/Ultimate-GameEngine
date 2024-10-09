@@ -107,8 +107,11 @@ namespace NR
 
         Scene* scene = sActiveScenes[sceneID];
 
-        auto entityID = registry.get<IDComponent>(entity).ID;
-        ScriptEngine::ScriptComponentDestroyed(sceneID, entityID);
+        if (registry.all_of<IDComponent>(entity))
+        {
+            auto entityID = registry.get<IDComponent>(entity).ID;
+            ScriptEngine::ScriptComponentDestroyed(sceneID, entityID);
+        }
     }
 
     static void AudioComponentConstruct(entt::registry& registry, entt::entity entity)
@@ -394,8 +397,16 @@ namespace NR
                 auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
                 if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
                 {
+                    Entity e = Entity(entity, this);
+
                     meshComponent.MeshObj->Update(dt);
-                    glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+                    glm::mat4 transform = GetTransformRelativeToParent(e);
+
+                    if (e.HasComponent<RigidBodyComponent>())
+                    {
+                        transform = e.Transform().GetTransform();
+                    }
+
                     SceneRenderer::SubmitMesh(meshComponent, transform);
                 }
             }
@@ -435,7 +446,6 @@ namespace NR
         }
 
         {
-            //mEnvironment = Ref<Environment>::Create();
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             if (lights.empty())
             {
@@ -606,6 +616,73 @@ namespace NR
         }
     }
 
+    void Scene::RenderSimulation(float dt, const EditorCamera& editorCamera)
+    {
+        {
+            mLightEnvironment = LightEnvironment();
+            auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+            uint32_t directionalLightIndex = 0;
+
+            for (auto entity : lights)
+            {
+                auto [transformComponent, lightComponent] = lights.get<TransformComponent, DirectionalLightComponent>(entity);
+                glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
+                mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                {
+                    direction,
+                    lightComponent.Radiance,
+                    lightComponent.Intensity,
+                    lightComponent.CastShadows
+                };
+            }
+        }
+        {
+            auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
+            if (lights.empty())
+            {
+                mEnvironment = Ref<Environment>::Create(Renderer::GetBlackCubeTexture(), Renderer::GetBlackCubeTexture());
+            }
+
+            for (auto entity : lights)
+            {
+                auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
+                if (!skyLightComponent.SceneEnvironment && skyLightComponent.DynamicSky)
+                {
+                    Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLightComponent.TurbidityAzimuthInclination.x, skyLightComponent.TurbidityAzimuthInclination.y, skyLightComponent.TurbidityAzimuthInclination.z);
+                    skyLightComponent.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
+                }
+                mEnvironment = skyLightComponent.SceneEnvironment;
+                mEnvironmentIntensity = skyLightComponent.Intensity;
+                if (mEnvironment)
+                {
+                    SetSkybox(mEnvironment->RadianceMap);
+                }
+            }
+        }
+
+        mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
+        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
+        SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+        for (auto entity : group)
+        {
+            auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
+            if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
+            {
+                meshComponent.MeshObj->Update(dt);
+                Entity e = Entity{ entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    transform = e.Transform().GetTransform();
+                }
+
+                SceneRenderer::SubmitMesh(meshComponent, transform);
+            }
+        }
+        SceneRenderer::EndScene();
+    }
+
     void Scene::OnEvent(Event& e)
     {
     }
@@ -717,31 +794,10 @@ namespace NR
             }
         }
 
-        PhysicsManager::RuntimePlay();
+        PhysicsManager::CreateScene();
 
-        {
-            auto view = mRegistry.view<TransformComponent>(entt::exclude<RigidBodyComponent>);
-            for (auto entity : view)
-            {
-                if (mRegistry.any_of<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent>(entity))
-                {
-                    Entity e = { entity, this };
-                    if (!e.HasComponent<RigidBodyComponent>())
-                    {
-                        e.AddComponent<RigidBodyComponent>();
-                    }
-                }
-            }
-        }
-
-        {
-            auto view = mRegistry.view<RigidBodyComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                PhysicsManager::GetScene()->CreateActor(e);
-            }
-        }
+        Ref<Scene> thisScene = this;
+        PhysicsManager::CreateActors(thisScene);
 
         {
             Entity mainCam = GetMainCameraEntity();
@@ -819,7 +875,7 @@ namespace NR
         Input::SetCursorMode(CursorMode::Normal);
 
         delete[] mPhysics2DBodyEntityBuffer;
-        PhysicsManager::RuntimeStop();
+        PhysicsManager::DestroyScene();
         mIsPlaying = false;
         mShouldSimulate = false;
     }
@@ -919,31 +975,10 @@ namespace NR
             }
         }
 
-        PhysicsManager::RuntimePlay();
+        PhysicsManager::CreateScene();
 
-        // If the entity doesn't have a rigidbody but has a collider, give it a default rigidbody
-        {
-            auto view = mRegistry.view<TransformComponent>(entt::exclude<RigidBodyComponent>);
-            for (auto entity : view)
-            {
-                if (mRegistry.any_of<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent>(entity))
-                {
-                    Entity e = { entity, this };
-                    if (!e.HasComponent<RigidBodyComponent>())
-                    {
-                        e.AddComponent<RigidBodyComponent>();
-                    }
-                }
-            }
-        }
-        {
-            auto view = mRegistry.view<RigidBodyComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                PhysicsManager::GetScene()->CreateActor(e);
-            }
-        }
+        Ref<Scene> thisScene = this;
+        PhysicsManager::CreateActors(thisScene);
 
         mShouldSimulate = true;
     }
@@ -952,7 +987,7 @@ namespace NR
     {
         Input::SetCursorMode(CursorMode::Normal);
         delete[] mPhysics2DBodyEntityBuffer;
-        PhysicsManager::RuntimeStop();
+        PhysicsManager::DestroyScene();
         mShouldSimulate = false;
     }
 

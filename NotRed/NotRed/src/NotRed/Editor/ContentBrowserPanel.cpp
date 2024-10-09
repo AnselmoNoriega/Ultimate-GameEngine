@@ -123,21 +123,6 @@ namespace NR
 								}
 							}
 
-							if (ImGui::MenuItem("Scene"))
-							{
-								//TODO:
-							}
-
-							if (ImGui::MenuItem("Script"))
-							{
-								//TODO:
-							}
-
-							if (ImGui::MenuItem("Prefab"))
-							{
-								//TODO:
-							}
-
 							if (ImGui::MenuItem("Physics Material"))
 							{
 								AssetManager::CreateNewAsset<PhysicsMaterial>("PhysicsMaterial.nrpm", AssetType::PhysicsMat, mCurrentDirHandle, 0.6f, 0.6f, 0.0f);
@@ -145,10 +130,6 @@ namespace NR
 							}
 
 							ImGui::EndMenu();
-						}
-
-						if (ImGui::MenuItem("Import"))
-						{
 						}
 
 						if (ImGui::MenuItem("Refresh"))
@@ -508,7 +489,6 @@ namespace NR
 			ImGui::SetKeyboardFocusHere();
 			if (ImGui::InputText("##rename_dummy", mRenameBuffer, MAX_INPUT_BUFFER_LENGTH, ImGuiInputTextFlags_EnterReturnsTrue))
 			{
-				NR_CORE_INFO("Renaming to {0}", mRenameBuffer);
 				AssetManager::Rename(asset->Handle, mRenameBuffer);
 				mRenamingSelected = false;
 				mSelectedAssets.Clear();
