@@ -11,6 +11,8 @@
 
 #include "NotRed/Renderer/RendererAPI.h"
 
+#include "NotRed/Platform/Vulkan/VKContext.h"
+
 namespace NR
 {
     static bool sGLFWInitialized = false;
@@ -26,22 +28,21 @@ namespace NR
     }
 
     WinWindow::WinWindow(const WindowProps& props)
-    {
-        Init(props);
-    }
+        : mProperties(props)
+    {}
 
     WinWindow::~WinWindow()
     {
         Shutdown();
     }
 
-    void WinWindow::Init(const WindowProps& props)
+    void WinWindow::Init()
     {
-        mData.Title = props.Title;
-        mData.Width = props.Width;
-        mData.Height = props.Height;
+        mData.Title = mProperties.Title;
+        mData.Width = mProperties.Width;
+        mData.Height = mProperties.Height;
 
-        NR_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+        NR_CORE_INFO("Creating window {0} ({1}, {2})", mProperties.Title, mProperties.Width, mProperties.Height);
 
         if (!sGLFWInitialized)
         {
@@ -60,10 +61,18 @@ namespace NR
         {
            // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         }
-        mWindow = glfwCreateWindow((int)props.Width, (int)props.Height, mData.Title.c_str(), nullptr, nullptr);
+        
+        mWindow = glfwCreateWindow((int)mProperties.Width, (int)mProperties.Height, mData.Title.c_str(), nullptr, nullptr);
 
-        mRendererContext = RendererContext::Create(mWindow);
-        mRendererContext->Create();
+        mRendererContext = RendererContext::Create();
+        mRendererContext->Init();
+
+        Ref<VKContext> context = mRendererContext.As<VKContext>();
+        mSwapChain.Init(VKContext::GetInstance(), context->GetDevice());
+        mSwapChain.InitSurface(mWindow);
+
+        uint32_t width = mData.Width, height = mData.Height;
+        mSwapChain.Create(&width, &height, true);
 
         glfwSetWindowUserPointer(mWindow, &mData);
 
@@ -189,7 +198,7 @@ namespace NR
 
     void WinWindow::SwapBuffers()
     {
-        mRendererContext->SwapBuffers();
+        mSwapChain.Present();
     }
 
     void WinWindow::SetVSync(bool enabled)
@@ -229,5 +238,10 @@ namespace NR
     {
         mData.Title = title;
         glfwSetWindowTitle(mWindow, mData.Title.c_str());
+    }
+
+    VKSwapChain& WinWindow::GetSwapChain()
+    {
+        return mSwapChain;
     }
 }

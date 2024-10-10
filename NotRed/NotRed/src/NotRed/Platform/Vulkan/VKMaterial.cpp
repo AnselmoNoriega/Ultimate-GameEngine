@@ -16,7 +16,6 @@ namespace NR
     VKMaterial::VKMaterial(const Ref<Shader>& shader, const std::string& name)
         : mShader(shader), mName(name),
         mWriteDescriptors(Renderer::GetConfig().FramesInFlight),
-        mUBWriteDescriptors(Renderer::GetConfig().FramesInFlight),
         mDirtyDescriptorSets(Renderer::GetConfig().FramesInFlight, true)
     {
         Init();
@@ -56,23 +55,6 @@ namespace NR
             const auto& shaderDescriptorSets = shader->GetShaderDescriptorSets();
             if (!shaderDescriptorSets.empty())
             {
-                Ref<VKShader> vulkanShader = mShader.As<VKShader>();
-                for (auto&& [binding, shaderUB] : shaderDescriptorSets[0].UniformBuffers)
-                {
-                    for (int frame = 0; frame < framesInFlight; ++frame)
-                    {
-                        Ref<VKUniformBuffer> uniformBuffer = Renderer::GetUniformBuffer(frame, binding, 0).As<VKUniformBuffer>(); // set = 0 for now
-
-                        VkWriteDescriptorSet writeDescriptorSet = {};
-                        writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        writeDescriptorSet.descriptorCount = 1;
-                        writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                        writeDescriptorSet.pBufferInfo = &uniformBuffer->GetDescriptorBufferInfo();
-                        writeDescriptorSet.dstBinding = uniformBuffer->GetBinding();
-                        mUBWriteDescriptors[frame].push_back(writeDescriptorSet);
-                    }
-                }
-
                 for (auto&& [binding, descriptor] : mResidentDescriptors)
                 {
                     mPendingDescriptors.push_back(descriptor);
@@ -350,16 +332,7 @@ namespace NR
         return GetResource<TextureCube>(name);
     }
 
-    void VKMaterial::UpdateForRendering()
-    {
-        Ref<VKMaterial> instance = this;
-        Renderer::Submit([instance]() mutable
-            {
-                instance->RT_UpdateForRendering();
-            });
-    }
-
-    void VKMaterial::RT_UpdateForRendering()
+    void VKMaterial::RT_UpdateForRendering(const std::vector<std::vector<VkWriteDescriptorSet>>& uniformBufferWriteDescriptors)
     {
         NR_SCOPE_PERF("VulkanMaterial::RT_UpdateForRendering");
 
@@ -382,14 +355,17 @@ namespace NR
         }
 
         uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-        if (mDirtyDescriptorSets[frameIndex])
+        if (mDirtyDescriptorSets[frameIndex] || true)
         {
             mDirtyDescriptorSets[frameIndex] = false;
             mWriteDescriptors[frameIndex].clear();
 
-            for (auto& wd : mUBWriteDescriptors[frameIndex])
+            if (!uniformBufferWriteDescriptors.empty())
             {
-                mWriteDescriptors[frameIndex].push_back(wd);
+                for (auto& wd : uniformBufferWriteDescriptors[frameIndex])
+                {
+                    mWriteDescriptors[frameIndex].push_back(wd);
+                }
             }
 
             for (auto&& [binding, pd] : mResidentDescriptors)

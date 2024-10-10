@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/ImGui/ImGui.h"
+#include "NotRed/Core/Events/Event.h"
 
 namespace NR
 {
@@ -12,7 +13,10 @@ namespace NR
 	public:
 		virtual ~AssetEditor() = default;
 
-		void ImGuiRender();		
+		virtual void Update(float dt) {}
+		virtual void OnEvent(Event& e) {}
+		virtual void ImGuiRender();		
+
 		void SetOpen(bool isOpen);
 		virtual void SetAsset(const Ref<Asset>& asset) = 0;
 
@@ -37,6 +41,10 @@ namespace NR
 	public:
 		static void RegisterDefaultEditors();		
 		static void UnregisterAllEditors();
+
+		static void Update(float dt);
+		static void OnEvent(Event& e);
+
 		static void ImGuiRender();
 		static void OpenEditor(const Ref<Asset>& asset);
 

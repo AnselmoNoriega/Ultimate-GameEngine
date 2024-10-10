@@ -48,7 +48,7 @@ namespace NR::UI
 		ImGui::PushItemWidth(-1);
 
 		char buffer[256];
-		strcpy_s(buffer, value.c_str());
+		strcpy_s<256>(buffer, value.c_str());
 
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';

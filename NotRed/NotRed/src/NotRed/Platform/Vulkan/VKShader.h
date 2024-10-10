@@ -95,7 +95,7 @@ namespace NR
                 return 0;
             }
 
-            return mShaderDescriptorSets[set].UniformBuffers.size();
+            return (uint32_t)mShaderDescriptorSets[set].UniformBuffers.size();
         }
 
         const std::vector<ShaderDescriptorSet>& GetShaderDescriptorSets() const { return mShaderDescriptorSets; }

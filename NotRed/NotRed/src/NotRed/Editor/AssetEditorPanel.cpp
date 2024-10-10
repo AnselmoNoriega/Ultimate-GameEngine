@@ -4,6 +4,8 @@
 #include "DefaultAssetEditors.h"
 #include "NotRed/Asset/AssetManager.h"
 
+#include "MeshViewerPanel.h"
+
 namespace NR
 {
 	AssetEditor::AssetEditor(const char* title)
@@ -60,11 +62,27 @@ namespace NR
 	{
 		RegisterEditor<TextureViewer>(AssetType::Texture);
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
+		RegisterEditor<MeshViewerPanel>(AssetType::Mesh);
 	}
 
 	void AssetEditorPanel::UnregisterAllEditors()
 	{
 		sEditors.clear();
+	}
+
+	void AssetEditorPanel::Update(float dt)
+	{
+		for (auto& kv : sEditors)
+		{
+			kv.second->Update(dt);
+		}
+	}
+	void AssetEditorPanel::OnEvent(Event& e)
+	{
+		for (auto& kv : sEditors)
+		{
+			kv.second->OnEvent(e);
+		}
 	}
 
 	void AssetEditorPanel::ImGuiRender()
@@ -88,5 +106,4 @@ namespace NR
 	}
 
 	std::unordered_map<AssetType, Scope<AssetEditor>> AssetEditorPanel::sEditors;
-
 }

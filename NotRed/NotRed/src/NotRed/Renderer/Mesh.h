@@ -216,9 +216,11 @@ namespace NR
 
 		std::string mFilePath;
 
+	private:
 		friend class Renderer;
 		friend class VkRenderer;
 		friend class GLRenderer;
 		friend class SceneHierarchyPanel;
+		friend class MeshViewerPanel;
 	};
 }

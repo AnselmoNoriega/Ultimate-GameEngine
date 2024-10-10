@@ -114,7 +114,7 @@ namespace NR
 
         inline uint32_t CalculateMipCount(uint32_t width, uint32_t height)
         {
-            return uint32_t(std::floor(std::log2(glm::min(width, height))) + 1);
+			return (uint32_t)std::floor(std::log2(glm::min(width, height))) + 1;
         }
 
         inline uint32_t GetImageMemorySize(ImageFormat format, uint32_t width, uint32_t height)

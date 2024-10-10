@@ -55,8 +55,8 @@ namespace NR
 		void SaveSceneAs();
 
 	private:
-		std::pair<float, float> GetMouseViewportSpace();
-		std::pair<glm::vec3, glm::vec3> CastRay(float mx, float my);
+		std::pair<float, float> GetMouseViewportSpace(bool primaryViewport);
+		std::pair<glm::vec3, glm::vec3> CastRay(const EditorCamera& camera, float mx, float my);
 
 		struct SelectedSubmesh
 		{
@@ -87,10 +87,13 @@ namespace NR
 		Scope<ObjectsPanel> mObjectsPanel;
 
 		Ref<Scene> mRuntimeScene, mEditorScene, mSimulationScene, mCurrentScene;
+		Ref<SceneRenderer> mViewportRenderer;
+		Ref<SceneRenderer> mSecondViewportRenderer;
 		std::string mSceneFilePath;
 		bool mReloadScriptOnPlay = true;
 
 		EditorCamera mEditorCamera;
+		EditorCamera mSecondEditorCamera;
 
 		Ref<Shader> mBrushShader;
 		Ref<Material> mSphereBaseMaterial;
@@ -137,11 +140,11 @@ namespace NR
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
 
 		glm::vec2 mViewportBounds[2];
+		glm::vec2 mSecondViewportBounds[2];
 		float mSnapValue = 0.5f;
 		float mRotationSnapValue = 45.0f;
 
 		int mGizmoType = -1;
-		bool mAllowViewportCameraEvents = false;
 		bool mDrawOnTopBoundingBoxes = false;
 
 		bool mUIShowBoundingBoxes = false;
@@ -150,7 +153,12 @@ namespace NR
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
 
+		bool mViewportPanel2MouseOver = false;
+		bool mViewportPanel2Focused = false;
+
 		bool mShowPhysicsSettings = false;
+		
+		bool mShowSecondViewport = false;
 
 		bool mShowWelcomePopup = true;
 

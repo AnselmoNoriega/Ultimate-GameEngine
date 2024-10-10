@@ -15,6 +15,8 @@
 
 namespace NR
 {
+	class SceneRenderer;
+
 	struct Light
 	{
 		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
@@ -63,8 +65,8 @@ namespace NR
 		void Init();
 
 		void Update(float dt);
-		void RenderRuntime(float dt);
-		void RenderEditor(float dt, const EditorCamera& editorCamera);
+		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
+		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
 		void RenderSimulation(float dt, const EditorCamera& editorCamera);
 		void OnEvent(Event& e);
 

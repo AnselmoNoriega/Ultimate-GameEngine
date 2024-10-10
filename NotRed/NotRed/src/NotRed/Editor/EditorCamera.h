@@ -25,7 +25,10 @@ namespace NR
         void OnEvent(Event& e);
 
         void Focus(const glm::vec3& focusPoint);
-        void SetCameraMode(const CameraMode cameraMode);
+        void SetCameraMode(const CameraMode cameraMode) { mCameraMode = cameraMode; }
+
+        bool IsActive() const { return mIsActive; }
+        void SetActive(bool active) { mIsActive = active; }
 
         inline float GetDistance() const { return mDistance; }
         inline void SetDistance(float distance) { mDistance = distance; }
@@ -63,6 +66,7 @@ namespace NR
         glm::mat4 mViewMatrix;
         glm::vec3 mPosition, mRotation, mFocalPoint;
 
+        bool mIsActive = true;
         bool mPanning, mRotating;
         glm::vec2 mInitialMousePosition {};
         glm::vec3 mInitialFocalPoint, mInitialRotation;

@@ -311,7 +311,25 @@ namespace NR
 			VK_CHECK_RESULT(vkCreateImageView(device, &colorAttachmentView, nullptr, &mBuffers[i].view));
 		}
 
-		CreateDrawBuffers();
+		// Create command buffers
+		{
+			VkCommandPoolCreateInfo cmdPoolInfo = {};
+			cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			cmdPoolInfo.queueFamilyIndex = mQueueNodeIndex;
+			cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+			
+			VK_CHECK_RESULT(vkCreateCommandPool(device, &cmdPoolInfo, nullptr, &mCommandPool));
+			
+			VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
+			commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			commandBufferAllocateInfo.commandPool = mCommandPool;
+			commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			uint32_t count = mImageCount;
+			commandBufferAllocateInfo.commandBufferCount = count;
+			mCommandBuffers.resize(count);
+			
+			VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, mCommandBuffers.data()));
+		}
 
 		// Synchronization Objects--------------------------------------------------------------------
 		VkSemaphoreCreateInfo semaphoreCreateInfo{};
@@ -339,8 +357,9 @@ namespace NR
 		// Wait fences to sync command buffer access
 		VkFenceCreateInfo fenceCreateInfo{};
 		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		mWaitFences.resize(mDrawCommandBuffers.size());
+		fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;		
+		
+		mWaitFences.resize(Renderer::GetConfig().FramesInFlight);
 		for (auto& fence : mWaitFences)
 		{
 			VK_CHECK_RESULT(vkCreateFence(mDevice->GetVulkanDevice(), &fenceCreateInfo, nullptr, &fence));
@@ -478,25 +497,6 @@ namespace NR
 		}
 	}
 
-	void VKSwapChain::CreateDrawBuffers()
-	{
-		// Create one command buffer for each swap chain image and reuse for rendering
-		mDrawCommandBuffers.resize(mImageCount);
-
-		VkCommandPoolCreateInfo cmdPoolInfo = {};
-		cmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		cmdPoolInfo.queueFamilyIndex = mQueueNodeIndex;
-		cmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		VK_CHECK_RESULT(vkCreateCommandPool(mDevice->GetVulkanDevice(), &cmdPoolInfo, nullptr, &mCommandPool));
-
-		VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
-		commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		commandBufferAllocateInfo.commandPool = mCommandPool;
-		commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(mDrawCommandBuffers.size());
-		VK_CHECK_RESULT(vkAllocateCommandBuffers(mDevice->GetVulkanDevice(), &commandBufferAllocateInfo, mDrawCommandBuffers.data()));
-	}
-
 	void VKSwapChain::Resize(uint32_t width, uint32_t height)
 	{
 		NR_CORE_WARN("VulkanContext::Resize");
@@ -518,11 +518,6 @@ namespace NR
 		}
 
 		CreateFrameBuffer();
-
-		// Command buffers need to be recreated as they may store
-		// references to the recreated frame buffer
-		vkFreeCommandBuffers(device, mCommandPool, static_cast<uint32_t>(mDrawCommandBuffers.size()), mDrawCommandBuffers.data());
-		CreateDrawBuffers();
 
 		vkDeviceWaitIdle(device);
 	}
@@ -554,12 +549,12 @@ namespace NR
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = &mSemaphores.RenderComplete;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pCommandBuffers = &mDrawCommandBuffers[mCurrentImageIndex];
+		submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentImageIndex];
 		submitInfo.commandBufferCount = 1;
 
 		// Submit to the graphics queue passing a wait fence
 		VK_CHECK_RESULT(vkResetFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex]));
-		VK_CHECK_RESULT(vkQueueSubmit(mDevice->GetQueue(), 1, &submitInfo, mWaitFences[mCurrentBufferIndex]));
+		VK_CHECK_RESULT(vkQueueSubmit(mDevice->GetGraphicsQueue(), 1, &submitInfo, mWaitFences[mCurrentBufferIndex]));
 
 		// Present the current buffer to the swap chain
 		// Pass the semaphore signaled by the command buffer submission from the submit info as the wait semaphore for swap chain presentation
@@ -567,7 +562,7 @@ namespace NR
 		VkResult result;
 		{
 			NR_SCOPE_PERF("VulkanSwapChain::Present - QueuePresent");
-			result = QueuePresent(mDevice->GetQueue(), mCurrentImageIndex, mSemaphores.RenderComplete);
+			result = QueuePresent(mDevice->GetGraphicsQueue(), mCurrentImageIndex, mSemaphores.RenderComplete);
 		}
 
 		if (result != VK_SUCCESS || result == VK_SUBOPTIMAL_KHR)
@@ -631,8 +626,6 @@ namespace NR
 			fpDestroySwapchainKHR(device, mSwapChain, nullptr);
 			vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
 		}
-
-		vkDestroyCommandPool(device, mCommandPool, nullptr);
 
 		mSurface = VK_NULL_HANDLE;
 		mSwapChain = VK_NULL_HANDLE;

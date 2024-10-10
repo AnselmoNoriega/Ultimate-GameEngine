@@ -192,6 +192,7 @@
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
+    <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
@@ -227,11 +228,13 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKAllocator.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKComputePipeline.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKContext.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDevice.h" />
@@ -248,6 +251,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKSwapChain.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKTexture.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Vulkan.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
@@ -259,6 +263,7 @@
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
@@ -273,6 +278,7 @@
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
@@ -377,6 +383,7 @@
     <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
+    <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
@@ -413,7 +420,8 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKComputePipeline.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKDevice.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKDiagnostics.cpp" />
@@ -442,6 +450,7 @@
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
     <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
@@ -452,6 +461,7 @@
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\EntityFactory.cpp" />

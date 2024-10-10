@@ -708,6 +708,12 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -905,7 +911,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKComputePipeline.cpp">
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp">
@@ -1157,5 +1163,9 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
 
 #include "NotRed/Core/Window.h"
 #include "NotRed/Renderer/RendererContext.h"
+#include "NotRed/Platform/Vulkan/VKSwapChain.h"
 
 namespace NR
 {
@@ -13,6 +14,7 @@ namespace NR
         WinWindow(const WindowProps& props);
         ~WinWindow() override;
 
+        void Init() override;
         void ProcessEvents() override;
         void SwapBuffers() override;
 
@@ -33,14 +35,16 @@ namespace NR
         std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
 
         Ref<RendererContext> GetRenderContext() override { return mRendererContext; }
+        VKSwapChain& GetSwapChain() override;
 
     private:
-        void Init(const WindowProps& props);
         void Shutdown();
 
     private:
         GLFWwindow* mWindow;
         GLFWcursor* mImGuiMouseCursors[9] = { 0 };
+
+        WindowProps mProperties;
 
         struct WindowData
         {
@@ -55,5 +59,7 @@ namespace NR
         float mLastFrameTime = 0.0f;
 
         Ref<RendererContext> mRendererContext;
+        
+        VKSwapChain mSwapChain;
     };
 }

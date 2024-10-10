@@ -19,6 +19,7 @@
 
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 #include "NotRed/Platform/Vulkan/VKAllocator.h"
+#include "NotRed/Platform/Vulkan/VKSwapChain.h"
 
 extern bool gApplicationRunning;
 extern ImGuiContext* GImGui;
@@ -36,7 +37,7 @@ namespace NR
         mProfiler = new PerformanceProfiler();
 
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
-        mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        mWindow->Init();        mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
         mWindow->SetVSync(true);
         
@@ -186,7 +187,7 @@ namespace NR
                 Renderer::Submit([=]() {mImGuiLayer->End(); });
                 Renderer::EndFrame();
 
-                mWindow->GetRenderContext()->BeginFrame();
+                mWindow->GetSwapChain().BeginFrame();
                 Renderer::WaitAndRender();
                 mWindow->SwapBuffers();
             }
@@ -232,7 +233,7 @@ namespace NR
         }
         mMinimized = false;
 
-        mWindow->GetRenderContext()->Resize(width, height);
+        mWindow->GetSwapChain().Resize(width, height);
 
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)

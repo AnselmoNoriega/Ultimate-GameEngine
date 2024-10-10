@@ -1,9 +1,10 @@
 #include "nrpch.h"
 #include "GLRenderer.h"
 
-#include "NotRed/Renderer/Renderer.h"
-
 #include <glad/glad.h>
+
+#include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/SceneRenderer.h"
 
 #include "GLMaterial.h"
 #include "GLShader.h"
@@ -197,7 +198,7 @@ namespace NR
 	{
 	}
 
-	void GLRenderer::BeginRenderPass(const Ref<RenderPass>& renderPass)
+	void GLRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass)
 	{
 		sData->ActiveRenderPass = renderPass;
 
@@ -212,12 +213,12 @@ namespace NR
 		}
 	}
 
-	void GLRenderer::EndRenderPass()
+	void GLRenderer::EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer)
 	{
 		sData->ActiveRenderPass = nullptr;
 	}
 
-	void GLRenderer::SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
+	void GLRenderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material)
 	{
 		const auto& shader = material->GetShader();
 
@@ -239,7 +240,7 @@ namespace NR
 
 	}
 
-	void GLRenderer::SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow)
+	void GLRenderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow)
 	{
 		if (!environment)
 		{
@@ -357,7 +358,7 @@ namespace NR
 		return { envFiltered, irradianceMap };
 	}
 
-	void GLRenderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+	void GLRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
 	{
 		mesh->mVertexBuffer->Bind();
 		pipeline->Bind();
@@ -389,7 +390,7 @@ namespace NR
 		}
 	}
 
-	void GLRenderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
+	void GLRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
 	{
 		mesh->mVertexBuffer->Bind();
 		pipeline->Bind();
@@ -410,7 +411,7 @@ namespace NR
 		}
 	}
 
-	void GLRenderer::RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform)
+	void GLRenderer::RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform)
 	{
 		sData->mFullscreenQuadVertexBuffer->Bind();
 		pipeline->Bind();

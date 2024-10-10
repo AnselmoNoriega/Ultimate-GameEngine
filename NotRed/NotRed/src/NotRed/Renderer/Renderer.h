@@ -9,6 +9,8 @@
 #include "NotRed/Core/Application.h"
 
 #include "RendererCapabilities.h"
+#include "RenderCommandBuffer.h"
+#include "UniformBufferSet.h"
 
 #include "NotRed/Scene/Scene.h"
 
@@ -76,25 +78,24 @@ namespace NR
 
         static void WaitAndRender();
 
-        static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
-        static void EndRenderPass();
+        static void BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool clear = true);
+        static void EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer);
 
         static void BeginFrame();
         static void EndFrame();
 
-        static void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow);
+        static void SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow);
         static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
         static void GenerateParticles();
         static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
 
-        static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms = Buffer());
+        static void RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform);
+        static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material);
         static void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
-        static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer());
-        static void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform);
-        static void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material);
 
-        static void SubmitQuad(Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
-        //static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial = nullptr);
+        static void SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
 
         static void DispatchComputeShader(const glm::ivec3& workGroups, Ref <Material> material);
 
@@ -105,9 +106,6 @@ namespace NR
         static Ref<Texture2D> GetBlackTexture();
         static Ref<TextureCube> GetBlackCubeTexture();
         static Ref<Environment> GetEmptyEnvironment();
-
-        static void SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t frame, uint32_t set);
-        static Ref<UniformBuffer> GetUniformBuffer(uint32_t frame, uint32_t binding, uint32_t set = 0);
 
         static void RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline);
         static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);

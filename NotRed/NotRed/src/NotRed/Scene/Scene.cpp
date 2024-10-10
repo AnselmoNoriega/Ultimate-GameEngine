@@ -331,7 +331,7 @@ namespace NR
         }
     }
 
-    void Scene::RenderRuntime(float dt)
+    void Scene::RenderRuntime(Ref<SceneRenderer> renderer, float dt)
     {
         Entity cameraEntity = GetMainCameraEntity();
         if (!cameraEntity)
@@ -412,7 +412,10 @@ namespace NR
             mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
             auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-            SceneRenderer::BeginScene(this, { camera, cameraViewMatrix });
+
+            renderer->SetScene(this);
+            renderer->BeginScene({ camera, cameraViewMatrix });
+
             for (auto entity : group)
             {
                 auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
@@ -428,7 +431,7 @@ namespace NR
                         transform = e.Transform().GetTransform();
                     }
 
-                    SceneRenderer::SubmitMesh(meshComponent, transform);
+                    renderer->SubmitMesh(meshComponent, transform);
                 }
             }
 
@@ -438,14 +441,14 @@ namespace NR
                 auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
 
                 glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
-                SceneRenderer::SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
+                renderer->SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
             }
-            SceneRenderer::EndScene();
-        }
 
+            renderer->EndScene();
+        }
     }
 
-    void Scene::RenderEditor(float dt, const EditorCamera& editorCamera)
+    void Scene::RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera)
     {
         // Process lights
         {
@@ -513,7 +516,10 @@ namespace NR
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
         auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-        SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+
+        renderer->SetScene(this);
+        renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+
         for (auto entity : group)
         {
             auto&& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
@@ -525,11 +531,11 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitSelectedMesh(meshComponent, transform);
+                    renderer->SubmitSelectedMesh(meshComponent, transform);
                 }
                 else
                 {
-                    SceneRenderer::SubmitMesh(meshComponent, transform);
+                    renderer->SubmitMesh(meshComponent, transform);
                 }
             }
         }
@@ -543,14 +549,7 @@ namespace NR
 
             glm::mat4 transform = GetTransformRelativeToParent(Entity{ entity, this });
 
-            if (mSelectedEntity == entity)
-            {
-                SceneRenderer::SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
-            }
-            else
-            {
-                SceneRenderer::SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
-            }
+            renderer->SubmitParticles(particleComponent, transform, particleComponent.MeshObj->GetMaterials()[0]);
         }
 
         {
@@ -563,7 +562,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, transform);
+                    renderer->SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -578,7 +577,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, transform);
+                    renderer->SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -593,7 +592,7 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, transform);
+                    renderer->SubmitColliderMesh(collider, transform);
                 }
             }
         }
@@ -608,12 +607,12 @@ namespace NR
 
                 if (mSelectedEntity == entity)
                 {
-                    SceneRenderer::SubmitColliderMesh(collider, transform);
+                    renderer->SubmitColliderMesh(collider, transform);
                 }
             }
         }
 
-        SceneRenderer::EndScene();
+        renderer->EndScene();
 
         {
             const auto& camPosition = editorCamera.GetPosition();
@@ -1252,6 +1251,17 @@ namespace NR
 
         return transformComponent;
     }
+
+    //glm::mat4 Scene::GetWorldSpaceTransform(Entity entity)
+    //{
+    //    glm::mat4 transform = entity.Transform().GetTransform();
+    //    while (Entity parent = FindEntityByUUID(entity.GetParentUUID()))
+    //    {
+    //        transform = parent.Transform().GetTransform() * transform;
+    //        entity = parent;
+    //    }
+    //    return transform;
+    //}
 
     void Scene::ParentEntity(Entity entity, Entity parent)
     {

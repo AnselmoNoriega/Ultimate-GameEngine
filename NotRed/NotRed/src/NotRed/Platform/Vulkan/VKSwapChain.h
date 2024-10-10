@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "NotRed/Core/Core.h"
+#include "NotRed/Renderer/RenderCommandBuffer.h"
 
 #include "Vulkan.h"
 #include "VKDevice.h"
@@ -41,13 +42,14 @@ namespace NR
 		uint32_t GetCurrentBufferIndex() const { return mCurrentBufferIndex; }
 		VkFramebuffer GetFramebuffer(uint32_t index)
 		{
-			NR_CORE_ASSERT(index < mImageCount);
+			NR_CORE_ASSERT(index < mFrameBuffers.size());
 			return mFrameBuffers[index];
 		}
+
 		VkCommandBuffer GetDrawCommandBuffer(uint32_t index)
 		{
-			NR_CORE_ASSERT(index < mImageCount);
-			return mDrawCommandBuffers[index];
+			NR_CORE_ASSERT(index < mCommandBuffers.size());
+			return mCommandBuffers[index];
 		}
 
 		void Cleanup();
@@ -58,7 +60,6 @@ namespace NR
 
 		void CreateFrameBuffer();
 		void CreateDepthStencil();
-		void CreateDrawBuffers();
 		void FindImageFormatAndColorSpace();
 
 	private:
@@ -98,8 +99,8 @@ namespace NR
 		} mSemaphores;
 
 		std::vector<VkFramebuffer> mFrameBuffers;
-		VkCommandPool mCommandPool;
-		std::vector<VkCommandBuffer> mDrawCommandBuffers;
+		VkCommandPool mCommandPool = nullptr;
+		std::vector<VkCommandBuffer> mCommandBuffers;
 
 		VkSubmitInfo mSubmitInfo;
 

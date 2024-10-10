@@ -44,7 +44,7 @@ namespace NR
 		}
 		else
 		{
-			VKSwapChain& swapChain = VKContext::Get()->GetSwapChain();
+			VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
 			mRenderPass = swapChain.GetRenderPass();
 		}
 

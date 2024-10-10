@@ -8,6 +8,8 @@
 
 namespace NR
 {
+	class VKSwapChain;
+
 	struct WindowProps
 	{
 		std::string Title;
@@ -29,6 +31,8 @@ namespace NR
 
 		virtual ~Window() {}
 
+		virtual void Init() = 0;
+
 		virtual void ProcessEvents() = 0;
 		virtual void SwapBuffers() = 0;
 
@@ -47,6 +51,7 @@ namespace NR
 		virtual std::pair<float, float> GetWindowPos() const = 0;
 
 		virtual Ref<RendererContext> GetRenderContext() = 0;
+		virtual VKSwapChain& GetSwapChain() = 0;
 
 		virtual void Maximize() = 0;
 

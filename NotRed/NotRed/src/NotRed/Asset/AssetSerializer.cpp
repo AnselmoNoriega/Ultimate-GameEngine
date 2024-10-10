@@ -4,7 +4,7 @@
 #include "NotRed/Util/StringUtils.h"
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Renderer/Mesh.h"
-#include "NotRed/Renderer/SceneRenderer.h"
+#include "NotRed/Renderer/Renderer.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -41,7 +41,7 @@ namespace NR
 
 	bool EnvironmentSerializer::TryLoadData(Ref<Asset>& asset) const
 	{
-		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(asset->FilePath);
+		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(asset->FilePath);
 
 		if (!radiance || !irradiance)
 		{

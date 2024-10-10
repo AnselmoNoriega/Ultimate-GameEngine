@@ -146,7 +146,7 @@ namespace NR
 		glm::vec2 delta = (mouse - mInitialMousePosition) * 0.003f;
 		mInitialMousePosition = mouse;
 
-		if (Input::IsKeyPressed(KeyCode::LeftAlt))
+		if (mIsActive && Input::IsKeyPressed(KeyCode::LeftAlt))
 		{
 			mCameraMode = CameraMode::ARCBALL;
 

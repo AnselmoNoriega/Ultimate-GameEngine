@@ -65,20 +65,17 @@ namespace NR
 
     uint32_t Renderer::GetCurrentFrameIndex()
     {
-        return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+        return Application::Get().GetWindow().GetSwapChain().GetCurrentBufferIndex();
     }
 
     struct RendererData
     {
-        RendererConfig Config;
-
         Ref<ShaderLibrary> mShaderLibrary;
 
         Ref<Texture2D> WhiteTexture;
         Ref<Texture2D> BlackTexture;
         Ref<TextureCube> BlackCubeTexture;
         Ref<Environment> EmptyEnvironment;
-        std::map<uint32_t, std::map<uint32_t, std::map<uint32_t, Ref<UniformBuffer>>>> UniformBuffers;
     };
 
     static RendererData* sData = nullptr;
@@ -140,13 +137,11 @@ namespace NR
         sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
 
         sRendererAPI->Init();
-        SceneRenderer::Init();
     }
 
     void Renderer::Shutdown()
     {
         sShaderDependencies.clear();
-        SceneRenderer::Shutdown();
         sRendererAPI->Shutdown();
 
         delete sData;
@@ -169,16 +164,16 @@ namespace NR
         sCommandQueue->Execute();
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool clear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
-        sRendererAPI->BeginRenderPass(renderPass);
+        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass);
     }
 
-    void Renderer::EndRenderPass()
+    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer)
     {
-        sRendererAPI->EndRenderPass();
+        sRendererAPI->EndRenderPass(renderCommandBuffer);
     }
 
     void Renderer::BeginFrame()
@@ -191,9 +186,9 @@ namespace NR
         sRendererAPI->EndFrame();
     }
 
-    void Renderer::SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow)
+    void Renderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow)
     {
-        sRendererAPI->SetSceneEnvironment(environment, shadow);
+        sRendererAPI->SetSceneEnvironment(sceneRenderer, environment, shadow);
     }
 
     std::pair<Ref<TextureCube>, Ref<TextureCube>> Renderer::CreateEnvironmentMap(const std::string& filepath)
@@ -206,9 +201,9 @@ namespace NR
         sRendererAPI->GenerateParticles();
     }
 
-    void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sRendererAPI->RenderMesh(pipeline, mesh, transform);
+        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, mesh, transform);
     }
 
     void Renderer::DispatchComputeShader(const glm::ivec3& workGroups, Ref <Material> material)
@@ -221,23 +216,23 @@ namespace NR
         sRendererAPI->RenderParticles(pipeline, mesh, transform);
     }
 
-    void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms)
     {
-        sRendererAPI->RenderMesh(pipeline, mesh, material, transform, additionalUniforms);
+        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, mesh, material, transform, additionalUniforms);
     }
 
-    void Renderer::RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform)
+    void Renderer::RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform)
     {
-        sRendererAPI->RenderQuad(pipeline, material, transform);
+        sRendererAPI->RenderQuad(renderCommandBuffer, pipeline, uniformBufferSet, material, transform);
     }
 
-    void Renderer::SubmitQuad(Ref<Material> material, const glm::mat4& transform)
+    void Renderer::SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform)
     {
     }
 
-    void Renderer::SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
+    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material)
     {
-        sRendererAPI->SubmitFullScreenQuad(pipeline, material);
+        sRendererAPI->SubmitFullscreenQuad(renderCommandBuffer, pipeline, uniformBufferSet, material);
     }
 
     void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
@@ -281,20 +276,6 @@ namespace NR
         }
     }
 
-    void Renderer::SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t frame, uint32_t set)
-    {
-        sData->UniformBuffers[frame][set][uniformBuffer->GetBinding()] = uniformBuffer;
-    }
-
-    Ref<UniformBuffer> Renderer::GetUniformBuffer(uint32_t frame, uint32_t binding, uint32_t set)
-    {
-        NR_CORE_ASSERT(sData->UniformBuffers.find(frame) != sData->UniformBuffers.end());
-        NR_CORE_ASSERT(sData->UniformBuffers.at(frame).find(set) != sData->UniformBuffers.at(frame).end());
-        NR_CORE_ASSERT(sData->UniformBuffers.at(frame).at(set).find(binding) != sData->UniformBuffers.at(frame).at(set).end());
-
-        return sData->UniformBuffers.at(frame).at(set).at(binding);
-    }
-
     Ref<Texture2D> Renderer::GetWhiteTexture()
     {
         return sData->WhiteTexture;
@@ -322,7 +303,8 @@ namespace NR
 
     RendererConfig& Renderer::GetConfig()
     {
-        return sData->Config;
+        static RendererConfig config;
+        return config;
     }
 
     Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)

@@ -21,21 +21,19 @@ namespace NR
 		return VK_FALSE;
 	}
 
-	VKContext::VKContext(GLFWwindow* windowHandle)
-		: mWindowHandle(windowHandle)
+	VKContext::VKContext()
 	{
 	}
 
 	VKContext::~VKContext()
 	{
-		mSwapChain.Cleanup();
 		mDevice->Destroy();
 
 		vkDestroyInstance(sVKInstance, nullptr);
 		sVKInstance = nullptr;
 	}
 
-	void VKContext::Create()
+	void VKContext::Init()
 	{
 		NR_CORE_INFO("VKContext::Create");
 
@@ -116,30 +114,9 @@ namespace NR
 
 		VKAllocator::Init(mDevice);
 
-		mSwapChain.Init(sVKInstance, mDevice);
-		mSwapChain.InitSurface(mWindowHandle);
-
-		uint32_t width = 1280, height = 720;
-		mSwapChain.Create(&width, &height, true);
-
 		// Pipeline Cache
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
 		pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 		VK_CHECK_RESULT(vkCreatePipelineCache(mDevice->GetVulkanDevice(), &pipelineCacheCreateInfo, nullptr, &mPipelineCache));
-	}
-
-	void VKContext::Resize(uint32_t width, uint32_t height)
-	{
-		mSwapChain.Resize(width, height);
-	}
-
-	void VKContext::BeginFrame()
-	{
-		mSwapChain.BeginFrame();
-	}
-
-	void VKContext::SwapBuffers()
-	{
-		mSwapChain.Present();
 	}
 }
