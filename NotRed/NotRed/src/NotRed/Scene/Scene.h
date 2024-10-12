@@ -56,7 +56,7 @@ namespace NR
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
-	class Scene : public RefCounted
+	class Scene : public Asset
 	{
 	public:
 		Scene(const std::string& debugName = "Scene", bool isEditorScene = false);
@@ -126,6 +126,9 @@ namespace NR
 		void SetPhysics2DGravity(float gravity);
 
 		void SetSelectedEntity(entt::entity entity) { mSelectedEntity = entity; }
+
+		static AssetType GetStaticType() { return AssetType::Scene; }
+		virtual AssetType GetAssetType() const override { return AssetType::Scene; }
 
 	private:
 		UUID mSceneID;

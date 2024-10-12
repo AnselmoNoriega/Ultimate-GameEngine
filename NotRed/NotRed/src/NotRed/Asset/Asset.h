@@ -1,37 +1,21 @@
 #pragma once
 
-#include <Entt/include/entt.hpp>
+#include "NotRed/Asset/AssetTypes.h"
 
 #include "NotRed/Core/UUID.h"
 
 namespace NR
 {
-	enum class AssetType : int8_t
-	{
-		Scene, 
-		Mesh, Texture, EnvMap, 
-		Audio,
-		Script,
-		PhysicsMat,
-		Directory,
-		Other,
-		None,
-		Missing
-	};
-
 	using AssetHandle = UUID;
 
 	class Asset : public RefCounted
 	{
 	public:
 		AssetHandle Handle;
-		AssetType Type = AssetType::None;
+		uint16_t Flags = (uint16_t)AssetFlag::None;
 
-		std::string FilePath;
-		std::string FileName;
-		std::string Extension;
-		AssetHandle ParentDirectory;
-		bool IsDataLoaded = false;
+		virtual ~Asset() = default;
+		virtual AssetType GetAssetType() const { return AssetType::Other; }
 
 		virtual bool operator==(const Asset& other) const
 		{
@@ -43,7 +27,18 @@ namespace NR
 			return !(*this == other);
 		}
 
-		virtual ~Asset() = default;
+		bool IsFlagSet(AssetFlag flag) const { return (uint16_t)flag & Flags; }
+		void ModifyFlags(AssetFlag flag, bool add = true)
+		{
+			if (add)
+			{
+				Flags |= (uint16_t)flag;
+			}
+			else
+			{
+				Flags &= ~(uint16_t)flag;
+			}
+		}
 	};
 
 	class PhysicsMaterial : public Asset
@@ -58,14 +53,8 @@ namespace NR
 			: StaticFriction(staticFriction), DynamicFriction(dynamicFriction), Bounciness(bounciness)
 		{
 		}
-	};
 
-	class Directory : public Asset
-	{
-	public:
-		std::vector<AssetHandle> ChildDirectories;
-		std::vector<AssetHandle> Assets;
-
-		Directory() = default;
+		static AssetType GetStaticType() { return AssetType::PhysicsMat; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 	};
 }

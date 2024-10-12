@@ -95,6 +95,7 @@ namespace NR
 
 	void FileSystem::StartWatching()
 	{
+		sWatching = true;
 		DWORD threadID;
 		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadID);
 		NR_CORE_ASSERT(sWatcherThread != NULL);
@@ -109,6 +110,16 @@ namespace NR
 			TerminateThread(sWatcherThread, 0);
 		}
 		CloseHandle(sWatcherThread);
+	}
+
+	bool FileSystem::IsDirectory(const std::string& filepath)
+	{
+		bool result = std::filesystem::is_directory(filepath);
+		if (!result)
+		{
+			result = Utils::GetExtension(filepath).empty();
+		}
+		return result;
 	}
 
 	static std::string wchar_to_string(wchar_t* input)
@@ -198,7 +209,7 @@ namespace NR
 				e.FilePath = filepath.string();
 				e.NewName = filepath.filename().string();
 				e.OldName = filepath.filename().string();
-				e.IsDirectory = std::filesystem::is_directory(filepath);
+				e.IsDirectory = IsDirectory(e.FilePath);
 
 				switch (fni.Action)
 				{
@@ -210,7 +221,6 @@ namespace NR
 				}
 				case FILE_ACTION_REMOVED:
 				{
-					e.IsDirectory = AssetManager::IsDirectory(e.FilePath);
 					e.Action = FileSystemAction::Delete;
 					sCallback(e);
 					break;

@@ -11,31 +11,26 @@ namespace NR
 		sSerializers[AssetType::PhysicsMat] = CreateScope<PhysicsMaterialSerializer>();
 	}
 
-	void AssetImporter::Serialize(const Ref<Asset>& asset)
+	void AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
-		if (sSerializers.find(asset->Type) == sSerializers.end())
+		if (sSerializers.find(metadata.Type) == sSerializers.end())
 		{
-			NR_CORE_WARN("There's currently no importer for assets of type {0}", asset->Extension);
+			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.Extension);
 			return;
 		}
 
-		sSerializers[asset->Type]->Serialize(asset);
+		sSerializers[asset->GetAssetType()]->Serialize(metadata, asset);
 	}
 
-	bool AssetImporter::TryLoadData(Ref<Asset>& asset)
+	bool AssetImporter::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset)
 	{
-		if (asset->Type == AssetType::Directory)
+		if (sSerializers.find(metadata.Type) == sSerializers.end())
 		{
+			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.Extension);
 			return false;
 		}
 
-		if (sSerializers.find(asset->Type) == sSerializers.end())
-		{
-			NR_CORE_WARN("There's currently no importer for assets of type {0}", asset->Extension);
-			return false;
-		}
-
-		return sSerializers[asset->Type]->TryLoadData(asset);
+		return sSerializers[metadata.Type]->TryLoadData(metadata, asset);
 	}
 
 	std::unordered_map<AssetType, Scope<AssetSerializer>> AssetImporter::sSerializers;

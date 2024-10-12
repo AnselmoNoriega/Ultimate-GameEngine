@@ -10,51 +10,41 @@
 
 namespace NR
 {
-	void AssetSerializer::CopyMetadata(const Ref<Asset>& from, Ref<Asset>& to) const
+	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		to->Handle = from->Handle;
-		to->FilePath = from->FilePath;
-		to->FileName = from->FileName;
-		to->Extension = from->Extension;
-		to->ParentDirectory = from->ParentDirectory;
-		to->Type = from->Type;
-		to->IsDataLoaded = true;
+		asset = Texture2D::Create(metadata.FilePath);
+		asset->Handle = metadata.Handle;
+
+		bool result = asset.As<Texture2D>()->Loaded();
+		if (!result)
+		{
+			asset->ModifyFlags(AssetFlag::Invalid, true);
+		}
+		return result;
 	}
 
-	bool TextureSerializer::TryLoadData(Ref<Asset>& asset) const
+	bool MeshSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		Ref<Asset> temp = asset;
-		TextureProperties properties{};
-		properties.Flip = false;
-		asset = Texture2D::Create(asset->FilePath, properties);
-		CopyMetadata(temp, asset);
-		return (asset.As<Texture2D>())->Loaded();
-	}
-
-	bool MeshSerializer::TryLoadData(Ref<Asset>& asset) const
-	{
-		Ref<Asset> temp = asset;
-		asset = Ref<Mesh>::Create(asset->FilePath);
-		CopyMetadata(temp, asset);
+		asset = Ref<Mesh>::Create(metadata.FilePath);
+		asset->Handle = metadata.Handle;
 		return (asset.As<Mesh>())->GetVertices().size() > 0;
 	}
 
-	bool EnvironmentSerializer::TryLoadData(Ref<Asset>& asset) const
+	bool EnvironmentSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(asset->FilePath);
+		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(metadata.FilePath);
 
 		if (!radiance || !irradiance)
 		{
 			return false;
 		}
 
-		Ref<Asset> temp = asset;
 		asset = Ref<Environment>::Create(radiance, irradiance);
-		CopyMetadata(temp, asset);
+		asset->Handle = metadata.Handle;
 		return true;
 	}
 
-	void PhysicsMaterialSerializer::Serialize(const Ref<Asset>& asset) const
+	void PhysicsMaterialSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
 	{
 		Ref<PhysicsMaterial> material = asset.As<PhysicsMaterial>();
 
@@ -66,19 +56,18 @@ namespace NR
 		out << YAML::Key << "Bounciness" << material->Bounciness;
 		out << YAML::EndMap;
 
-		std::ofstream fout(asset->FilePath);
+		std::ofstream fout(metadata.FilePath);
 		fout << out.c_str();
 	}
 
-	bool PhysicsMaterialSerializer::TryLoadData(Ref<Asset>& asset) const
+	bool PhysicsMaterialSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		std::ifstream stream(asset->FilePath);
+		std::ifstream stream(metadata.FilePath);
 		if (!stream.is_open())
 		{
 			return false;
 		}
 
-		Ref<Asset> temp = asset;
 		std::stringstream strStream;
 		strStream << stream.rdbuf();
 
@@ -89,7 +78,7 @@ namespace NR
 		float bounciness = data["Bounciness"].as<float>();
 
 		asset = Ref<PhysicsMaterial>::Create(staticFriction, dynamicFriction, bounciness);
-		CopyMetadata(temp, asset);
+		asset->Handle = metadata.Handle;
 		return true;
 	}
 }

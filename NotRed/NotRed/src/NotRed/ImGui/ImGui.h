@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "NotRed/Asset/Asset.h"
+#include "NotRed/Asset/AssetMetadata.h"
 
 //TODO: This shouldn't be here
 #include "NotRed/Asset/AssetManager.h"
@@ -501,8 +501,8 @@ namespace NR::UI
 		sCheckboxCount = 0;
 	}
 
-	template<typename T>	
-	static bool PropertyAssetReference(const char* label, Ref<T>& object, AssetType supportedType)
+	template<typename T>
+	static bool PropertyAssetReference(const char* label, Ref<T>& object)
 	{
 		bool modified = false;
 
@@ -512,9 +512,9 @@ namespace NR::UI
 		
 		if (object)
 		{
-			if (object->Type != AssetType::Missing)
+			if (!object->IsFlagSet(AssetFlag::Missing))
 			{
-				char* assetName = ((Ref<Asset>&)object)->FileName.data();
+				char* assetName = AssetManager::GetMetadata(object->Handle).FileName.data();
 				ImGui::InputText("##assetRef", assetName, 256, ImGuiInputTextFlags_ReadOnly);
 			}
 			else
@@ -535,7 +535,7 @@ namespace NR::UI
 			{
 				AssetHandle assetHandle = *(AssetHandle*)data->Data;
 				Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-				if (asset->Type == supportedType)
+				char* assetName = AssetManager::GetMetadata(object->Handle).FileName.data();
 				{
 					object = asset.As<T>();
 					modified = true;

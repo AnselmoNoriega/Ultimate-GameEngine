@@ -830,7 +830,7 @@ namespace NR
 					else
 					{
 						component.MeshObj = Ref<Asset>::Create().As<Mesh>();
-						component.MeshObj->Type = AssetType::Missing;
+						component.MeshObj->ModifyFlags(AssetFlag::Missing, true);
 
 						std::string filepath = meshComponent["AssetPath"] ? meshComponent["AssetPath"].as<std::string>() : "";
 						if (filepath.empty())
@@ -840,6 +840,7 @@ namespace NR
 						else
 						{
 							NR_CORE_ERROR("Tried to load invalid mesh '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
+							component.MeshObj->ModifyFlags(AssetFlag::Invalid, true);
 						}
 					}
 				}
@@ -1094,7 +1095,7 @@ namespace NR
 						}
 					}
 
-					if (component.CollisionMesh && component.CollisionMesh->Type == AssetType::Mesh)
+					if (component.CollisionMesh && !component.CollisionMesh->IsFlagSet(AssetFlag::Missing))
 					{
 						component.OverrideMesh = overrideMesh;
 					}

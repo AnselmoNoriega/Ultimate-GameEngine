@@ -714,6 +714,8 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetMetadata.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetTypes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

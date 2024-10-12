@@ -95,14 +95,13 @@ namespace NR
 
 	void AssetEditorPanel::OpenEditor(const Ref<Asset>& asset)
 	{
-		if (sEditors.find(asset->Type) == sEditors.end())
+		if (sEditors.find(asset->GetAssetType()) == sEditors.end())
 		{
-			NR_CORE_WARN("No editor registered for {0} assets", asset->Extension);
 			return;
 		}
 
-		sEditors[asset->Type]->SetOpen(true);
-		sEditors[asset->Type]->SetAsset(AssetManager::GetAsset<Asset>(asset->Handle));
+		sEditors[asset->GetAssetType()]->SetOpen(true);
+		sEditors[asset->GetAssetType()]->SetAsset(AssetManager::GetAsset<Asset>(asset->Handle));
 	}
 
 	std::unordered_map<AssetType, Scope<AssetEditor>> AssetEditorPanel::sEditors;

@@ -40,6 +40,7 @@ namespace NR
 		static void SetChangeCallback(const FileSystemChangedCallbackFn& callback);
 		static void StartWatching();
 		static void StopWatching();
+		static bool IsDirectory(const std::string& filepath);
 
 	private:
 		static unsigned long Watch(void* param);

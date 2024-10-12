@@ -419,7 +419,7 @@ namespace NR
             for (auto entity : group)
             {
                 auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
-                if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
+                if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
                 {
                     Entity e = Entity(entity, this);
 
@@ -707,7 +707,7 @@ namespace NR
         for (auto entity : group)
         {
             auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
-            if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
+            if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
                 meshComponent.MeshObj->Update(dt);
                 Entity e = Entity{ entity, this };

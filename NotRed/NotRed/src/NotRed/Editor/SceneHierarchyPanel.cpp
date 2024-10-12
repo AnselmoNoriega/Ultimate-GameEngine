@@ -112,14 +112,8 @@ namespace NR
                         newEntity.AddComponent<CameraComponent>();
                         SetSelected(newEntity);
                     }
-                    if (ImGui::BeginMenu("Mesh"))
+                    if (ImGui::BeginMenu("3D"))
                     {
-                        if (ImGui::MenuItem("Empty Mesh"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Mesh");
-                            newEntity.AddComponent<MeshComponent>();
-                            SetSelected(newEntity);
-                        }
                         if (ImGui::MenuItem("Cube"))
                         {
                             auto newEntity = mContext->CreateEntity("Cube");
@@ -138,65 +132,34 @@ namespace NR
                             newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Capsule.fbx"));
                             SetSelected(newEntity);
                         }
+                        if (ImGui::MenuItem("Cylinder")) 
+                        {
+                            auto newEntity = mContext->CreateEntity("Cylinder");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Cylinder.fbx"));
+                            SetSelected(newEntity);
+                        }
+                        if (ImGui::MenuItem("Torus"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Torus");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Torus.fbx"));
+                            SetSelected(newEntity);
+                        }
                         if (ImGui::MenuItem("Plane"))
                         {
                             auto newEntity = mContext->CreateEntity("Plane");
                             newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Plane.fbx"));
                             SetSelected(newEntity);
                         }
+                        if (ImGui::MenuItem("Cone"))
+                        {
+                            auto newEntity = mContext->CreateEntity("Cone");
+                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Cone.fbx"));
+                            SetSelected(newEntity);
+                        }
                         if (ImGui::MenuItem("Particles"))
                         {
                             auto newEntity = mContext->CreateEntity("Particles");
                             newEntity.AddComponent<ParticleComponent>();
-                            SetSelected(newEntity);
-                        }
-                        ImGui::EndMenu();
-                    }
-                    if (ImGui::BeginMenu("Physics"))
-                    {
-                        if (ImGui::MenuItem("Rigidbody"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Rigidbody");
-                            newEntity.AddComponent<RigidBodyComponent>();
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Box"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Cube");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("assets/Meshes/Default/Cube.fbx"));
-                            newEntity.AddComponent<BoxColliderComponent>();
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Sphere"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Sphere");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Sphere.fbx"));
-                            newEntity.AddComponent<SphereColliderComponent>();
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Capsule"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Capsule");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Capsule.fbx"));
-                            auto& component = newEntity.AddComponent<CapsuleColliderComponent>();
-                            component.Material = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
-                            component.Material->FilePath = "None";
-                            component.Material->FileName = "None";
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Mesh"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Mesh");
-                            newEntity.AddComponent<MeshComponent>();
-                            newEntity.AddComponent<MeshColliderComponent>();
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Plane"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Plane");
-                            const auto& mesh = AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Plane.fbx");
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            newEntity.AddComponent<MeshColliderComponent>(mesh);
                             SetSelected(newEntity);
                         }
                         ImGui::EndMenu();
@@ -253,7 +216,7 @@ namespace NR
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
-        bool missingMesh = entity.HasComponent<MeshComponent>() && (entity.GetComponent<MeshComponent>().MeshObj && entity.GetComponent<MeshComponent>().MeshObj->Type == AssetType::Missing);
+        bool missingMesh = entity.HasComponent<MeshComponent>() && (entity.GetComponent<MeshComponent>().MeshObj && entity.GetComponent<MeshComponent>().MeshObj->IsFlagSet(AssetFlag::Missing));
         if (missingMesh)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
@@ -679,7 +642,7 @@ namespace NR
         DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
             {
                 UI::BeginPropertyGrid();
-                if (UI::PropertyAssetReference("Mesh", mc.MeshObj, AssetType::Mesh))
+                if (UI::PropertyAssetReference("Mesh", mc.MeshObj))
                 {
                     if (entity.HasComponent<MeshColliderComponent>())
                     {
@@ -799,7 +762,7 @@ namespace NR
         DrawComponent<SkyLightComponent>("Sky Light", entity, [](SkyLightComponent& slc)
             {
                 UI::BeginPropertyGrid();
-                UI::PropertyAssetReference("Environment Map", slc.SceneEnvironment, AssetType::EnvMap);
+                UI::PropertyAssetReference("Environment Map", slc.SceneEnvironment);
                 UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
                 ImGui::Separator();
                 UI::Property("Dynamic Sky", slc.DynamicSky);
@@ -1046,7 +1009,7 @@ namespace NR
                 }
                 UI::Property("Offset", bcc.Offset);
                 UI::Property("Is Trigger", bcc.IsTrigger);
-                UI::PropertyAssetReference("Material", bcc.Material, AssetType::PhysicsMat);
+                UI::PropertyAssetReference("Material", bcc.Material);
 
                 UI::EndPropertyGrid();
             });
@@ -1060,7 +1023,7 @@ namespace NR
                     scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
                 }
                 UI::Property("Is Trigger", scc.IsTrigger);
-                UI::PropertyAssetReference("Material", scc.Material, AssetType::PhysicsMat);
+                UI::PropertyAssetReference("Material", scc.Material);
 
                 UI::EndPropertyGrid();
             });
@@ -1083,7 +1046,7 @@ namespace NR
                     ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                 }
                 UI::Property("Is Trigger", ccc.IsTrigger);
-                UI::PropertyAssetReference("Material", ccc.Material, AssetType::PhysicsMat);
+                UI::PropertyAssetReference("Material", ccc.Material);
 
                 UI::EndPropertyGrid();
             });
@@ -1094,7 +1057,7 @@ namespace NR
 
                 if (mcc.OverrideMesh)
                 {
-                    if (UI::PropertyAssetReference("Mesh", mcc.CollisionMesh, AssetType::Mesh))
+                    if (UI::PropertyAssetReference("Mesh", mcc.CollisionMesh))
                     {
                     }
                 }
@@ -1104,7 +1067,7 @@ namespace NR
                 }
 
                 UI::Property("Is Trigger", mcc.IsTrigger);
-                UI::PropertyAssetReference("Material", mcc.Material, AssetType::PhysicsMat);
+                UI::PropertyAssetReference("Material", mcc.Material);
 
                 if (UI::Property("Override Mesh", mcc.OverrideMesh))
                 {
@@ -1187,7 +1150,7 @@ namespace NR
                 UI::BeginPropertyGrid();
                 
                 bool bWasEmpty = soundConfig.FileAsset == nullptr;
-                if (UI::PropertyAssetReference("Sound", soundConfig.FileAsset, AssetType::Audio))
+                if (UI::PropertyAssetReference("Sound", soundConfig.FileAsset))
                 {
                     if (bWasEmpty)
                     {

@@ -2,6 +2,7 @@
 #include "DefaultAssetEditors.h"
 
 #include "NotRed/Asset/AssetImporter.h"
+#include "NotRed/Asset/AssetManager.h"
 
 namespace NR
 {
@@ -10,7 +11,7 @@ namespace NR
 
 	void PhysicsMaterialEditor::Close()
 	{
-		AssetImporter::Serialize(mAsset);
+		AssetImporter::Serialize(AssetManager::GetMetadata(mAsset->Handle), mAsset);
 		mAsset = nullptr;
 	}
 

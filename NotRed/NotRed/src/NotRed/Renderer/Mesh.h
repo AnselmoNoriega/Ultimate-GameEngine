@@ -132,6 +132,7 @@ namespace NR
 	class Mesh : public Asset
 	{
 	public:
+		Mesh() = default;
 		Mesh(const std::string& filename);
 		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
 		Mesh(Ref<Mesh> originalMesh, Submesh submesh);
@@ -161,6 +162,9 @@ namespace NR
 		Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 		const VertexBufferLayout& GetVertexBufferLayout() const { return mVertexBufferLayout; }
+
+		static AssetType GetStaticType() { return AssetType::Mesh; }
+		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
 
 	private:
 		void BoneTransform(float time);

@@ -63,10 +63,12 @@ namespace NR
         mSecondViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
 
         AssetEditorPanel::RegisterDefaultEditors();
+        FileSystem::StartWatching();
     }
 
     void EditorLayer::Detach()
     {
+        FileSystem::StopWatching();
         AssetEditorPanel::UnregisterAllEditors();
     }
 
@@ -642,17 +644,18 @@ namespace NR
                 for (int i = 0; i < count; ++i)
                 {
                     AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
-                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                    const auto& assetData = AssetManager::GetMetadata(assetHandle);
 
-                    if (count == 1 && asset->Type == AssetType::Scene)
+                    if (count == 1 && assetData.Type == AssetType::Scene)
                     {
-                        OpenScene(asset->FilePath);
+                        OpenScene(assetData.FilePath);
                     }
 
-                    if (asset->Type == AssetType::Mesh)
+                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                    if (asset->GetAssetType() == AssetType::Mesh)
                     {
-                        Entity entity = mEditorScene->CreateEntity(asset->FileName);
-                        entity.AddComponent<MeshComponent>(Ref<Mesh>(asset));
+                        Entity entity = mEditorScene->CreateEntity(assetData.FileName);
+                        entity.AddComponent<MeshComponent>(asset.As<Mesh>());
                         SelectEntity(entity);
                     }
                 }
@@ -888,7 +891,7 @@ namespace NR
             if (selectedEntity.HasComponent<MeshComponent>())
             {
                 Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().MeshObj;
-                if (mesh && mesh->Type == AssetType::Mesh)
+                if (mesh && mesh->GetAssetType() == AssetType::Mesh)
                 {
                     auto& materials = mesh->GetMaterials();
                     static uint32_t selectedMaterialIndex = 0;
@@ -944,7 +947,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->Type != AssetType::Texture)
+                                            if (asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -1014,7 +1017,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->Type != AssetType::Texture)
+                                            if (asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -1082,7 +1085,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->Type != AssetType::Texture)
+                                            if (asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -1149,7 +1152,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->Type != AssetType::Texture)
+                                            if (asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -1248,7 +1251,7 @@ namespace NR
         {
             auto& meshComp = entity.GetComponent<MeshComponent>();
 
-            if (meshComp.MeshObj && meshComp.MeshObj->Type == AssetType::Mesh)
+            if (meshComp.MeshObj && !meshComp.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
                 selection.Mesh = &meshComp.MeshObj->GetSubmeshes()[0];
             }
