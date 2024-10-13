@@ -60,6 +60,7 @@ namespace NR
 
     void RendererAPI::SetAPI(RendererAPIType api)
     {
+        NR_CORE_VERIFY(api == RendererAPIType::Vulkan, "Vulkan is currently the only supported Renderer API");
         sCurrentRendererAPI = api;
     }
 

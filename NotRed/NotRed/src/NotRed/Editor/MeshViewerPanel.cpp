@@ -243,11 +243,11 @@ namespace NR
 				window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_AutoHideTabBar;
 				ImGui::SetNextWindowClass(&window_class);
 				ImGui::Begin(toolBarName.c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-				ImGui::Button("Tool A", ImVec2(32, 32));
+				ImGui::Button("Tool A", ImVec2(64, 64));
 				ImGui::SameLine();
-				ImGui::Button("Tool B", ImVec2(32, 32));
+				ImGui::Button("Tool B", ImVec2(64, 64));
 				ImGui::SameLine();
-				ImGui::Button("Tool C", ImVec2(32, 32));
+				ImGui::Button("Tool C", ImVec2(64, 64));
 				ImGui::End();
 				ImGui::SetNextWindowClass(&window_class);
 				ImGui::Begin(viewportPanelName.c_str(), nullptr, ImGuiWindowFlags_NoCollapse);

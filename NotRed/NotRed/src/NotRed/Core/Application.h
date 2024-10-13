@@ -67,6 +67,7 @@ namespace NR
 
         TimeFrame mTimeFrame;
         float mLastFrameTime = 0.0f;
+        bool mEnableImGui = true;
 
         PerformanceProfiler* mProfiler = nullptr;
     };

@@ -10,10 +10,8 @@ namespace NR
 	{
 	}
 
-	bool MeshSerializer::TryLoadData(Ref<Asset>& asset) const
+	bool MeshSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		// TODO: this needs to open up a Hazel Mesh file and make sure
-		//       the MeshAsset file is also loaded
 		NR_CORE_ASSERT(false);
 		return false;
 	}
@@ -40,7 +38,9 @@ namespace NR
 		std::ofstream fout(filepath);
 		NR_CORE_ASSERT(fout.good());
 		if (fout.good())
+		{
 			fout << out.c_str();
+	}
 #endif
 	}
 

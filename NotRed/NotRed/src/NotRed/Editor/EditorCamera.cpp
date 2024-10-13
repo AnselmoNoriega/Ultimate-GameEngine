@@ -10,7 +10,7 @@
 #include <imgui.h>
 
 #include "NotRed/Core/Application.h"
-#include "NotEditor/src/EditorLayer.h"
+#include "../../../../NotEditor/src/EditorLayer.h"
 
 #include "NotRed/Core/Input.h"
 

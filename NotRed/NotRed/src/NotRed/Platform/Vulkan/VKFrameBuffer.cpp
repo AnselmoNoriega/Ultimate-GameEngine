@@ -190,7 +190,7 @@ namespace NR
 				attachmentDescription.format = Utils::VulkanImageFormat(attachmentSpec.Format);
 				attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
 				attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-				attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // TODO: if sampling, needs to be store (otherwise DONT_CARE is fine)
+				attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 				attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 				attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 				attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -215,6 +215,7 @@ namespace NR
 
 		std::array<VkSubpassDependency, 2> dependencies;
 
+#if 0
 		dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependencies[0].dstSubpass = 0;
 		dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
@@ -230,6 +231,7 @@ namespace NR
 		dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 		dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+#endif
 
 		// Create the actual renderpass
 		VkRenderPassCreateInfo renderPassInfo = {};

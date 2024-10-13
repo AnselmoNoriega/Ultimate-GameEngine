@@ -15,7 +15,7 @@ namespace NR
 		uint16_t Flags = (uint16_t)AssetFlag::None;
 
 		virtual ~Asset() = default;
-		virtual AssetType GetAssetType() const { return AssetType::Other; }
+		virtual AssetType GetAssetType() const { return AssetType::None; }
 
 		virtual bool operator==(const Asset& other) const
 		{

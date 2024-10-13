@@ -778,26 +778,23 @@ namespace NR
                     if (data)
                     {
                         int count = data->DataSize / sizeof(AssetHandle);
-                        for (int i = 0; i < count; ++i)
+
+                        for (int i = 0; i < count; i++)
                         {
                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                            const auto& assetData = AssetManager::GetMetadata(assetHandle);
+
+                            // We can't really support dragging and dropping scenes when we're dropping multiple assets
+                            if (count == 1 && assetData.Type == AssetType::Scene)
+                            {
+                                OpenScene(assetData.FilePath);
+                                break;
+                            }
+
                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-
-                            if (count == 1 && asset->Type == AssetType::Scene)
+                            if (asset->GetAssetType() == AssetType::MeshAsset)
                             {
-                                OpenScene(asset->FilePath);
-                            }
-
-                            if (asset->Type == AssetType::MeshAsset)
-                            {
-                                Entity entity = m_EditorScene->CreateEntity(asset->FileName);
-                                entity.AddComponent<MeshComponent>(asset.As<Mesh>());
-                                SelectEntity(entity);
-                            }
-
-                            if (asset->Type == AssetType::MeshAsset)
-                            {
-                                Entity entity = mEditorScene->CreateEntity(asset->FileName);
+                                Entity entity = mEditorScene->CreateEntity(assetData.FileName);
                                 entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(asset.As<MeshAsset>()));
                                 SelectEntity(entity);
                             }
@@ -1472,7 +1469,7 @@ namespace NR
                 {
                     Entity entity = { e, mCurrentScene.Raw() };
                     auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
-                    if (!mesh || mesh->Type == AssetType::Missing)
+                    if (!mesh || mesh->IsFlagSet(AssetFlag::Missing))
                     {
                         continue;
                     }

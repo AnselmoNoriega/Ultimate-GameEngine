@@ -12,14 +12,13 @@ namespace NR
 		SceneHierarchyPanel(const Ref<Scene>& scene);
 
 		void SetContext(const Ref<Scene>& scene);
-
 		void SetSelected(Entity entity);
-
-		void ImGuiRender();
 
 		void SetSelectionChangedCallback(const std::function<void(Entity)>& func) { mSelectionChangedCallback = func; }
 		void SetEntityDeletedCallback(const std::function<void(Entity)>& func) { mEntityDeletedCallback = func; }
-		
+
+		void ImGuiRender();
+
 	private:
 		void DrawEntityNode(Entity entity);
 		void DrawComponents(Entity entity);
@@ -30,4 +29,5 @@ namespace NR
 
 		std::function<void(Entity)> mSelectionChangedCallback, mEntityDeletedCallback;
 	};
+
 }

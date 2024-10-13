@@ -11,19 +11,19 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "NotRed/ImGui/ImGui.h"
+#include "NotRed/Core/Application.h"
+#include "NotRed/Math/Math.h"
+#include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/PhysicsActor.h"
+#include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Renderer/MeshFactory.h"
 
 #include "NotRed/Asset/AssetManager.h"
 
-#include "NotRed/Math/Math.h"
-#include "NotRed/Core/Application.h"
-#include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/ImGui/ImGui.h"
 #include "NotRed/Renderer/Renderer.h"
-#include "NotRed/Renderer/Mesh.h"
-#include "NotRed/Renderer/MeshFactory.h"
-
-#include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsLayer.h"
 
 #include "NotRed/Audio/AudioEngine.h"
 #include "NotRed/Audio/AudioComponent.h"
@@ -758,11 +758,8 @@ namespace NR
                 UI::BeginPropertyGrid();
                 UI::PropertyColor("Radiance", dlc.Radiance);
                 UI::Property("Intensity", dlc.Intensity, 0.05f, 0.f, 500.f);
-                UI::Property("Source Size", dlc.LightSize, 0.05f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Min Radius", dlc.MinRadius, 0.05f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Radius", dlc.Radius, 0.1f, 0.f, std::numeric_limits<float>::max());
-                UI::Property("Cast Shadows", dlc.CastsShadows);
-                UI::Property("Soft Shadows", dlc.SoftShadows);
                 UI::Property("Falloff", dlc.Falloff, 0.005f, 0.f, 1.f);
                 UI::EndPropertyGrid();
             });

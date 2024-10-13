@@ -158,7 +158,7 @@ namespace NR
         if (extension == "hpm") return AssetType::PhysicsMat;
         if (extension == "wav") return AssetType::Audio;
         if (extension == "ogg") return AssetType::Audio;
-        return AssetType::Other;
+        return AssetType::None;
     }
 
     void AssetManager::LoadAssetRegistry()
@@ -188,9 +188,9 @@ namespace NR
             metadata.FilePath = entry["FilePath"].as<std::string>();
             metadata.FileName = Utils::RemoveExtension(Utils::GetFilename(metadata.FilePath));
             metadata.Extension = Utils::GetExtension(Utils::GetFilename(metadata.FilePath));
-            metadata.Type = (AssetType)entry["Type"].as<int>();
+            metadata.Type = (AssetType)Utils::AssetTypeFromString(entry["Type"].as<std::string>());
 
-            if (metadata.Type == AssetType::Other)
+            if (metadata.Type == AssetType::None)
             {
                 continue;
             }
@@ -271,7 +271,7 @@ namespace NR
 
         AssetType type = GetAssetTypeForFileType(Utils::GetExtension(fixedFilePath));
 
-        if (type == AssetType::Other)
+        if (type == AssetType::None)
         {
             return 0;
         }
@@ -320,7 +320,7 @@ namespace NR
             out << YAML::BeginMap;
             out << YAML::Key << "Handle" << YAML::Value << metadata.Handle;
             out << YAML::Key << "FilePath" << YAML::Value << metadata.FilePath;
-            out << YAML::Key << "Type" << YAML::Value << (int)metadata.Type;
+            out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
             out << YAML::EndMap;
         }
         out << YAML::EndSeq;

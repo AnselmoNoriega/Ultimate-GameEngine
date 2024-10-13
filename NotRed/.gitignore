@@ -27,6 +27,9 @@ NotEditor/Assets/Scripts/
 **.pvd
 
 !AssetRegistryCache.nrr
+*.nvdbg
+*.nv-gpudmp
+*gpudmp.json
 
 # Directories
 NotRed/vendor/VulkanSDK

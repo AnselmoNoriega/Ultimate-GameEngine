@@ -51,7 +51,6 @@ namespace NR
 
 		std::vector<VkClearValue> mClearValues;
 
-		VkSampler mColorAttachmentSampler;
 		VkRenderPass mRenderPass = nullptr;
 		VkFramebuffer mFrameBuffer = nullptr;
 

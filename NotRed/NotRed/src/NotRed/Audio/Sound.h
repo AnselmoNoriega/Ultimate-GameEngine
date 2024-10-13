@@ -62,6 +62,7 @@ namespace NR::Audio
 
 		static AssetType GetStaticType() { return AssetType::SoundConfig; }
 		AssetType GetAssetType() const override { return AssetType::SoundConfig; }
+	};
 
 	class Sound : public SoundObject
 	{

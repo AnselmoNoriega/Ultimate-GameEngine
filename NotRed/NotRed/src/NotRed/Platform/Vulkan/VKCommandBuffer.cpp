@@ -44,11 +44,11 @@ namespace NR
 
 	VKRenderCommandBuffer::~VKRenderCommandBuffer()
 	{
-		Renderer::SubmitResourceFree([=]()
+		VkCommandPool commandPool = mCommandPool;
+		Renderer::SubmitResourceFree([commandPool]()
 			{
 				auto device = VKContext::GetCurrentDevice();
-				vkFreeCommandBuffers(device->GetVulkanDevice(), mCommandPool, mCommandBuffers.size(), mCommandBuffers.data());
-				vkDestroyCommandPool(device->GetVulkanDevice(), mCommandPool, nullptr);
+				vkDestroyCommandPool(device->GetVulkanDevice(), commandPool, nullptr);
 			});
 	}
 

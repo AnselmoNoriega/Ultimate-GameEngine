@@ -5,6 +5,7 @@ const float Epsilon = 0.00001;
 
 const int LightCount = 1;
 
+// Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
 
 
@@ -12,10 +13,11 @@ struct PointLight {
 	vec3 Position;
 	float Multiplier;
 	vec3 Radiance;
-	float NearPlane;
-	float FarPlane;
+	float MinRadius;
+	float Radius;
 	bool CastsShadows;
-	vec2 Padding;
+	float Falloff;
+	float LightSize;
 };
 
 
@@ -41,7 +43,7 @@ struct VertexOutput
 layout(location = 0) in VertexOutput Input;
 
 layout(location = 0) out vec4 color;
-layout(location = 1) out vec4 oBloomColor;
+layout(location = 1) out vec4 o_BloomColor;
 
 layout(std140, binding = 2) uniform SceneData
 {
@@ -53,6 +55,7 @@ layout(std140, binding = 2) uniform SceneData
 
 layout(std140, binding = 3) uniform RendererData
 {
+	uniform int uTilesCountX;
 	uniform bool uShowCascades;
 	uniform bool uSoftShadows;
 	uniform float uLightSize;
@@ -60,7 +63,6 @@ layout(std140, binding = 3) uniform RendererData
 	uniform float uShadowFade;
 	uniform bool uCascadeFading;
 	uniform float uCascadeTransitionFade;
-	uniform int uTilesCountX;
 };
 
 
@@ -115,7 +117,7 @@ struct PBRParameters
 	float NdotV;
 };
 
-PBRParameters m_Params;
+PBRParameters mParams;
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2
@@ -251,21 +253,21 @@ vec3 CalculateDirLights(vec3 F0)
 	{
 		vec3 Li = uDirectionalLights.Direction;
 		vec3 Lradiance = uDirectionalLights.Radiance * uDirectionalLights.Multiplier;
-		vec3 Lh = normalize(Li + m_Params.View);
+		vec3 Lh = normalize(Li + mParams.View);
 
 		// Calculate angles between surface normal and various light vectors.
-		float cosLi = max(0.0, dot(m_Params.Normal, Li));
-		float cosLh = max(0.0, dot(m_Params.Normal, Lh));
+		float cosLi = max(0.0, dot(mParams.Normal, Li));
+		float cosLh = max(0.0, dot(mParams.Normal, Lh));
 
-		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, m_Params.View)));
-		float D = ndfGGX(cosLh, m_Params.Roughness);
-		float G = gaSchlickGGX(cosLi, m_Params.NdotV, m_Params.Roughness);
+		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, mParams.View)));
+		float D = ndfGGX(cosLh, mParams.Roughness);
+		float G = gaSchlickGGX(cosLi, mParams.NdotV, mParams.Roughness);
 
-		vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
-		vec3 diffuseBRDF = kd * m_Params.Albedo;
+		vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
+		vec3 diffuseBRDF = kd * mParams.Albedo;
 
 		// Cook-Torrance
-		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * m_Params.NdotV);
+		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * mParams.NdotV);
 
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
 	}
@@ -287,25 +289,26 @@ vec3 CalculatePointLights(in vec3 F0)
 		PointLight light = upointLights[lightIndex];
 		vec3 Li = normalize(light.Position - Input.WorldPosition);
 		float lightDistance = length(light.Position - Input.WorldPosition);
-		vec3 Lh = normalize(Li + m_Params.View);
-		float attenuation = clamp(1.0 - lightDistance * lightDistance / (light.FarPlane * light.FarPlane), 0.0, 1.0);
+		vec3 Lh = normalize(Li + mParams.View);
+		
+		float attenuation = clamp(1.0 - lightDistance * lightDistance / (light.Radius * light.Radius) + (light.Falloff * light.Falloff), 0.0, 1.0);
 		attenuation *= attenuation;
 
 		vec3 Lradiance = light.Radiance * light.Multiplier * attenuation;
 
 		// Calculate angles between surface normal and various light vectors.
-		float cosLi = max(0.0, dot(m_Params.Normal, Li));
-		float cosLh = max(0.0, dot(m_Params.Normal, Lh));
+		float cosLi = max(0.0, dot(mParams.Normal, Li));
+		float cosLh = max(0.0, dot(mParams.Normal, Lh));
 
-		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, m_Params.View)));
-		float D = ndfGGX(cosLh, m_Params.Roughness);
-		float G = gaSchlickGGX(cosLi, m_Params.NdotV, m_Params.Roughness);
+		vec3 F = fresnelSchlick(F0, max(0.0, dot(Lh, mParams.View)));
+		float D = ndfGGX(cosLh, mParams.Roughness);
+		float G = gaSchlickGGX(cosLi, mParams.NdotV, mParams.Roughness);
 
-		vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
-		vec3 diffuseBRDF = kd * m_Params.Albedo;
+		vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
+		vec3 diffuseBRDF = kd * mParams.Albedo;
 
 		// Cook-Torrance
-		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * m_Params.NdotV);
+		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * mParams.NdotV);
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
 	}
 	return result;
@@ -313,18 +316,18 @@ vec3 CalculatePointLights(in vec3 F0)
 
 vec3 IBL(vec3 F0, vec3 Lr)
 {
-	vec3 irradiance = texture(uEnvIrradianceTex, m_Params.Normal).rgb;
-	vec3 F = fresnelSchlickRoughness(F0, m_Params.NdotV, m_Params.Roughness);
-	vec3 kd = (1.0 - F) * (1.0 - m_Params.Metalness);
-	vec3 diffuseIBL = m_Params.Albedo * irradiance;
+	vec3 irradiance = texture(uEnvIrradianceTex, mParams.Normal).rgb;
+	vec3 F = fresnelSchlickRoughness(F0, mParams.NdotV, mParams.Roughness);
+	vec3 kd = (1.0 - F) * (1.0 - mParams.Metalness);
+	vec3 diffuseIBL = mParams.Albedo * irradiance;
 
 	int envRadianceTexLevels = textureQueryLevels(uEnvRadianceTex);
-	float NoV = clamp(m_Params.NdotV, 0.0, 1.0);
-	vec3 R = 2.0 * dot(m_Params.View, m_Params.Normal) * m_Params.Normal - m_Params.View;
-	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uMaterialUniforms.EnvMapRotation, Lr), (m_Params.Roughness) * envRadianceTexLevels).rgb;
+	float NoV = clamp(mParams.NdotV, 0.0, 1.0);
+	vec3 R = 2.0 * dot(mParams.View, mParams.Normal) * mParams.Normal - mParams.View;
+	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uMaterialUniforms.EnvMapRotation, Lr), (mParams.Roughness) * envRadianceTexLevels).rgb;
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
-	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(m_Params.NdotV, 1.0 - m_Params.Roughness)).rg;
+	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(mParams.NdotV, 1.0 - mParams.Roughness)).rg;
 	vec3 specularIBL = specularIrradiance * (F0 * specularBRDF.x + specularBRDF.y);
 
 	return kd * diffuseIBL + specularIBL;
@@ -339,8 +342,8 @@ float ShadowFade = 1.0;
 
 float GetShadowBias()
 {
-	const float MINIMUM_SHADOW_BIAS = 0.002;
-	float bias = max(MINIMUM_SHADOW_BIAS * (1.0 - dot(m_Params.Normal, uDirectionalLights.Direction)), MINIMUM_SHADOW_BIAS);
+	const float MINIMUmSHADOW_BIAS = 0.002;
+	float bias = max(MINIMUmSHADOW_BIAS * (1.0 - dot(mParams.Normal, uDirectionalLights.Direction)), MINIMUmSHADOW_BIAS);
 	return bias;
 }
 
@@ -532,27 +535,27 @@ float PCSS_DirectionalLight(sampler2D shadowMap, vec3 shadowCoords, float uvLigh
 void main()
 {
 	// Standard PBR inputs
-	m_Params.Albedo = texture(uAlbedoTexture, Input.TexCoord).rgb * uMaterialUniforms.AlbedoColor;
-	m_Params.Metalness = texture(uMetalnessTexture, Input.TexCoord).r * uMaterialUniforms.Metalness;
-	m_Params.Roughness = texture(uRoughnessTexture, Input.TexCoord).r * uMaterialUniforms.Roughness;
-	m_Params.Roughness = max(m_Params.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
+	mParams.Albedo = texture(uAlbedoTexture, Input.TexCoord).rgb * uMaterialUniforms.AlbedoColor;
+	mParams.Metalness = texture(uMetalnessTexture, Input.TexCoord).r * uMaterialUniforms.Metalness;
+	mParams.Roughness = texture(uRoughnessTexture, Input.TexCoord).r * uMaterialUniforms.Roughness;
+	mParams.Roughness = max(mParams.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
 
 	// Normals (either from vertex or map)
-	m_Params.Normal = normalize(Input.Normal);
+	mParams.Normal = normalize(Input.Normal);
 	if (uMaterialUniforms.UseNormalMap)
 	{
-		m_Params.Normal = normalize(2.0 * texture(uNormalTexture, Input.TexCoord).rgb - 1.0);
-		m_Params.Normal = normalize(Input.WorldNormals * m_Params.Normal);
+		mParams.Normal = normalize(2.0 * texture(uNormalTexture, Input.TexCoord).rgb - 1.0);
+		mParams.Normal = normalize(Input.WorldNormals * mParams.Normal);
 	}
 
-	m_Params.View = normalize(uCameraPosition - Input.WorldPosition);
-	m_Params.NdotV = max(dot(m_Params.Normal, m_Params.View), 0.0);
+	mParams.View = normalize(uCameraPosition - Input.WorldPosition);
+	mParams.NdotV = max(dot(mParams.Normal, mParams.View), 0.0);
 
 	// Specular reflection vector
-	vec3 Lr = 2.0 * m_Params.NdotV * m_Params.Normal - m_Params.View;
+	vec3 Lr = 2.0 * mParams.NdotV * mParams.Normal - mParams.View;
 
 	// Fresnel reflectance, metals use albedo
-	vec3 F0 = mix(Fdielectric, m_Params.Albedo, m_Params.Metalness);
+	vec3 F0 = mix(Fdielectric, mParams.Albedo, mParams.Metalness);
 
 	vec3 shadowMapCoords = (Input.ShadowMapCoords.xyz / Input.ShadowMapCoords.w);
 #ifdef OPENGL
@@ -565,11 +568,11 @@ void main()
 	float lightSize = 0.5;
 	shadowAmount = PCSS_DirectionalLight(uShadowMapTexture, shadowMapCoords, lightSize);
 
-	vec3 lightContribution = CalculateDirLights(F0) * shadowAmount;
+	vec3 lightContribution = CalculateDirLights(F0);
 	lightContribution += CalculatePointLights(F0);
 	vec3 iblContribution = IBL(F0, Lr);
 
 	color = vec4(iblContribution + lightContribution, 1.0);
 
-	oBloomColor = vec4(1.0, 0.0, 1.0, 1.0);
+	o_BloomColor = vec4(1.0, 0.0, 1.0, 1.0);
 }

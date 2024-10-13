@@ -3,7 +3,8 @@
 #include "NotRed/Asset/AssetSerializer.h"
 #include "NotRed/Renderer/Mesh.h"
 
-namespace Hazel {
+namespace NR
+{
 	class MeshSerializer : public AssetSerializer
 	{
 	public:
@@ -15,7 +16,7 @@ namespace Hazel {
 		bool Deserialize(const std::string& filepath);
 		bool DeserializeRuntime(const std::string& filepath);
 
-		virtual void Serialize(const Ref<Asset>& asset) const override {}
-		virtual bool TryLoadData(Ref<Asset>& asset) const override;
+		void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
+		bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
 	};
 }

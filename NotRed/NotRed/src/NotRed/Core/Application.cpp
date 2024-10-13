@@ -44,8 +44,11 @@ namespace NR
         Renderer::Init();
         Renderer::WaitAndRender();
 
-        mImGuiLayer = ImGuiLayer::Create();
-        PushOverlay(mImGuiLayer);
+        if (mEnableImGui)
+        {
+            mImGuiLayer = ImGuiLayer::Create();
+            PushOverlay(mImGuiLayer);
+        }
 
         ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
         PhysicsManager::Init();
@@ -71,6 +74,11 @@ namespace NR
         Audio::AudioEngine::Shutdown();
 
         Renderer::WaitAndRender();
+        for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; ++i)
+        {
+            auto& queue = Renderer::GetRenderResourceReleaseQueue(i);
+            queue.Execute();
+        }
         Renderer::Shutdown();
 
         delete mProfiler;
@@ -183,8 +191,11 @@ namespace NR
                     layer->Update((float)mTimeFrame);
                 }
                 Application* app = this;
-                Renderer::Submit([app]() { app->RenderImGui(); });
-                Renderer::Submit([=]() {mImGuiLayer->End(); });
+                if (mEnableImGui)
+                {
+                    Renderer::Submit([app]() { app->RenderImGui(); });
+                    Renderer::Submit([=]() {mImGuiLayer->End(); });
+                }
                 Renderer::EndFrame();
 
                 mWindow->GetSwapChain().BeginFrame();

@@ -523,7 +523,7 @@ namespace NR
         for (auto entity : group)
         {
             auto&& [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
-            if (meshComponent.MeshObj && meshComponent.MeshObj->Type == AssetType::Mesh)
+            if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
                 meshComponent.MeshObj->Update(dt);
 
@@ -657,8 +657,8 @@ namespace NR
         }
     }
 
-    void Scene::RenderSimulation(float dt, const EditorCamera& editorCamera)
-    {
+    void Scene::RenderSimulation(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera)
+    {/*
         {
             mLightEnvironment = LightEnvironment();
             auto lights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
@@ -702,26 +702,22 @@ namespace NR
         }
 
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
+
         auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-        SceneRenderer::BeginScene(this, { editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+        renderer->SetScene(this);
+        SceneRenderer::BeginScene(editorCamera);
         for (auto entity : group)
         {
-            auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
+            auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
             if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
                 meshComponent.MeshObj->Update(dt);
-                Entity e = Entity{ entity, this };
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
 
-                if (e.HasComponent<RigidBodyComponent>())
-                {
-                    transform = e.Transform().GetTransform();
-                }
-
-                SceneRenderer::SubmitMesh(meshComponent, transform);
+                renderer->SubmitMesh(meshComponent, transform);
             }
         }
-        SceneRenderer::EndScene();
+        renderer->EndScene();*/
     }
 
     void Scene::OnEvent(Event& e)

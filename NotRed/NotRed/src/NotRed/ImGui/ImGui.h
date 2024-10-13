@@ -535,7 +535,7 @@ namespace NR::UI
 			{
 				AssetHandle assetHandle = *(AssetHandle*)data->Data;
 				Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-				char* assetName = AssetManager::GetMetadata(object->Handle).FileName.data();
+				if (asset->GetAssetType() == T::GetStaticType())
 				{
 					object = asset.As<T>();
 					modified = true;

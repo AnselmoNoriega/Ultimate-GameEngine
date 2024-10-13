@@ -28,6 +28,7 @@ namespace NR
 	{
 		Ref<Asset> temp = asset;
 		asset = Ref<MeshAsset>::Create(metadata.FilePath);
+		asset->Handle = metadata.Handle;
 		return (asset.As<MeshAsset>())->GetVertices().size() > 0;
 	}
 

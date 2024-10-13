@@ -35,6 +35,7 @@ namespace NR
 		
 		UpdateCurrentDirectory(mBaseDirectoryHandle);
 
+		memset(mRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 		memset(mSearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 	}
 
