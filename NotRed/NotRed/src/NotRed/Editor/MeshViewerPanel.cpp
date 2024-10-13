@@ -2,6 +2,7 @@
 #include "MeshViewerPanel.h"
 
 #include <assimp/scene.h>
+#include <filesystem>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
@@ -11,6 +12,7 @@
 #include <stack>
 
 #include "NotRed/Renderer/SceneRenderer.h"
+#include "NotRed/Asset/MeshSerializer.h"
 
 #include "NotRed/ImGui/ImGui.h"
 #include "NotRed/Math/Math.h"
@@ -152,7 +154,7 @@ namespace NR
 
 	void MeshViewerPanel::SetAsset(const Ref<Asset>& asset)
 	{
-		Ref<Mesh> mesh = (Ref<Mesh>)asset;
+		Ref<MeshAsset> mesh = (Ref<MeshAsset>)asset;
 
 		const std::string& path = mesh->GetFilePath();
 		size_t found = path.find_last_of("/\\");
@@ -172,13 +174,14 @@ namespace NR
 		sceneData->mName = name;
 		sceneData->mScene = Ref<Scene>::Create("MeshViewerPanel", true);
 		sceneData->mMeshEntity = sceneData->mScene->CreateEntity("Mesh");
-		sceneData->mMeshEntity.AddComponent<MeshComponent>(sceneData->mMesh);
+		sceneData->mMeshEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(sceneData->mMesh));
 		sceneData->mMeshEntity.AddComponent<SkyLightComponent>().DynamicSky = true;
 
 		sceneData->mDirectionaLight = sceneData->mScene->CreateEntity("DirectionalLight");
 		sceneData->mDirectionaLight.AddComponent<DirectionalLightComponent>();
 		sceneData->mDirectionaLight.GetComponent<TransformComponent>().Rotation = glm::radians(glm::vec3{ 80.0f, 10.0f, 0.0f });
 		sceneData->mSceneRenderer = Ref<SceneRenderer>::Create(sceneData->mScene);
+		sceneData->mSceneRenderer->SetShadowSettings(-15.0f, 15.0f, 0.95f);
 
 		ResetCamera(sceneData->mCamera);
 		mTabToFocus = name.c_str();
@@ -291,14 +294,14 @@ namespace NR
 		ImGui::PopID();
 	}
 
-	void MeshViewerPanel::DrawMeshNode(const Ref<Mesh>& mesh)
+	void MeshViewerPanel::DrawMeshNode(const Ref<MeshAsset>& mesh)
 	{
 		// Mesh Hierarchy
-		if (ImGui::TreeNode("Mesh Data"))
+		auto rootNode = mesh->mScene->mRootNode;
+		MeshNodeHierarchy(mesh, rootNode);
+		if (ImGui::Button("Create Mesh"))
 		{
-			auto rootNode = mesh->mScene->mRootNode;
-			MeshNodeHierarchy(mesh, rootNode);
-			ImGui::TreePop();
+			NR_CORE_ASSERT(false, "See above");
 		}
 	}
 
@@ -313,11 +316,25 @@ namespace NR
 		return result;
 	}
 
-	void MeshViewerPanel::MeshNodeHierarchy(const Ref<Mesh>& mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
+	void MeshViewerPanel::MeshNodeHierarchy(const Ref<MeshAsset>& mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
 	{
 		glm::mat4 localTransform = AssimpMat4ToMat4(node->mTransformation);
 		glm::mat4 transform = parentTransform * localTransform;
-		if (ImGui::TreeNode(node->mName.C_Str()))
+
+		static bool checked = true;
+		
+		ImGui::Checkbox("##checkbox", &checked);
+		ImGui::SameLine();
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+		
+		if (node->mNumChildren == 0)
+		{
+			flags |= ImGuiTreeNodeFlags_Leaf;
+		}
+
+		if (ImGui::TreeNodeEx(node->mName.C_Str(), flags))
+		{
+#if TRANSFORM_INFO
 		{
 			{
 				glm::vec3 translation, rotation, scale;
@@ -333,6 +350,7 @@ namespace NR
 				ImGui::Text("  Translation: %.2f, %.2f, %.2f", translation.x, translation.y, translation.z);
 				ImGui::Text("  Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
 			}
+#endif
 
 			for (uint32_t i = 0; i < node->mNumChildren; ++i)
 			{

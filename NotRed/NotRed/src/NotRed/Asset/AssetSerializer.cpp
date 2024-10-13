@@ -5,6 +5,7 @@
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Audio/AudioFileUtils.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -23,16 +24,16 @@ namespace NR
 		return result;
 	}
 
-	bool MeshSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	bool MeshAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		asset = Ref<Mesh>::Create(metadata.FilePath);
-		asset->Handle = metadata.Handle;
-		return (asset.As<Mesh>())->GetVertices().size() > 0;
+		Ref<Asset> temp = asset;
+		asset = Ref<MeshAsset>::Create(metadata.FilePath);
+		return (asset.As<MeshAsset>())->GetVertices().size() > 0;
 	}
 
 	bool EnvironmentSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		auto [radiance, irradiance] = SceneRenderer::CreateEnvironmentMap(metadata.FilePath);
+		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(metadata.FilePath);
 
 		if (!radiance || !irradiance)
 		{
@@ -78,6 +79,21 @@ namespace NR
 		float bounciness = data["Bounciness"].as<float>();
 
 		asset = Ref<PhysicsMaterial>::Create(staticFriction, dynamicFriction, bounciness);
+		asset->Handle = metadata.Handle;
+		return true;
+	}
+
+	bool AudioFileSourceSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		if (auto opt = AudioFileUtils::GetFileInfo(metadata))
+		{
+			AudioFileUtils::AudioFileInfo info = opt.value();
+			asset = Ref<AudioFile>::Create(info.Duration, info.SamplingRate, info.BidDepth, info.NumChannels, info.FileSize);
+		}
+		else
+		{
+			asset = Ref<AudioFile>::Create();
+		}
 		asset->Handle = metadata.Handle;
 		return true;
 	}

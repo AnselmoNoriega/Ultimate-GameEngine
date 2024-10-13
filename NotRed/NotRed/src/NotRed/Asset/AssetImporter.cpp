@@ -1,14 +1,18 @@
 #include "nrpch.h"
 #include "AssetImporter.h"
 
+#include "MeshSerializer.h"
+
 namespace NR
 {
 	void AssetImporter::Init()
 	{
 		sSerializers[AssetType::Texture] = CreateScope<TextureSerializer>();
+		sSerializers[AssetType::MeshAsset] = CreateScope<MeshAssetSerializer>();
 		sSerializers[AssetType::Mesh] = CreateScope<MeshSerializer>();
 		sSerializers[AssetType::EnvMap] = CreateScope<EnvironmentSerializer>();
 		sSerializers[AssetType::PhysicsMat] = CreateScope<PhysicsMaterialSerializer>();
+		sSerializers[AssetType::Audio] = CreateScope<AudioFileSourceSerializer>();
 	}
 
 	void AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)

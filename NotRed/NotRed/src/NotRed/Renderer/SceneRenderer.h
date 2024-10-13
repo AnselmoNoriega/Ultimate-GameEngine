@@ -54,8 +54,17 @@ namespace NR
 
         SceneRendererOptions& GetOptions();
 
+        void SetShadowSettings(float nearPlane, float farPlane, float lambda)
+        {
+            CascadeNearPlaneOffset = nearPlane;
+            CascadeFarPlaneOffset = farPlane;
+            CascadeSplitLambda = lambda;
+        }
+
         Ref<RenderPass> GetFinalRenderPass();
-        Ref<Image2D> GetFinalPassImage();
+        Ref<Image2D> GetFinalPassImage();	
+        
+        static void WaitForThreads();
 
     private:
         struct CascadeData
@@ -68,6 +77,7 @@ namespace NR
     private:
         void FlushDrawList();
         void ShadowMapPass();
+        void PreDepthPass();
         void GeometryPass();
         void CompositePass();
         void BloomBlurPass();

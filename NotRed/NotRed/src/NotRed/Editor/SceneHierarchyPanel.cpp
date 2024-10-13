@@ -117,43 +117,50 @@ namespace NR
                         if (ImGui::MenuItem("Cube"))
                         {
                             auto newEntity = mContext->CreateEntity("Cube");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Cube.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cube.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Sphere"))
                         {
                             auto newEntity = mContext->CreateEntity("Sphere");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Sphere.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Sphere.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Capsule"))
                         {
                             auto newEntity = mContext->CreateEntity("Capsule");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Capsule.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Capsule.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Cylinder")) 
                         {
                             auto newEntity = mContext->CreateEntity("Cylinder");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Cylinder.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cylinder.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Torus"))
                         {
                             auto newEntity = mContext->CreateEntity("Torus");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Torus.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Torus.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Plane"))
                         {
                             auto newEntity = mContext->CreateEntity("Plane");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Plane.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Plane.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Cone"))
                         {
                             auto newEntity = mContext->CreateEntity("Cone");
-                            newEntity.AddComponent<MeshComponent>(AssetManager::GetAsset<Mesh>("Assets/Meshes/Default/Cone.fbx"));
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cone.fbx");
+                            newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Particles"))
@@ -750,12 +757,13 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
                 UI::PropertyColor("Radiance", dlc.Radiance);
-                UI::Property("Intensity", dlc.Intensity);
-                UI::Property("Source Size", dlc.LightSize);
-                UI::Property("Near Plane", dlc.NearPlane);
-                UI::Property("Far Plane", dlc.FarPlane);
+                UI::Property("Intensity", dlc.Intensity, 0.05f, 0.f, 500.f);
+                UI::Property("Source Size", dlc.LightSize, 0.05f, 0.f, std::numeric_limits<float>::max());
+                UI::Property("Min Radius", dlc.MinRadius, 0.05f, 0.f, std::numeric_limits<float>::max());
+                UI::Property("Radius", dlc.Radius, 0.1f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Cast Shadows", dlc.CastsShadows);
                 UI::Property("Soft Shadows", dlc.SoftShadows);
+                UI::Property("Falloff", dlc.Falloff, 0.005f, 0.f, 1.f);
                 UI::EndPropertyGrid();
             });
 

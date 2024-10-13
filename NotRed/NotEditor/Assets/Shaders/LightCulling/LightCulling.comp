@@ -12,8 +12,8 @@ struct PointLight {
 	vec3 Position;
 	float Multiplier;
 	vec3 Radiance;
-	float NearPlane;
-	float FarPlane;
+	float MinRadius;
+	float Radius;
 	bool CastsShadows;
 	vec2 Padding;
 };
@@ -127,7 +127,7 @@ void main() {
 		}
 
 		vec4 position = vec4(upointLights[lightIndex].Position, 1.f);
-		float radius = upointLights[lightIndex].FarPlane;
+		float radius = upointLights[lightIndex].Radius;
 		radius += radius * 0.3f;
 
 		// We check if the light exists in our frustum

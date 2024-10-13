@@ -18,7 +18,7 @@ namespace NR
         bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
     };
 
-    class MeshSerializer : public AssetSerializer
+    class MeshAssetSerializer : public AssetSerializer
     {
     public:
         void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
@@ -36,6 +36,13 @@ namespace NR
     {
     public:
         void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
+        bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+    };
+
+    class AudioFileSourceSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {};
         bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
     };
 }

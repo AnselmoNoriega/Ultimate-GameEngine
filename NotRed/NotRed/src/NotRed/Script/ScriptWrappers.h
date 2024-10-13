@@ -108,7 +108,7 @@ namespace NR::Script
     bool NR_AudioComponent_Stop(uint64_t entityID);
     bool NR_AudioComponent_Pause(uint64_t entityID);
 
-    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<Asset>* sound);
+    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<AudioFile>* sound);
     void NR_AudioComponent_SetSoundPath(uint64_t entityID, MonoString* filepath);
     void NR_AudioComponent_SetVolumeMult(uint64_t entityID, float volumeMult);
     void NR_AudioComponent_SetPitchMult(uint64_t entityID, float pitchMult);
@@ -121,17 +121,17 @@ namespace NR::Script
     float NR_AudioComponent_GetPitchMult(uint64_t entityID);
     bool NR_AudioComponent_GetLooping(uint64_t entityID);
 
-    bool NR_Audio_PlaySound2DAsset(Ref<Asset>* sound, float volume = 1.0f, float pitch = 1.0f);
+    bool NR_Audio_PlaySound2DAsset(Ref<AudioFile>* sound, float volume = 1.0f, float pitch = 1.0f);
     bool NR_Audio_PlaySound2DAssetPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
-    bool NR_Audio_PlaySoundAtLocationAsset(Ref<Asset>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+    bool NR_Audio_PlaySoundAtLocationAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
     bool NR_Audio_PlaySoundAtLocationAssetPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
 
-    Ref<Asset>* NR_SimpleSound_Constructor(MonoString* filepath);
+    Ref<AudioFile>* NR_SimpleSound_Constructor(MonoString* filepath);
 
-    void NR_SimpleSound_Destructor(Ref<Asset>* _this);
+    void NR_SimpleSound_Destructor(Ref<AudioFile>* _this);
 
-    uint64_t NR_AudioCreateSound2DAsset(Ref<Asset>* sound, float volume = 1.0f, float pitch = 1.0f);
+    uint64_t NR_AudioCreateSound2DAsset(Ref<AudioFile>* sound, float volume = 1.0f, float pitch = 1.0f);
     uint64_t NR_AudioCreateSound2DPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
-    uint64_t NR_AudioCreateSound3DAsset(Ref<Asset>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+    uint64_t NR_AudioCreateSound3DAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
     uint64_t NR_AudioCreateSound3DPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
 }

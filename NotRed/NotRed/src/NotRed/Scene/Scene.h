@@ -39,10 +39,11 @@ namespace NR
 		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
 		float Multiplier = 0.0f;
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
-		float NearPlane = 0.001f;
-		float FarPlane = 25.0f;
+		float MinRadius = 0.001f;
+		float Radius = 25.0f;
 		bool CastsShadows = true;
-		glm::vec2 Padding{};
+		float Falloff = 1.f;
+		float SourceSize = 0.1f;
 	};
 
 	struct LightEnvironment

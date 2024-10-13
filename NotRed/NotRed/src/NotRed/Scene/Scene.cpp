@@ -375,8 +375,8 @@ namespace NR
                             transformComponent.Translation,
                             lightComponent.Intensity,
                             lightComponent.Radiance,
-                            lightComponent.NearPlane,
-                            lightComponent.FarPlane,
+                            lightComponent.MinRadius,
+                            lightComponent.Radius,
                             lightComponent.CastsShadows,
                         };
                     }
@@ -482,8 +482,8 @@ namespace NR
                         transformComponent.Translation,
                         lightComponent.Intensity,
                         lightComponent.Radiance,
-                        lightComponent.NearPlane,
-                        lightComponent.FarPlane,
+                        lightComponent.MinRadius,
+                        lightComponent.Radius,
                         lightComponent.CastsShadows,
                     };
                 }

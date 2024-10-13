@@ -742,7 +742,7 @@ namespace NR::Script
 
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)
     {
-        return new Ref<Mesh>(new Mesh(mono_string_to_utf8(filepath)));
+        return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create(mono_string_to_utf8(filepath))));
     }
 
     void NR_Mesh_Destructor(Ref<Mesh>* _this)
@@ -857,7 +857,7 @@ namespace NR::Script
 
     void* NR_MeshFactory_CreatePlane(float width, float height)
     {
-        return new Ref<Mesh>(new Mesh("Assets/Models/Plane1m.obj"));
+        return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create("Assets/Models/Plane1m.obj")));
     }
     
     const auto CheckActiveScene = [] { return ScriptEngine::GetCurrentSceneContext(); };
@@ -948,7 +948,7 @@ namespace NR::Script
         Audio::AudioPlayback::SetMasterReverbSend(entityID, sendLevel);
     }
 
-    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<Asset>* sound)
+    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<AudioFile>* sound)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
         GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.FileAsset = *sound;
@@ -956,7 +956,7 @@ namespace NR::Script
 
     void NR_AudioComponent_SetSoundPath(uint64_t entityID, MonoString* filepath)
     {
-        auto asset = AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath));
+        auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
         GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.FileAsset = asset;
     }
@@ -964,10 +964,11 @@ namespace NR::Script
     MonoString* NR_AudioComponent_GetSound(uint64_t entityID)
     {
         auto& audioComponent = GetEntityComponent<Audio::AudioComponent>(entityID);
-        return mono_string_new_wrapper(audioComponent.SoundConfig.FileAsset->FilePath.c_str());
+        const std::string& filepath = AssetManager::GetMetadata(audioComponent.SoundConfig.FileAsset->Handle).FilePath;
+        return mono_string_new_wrapper(filepath.c_str());
     }
 
-    bool NR_Audio_PlaySound2DAsset(Ref<Asset>* sound, float volume, float pitch)
+    bool NR_Audio_PlaySound2DAsset(Ref<AudioFile>* sound, float volume, float pitch)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
         return Audio::AudioPlayback::PlaySound2D(*sound, volume, pitch);
@@ -976,12 +977,12 @@ namespace NR::Script
     bool NR_Audio_PlaySound2DAssetPath(MonoString* filepath, float volume, float pitch)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-        auto asset = AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath));
+        auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
         return Audio::AudioPlayback::PlaySound2D(asset, volume, pitch);
     }
 
-    bool NR_Audio_PlaySoundAtLocationAsset(Ref<Asset>* sound, glm::vec3* location, float volume, float pitch)
+    bool NR_Audio_PlaySoundAtLocationAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume, float pitch)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
         return Audio::AudioPlayback::PlaySoundAtLocation(*sound, *location, volume, pitch);
@@ -990,24 +991,24 @@ namespace NR::Script
     bool NR_Audio_PlaySoundAtLocationAssetPath(MonoString* filepath, glm::vec3* location, float volume, float pitch)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-        auto asset = AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath));
+        auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
         return Audio::AudioPlayback::PlaySoundAtLocation(asset, *location, volume, pitch);
     }
 
-    Ref<Asset>* NR_SimpleSound_Constructor(MonoString* filepath)
+    Ref<AudioFile>* NR_SimpleSound_Constructor(MonoString* filepath)
     {
-        auto asset = AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath));
+        auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-        return new Ref<Asset>(AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath)));
+        return new Ref<AudioFile>(AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath)));
     }
 
-    void NR_SimpleSound_Destructor(Ref<Asset>* _this)
+    void NR_SimpleSound_Destructor(Ref<AudioFile>* _this)
     {
         delete _this;
     }
 
-    uint64_t NR_AudioCreateSound2DAsset(Ref<Asset>* sound, float volume, float pitch)
+    uint64_t NR_AudioCreateSound2DAsset(Ref<AudioFile>* sound, float volume, float pitch)
     {
         auto scene = CheckActiveScene();
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
@@ -1022,7 +1023,7 @@ namespace NR::Script
 
     uint64_t NR_AudioCreateSound2DPath(MonoString* filepath, float volume, float pitch)
     {
-        auto asset = AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath));
+        auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
         auto scene = CheckActiveScene();
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
@@ -1035,7 +1036,7 @@ namespace NR::Script
         return entity.GetID();
     }
 
-    uint64_t NR_AudioCreateSound3DAsset(Ref<Asset>* sound, glm::vec3* location, float volume, float pitch)
+    uint64_t NR_AudioCreateSound3DAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume, float pitch)
     {
         auto scene = CheckActiveScene();
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
@@ -1053,7 +1054,7 @@ namespace NR::Script
 
     uint64_t NR_AudioCreateSound3DPath(MonoString* filepath, glm::vec3* location, float volume, float pitch)
     {
-        auto asset = AssetManager::GetAsset<Asset>(mono_string_to_utf8(filepath));
+        auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
         auto scene = CheckActiveScene();
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");

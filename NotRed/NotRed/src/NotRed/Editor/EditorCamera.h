@@ -2,6 +2,7 @@
 
 #include "NotRed/Renderer/Camera.h"
 #include "NotRed/Core/TimeFrame.h"
+#include "NotRed/Core/Events/KeyEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
 
 namespace NR
@@ -46,11 +47,18 @@ namespace NR
 
         float GetPitch() const { return mPitch; }
         float GetYaw() const { return mYaw; }
+        float& GetCameraSpeed() { return mSpeed; }
+        [[nodiscard]] float GetCameraSpeed() const { return mSpeed; }
+        void SetAllowed(const bool allowed) { mIsAllowed = allowed; }
 
     private:
+        void CalculateYaw(float degrees);
+        void CalculatePitch(float degrees);
         void UpdateCameraView();
 
         bool OnMouseScroll(MouseScrolledEvent& e);
+        bool OnKeyPressed(KeyPressedEvent& e);
+        bool OnKeyReleased(KeyReleasedEvent& e);
 
         void MousePan(const glm::vec2& delta);
         void MouseRotate(const glm::vec2& delta);
@@ -73,7 +81,10 @@ namespace NR
 
         float mDistance;
         float mSpeed = 0.03f;
+        float mLastSpeed = 0.f;
         float mPitch, mYaw;
+
+        bool mIsAllowed = false;
 
         glm::vec3 mCameraPositionDelta;
         glm::vec3 mRightDirection {};

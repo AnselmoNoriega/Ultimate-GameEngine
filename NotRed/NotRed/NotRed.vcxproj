@@ -154,9 +154,11 @@
     <ClInclude Include="src\NotRed\Asset\AssetMetadata.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
     <ClInclude Include="src\NotRed\Asset\AssetTypes.h" />
+    <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
     <ClInclude Include="src\NotRed\Audio\Audio.h" />
     <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioFileUtils.h" />
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp" />
@@ -179,6 +181,7 @@
     <ClInclude Include="src\NotRed\Core\Events\Event.h" />
     <ClInclude Include="src\NotRed\Core\Events\KeyEvent.h" />
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h" />
+    <ClInclude Include="src\NotRed\Core\Hash.h" />
     <ClInclude Include="src\NotRed\Core\Input.h" />
     <ClInclude Include="src\NotRed\Core\KeyCodes.h" />
     <ClInclude Include="src\NotRed\Core\Layer.h" />
@@ -191,6 +194,7 @@
     <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h" />
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
@@ -236,7 +240,6 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKAllocator.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKComputePipeline.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKContext.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDevice.h" />
@@ -247,6 +250,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKMaterial.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKPipeline.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderPass.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKShader.h" />
@@ -359,9 +363,11 @@
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp" />
     <ClCompile Include="src\NotRed\Audio\Audio.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioComponent.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioFileUtils.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
@@ -375,6 +381,7 @@
     <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
+    <ClCompile Include="src\NotRed\Core\Hash.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
@@ -423,7 +430,6 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKDevice.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKDiagnostics.cpp" />
@@ -433,6 +439,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKMaterial.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp" />

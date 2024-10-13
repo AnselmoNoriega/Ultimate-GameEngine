@@ -251,7 +251,7 @@ namespace NR
     VKDevice::VKDevice(const Ref<VKPhysicalDevice>& physicalDevice, VkPhysicalDeviceFeatures enabledFeatures)
         : mPhysicalDevice(physicalDevice), mEnabledFeatures(enabledFeatures)
     {
-        constexpr bool enableAftermath = false;
+        constexpr bool enableAftermath = true;
 
         std::vector<const char*> deviceExtensions;
         // If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension

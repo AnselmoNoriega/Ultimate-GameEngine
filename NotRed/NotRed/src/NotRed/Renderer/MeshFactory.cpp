@@ -43,7 +43,7 @@ namespace NR
 		indices[10] = { 3, 2, 6 };
 		indices[11] = { 6, 7, 3 };
 
-		return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+		return Ref<Mesh>::Create(Ref<MeshAsset>::Create(vertices, indices, glm::mat4(1.0f)));
 	}
 
 	Ref<Mesh> MeshFactory::CreateSphere(float radius)
@@ -85,7 +85,7 @@ namespace NR
 			}
 		}
 
-		return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+		return Ref<Mesh>::Create(Ref<MeshAsset>::Create(vertices, indices, glm::mat4(1.0f)));
 	}
 
 	Ref<Mesh> MeshFactory::CreateCapsule(float radius, float height)
@@ -166,6 +166,6 @@ namespace NR
 			}
 		}
 
-		return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+		return Ref<Mesh>::Create(Ref<MeshAsset>::Create(vertices, indices, glm::mat4(1.0f)));
 	}
 }

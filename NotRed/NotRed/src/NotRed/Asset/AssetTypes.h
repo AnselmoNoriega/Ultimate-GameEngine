@@ -16,7 +16,10 @@ namespace NR
 		Mesh,
 		Texture,
 		EnvMap,
+		MeshAsset,
 		Audio,
+		SoundConfig,
+		SpatializationConfig,
 		PhysicsMat,
 		Other = -1
 	};

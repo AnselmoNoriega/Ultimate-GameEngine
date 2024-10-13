@@ -150,8 +150,9 @@ namespace NR
     AssetType AssetManager::GetAssetTypeForFileType(const std::string& extension)
     {
         if (extension == "nrsc") return AssetType::Scene;
-        if (extension == "fbx") return AssetType::Mesh;
-        if (extension == "obj") return AssetType::Mesh;
+        if (extension == "fbx") return AssetType::MeshAsset;
+        if (extension == "obj") return AssetType::MeshAsset;
+        if (extension == "nrm") return AssetType::Mesh;
         if (extension == "png") return AssetType::Texture;
         if (extension == "hdr") return AssetType::EnvMap;
         if (extension == "hpm") return AssetType::PhysicsMat;

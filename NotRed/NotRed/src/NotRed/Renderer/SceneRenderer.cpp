@@ -19,6 +19,8 @@
 
 namespace NR
 {
+	static std::vector<std::thread> sThreadPool;
+
 	SceneRenderer::SceneRenderer(Ref<Scene> scene)
 		: mScene(scene)
 	{
@@ -355,7 +357,13 @@ namespace NR
 		{
 			mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 			mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-			mNeedsResize = false;
+			mNeedsResize = false;			
+			
+			Renderer::Submit([=]
+				{
+					auto shader = sData->LightCullingMaterial->GetShader();
+					shader->ResizeStorageBuffer(14, sData->LightCullingWorkGroups.x * sData->LightCullingWorkGroups.y * 4 * 1024);
+				});
 		}
 
 		// Update uniform buffers
@@ -418,8 +426,27 @@ namespace NR
 	void SceneRenderer::EndScene()
 	{
 		NR_CORE_ASSERT(mActive);
+
+#if MULTI_THREAD
+		Ref<SceneRenderer> instance = this;
+		sThreadPool.emplace_back(([instance]() mutable
+			{
+				instance->FlushDrawList();
+			}));
+#else 
 		FlushDrawList();
+#endif
+
 		mActive = false;
+	}
+
+	void SceneRenderer::WaitForThreads()
+	{
+		for (uint32_t i = 0; i < sThreadPool.size(); ++i)
+		{
+			sThreadPool[i].join();
+		}
+		sThreadPool.clear();
 	}
 
 	void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial)

@@ -34,6 +34,8 @@ namespace NR
         std::pair<float, float> GetWindowPos() const override;
         std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
 
+        inline void* GetNativeWindow() const override { return mWindow; }
+
         Ref<RendererContext> GetRenderContext() override { return mRendererContext; }
         VKSwapChain& GetSwapChain() override;
 

@@ -211,13 +211,14 @@ namespace NR
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-                Ref<VKVertexBuffer> vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
+                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
 
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
                 VkDeviceSize offsets[1] = { 0 };
                 vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
 
-                auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
+                auto vulkanMeshIB = Ref<VKIndexBuffer>(meshAsset->GetIndexBuffer());
                 VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
                 vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -235,9 +236,11 @@ namespace NR
                     vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
                 }
 
+                const auto& meshAssetSubmeshes = meshAsset->GetSubmeshes();
                 auto& submeshes = mesh->GetSubmeshes();
-                for (Submesh& submesh : submeshes)
+                for (uint32_t submeshIndex : submeshes)
                 {
+                    const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
                     auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
                     material->RT_UpdateForRendering();
 
@@ -278,12 +281,14 @@ namespace NR
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-                auto vulkanMeshVB = mesh->GetVertexBuffer().As<VKVertexBuffer>();
+                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                auto vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
+
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
                 VkDeviceSize offsets[1] = { 0 };
                 vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
 
-                auto vulkanMeshIB = Ref<VKIndexBuffer>(mesh->GetIndexBuffer());
+                auto vulkanMeshIB = Ref<VKIndexBuffer>(meshAsset->GetIndexBuffer());
                 VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
                 vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -303,9 +308,11 @@ namespace NR
                     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
                 }
 
+                const auto& meshAssetSubmeshes = meshAsset->GetSubmeshes();
                 auto& submeshes = mesh->GetSubmeshes();
-                for (Submesh& submesh : submeshes)
+                for (uint32_t submeshIndex : submeshes)
                 {
+                    const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
                     glm::mat4 worldTransform = transform * submesh.Transform;
                     pushConstantBuffer.Write(&worldTransform, sizeof(glm::mat4));
                     vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, pushConstantBuffer.Size, pushConstantBuffer.Data);

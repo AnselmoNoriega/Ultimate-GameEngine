@@ -123,7 +123,13 @@
     <ClInclude Include="src\NotRed\Asset\AssetManager.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetMetadata.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetTypes.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\Audio.h">
@@ -133,6 +139,9 @@
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioFileUtils.h">
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h">
@@ -237,6 +246,9 @@
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -244,6 +256,9 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h">
@@ -351,6 +366,9 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h">
+      <Filter>src\NotRed\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
@@ -396,6 +414,9 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKPipeline.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderPass.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
@@ -412,6 +433,9 @@
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.h">
@@ -445,6 +469,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h">
@@ -487,6 +514,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
@@ -708,14 +738,8 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h" />
-    <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
-    <ClInclude Include="src\NotRed\Asset\AssetMetadata.h" />
-    <ClInclude Include="src\NotRed\Asset\AssetTypes.h" />
+    <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
+    <ClInclude Include="src\NotRed\Core\Hash.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -734,6 +758,9 @@
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioFileUtils.cpp">
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp">
@@ -803,6 +830,9 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp">
@@ -913,7 +943,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp">
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp">
@@ -941,6 +971,9 @@
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp">
@@ -1000,6 +1033,9 @@
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1028,6 +1064,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
@@ -1165,9 +1204,7 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
+    <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Core\Hash.cpp" />
   </ItemGroup>
 </Project>

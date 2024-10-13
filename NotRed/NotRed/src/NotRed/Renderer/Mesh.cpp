@@ -80,7 +80,7 @@ namespace NR
 		return result;
 	}
 
-	Mesh::Mesh(const std::string& filename)
+	MeshAsset::MeshAsset(const std::string& filename)
 		: mFilePath(filename)
 	{
 		LogStream::Initialize();
@@ -482,7 +482,7 @@ namespace NR
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
 	}
 
-	Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
+	MeshAsset::MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
 		: mStaticVertices(vertices), mIndices(indices), mIsAnimated(false)
 	{
 		Submesh submesh;
@@ -503,7 +503,7 @@ namespace NR
 		};
 	}
 
-	Mesh::Mesh(int particleCount)
+	MeshAsset::MeshAsset(int particleCount)
 		: mIsAnimated(false)
 	{
 		{
@@ -552,7 +552,7 @@ namespace NR
 		};
 	}
 
-	Mesh::Mesh(Ref<Mesh> originalMesh, Submesh submesh)
+	MeshAsset::MeshAsset(Ref<Mesh> originalMesh, Submesh submesh)
 	{
 		uint32_t materialIndex = submesh.MaterialIndex;
 		uint32_t currentFace = 0;
@@ -593,11 +593,11 @@ namespace NR
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
 	}
 
-	Mesh::~Mesh()
+	MeshAsset::~MeshAsset()
 	{
 	}
 
-	uint32_t Mesh::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
+	uint32_t MeshAsset::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
 	{
 		for (uint32_t i = 0; i < pNodeAnim->mNumPositionKeys - 1; ++i)
 		{
@@ -611,7 +611,7 @@ namespace NR
 	}
 
 
-	uint32_t Mesh::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
+	uint32_t MeshAsset::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
 	{
 		NR_CORE_ASSERT(pNodeAnim->mNumRotationKeys > 0);
 
@@ -627,7 +627,7 @@ namespace NR
 	}
 
 
-	uint32_t Mesh::FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim)
+	uint32_t MeshAsset::FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim)
 	{
 		NR_CORE_ASSERT(pNodeAnim->mNumScalingKeys > 0);
 
@@ -642,7 +642,7 @@ namespace NR
 		return 0;
 	}
 
-	void Mesh::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
+	void MeshAsset::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
 	{
 		glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
 		for (uint32_t i = 0; i < node->mNumMeshes; ++i)
@@ -659,7 +659,7 @@ namespace NR
 		}
 	}
 
-	glm::vec3 Mesh::InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim)
+	glm::vec3 MeshAsset::InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim)
 	{
 		if (nodeAnim->mNumPositionKeys == 1)
 		{
@@ -684,7 +684,7 @@ namespace NR
 	}
 
 
-	glm::quat Mesh::InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim)
+	glm::quat MeshAsset::InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim)
 	{
 		if (nodeAnim->mNumRotationKeys == 1)
 		{
@@ -709,7 +709,7 @@ namespace NR
 		return glm::quat(q.w, q.x, q.y, q.z);
 	}
 
-	glm::vec3 Mesh::InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim)
+	glm::vec3 MeshAsset::InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim)
 	{
 		if (nodeAnim->mNumScalingKeys == 1)
 		{
@@ -733,7 +733,7 @@ namespace NR
 		return { aiVec.x, aiVec.y, aiVec.z };
 	}
 
-	void Mesh::ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& parentTransform)
+	void MeshAsset::ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& parentTransform)
 	{
 		std::string name(pNode->mName.data);
 		const aiAnimation* animation = mScene->mAnimations[0];
@@ -768,7 +768,7 @@ namespace NR
 		}
 	}
 
-	const aiNodeAnim* Mesh::FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
+	const aiNodeAnim* MeshAsset::FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
 	{
 		for (uint32_t i = 0; i < animation->mNumChannels; ++i)
 		{
@@ -781,7 +781,7 @@ namespace NR
 		return nullptr;
 	}
 
-	void Mesh::BoneTransform(float time)
+	void MeshAsset::BoneTransform(float time)
 	{
 		ReadNodeHierarchy(time, mScene->mRootNode, glm::mat4(1.0f));
 		mBoneTransforms.resize(mBoneCount);
@@ -791,7 +791,7 @@ namespace NR
 		}
 	}
 
-	void Mesh::Update(float dt)
+	void MeshAsset::Update(float dt)
 	{
 		if (mIsAnimated)
 		{
@@ -808,7 +808,7 @@ namespace NR
 		}
 	}
 
-	void Mesh::DumpVertexBuffer()
+	void MeshAsset::DumpVertexBuffer()
 	{
 		NR_MESH_LOG("------------------------------------------------------");
 		NR_MESH_LOG("Vertex Buffer Dump");
@@ -844,4 +844,40 @@ namespace NR
 		NR_MESH_LOG("------------------------------------------------------");
 	}
 
+
+	Mesh::Mesh(Ref<MeshAsset> meshAsset)
+		: mMeshAsset(meshAsset)
+	{
+		Type = AssetType::Mesh;
+		const auto& assetSubmeshes = mMeshAsset->GetSubmeshes();
+		mSubmeshes.resize(assetSubmeshes.size());
+		for (size_t i = 0; i < assetSubmeshes.size(); i++)
+		{
+			mSubmeshes[i] = i;
+		}
+		
+		for (const auto& material : meshAsset->GetMaterials())
+		{
+			mMaterials.push_back(material);
+		}
+	}
+
+	Mesh::Mesh(Ref<MeshAsset> meshAsset, const std::vector<uint32_t>& submeshes)
+		: mMeshAsset(meshAsset), mSubmeshes(submeshes)
+	{
+		Type = AssetType::Mesh;
+
+		for (const auto& material : meshAsset->GetMaterials())
+		{
+			mMaterials.push_back(material);
+		}
+	}
+
+	Mesh::~Mesh()
+	{
+	}
+
+	void Mesh::Update(float dt)
+	{
+	}
 }

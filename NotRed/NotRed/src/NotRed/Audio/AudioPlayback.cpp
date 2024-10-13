@@ -33,7 +33,7 @@ namespace NR::Audio
         return true;
     }
 
-    bool AudioPlayback::PlaySound2D(Ref<Asset> soundAsset, float volume, float pitch)
+    bool AudioPlayback::PlaySound2D(Ref<AudioFile> soundAsset, float volume, float pitch)
     {
         SoundConfig sc;
         sc.FileAsset = soundAsset;
@@ -65,7 +65,7 @@ namespace NR::Audio
         return true;
     }
 
-    bool AudioPlayback::PlaySoundAtLocation(Ref<Asset> soundAsset, glm::vec3 location, float volume, float pitch)
+    bool AudioPlayback::PlaySoundAtLocation(Ref<AudioFile> soundAsset, glm::vec3 location, float volume, float pitch)
     {
         SoundConfig sc;
         sc.FileAsset = soundAsset;

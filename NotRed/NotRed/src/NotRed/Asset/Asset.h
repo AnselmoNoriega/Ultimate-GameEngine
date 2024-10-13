@@ -57,4 +57,22 @@ namespace NR
 		static AssetType GetStaticType() { return AssetType::PhysicsMat; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 	};
+
+	class AudioFile : public Asset
+	{
+	public:
+		double Duration;
+		uint32_t SamplingRate;
+		uint16_t BitDepth;
+		uint16_t NumChannels;
+		uint64_t FileSize;
+
+		AudioFile() = default;
+		AudioFile(double duration, uint32_t samplingRate, uint16_t bitDepth, uint16_t numChannels, uint64_t fileSize)
+			: Duration(duration), SamplingRate(samplingRate), BitDepth(bitDepth), NumChannels(numChannels), FileSize(fileSize)
+		{}
+
+		static AssetType GetStaticType() { return AssetType::Audio; }
+		virtual AssetType GetAssetType() const override { return AssetType::Audio; }
+	};
 }

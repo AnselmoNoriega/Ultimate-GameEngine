@@ -284,7 +284,15 @@ namespace NR
 			auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
 			if (mesh)
 			{
-				out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
+				if (mesh->Type == AssetType::Missing)
+				{
+					out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
+				}
+				else
+				{
+					auto meshAsset = mesh->GetMeshAsset();
+					out << YAML::Key << "AssetID" << YAML::Value << meshAsset->Handle;
+				}
 			}
 			else
 			{
@@ -339,9 +347,10 @@ namespace NR
 			out << YAML::Key << "Intensity" << YAML::Value << directionalLightComponent.Intensity;
 			out << YAML::Key << "CastShadows" << YAML::Value << directionalLightComponent.CastsShadows;
 			out << YAML::Key << "SoftShadows" << YAML::Value << directionalLightComponent.SoftShadows;
-			out << YAML::Key << "NearPlane" << YAML::Value << directionalLightComponent.NearPlane;
-			out << YAML::Key << "FarPlane" << YAML::Value << directionalLightComponent.FarPlane;
+			out << YAML::Key << "MinRadius" << YAML::Value << directionalLightComponent.MinRadius;
+			out << YAML::Key << "Radius" << YAML::Value << directionalLightComponent.Radius;
 			out << YAML::Key << "LightSize" << YAML::Value << directionalLightComponent.LightSize;
+			out << YAML::Key << "Falloff" << YAML::Value << directionalLightComponent.Falloff;
 			out << YAML::EndMap; // PointLightComponent
 		}
 
@@ -825,7 +834,7 @@ namespace NR
 
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+						component.MeshObj = Ref<Mesh>::Create(AssetManager::GetAsset<MeshAsset>(assetHandle));
 					}
 					else
 					{
@@ -905,8 +914,9 @@ namespace NR
 					component.CastsShadows = pointLightComponent["CastShadows"].as<bool>();
 					component.SoftShadows = pointLightComponent["SoftShadows"].as<bool>();
 					component.LightSize = pointLightComponent["LightSize"].as<float>();
-					component.FarPlane = pointLightComponent["FarPlane"].as<float>();
-					component.NearPlane = pointLightComponent["NearPlane"].as<float>();
+					component.Radius = pointLightComponent["Radius"].as<float>();
+					component.MinRadius = pointLightComponent["MinRadius"].as<float>();
+					component.Falloff = pointLightComponent["Falloff"].as<float>();
 				}
 
 				auto skyLightComponent = entity["SkyLightComponent"];
@@ -1128,7 +1138,7 @@ namespace NR
 					AssetHandle assetHandle = audioComponent["AssetID"] ? audioComponent["AssetID"].as<uint64_t>() : 0;
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						soundConfig.FileAsset = AssetManager::GetAsset<Asset>(assetHandle);
+						soundConfig.FileAsset = AssetManager::GetAsset<AudioFile>(assetHandle);
 					}
 					else
 					{

@@ -24,7 +24,7 @@ namespace NR
         static AssetMetadata& GetMetadata(const std::string& filepath);
 
         static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
-        static bool IsAssetHandleValid(AssetHandle assetHandle) { return assetHandle != 0 && sLoadedAssets.find(assetHandle) != sLoadedAssets.end(); }
+        static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
 
         static void Rename(AssetHandle assetHandle, const std::string& newName);
         static void RemoveAsset(AssetHandle assetHandle);
@@ -66,6 +66,7 @@ namespace NR
             if (!metadata.IsDataLoaded)
             {
                 metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+                sLoadedAssets[assetHandle] = asset;
             }
             else
             {

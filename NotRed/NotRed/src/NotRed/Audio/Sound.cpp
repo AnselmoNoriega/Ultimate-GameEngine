@@ -3,6 +3,8 @@
 
 #include "AudioEngine.h"
 
+#include "NotRed/Asset/AssetManager.h"
+
 namespace NR::Audio
 {
 	const std::string Sound::StringFromState(Sound::ESoundPlayState state)
@@ -66,8 +68,10 @@ namespace NR::Audio
 			ma_node_uninit(&mMasterSplitter, &mSound.engineNode.pEngine->pResourceManager->config.allocationCallbacks);
 		}
 
+		auto& assetMetadata = AssetManager::GetMetadata(config.FileAsset->Handle);
+
 		ma_result result;
-		result = ma_sound_init_from_file(&audioEngine->mEngine, config.FileAsset->FilePath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, &mSound);
+		result = ma_sound_init_from_file(&audioEngine->mEngine, assetMetadata.FilePath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, &mSound);
 
 		if (result != MA_SUCCESS)
 		{

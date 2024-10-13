@@ -180,13 +180,6 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Assets\Shaders\LightCulling\LightCulling.comp" />
-    <None Include="Assets\Shaders\PreDepth\PreDepth.frag" />
-    <None Include="Assets\Shaders\PreDepth\PreDepth.vert" />
-    <None Include="Assets\Shaders\PreDepth_Anim\PreDepth_Anim.frag" />
-    <None Include="Assets\Shaders\PreDepth_Anim\PreDepth_Anim.vert" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

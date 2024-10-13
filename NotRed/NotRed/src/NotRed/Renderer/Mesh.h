@@ -129,15 +129,15 @@ namespace NR
 		std::string NodeName, MeshName;
 	};
 
-	class Mesh : public Asset
+	class MeshAsset : public Asset
 	{
 	public:
-		Mesh() = default;
-		Mesh(const std::string& filename);
-		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
-		Mesh(Ref<Mesh> originalMesh, Submesh submesh);
-		Mesh(int particleCount);
-		~Mesh();
+		MeshAsset() = default;
+		MeshAsset(const std::string& filename);
+		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		MeshAsset(Ref<MeshAsset> originalMesh, Submesh submesh);
+		MeshAsset(int particleCount);
+		virtual ~MeshAsset();
 
 		void Update(float dt);
 		void DumpVertexBuffer();
@@ -213,8 +213,6 @@ namespace NR
 
 		// Animation
 		bool mIsAnimated = false;
-		float mAnimationTime = 0.0f;
-		float mWorldTime = 0.0f;
 		float mTimeMultiplier = 1.0f;
 		bool mAnimationPlaying = true;
 
@@ -224,6 +222,54 @@ namespace NR
 		friend class Renderer;
 		friend class VkRenderer;
 		friend class GLRenderer;
+		friend class SceneHierarchyPanel;
+		friend class MeshViewerPanel;
+	};
+
+	class Mesh : public Asset
+	{
+	public:
+		Mesh() = default;
+		Mesh(const std::string& filename);
+		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		Mesh(Ref<MeshAsset> originalMesh, Submesh submesh);
+		Mesh(int particleCount);
+		virtual ~Mesh();
+
+		void Update(float dt);
+
+		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
+		void SetSubmeshes(const std::vector<uint32_t>& submeshes) { mSubmeshes = submeshes; }
+		
+		Ref<MeshAsset> GetMeshAsset() { return mMeshAsset; }
+		void SetMeshAsset(Ref<MeshAsset> meshAsset) { mMeshAsset = meshAsset; }
+		
+		Ref<Shader> GetMeshShader() { return mMeshShader; }
+		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
+		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
+		
+	private:
+		Ref<MeshAsset> mMeshAsset;
+		std::vector<uint32_t> mSubmeshes;
+		uint32_t mBoneCount = 0;
+		std::vector<BoneInfo> mBoneInfo;
+
+		// Materials
+		Ref<Shader> mMeshShader;
+		std::vector<Ref<Material>> mMaterials;
+		
+		// Animation
+		bool mIsAnimated = false;
+		float mAnimationTime = 0.0f;
+		float mWorldTime = 0.0f;
+		float mTimeMultiplier = 1.0f;
+		bool mAnimationPlaying = true;
+		
+	private:
+		friend class MeshAsset;
+		friend class Renderer;
+		friend class VulkanRenderer;
+		friend class OpenGLRenderer;
 		friend class SceneHierarchyPanel;
 		friend class MeshViewerPanel;
 	};

@@ -8,6 +8,7 @@
 #include <spirv-tools/libspirv.h>
 
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Core/Hash.h"
 
 #include "VKContext.h"
 #include "VKRenderer.h"
@@ -129,15 +130,18 @@ namespace NR
                     std::string vert = "";
                     instance->ParseFile(path, vert);
                     instance->mShaderSource.insert({ VK_SHADER_STAGE_VERTEX_BIT, vert });
+                    uint32_t hashV = Hash::GenerateFNVHash(vert.c_str());
 
                     path = instance->mAssetPath + "/" + instance->mName + ".frag";
                     std::string frag = "";
                     instance->ParseFile(path, frag);
                     instance->mShaderSource.insert({ VK_SHADER_STAGE_FRAGMENT_BIT, frag });
+                    uint32_t hashI = Hash::GenerateFNVHash(frag.c_str());
                 }
                 else
                 {
                     instance->mShaderSource.insert({ VK_SHADER_STAGE_COMPUTE_BIT, compute });
+                    uint32_t hash = Hash::GenerateFNVHash(compute.c_str());
                 }
 
                 std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> shaderData;
@@ -766,7 +770,7 @@ namespace NR
 
         // Create a new buffer
         VKAllocator allocator("StorageBuffer");
-        storageBuffer.MemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_GPU_ONLY, storageBuffer.Buffer); //Stored on GPU only for now
+        storageBuffer.MemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, storageBuffer.Buffer); //Stored on GPU only for now
 
         // Store information in the uniform's descriptor that is used by the descriptor set
         storageBuffer.Descriptor.buffer = storageBuffer.Buffer;
