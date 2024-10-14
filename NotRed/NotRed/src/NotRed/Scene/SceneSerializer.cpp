@@ -284,15 +284,8 @@ namespace NR
 			auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
 			if (mesh)
 			{
-				if (mesh->Type == AssetType::Missing)
-				{
-					out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
-				}
-				else
-				{
-					auto meshAsset = mesh->GetMeshAsset();
-					out << YAML::Key << "AssetID" << YAML::Value << meshAsset->Handle;
-				}
+				auto meshAsset = mesh->GetMeshAsset();
+				out << YAML::Key << "AssetID" << YAML::Value << meshAsset->Handle;
 			}
 			else
 			{

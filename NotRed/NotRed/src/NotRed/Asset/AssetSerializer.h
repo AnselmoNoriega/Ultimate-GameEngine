@@ -35,7 +35,7 @@ namespace NR
     class PhysicsMaterialSerializer : public AssetSerializer
     {
     public:
-        void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
+        void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
         bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
     };
 

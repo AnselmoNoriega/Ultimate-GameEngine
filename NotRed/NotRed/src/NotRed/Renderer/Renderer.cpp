@@ -120,8 +120,8 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/LightCulling", true);
-        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim.glsl");
-        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth_Anim.glsl");
+        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim");
+        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth_Anim");
 
         // Compile shaders
         Renderer::WaitAndRender();
@@ -202,19 +202,14 @@ namespace NR
         sRendererAPI->GenerateParticles();
     }
 
+    void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, const glm::ivec3& workGroups, Ref <Material> material)
+    {
+        sRendererAPI->DispatchComputeShader(renderCommandBuffer, workGroups, material);
+    }
+
     void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
         sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, mesh, transform);
-    }
-
-    void Renderer::DispatchComputeShader(const glm::ivec3& workGroups, Ref <Material> material)
-    {
-        sRendererAPI->DispatchComputeShader(workGroups, material);
-    }
-
-    void Renderer::RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
-    {
-        sRendererAPI->RenderParticles(pipeline, mesh, transform);
     }
 
     void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms)
@@ -222,13 +217,14 @@ namespace NR
         sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, mesh, material, transform, additionalUniforms);
     }
 
-    void Renderer::RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform)
+    void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sRendererAPI->RenderQuad(renderCommandBuffer, pipeline, uniformBufferSet, material, transform);
+        sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet, mesh, transform);
     }
 
     void Renderer::SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform)
     {
+        NR_CORE_ASSERT(false, "Not Implemented");
     }
 
     void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material)

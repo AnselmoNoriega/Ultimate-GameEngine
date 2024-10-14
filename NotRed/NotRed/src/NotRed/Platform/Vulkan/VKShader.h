@@ -12,15 +12,12 @@ namespace NR
     public:
         struct UniformBuffer
         {
-            VmaAllocation MemoryAlloc = nullptr;
-            VkBuffer Buffer;
             VkDescriptorBufferInfo Descriptor;
             uint32_t Size = 0;
             uint32_t BindingPoint = 0;
             std::string Name;
             VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         };
-
 
         struct StorageBuffer
         {
@@ -87,7 +84,12 @@ namespace NR
         VkDescriptorSetLayout GetDescriptorSetLayout(uint32_t set) { return mDescriptorSetLayouts.at(set); }
         std::vector<VkDescriptorSetLayout> GetAllDescriptorSetLayouts();
 
-        UniformBuffer& GetUniformBuffer(uint32_t binding = 0, uint32_t set = 0) { NR_CORE_ASSERT(mShaderDescriptorSets.at(set).UniformBuffers.size() > binding); return *mShaderDescriptorSets.at(set).UniformBuffers.at(binding); }
+        UniformBuffer& GetUniformBuffer(uint32_t binding = 0, uint32_t set = 0) 
+        { 
+            NR_CORE_ASSERT(mShaderDescriptorSets.at(set).UniformBuffers.size() > binding); 
+            return *mShaderDescriptorSets.at(set).UniformBuffers.at(binding); 
+        }
+
         uint32_t GetUniformBufferCount(uint32_t set = 0)
         {
             if (mShaderDescriptorSets.size() < set)

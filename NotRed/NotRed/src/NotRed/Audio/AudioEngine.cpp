@@ -611,7 +611,8 @@ namespace NR::Audio
 			if (ac.PlayOnAwake)
 			{
 				auto newScene = Scene::GetScene(currentSceneID);
-				if (!newScene->IsEditorScene() && newScene->IsPlaying())
+				//TODO
+				//if (!newScene->IsEditorScene() && newScene->IsPlaying())
 				{
 					auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
 					ac.SourcePosition = translation;
@@ -652,7 +653,8 @@ namespace NR::Audio
 		{
 			auto newScene = Scene::GetScene(sceneID);
 
-			if (!newScene->IsEditorScene() && newScene->IsPlaying())
+			//TODO
+			//if (!newScene->IsEditorScene() && newScene->IsPlaying())
 			{
 				auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
 				ac->SourcePosition = translation;

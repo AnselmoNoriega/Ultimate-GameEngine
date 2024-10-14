@@ -19,9 +19,6 @@ namespace NR
         EditorCamera() = default;
         EditorCamera(const glm::mat4& projectionMatrix);
 
-        void CalculateYaw(float degrees);
-        void CalculatePitch(float degrees);
-
         void Update(float dt);
         void OnEvent(Event& e);
 

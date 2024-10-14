@@ -58,7 +58,6 @@ namespace NR::Audio
 
 		float LPFilterValue = 1.0f;
 		float HPFilterValue = 0.0f;
-		float HPFilterValue = 0.0f;
 
 		static AssetType GetStaticType() { return AssetType::SoundConfig; }
 		AssetType GetAssetType() const override { return AssetType::SoundConfig; }

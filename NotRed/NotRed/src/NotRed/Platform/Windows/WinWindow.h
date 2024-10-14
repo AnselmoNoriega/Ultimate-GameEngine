@@ -30,7 +30,6 @@ namespace NR
         const std::string& GetTitle() const override { return mData.Title; }
         void SetTitle(const std::string& title) override;
 
-        inline void* GetNativeWindow() const override { return mWindow; }
         std::pair<float, float> GetWindowPos() const override;
         std::pair<uint32_t, uint32_t> GetSize() const override { return { mData.Width, mData.Height }; }
 

@@ -233,6 +233,7 @@ namespace NR
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes) { mSubmeshes = submeshes; }
 
 		Ref<MeshAsset> GetMeshAsset() { return mMeshAsset; }
+		Ref<MeshAsset> GetMeshAsset() const { return mMeshAsset; }
 		void SetMeshAsset(Ref<MeshAsset> meshAsset) { mMeshAsset = meshAsset; }
 
 		Ref<Shader> GetMeshShader() { return mMeshShader; }

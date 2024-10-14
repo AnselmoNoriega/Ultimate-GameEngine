@@ -8,10 +8,10 @@
 #include "NotRed/Renderer/Material.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 
+#include "Entt/include/entt.hpp"
+
 #include "SceneCamera.h"
 #include "NotRed/Editor/EditorCamera.h"
-
-#include "entt.hpp"
 
 namespace NR
 {
@@ -52,6 +52,7 @@ namespace NR
 		std::vector<PointLight> PointLights;
 	};
 
+
 	class Entity;
 	struct TransformComponent;
 
@@ -68,50 +69,48 @@ namespace NR
 		void Update(float dt);
 		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
 		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
-		void RenderSimulation(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
 		void OnEvent(Event& e);
 
+		// Runtime
 		void RuntimeStart();
 		void RuntimeStop();
-
-		void SimulationStart();
-		void SimulationEnd();
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
 		const Ref<Environment>& GetEnvironment() const { return mEnvironment; }
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
-		float& GetSkyboxLod() { return mSkyboxLod; }
-		float GetSkyboxLod() const { return mSkyboxLod; }
-
 		Light& GetLight() { return mLight; }
 		const Light& GetLight() const { return mLight; }
 
-		Entity CreateEntity(const std::string& name = "Entity");
-		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
-		void DuplicateEntity(Entity entity);
+		Entity GetMainCameraEntity();
+
+		float& GetSkyboxLod() { return mSkyboxLod; }
+		float GetSkyboxLod() const { return mSkyboxLod; }
+
+		Entity CreateEntity(const std::string& name = "");
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
 		void DestroyEntity(Entity entity);
 
-		Entity GetMainCameraEntity();
-		Entity FindEntityByTag(const std::string& tag);
-		Entity FindEntityByID(UUID id);
-
-		void ConvertToLocalSpace(Entity entity);
-		void ConvertToWorldSpace(Entity entity);
-
-		glm::mat4 GetTransformRelativeToParent(Entity entity);
-		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
-		TransformComponent GetWorldSpaceTransform(Entity entity);
-
-		void ParentEntity(Entity entity, Entity parent);
-		void UnparentEntity(Entity entity);
+		void DuplicateEntity(Entity entity);
 
 		template<typename T>
 		auto GetAllEntitiesWith()
 		{
 			return mRegistry.view<T>();
 		}
+
+		Entity FindEntityByTag(const std::string& tag);
+		Entity FindEntityByID(UUID id);
+
+		void ConvertToLocalSpace(Entity entity);
+		void ConvertToWorldSpace(Entity entity);
+		glm::mat4 GetTransformRelativeToParent(Entity entity);
+		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+		TransformComponent GetWorldSpaceTransform(Entity entity);
+
+		void ParentEntity(Entity entity, Entity parent);
+		void UnparentEntity(Entity entity);
 
 		const EntityMap& GetEntityMap() const { return mEntityIDMap; }
 		void CopyTo(Ref<Scene>& target);
@@ -120,12 +119,10 @@ namespace NR
 
 		static Ref<Scene> GetScene(UUID uuid);
 
-		bool IsEditorScene() const { return mIsEditorScene; }
-		bool IsPlaying() const { return mIsPlaying; }
-
 		float GetPhysics2DGravity() const;
 		void SetPhysics2DGravity(float gravity);
 
+		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { mSelectedEntity = entity; }
 
 		static AssetType GetStaticType() { return AssetType::Scene; }
@@ -137,7 +134,6 @@ namespace NR
 		entt::registry mRegistry;
 
 		std::string mDebugName;
-		bool mIsEditorScene = false;
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 
 		EntityMap mEntityIDMap;
@@ -158,8 +154,8 @@ namespace NR
 
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;
-		bool mShouldSimulate = false;
 
+	private:
 		friend class Entity;
 		friend class SceneRenderer;
 		friend class SceneSerializer;
@@ -167,7 +163,6 @@ namespace NR
 
 		friend void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
 		friend void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
-		friend void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
-		friend void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
 	};
+
 }

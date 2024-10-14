@@ -10,13 +10,14 @@
 
 #include <string>
 
-#include "NotRed/ImGui/ImGuiLayer.h"
 #include "imgui/imgui_internal.h"
+
+#include "NotRed/ImGui/ImGuiLayer.h"
+#include "NotRed/Editor/EditorCamera.h"
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
 #include "NotRed/Editor/ContentBrowserPanel.h"
 #include "NotRed/Editor/ObjectsPanel.h"
-#include "NotRed/Editor/EditorCamera.h"
 
 namespace NR
 {
@@ -33,17 +34,16 @@ namespace NR
 
 	public:
 		EditorLayer();
-		virtual ~EditorLayer();
+		~EditorLayer();
 
 		void Attach() override;
 		void Detach() override;
 		void Update(float dt) override;
 
 		void ImGuiRender() override;
-		void OnEvent(Event& e) override;
-
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+		void OnEvent(Event& e) override;
 
 		void ShowBoundingBoxes(bool show, bool onTop = false);
 		void SelectEntity(Entity entity);
@@ -72,24 +72,21 @@ namespace NR
 		void EntityDeleted(Entity e);
 		Ray CastMouseRay();
 
-		void DeleteEntity(Entity entity);
-
 		void ScenePlay();
 		void SceneStop();
-
-		void SceneStartSimulation();
-		void SceneEndSimulation();
 
 		void UpdateWindowTitle(const std::string& sceneName);
 
 		float GetSnapValue();
+
+		void DeleteEntity(Entity entity);
 
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
 
-		Ref<Scene> mRuntimeScene, mEditorScene, mSimulationScene, mCurrentScene;
+		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
 		Ref<SceneRenderer> mViewportRenderer;
 		Ref<SceneRenderer> mSecondViewportRenderer;
 		Ref<SceneRenderer> mFocusedRenderer;
@@ -104,7 +101,7 @@ namespace NR
 
 		struct AlbedoInput
 		{
-			glm::vec3 Color = { 0.972f, 0.96f, 0.915f }; 
+			glm::vec3 Color = { 0.972f, 0.96f, 0.915f }; // Silver, from https://docs.unrealengine.com/en-us/Engine/Rendering/Materials/PhysicallyBased
 			Ref<Texture2D> TextureMap;
 			bool SRGB = true;
 			bool UseTexture = false;
@@ -134,21 +131,19 @@ namespace NR
 
 		enum class SceneType : uint32_t
 		{
-			Spheres, 
-			Model
+			Spheres = 0, Model = 1
 		};
 		SceneType mSceneType;
 
 		// Editor resources
-		Ref<Texture2D> mCheckerboardTex;		
+		Ref<Texture2D> mCheckerboardTex;
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
 
 		glm::vec2 mViewportBounds[2];
 		glm::vec2 mSecondViewportBounds[2];
+		int mGizmoType = -1;
 		float mSnapValue = 0.5f;
 		float mRotationSnapValue = 45.0f;
-
-		int mGizmoType = -1;
 		bool mDrawOnTopBoundingBoxes = false;
 
 		bool mUIShowBoundingBoxes = false;
@@ -156,30 +151,26 @@ namespace NR
 
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
+		bool mAllowViewportCameraEvents = false;
 
 		bool mViewportPanel2MouseOver = false;
 		bool mViewportPanel2Focused = false;
 
 		bool mShowPhysicsSettings = false;
-		
 		bool mShowSecondViewport = false;
 
 		bool mShowWelcomePopup = true;
+		bool mShowAboutPopup = false;
 
 		enum class SceneState
 		{
-			Edit,
-			Play,
-			Pause, 
-			Simulate
+			Edit = 0, Play = 1, Pause = 2
 		};
 		SceneState mSceneState = SceneState::Edit;
 
 		enum class SelectionMode
 		{
-			None, 
-			Entity,
-			SubMesh
+			None = 0, Entity = 1, SubMesh = 2
 		};
 
 		SelectionMode mSelectionMode = SelectionMode::Entity;

@@ -649,8 +649,15 @@ namespace NR
         DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
             {
                 UI::BeginPropertyGrid();
-                if (UI::PropertyAssetReference("Mesh", mc.MeshObj))
+                Ref<MeshAsset> meshAsset;
+                if (mc.MeshObj)
                 {
+                    meshAsset = mc.MeshObj->GetMeshAsset();
+                }
+
+                if (UI::PropertyAssetReference("Mesh", meshAsset))
+                {
+                    mc.MeshObj = Ref<Mesh>::Create(meshAsset);
                     if (entity.HasComponent<MeshColliderComponent>())
                     {
                         auto& mcc = entity.GetComponent<MeshColliderComponent>();

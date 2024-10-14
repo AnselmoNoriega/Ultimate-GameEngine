@@ -37,7 +37,8 @@ namespace NR
         mProfiler = new PerformanceProfiler();
 
         mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
-        mWindow->Init();        mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        mWindow->Init();        
+        mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
         mWindow->SetVSync(true);
         

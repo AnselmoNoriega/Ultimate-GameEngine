@@ -360,6 +360,7 @@ namespace NR
 
 	void GLRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
 	{
+#if 0
 		mesh->mVertexBuffer->Bind();
 		pipeline->Bind();
 		mesh->mIndexBuffer->Bind();
@@ -388,10 +389,12 @@ namespace NR
 					glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
 				});
 		}
+#endif
 	}
 
 	void GLRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
 	{
+#if 0
 		mesh->mVertexBuffer->Bind();
 		pipeline->Bind();
 		mesh->mIndexBuffer->Bind();
@@ -409,6 +412,7 @@ namespace NR
 					glDrawElementsBaseVertex(GL_TRIANGLES, submesh.IndexCount, GL_UNSIGNED_INT, (void*)(sizeof(uint32_t) * submesh.BaseIndex), submesh.BaseVertex);
 				});
 		}
+#endif
 	}
 
 	void GLRenderer::RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform)
@@ -437,7 +441,7 @@ namespace NR
 			});
 	}
 
-	void GLRenderer::DispatchComputeShader(const glm::ivec3& workGroups, Ref<Material> material)
+	void GLRenderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, const glm::ivec3& workGroups, Ref<Material> material)
 	{
 		Ref<GLMaterial> glMaterial = material.As<GLMaterial>();
 		glMaterial->UpdateForRendering();

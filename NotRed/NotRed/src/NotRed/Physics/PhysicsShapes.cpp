@@ -5,11 +5,14 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "NotRed/Asset/AssetManager.h"
 #include "PhysicsInternal.h"
 #include "PhysicsActor.h"
 
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"
+
+//#include "NotRed/Project/Project.h"
 
 namespace NR
 {
@@ -169,16 +172,22 @@ namespace NR
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
 
 		Utils::CreateCacheDirectoryIfNeeded();
-		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + "_convex.pxm";
+		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
+		if (!metadata.IsValid())
+		{
+			NR_CORE_ERROR("Invalid mesh");
+		}
+
+		/*std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_convex.pxm");
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookConvexMesh(component.CollisionMesh, cookedData);
-			SerializeData(filepath, cookedData);
+			SerializeData(filepath.string(), cookedData);
 		}
 		else
 		{
-			DeserializeCached(filepath, cookedData);
-		}
+			DeserializeCached(filepath.string(), cookedData);
+		}*/
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
 
@@ -273,7 +282,10 @@ namespace NR
 		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
 		uint32_t offset = 0;
 
-		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
+		const auto& meshAsset = mComponent.CollisionMesh->GetMeshAsset();
+		const auto& submeshes = meshAsset->GetSubmeshes();
+
+		for (auto submesh : mComponent.CollisionMesh->GetSubmeshes())
 		{
 			MeshColliderData& data = outData.emplace_back();
 
@@ -281,7 +293,7 @@ namespace NR
 			offset += sizeof(uint32_t);
 			data.Data = colliderBuffer.ReadBytes(data.Size, offset);
 			offset += data.Size;
-			data.Transform = submesh.Transform;
+			data.Transform = submeshes[submesh].Transform;
 		}
 
 		colliderBuffer.Release();
@@ -340,7 +352,8 @@ namespace NR
 					++indexCounter;
 				}
 
-				mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(collisionVertices, collisionIndices, PhysicsUtils::FromPhysicsTransform(shape->getLocalPose())));
+				Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create(collisionVertices, collisionIndices, PhysicsUtils::FromPhysicsTransform(shape->getLocalPose()));
+				mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(meshAsset));
 			}
 		}
 	}
@@ -355,17 +368,22 @@ namespace NR
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
 
 		Utils::CreateCacheDirectoryIfNeeded();
+		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
+		if (!metadata.IsValid())
+		{
+			NR_CORE_ERROR("Invalid mesh");
+		}
 
-		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + "_tri.pxm";
+		/*std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_tri.pxm");
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookTriangleMesh(component.CollisionMesh, cookedData);
-			SerializeData(filepath, cookedData);
+			SerializeData(filepath.string(), cookedData);
 		}
 		else
 		{
-			DeserializeCached(filepath, cookedData);
-		}
+			DeserializeCached(filepath.string(), cookedData);
+		}*/
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
 
@@ -454,6 +472,9 @@ namespace NR
 		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
 		uint32_t offset = 0;
 
+		const auto& meshAsset = mComponent.CollisionMesh->GetMeshAsset();
+		const auto& submeshes = meshAsset->GetSubmeshes();
+
 		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
 		{
 			MeshColliderData& data = outData.emplace_back();
@@ -463,7 +484,7 @@ namespace NR
 
 			offset += data.Size;
 
-			data.Transform = submesh.Transform;
+			data.Transform = submeshes[submesh].Transform;
 		}
 
 		colliderBuffer.Release();
@@ -508,7 +529,8 @@ namespace NR
 
 			glm::mat4 scale = glm::scale(glm::mat4(1.0f), PhysicsUtils::FromPhysicsVector(triangleGeometry.scale.scale));
 			glm::mat4 transform = PhysicsUtils::FromPhysicsTransform(shape->getLocalPose()) * scale;
-			mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, transform));
+			Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create(vertices, indices, transform);
+			mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(meshAsset));
 		}
 	}
 }

@@ -55,7 +55,7 @@ namespace NR
 		}
 
 		static AssetType GetStaticType() { return AssetType::PhysicsMat; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+		virtual AssetType GetAssetType() const override { return AssetType::PhysicsMat; }
 	};
 
 	class AudioFile : public Asset

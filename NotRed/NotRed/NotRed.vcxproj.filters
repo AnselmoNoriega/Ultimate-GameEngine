@@ -943,7 +943,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp">
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp">
@@ -973,7 +973,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp">
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKComputePipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp">

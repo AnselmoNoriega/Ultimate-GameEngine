@@ -429,7 +429,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKCommandBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKDevice.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKDiagnostics.cpp" />
@@ -439,7 +439,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKMaterial.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderComputePipeline.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKComputePipeline.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp" />
