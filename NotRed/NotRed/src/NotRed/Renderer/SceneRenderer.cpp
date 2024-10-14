@@ -552,7 +552,7 @@ namespace NR
             Buffer cascade(&i, sizeof(uint32_t));
             for (auto& dc : mShadowPassDrawList)
             {
-                Renderer::RenderMesh(mCommandBuffer, mShadowPassPipeline, mUniformBufferSet, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
+                Renderer::RenderMesh(mCommandBuffer, mShadowPassPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
             }
 
             Renderer::EndRenderPass(mCommandBuffer);
@@ -565,12 +565,12 @@ namespace NR
 
         for (auto& dc : mDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, dc.Mesh, dc.Transform, mPreDepthMaterial);
+            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
         }
 
         for (auto& dc : mSelectedMeshDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, dc.Mesh, dc.Transform, mPreDepthMaterial);
+            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
         }
 
         Renderer::EndRenderPass(mCommandBuffer);
@@ -581,7 +581,7 @@ namespace NR
         mLightCullingMaterial->Set("uPreDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
         mLightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ mViewportWidth, mViewportHeight });
 
-        Renderer::LightCulling(mLightCullingPipeline, mUniformBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
+        Renderer::LightCulling(mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
     }
 
     void SceneRenderer::GeometryPass()
@@ -593,29 +593,29 @@ namespace NR
 
         Ref<TextureCube> radianceMap = mSceneData.SceneEnvironment ? mSceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
         mSkyboxMaterial->Set("uTexture", radianceMap);
-        Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, mSkyboxMaterial);
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, nullptr, mSkyboxMaterial);
 
         // Render entities
         for (auto& dc : mDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
         }
 
         for (auto& dc : mSelectedMeshDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
         }
 
         for (auto& dc : mParticlesDrawList)
         {
-            Renderer::RenderParticles(mCommandBuffer, mParticlePipeline, mUniformBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderParticles(mCommandBuffer, mParticlePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
         }
 
         // Grid
         if (GetOptions().ShowGrid)
         {
             const glm::mat4 transform = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::mat4(1.0f), glm::vec3(8.0f));
-            Renderer::RenderQuad(mCommandBuffer, mGridPipeline, mUniformBufferSet, mGridMaterial, transform);
+            Renderer::RenderQuad(mCommandBuffer, mGridPipeline, mUniformBufferSet, nullptr, mGridMaterial, transform);
         }
 
         if (GetOptions().ShowBoundingBoxes)
@@ -645,7 +645,7 @@ namespace NR
 
         CompositeMaterial->Set("uTexture", frameBuffer->GetImage());
 
-        Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, CompositeMaterial);
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, nullptr, CompositeMaterial);
         Renderer::EndRenderPass(mCommandBuffer);
     }
 

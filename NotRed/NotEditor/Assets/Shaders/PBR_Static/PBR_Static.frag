@@ -71,6 +71,10 @@ layout(std140, binding = 4) uniform PointLightData
 	PointLight upointLights[1000];
 };
 
+layout(std430, binding = 14) readonly buffer VisibleLightIndicesBuffer {
+	int indices[];
+} visibleLightIndicesBuffer;
+
 // PBR texture inputs
 layout(set = 0, binding = 5) uniform sampler2D uAlbedoTexture;
 layout(set = 0, binding = 6) uniform sampler2D uNormalTexture;

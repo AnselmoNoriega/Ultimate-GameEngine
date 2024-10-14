@@ -405,6 +405,12 @@ namespace NR
                 typeCount.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 typeCount.descriptorCount = shaderDescriptorSet.UniformBuffers.size();
             }
+            if (shaderDescriptorSet.StorageBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size();
+            }
             if (shaderDescriptorSet.ImageSamplers.size())
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
@@ -438,6 +444,23 @@ namespace NR
                 set.dstBinding = layoutBinding.binding;
             }
 
+            for (auto& [binding, strorageBuffer] : shaderDescriptorSet.StorageBuffers)
+            {
+                VkDescriptorSetLayoutBinding& layoutBinding = layoutBindings.emplace_back();
+                layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                layoutBinding.descriptorCount = 1;
+                layoutBinding.stageFlags = strorageBuffer->ShaderStage;
+                layoutBinding.pImmutableSamplers = nullptr;
+                layoutBinding.binding = binding;
+
+                VkWriteDescriptorSet& set = shaderDescriptorSet.WriteDescriptorSets[strorageBuffer->Name];
+                set = {};
+                set.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                set.descriptorType = layoutBinding.descriptorType;
+                set.descriptorCount = 1;
+                set.dstBinding = layoutBinding.binding;
+            }
+
             for (auto& [binding, imageSampler] : shaderDescriptorSet.ImageSamplers)
             {
                 auto& layoutBinding = layoutBindings.emplace_back();
@@ -448,6 +471,7 @@ namespace NR
                 layoutBinding.binding = binding;
 
                 NR_CORE_ASSERT(shaderDescriptorSet.UniformBuffers.find(binding) == shaderDescriptorSet.UniformBuffers.end(), "Binding is already present!");
+                NR_CORE_ASSERT(shaderDescriptorSet.StorageBuffers.find(binding) == shaderDescriptorSet.StorageBuffers.end(), "Binding is already present!");
 
                 VkWriteDescriptorSet& set = shaderDescriptorSet.WriteDescriptorSets[imageSampler.Name];
                 set = {};
@@ -470,6 +494,7 @@ namespace NR
                 layoutBinding.binding = binding;
 
                 NR_CORE_ASSERT(shaderDescriptorSet.UniformBuffers.find(binding) == shaderDescriptorSet.UniformBuffers.end(), "Binding is already present!");
+                NR_CORE_ASSERT(shaderDescriptorSet.StorageBuffers.find(binding) == shaderDescriptorSet.StorageBuffers.end(), "Binding is already present!");
                 NR_CORE_ASSERT(shaderDescriptorSet.ImageSamplers.find(binding) == shaderDescriptorSet.ImageSamplers.end(), "Binding is already present!");
 
                 VkWriteDescriptorSet& set = shaderDescriptorSet.WriteDescriptorSets[imageSampler.Name];
@@ -486,8 +511,9 @@ namespace NR
             descriptorLayout.bindingCount = layoutBindings.size();
             descriptorLayout.pBindings = layoutBindings.data();
 
-            NR_CORE_INFO("Creating descriptor set {0} with {1} ubos, {2} samplers and {3} storage images", set,
+            NR_CORE_INFO("Creating descriptor set {0} with {1} ubo's, {1} ssbo's, {3} samplers and {4} storage images", set,
                 shaderDescriptorSet.UniformBuffers.size(),
+                shaderDescriptorSet.StorageBuffers.size(),
                 shaderDescriptorSet.ImageSamplers.size(),
                 shaderDescriptorSet.StorageImages.size());
 
@@ -547,6 +573,12 @@ namespace NR
                 VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                 typeCount.descriptorCount = shaderDescriptorSet.UniformBuffers.size() * numberOfSets;
+            }
+            if (shaderDescriptorSet.StorageBuffers.size())
+            {
+                VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
+                typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size() * numberOfSets;
             }
             if (shaderDescriptorSet.ImageSamplers.size())
             {

@@ -22,7 +22,6 @@ namespace NR
         struct StorageBuffer
         {
             VmaAllocation MemoryAlloc = nullptr;
-            VkBuffer Buffer;
             VkDescriptorBufferInfo Descriptor;
             uint32_t Size = 0;
             uint32_t BindingPoint = 0;

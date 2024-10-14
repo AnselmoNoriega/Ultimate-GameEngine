@@ -88,7 +88,7 @@ namespace NR
     {
         switch (RendererAPI::Current())
         {
-        case RendererAPIType::OpenGL: return new GLRenderer();
+        //case RendererAPIType::OpenGL: return new GLRenderer();
         case RendererAPIType::Vulkan: return new VKRenderer();
         default:
         {
@@ -208,19 +208,24 @@ namespace NR
         return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
     }
 
-    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, mesh, transform);
+        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform);
     }
 
-    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms)
     {
-        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, mesh, material, transform, additionalUniforms);
+        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, material, transform, additionalUniforms);
     }
 
-    void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet, mesh, transform);
+        sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform);
+    }
+
+    void Renderer::RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::mat4& transform)
+    {
+        sRendererAPI->RenderQuad(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, transform);
     }
 
     void Renderer::SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform)
@@ -228,9 +233,9 @@ namespace NR
         NR_CORE_ASSERT(false, "Not Implemented");
     }
 
-    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material)
+    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material)
     {
-        sRendererAPI->SubmitFullscreenQuad(renderCommandBuffer, pipeline, uniformBufferSet, material);
+        sRendererAPI->SubmitFullscreenQuad(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material);
     }
 
     void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
@@ -308,9 +313,9 @@ namespace NR
         return config;
     }
 
-    void Renderer::LightCulling(Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
+    void Renderer::LightCulling(Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
     {
-        sRendererAPI->LightCulling(computePipeline, uniformBufferSet, material, screenSize, workGroups);
+        sRendererAPI->LightCulling(computePipeline, uniformBufferSet, storageBufferSet, material, screenSize, workGroups);
     }
 
     RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
