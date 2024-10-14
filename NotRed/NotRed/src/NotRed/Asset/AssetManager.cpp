@@ -137,6 +137,24 @@ namespace NR
         WriteRegistryToFile();
     }
 
+    bool AssetManager::MoveAsset(AssetHandle assetHandle, const std::string& destinationPath)
+    {
+        FileSystem::SkipNextFileSystemChange();
+
+        AssetMetadata assetInfo = GetMetadata(assetHandle);
+
+        bool result = FileSystem::MoveFile(assetInfo.FilePath, destinationPath);
+        if (!result)
+            return false;
+
+        sAssetRegistry.erase(assetInfo.FilePath);
+        assetInfo.FilePath = destinationPath + "/" + assetInfo.FileName + "." + assetInfo.Extension;
+        sAssetRegistry[assetInfo.FilePath] = assetInfo;
+
+        WriteRegistryToFile();
+        return true;
+    }
+
     void AssetManager::RemoveAsset(AssetHandle assetHandle)
     {
         AssetMetadata metadata = GetMetadata(assetHandle);

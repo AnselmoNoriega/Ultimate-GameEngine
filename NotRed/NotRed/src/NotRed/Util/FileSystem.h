@@ -42,11 +42,12 @@ namespace NR
 		static void StopWatching();
 		static bool IsDirectory(const std::string& filepath);
 
+		static void SkipNextFileSystemChange();
+
 	private:
 		static unsigned long Watch(void* param);
 
 	private:
 		static FileSystemChangedCallbackFn sCallback;
 	};
-
 }

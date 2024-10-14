@@ -116,6 +116,8 @@ namespace NR
 		void RenderBreadCrumbs();
 		void RenderBottomBar();
 
+		void SelectAndStartRenaming(AssetHandle handle, const std::string& currentName);
+
 		void HandleDirectoryRename(Ref<DirectoryInfo>& dirInfo);
 		void HandleAssetRename(AssetMetadata& asset);
 
@@ -125,10 +127,26 @@ namespace NR
 		void AssetDeleted(const FileSystemChangedEvent& e);
 		void RemoveDirectory(Ref<DirectoryInfo> dirInfo);
 		
+		void MoveDirectory(AssetHandle directoryHandle, const std::string& destinationPath);
+
 		void DirectoryAdded(const std::string& directoryPath);
 		Ref<DirectoryInfo> GetDirectoryInfo(const std::string& filepath) const;
+		Ref<DirectoryInfo> GetDirectoryForAsset(AssetHandle asset) const;
 
 		SearchResults Search(const std::string& query, AssetHandle directoryHandle);
+
+		template<typename T, typename... Args>
+		Ref<T> CreateAsset(const std::string& filename, Args&&... args)
+		{
+			Ref<Asset> asset = AssetManager::CreateNewAsset<T>(filename, mCurrentDirectory->FilePath, std::forward<Args>(args)...);
+			if (!asset)
+			{
+				return nullptr;
+			}
+			mCurrentDirectory->Assets.push_back(asset->Handle);
+			UpdateCurrentDirectory(mCurrentDirHandle);
+			return asset.As<T>();
+		}
 
 	private:
 		Ref<Texture2D> mFileTex;

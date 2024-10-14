@@ -137,7 +137,7 @@ namespace NR
 
 					if (ImGui::BeginPopupContextWindow(0, 1))
 					{
-						if (ImGui::BeginMenu("Create"))
+						if (ImGui::BeginMenu("New"))
 						{
 							if (ImGui::MenuItem("Folder"))
 							{
@@ -147,20 +147,33 @@ namespace NR
 								{
 									UpdateCurrentDirectory(mCurrentDirHandle); 
 									const auto& createdDirectory = GetDirectoryInfo(mCurrentDirectory->FilePath + "/New Folder");
-									mSelectedAssets.Select(createdDirectory->Handle);
-									memset(mRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
-									memcpy(mRenameBuffer, createdDirectory->Name.c_str(), createdDirectory->Name.size());
-									mRenamingSelected = true;
+
+									SelectAndStartRenaming(createdDirectory->Handle, createdDirectory->Name);
 								}
 							}
 
 							if (ImGui::MenuItem("Physics Material"))
 							{
-								AssetManager::CreateNewAsset<PhysicsMaterial>("New Physics Material.hpm", mCurrentDirectory->FilePath, 0.6f, 0.6f, 0.0f);
-								UpdateCurrentDirectory(mCurrentDirHandle);
+								auto asset = CreateAsset<PhysicsMaterial>("New Physics Material.hpm", 0.6f, 0.6f, 0.0f);
+								const auto& metadata = AssetManager::GetMetadata(asset->Handle);
+								SelectAndStartRenaming(metadata.Handle, metadata.FileName);
 							}
 
 							ImGui::EndMenu();
+						}
+
+						if (ImGui::MenuItem("Import"))
+						{
+							std::string filepath = Application::Get().OpenFile();
+							if (!filepath.empty())
+							{
+								AssetHandle handle = AssetManager::ImportAsset(filepath);
+								if (handle != 0)
+								{
+									mCurrentDirectory->Assets.push_back(handle);
+									UpdateCurrentDirectory(mCurrentDirHandle);
+								}
+							}
 						}
 
 						if (ImGui::MenuItem("Refresh"))
@@ -191,7 +204,7 @@ namespace NR
 						mUpdateDirectoryNextFrame = false;
 					}
 
-					if (mIsDragging && !ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.1f))
+					if (mIsDragging && !ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.01f))
 					{
 						mIsDragging = false;
 					}
@@ -265,7 +278,7 @@ namespace NR
 			openDeleteModal = true;
 		}
 
-		if (ImGui::BeginPopupContextItem("ContextMenu"))
+		if (ImGui::BeginPopupContextItem("DirectoryContextMenu"))
 		{
 			if (ImGui::MenuItem("Rename"))
 			{
@@ -284,12 +297,12 @@ namespace NR
 
 		if (openDeleteModal)
 		{
-			ImGui::OpenPopup("Delete Asset");
+			ImGui::OpenPopup("Delete Directory");
 			openDeleteModal = false;
 		}
 
 		bool deleted = false;
-		if (ImGui::BeginPopupModal("Delete Asset", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+		if (ImGui::BeginPopupModal("Delete Directory", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
 			ImGui::Text("Are you sure you want to delete %s and everything within it?", directory->Name.c_str());
 			float columnWidth = ImGui::GetContentRegionAvail().x / 4;
@@ -305,6 +318,17 @@ namespace NR
 
 			if (ImGui::Button("Yes", ImVec2(columnWidth, 0)))
 			{
+				AssetHandle handle = directory->Handle;
+				std::string filepath = directory->FilePath;
+				deleted = FileSystem::DeleteFile(filepath);
+
+				if (deleted)
+				{
+					mDirectories.erase(handle);
+					mCurrentDirectory->SubDirectories.erase(std::remove(mCurrentDirectory->SubDirectories.begin(), mCurrentDirectory->SubDirectories.end(), handle), mCurrentDirectory->SubDirectories.end());
+					mUpdateDirectoryNextFrame = true;
+				}
+
 				ImGui::CloseCurrentPopup();
 			}
 
@@ -448,6 +472,7 @@ namespace NR
 				deleted = FileSystem::DeleteFile(assetInfo.FilePath);
 				if (deleted)
 				{
+					mCurrentDirectory->Assets.erase(std::remove(mCurrentDirectory->Assets.begin(), mCurrentDirectory->Assets.end(), assetInfo.Handle), mCurrentDirectory->Assets.end());
 					AssetManager::RemoveAsset(assetInfo.Handle);
 					mUpdateDirectoryNextFrame = true;
 				}
@@ -485,6 +510,43 @@ namespace NR
 
 	void ContentBrowserPanel::HandleDragDrop(Ref<Image2D> icon, AssetHandle assetHandle)
 	{
+		if (mDirectories.find(assetHandle) != mDirectories.end() && mIsDragging)
+		{
+			if (ImGui::BeginDragDropTarget())
+			{
+				auto payload = ImGui::AcceptDragDropPayload("asset_payload");
+				if (payload)
+				{
+					int count = payload->DataSize / sizeof(AssetHandle);
+
+					for (int i = 0; i < count; ++i)
+					{
+						AssetHandle handle = *(((AssetHandle*)payload->Data) + i);
+						auto& directory = mDirectories[assetHandle];
+
+						if (mDirectories.find(handle) == mDirectories.end())
+						{
+							bool wasMoved = AssetManager::MoveAsset(handle, directory->FilePath);
+							if (!wasMoved)
+							{
+								continue;
+							}
+							auto previousDirectory = GetDirectoryForAsset(handle);
+							previousDirectory->Assets.erase(std::remove(previousDirectory->Assets.begin(), previousDirectory->Assets.end(), handle), previousDirectory->Assets.end());
+							directory->Assets.push_back(handle);
+						}
+						else
+						{
+							MoveDirectory(handle, directory->FilePath);
+						}
+					}
+
+					mUpdateDirectoryNextFrame = true;
+				}
+				ImGui::EndDragDropTarget();
+			}
+		}
+
 		if (!mSelectedAssets.IsSelected(assetHandle) || mIsDragging)
 		{
 			return;
@@ -500,7 +562,23 @@ namespace NR
 		{
 			UI::Image(icon, ImVec2(20, 20));
 			ImGui::SameLine();
-			ImGui::Text("Moving");
+
+			if (mSelectedAssets.SelectionCount() == 1)
+			{
+				if (AssetManager::IsAssetHandleValid(mSelectedAssets[0]))
+				{
+					ImGui::Text(AssetManager::GetMetadata(mSelectedAssets[0]).FileName.c_str());
+				}
+				else
+				{
+					ImGui::Text(mDirectories[mSelectedAssets[0]]->Name.c_str());
+				}
+			}
+			else
+			{
+				ImGui::Text("Dragging %d items", mSelectedAssets.SelectionCount());
+			}
+
 			ImGui::SetDragDropPayload("asset_payload", mSelectedAssets.GetSelectionData(), mSelectedAssets.SelectionCount() * sizeof(AssetHandle));
 			mIsDragging = true;
 
@@ -617,6 +695,14 @@ namespace NR
 		}
 
 		ImGui::EndChild();
+	}
+
+	void ContentBrowserPanel::SelectAndStartRenaming(AssetHandle handle, const std::string& currentName)
+	{
+		mSelectedAssets.Select(handle);
+		memset(mRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
+		memcpy(mRenameBuffer, currentName.c_str(), currentName.size());
+		mRenamingSelected = true;
 	}
 
 	void ContentBrowserPanel::HandleDirectoryRename(Ref<DirectoryInfo>& dirInfo)
@@ -838,6 +924,23 @@ namespace NR
 			});
 	}
 
+	void ContentBrowserPanel::MoveDirectory(AssetHandle directoryHandle, const std::string& destinationPath)
+	{
+		auto& directoryInfo = mDirectories[directoryHandle];
+		bool wasMoved = FileSystem::MoveFile(directoryInfo->FilePath, destinationPath);
+		if (!wasMoved)
+		{
+			return;
+		}
+
+		auto& parentDirectory = mDirectories[directoryInfo->Parent];
+		parentDirectory->SubDirectories.erase(std::remove(parentDirectory->SubDirectories.begin(), parentDirectory->SubDirectories.end(), directoryHandle), parentDirectory->SubDirectories.end());
+
+		Ref<DirectoryInfo> newParent = GetDirectoryInfo(destinationPath);
+		newParent->SubDirectories.push_back(directoryHandle);
+		directoryInfo->Parent = newParent->Handle;
+	}
+
 	Ref<DirectoryInfo> ContentBrowserPanel::GetDirectoryInfo(const std::string& filepath) const
 	{
 		std::string fixedFilepath = filepath;
@@ -851,6 +954,21 @@ namespace NR
 			}
 		}
 
+		return nullptr;
+	}
+
+	Ref<DirectoryInfo> ContentBrowserPanel::GetDirectoryForAsset(AssetHandle asset) const
+	{
+		for (const auto& [directoryHandle, directoryInfo] : mDirectories)
+		{
+			for (const auto& assetHandle : directoryInfo->Assets)
+			{
+				if (asset == assetHandle)
+				{
+					return directoryInfo;
+				}
+			}
+		}
 		return nullptr;
 	}
 

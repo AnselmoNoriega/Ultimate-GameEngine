@@ -129,6 +129,11 @@ namespace NR
 		return converted;
 	}
 
+	void FileSystem::SkipNextFileSystemChange()
+	{
+		sIgnoreNextChange = true;
+	}
+
 	unsigned long FileSystem::Watch(void* param)
 	{
 		LPCWSTR	filepath = L"Assets";
@@ -190,6 +195,7 @@ namespace NR
 
 			if (sIgnoreNextChange)
 			{
+				sIgnoreNextChange = false;
 				continue;
 			}
 
