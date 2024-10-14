@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Components.h"
 #include "NotRed/Renderer/Mesh.h"
@@ -7,8 +9,9 @@
 
 #include "NotRed/Renderer/UniformBufferSet.h"
 #include "NotRed/Renderer/RenderCommandBuffer.h"
+#include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 
-#include <map>
+#include "StorageBufferSet.h"
 
 namespace NR
 {
@@ -61,7 +64,7 @@ namespace NR
 			CascadeSplitLambda = lambda;
 		}
 
-		void OnImGuiRender();
+		void ImGuiRender();
 
 		static void WaitForThreads();
 	private:
@@ -81,7 +84,7 @@ namespace NR
 		void CompositePass();
 		void BloomBlurPass();
 
-		void CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection);
+		void CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const;
 
 	private:
 		Ref<Scene> mScene;
@@ -95,7 +98,7 @@ namespace NR
 			float SkyboxLod = 0.0f;
 			float SceneEnvironmentIntensity;
 			LightEnvironment SceneLightEnvironment;
-			Light ActiveLight;
+			DirLight ActiveLight;
 		} mSceneData;
 
 		Ref<Shader> mCompositeShader;
@@ -114,7 +117,7 @@ namespace NR
 			glm::mat4 ViewProjection[4];
 		} ShadowData;
 
-		struct Light
+		struct DirLight
 		{
 			glm::vec3 Direction;
 			float Padding = 0.0f;
@@ -122,15 +125,23 @@ namespace NR
 			float Multiplier;
 		};
 
+		struct UBPointLights
+		{
+			uint32_t Count{ 0 };
+			glm::vec3 Padding{};
+			PointLight PointLights[1024]{};
+		} PointLightsUB;
+
 		struct UBScene
 		{
-			Light lights;
+			DirLight lights;
 			glm::vec3 CameraPosition;
 		} SceneDataUB;
 
 		struct UBRendererData
 		{
 			glm::vec4 CascadeSplits;
+			uint32_t TilesCountX{ 0 };
 			bool ShowCascades = false;
 			char Padding0[3] = { 0,0,0 };
 			bool SoftShadows = true;
@@ -144,8 +155,10 @@ namespace NR
 		} RendererDataUB;
 
 		glm::ivec3 mLightCullingWorkGroups;
+		Ref<VKComputePipeline> mLightCullingPipeline;
 
 		Ref<UniformBufferSet> mUniformBufferSet;
+		Ref<StorageBufferSet> mStorageBufferSet;
 
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
 		Ref<RenderPass> ShadowMapRenderPass[4];
@@ -161,7 +174,7 @@ namespace NR
 
 		RendererID ShadowMapSampler;
 		Ref<Material> CompositeMaterial;
-		Ref<Material> LightCullingMaterial;
+		Ref<Material> mLightCullingMaterial;
 
 		Ref<Pipeline> mGeometryPipeline;
 		Ref<Pipeline> mParticlePipeline;
@@ -169,6 +182,7 @@ namespace NR
 		Ref<Pipeline> mCompositePipeline;
 		Ref<Pipeline> mShadowPassPipeline;
 		Ref<Material> mShadowPassMaterial;
+		Ref<Material> mPreDepthMaterial;
 		Ref<Pipeline> mSkyboxPipeline;
 		Ref<Material> mSkyboxMaterial;
 

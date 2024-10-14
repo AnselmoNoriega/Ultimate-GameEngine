@@ -6,12 +6,15 @@
 #include "RendererTypes.h"
 #include "RendererCapabilities.h"
 #include "RenderCommandBuffer.h"
+#include "UniformBufferSet.h"
 
 #include "NotRed/Renderer/UniformBufferSet.h"
 
 namespace NR
 {
 	class SceneRenderer;
+	class VKComputePipeline;
+
 	using RendererID = uint32_t;
 
 	enum class RendererAPIType
@@ -58,7 +61,7 @@ namespace NR
 		virtual void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer()) = 0;
 		virtual void RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform) = 0;
 		virtual void RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform) = 0;
-		virtual void DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, const glm::ivec3& workGroups, Ref<Material> material) = 0;
+		virtual void LightCulling(Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups) = 0;
 
 		virtual RendererCapabilities& GetCapabilities() = 0;
 

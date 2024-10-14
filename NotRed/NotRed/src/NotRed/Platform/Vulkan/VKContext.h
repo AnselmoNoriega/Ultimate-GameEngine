@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Vulkan.h"
 #include "VKDevice.h"
-#include "VKAllocator.h"
 #include "VKSwapChain.h"
 
 #include "NotRed/Renderer/Renderer.h"

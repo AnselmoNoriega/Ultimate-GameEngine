@@ -7,9 +7,7 @@ namespace NR
 {
     ObjectsPanel::ObjectsPanel()
     {
-		TextureProperties properties{};
-		properties.Flip = false;
-		mCubeImage = Texture2D::Create("Assets/Editor/Asset.png", properties);
+		mCubeImage = Texture2D::Create("Assets/Editor/Asset.png");
     }
 
     void ObjectsPanel::DrawObject(const char* label, AssetHandle handle)

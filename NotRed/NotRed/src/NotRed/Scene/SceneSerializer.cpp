@@ -603,7 +603,7 @@ namespace NR
 		out << YAML::BeginMap; // Environment
 		out << YAML::Key << "AssetHandle" << YAML::Value << scene->GetEnvironment()->Handle;
 		const auto& light = scene->GetLight();
-		out << YAML::Key << "Light" << YAML::Value;
+		out << YAML::Key << "DirLight" << YAML::Value;
 		out << YAML::BeginMap; // Light
 		out << YAML::Key << "Direction" << YAML::Value << light.Direction;
 		out << YAML::Key << "Radiance" << YAML::Value << light.Radiance;

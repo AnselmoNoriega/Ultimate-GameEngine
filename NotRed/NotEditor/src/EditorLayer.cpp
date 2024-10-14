@@ -22,12 +22,11 @@
 #include "NotRed/Util/FileSystem.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
-#include "NotRed/Platform/OpenGL/GLFramebuffer.h"
 
 namespace NR
 {
     EditorLayer::EditorLayer()
-        : mSceneType(SceneType::Model), mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)), mSecondEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f))
+        : mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)), mSecondEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)), mSceneType(SceneType::Model)
     {
     }
 

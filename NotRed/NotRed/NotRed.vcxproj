@@ -254,6 +254,8 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderPass.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKShader.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBufferSet.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKSwapChain.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKTexture.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h" />
@@ -282,6 +284,8 @@
     <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
+    <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
@@ -443,6 +447,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKSwapChain.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKTexture.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.cpp" />
@@ -468,6 +473,8 @@
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />

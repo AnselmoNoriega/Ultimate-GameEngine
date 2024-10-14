@@ -39,10 +39,20 @@ namespace NR
         mUniformBufferSet->Create(sizeof(UBShadow), 1);
         mUniformBufferSet->Create(sizeof(UBScene), 2);
         mUniformBufferSet->Create(sizeof(UBRendererData), 3);
+        mUniformBufferSet->Create(sizeof(UBPointLights), 4);
 
         mCompositeShader = Renderer::GetShaderLibrary()->Get("SceneComposite");
         CompositeMaterial = Material::Create(mCompositeShader);
-        LightCullingMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("LightCulling"), "LightCulling");
+        //Light culling compute pipeline
+        {
+            mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
+            mStorageBufferSet = StorageBufferSet::Create(framesInFlight);
+            mStorageBufferSet->Create(1, 14); //Can't allocate 0 bytes.. Resized later
+
+            mLightCullingMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("LightCulling"), "LightCulling");
+            Ref<Shader> lightCullingShader = Renderer::GetShaderLibrary()->Get("LightCulling");
+            mLightCullingPipeline = Ref<VKComputePipeline>::Create(lightCullingShader);
+        }
 
         // Shadow pass
         {
@@ -106,7 +116,8 @@ namespace NR
 
             PipelineSpecification pipelineSpec;
             pipelineSpec.DebugName = "PreDepthPass";
-            pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth");
+            Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("PreDepth");
+            pipelineSpec.Shader = shader;
             pipelineSpec.Layout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
@@ -116,6 +127,7 @@ namespace NR
             };
             pipelineSpec.RenderPass = RenderPass::Create(preDepthRenderPassSpec);
             mPreDepthPipeline = Pipeline::Create(pipelineSpec);
+            mPreDepthMaterial = Material::Create(shader, "PreDepth");
         }
 
         // Geometry
@@ -232,8 +244,7 @@ namespace NR
             mNeedsResize = true;
         }
     }
-
-    void SceneRenderer::CalculateCascades(SceneRenderer::CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection)
+    void SceneRenderer::CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const
     {
         struct FrustumBounds
         {
@@ -380,6 +391,9 @@ namespace NR
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
+            RendererDataUB.TilesCountX = mLightCullingWorkGroups.x;
+
+            mStorageBufferSet->Resize(14, 0, mLightCullingWorkGroups.x * mLightCullingWorkGroups.y * 4 * 1024);
         }
 
         // Update uniform buffers
@@ -387,6 +401,7 @@ namespace NR
         UBScene& sceneData = SceneDataUB;
         UBShadow& shadowData = ShadowData;
         UBRendererData& rendererData = RendererDataUB;
+        UBPointLights& pointLightData = PointLightsUB;
 
         auto& sceneCamera = mSceneData.SceneCamera;
         auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
@@ -402,6 +417,16 @@ namespace NR
             {
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(0, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
+            });
+
+        const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
+        pointLightData.Count = uint32_t(pointLightsVec.size());
+        std::memcpy(&pointLightData.PointLights[0], pointLightsVec.data(), sizeof PointLight * pointLightsVec.size());
+
+        Renderer::Submit([instance, pointLightData]() mutable
+            {
+                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                instance->mUniformBufferSet->Get(4, 0, bufferIndex)->RT_SetData(&pointLightData, sizeof(pointLightData));
             });
 
         const auto& directionalLight = mSceneData.SceneLightEnvironment.DirectionalLights[0];
@@ -436,10 +461,10 @@ namespace NR
             {
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(3, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
-            });
+    });
 
         Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
-    }
+}
 
     void SceneRenderer::EndScene()
     {
@@ -540,12 +565,12 @@ namespace NR
 
         for (auto& dc : mDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, dc.Mesh, dc.Transform, mPreDepthMaterial);
         }
 
         for (auto& dc : mSelectedMeshDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, dc.Mesh, dc.Transform, mPreDepthMaterial);
         }
 
         Renderer::EndRenderPass(mCommandBuffer);
@@ -553,10 +578,10 @@ namespace NR
 
     void SceneRenderer::LightCullingPass()
     {
-        LightCullingMaterial->Set("uPreDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
-        LightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ mViewportWidth, mViewportHeight });
+        mLightCullingMaterial->Set("uPreDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
+        mLightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ mViewportWidth, mViewportHeight });
 
-        Renderer::DispatchComputeShader(mCommandBuffer, mLightCullingWorkGroups, LightCullingMaterial);
+        Renderer::LightCulling(mLightCullingPipeline, mUniformBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
     }
 
     void SceneRenderer::GeometryPass()
@@ -685,6 +710,8 @@ namespace NR
         {
             mCommandBuffer->Begin();
             ShadowMapPass();
+            PreDepthPass();
+            LightCullingPass();
             GeometryPass();
             CompositePass();
             mCommandBuffer->End();
@@ -719,7 +746,7 @@ namespace NR
         return mOptions;
     }
 
-    void SceneRenderer::OnImGuiRender()
+    void SceneRenderer::ImGuiRender()
     {
         ImGui::Begin("Scene Renderer");
 
@@ -746,7 +773,7 @@ namespace NR
             UI::BeginPropertyGrid();
             {
                 UI::Property("Soft Shadows", RendererDataUB.SoftShadows);
-                UI::Property("Light Size", RendererDataUB.LightSize, 0.01f);
+                UI::Property("DirLight Size", RendererDataUB.LightSize, 0.01f);
                 UI::Property("Max Shadow Distance", RendererDataUB.MaxShadowDistance, 1.0f);
                 UI::Property("Shadow Fade", RendererDataUB.ShadowFade, 5.0f);
             }
@@ -773,7 +800,7 @@ namespace NR
                 auto image = fb->GetDepthImage();
 
                 float size = ImGui::GetContentRegionAvail().x;
-                
+
                 UI::BeginPropertyGrid();
                 UI::PropertySlider("Cascade Index", cascadeIndex, 0, 3);
                 UI::EndPropertyGrid();
@@ -805,5 +832,5 @@ namespace NR
 #endif
 
         ImGui::End();
-    }
-}
+            }
+        }

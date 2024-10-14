@@ -16,6 +16,7 @@
 
 namespace NR
 {
+    class VKComputePipeline;
     class ShaderLibrary;
 
     struct RendererConfig
@@ -97,7 +98,7 @@ namespace NR
 
         static void SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
 
-        static void DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, const glm::ivec3& workGroups, Ref <Material> material);
+        static void LightCulling(Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups);
 
         static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
         static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));

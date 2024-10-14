@@ -73,14 +73,6 @@ namespace NR
         : mPath(path), mProperties(properties)
     {
         int width, height, channels;
-        if (properties.Flip)
-        {
-            stbi_set_flip_vertically_on_load(1);
-        }
-        else
-        {
-            stbi_set_flip_vertically_on_load(0);
-        }
 
         if (stbi_is_hdr(path.c_str()))
         {

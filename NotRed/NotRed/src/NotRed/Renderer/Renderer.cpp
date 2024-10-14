@@ -11,6 +11,7 @@
 #include "Shader.h"
 
 #include "NotRed/Platform/OpenGL/GLRenderer.h"
+#include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 
 #include "NotRed/Platform/Vulkan/VKContext.h"
@@ -202,9 +203,9 @@ namespace NR
         sRendererAPI->GenerateParticles();
     }
 
-    void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, const glm::ivec3& workGroups, Ref <Material> material)
+    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
     {
-        sRendererAPI->DispatchComputeShader(renderCommandBuffer, workGroups, material);
+        return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
     }
 
     void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
@@ -307,9 +308,9 @@ namespace NR
         return config;
     }
 
-    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    void Renderer::LightCulling(Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
     {
-        return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
+        sRendererAPI->LightCulling(computePipeline, uniformBufferSet, material, screenSize, workGroups);
     }
 
     RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)

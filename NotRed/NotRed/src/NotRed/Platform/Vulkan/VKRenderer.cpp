@@ -2,6 +2,7 @@
 #include "VKRenderer.h"
 
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Vulkan.h"
 #include "VkContext.h"
@@ -10,7 +11,6 @@
 #include "NotRed/Renderer/SceneRenderer.h"
 
 #include "VKPipeline.h"
-#include "VKComputePipeline.h"
 #include "VKVertexBuffer.h"
 #include "VKIndexBuffer.h"
 #include "VKFrameBuffer.h"
@@ -429,6 +429,29 @@ namespace NR
             });
     }
 
+    void VKRenderer::LightCulling(Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
+    {
+        auto vulkanMaterial = material.As<VKMaterial>();
+        Renderer::Submit([pipeline, vulkanMaterial, uniformBufferSet, screenSize, workGroups]() mutable
+            {
+                const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                if (uniformBufferSet)
+                {
+                    const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, vulkanMaterial);
+                    vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
+                }
+                else
+                {
+                    vulkanMaterial->RT_UpdateForRendering();
+                }
+                const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
+                pipeline->Begin();
+                pipeline->SetPushConstants(glm::value_ptr(screenSize), sizeof(glm::ivec2));
+                pipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
+                pipeline->End();
+            });
+    }
+
     VkDescriptorSet VKRenderer::RT_AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
     {
         uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
@@ -440,10 +463,6 @@ namespace NR
 
         sData->DescriptorPoolAllocationCount[bufferIndex] += allocInfo.descriptorSetCount;
         return result;
-    }
-
-    void VKRenderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, const glm::ivec3& workGroups, Ref<Material> material)
-    {
     }
 
     void VKRenderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material)

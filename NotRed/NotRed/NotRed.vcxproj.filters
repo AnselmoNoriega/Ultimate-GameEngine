@@ -740,6 +740,10 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
     <ClInclude Include="src\NotRed\Core\Hash.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBufferSet.h" />
+    <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1206,5 +1210,8 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp" />
     <ClCompile Include="src\NotRed\Core\Hash.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp" />
   </ItemGroup>
 </Project>

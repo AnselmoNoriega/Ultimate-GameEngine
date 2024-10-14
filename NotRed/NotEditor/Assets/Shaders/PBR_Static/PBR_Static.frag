@@ -20,6 +20,18 @@ struct PointLight {
 	float LightSize;
 };
 
+layout(std140, binding = 3) uniform RendererData
+{
+	uniform vec4 uCascadeSplits;
+	uniform int uTilesCountX;
+	uniform bool uShowCascades;
+	uniform bool uSoftShadows;
+	uniform float uLightSize;
+	uniform float uMaxShadowDistance;
+	uniform float uShadowFade;
+	uniform bool uCascadeFading;
+	uniform float uCascadeTransitionFade;
+};
 
 struct DirectionalLight
 {
@@ -53,21 +65,6 @@ layout(std140, binding = 2) uniform SceneData
 	bool uHasEnvironmentMap;
 };
 
-
-layout(std140, binding = 3) uniform RendererData
-{
-	uniform vec4 uCascadeSplits;
-	uniform int uTilesCountX;
-	uniform bool uShowCascades;
-	uniform bool uSoftShadows;
-	uniform float uLightSize;
-	uniform float uMaxShadowDistance;
-	uniform float uShadowFade;
-	uniform bool uCascadeFading;
-	uniform float uCascadeTransitionFade;
-};
-
-
 layout(std140, binding = 4) uniform PointLightData
 {
 	uint uPointLightsCount;
@@ -88,7 +85,7 @@ layout(set = 1, binding = 10) uniform samplerCube uEnvIrradianceTex;
 layout(set = 1, binding = 11) uniform sampler2D uBRDFLUTTexture;
 
 // Shadow maps
-layout (set = 1, binding = 12) uniform sampler2DArray uShadowMapTexture;
+layout(set = 1, binding = 12) uniform sampler2DArray uShadowMapTexture;
 
 layout(push_constant) uniform Material
 {
@@ -280,7 +277,7 @@ vec3 CalculatePointLights(in vec3 F0)
 	uint offset = index * 1024;
 	for (int i = 0; i < uPointLightsCount/* && visibleLightIndicesBuffer.indices[offset + i] != -1*/; i++)
 	{
-		uint lightIndex = 1;
+		uint lightIndex = i;
 		PointLight light = upointLights[lightIndex];
 		vec3 Li = normalize(light.Position - Input.WorldPosition);
 		float lightDistance = length(light.Position - Input.WorldPosition);
@@ -630,7 +627,7 @@ void main()
 	shadowAmount = PCSS_DirectionalLight(uShadowMapTexture, shadowMapCoords, uLightSize);
 #endif
 
-	vec3 lightContribution = CalculateDirLights(F0);
+	vec3 lightContribution = CalculateDirLights(F0) * shadowAmount;
 	lightContribution += CalculatePointLights(F0);
 	vec3 iblContribution = IBL(F0, Lr);
 

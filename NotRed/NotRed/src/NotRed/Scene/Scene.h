@@ -17,7 +17,7 @@ namespace NR
 {
 	class SceneRenderer;
 
-	struct Light
+	struct DirLight
 	{
 		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
@@ -80,8 +80,8 @@ namespace NR
 		const Ref<Environment>& GetEnvironment() const { return mEnvironment; }
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
-		Light& GetLight() { return mLight; }
-		const Light& GetLight() const { return mLight; }
+		DirLight& GetLight() { return mLight; }
+		const DirLight& GetLight() const { return mLight; }
 
 		Entity GetMainCameraEntity();
 
@@ -138,7 +138,7 @@ namespace NR
 
 		EntityMap mEntityIDMap;
 
-		Light mLight;
+		DirLight mLight;
 		float mLightMultiplier = 0.3f;
 
 		LightEnvironment mLightEnvironment;
