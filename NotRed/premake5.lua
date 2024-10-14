@@ -25,6 +25,7 @@ include "NotRed/vendor/GLFW"
 include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
 include "NotRed/vendor/Box2D"
+--include "NotRed/vendor/Optick"
 group ""
 
 group "Core"
@@ -71,6 +72,7 @@ project "NotRed"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.Mono}",
+		"%{IncludeDir.Optick}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
 		"%{IncludeDir.Vulkan}",
@@ -83,6 +85,7 @@ project "NotRed"
 		"Box2D",
 		"GLFW",
 		"Glad",
+		"Optick",
 		"ImGui",
 		"opengl32.lib",
 		"%{Library.Vulkan}",

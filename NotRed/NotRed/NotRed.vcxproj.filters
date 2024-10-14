@@ -132,6 +132,9 @@
     <ClInclude Include="src\NotRed\Asset\AssetTypes.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\MeshSerializer.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Audio\Audio.h">
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
@@ -209,6 +212,9 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h">
       <Filter>src\NotRed\Core\Events</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Hash.h">
+      <Filter>src\NotRed\Core</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Core\Input.h">
       <Filter>src\NotRed\Core</Filter>
@@ -426,6 +432,12 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKShader.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBufferSet.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKSwapChain.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
@@ -508,6 +520,12 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
@@ -738,12 +756,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
-    <ClInclude Include="src\NotRed\Core\Hash.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBufferSet.h" />
-    <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h" />
-    <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -753,6 +765,9 @@
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\Audio.cpp">
@@ -804,6 +819,9 @@
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Core.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Hash.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Layer.cpp">
@@ -947,7 +965,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.cpp">
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKComputePipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKContext.cpp">
@@ -977,7 +995,7 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKComputePipeline.cpp">
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp">
@@ -987,6 +1005,9 @@
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKSwapChain.cpp">
@@ -1062,6 +1083,12 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
@@ -1208,10 +1235,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp" />
-    <ClCompile Include="src\NotRed\Core\Hash.cpp" />
-    <ClCompile Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp" />
   </ItemGroup>
 </Project>
