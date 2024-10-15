@@ -134,7 +134,7 @@ namespace NR
     }
 
     Scene::Scene(const std::string& debugName, bool isEditorScene)
-        : mDebugName(debugName)
+        : mDebugName(debugName), mIsEditorScene(isEditorScene)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&ScriptComponentDestroy>();

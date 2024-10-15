@@ -119,6 +119,9 @@ namespace NR
 
 		static Ref<Scene> GetScene(UUID uuid);
 
+		bool IsEditorScene() const { return mIsEditorScene; }
+		bool IsPlaying() const { return mIsPlaying; }
+
 		float GetPhysics2DGravity() const;
 		void SetPhysics2DGravity(float gravity);
 
@@ -153,7 +156,8 @@ namespace NR
 		Entity* mPhysics2DBodyEntityBuffer = nullptr;
 
 		float mSkyboxLod = 1.0f;
-		bool mIsPlaying = false;
+		bool mIsPlaying = false; 
+		bool mIsEditorScene = false;
 
 	private:
 		friend class Entity;

@@ -164,7 +164,7 @@ namespace NR
         return sData->RenderCaps;
     }
 
-    static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateWriteDescriptors(Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<VKMaterial> vulkanMaterial)
+    static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateUniformBufferWriteDescriptors(Ref<UniformBufferSet> uniformBufferSet, Ref<VKMaterial> vulkanMaterial)
     {
         size_t shaderHash = vulkanMaterial->GetShader()->GetHash();
         if (sData->UniformBufferWriteDescriptorCache.find(uniformBufferSet.Raw()) != sData->UniformBufferWriteDescriptorCache.end())
@@ -200,26 +200,53 @@ namespace NR
                         writeDescriptors[frame].push_back(writeDescriptorSet);
                     }
                 }
+            }
+        }
+        return sData->UniformBufferWriteDescriptorCache[uniformBufferSet.Raw()][shaderHash];
+    }
 
+    static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateStorageBufferWriteDescriptors(Ref<StorageBufferSet> storageBufferSet, Ref<VKMaterial> vulkanMaterial)
+    {
+        size_t shaderHash = vulkanMaterial->GetShader()->GetHash();
+        if (sData->StorageBufferWriteDescriptorCache.find(storageBufferSet.Raw()) != sData->StorageBufferWriteDescriptorCache.end())
+        {
+            const auto& shaderMap = sData->StorageBufferWriteDescriptorCache.at(storageBufferSet.Raw());
+            if (shaderMap.find(shaderHash) != shaderMap.end())
+            {
+                const auto& writeDescriptors = shaderMap.at(shaderHash);
+                return writeDescriptors;
+            }
+        }
+
+        uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+        Ref<VKShader> vulkanShader = vulkanMaterial->GetShader().As<VKShader>();
+        if (vulkanShader->HasDescriptorSet(0))
+        {
+            const auto& shaderDescriptorSets = vulkanShader->GetShaderDescriptorSets();
+            if (!shaderDescriptorSets.empty())
+            {
                 for (auto&& [binding, shaderSB] : shaderDescriptorSets[0].StorageBuffers)
                 {
                     auto& writeDescriptors = sData->StorageBufferWriteDescriptorCache[storageBufferSet.Raw()][shaderHash];
                     writeDescriptors.resize(framesInFlight);
+
                     for (uint32_t frame = 0; frame < framesInFlight; ++frame)
                     {
-                        Ref<VKStorageBuffer> uniformBuffer = storageBufferSet->Get(binding, 0, frame); // set = 0 for now
+                        Ref<VKStorageBuffer> storageBuffer = storageBufferSet->Get(binding, 0, frame);
+
                         VkWriteDescriptorSet writeDescriptorSet = {};
                         writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         writeDescriptorSet.descriptorCount = 1;
                         writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                        writeDescriptorSet.pBufferInfo = &uniformBuffer->GetDescriptorBufferInfo();
-                        writeDescriptorSet.dstBinding = uniformBuffer->GetBinding();
+                        writeDescriptorSet.pBufferInfo = &storageBuffer->GetDescriptorBufferInfo();
+                        writeDescriptorSet.dstBinding = storageBuffer->GetBinding();
                         writeDescriptors[frame].push_back(writeDescriptorSet);
                     }
                 }
             }
         }
-        return sData->UniformBufferWriteDescriptorCache[uniformBufferSet.Raw()][shaderHash];
+
+        return sData->StorageBufferWriteDescriptorCache[storageBufferSet.Raw()][shaderHash];
     }
 
     void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
@@ -252,7 +279,7 @@ namespace NR
                 for (auto& material : materials)
                 {
                     Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
-                    writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, storageBufferSet, vulkanMaterial);
+                    writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
                     vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
                 }
 
@@ -320,7 +347,7 @@ namespace NR
                 VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
                 vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-                const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, storageBufferSet, vulkanMaterial);
+                const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
                 vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
 
                 Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
@@ -389,7 +416,7 @@ namespace NR
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
                 // Bind descriptor sets describing shader binding points
-                const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, storageBufferSet, vulkanMaterial);
+                const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
                 vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
@@ -432,7 +459,7 @@ namespace NR
                 VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-                const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, nullptr, vulkanMaterial);
+                const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
                 vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
@@ -461,14 +488,24 @@ namespace NR
                 const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 if (uniformBufferSet)
                 {
-                    const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, storageBufferSet, vulkanMaterial);
+                    auto writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
+                    const auto& storageBufferWriteDescriptors = RT_RetrieveOrCreateStorageBufferWriteDescriptors(storageBufferSet, vulkanMaterial);
+
+                    uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+                    for (uint32_t frame = 0; frame < framesInFlight; ++frame)
+                    {
+                        writeDescriptors[frame].reserve(writeDescriptors[frame].size() + storageBufferWriteDescriptors[frame].size());
+                        writeDescriptors[frame].insert(writeDescriptors[frame].end(), storageBufferWriteDescriptors[frame].begin(), storageBufferWriteDescriptors[frame].end());
+                    }
                     vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
                 }
                 else
                 {
                     vulkanMaterial->RT_UpdateForRendering();
                 }
+
                 const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
+
                 pipeline->Begin();
                 pipeline->SetPushConstants(glm::value_ptr(screenSize), sizeof(glm::ivec2));
                 pipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
@@ -517,7 +554,7 @@ namespace NR
                 // Bind descriptor sets describing shader binding points
                 if (uniformBufferSet)
                 {
-                    const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, storageBufferSet, vulkanMaterial);
+                    const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
                     vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
                 }
                 else

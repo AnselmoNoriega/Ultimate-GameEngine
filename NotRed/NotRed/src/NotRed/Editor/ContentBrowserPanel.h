@@ -133,6 +133,8 @@ namespace NR
 		Ref<DirectoryInfo> GetDirectoryInfo(const std::string& filepath) const;
 		Ref<DirectoryInfo> GetDirectoryForAsset(AssetHandle asset) const;
 
+		void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::string& newParentPath);
+
 		SearchResults Search(const std::string& query, AssetHandle directoryHandle);
 
 		template<typename T, typename... Args>

@@ -30,7 +30,6 @@ namespace NR
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
 		auto descriptorSetLayouts = mShader->GetAllDescriptorSetLayouts();
-		auto descriptorSet = mShader->CreateDescriptorSets();
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

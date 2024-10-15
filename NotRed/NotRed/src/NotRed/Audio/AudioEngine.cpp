@@ -383,10 +383,7 @@ namespace NR::Audio
 			NR_CORE_ASSERT(ac, "AudioComponent was not found in registry!");
 			return false;
 		}
-		/* TODO: this is a little bit backwards at the moment.
-				  Technically AC doesn't need to have these multipliers,
-				  but conceptually it does.
-		 */
+
 		ac->VolumeMultiplier = ac->SoundConfig.VolumeMultiplier;
 		ac->PitchMultiplier = ac->SoundConfig.PitchMultiplier;
 		SubmitSoundToPlay(audioComponentID, ac->SoundConfig);
@@ -611,8 +608,8 @@ namespace NR::Audio
 			if (ac.PlayOnAwake)
 			{
 				auto newScene = Scene::GetScene(currentSceneID);
-				//TODO
-				//if (!newScene->IsEditorScene() && newScene->IsPlaying())
+				
+				if (!newScene->IsEditorScene() && newScene->IsPlaying())
 				{
 					auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
 					ac.SourcePosition = translation;
@@ -653,8 +650,7 @@ namespace NR::Audio
 		{
 			auto newScene = Scene::GetScene(sceneID);
 
-			//TODO
-			//if (!newScene->IsEditorScene() && newScene->IsPlaying())
+			if (!newScene->IsEditorScene() && newScene->IsPlaying())
 			{
 				auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
 				ac->SourcePosition = translation;

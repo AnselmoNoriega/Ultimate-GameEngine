@@ -108,6 +108,7 @@ namespace NR
         mClearValues.resize(mSpecification.Attachments.Attachments.size());
 
         bool createImages = mAttachmentImages.empty();
+        bool createDepthImage = !(bool)mDepthAttachmentImage;
 
         if (mSpecification.ExistingFrameBuffer)
         {
@@ -123,7 +124,7 @@ namespace NR
                 {
                     if (!mSpecification.ExistingImage)
                     {
-                        if (createImages)
+                        if (createDepthImage)
                         {
                             ImageSpecification spec;
                             spec.Format = attachmentSpec.Format;

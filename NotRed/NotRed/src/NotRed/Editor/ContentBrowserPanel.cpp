@@ -235,7 +235,7 @@ namespace NR
 		}
 
 		float buttonWidth = ImGui::GetColumnWidth() - 15.0f;
-		UI::ImageButton(mFolderIcon->GetImage(), { buttonWidth, buttonWidth });
+		UI::ImageButton(directory->FilePath.c_str(), mFolderIcon->GetImage(), { buttonWidth, buttonWidth });
 
 		if (selected)
 		{
@@ -375,7 +375,7 @@ namespace NR
 		}
 
 		float buttonWidth = ImGui::GetColumnWidth() - 15.0f;
-		UI::ImageButton(iconRef, { buttonWidth, buttonWidth });
+		UI::ImageButton(assetInfo.FilePath.c_str(), iconRef, { buttonWidth, buttonWidth });
 
 		if (selected)
 		{
@@ -933,12 +933,23 @@ namespace NR
 			return;
 		}
 
+		UpdateDirectoryPath(directoryInfo, destinationPath);
+
 		auto& parentDirectory = mDirectories[directoryInfo->Parent];
 		parentDirectory->SubDirectories.erase(std::remove(parentDirectory->SubDirectories.begin(), parentDirectory->SubDirectories.end(), directoryHandle), parentDirectory->SubDirectories.end());
 
 		Ref<DirectoryInfo> newParent = GetDirectoryInfo(destinationPath);
 		newParent->SubDirectories.push_back(directoryHandle);
 		directoryInfo->Parent = newParent->Handle;
+	}
+
+	void ContentBrowserPanel::UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::string& newParentPath)
+	{
+		directoryInfo->FilePath = newParentPath + "/" + directoryInfo->Name;
+		for (auto& subdir : directoryInfo->SubDirectories)
+		{
+			UpdateDirectoryPath(mDirectories[subdir], directoryInfo->FilePath);
+		}
 	}
 
 	Ref<DirectoryInfo> ContentBrowserPanel::GetDirectoryInfo(const std::string& filepath) const

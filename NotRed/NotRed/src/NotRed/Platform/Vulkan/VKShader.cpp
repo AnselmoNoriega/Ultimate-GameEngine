@@ -228,7 +228,7 @@ namespace NR
                 uniformBuffer->BindingPoint = binding;
                 uniformBuffer->Size = size;
                 uniformBuffer->Name = name;
-                uniformBuffer->ShaderStage = shaderStage;
+                uniformBuffer->ShaderStage = VK_SHADER_STAGE_ALL;
                 sUniformBuffers.at(descriptorSet)[binding] = uniformBuffer;
             }
             else
