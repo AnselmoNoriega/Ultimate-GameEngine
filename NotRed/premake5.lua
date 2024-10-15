@@ -25,7 +25,7 @@ include "NotRed/vendor/GLFW"
 include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
 include "NotRed/vendor/Box2D"
---include "NotRed/vendor/Optick"
+include "NotRed/vendor/Optick"
 group ""
 
 group "Core"

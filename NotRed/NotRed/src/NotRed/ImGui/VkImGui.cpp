@@ -79,7 +79,7 @@ namespace NR::UI
 
 	bool ImageButton(const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 	{
-		ImageButton(nullptr, image, size, uv0, uv1, frame_padding, bg_col, tint_col);
+		return ImageButton(nullptr, image, size, uv0, uv1, frame_padding, bg_col, tint_col);
 	}
 
 	bool ImageButton(const char* stringID, const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
@@ -110,7 +110,7 @@ namespace NR::UI
 
 	bool ImageButton(const Ref<Texture2D>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 	{
-		ImageButton(nullptr, texture, size, uv0, uv1, frame_padding, bg_col, tint_col);
+		return ImageButton(nullptr, texture, size, uv0, uv1, frame_padding, bg_col, tint_col);
 	}
 
 	bool ImageButton(const char* stringID, const Ref<Texture2D>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)

@@ -787,7 +787,7 @@ namespace NR
     template<typename T>
     static void CopyComponentIfExists(entt::entity dst, entt::entity src, entt::registry& registry)
     {
-        if (registry.has<T>(src))
+        if (registry.try_get<T>(src))
         {
             auto& srcComponent = registry.get<T>(src);
             registry.emplace_or_replace<T>(dst, srcComponent);
