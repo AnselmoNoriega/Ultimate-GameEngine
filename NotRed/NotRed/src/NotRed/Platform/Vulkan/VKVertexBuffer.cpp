@@ -10,6 +10,18 @@ namespace NR
     VKVertexBuffer::VKVertexBuffer(uint32_t size, VertexBufferUsage usage)
         : mSize(size)
     {
+        Ref<VKVertexBuffer> instance = this;
+        Renderer::Submit([instance]() mutable
+            {
+                auto device = VKContext::GetCurrentDevice();
+                VKAllocator allocator("VertexBuffer");
+                VkBufferCreateInfo vertexBufferCreateInfo = {};
+                vertexBufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+                vertexBufferCreateInfo.size = instance->mSize;
+                vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+                instance->mMemoryAllocation = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, instance->mVulkanBuffer);
+                instance->mLocalData.Allocate(instance->mSize);
+            });
     }
 
     VKVertexBuffer::VKVertexBuffer(void* data, uint32_t size, VertexBufferUsage usage)
@@ -81,5 +93,26 @@ namespace NR
                 VKAllocator allocator("VertexBuffer");
                 allocator.DestroyBuffer(buffer, allocation);
             });
+    }
+
+    void VKVertexBuffer::SetData(void* buffer, uint32_t size, uint32_t offset)
+    {
+        NR_CORE_ASSERT(size <= mLocalData.Size);
+        
+        memcpy(mLocalData.Data, (uint8_t*)buffer + offset, size);;
+
+        Ref<VKVertexBuffer> instance = this;
+        Renderer::Submit([instance, size, offset]() mutable
+            {
+                instance->RT_SetData(instance->mLocalData.Data, size, offset);
+            });
+    }
+
+    void VKVertexBuffer::RT_SetData(void* buffer, uint32_t size, uint32_t offset)
+    {
+        VKAllocator allocator("VulkanVertexBuffer");
+        uint8_t* pData = allocator.MapMemory<uint8_t>(mMemoryAllocation);
+        memcpy(pData, (uint8_t*)buffer + offset, size);
+        allocator.UnmapMemory(mMemoryAllocation);
     }
 }

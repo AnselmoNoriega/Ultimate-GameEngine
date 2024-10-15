@@ -75,11 +75,16 @@ namespace NR
 		void ScenePlay();
 		void SceneStop();
 
+		void UI_WelcomePopup();
+		void UI_AboutPopup();
+
 		void UpdateWindowTitle(const std::string& sceneName);
 
 		float GetSnapValue();
 
 		void DeleteEntity(Entity entity);
+
+		void UpdateSceneRendererSettings();
 
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
@@ -141,13 +146,21 @@ namespace NR
 
 		glm::vec2 mViewportBounds[2];
 		glm::vec2 mSecondViewportBounds[2];
+
+		float mLineWidth = 2.0f;
+
 		int mGizmoType = -1;
+
 		float mSnapValue = 0.5f;
 		float mRotationSnapValue = 45.0f;
+
 		bool mDrawOnTopBoundingBoxes = false;
 
-		bool mUIShowBoundingBoxes = false;
-		bool mUIShowBoundingBoxesOnTop = false;
+		bool mShowBoundingBoxes = false;
+		bool mShowBoundingBoxSelectedMeshOnly = true;
+		bool mShowBoundingBoxSubmeshes = false;
+		bool mShowSelectedWireframe = true;
+		bool mShowPhysicsCollidersWireframe = false;
 
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;

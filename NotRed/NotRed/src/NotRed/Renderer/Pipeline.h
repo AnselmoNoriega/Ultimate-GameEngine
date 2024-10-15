@@ -9,11 +9,31 @@
 
 namespace NR
 {
+	enum class PrimitiveTopology
+	{
+		None,
+		Points,
+		Lines,
+		Triangles,
+		LineStrip,
+		TriangleStrip,
+		TriangleFan
+	};
+
 	struct PipelineSpecification
 	{
 		Ref<NR::Shader> Shader;
 		VertexBufferLayout Layout;
 		Ref<RenderPass> RenderPass;
+
+		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
+
+		bool BackfaceCulling = true;
+		bool DepthTest = true;
+		bool DepthWrite = true;
+		bool Wireframe = false;
+
+		float LineWidth = 1.0f;
 
 		std::string DebugName;
 	};

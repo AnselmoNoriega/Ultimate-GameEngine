@@ -160,6 +160,8 @@ namespace NR
 		static AssetType GetStaticType() { return AssetType::MeshAsset; }
 		virtual AssetType GetAssetType() const override { return AssetType::MeshAsset; }
 
+		const AABB& GetBoundingBox() const { return mBoundingBox; }
+
 	private:
 		void BoneTransform(float time);
 		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
@@ -191,6 +193,8 @@ namespace NR
 		std::vector<Vertex> mStaticVertices;
 		std::vector<AnimatedVertex> mAnimatedVertices;
 		std::vector<ParticleVertex> mParticleVertices;
+
+		AABB mBoundingBox;
 
 		std::vector<Index> mIndices;
 		std::unordered_map<std::string, uint32_t> mBoneMapping;

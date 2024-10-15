@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-#define GLM_ENABLE_EXPERIMENTAL
+#define GLmENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -56,6 +56,8 @@ namespace NR
         mContentBrowserPanel = CreateScope<ContentBrowserPanel>();
         mObjectsPanel = CreateScope<ObjectsPanel>();
 
+        Renderer2D::SetLineWidth(mLineWidth);
+
         NewScene();
         mViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
         mSecondViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
@@ -63,6 +65,8 @@ namespace NR
 
         AssetEditorPanel::RegisterDefaultEditors();
         FileSystem::StartWatching();
+
+        UpdateSceneRendererSettings();
     }
 
     void EditorLayer::Detach()
@@ -108,6 +112,17 @@ namespace NR
         std::string rendererAPI = RendererAPI::Current() == RendererAPIType::Vulkan ? "Vulkan" : "OpenGL";
         std::string title = sceneName + " - NotRednut - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ") Renderer: " + rendererAPI;
         Application::Get().GetWindow().SetTitle(title);
+    }
+
+    void EditorLayer::UpdateSceneRendererSettings()
+    {
+        std::array<Ref<SceneRenderer>, 2> renderers = { mViewportRenderer, mSecondViewportRenderer };
+        for (Ref<SceneRenderer> renderer : renderers)
+        {
+            SceneRendererOptions& options = renderer->GetOptions();
+            options.ShowSelectedInWireframe = mShowSelectedWireframe;
+            options.ShowCollidersWireframe = mShowPhysicsCollidersWireframe;
+        }
     }
 
     float EditorLayer::GetSnapValue()
@@ -170,79 +185,59 @@ namespace NR
                     mEditorScene->RenderEditor(mSecondViewportRenderer, dt, mSecondEditorCamera);
                 }
 
-#if RENDERER_2D
-                if (mDrawOnTopBoundingBoxes)
+                Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
+                if (mShowBoundingBoxes)
                 {
-                    Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
-                    auto viewProj = mEditorCamera.GetViewProjection();
-                    Renderer2D::BeginScene(viewProj, false);
-                    glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
-                    Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.Transform().GetTransform() * selection.Mesh->Transform, color);
+                    Renderer2D::BeginScene(mEditorCamera.GetViewProjection());
+                    if (mShowBoundingBoxSelectedMeshOnly)
+                    {
+                        if (mSelectionContext.size())
+                        {
+                            auto& selection = mSelectionContext[0];
+                            if (selection.EntityObj.HasComponent<MeshComponent>())
+                            {
+                                if (mShowBoundingBoxSubmeshes)
+                                {
+                                    auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
+                                    if (mesh)
+                                    {
+                                        auto& submeshIndices = mesh->GetSubmeshes();
+                                        auto meshAsset = mesh->GetMeshAsset();
+                                        auto& submeshes = meshAsset->GetSubmeshes();
+                                        for (uint32_t submeshIndex : submeshIndices)
+                                        {
+                                            glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
+                                            const AABB& aabb = submeshes[submeshIndex].BoundingBox;
+                                            Renderer2D::DrawAABB(aabb, transform * submeshes[submeshIndex].Transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
+                                    if (mesh)
+                                    {
+                                        glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
+                                        const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
+                                        Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        auto entities = mCurrentScene->GetAllEntitiesWith<MeshComponent>();
+                        for (auto e : entities)
+                        {
+                            Entity entity = { e, mCurrentScene.Raw() };
+                            glm::mat4 transform = entity.GetComponent<TransformComponent>().GetTransform();
+                            const AABB& aabb = entity.GetComponent<MeshComponent>().MeshObj->GetMeshAsset()->GetBoundingBox();
+                            Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                        }
+                    }
                     Renderer2D::EndScene();
-                    Renderer::EndRenderPass();
                 }
-            }
-
-            if (mSelectionContext.size())
-            {
-                auto& selection = mSelectionContext[0];
-
-                if (selection.Entity.HasComponent<BoxCollider2DComponent>() && false)
-                {
-                    const auto& size = selection.Entity.GetComponent<BoxCollider2DComponent>().Size;
-                    const TransformComponent& transform = selection.Entity.GetComponent<TransformComponent>();
-
-                    if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
-                    {
-                        Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
-                        auto viewProj = mEditorCamera.GetViewProjection();
-                        Renderer2D::BeginScene(viewProj, false);
-                        glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
-                        Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.Transform().GetTransform() * selection.Mesh->Transform, color);
-                        Renderer2D::EndScene();
-                        Renderer::EndRenderPass();
-                    }
-                }
-
-                if (selection.Entity.HasComponent<CircleCollider2DComponent>())
-                {
-                    auto& selection = mSelectionContext[0];
-
-                    if (selection.Entity.HasComponent<BoxCollider2DComponent>() && false)
-                    {
-                        const auto& size = selection.Entity.GetComponent<BoxCollider2DComponent>().Size;
-                        const TransformComponent& transform = selection.Entity.GetComponent<TransformComponent>();
-
-                        Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
-                        auto viewProj = mEditorCamera.GetViewProjection();
-                        Renderer2D::BeginScene(viewProj, false);
-                        Renderer2D::DrawRotatedRect({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 0.0f, 1.0f, 1.0f, 1.0f });
-                        Renderer2D::EndScene();
-                        Renderer::EndRenderPass();
-                    }
-
-                    if (selection.Entity.HasComponent<CircleCollider2DComponent>() && false)
-                    {
-                        const auto& size = selection.Entity.GetComponent<CircleCollider2DComponent>().Radius;
-                        const TransformComponent& transform = selection.Entity.GetComponent<TransformComponent>();
-
-                        Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
-                        auto viewProj = mEditorCamera.GetViewProjection();
-                        Renderer2D::BeginScene(viewProj, false);
-                        Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
-                        Renderer2D::EndScene();
-                        Renderer::EndRenderPass();
-                    }
-
-                    Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
-                    auto viewProj = mEditorCamera.GetViewProjection();
-                    Renderer2D::BeginScene(viewProj, false);
-                    Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
-                    Renderer2D::EndScene();
-                    Renderer::EndRenderPass();
-                }
-#endif
-
             }
 
             break;
@@ -374,6 +369,85 @@ namespace NR
         }
     }
 
+    void EditorLayer::UI_WelcomePopup()
+    {
+        if (mShowWelcomePopup)
+        {
+            ImGui::OpenPopup("Welcome");
+            mShowWelcomePopup = false;
+        }
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+        
+        if (ImGui::BeginPopupModal("Welcome", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::Text("Welcome to NotRed!");
+            ImGui::Separator();
+            ImGui::TextWrapped("Environment maps are currently disabled because they're a little unstable on certain GPU drivers.");
+        
+            UI::BeginPropertyGrid();
+            UI::Property("Enable environment maps?", Renderer::GetConfig().ComputeEnvironmentMaps);
+            UI::EndPropertyGrid();
+            
+            if (ImGui::Button("OK"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    void EditorLayer::UI_AboutPopup()
+    {
+        ImGuiIO& io = ImGui::GetIO();
+
+        auto boldFont = io.Fonts->Fonts[0];
+        auto largeFont = io.Fonts->Fonts[1];
+
+        if (mShowAboutPopup)
+        {
+            ImGui::OpenPopup("About##AboutPopup");
+            mShowAboutPopup = false;
+        }
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 600,0 });
+
+        if (ImGui::BeginPopupModal("About##AboutPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::PushFont(largeFont);
+            ImGui::Text("NotRed Engine");
+            
+            ImGui::PopFont();
+            ImGui::Separator();
+            
+            ImGui::TextWrapped("NotRed is an early-stage interactive application and rendering engine for Windows.");
+            
+            ImGui::Separator();
+            ImGui::PushFont(boldFont);
+            
+            ImGui::Text("NotRed Core Team");
+            ImGui::PopFont();
+            
+            ImGui::Text("Anselmo Noriega");
+            ImGui::Text("Special Thanks To: The Cherno Team");
+
+            ImGui::Separator();
+            ImGui::TextColored(ImVec4{ 0.7f, 0.7f, 0.7f, 1.0f }, "This software contains source code provided by NVIDIA Corporation.");
+            
+            if (ImGui::Button("OK"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
     void EditorLayer::ImGuiRender()
     {
         static bool p_open = true;
@@ -451,14 +525,31 @@ namespace NR
                 }
             }
 
-            if (UI::Property("Show Bounding Boxes", mUIShowBoundingBoxes))
+            if (UI::Property("Line Width", mLineWidth, 0.25f, 0.5f, 5.0f))
             {
-                ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+                Renderer2D::SetLineWidth(mLineWidth);
             }
-            if (mUIShowBoundingBoxes && UI::Property("On Top", mUIShowBoundingBoxesOnTop))
+
+            UI::Property("Show Bounding Boxes", mShowBoundingBoxes);
             {
-                ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+                if (mShowBoundingBoxes)
+                {
+                    UI::Property("Selected Entity", mShowBoundingBoxSelectedMeshOnly);
+                }
+                if (mShowBoundingBoxes && mShowBoundingBoxSelectedMeshOnly)
+                {
+                    UI::Property("Submeshes", mShowBoundingBoxSubmeshes);
+                }
+                if (UI::Property("Show Selected Wireframe", mShowSelectedWireframe))
+                {
+                    UpdateSceneRendererSettings();
+                }
+                if (UI::Property("Show Physics Colliders", mShowPhysicsCollidersWireframe))
+                {
+                    UpdateSceneRendererSettings();
+                }
             }
+            UI::EndPropertyGrid();
 
             const char* label = mSelectionMode == SelectionMode::Entity ? "Entity" : "Mesh";
             if (ImGui::Button(label))
@@ -1221,52 +1312,13 @@ namespace NR
             mFocusedRenderer = mSecondViewportRenderer;
         }
 
-        mFocusedRenderer->OnImGuiRender();
+        mFocusedRenderer->ImGuiRender();
         PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
         ImGui::End();
 
-        if (mShowWelcomePopup)
-        {
-            mShowWelcomePopup = false;
-        }
-
-        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-
-        if (mShowAboutPopup)
-        {
-            ImGui::OpenPopup("About##AboutPopup");
-            mShowAboutPopup = false;
-        }
-
-        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-        ImGui::SetNextWindowSize(ImVec2{ 600,0 });
-        if (ImGui::BeginPopupModal("About##AboutPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
-        {
-            ImGui::PushFont(largeFont);
-            ImGui::Text("NotRed Engine");
-            ImGui::PopFont();
-
-            ImGui::Separator();
-            ImGui::TextWrapped("NotRed is an early-stage interactive application and rendering engine for Windows.");
-            ImGui::Separator();
-            ImGui::PushFont(boldFont);
-            ImGui::Text("NotRed Core Team");
-            ImGui::PopFont();
-            ImGui::Text("Yan Chernikov");
-            ImGui::Text("Peter Nilsson");
-            ImGui::Text("Karim Sayed");
-            ImGui::Text("Vineet Nair");
-            ImGui::Separator();
-            ImGui::TextColored(ImVec4{ 0.7f, 0.7f, 0.7f, 1.0f }, "This software contains source code provided by NVIDIA Corporation.");
-
-            if (ImGui::Button("OK"))
-            {
-                ImGui::CloseCurrentPopup();
-            }
-
-            ImGui::EndPopup();
-        }
+        UI_WelcomePopup();
+        UI_AboutPopup();
 
         AssetEditorPanel::ImGuiRender();
     }
@@ -1366,8 +1418,7 @@ namespace NR
             {
             case KeyCode::B:
             {
-                mUIShowBoundingBoxes = !mUIShowBoundingBoxes;
-                ShowBoundingBoxes(mUIShowBoundingBoxes, mUIShowBoundingBoxesOnTop);
+                mShowBoundingBoxes = !mShowBoundingBoxes;
             }
                 break;
             case KeyCode::D:
@@ -1530,5 +1581,4 @@ namespace NR
         NR_CORE_ASSERT(false);
         return Ray::Zero();
     }
-
 }

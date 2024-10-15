@@ -117,12 +117,18 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Particle", true);
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ParticleGen", true);
+        Renderer::GetShaderLibrary()->Load("assets/shaders/Wireframe");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth");
         Renderer::GetShaderLibrary()->Load("Assets/Shaders/LightCulling", true);
         //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim");
         //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth_Anim");
+		
+		// Renderer2D Shaders
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Renderer2D");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Renderer2D_Line");
+        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Renderer2D_Circle");
 
         // Compile shaders
         Renderer::WaitAndRender();
@@ -139,6 +145,7 @@ namespace NR
         sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
 
         sRendererAPI->Init();
+        Renderer2D::Init();
     }
 
     void Renderer::Shutdown()
@@ -166,11 +173,11 @@ namespace NR
         sCommandQueue->Execute();
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool clear)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool explicitClear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
-        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass);
+        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass, explicitClear);
     }
 
     void Renderer::EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer)
@@ -238,48 +245,9 @@ namespace NR
         sRendererAPI->SubmitFullscreenQuad(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material);
     }
 
-    void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
+    void Renderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount)
     {
-        const auto& meshAssetSubmeshes = mesh->GetMeshAsset()->GetSubmeshes();
-        auto& submeshes = mesh->GetSubmeshes();
-        for (uint32_t submeshIndex : submeshes)
-        {
-            const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
-            auto& aabb = submesh.BoundingBox;
-            auto aabbTransform = transform * submesh.Transform;
-            DrawAABB(aabb, aabbTransform);
-        }
-    }
-
-    void Renderer::DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color)
-    {
-        glm::vec4 min = { aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f };
-        glm::vec4 max = { aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f };
-
-        glm::vec4 corners[8] =
-        {
-            transform * glm::vec4 { aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4 { aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f },
-
-            transform * glm::vec4 { aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4 { aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f }
-        };
-        for (uint32_t i = 0; i < 4; ++i)
-        {
-            Renderer2D::DrawLine(corners[i], corners[(i + 1) % 4], color);
-        }
-        for (uint32_t i = 0; i < 4; ++i)
-        {
-            Renderer2D::DrawLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
-        }
-        for (uint32_t i = 0; i < 4; ++i)
-        {
-            Renderer2D::DrawLine(corners[i], corners[i + 4], color);
-        }
+        sRendererAPI->RenderGeometry(renderCommandBuffer, pipeline, uniformBufferSet, material, vertexBuffer, indexBuffer, transform, indexCount);
     }
 
     Ref<Texture2D> Renderer::GetWhiteTexture()

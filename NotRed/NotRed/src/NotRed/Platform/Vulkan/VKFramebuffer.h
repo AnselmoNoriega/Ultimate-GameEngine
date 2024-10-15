@@ -31,6 +31,7 @@ namespace NR
 		Ref<Image2D> GetDepthImage() const override { return mDepthAttachmentImage; }
 
 		size_t GetColorAttachmentCount() const { return mAttachmentImages.size(); }
+		bool HasDepthAttachment() const { return (bool)mDepthAttachmentImage; }
 
 		VkRenderPass GetRenderPass() const { return mRenderPass; }
 		VkFramebuffer GetVulkanFrameBuffer() const { return mFrameBuffer; }

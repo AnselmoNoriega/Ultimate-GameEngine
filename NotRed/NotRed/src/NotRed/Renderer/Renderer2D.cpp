@@ -6,6 +6,9 @@
 #include "NotRed/Renderer/Pipeline.h"
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/RenderCommandBuffer.h"
+
+#include "NotRed/Platform/Vulkan/VKRenderCommandBuffer.h"
 
 namespace NR
 {
@@ -46,7 +49,8 @@ namespace NR
         Ref<Pipeline> QuadPipeline;
         Ref<VertexBuffer> QuadVertexBuffer;
         Ref<IndexBuffer> QuadIndexBuffer;
-        Ref<Shader> TextureShader;
+        Ref<Material> QuadMaterial;
+
         Ref<Texture2D> WhiteTexture;
 
         uint32_t QuadIndexCount = 0;
@@ -69,7 +73,7 @@ namespace NR
         Ref<Pipeline> LinePipeline;
         Ref<VertexBuffer> LineVertexBuffer;
         Ref<IndexBuffer> LineIndexBuffer;
-        Ref<Shader> LineShader;
+        Ref<Material> LineMaterial;
 
         uint32_t LineIndexCount = 0;
         LineVertex* LineVertexBufferBase = nullptr;
@@ -78,15 +82,41 @@ namespace NR
         glm::mat4 CameraViewProj;
         bool DepthTest = true;
 
+        float LineWidth = 1.0f;
+
         Renderer2D::Statistics Stats;
+
+        Ref<RenderCommandBuffer> CommandBuffer;
+        Ref<UniformBufferSet> UniformBufferSet;
+        
+        struct UBCamera
+        {
+            glm::mat4 ViewProjection;
+        };
     };
 
     static Renderer2DData sData;
 
     void Renderer2D::Init()
     {
+        FrameBufferSpecification frameBufferSpec;
+        frameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+        frameBufferSpec.Samples = 1;
+        frameBufferSpec.ClearOnLoad = false;
+        frameBufferSpec.ClearColor = { 0.1f, 0.5f, 0.5f, 1.0f };
+        Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(frameBufferSpec);
+        RenderPassSpecification renderPassSpec;
+        renderPassSpec.TargetFrameBuffer = frameBuffer;
+        renderPassSpec.DebugName = "Renderer2D";
+        Ref<RenderPass> renderPass = RenderPass::Create(renderPassSpec);
+
         {
             PipelineSpecification pipelineSpecification;
+            pipelineSpecification.DebugName = "Renderer2D-Quad";
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Renderer2D");
+            pipelineSpecification.RenderPass = renderPass;
+            pipelineSpecification.BackfaceCulling = false;
+
             pipelineSpecification.Layout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float4, "aColor" },
@@ -94,7 +124,6 @@ namespace NR
                 { ShaderDataType::Float, "aTexIndex" },
                 { ShaderDataType::Float, "aTilingFactor" }
             };
-            pipelineSpecification.DebugName = "Renderer2D-Quad";
             sData.QuadPipeline = Pipeline::Create(pipelineSpecification);
 
             sData.QuadVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex));
@@ -120,32 +149,28 @@ namespace NR
             delete[] quadIndices;
         }
 
-        sData.WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1);
-        uint32_t whiteTextureData = 0xffffffff;
-        sData.WhiteTexture->Lock();
-        sData.WhiteTexture->GetWriteableBuffer().Write(&whiteTextureData, sizeof(uint32_t));
-        sData.WhiteTexture->Unlock();
-
-        sData.TextureShader = Shader::Create("Assets/Shaders/Renderer2D");
+        sData.WhiteTexture = Renderer::GetWhiteTexture();
 
         // Set all texture slots to 0
         sData.TextureSlots[0] = sData.WhiteTexture;
 
         sData.QuadVertexPositions[0] = { -0.5f, -0.5f, 0.0f, 1.0f };
-        sData.QuadVertexPositions[1] = { 0.5f, -0.5f, 0.0f, 1.0f };
+        sData.QuadVertexPositions[1] = { -0.5f,  0.5f, 0.0f, 1.0f };
         sData.QuadVertexPositions[2] = { 0.5f,  0.5f, 0.0f, 1.0f };
-        sData.QuadVertexPositions[3] = { -0.5f,  0.5f, 0.0f, 1.0f };
+        sData.QuadVertexPositions[3] = { 0.5f, -0.5f, 0.0f, 1.0f };
 
         // Lines
         {
-            sData.LineShader = Shader::Create("Assets/Shaders/Renderer2D_Line");
-
             PipelineSpecification pipelineSpecification;
+            pipelineSpecification.DebugName = "Renderer2D-Line";
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Renderer2D_Line");
+            pipelineSpecification.RenderPass = renderPass;
+            pipelineSpecification.Topology = PrimitiveTopology::Lines;
+            pipelineSpecification.LineWidth = 2.0f;
             pipelineSpecification.Layout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float4, "aColor" }
             };
-            pipelineSpecification.DebugName = "Renderer2D-Line";
             sData.LinePipeline = Pipeline::Create(pipelineSpecification);
 
             sData.LineVertexBuffer = VertexBuffer::Create(sData.MaxLineVertices * sizeof(LineVertex));
@@ -163,20 +188,29 @@ namespace NR
 
         // Circles
         {
-            sData.CircleShader = Shader::Create("Assets/Shaders/Renderer2D_Circle");
-
             PipelineSpecification pipelineSpecification;
+            pipelineSpecification.DebugName = "Renderer2D-Circle";
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Renderer2D_Circle");
+            pipelineSpecification.RenderPass = renderPass;
             pipelineSpecification.Layout = {
-                { ShaderDataType::Float3, "aWorldPosition" },
-                { ShaderDataType::Float,  "aThickness" },
+                { ShaderDataType::Float3,  "aWorldPosition" },
+                { ShaderDataType::Float,   "aThickness" },
                 { ShaderDataType::Float2,  "aLocalPosition" },
-                { ShaderDataType::Float4, "aColor" }
+                { ShaderDataType::Float4,  "aColor" }
             };
             sData.CirclePipeline = Pipeline::Create(pipelineSpecification);
 
             sData.CircleVertexBuffer = VertexBuffer::Create(sData.MaxVertices * sizeof(QuadVertex));
             sData.CircleVertexBufferBase = new CircleVertex[sData.MaxVertices];
         }
+
+        sData.CommandBuffer = RenderCommandBuffer::Create(0, "Renderer2D");
+        uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+        
+        sData.UniformBufferSet = UniformBufferSet::Create(framesInFlight);
+        sData.UniformBufferSet->Create(sizeof(Renderer2DData::UBCamera), 0);
+        sData.QuadMaterial = Material::Create(sData.QuadPipeline->GetSpecification().Shader, "QuadMaterial");
+        sData.LineMaterial = Material::Create(sData.LinePipeline->GetSpecification().Shader, "LineMaterial");
     }
 
     void Renderer2D::Shutdown()
@@ -187,6 +221,12 @@ namespace NR
     {
         sData.CameraViewProj = viewProj;
         sData.DepthTest = depthTest;
+
+        Renderer::Submit([viewProj]() mutable
+            {
+                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                sData.UniformBufferSet->Get(0, 0, bufferIndex)->RT_SetData(&viewProj, sizeof(Renderer2DData::UBCamera));
+            });
 
         sData.QuadIndexCount = 0;
         sData.QuadVertexBufferPtr = sData.QuadVertexBufferBase;
@@ -202,10 +242,71 @@ namespace NR
 
     void Renderer2D::EndScene()
     {
+        sData.CommandBuffer->Begin();
+        Renderer::BeginRenderPass(sData.CommandBuffer, sData.QuadPipeline->GetSpecification().RenderPass);
+        
+        uint32_t dataSize = (uint8_t*)sData.QuadVertexBufferPtr - (uint8_t*)sData.QuadVertexBufferBase;
+        if (dataSize)
+        {
+            sData.QuadVertexBuffer->SetData(sData.QuadVertexBufferBase, dataSize);
+
+            for (uint32_t i = 0; i < sData.TextureSlotIndex; ++i)
+            {
+                //sData.QuadMaterial->Set("")
+                //sData.TextureSlots[i]->Bind(i);
+            }
+            Renderer::RenderGeometry(sData.CommandBuffer, sData.QuadPipeline, sData.UniformBufferSet, sData.QuadMaterial, sData.QuadVertexBuffer, sData.QuadIndexBuffer, glm::mat4(1.0f), sData.QuadIndexCount);
+
+            ++sData.Stats.DrawCalls;
+        }
+
+        dataSize = (uint8_t*)sData.LineVertexBufferPtr - (uint8_t*)sData.LineVertexBufferBase;
+        if (dataSize)
+        {
+            sData.LineVertexBuffer->SetData(sData.LineVertexBufferBase, dataSize);
+
+            Ref<RenderCommandBuffer> renderCommandBuffer = sData.CommandBuffer;
+            Renderer::Submit([renderCommandBuffer]()
+                {
+                    uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                    VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
+                    vkCmdSetLineWidth(commandBuffer, sData.LineWidth);
+                });
+
+            Renderer::RenderGeometry(sData.CommandBuffer, sData.LinePipeline, sData.UniformBufferSet, sData.LineMaterial, sData.LineVertexBuffer, sData.LineIndexBuffer, glm::mat4(1.0f), sData.LineIndexCount);
+
+            ++sData.Stats.DrawCalls;
+        }
+
+        Renderer::EndRenderPass(sData.CommandBuffer);
+        sData.CommandBuffer->End();
+        sData.CommandBuffer->Submit();
     }
 
     void Renderer2D::Flush()
     {
+    }
+
+    Ref<RenderPass> Renderer2D::GetTargetRenderPass()
+    {
+        return sData.QuadPipeline->GetSpecification().RenderPass;
+    }
+
+    void Renderer2D::SetTargetRenderPass(Ref<RenderPass> renderPass)
+    {
+        if (renderPass != sData.QuadPipeline->GetSpecification().RenderPass)
+        {
+            {
+                PipelineSpecification pipelineSpecification = sData.QuadPipeline->GetSpecification();
+                pipelineSpecification.RenderPass = renderPass;
+                sData.QuadPipeline = Pipeline::Create(pipelineSpecification);
+            }
+            {
+                PipelineSpecification pipelineSpecification = sData.LinePipeline->GetSpecification();
+                pipelineSpecification.RenderPass = renderPass;
+                sData.LinePipeline = Pipeline::Create(pipelineSpecification);
+            }
+        }
     }
 
     void Renderer2D::FlushAndReset()
@@ -637,4 +738,52 @@ namespace NR
         return sData.Stats;
     }
 
+    void Renderer2D::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
+    {
+        const auto& meshAssetSubmeshes = mesh->GetMeshAsset()->GetSubmeshes();
+        auto& submeshes = mesh->GetSubmeshes();
+
+        for (uint32_t submeshIndex : submeshes)
+        {
+            const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
+            auto& aabb = submesh.BoundingBox;
+            auto aabbTransform = transform * submesh.Transform;
+            DrawAABB(aabb, aabbTransform);
+        }
+    }
+
+    void Renderer2D::DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color)
+    {
+        glm::vec4 min = { aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f };
+        glm::vec4 max = { aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f };
+        glm::vec4 corners[8] =
+        {
+            transform * glm::vec4 { aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4 { aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4 { aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4 { aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f },
+            transform * glm::vec4 { aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f },
+            transform * glm::vec4 { aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f },
+            transform * glm::vec4 { aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f },
+            transform * glm::vec4 { aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f }
+        };
+
+        for (uint32_t i = 0; i < 4; ++i)
+        {
+            Renderer2D::DrawLine(corners[i], corners[(i + 1) % 4], color);
+        }
+        for (uint32_t i = 0; i < 4; ++i)
+        {
+            Renderer2D::DrawLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
+        }
+        for (uint32_t i = 0; i < 4; ++i)
+        {
+            Renderer2D::DrawLine(corners[i], corners[i + 4], color);
+        }
+    }
+    
+    void Renderer2D::SetLineWidth(float lineWidth)
+    {
+        sData.LineWidth = lineWidth;
+    }
 }

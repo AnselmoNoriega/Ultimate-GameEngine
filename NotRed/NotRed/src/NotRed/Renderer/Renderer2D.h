@@ -2,6 +2,10 @@
 
 #include <glm/glm.hpp>
 
+#include "NotRed/Math/AABB.h"
+#include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Renderer/RenderPass.h"
+
 #include "NotRed/Renderer/Texture.h"
 
 namespace NR
@@ -13,6 +17,9 @@ namespace NR
 		static void BeginScene(const glm::mat4& viewProj, bool depthTest = true);
 
 		static void Flush();
+
+		static Ref<RenderPass> GetTargetRenderPass();
+		static void SetTargetRenderPass(Ref<RenderPass> renderPass);
 
 		static void Shutdown();
 		static void EndScene();
@@ -37,7 +44,11 @@ namespace NR
 		static void DrawCircle(const glm::vec3& p0, float radius, const glm::vec4& color, float thickness = 0.05f);
 
 		static void DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color = glm::vec4(1.0f));
-		
+
+		static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+		static void SetLineWidth(float lineWidth);
+
 		struct Statistics
 		{
 			uint32_t DrawCalls = 0;

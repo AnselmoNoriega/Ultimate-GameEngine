@@ -107,6 +107,9 @@ namespace NR
         uint32_t vertexCount = 0;
         uint32_t indexCount = 0;
 
+        mBoundingBox.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+        mBoundingBox.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+
         mSubmeshes.reserve(scene->mNumMeshes);
         for (size_t m = 0; m < scene->mNumMeshes; ++m)
         {
@@ -188,6 +191,19 @@ namespace NR
         }
 
         TraverseNodes(scene->mRootNode);
+
+        for (const auto& submesh : mSubmeshes)
+        {
+            AABB transformedSubmeshAABB = submesh.BoundingBox;
+            glm::vec3 min = glm::vec3(submesh.Transform * glm::vec4(transformedSubmeshAABB.Min, 1.0f));
+            glm::vec3 max = glm::vec3(submesh.Transform * glm::vec4(transformedSubmeshAABB.Max, 1.0f));
+            mBoundingBox.Min.x = glm::min(mBoundingBox.Min.x, min.x);
+            mBoundingBox.Min.y = glm::min(mBoundingBox.Min.y, min.y);
+            mBoundingBox.Min.z = glm::min(mBoundingBox.Min.z, min.z);
+            mBoundingBox.Max.x = glm::max(mBoundingBox.Max.x, max.x);
+            mBoundingBox.Max.y = glm::max(mBoundingBox.Max.y, max.y);
+            mBoundingBox.Max.z = glm::max(mBoundingBox.Max.z, max.z);
+        }
 
         // Bones
         if (mIsAnimated)

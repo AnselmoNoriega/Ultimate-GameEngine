@@ -9,7 +9,7 @@ namespace NR
 	class VKRenderCommandBuffer : public RenderCommandBuffer
 	{
 	public:
-		VKRenderCommandBuffer(uint32_t count = 0);
+		VKRenderCommandBuffer(uint32_t count = 0, const std::string& debugName = "");
 		~VKRenderCommandBuffer();
 
 		void Begin() override;
@@ -23,6 +23,8 @@ namespace NR
 		}
 
 	private:
+		std::string mDebugName;
+
 		VkCommandPool mCommandPool = nullptr;
 
 		std::vector<VkCommandBuffer> mCommandBuffers;

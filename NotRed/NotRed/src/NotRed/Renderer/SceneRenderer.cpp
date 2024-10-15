@@ -31,7 +31,7 @@ namespace NR
     {
         NR_SCOPE_TIMER("SceneRenderer::Init");
 
-        mCommandBuffer = RenderCommandBuffer::Create();
+        mCommandBuffer = RenderCommandBuffer::Create(0, "SceneRenderer");
 
         uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
         mUniformBufferSet = UniformBufferSet::Create(framesInFlight);
@@ -133,11 +133,9 @@ namespace NR
         // Geometry
         {
             FrameBufferSpecification geoFrameBufferSpec;
-            geoFrameBufferSpec.Width = 1280;
-            geoFrameBufferSpec.Height = 720;
             geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA32F, ImageFormat::Depth };
             geoFrameBufferSpec.Samples = 1;
-            geoFrameBufferSpec.ClearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+            geoFrameBufferSpec.ClearColor = { 0.1f, 0.5f, 0.1f, 1.0f };
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(geoFrameBufferSpec);
 
@@ -157,14 +155,20 @@ namespace NR
             pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
             pipelineSpecification.DebugName = "PBR-Static";
             mGeometryPipeline = Pipeline::Create(pipelineSpecification);
+
+            pipelineSpecification.Wireframe = true;
+            pipelineSpecification.DepthTest = false;
+            pipelineSpecification.LineWidth = 2.0f;
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe");
+            pipelineSpecification.DebugName = "Wireframe";
+            
+            mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
         }
 
         // Composite
         {
             FrameBufferSpecification compFrameBufferSpec;
-            compFrameBufferSpec.Width = 1280;
-            compFrameBufferSpec.Height = 720;
-            compFrameBufferSpec.Attachments = { ImageFormat::RGBA };
+            compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
             compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
@@ -181,7 +185,22 @@ namespace NR
             renderPassSpec.DebugName = "Composite";
             pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
             pipelineSpecification.DebugName = "SceneComposite";
+            pipelineSpecification.DepthWrite = false;
             mCompositePipeline = Pipeline::Create(pipelineSpecification);
+        }
+
+        // External compositing
+        {
+            FrameBufferSpecification extCompFrameBufferSpec;
+            extCompFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
+            extCompFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+            extCompFrameBufferSpec.ClearOnLoad = false;
+            extCompFrameBufferSpec.ExistingFrameBuffer = mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
+            Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(extCompFrameBufferSpec);
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.TargetFrameBuffer = frameBuffer;
+            renderPassSpec.DebugName = "External-Composite";
+            mExternalCompositeRenderPass = RenderPass::Create(renderPassSpec);
         }
 
         // Grid
@@ -196,6 +215,7 @@ namespace NR
             PipelineSpecification pipelineSpec;
             pipelineSpec.DebugName = "Grid";
             pipelineSpec.Shader = mGridShader;
+            pipelineSpec.BackfaceCulling = false;
             pipelineSpec.Layout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float2, "aTexCoord" }
@@ -203,6 +223,11 @@ namespace NR
             pipelineSpec.RenderPass = mGeometryPipeline->GetSpecification().RenderPass;
             mGridPipeline = Pipeline::Create(pipelineSpec);
         }
+
+        mWireframeMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"));
+        mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f ));
+        mColliderMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"));
+        mColliderMaterial->Set("uMaterialUniforms.Color", glm::vec4( 0.2f, 1.0f, 0.2f, 1.0f ));
 
         // Skybox
         {
@@ -390,6 +415,8 @@ namespace NR
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+            mExternalCompositeRenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+
             mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
             RendererDataUB.TilesCountX = mLightCullingWorkGroups.x;
 
@@ -511,23 +538,37 @@ namespace NR
 
     void SceneRenderer::SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& parentTransform)
     {
-        mColliderDrawList.push_back({ component.DebugMesh, nullptr, glm::translate(parentTransform, component.Offset) });
+        if (component.DebugMesh)
+        {
+            mColliderDrawList.push_back({ component.DebugMesh, nullptr, glm::translate(parentTransform, component.Offset) });
+        }
     }
 
     void SceneRenderer::SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& parentTransform)
     {
-        mColliderDrawList.push_back({ component.DebugMesh, nullptr, parentTransform });
+        if (component.DebugMesh)
+        {
+            mColliderDrawList.push_back({ component.DebugMesh, nullptr, parentTransform });
+        }
     }
 
     void SceneRenderer::SubmitColliderMesh(const CapsuleColliderComponent& component, const glm::mat4& parentTransform)
     {
-        mColliderDrawList.push_back({ component.DebugMesh, nullptr, parentTransform });
+        if (component.DebugMesh)
+        {
+            mColliderDrawList.push_back({ component.DebugMesh, nullptr, parentTransform });
+        }
     }
 
     void SceneRenderer::SubmitColliderMesh(const MeshColliderComponent& component, const glm::mat4& parentTransform)
     {
         for (auto debugMesh : component.ProcessedMeshes)
-            mColliderDrawList.push_back({ debugMesh, nullptr, parentTransform });
+        {
+            if (debugMesh)
+            {
+                mColliderDrawList.push_back({ debugMesh, nullptr, parentTransform });
+            }
+        }
     }
 
     void SceneRenderer::ShadowMapPass()
@@ -604,6 +645,17 @@ namespace NR
         for (auto& dc : mSelectedMeshDrawList)
         {
             Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
+            if (mOptions.ShowSelectedInWireframe)
+            {
+                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
+            }
+        }
+        if (mOptions.ShowCollidersWireframe)
+        {
+            for (DrawCommand& dc : mColliderDrawList)
+            {
+                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
+            }
         }
 
         for (auto& dc : mParticlesDrawList)
@@ -635,7 +687,7 @@ namespace NR
 
     void SceneRenderer::CompositePass()
     {
-        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass);
+        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
 
         auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
         float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();

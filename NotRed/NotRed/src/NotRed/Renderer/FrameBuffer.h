@@ -7,6 +7,8 @@
 
 namespace NR
 {
+	class FrameBuffer;
+
 	enum class FrameBufferTextureFormat
 	{
 		None,
@@ -44,6 +46,7 @@ namespace NR
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		bool ClearOnLoad = true;
 		FrameBufferAttachmentSpecification Attachments;
 		uint32_t Samples = 1;
 
@@ -53,6 +56,8 @@ namespace NR
 
 		Ref<Image2D> ExistingImage;
 		uint32_t ExistingImageLayer;
+
+		Ref<FrameBuffer> ExistingFrameBuffer;
 
 		std::string DebugName;
 	};

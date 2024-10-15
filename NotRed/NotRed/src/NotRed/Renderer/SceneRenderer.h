@@ -19,6 +19,8 @@ namespace NR
 	{
 		bool ShowGrid = true;
 		bool ShowBoundingBoxes = false;
+		bool ShowSelectedInWireframe = false;
+		bool ShowCollidersWireframe = false;
 	};
 
 	struct SceneRendererCamera
@@ -54,6 +56,8 @@ namespace NR
 
 		Ref<RenderPass> GetFinalRenderPass();
 		Ref<Image2D> GetFinalPassImage();
+
+		Ref<RenderPass> GetExternalCompositeRenderPass() { return mExternalCompositeRenderPass; }
 
 		SceneRendererOptions& GetOptions();
 
@@ -177,6 +181,7 @@ namespace NR
 		Ref<Material> mLightCullingMaterial;
 
 		Ref<Pipeline> mGeometryPipeline;
+		Ref<Pipeline> mGeometryWireframePipeline;
 		Ref<Pipeline> mParticlePipeline;
 		Ref<Pipeline> mPreDepthPipeline;
 		Ref<Pipeline> mCompositePipeline;
@@ -185,6 +190,8 @@ namespace NR
 		Ref<Material> mPreDepthMaterial;
 		Ref<Pipeline> mSkyboxPipeline;
 		Ref<Material> mSkyboxMaterial;
+
+		Ref<RenderPass> mExternalCompositeRenderPass;
 
 		struct DrawCommand
 		{
@@ -204,6 +211,7 @@ namespace NR
 		Ref<Material> mGridMaterial;
 		Ref<Material> mOutlineMaterial, OutlineAnimMaterial;
 		Ref<Material> mColliderMaterial;
+		Ref<Material> mWireframeMaterial;
 
 		SceneRendererOptions mOptions;
 

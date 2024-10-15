@@ -13,6 +13,7 @@ namespace NR
 		~GLVertexBuffer() override;
 
 		void SetData(void* data, uint32_t size, uint32_t offset = 0) override;
+		virtual void RT_SetData(void* data, uint32_t size, uint32_t offset = 0) {}
 		void Bind() const override;
 
 		const VertexBufferLayout& GetLayout() const override { return mLayout; }

@@ -5,7 +5,8 @@
 
 namespace NR
 {
-	VKRenderCommandBuffer::VKRenderCommandBuffer(uint32_t count)
+	VKRenderCommandBuffer::VKRenderCommandBuffer(uint32_t count, const std::string& debugName)
+		: mDebugName(debugName)
 	{
 		auto device = VKContext::GetCurrentDevice();
 

@@ -10,6 +10,25 @@
 
 namespace NR
 {
+    namespace Utils
+    {
+        static VkPrimitiveTopology GetVulkanTopology(PrimitiveTopology topology)
+        {
+            switch (topology)
+            {
+            case PrimitiveTopology::Points:			return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+            case PrimitiveTopology::Lines:			return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+            case PrimitiveTopology::Triangles:		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            case PrimitiveTopology::LineStrip:		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+            case PrimitiveTopology::TriangleStrip:	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+            case PrimitiveTopology::TriangleFan:	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+            default:
+                NR_CORE_ASSERT(false, "Unknown toplogy");
+                return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+            }
+        }
+    }
+
     static VkFormat ShaderDataTypeToVulkanFormat(ShaderDataType type)
     {
         switch (type)
@@ -42,8 +61,9 @@ namespace NR
         Ref<VKPipeline> instance = this;
         Renderer::Submit([instance]() mutable
             {
-                VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                NR_CORE_WARN("[VulkanPipeline] Creating pipeline {0}", instance->mSpecification.DebugName);
 
+                VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
                 NR_CORE_ASSERT(instance->mSpecification.Shader);
                 Ref<VKShader> vulkanShader = Ref<VKShader>(instance->mSpecification.Shader);
                 Ref<VKFrameBuffer> frameBuffer = instance->mSpecification.RenderPass->GetSpecification().TargetFrameBuffer.As<VKFrameBuffer>();
@@ -92,18 +112,18 @@ namespace NR
                 // This pipeline will assemble vertex data as a triangle lists (though we only use one triangle)
                 VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
                 inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                inputAssemblyState.topology = Utils::GetVulkanTopology(instance->mSpecification.Topology);
 
                 // Rasterization state
                 VkPipelineRasterizationStateCreateInfo rasterizationState = {};
                 rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-                rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-                rasterizationState.cullMode = VK_CULL_MODE_BACK_BIT;
+                rasterizationState.polygonMode = instance->mSpecification.Wireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+                rasterizationState.cullMode = instance->mSpecification.BackfaceCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
                 rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
                 rasterizationState.depthClampEnable = VK_FALSE;
                 rasterizationState.rasterizerDiscardEnable = VK_FALSE;
                 rasterizationState.depthBiasEnable = VK_FALSE;
-                rasterizationState.lineWidth = 1.0f;
+                rasterizationState.lineWidth = instance->mSpecification.LineWidth;
 
                 // Color blend state describes how blend factors are calculated (if used)
                 // We need one blend attachment state per color attachment (even if blending is not used)
@@ -140,6 +160,11 @@ namespace NR
                 std::vector<VkDynamicState> dynamicStateEnables;
                 dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
                 dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+                if (instance->mSpecification.Topology == PrimitiveTopology::Lines || instance->mSpecification.Topology == PrimitiveTopology::LineStrip || instance->mSpecification.Wireframe)
+                {
+                    dynamicStateEnables.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+                }
+
                 VkPipelineDynamicStateCreateInfo dynamicState = {};
                 dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
                 dynamicState.pDynamicStates = dynamicStateEnables.data();
@@ -149,8 +174,8 @@ namespace NR
                 // We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
                 VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
                 depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-                depthStencilState.depthTestEnable = VK_TRUE;
-                depthStencilState.depthWriteEnable = VK_TRUE;
+                depthStencilState.depthTestEnable = instance->mSpecification.DepthTest ? VK_TRUE : VK_FALSE;
+                depthStencilState.depthWriteEnable = instance->mSpecification.DepthWrite ? VK_TRUE : VK_FALSE;
                 depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
                 depthStencilState.depthBoundsTestEnable = VK_FALSE;
                 depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;

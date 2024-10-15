@@ -291,6 +291,9 @@ namespace NR
 
     void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
     {
+        NR_CORE_ASSERT(mesh);
+        NR_CORE_ASSERT(mesh->GetMeshAsset());
+
         Buffer pushConstantBuffer;
         pushConstantBuffer.Allocate(sizeof(glm::mat4) + additionalUniforms.Size);
         if (additionalUniforms.Size)
@@ -326,11 +329,23 @@ namespace NR
 
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+                float lineWidth = vulkanPipeline->GetSpecification().LineWidth;
+                if (lineWidth != 1.0f)
+                {
+                    vkCmdSetLineWidth(commandBuffer, lineWidth);
+                }
+
                 // Bind descriptor sets describing shader binding points
                 VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
                 if (descriptorSet)
                 {
                     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
+                }
+
+                Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
+                if (uniformStorageBuffer)
+                {
+                    vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, pushConstantBuffer.Size, uniformStorageBuffer.Size, uniformStorageBuffer.Data);
                 }
 
                 const auto& meshAssetSubmeshes = meshAsset->GetSubmeshes();
@@ -389,6 +404,52 @@ namespace NR
                 vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
                 vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
                 vkCmdDrawIndexed(commandBuffer, sData->QuadIndexBuffer->GetCount(), 1, 0, 0, 0);
+            });
+    }
+
+    void VKRenderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount /*= 0*/)
+    {
+        Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
+        if (indexCount == 0)
+            indexCount = indexBuffer->GetCount();
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, vulkanMaterial, vertexBuffer, indexBuffer, transform, indexCount]() mutable
+            {
+                uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+
+                VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
+                
+                Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
+                VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
+                
+                auto vulkanMeshVB = vertexBuffer.As<VKVertexBuffer>();
+                VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
+                VkDeviceSize offsets[1] = { 0 };
+                vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
+                
+                auto vulkanMeshIB = indexBuffer.As<VKIndexBuffer>();
+                VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
+                vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
+                VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
+                vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+                const auto& writeDescriptors = RT_RetrieveOrCreateWriteDescriptors(uniformBufferSet, nullptr, vulkanMaterial);
+                vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
+                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+
+                VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(bufferIndex);
+                if (descriptorSet)
+                {
+                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
+                }
+
+                vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
+                Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
+                if (uniformStorageBuffer)
+                {
+                    vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+                }
+
+                vkCmdDrawIndexed(commandBuffer, indexCount, 1, 0, 0, 0);
             });
     }
 
@@ -556,9 +617,9 @@ namespace NR
     {
     }
 
-    void VKRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass)
+    void VKRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass, bool explicitClear)
     {
-        Renderer::Submit([renderCommandBuffer, renderPass]()
+        Renderer::Submit([renderCommandBuffer, renderPass, explicitClear]()
             {
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
@@ -586,6 +647,39 @@ namespace NR
                 renderPassBeginInfo.framebuffer = framebuffer->GetVulkanFrameBuffer();
 
                 vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+                if (explicitClear)
+                {
+                    uint32_t colorAttachmentCount = (uint32_t)framebuffer->GetColorAttachmentCount();
+                    uint32_t totalAttachmentCount = colorAttachmentCount + (framebuffer->HasDepthAttachment() ? 1 : 0);
+                    
+                    NR_CORE_ASSERT(clearValues.size() == totalAttachmentCount);
+                    
+                    std::vector<VkClearAttachment> attachments(totalAttachmentCount);
+                    std::vector<VkClearRect> clearRects(totalAttachmentCount);
+                    
+                    for (uint32_t i = 0; i < colorAttachmentCount; ++i)
+                    {
+                        attachments[i].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                        attachments[i].colorAttachment = i;
+                        attachments[i].clearValue = clearValues[i];
+                        clearRects[i].rect.offset = { (int32_t)0, (int32_t)0 };
+                        clearRects[i].rect.extent = { width, height };
+                        clearRects[i].baseArrayLayer = 0;
+                        clearRects[i].layerCount = 1;
+                    }
+                    if (framebuffer->HasDepthAttachment())
+                    {
+                        attachments[colorAttachmentCount].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+                        attachments[colorAttachmentCount].clearValue = clearValues[colorAttachmentCount];
+                        clearRects[colorAttachmentCount].rect.offset = { (int32_t)0, (int32_t)0 };
+                        clearRects[colorAttachmentCount].rect.extent = { width, height };
+                        clearRects[colorAttachmentCount].baseArrayLayer = 0;
+                        clearRects[colorAttachmentCount].layerCount = 1;
+                    }
+
+                    vkCmdClearAttachments(commandBuffer, totalAttachmentCount, attachments.data(), totalAttachmentCount, clearRects.data());
+                }
 
                 VkViewport viewport = {};
                 viewport.x = 0.0f;

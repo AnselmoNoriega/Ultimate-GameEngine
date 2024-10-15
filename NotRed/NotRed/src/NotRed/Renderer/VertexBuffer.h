@@ -130,6 +130,7 @@ namespace NR
         virtual ~VertexBuffer() {}
 
         virtual void SetData(void* data, uint32_t size, uint32_t offset = 0) = 0;
+        virtual void RT_SetData(void* buffer, uint32_t size, uint32_t offset = 0) = 0;
         virtual void Bind() const = 0;
 
         virtual const VertexBufferLayout& GetLayout() const = 0;

@@ -13,10 +13,7 @@
     <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Shaders\LightCulling\LightCulling.comp" />
-    <None Include="Assets\Shaders\PreDepth\PreDepth.vert" />
-    <None Include="Assets\Shaders\PreDepth\PreDepth.frag" />
-    <None Include="Assets\Shaders\PreDepth_Anim\PreDepth_Anim.vert" />
-    <None Include="Assets\Shaders\PreDepth_Anim\PreDepth_Anim.frag" />
+    <None Include="Assets\Shaders\Wireframe\Wireframe.vert" />
+    <None Include="Assets\Shaders\Wireframe\Wireframe.frag" />
   </ItemGroup>
 </Project>

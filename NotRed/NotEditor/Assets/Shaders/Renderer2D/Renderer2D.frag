@@ -12,9 +12,9 @@ struct VertexOutput
 
 layout (location = 0) in VertexOutput Input;
 
-layout (binding = 0) uniform sampler2D uTextures[32];
+layout (binding = 1) uniform sampler2D uTextures[32];
 
 void main()
 {
-	color = texture(uTextures[int(Input.TexIndex)], Input.TexCoord * Input.TilingFactor) * Input.Color;
+	color = Input.Color;
 }
