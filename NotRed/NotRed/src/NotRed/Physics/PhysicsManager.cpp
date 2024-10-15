@@ -7,6 +7,8 @@
 
 #include "NotRed/Scene/Scene.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
 	void PhysicsManager::Init()
@@ -22,6 +24,8 @@ namespace NR
 
 	void PhysicsManager::CreateScene()
 	{
+		NR_PROFILE_FUNC();
+
 		sScene = Ref<PhysicsScene>::Create(sSettings);	
 		
 		if (sSettings.DebugOnPlay)
@@ -41,6 +45,8 @@ namespace NR
 
 	void PhysicsManager::CreateActors(Ref<Scene> scene)
 	{
+		NR_PROFILE_FUNC();
+
 		{
 			auto view = scene->GetAllEntitiesWith<RigidBodyComponent>();
 			for (auto entity : view)
@@ -88,6 +94,8 @@ namespace NR
 
 	Ref<PhysicsActor> PhysicsManager::CreateActor(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		auto existingActor = sScene->GetActor(entity);
 		if (existingActor)
 		{

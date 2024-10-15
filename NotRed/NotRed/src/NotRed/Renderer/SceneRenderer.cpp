@@ -13,6 +13,8 @@
 
 #include "NotRed/ImGui/ImGui.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
     static std::vector<std::thread> sThreadPool;
@@ -393,6 +395,8 @@ namespace NR
 
     void SceneRenderer::BeginScene(const SceneRendererCamera& camera)
     {
+        NR_PROFILE_FUNC();
+
         NR_CORE_ASSERT(mScene);
         NR_CORE_ASSERT(!mActive);
         mActive = true;
@@ -412,12 +416,16 @@ namespace NR
 
         if (mNeedsResize)
         {
+            mNeedsResize = false;
+
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mExternalCompositeRenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
             mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
+            Renderer::LightCulling(mCommandBuffer, mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
+
             RendererDataUB.TilesCountX = mLightCullingWorkGroups.x;
 
             mStorageBufferSet->Resize(14, 0, mLightCullingWorkGroups.x * mLightCullingWorkGroups.y * 4 * 1024);
@@ -495,6 +503,7 @@ namespace NR
 
     void SceneRenderer::EndScene()
     {
+        NR_PROFILE_FUNC();
         NR_CORE_ASSERT(mActive);
 #if MULTI_THREAD
         Ref<SceneRenderer> instance = this;
@@ -573,6 +582,8 @@ namespace NR
 
     void SceneRenderer::ShadowMapPass()
     {
+        NR_PROFILE_FUNC();
+
         auto& directionalLights = mSceneData.SceneLightEnvironment.DirectionalLights;
         if (directionalLights[0].Multiplier == 0.0f || !directionalLights[0].CastShadows)
         {
@@ -622,11 +633,13 @@ namespace NR
         mLightCullingMaterial->Set("uPreDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
         mLightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ mViewportWidth, mViewportHeight });
 
-        Renderer::LightCulling(mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
+        Renderer::LightCulling(mCommandBuffer, mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
     }
 
     void SceneRenderer::GeometryPass()
     {
+        NR_PROFILE_FUNC();
+
         Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass);
 
         // Skybox
@@ -687,6 +700,8 @@ namespace NR
 
     void SceneRenderer::CompositePass()
     {
+        NR_PROFILE_FUNC();
+
         Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
 
         auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
@@ -800,6 +815,8 @@ namespace NR
 
     void SceneRenderer::ImGuiRender()
     {
+        NR_PROFILE_FUNC();
+
         ImGui::Begin("Scene Renderer");
 
         if (ImGui::TreeNode("Shaders"))

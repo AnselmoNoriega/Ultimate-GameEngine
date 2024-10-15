@@ -179,6 +179,7 @@ namespace NR
 
 		// If v-sync is not requested, try to find a mailbox mode
 		// It's the lowest latency non-tearing present mode available
+		vsync = true;
 		if (!vsync)
 		{
 			for (size_t i = 0; i < presentModeCount; ++i)

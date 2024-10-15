@@ -21,7 +21,7 @@
 #include "NotRed/Platform/Vulkan/VKAllocator.h"
 #include "NotRed/Platform/Vulkan/VKSwapChain.h"
 
-#include "optick.h"
+#include "NotRed/Debug/Profiler.h"
 
 extern bool gApplicationRunning;
 extern ImGuiContext* GImGui;
@@ -182,7 +182,7 @@ namespace NR
 
         while (mRunning)
         {
-            OPTICK_FRAME("MainThread");
+            NR_PROFILE_FRAME("MainThread");
 
             static uint64_t frameCounter = 0;
             mWindow->ProcessEvents();

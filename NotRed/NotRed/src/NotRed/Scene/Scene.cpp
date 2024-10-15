@@ -22,6 +22,8 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 // TODO: Move this
 #include "NotRed/Core/Input.h"
 
@@ -174,12 +176,18 @@ namespace NR
     // Merge OnUpdate/Render into one function?
     void Scene::Update(float dt)
     {
+        NR_PROFILE_FUNC();
+
         // Box2D physics
         auto sceneView = mRegistry.view<Box2DWorldComponent>();
         auto& box2DWorld = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
         int32_t velocityIterations = 6;
         int32_t positionIterations = 2;
-        box2DWorld->Step(dt, velocityIterations, positionIterations);
+
+        {
+            NR_PROFILE_FUNC("Box2DWorld::Step");
+            box2DWorld->Step(dt, velocityIterations, positionIterations);
+        }
 
         {
             auto view = mRegistry.view<RigidBody2DComponent>();
@@ -235,6 +243,8 @@ namespace NR
 
     void Scene::RenderRuntime(Ref<SceneRenderer> renderer, float dt)
     {
+        NR_PROFILE_FUNC();
+
         // RENDER 3D SCENE
 
         Entity cameraEntity = GetMainCameraEntity();
@@ -362,6 +372,8 @@ namespace NR
 
     void Scene::RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera)
     {
+        NR_PROFILE_FUNC();
+
         // RENDER 3D SCENE
 
         // Lighting
@@ -556,6 +568,8 @@ namespace NR
 
     void Scene::RuntimeStart()
     {
+        NR_PROFILE_FUNC();
+
         ScriptEngine::SetSceneContext(this);
 
         {

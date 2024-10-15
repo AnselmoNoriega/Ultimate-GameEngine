@@ -114,11 +114,22 @@ namespace NR
 		}
 	}
 
-	void VKComputePipeline::Begin()
+	void VKComputePipeline::Begin(Ref<RenderCommandBuffer> renderCommandBuffer)
 	{
 		NR_CORE_ASSERT(!mActiveComputeCommandBuffer);
 
-		mActiveComputeCommandBuffer = VKContext::GetCurrentDevice()->GetCommandBuffer(true, true);
+		if (renderCommandBuffer)
+		{
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+			mActiveComputeCommandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
+			mUsingGraphicsQueue = true;
+		}
+		else
+		{
+			mActiveComputeCommandBuffer = VKContext::GetCurrentDevice()->GetCommandBuffer(true, true);
+			mUsingGraphicsQueue = false;
+		}
+
 		vkCmdBindPipeline(mActiveComputeCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
 	}
 
@@ -135,31 +146,37 @@ namespace NR
 		NR_CORE_ASSERT(mActiveComputeCommandBuffer);
 
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-		VkQueue computeQueue = VKContext::GetCurrentDevice()->GetComputeQueue();
-
-		vkEndCommandBuffer(mActiveComputeCommandBuffer);
-
-		if (!sComputeFence)
+		
+		if (!mUsingGraphicsQueue)
 		{
-			VkFenceCreateInfo fenceCreateInfo{};
-			fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-			fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-			VK_CHECK_RESULT(vkCreateFence(device, &fenceCreateInfo, nullptr, &sComputeFence));
-		}
-		vkWaitForFences(device, 1, &sComputeFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(device, 1, &sComputeFence);
+			VkQueue computeQueue = VKContext::GetCurrentDevice()->GetComputeQueue();
 
-		VkSubmitInfo computeSubmitInfo{};
-		computeSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		computeSubmitInfo.commandBufferCount = 1;
-		computeSubmitInfo.pCommandBuffers = &mActiveComputeCommandBuffer;
-		VK_CHECK_RESULT(vkQueueSubmit(computeQueue, 1, &computeSubmitInfo, sComputeFence));
+			vkEndCommandBuffer(mActiveComputeCommandBuffer);
 
-		// Wait for execution of compute shader to complete
-		{
-			Timer timer;
+			if (!sComputeFence)
+			{
+				VkFenceCreateInfo fenceCreateInfo{};
+				fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+				fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+				VK_CHECK_RESULT(vkCreateFence(device, &fenceCreateInfo, nullptr, &sComputeFence));
+			}
+			
 			vkWaitForFences(device, 1, &sComputeFence, VK_TRUE, UINT64_MAX);
-			NR_CORE_TRACE("Compute shader execution took {0} ms", timer.ElapsedMillis());
+			vkResetFences(device, 1, &sComputeFence);
+
+			VkSubmitInfo computeSubmitInfo{};
+			computeSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			computeSubmitInfo.commandBufferCount = 1;
+			computeSubmitInfo.pCommandBuffers = &mActiveComputeCommandBuffer;
+			VK_CHECK_RESULT(vkQueueSubmit(computeQueue, 1, &computeSubmitInfo, sComputeFence));
+
+			// Wait for execution of compute shader to complete
+			// Currently this is here for "safety"
+			{
+				Timer timer;
+				vkWaitForFences(device, 1, &sComputeFence, VK_TRUE, UINT64_MAX);
+				NR_CORE_TRACE("Compute shader execution took {0} ms", timer.ElapsedMillis());
+			}
 		}
 
 		mActiveComputeCommandBuffer = nullptr;

@@ -193,6 +193,7 @@
     <ClInclude Include="src\NotRed\Core\Timer.h" />
     <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
+    <ClInclude Include="src\NotRed\Debug\Profiler.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
     <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h" />
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />

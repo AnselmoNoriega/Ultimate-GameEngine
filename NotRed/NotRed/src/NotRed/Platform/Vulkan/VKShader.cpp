@@ -150,7 +150,7 @@ namespace NR
                 instance->ReflectAllShaderStages(shaderData);
                 instance->CreateDescriptors();
 
-                Renderer::OnShaderReloaded(instance->GetHash());
+                Renderer::ShaderReloaded(instance->GetHash());
             });
     }
 

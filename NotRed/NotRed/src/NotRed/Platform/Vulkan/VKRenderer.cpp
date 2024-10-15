@@ -30,6 +30,8 @@
 
 #include "NotRed/Core/Timer.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
     struct VKRendererData
@@ -166,6 +168,8 @@ namespace NR
 
     static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateUniformBufferWriteDescriptors(Ref<UniformBufferSet> uniformBufferSet, Ref<VKMaterial> vulkanMaterial)
     {
+        NR_PROFILE_FUNC();
+
         size_t shaderHash = vulkanMaterial->GetShader()->GetHash();
         if (sData->UniformBufferWriteDescriptorCache.find(uniformBufferSet.Raw()) != sData->UniformBufferWriteDescriptorCache.end())
         {
@@ -207,6 +211,8 @@ namespace NR
 
     static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateStorageBufferWriteDescriptors(Ref<StorageBufferSet> storageBufferSet, Ref<VKMaterial> vulkanMaterial)
     {
+        NR_PROFILE_FUNC();
+
         size_t shaderHash = vulkanMaterial->GetShader()->GetHash();
         if (sData->StorageBufferWriteDescriptorCache.find(storageBufferSet.Raw()) != sData->StorageBufferWriteDescriptorCache.end())
         {
@@ -253,6 +259,7 @@ namespace NR
     {
         Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform]() mutable
             {
+                NR_PROFILE_FUNC("VulkanRenderer::RenderMesh");
                 NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
 
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
@@ -331,6 +338,7 @@ namespace NR
         Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
         Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, vulkanMaterial, transform, pushConstantBuffer]() mutable
             {
+                NR_PROFILE_FUNC("VulkanRenderer::RenderMeshWithMaterial");
                 NR_SCOPE_PERF("VulkanRenderer::RenderMeshWithMaterial");
 
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
@@ -396,6 +404,8 @@ namespace NR
 
         Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, vulkanMaterial, transform]() mutable
             {
+                NR_PROFILE_FUNC("VulkanRenderer::RenderQuad");
+
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
@@ -441,6 +451,8 @@ namespace NR
             indexCount = indexBuffer->GetCount();
         Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, vulkanMaterial, vertexBuffer, indexBuffer, transform, indexCount]() mutable
             {
+                NR_PROFILE_FUNC("VulkanRenderer::RenderGeometry");
+
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
 
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
@@ -480,10 +492,10 @@ namespace NR
             });
     }
 
-    void VKRenderer::LightCulling(Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
+    void VKRenderer::LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
     {
         auto vulkanMaterial = material.As<VKMaterial>();
-        Renderer::Submit([pipeline, vulkanMaterial, uniformBufferSet, storageBufferSet, screenSize, workGroups]() mutable
+        Renderer::Submit([renderCommandBuffer, pipeline, vulkanMaterial, uniformBufferSet, storageBufferSet, screenSize, workGroups]() mutable
             {
                 const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 if (uniformBufferSet)
@@ -506,7 +518,7 @@ namespace NR
 
                 const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
 
-                pipeline->Begin();
+                pipeline->Begin(renderCommandBuffer);
                 pipeline->SetPushConstants(glm::value_ptr(screenSize), sizeof(glm::ivec2));
                 pipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
                 pipeline->End();
@@ -515,6 +527,8 @@ namespace NR
 
     VkDescriptorSet VKRenderer::RT_AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo)
     {
+        NR_PROFILE_FUNC();
+
         uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
         allocInfo.descriptorPool = sData->DescriptorPools[bufferIndex];
 
@@ -532,6 +546,8 @@ namespace NR
 
         Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, vulkanMaterial]() mutable
             {
+                NR_PROFILE_FUNC("VulkanRenderer::SubmitFullscreenQuad");
+
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
@@ -588,6 +604,8 @@ namespace NR
 
         Renderer::Submit([sceneRenderer, environment, shadow]() mutable
             {
+                NR_PROFILE_FUNC("VulkanRenderer::SetSceneEnvironment");
+
                 auto shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
                 Ref<VKShader> pbrShader = shader.As<VKShader>();
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
@@ -640,6 +658,8 @@ namespace NR
     {
         Renderer::Submit([]()
             {
+                NR_PROFILE_FUNC("VulkanRenderer::BeginFrame");
+
                 VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
 
                 // Reset descriptor pools here
@@ -658,6 +678,8 @@ namespace NR
     {
         Renderer::Submit([renderCommandBuffer, renderPass, explicitClear]()
             {
+                NR_PROFILE_FUNC("VulkanRenderer::BeginRenderPass");
+
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
@@ -741,6 +763,8 @@ namespace NR
     {
         Renderer::Submit([renderCommandBuffer]()
             {
+                NR_PROFILE_FUNC("VulkanRenderer::EndRenderPass");
+
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
                 vkCmdEndRenderPass(commandBuffer);

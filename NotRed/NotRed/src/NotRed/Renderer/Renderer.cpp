@@ -17,6 +17,7 @@
 #include "NotRed/Platform/Vulkan/VKContext.h"
 
 #include "NotRed/Core/Timer.h"
+#include "NotRed/Debug/Profiler.h"
 
 namespace NR
 {
@@ -42,7 +43,7 @@ namespace NR
         sShaderDependencies[shader->GetHash()].Materials.push_back(material);
     }
 
-    void Renderer::OnShaderReloaded(size_t hash)
+    void Renderer::ShaderReloaded(size_t hash)
     {
         if (sShaderDependencies.find(hash) != sShaderDependencies.end())
         {
@@ -169,6 +170,7 @@ namespace NR
 
     void Renderer::WaitAndRender()
     {
+        NR_PROFILE_FUNC();
         NR_SCOPE_PERF("Renderer::WaitAndRender");
         sCommandQueue->Execute();
     }
@@ -281,9 +283,9 @@ namespace NR
         return config;
     }
 
-    void Renderer::LightCulling(Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
+    void Renderer::LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
     {
-        sRendererAPI->LightCulling(computePipeline, uniformBufferSet, storageBufferSet, material, screenSize, workGroups);
+        sRendererAPI->LightCulling(renderCommandBuffer, computePipeline, uniformBufferSet, storageBufferSet, material, screenSize, workGroups);
     }
 
     RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)
