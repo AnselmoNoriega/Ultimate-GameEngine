@@ -9,10 +9,14 @@
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR::Audio
 {
     bool AudioPlayback::PlaySound2D(const SoundConfig& sound, float volume, float pitch)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         auto& scene = engine.GetCurrentSceneContext();
         auto entity = scene->CreateEntityWithID(UUID(), "OneShot2D");
@@ -35,6 +39,8 @@ namespace NR::Audio
 
     bool AudioPlayback::PlaySound2D(Ref<AudioFile> soundAsset, float volume, float pitch)
     {
+        NR_PROFILE_FUNC();
+
         SoundConfig sc;
         sc.FileAsset = soundAsset;
         return PlaySound2D(sc, volume, pitch);
@@ -42,6 +48,8 @@ namespace NR::Audio
 
     bool AudioPlayback::PlaySoundAtLocation(const SoundConfig& sound, glm::vec3 location, float volume, float pitch)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         auto& scene = engine.GetCurrentSceneContext();
         auto entity = scene->CreateEntityWithID(UUID(), "OneShot3D");
@@ -67,6 +75,8 @@ namespace NR::Audio
 
     bool AudioPlayback::PlaySoundAtLocation(Ref<AudioFile> soundAsset, glm::vec3 location, float volume, float pitch)
     {
+        NR_PROFILE_FUNC();
+
         SoundConfig sc;
         sc.FileAsset = soundAsset;
         return PlaySoundAtLocation(sc, location, volume, pitch);
@@ -74,30 +84,40 @@ namespace NR::Audio
 
     bool AudioPlayback::Play(uint64_t audioComponentID, float startTime)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         return engine.SubmitSoundToPlay(audioComponentID);
     }
 
     bool AudioPlayback::StopActiveSound(uint64_t audioComponentID)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         return engine.StopActiveSoundSource(audioComponentID);
     }
 
     bool AudioPlayback::PauseActiveSound(uint64_t audioComponentID)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         return engine.PauseActiveSoundSource(audioComponentID);
     }
 
     bool AudioPlayback::IsPlaying(uint64_t audioComponentID)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         return engine.IsSoundForComponentPlaying(audioComponentID);
     }
 
     void AudioPlayback::SetMasterReverbSend(uint64_t audioComponetnID, float sendLevel)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         if (auto* sound = engine.GetSoundForAudioComponent(audioComponetnID))
         {
@@ -111,6 +131,8 @@ namespace NR::Audio
 
     float AudioPlayback::GetMasterReverbSend(uint64_t audioComponetnID)
     {
+        NR_PROFILE_FUNC();
+
         auto& engine = AudioEngine::Get();
         if (auto* audioComponent = engine.GetAudioComponentFromID(engine.mCurrentSceneID, audioComponetnID))
         {

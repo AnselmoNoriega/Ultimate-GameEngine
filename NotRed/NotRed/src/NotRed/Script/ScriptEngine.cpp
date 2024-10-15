@@ -16,6 +16,8 @@
 
 #include "NotRed/Scene/Scene.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
     static MonoDomain* sMonoDomain = nullptr;
@@ -194,13 +196,13 @@ namespace NR
         MonoMethodDesc* desc = mono_method_desc_new(methodDesc.c_str(), NULL);
         if (!desc)
         {
-            std::cout << "mono_method_desc_new " << methodDesc << " failed" << std::endl;
+            NR_CORE_ERROR("[ScriptEngine] mono_method_desc_new failed ({0})", methodDesc);
         }
 
         MonoMethod* method = mono_method_desc_search_in_image(desc, image);
         if (!method)
         {
-            std::cout << "mono_method_desc_search_in_image " << methodDesc << " failed" << std::endl;
+            NR_CORE_ERROR("[ScriptEngine] mono_method_desc_search_in_image failed ({0})", methodDesc);
         }
 
         return method;
@@ -371,7 +373,10 @@ namespace NR
 
     void ScriptEngine::UpdateEntity(Entity entity, float dt)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
+        NR_PROFILE_SCOPE_DYNAMIC(entityInstance.ScriptClass->FullName.c_str());
         if (entityInstance.ScriptClass->UpdateMethod)
         {
             void* args[] = { &dt };
@@ -381,6 +386,8 @@ namespace NR
 
     void ScriptEngine::UpdatePhysicsEntity(Entity entity, float fixedDeltaTime)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->UpdatePhysics)
         {
@@ -391,6 +398,8 @@ namespace NR
 
     void ScriptEngine::Collision2DBegin(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DBeginMethod)
         {
@@ -402,6 +411,8 @@ namespace NR
 
     void ScriptEngine::Collision2DEnd(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DEndMethod)
         {
@@ -413,6 +424,8 @@ namespace NR
 
     void ScriptEngine::CollisionBegin(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionBeginMethod)
         {
@@ -424,6 +437,8 @@ namespace NR
 
     void ScriptEngine::CollisionEnd(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionEndMethod)
         {
@@ -435,6 +450,8 @@ namespace NR
 
     void ScriptEngine::TriggerBegin(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerBeginMethod)
         {
@@ -446,6 +463,8 @@ namespace NR
 
     void ScriptEngine::TriggerEnd(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerEndMethod)
         {
@@ -535,6 +554,8 @@ namespace NR
 
     bool ScriptEngine::ModuleExists(const std::string& moduleName)
     {
+        NR_PROFILE_FUNC();
+
         std::string NamespaceName, ClassName;
         if (moduleName.find('.') != std::string::npos)
         {

@@ -22,6 +22,9 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 
+#include "NotRed/Audio/AudioEngine.h"
+#include "NotRed/Audio/AudioComponent.h"
+
 #include "NotRed/Debug/Profiler.h"
 
 // TODO: Move this
@@ -207,6 +210,8 @@ namespace NR
 
         // Update all entities
         {
+            NR_PROFILE_FUNC("Scene::Update - C# Update");
+
             auto view = mRegistry.view<ScriptComponent>();
             for (auto entity : view)
             {
@@ -234,6 +239,115 @@ namespace NR
                 transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
                 transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
                 transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
+            }
+        }
+
+        {	//--- Update Audio Listener ---
+            //=============================
+
+            NR_PROFILE_FUNC("Scene::OnUpdate - Update Audio Listener");
+            auto view = mRegistry.view<AudioListenerComponent>();
+
+            Entity listener;
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                if (e.GetComponent<AudioListenerComponent>().Active)
+                {
+                    listener = e;
+                    auto worldSpaceTransform = GetWorldSpaceTransform(listener);
+                    Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
+
+                    if (auto physicsActor = PhysicsManager::GetActorForEntity(listener))
+                    {
+                        if (physicsActor->IsDynamic())
+                        {
+                            Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetLinearVelocity());
+                        }
+                    }
+                    break;
+                }
+            }
+
+            // If listener wasn't found, fallback to using main camera as an active listener
+            if (listener.mEntityHandle == entt::null)
+            {
+                listener = GetMainCameraEntity();
+                if (listener.mEntityHandle != entt::null)
+                {
+                    // If camera was changed or destroyed during Runtime, it might not have Listener Component (?)
+                    if (!listener.HasComponent<AudioListenerComponent>())
+                    {
+                        listener.AddComponent<AudioListenerComponent>();
+                    }
+
+                    auto worldSpaceTransform = GetWorldSpaceTransform(listener);
+                    Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
+
+                    if (auto physicsActor = PhysicsManager::GetActorForEntity(listener))
+                    {
+                        if (physicsActor->IsDynamic())
+                        {
+                            Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetLinearVelocity());
+                        }
+                    }
+                }
+            }
+        }
+
+        {	//--- Update Audio Components ---
+            //===============================
+
+            NR_PROFILE_FUNC("Scene::OnUpdate - Update Audio Components");
+            auto view = mRegistry.view<Audio::AudioComponent>();
+
+            std::vector<Entity> deadEntities;
+            deadEntities.reserve(view.size());
+
+            std::vector<Audio::SoundSourceUpdateData> updateData;
+            updateData.reserve(view.size());
+
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& audioComponent = e.GetComponent<Audio::AudioComponent>();
+
+                // 1. Handle Audio Components marked for Auto Destroy
+                // AutoDestroy flag is only set for "one-shot" sounds
+                if (audioComponent.AutoDestroy && audioComponent.MarkedForDestroy)
+                {
+                    deadEntities.push_back(e);
+                    continue;
+                }
+
+                // 2. Update positions of associated sound sources
+                const auto& worldSpaceTransform = GetWorldSpaceTransform(e);
+
+                // 3. Update velocities of associated sound sources
+                glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+                if (auto physicsActor = PhysicsManager::GetActorForEntity(e))
+                {
+                    if (physicsActor->IsDynamic())
+                    {
+                        velocity = physicsActor->GetLinearVelocity();
+                    }
+                }
+
+                updateData.emplace_back(Audio::SoundSourceUpdateData{ 
+                    e.GetID(),
+                    audioComponent.VolumeMultiplier,
+                    audioComponent.PitchMultiplier,
+                    worldSpaceTransform.Translation,
+                    velocity });
+            }
+
+            //--- Submit values to AudioEngine to update associated sound sources ---
+            //-----------------------------------------------------------------------
+            Audio::AudioEngine::Get().SubmitSourceUpdateData(updateData);
+
+            for (int i = (int)deadEntities.size() - 1; i >= 0; --i)
+            {
+                DestroyEntity(deadEntities[i]);
             }
         }
 
@@ -726,6 +840,8 @@ namespace NR
 
     Entity Scene::GetMainCameraEntity()
     {
+        NR_PROFILE_FUNC();
+
         auto view = mRegistry.view<CameraComponent>();
         for (auto entity : view)
         {
@@ -740,6 +856,8 @@ namespace NR
 
     Entity Scene::CreateEntity(const std::string& name)
     {
+        NR_PROFILE_FUNC();
+
         auto entity = Entity{ mRegistry.create(), this };
         auto& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = 0;
@@ -758,6 +876,8 @@ namespace NR
 
     Entity Scene::CreateEntityWithID(UUID uuid, const std::string& name, bool runtimeMap)
     {
+        NR_PROFILE_FUNC();
+
         auto entity = Entity{ mRegistry.create(), this };
         auto& idComponent = entity.AddComponent<IDComponent>();
         idComponent.ID = uuid;
@@ -777,6 +897,8 @@ namespace NR
 
     void Scene::DestroyEntity(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         if (entity.HasComponent<ScriptComponent>())
         {
             ScriptEngine::ScriptComponentDestroyed(mSceneID, entity.GetID());

@@ -21,6 +21,8 @@
 #include "NotRed/Platform/Vulkan/VKAllocator.h"
 #include "NotRed/Platform/Vulkan/VKSwapChain.h"
 
+#include "NotRed/Util/StringUtils.h"
+
 #include "NotRed/Debug/Profiler.h"
 
 extern bool gApplicationRunning;
@@ -118,19 +120,7 @@ namespace NR
         }
 
         ImGui::End();
-        {
-            ImGui::Begin("Performance");
-            ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
 
-            const auto& perFrameData = mProfiler->GetPerFrameData();
-            for (auto&& [name, time] : perFrameData)
-            {
-                ImGui::Text("%s: %.3fms\n", name, time);
-            }
-
-            ImGui::End();
-            mProfiler->Clear();
-        }
         {
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("Audio Stats");
@@ -156,6 +146,19 @@ namespace NR
             ImGui::Text("Used RAM (Resource Manager): %s", ramRM.c_str());
 
             ImGui::End();
+        }
+        {
+            ImGui::Begin("Performance");
+            ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+
+            const auto& perFrameData = mProfiler->GetPerFrameData();
+            for (auto&& [name, time] : perFrameData)
+            {
+                ImGui::Text("%s: %.3fms\n", name, time);
+            }
+
+            ImGui::End();
+            mProfiler->Clear();
         }
 
         for (Layer* layer : mLayerStack)

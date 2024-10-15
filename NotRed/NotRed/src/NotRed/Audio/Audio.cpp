@@ -1,6 +1,12 @@
 #include "nrpch.h"
 #include "Audio.h"
 
+#include <chrono>
+
+#include "NotRed/Debug/Profiler.h"
+
+using namespace std::chrono_literals;
+
 namespace NR::Audio
 {
     bool AudioThread::Start()
@@ -11,7 +17,9 @@ namespace NR::Audio
         }
 
         sThreadActive = true;
-        sAudioThread = new std::thread([]{
+        sAudioThread = new std::thread([]
+            {
+                NR_PROFILE_THREAD("AudioThread");
 
 #if defined(NR_PLATFORM_WINDOWS)
                 HRESULT r;
@@ -59,32 +67,43 @@ namespace NR::Audio
 
     void AudioThread::AddTask(AudioFunctionCallback*&& funcCb)
     {
+        NR_PROFILE_FUNC();
+
         std::scoped_lock lock(sAudioThreadJobsLock);
         sAudioThreadJobs.emplace(std::move(funcCb));
     }
 
     void AudioThread::Update()
     {
+        NR_PROFILE_FUNC();
+
         sTimer.Reset();
 
         // Handle AudioThread Jobs
-        std::scoped_lock lock(sAudioThreadJobsLock);
-        if (!sAudioThreadJobs.empty())
         {
-            for (int i = sAudioThreadJobs.size() - 1; i >= 0; --i)
-            {
-                auto job = sAudioThreadJobs.front();
-                job->Execute();
+            NR_PROFILE_FUNC("AudioThread::Update - Execution");
 
-                sAudioThreadJobs.pop();
-                delete job;
+            std::scoped_lock lock(sAudioThreadJobsLock);
+            if (!sAudioThreadJobs.empty())
+            {
+                for (int i = (int)sAudioThreadJobs.size() - 1; i >= 0; i--)
+                {
+                    auto job = sAudioThreadJobs.front();
+
+                    job->Execute();
+
+                    sAudioThreadJobs.pop();
+                    delete job;
+                }
             }
         }
         NR_CORE_ASSERT(mUpdateCallback != nullptr, "Update Function is not bound!");
 
         mUpdateCallback(sTimeFrame);
         sTimeFrame = sTimer.Elapsed();
-        sLastFrameTime = sTimeFrame.GetMilliseconds();
+        sLastFrameTime = sTimeFrame.GetMilliseconds();   
+        
+        std::this_thread::sleep_for(1ms);
     }
 
     std::thread* AudioThread::sAudioThread = nullptr;

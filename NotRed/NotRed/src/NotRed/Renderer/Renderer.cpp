@@ -151,6 +151,8 @@ namespace NR
 
     void Renderer::Shutdown()
     {
+        Renderer2D::Shutdown();
+
         sShaderDependencies.clear();
         sRendererAPI->Shutdown();
 
