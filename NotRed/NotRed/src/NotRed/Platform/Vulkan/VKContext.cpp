@@ -10,7 +10,7 @@ namespace NR
 #ifdef NR_DEBUG
 	static bool sValidation = true;
 #else
-	static bool sValidation = false;
+	static bool sValidation = true;
 #endif
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)

@@ -71,6 +71,7 @@ namespace NR
         glm::vec4 QuadVertexPositions[4];
 
         Ref<Pipeline> LinePipeline;
+        Ref<Pipeline> LineOnTopPipeline;
         Ref<VertexBuffer> LineVertexBuffer;
         Ref<IndexBuffer> LineIndexBuffer;
         Ref<Material> LineMaterial;
@@ -106,6 +107,8 @@ namespace NR
         frameBufferSpec.Samples = 1;
         frameBufferSpec.ClearOnLoad = false;
         frameBufferSpec.ClearColor = { 0.1f, 0.5f, 0.5f, 1.0f };
+        frameBufferSpec.DebugName = "Renderer2D FrameBuffer";
+
         Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(frameBufferSpec);
         RenderPassSpecification renderPassSpec;
         renderPassSpec.TargetFrameBuffer = frameBuffer;
@@ -174,6 +177,8 @@ namespace NR
                 { ShaderDataType::Float4, "aColor" }
             };
             sData->LinePipeline = Pipeline::Create(pipelineSpecification);
+            pipelineSpecification.DepthTest = false;
+            sData->LineOnTopPipeline = Pipeline::Create(pipelineSpecification);
 
             sData->LineVertexBuffer = VertexBuffer::Create(sData->MaxLineVertices * sizeof(LineVertex));
             sData->LineVertexBufferBase = new LineVertex[sData->MaxLineVertices];
@@ -258,7 +263,7 @@ namespace NR
                 //sData->QuadMaterial->Set("")
                 //sData->TextureSlots[i]->Bind(i);
             }
-            Renderer::RenderGeometry(sData->CommandBuffer, sData->QuadPipeline, sData->UniformBufferSet, sData->QuadMaterial, sData->QuadVertexBuffer, sData->QuadIndexBuffer, glm::mat4(1.0f), sData->QuadIndexCount);
+            Renderer::RenderGeometry(sData->CommandBuffer, sData->QuadPipeline, sData->UniformBufferSet, nullptr, sData->QuadMaterial, sData->QuadVertexBuffer, sData->QuadIndexBuffer, glm::mat4(1.0f), sData->QuadIndexCount);
 
             ++sData->Stats.DrawCalls;
         }
@@ -276,7 +281,7 @@ namespace NR
                     vkCmdSetLineWidth(commandBuffer, sData->LineWidth);
                 });
 
-            Renderer::RenderGeometry(sData->CommandBuffer, sData->LinePipeline, sData->UniformBufferSet, sData->LineMaterial, sData->LineVertexBuffer, sData->LineIndexBuffer, glm::mat4(1.0f), sData->LineIndexCount);
+            Renderer::RenderGeometry(sData->CommandBuffer, sData->LineOnTopPipeline, sData->UniformBufferSet, nullptr, sData->LineMaterial, sData->LineVertexBuffer, sData->LineIndexBuffer, glm::mat4(1.0f), sData->LineIndexCount);
 
             ++sData->Stats.DrawCalls;
         }

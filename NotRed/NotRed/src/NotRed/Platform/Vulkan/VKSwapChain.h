@@ -35,7 +35,7 @@ namespace NR
 		VkRenderPass GetRenderPass() { return mRenderPass; }
 
 		VkFramebuffer GetCurrentFramebuffer() { return GetFramebuffer(mCurrentImageIndex); }
-		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentImageIndex); }
+		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentBufferIndex); }
 
 		VkFormat GetColorFormat() { return mColorFormat; }
 

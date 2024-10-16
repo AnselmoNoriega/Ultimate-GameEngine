@@ -17,7 +17,6 @@
 #include "VKMaterial.h"
 #include "VKUniformBuffer.h"
 #include "VKRenderCommandBuffer.h"
-
 #include "VKStorageBuffer.h"
 
 #include "VKShader.h"
@@ -465,12 +464,12 @@ namespace NR
             });
     }
 
-    void VKRenderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount /*= 0*/)
+    void VKRenderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount)
     {
         Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
         if (indexCount == 0)
             indexCount = indexBuffer->GetCount();
-        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, vulkanMaterial, vertexBuffer, indexBuffer, transform, indexCount]() mutable
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, vulkanMaterial, vertexBuffer, indexBuffer, transform, indexCount]() mutable
             {
                 NR_PROFILE_FUNC("VulkanRenderer::RenderGeometry");
 
@@ -492,7 +491,7 @@ namespace NR
                 VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, nullptr);
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
 
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 

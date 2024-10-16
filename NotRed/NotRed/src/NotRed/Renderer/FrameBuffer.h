@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <glm/glm.hpp>
 
 #include "Image.h"
@@ -56,6 +57,8 @@ namespace NR
 
 		Ref<Image2D> ExistingImage;
 		uint32_t ExistingImageLayer;
+
+		std::map<uint32_t, Ref<Image2D>> ExistingImages;
 
 		Ref<FrameBuffer> ExistingFrameBuffer;
 

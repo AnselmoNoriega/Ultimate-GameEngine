@@ -135,7 +135,7 @@ namespace NR
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
-                        if (ImGui::MenuItem("Cylinder")) 
+                        if (ImGui::MenuItem("Cylinder"))
                         {
                             auto newEntity = mContext->CreateEntity("Cylinder");
                             Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cylinder.fbx");
@@ -628,7 +628,7 @@ namespace NR
                     auto view = mContext->GetAllEntitiesWith<AudioListenerComponent>();
                     bool listenerExists = !view.empty();
                     auto& listenerComponent = mSelectionContext.AddComponent<AudioListenerComponent>();
-                    
+
                     listenerComponent.Active = !listenerExists;
                     Audio::AudioEngine::Get().RegisterNewListener(listenerComponent);
                     ImGui::CloseCurrentPopup();
@@ -650,34 +650,58 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
                 Ref<MeshAsset> meshAsset;
-                if (mc.MeshObj)
+                if (mc.MeshObj->IsValid())
                 {
-                    meshAsset = mc.MeshObj->GetMeshAsset();
-                }
-
-                if (UI::PropertyAssetReference("Mesh", meshAsset))
-                {
-                    mc.MeshObj = Ref<Mesh>::Create(meshAsset);
-                    if (entity.HasComponent<MeshColliderComponent>())
+                    if (mc.MeshObj)
                     {
-                        auto& mcc = entity.GetComponent<MeshColliderComponent>();
-                        mcc.CollisionMesh = mc.MeshObj;
+                        meshAsset = mc.MeshObj->GetMeshAsset();
+                    }
+
+                    if (UI::PropertyAssetReference("Mesh", meshAsset))
+                    {
+                        mc.MeshObj = Ref<Mesh>::Create(meshAsset);
+                        if (entity.HasComponent<MeshColliderComponent>())
+                        {
+                            auto& mcc = entity.GetComponent<MeshColliderComponent>();
+                            mcc.CollisionMesh = mc.MeshObj;
+                            if (mcc.IsConvex)
+                            {
+                                PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                            }
+                            else
+                            {
+                                PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                            }
+                        }
                     }
                 }
-
-                if (UI::Button("Fracture"))
+                else
                 {
-                    EntityFactory::Fracture(entity);
-                    mc.IsFractured = true;
+                    if (UI::PropertyAssetReference("Mesh", meshAsset))
+                    {
+                        mc.MeshObj = Ref<Mesh>::Create(meshAsset);
+                        if (entity.HasComponent<MeshColliderComponent>())
+                        {
+                            auto& mcc = entity.GetComponent<MeshColliderComponent>();
+                            mcc.CollisionMesh = mc.MeshObj;
+                            if (mcc.IsConvex)
+                            {
+                                PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                            }
+                            else
+                            {
+                                PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
+                            }
+                        }
+                    }
+                    UI::EndPropertyGrid();
                 }
-
-                UI::EndPropertyGrid();
             });
 
         DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
             {
                 UI::BeginPropertyGrid();
-                
+
                 if (UI::Property("Particle Count", pc.ParticleCount, 0, 100000))
                 {
                     if (pc.ParticleCount < 1)
@@ -901,11 +925,11 @@ namespace NR
                                     }
                                 }
                                 break;
+                                }
                             }
                             }
                         }
                     }
-                }
 
                 UI::EndPropertyGrid();
 #if TODO
@@ -914,14 +938,14 @@ namespace NR
                     ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-            });
+                });
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
                 UI::BeginPropertyGrid();
 
                 // Rigidbody2D Type
-                const char* rb2dTypeStrings[] = { "Static", "Dynamic", "Kinematic" };			
+                const char* rb2dTypeStrings[] = { "Static", "Dynamic", "Kinematic" };
                 UI::PropertyDropdown("Type", rb2dTypeStrings, 3, (int*)&rb2dc.BodyType);
 
                 if (rb2dc.BodyType == RigidBody2DComponent::Type::Dynamic)
@@ -959,9 +983,9 @@ namespace NR
             });
 
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
-            {			
+            {
                 UI::BeginPropertyGrid();
-                const char* rbTypeStrings[] = { "Static", "Dynamic" };			
+                const char* rbTypeStrings[] = { "Static", "Dynamic" };
                 UI::PropertyDropdown("Type", rbTypeStrings, 2, (int*)&rbc.BodyType);
 
                 if (!PhysicsLayerManager::IsLayerValid(rbc.Layer))
@@ -981,7 +1005,7 @@ namespace NR
                     UI::Property("Angular Drag", rbc.AngularDrag);
                     UI::Property("Disable Gravity", rbc.DisableGravity);
                     UI::Property("Is Kinematic", rbc.IsKinematic);
-                    
+
                     const char* rbCollisionDetectionNames[] = { "Discrete", "Continuous", "Continuous Speculative" };
                     UI::PropertyDropdown("Collision Detection", rbCollisionDetectionNames, 3, (int32_t*)&rbc.CollisionDetection);
 
@@ -1155,12 +1179,12 @@ namespace NR
                 colors[ImGuiCol_Separator] = ImVec4{ oldSCol.x * brM, oldSCol.y * brM, oldSCol.z * brM, 1.0f };
 
                 auto& soundConfig = ac.SoundConfig;
-                
+
                 ImGui::Spacing();
-                
+
                 UI::PushID();
                 UI::BeginPropertyGrid();
-                
+
                 bool bWasEmpty = soundConfig.FileAsset == nullptr;
                 if (UI::PropertyAssetReference("Sound", soundConfig.FileAsset))
                 {
@@ -1263,7 +1287,7 @@ namespace NR
                 ImGui::Text("Spatialization");
                 ImGui::SameLine(contentRegionAvailable.x - (ImGui::GetFrameHeight() + GImGui->Style.FramePadding.y));
                 ImGui::Checkbox("##enabled", &soundConfig.SpatializationEnabled);
-                
+
                 if (soundConfig.SpatializationEnabled)
                 {
                     ImGui::Spacing();
@@ -1348,5 +1372,5 @@ namespace NR
 
                 colors[ImGuiCol_Separator] = oldSCol;
             });
+            }
     }
-}

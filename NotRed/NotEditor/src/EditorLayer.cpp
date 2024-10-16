@@ -525,7 +525,7 @@ namespace NR
                 }
             }
 
-            if (UI::Property("Line Width", mLineWidth, 0.25f, 0.5f, 5.0f))
+            if (UI::Property("Line Width", mLineWidth, 0.5f, 1.0f, 10.0f))
             {
                 Renderer2D::SetLineWidth(mLineWidth);
             }

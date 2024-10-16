@@ -21,6 +21,38 @@ namespace NR
             mHeight = spec.Height;
         }
 
+        uint32_t attachmentIndex = 0;
+        if (!mSpecification.ExistingFrameBuffer)
+        {
+            for (auto attachmentSpec : mSpecification.Attachments.Attachments)
+            {
+                if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
+                {
+                    if (!Utils::IsDepthFormat(attachmentSpec.Format))
+                        mAttachmentImages.emplace_back();
+                }
+                else if (Utils::IsDepthFormat(attachmentSpec.Format))
+                {
+                    ImageSpecification spec;
+                    spec.Format = attachmentSpec.Format;
+                    spec.Usage = ImageUsage::Attachment;
+                    spec.Width = mWidth;
+                    spec.Height = mHeight;
+                    mDepthAttachmentImage = Image2D::Create(spec);
+                }
+                else
+                {
+                    ImageSpecification spec;
+                    spec.Format = attachmentSpec.Format;
+                    spec.Usage = ImageUsage::Attachment;
+                    spec.Width = mWidth;
+                    spec.Height = mHeight;
+                    mAttachmentImages.emplace_back(Image2D::Create(spec));
+                }
+                ++attachmentIndex;
+            }
+        }
+
         NR_CORE_ASSERT(spec.Attachments.Attachments.size());
         Resize(mWidth * spec.Scale, mHeight * spec.Scale, true);
     }
@@ -88,14 +120,24 @@ namespace NR
 
             if (!mSpecification.ExistingFrameBuffer)
             {
+                uint32_t attachmentIndex = 0;
                 for (auto image : mAttachmentImages)
                 {
+                    if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
+                    {
+                        continue;
+                    }
+
                     image->Release();
+                    ++attachmentIndex;
                 }
 
                 if (mDepthAttachmentImage)
                 {
-                    mDepthAttachmentImage->Release();
+                    if (mSpecification.ExistingImages.find(mSpecification.Attachments.Attachments.size() - 1) == mSpecification.ExistingImages.end())
+                    {
+                        mDepthAttachmentImage->Release();
+                    }
                 }
             }
         }
@@ -123,38 +165,25 @@ namespace NR
         {
             if (Utils::IsDepthFormat(attachmentSpec.Format))
             {
-                if (!mSpecification.ExistingFrameBuffer)
+                if (mSpecification.ExistingImage)
                 {
-                    if (!mSpecification.ExistingImage)
-                    {
-                        if (createDepthImage)
-                        {
-                            ImageSpecification spec;
-                            spec.Format = attachmentSpec.Format;
-                            spec.Usage = ImageUsage::Attachment;
-                            spec.Width = mWidth;
-                            spec.Height = mHeight;
-                            mDepthAttachmentImage = Image2D::Create(spec);
-                        }
-                        else
-                        {
-                            ImageSpecification& spec = mDepthAttachmentImage->GetSpecification();
-                            spec.Width = mWidth;
-                            spec.Height = mHeight;
-                        }
-
-                        Ref<VKImage2D> depthAttachmentImage = mDepthAttachmentImage.As<VKImage2D>();
-                        depthAttachmentImage->RT_Invalidate();
-                    }
-                    else
-                    {
-                        mDepthAttachmentImage = mSpecification.ExistingImage;
-                    }
+                    mDepthAttachmentImage = mSpecification.ExistingImage;
                 }
-                else
+                else if (mSpecification.ExistingFrameBuffer)
                 {
                     Ref<VKFrameBuffer> existingFrameBuffer = mSpecification.ExistingFrameBuffer.As<VKFrameBuffer>();
                     mDepthAttachmentImage = existingFrameBuffer->GetDepthImage();
+                }
+                else if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
+                {
+                    Ref<Image2D> existingImage = mSpecification.ExistingImages.at(attachmentIndex);
+                    NR_CORE_ASSERT(Utils::IsDepthFormat(existingImage->GetSpecification().Format), "Trying to attach non-depth image as depth attachment");
+                    mDepthAttachmentImage = existingImage;
+                }
+                else
+                {
+                    Ref<VKImage2D> depthAttachmentImage = mDepthAttachmentImage.As<VKImage2D>();
+                    depthAttachmentImage->RT_Invalidate(); // Create immediately
                 }
 
                 VkAttachmentDescription& attachmentDescription = attachmentDescriptions.emplace_back();
@@ -186,7 +215,20 @@ namespace NR
                 NR_CORE_ASSERT(!mSpecification.ExistingImage, "Not supported for color attachments");
 
                 Ref<VKImage2D> colorAttachment;
-                if (!mSpecification.ExistingFrameBuffer)
+                if (mSpecification.ExistingFrameBuffer)
+                {
+                    Ref<VKFrameBuffer> existingFramebuffer = mSpecification.ExistingFrameBuffer.As<VKFrameBuffer>();
+                    Ref<Image2D> existingImage = existingFramebuffer->GetImage(attachmentIndex);
+                    colorAttachment = mAttachmentImages.emplace_back(existingImage).As<VKImage2D>();
+                }
+                else if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
+                {
+                    Ref<Image2D> existingImage = mSpecification.ExistingImages[attachmentIndex];
+                    NR_CORE_ASSERT(!Utils::IsDepthFormat(existingImage->GetSpecification().Format), "Trying to attach depth image as color attachment");
+                    colorAttachment = existingImage.As<VKImage2D>();
+                    mAttachmentImages[attachmentIndex] = existingImage;
+                }
+                else
                 {
                     if (createImages)
                     {
@@ -196,6 +238,7 @@ namespace NR
                         spec.Width = mWidth;
                         spec.Height = mHeight;
                         colorAttachment = mAttachmentImages.emplace_back(Image2D::Create(spec)).As<VKImage2D>();
+                        NR_CORE_VERIFY(false); 
                     }
                     else
                     {
@@ -206,12 +249,6 @@ namespace NR
                         colorAttachment = image.As<VKImage2D>();
                     }
                     colorAttachment->RT_Invalidate();
-                }
-                else
-                {
-                    Ref<VKFrameBuffer> existingFrameBuffer = mSpecification.ExistingFrameBuffer.As<VKFrameBuffer>();
-                    Ref<Image2D> existingImage = existingFrameBuffer->GetImage(attachmentIndex);
-                    colorAttachment = mAttachmentImages.emplace_back(existingImage).As<VKImage2D>();
                 }
 
                 colorAttachment->RT_Invalidate();
@@ -267,8 +304,8 @@ namespace NR
                 depedency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
                 depedency.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
                 depedency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-    }
-}
+            }
+        }
         if (mDepthAttachmentImage)
         {
             {
@@ -306,10 +343,11 @@ namespace NR
         VK_CHECK_RESULT(vkCreateRenderPass(device, &renderPassInfo, nullptr, &mRenderPass));
 
         std::vector<VkImageView> attachments(mAttachmentImages.size());
-        for (uint32_t i = 0; i < mAttachmentImages.size(); i++)
+        for (uint32_t i = 0; i < mAttachmentImages.size(); ++i)
         {
             Ref<VKImage2D> image = mAttachmentImages[i].As<VKImage2D>();
             attachments[i] = image->GetImageInfo().ImageView;
+            NR_CORE_ASSERT(attachments[i]);
         }
 
         if (mDepthAttachmentImage)
@@ -318,22 +356,23 @@ namespace NR
             if (mSpecification.ExistingImage)
             {
                 attachments.emplace_back(image->GetLayerImageView(mSpecification.ExistingImageLayer));
+                NR_CORE_ASSERT(attachments.back());
             }
             else
             {
                 attachments.emplace_back(image->GetImageInfo().ImageView);
+                NR_CORE_ASSERT(attachments.back());
             }
         }
-        {
-            VkFramebufferCreateInfo framebufferCreateInfo = {};
-            framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferCreateInfo.renderPass = mRenderPass;
-            framebufferCreateInfo.attachmentCount = attachments.size();
-            framebufferCreateInfo.pAttachments = attachments.data();
-            framebufferCreateInfo.width = mWidth;
-            framebufferCreateInfo.height = mHeight;
-            framebufferCreateInfo.layers = 1;
-            VK_CHECK_RESULT(vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &mFrameBuffer));
-        }
-        }
+
+        VkFramebufferCreateInfo frameBufferCreateInfo = {};
+        frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        frameBufferCreateInfo.renderPass = mRenderPass;
+        frameBufferCreateInfo.attachmentCount = attachments.size();
+        frameBufferCreateInfo.pAttachments = attachments.data();
+        frameBufferCreateInfo.width = mWidth;
+        frameBufferCreateInfo.height = mHeight;
+        frameBufferCreateInfo.layers = 1;
+        VK_CHECK_RESULT(vkCreateFramebuffer(device, &frameBufferCreateInfo, nullptr, &mFrameBuffer));
     }
+}

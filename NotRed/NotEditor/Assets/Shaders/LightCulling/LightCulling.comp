@@ -73,7 +73,7 @@ void main() {
 	vec2 text = vec2(location) / uScreenData.uScreenSize;
 	float depth = texture(uPreDepthMap, text).r;
 	// Linearize the depth value from depth buffer (must do this because we created it using uProjectionMatrix)
-	depth = (0.5 * uProjectionMatrix[3][2]) / (depth + 0.5 * uProjectionMatrix[2][2] - 0.5);
+	depth = 2.f * (0.5 * uProjectionMatrix[3][2]) / (depth + 0.5 * uProjectionMatrix[2][2] - 0.5);
 
 	// Convert depth to uint so we can do atomic min and max comparisons between the threads
 	uint depthInt = floatBitsToUint(depth);

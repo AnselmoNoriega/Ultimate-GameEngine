@@ -46,6 +46,7 @@ namespace NR
 
 	void RuntimeLayer::Detach()
 	{
+		SceneStop();
 	}
 
 	void RuntimeLayer::ScenePlay()
@@ -55,7 +56,7 @@ namespace NR
 
 	void RuntimeLayer::SceneStop()
 	{
-
+		mRuntimeScene->RuntimeStop();
 	}
 
 	void RuntimeLayer::UpdateWindowTitle(const std::string& sceneName)

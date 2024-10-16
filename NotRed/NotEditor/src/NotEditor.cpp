@@ -3,8 +3,6 @@
 
 #include "EditorLayer.h"
 
-#include "NotRed/Renderer/RendererAPI.h"
-
 class NotEditorApplication : public NR::Application
 {
 public:
@@ -22,7 +20,7 @@ public:
 NR::Application* NR::CreateApplication(int argc, char** argv)
 {
 	NR::ApplicationSpecification specification;
-	specification.Name = "Not Runtime";
+	specification.Name = "NotEditor";
 	specification.WindowWidth = 1600;
 	specification.WindowHeight = 900;
 	specification.VSync = true;

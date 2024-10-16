@@ -82,6 +82,7 @@ namespace NR
             shadowMapFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
             shadowMapFrameBufferSpec.Resizable = false;
             shadowMapFrameBufferSpec.ExistingImage = cascadedDepthImage;
+            shadowMapFrameBufferSpec.DebugName = "Shadow Map";
 
             // 4 cascades
             for (int i = 0; i < 4; ++i)
@@ -114,17 +115,16 @@ namespace NR
         // PreDepth
         {
             FrameBufferSpecification preDepthFrameBufferSpec;
-            preDepthFrameBufferSpec.Width = 1280;
-            preDepthFrameBufferSpec.Height = 720;
             preDepthFrameBufferSpec.Attachments = { ImageFormat::DEPTH32F };
             preDepthFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+            preDepthFrameBufferSpec.DebugName = "PreDepth";
 
             RenderPassSpecification preDepthRenderPassSpec;
             preDepthRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(preDepthFrameBufferSpec);
             preDepthRenderPassSpec.DebugName = "PreDepth";
 
             PipelineSpecification pipelineSpec;
-            pipelineSpec.DebugName = "PreDepthPass";
+            pipelineSpec.DebugName = "PreDepth";
             Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("PreDepth");
             pipelineSpec.Shader = shader;
             pipelineSpec.Layout = {
@@ -145,6 +145,7 @@ namespace NR
             geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA32F, ImageFormat::Depth };
             geoFrameBufferSpec.Samples = 1;
             geoFrameBufferSpec.ClearColor = { 0.1f, 0.5f, 0.1f, 1.0f };
+            geoFrameBufferSpec.DebugName = "Geometry";
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(geoFrameBufferSpec);
 
@@ -180,6 +181,7 @@ namespace NR
             compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
             compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
             compFrameBufferSpec.SwapChainTarget = mSpecification.SwapChainTarget;
+            compFrameBufferSpec.DebugName = "Composite";
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
 
@@ -207,7 +209,10 @@ namespace NR
             extCompFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
             extCompFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
             extCompFrameBufferSpec.ClearOnLoad = false;
-            extCompFrameBufferSpec.ExistingFrameBuffer = mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
+            extCompFrameBufferSpec.DebugName = "External Composite";
+            extCompFrameBufferSpec.ExistingImages[0] = mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage();
+            extCompFrameBufferSpec.ExistingImages[1] = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage();
+
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(extCompFrameBufferSpec);
             RenderPassSpecification renderPassSpec;
             renderPassSpec.TargetFrameBuffer = frameBuffer;
@@ -287,8 +292,6 @@ namespace NR
         {
             float r, l, b, t, f, n;
         };
-
-        FrustumBounds frustumBounds[3];
 
         auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
 
@@ -682,14 +685,14 @@ namespace NR
             Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
             if (mOptions.ShowSelectedInWireframe)
             {
-                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
+                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform, mWireframeMaterial);
             }
         }
         if (mOptions.ShowCollidersWireframe)
         {
             for (DrawCommand& dc : mColliderDrawList)
             {
-                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
+                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform, mColliderMaterial);
             }
         }
 

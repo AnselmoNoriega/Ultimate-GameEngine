@@ -121,7 +121,7 @@ namespace NR
         float Intensity = 1.0f;
         float LightSize = 0.5f; // For PCSS
         float MinRadius = 1.f;
-        float Radius = 25.f;
+        float Radius = 10.f;
         bool CastsShadows = true;
         bool SoftShadows = true;
         float Falloff = 1.f;

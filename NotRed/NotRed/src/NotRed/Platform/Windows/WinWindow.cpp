@@ -62,7 +62,16 @@ namespace NR
            // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         }
 
-        mWindow = glfwCreateWindow((int)mSpecification.Width, (int)mSpecification.Height, mData.Title.c_str(), nullptr, nullptr);
+        if (mSpecification.Fullscreen)
+        {
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+            mWindow = glfwCreateWindow(mode->width, mode->height, mData.Title.c_str(), primaryMonitor, nullptr);
+        }
+        else
+        {
+            mWindow = glfwCreateWindow((int)mSpecification.Width, (int)mSpecification.Height, mData.Title.c_str(), nullptr, nullptr);
+        }
 
         mRendererContext = RendererContext::Create();
         mRendererContext->Init();

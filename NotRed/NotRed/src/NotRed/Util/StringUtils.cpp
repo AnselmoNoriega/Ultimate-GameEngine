@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "StringUtils.h"
 
+#include <sstream>
+
 namespace NR::Utils 
 {
 	std::string GetFilename(const std::string& filepath)
