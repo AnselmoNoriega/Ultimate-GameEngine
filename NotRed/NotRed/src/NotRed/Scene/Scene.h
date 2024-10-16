@@ -41,9 +41,10 @@ namespace NR
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
 		float MinRadius = 0.001f;
 		float Radius = 25.0f;
-		bool CastsShadows = true;
 		float Falloff = 1.f;
 		float SourceSize = 0.1f;
+		bool CastsShadows = true;
+		char Padding[3]{ 0, 0, 0 };
 	};
 
 	struct LightEnvironment

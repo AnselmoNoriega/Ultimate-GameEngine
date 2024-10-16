@@ -170,7 +170,7 @@ namespace NR
             pipelineSpecification.LineWidth = 2.0f;
             pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe");
             pipelineSpecification.DebugName = "Wireframe";
-            
+
             mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
         }
 
@@ -237,9 +237,9 @@ namespace NR
         }
 
         mWireframeMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"));
-        mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f ));
+        mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
         mColliderMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"));
-        mColliderMaterial->Set("uMaterialUniforms.Color", glm::vec4( 0.2f, 1.0f, 0.2f, 1.0f ));
+        mColliderMaterial->Set("uMaterialUniforms.Color", glm::vec4(0.2f, 1.0f, 0.2f, 1.0f));
 
         // Skybox
         {
@@ -434,7 +434,7 @@ namespace NR
 
             if (mExternalCompositeRenderPass)
             {
-                mExternalCompositeRenderPass->GetSpecification().TargetFramebuffer->Resize(mViewportWidth, mViewportHeight);
+                mExternalCompositeRenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             }
 
             if (mSpecification.SwapChainTarget)
@@ -464,6 +464,7 @@ namespace NR
         auto inverseVP = glm::inverse(viewProjection);
         cameraData.ViewProjection = viewProjection;
         cameraData.InverseViewProjection = inverseVP;
+        cameraData.Projection = sceneCamera.CameraObj.GetProjectionMatrix();
         cameraData.View = sceneCamera.ViewMatrix;
 
         Ref<SceneRenderer> instance = this;
@@ -475,12 +476,14 @@ namespace NR
 
         const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
         pointLightData.Count = uint32_t(pointLightsVec.size());
-        std::memcpy(&pointLightData.PointLights[0], pointLightsVec.data(), sizeof PointLight * pointLightsVec.size());
 
-        Renderer::Submit([instance, pointLightData]() mutable
+        std::memcpy(pointLightData.PointLights, pointLightsVec.data(), sizeof PointLight * pointLightsVec.size());
+
+        Renderer::Submit([instance, &pointLightData]() mutable
             {
-                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-                instance->mUniformBufferSet->Get(4, 0, bufferIndex)->RT_SetData(&pointLightData, sizeof(pointLightData));
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                Ref<UniformBuffer> bufferSet = instance->mUniformBufferSet->Get(4, 0, bufferIndex);
+                bufferSet->RT_SetData(&pointLightData, 16ull + sizeof PointLight * pointLightData.Count);
             });
 
         const auto& directionalLight = mSceneData.SceneLightEnvironment.DirectionalLights[0];
@@ -515,10 +518,10 @@ namespace NR
             {
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(3, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
-    });
+            });
 
         Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
-}
+    }
 
     void SceneRenderer::EndScene()
     {
@@ -535,7 +538,7 @@ namespace NR
 #endif
 
         mActive = false;
-    }
+}
 
     void SceneRenderer::WaitForThreads()
     {
@@ -709,7 +712,7 @@ namespace NR
             for (auto& dc : DrawList)
             {
                 Renderer::DrawAABB(dc.Mesh, dc.Transform);
-            }
+    }
             Renderer2D::EndScene();
 #endif
         }
@@ -935,5 +938,5 @@ namespace NR
 #endif
 
         ImGui::End();
-            }
+    }
         }

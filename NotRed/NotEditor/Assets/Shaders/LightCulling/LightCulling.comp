@@ -14,14 +14,15 @@ struct PointLight {
 	vec3 Radiance;
 	float MinRadius;
 	float Radius;
+	float Falloff;
+	float LightSize;
 	bool CastsShadows;
-	vec2 Padding;
 };
 
 layout(std140, binding = 4) uniform PointLightData
 {
 	uint uPointLightsCount;
-	PointLight upointLights[1000];
+	PointLight upointLights[1024];
 };
 
 layout(push_constant) uniform ScreenData

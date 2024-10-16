@@ -120,6 +120,7 @@ namespace NR
 		{
 			glm::mat4 ViewProjection;
 			glm::mat4 InverseViewProjection;
+			glm::mat4 Projection;
 			glm::mat4 View;
 		} CameraData;
 

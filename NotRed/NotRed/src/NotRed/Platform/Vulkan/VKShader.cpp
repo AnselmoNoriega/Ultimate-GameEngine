@@ -272,7 +272,7 @@ namespace NR
                 storageBuffer->BindingPoint = binding;
                 storageBuffer->Size = size;
                 storageBuffer->Name = name;
-                storageBuffer->ShaderStage = shaderStage;
+                storageBuffer->ShaderStage = VK_SHADER_STAGE_ALL;
                 sStorageBuffers.at(descriptorSet)[binding] = storageBuffer;
             }
             else
@@ -511,7 +511,7 @@ namespace NR
             descriptorLayout.bindingCount = layoutBindings.size();
             descriptorLayout.pBindings = layoutBindings.data();
 
-            NR_CORE_INFO("Creating descriptor set {0} with {1} ubo's, {1} ssbo's, {3} samplers and {4} storage images", set,
+            NR_CORE_INFO("Creating descriptor set {0} with {1} ubo's, {2} ssbo's, {3} samplers and {4} storage images", set,
                 shaderDescriptorSet.UniformBuffers.size(),
                 shaderDescriptorSet.StorageBuffers.size(),
                 shaderDescriptorSet.ImageSamplers.size(),

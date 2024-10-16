@@ -151,7 +151,7 @@ namespace NR
         const glm::vec2 delta = (mouse - mInitialMousePosition) * 0.003f;
         mInitialMousePosition = mouse;
 
-        if (mIsAllowed)
+        if (mIsActive)
         {
             if (Input::IsKeyPressed(KeyCode::LeftAlt))
             {

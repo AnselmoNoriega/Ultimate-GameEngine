@@ -167,7 +167,7 @@ namespace NR
         {
         case SceneState::Edit:
         {
-            mEditorCamera.SetAllowed(mAllowViewportCameraEvents || glfwGetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
+            mEditorCamera.SetActive(mAllowViewportCameraEvents || glfwGetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
             mEditorCamera.Update(dt);
 
             mEditorScene->RenderEditor(mViewportRenderer, dt, mEditorCamera);
@@ -244,7 +244,7 @@ namespace NR
         }
         case SceneState::Play:
         {
-            mEditorCamera.SetAllowed(mViewportPanelMouseOver);
+            mEditorCamera.SetActive(mViewportPanelMouseOver);
             mEditorCamera.Update(dt);
 
             mRuntimeScene->Update(dt);
@@ -253,7 +253,7 @@ namespace NR
         }
         case SceneState::Pause:
         {
-            mEditorCamera.SetAllowed(mViewportPanelMouseOver);
+            mEditorCamera.SetActive(mViewportPanelMouseOver);
             mEditorCamera.Update(dt);
 
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);

@@ -19,12 +19,6 @@ namespace NR
 	{
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
-		VkMemoryAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.pNext = nullptr;
-		allocInfo.allocationSize = 0;
-		allocInfo.memoryTypeIndex = 0;
-
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;

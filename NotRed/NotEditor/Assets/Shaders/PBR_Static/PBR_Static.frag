@@ -15,9 +15,9 @@ struct PointLight {
 	vec3 Radiance;
 	float MinRadius;
 	float Radius;
-	bool CastsShadows;
 	float Falloff;
 	float LightSize;
+	bool CastsShadows;
 };
 
 layout(std140, binding = 3) uniform RendererData
@@ -68,7 +68,7 @@ layout(std140, binding = 2) uniform SceneData
 layout(std140, binding = 4) uniform PointLightData
 {
 	uint uPointLightsCount;
-	PointLight upointLights[1000];
+	PointLight upointLights[1024];
 };
 
 layout(std430, binding = 14) readonly buffer VisibleLightIndicesBuffer {
@@ -279,9 +279,9 @@ vec3 CalculatePointLights(in vec3 F0)
 	uint index = tileID.y * uTilesCountX + tileID.x;
 
 	uint offset = index * 1024;
-	for (int i = 0; i < uPointLightsCount/* && visibleLightIndicesBuffer.indices[offset + i] != -1*/; i++)
+	for (int i = 0; i < uPointLightsCount && visibleLightIndicesBuffer.indices[offset + i] != -1; i++)
 	{
-		uint lightIndex = i;
+		uint lightIndex = visibleLightIndicesBuffer.indices[offset + i];
 		PointLight light = upointLights[lightIndex];
 		vec3 Li = normalize(light.Position - Input.WorldPosition);
 		float lightDistance = length(light.Position - Input.WorldPosition);

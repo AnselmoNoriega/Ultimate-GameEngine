@@ -46,7 +46,6 @@ namespace NR
         float GetYaw() const { return mYaw; }
         float& GetCameraSpeed() { return mSpeed; }
         [[nodiscard]] float GetCameraSpeed() const { return mSpeed; }
-        void SetAllowed(const bool allowed) { mIsAllowed = allowed; }
 
     private:
         void CalculateYaw(float degrees);
@@ -71,13 +70,13 @@ namespace NR
         glm::mat4 mViewMatrix;
         glm::vec3 mPosition, mRotation, mFocalPoint;
 
-        bool mIsActive = true;
+        bool mIsActive = false;
         bool mPanning, mRotating;
         glm::vec2 mInitialMousePosition {};
         glm::vec3 mInitialFocalPoint, mInitialRotation;
 
         float mDistance;
-        float mSpeed = 0.03f;
+        float mSpeed = 0.005f;
         float mLastSpeed = 0.f;
         float mPitch, mYaw;
 

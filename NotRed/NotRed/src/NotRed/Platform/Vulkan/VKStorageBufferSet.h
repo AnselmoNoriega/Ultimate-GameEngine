@@ -40,10 +40,10 @@ namespace NR
 			NR_CORE_ASSERT(mStorageBuffers.at(frame).at(set).find(binding) != mStorageBuffers.at(frame).at(set).end());
 			return mStorageBuffers.at(frame).at(set).at(binding);
 		}
-		
-		void Set(Ref<StorageBuffer> uniformBuffer, uint32_t set = 0, uint32_t frame = 0) override
+
+		void Set(Ref<StorageBuffer> storageBuffer, uint32_t set = 0, uint32_t frame = 0) override
 		{
-			mStorageBuffers[frame][set][uniformBuffer->GetBinding()] = uniformBuffer;
+			mStorageBuffers[frame][set][storageBuffer->GetBinding()] = storageBuffer;
 		}
 		
 	private:

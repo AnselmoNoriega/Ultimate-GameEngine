@@ -407,9 +407,9 @@ namespace NR
                             lightComponent.Radiance,
                             lightComponent.MinRadius,
                             lightComponent.Radius,
-                            lightComponent.CastsShadows,
                             lightComponent.Falloff,
-                            lightComponent.LightSize
+                            lightComponent.LightSize,
+                            lightComponent.CastsShadows
                         };
                     }
                 }
@@ -526,9 +526,9 @@ namespace NR
                         lightComponent.Radiance,
                         lightComponent.MinRadius,
                         lightComponent.Radius,
-                        lightComponent.CastsShadows,
                         lightComponent.Falloff,
                         lightComponent.LightSize,
+                        lightComponent.CastsShadows
                     };
 
                 }
