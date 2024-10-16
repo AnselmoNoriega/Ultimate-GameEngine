@@ -20,7 +20,7 @@ namespace NR
 
 		void Init(VkInstance instance, const Ref<VKDevice>& device);
 		void InitSurface(GLFWwindow* windowHandle);
-		void Create(uint32_t* width, uint32_t* height, bool vsync = false);
+		void Create(uint32_t* width, uint32_t* height, bool vsync);
 
 		void Resize(uint32_t width, uint32_t height);
 
@@ -52,6 +52,8 @@ namespace NR
 			return mCommandBuffers[index];
 		}
 
+		VkSemaphore GetRenderCompleteSemaphore() { return mSemaphores.RenderComplete; }
+
 		void Cleanup();
 
 	private:
@@ -73,6 +75,8 @@ namespace NR
 		VkInstance mInstance;
 		Ref<VKDevice> mDevice;
 		VKAllocator mAllocator;
+
+		bool mVSync = false;
 
 		VkFormat mColorFormat;
 		VkColorSpaceKHR mColorSpace;

@@ -22,13 +22,13 @@ namespace NR
         NR_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
     }
 
-    Window* Window::Create(const WindowProps& props)
+    Window* Window::Create(const WindowSpecification& specification)
     {
-        return new WinWindow(props);
+        return new WinWindow(specification);
     }
 
-    WinWindow::WinWindow(const WindowProps& props)
-        : mProperties(props)
+    WinWindow::WinWindow(const WindowSpecification& props)
+        : mSpecification(props)
     {}
 
     WinWindow::~WinWindow()
@@ -38,11 +38,11 @@ namespace NR
 
     void WinWindow::Init()
     {
-        mData.Title = mProperties.Title;
-        mData.Width = mProperties.Width;
-        mData.Height = mProperties.Height;
+        mData.Title = mSpecification.Title;
+        mData.Width = mSpecification.Width;
+        mData.Height = mSpecification.Height;
 
-        NR_CORE_INFO("Creating window {0} ({1}, {2})", mProperties.Title, mProperties.Width, mProperties.Height);
+        NR_CORE_INFO("Creating window {0} ({1}, {2})", mSpecification.Title, mSpecification.Width, mSpecification.Height);
 
         if (!sGLFWInitialized)
         {
@@ -61,8 +61,8 @@ namespace NR
         {
            // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         }
-        
-        mWindow = glfwCreateWindow((int)mProperties.Width, (int)mProperties.Height, mData.Title.c_str(), nullptr, nullptr);
+
+        mWindow = glfwCreateWindow((int)mSpecification.Width, (int)mSpecification.Height, mData.Title.c_str(), nullptr, nullptr);
 
         mRendererContext = RendererContext::Create();
         mRendererContext->Init();
@@ -72,7 +72,7 @@ namespace NR
         mSwapChain.InitSurface(mWindow);
 
         uint32_t width = mData.Width, height = mData.Height;
-        mSwapChain.Create(&width, &height, true);
+        mSwapChain.Create(&width, &height, mSpecification.VSync);
 
         glfwSetWindowUserPointer(mWindow, &mData);
 
@@ -121,7 +121,7 @@ namespace NR
                 }
             });
 
-        glfwSetCharCallback(mWindow, [](GLFWwindow* window, unsigned int codepoint)
+        glfwSetCharCallback(mWindow, [](GLFWwindow* window, uint32_t codepoint)
             {
                 auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 

@@ -9,6 +9,8 @@ using namespace std::chrono_literals;
 
 namespace NR::Audio
 {
+    static std::queue<AudioFunctionCallback*> sAudioThreadJobsLocal;
+
     bool AudioThread::Start()
     {
         if (sThreadActive)
@@ -83,16 +85,22 @@ namespace NR::Audio
         {
             NR_PROFILE_FUNC("AudioThread::Update - Execution");
 
-            std::scoped_lock lock(sAudioThreadJobsLock);
-            if (!sAudioThreadJobs.empty())
+            auto& jobs = sAudioThreadJobsLocal;
             {
-                for (int i = (int)sAudioThreadJobs.size() - 1; i >= 0; i--)
+                std::scoped_lock lock(sAudioThreadJobsLock);
+                sAudioThreadJobsLocal = sAudioThreadJobs;
+                sAudioThreadJobs = std::queue<AudioFunctionCallback*>();
+            }
+
+            if (!jobs.empty())
+            {
+                for (int i = (int)jobs.size() - 1; i >= 0; --i)
                 {
-                    auto job = sAudioThreadJobs.front();
+                    auto job = jobs.front();
 
                     job->Execute();
 
-                    sAudioThreadJobs.pop();
+                    jobs.pop();
                     delete job;
                 }
             }

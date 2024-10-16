@@ -5,6 +5,8 @@
 
 #include "yaml-cpp/yaml.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR::Audio
 {
 	AudioEngine* AudioEngine::sInstance = nullptr;
@@ -146,6 +148,8 @@ namespace NR::Audio
 			return true;
 		}
 
+		NR_PROFILE_FUNC();
+
 		ma_result result;
 		ma_engine_config engineConfig = ma_engine_config_init();
 
@@ -218,6 +222,8 @@ namespace NR::Audio
 
 	void AudioEngine::CreateSources()
 	{
+		NR_PROFILE_FUNC();
+
 		mSoundSources.reserve(mNumSources);
 		for (int i = 0; i < mNumSources; i++)
 		{
@@ -230,6 +236,8 @@ namespace NR::Audio
 
 	Sound* AudioEngine::FreeLowestPrioritySource()
 	{
+		NR_PROFILE_FUNC();
+
 		NR_CORE_ASSERT(mSourceManager.mFreeSourcIDs.empty());
 
 		Sound* lowestPriStoppingSource = nullptr;
@@ -309,12 +317,16 @@ namespace NR::Audio
 
 	Sound* AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID)
 	{
+		NR_PROFILE_FUNC();
+
 		auto sceneID = sInstance->mCurrentSceneID;
 		return mComponentSoundMap.Get(sceneID, audioComponentID).value_or(nullptr);
 	}
 
 	Sound* AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID, const SoundConfig& sourceConfig)
 	{
+		NR_PROFILE_FUNC();
+
 		NR_CORE_ASSERT(AudioThread::IsAudioThread());
 
 		auto sceneID = sInstance->mCurrentSceneID;
@@ -355,6 +367,8 @@ namespace NR::Audio
 
 	void AudioEngine::SubmitSoundToPlay(uint64_t audioComponentID, const SoundConfig& sourceConfig)
 	{
+		NR_PROFILE_FUNC();
+
 		auto startSound = [this, audioComponentID, sourceConfig]
 			{
 				if (Sound* sound = GetSoundForAudioComponent(audioComponentID, sourceConfig))
@@ -377,6 +391,8 @@ namespace NR::Audio
 
 	bool AudioEngine::SubmitSoundToPlay(uint64_t audioComponentID)
 	{
+		NR_PROFILE_FUNC();
+
 		auto* ac = GetAudioComponentFromID(mCurrentSceneID, audioComponentID);
 		if (ac == nullptr)
 		{

@@ -315,7 +315,7 @@ namespace NR
     void EditorLayer::OpenScene()
     {
         auto& app = Application::Get();
-        std::string filepath = app.OpenFile("NotRed Scene (*.hsc)\0*.hsc\0");
+        std::string filepath = app.OpenFile("NotRed Scene (*.nrsc)\0*.nrsc\0");
         if (!filepath.empty())
         {
             OpenScene(filepath);
@@ -357,7 +357,7 @@ namespace NR
     void EditorLayer::SaveSceneAs()
     {
         auto& app = Application::Get();
-        std::string filepath = app.SaveFile("NotRed Scene (*.hsc)\0*.hsc\0");
+        std::string filepath = app.SaveFile("NotRed Scene (*.nrsc)\0*.nrsc\0");
         if (!filepath.empty())
         {
             SceneSerializer serializer(mEditorScene);

@@ -19,8 +19,8 @@ namespace NR
 {
     static std::vector<std::thread> sThreadPool;
 
-    SceneRenderer::SceneRenderer(Ref<Scene> scene)
-        : mScene(scene)
+    SceneRenderer::SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification)
+        : mScene(scene), mSpecification(specification)
     {
         Init();
     }
@@ -33,7 +33,14 @@ namespace NR
     {
         NR_SCOPE_TIMER("SceneRenderer::Init");
 
-        mCommandBuffer = RenderCommandBuffer::Create(0, "SceneRenderer");
+        if (mSpecification.SwapChainTarget)
+        {
+            mCommandBuffer = RenderCommandBuffer::CreateFromSwapChain("SceneRenderer");
+        }
+        else
+        {
+            mCommandBuffer = RenderCommandBuffer::Create(0, "SceneRenderer");
+        }
 
         uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
         mUniformBufferSet = UniformBufferSet::Create(framesInFlight);
@@ -172,6 +179,7 @@ namespace NR
             FrameBufferSpecification compFrameBufferSpec;
             compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
             compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+            compFrameBufferSpec.SwapChainTarget = mSpecification.SwapChainTarget;
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
 
@@ -180,6 +188,7 @@ namespace NR
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float2, "aTexCoord" }
             };
+            pipelineSpecification.BackfaceCulling = false;
             pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
 
             RenderPassSpecification renderPassSpec;
@@ -192,6 +201,7 @@ namespace NR
         }
 
         // External compositing
+        if (!mSpecification.SwapChainTarget)
         {
             FrameBufferSpecification extCompFrameBufferSpec;
             extCompFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
@@ -421,7 +431,16 @@ namespace NR
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-            mExternalCompositeRenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+
+            if (mExternalCompositeRenderPass)
+            {
+                mExternalCompositeRenderPass->GetSpecification().TargetFramebuffer->Resize(mViewportWidth, mViewportHeight);
+            }
+
+            if (mSpecification.SwapChainTarget)
+            {
+                mCommandBuffer = RenderCommandBuffer::CreateFromSwapChain("SceneRenderer");
+            }
 
             mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
             Renderer::LightCulling(mCommandBuffer, mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
@@ -785,12 +804,27 @@ namespace NR
             mCommandBuffer->Submit();
             //BloomBlurPass();
         }
+        else
+        {
+            mCommandBuffer->Begin();
+            ClearPass();
+            mCommandBuffer->End();
+            mCommandBuffer->Submit();
+        }
 
         mDrawList.clear();
         mSelectedMeshDrawList.clear();
         mShadowPassDrawList.clear();
         mColliderDrawList.clear();
         mSceneData = {};
+    }
+
+    void SceneRenderer::ClearPass()
+    {
+        NR_PROFILE_FUNC();
+
+        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
+        Renderer::EndRenderPass(mCommandBuffer);
     }
 
     Ref<RenderPass> SceneRenderer::GetFinalRenderPass()

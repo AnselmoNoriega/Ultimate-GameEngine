@@ -12,16 +12,20 @@
 
 namespace NR
 {
-    struct ApplicationProps
+    struct ApplicationSpecification
     {
-        std::string Name;
-        uint32_t WindowWidth, WindowHeight;
+        std::string Name = "NotRed";
+
+        uint32_t WindowWidth = 1600, WindowHeight = 900;
+        bool VSync = true;
+        std::string WorkingDirectory;
+        bool EnableImGui = true;
     };
 
     class Application
     {
     public:
-        Application(const ApplicationProps& props = { "NotRed Engine", 1280, 720 });
+        Application(const ApplicationSpecification& specification);
         virtual ~Application();
 
         void Run();
@@ -50,6 +54,8 @@ namespace NR
         static const char* GetConfigurationName();
         static const char* GetPlatformName();
 
+        const ApplicationSpecification& GetSpecification() const { return mSpecification; }
+
         PerformanceProfiler* GetPerformanceProfiler() { return mProfiler; }
 
     private:
@@ -60,6 +66,9 @@ namespace NR
         static Application* sInstance;
 
         std::unique_ptr<Window> mWindow;
+
+        ApplicationSpecification mSpecification;
+
         bool mRunning = true, mMinimized = false;
 
         LayerStack mLayerStack;

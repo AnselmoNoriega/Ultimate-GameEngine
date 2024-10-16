@@ -135,6 +135,8 @@ namespace NR
 
 	void VKSwapChain::Create(uint32_t* width, uint32_t* height, bool vsync)
 	{
+		mVSync = vsync;
+
 		VkDevice device = mDevice->GetVulkanDevice();
 		VkPhysicalDevice physicalDevice = mDevice->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 
@@ -179,7 +181,6 @@ namespace NR
 
 		// If v-sync is not requested, try to find a mailbox mode
 		// It's the lowest latency non-tearing present mode available
-		vsync = true;
 		if (!vsync)
 		{
 			for (size_t i = 0; i < presentModeCount; ++i)
@@ -366,8 +367,6 @@ namespace NR
 			VK_CHECK_RESULT(vkCreateFence(mDevice->GetVulkanDevice(), &fenceCreateInfo, nullptr, &fence));
 		}
 
-		CreateDepthStencil();
-
 		VkFormat depthFormat = mDevice->GetPhysicalDevice()->GetDepthFormat();
 
 		// Render Pass
@@ -505,13 +504,7 @@ namespace NR
 
 		vkDeviceWaitIdle(device);
 
-		Create(&width, &height);
-		// Recreate the frame buffers
-		vkDestroyImageView(device, mDepthStencil.ImageView, nullptr);
-
-		VKAllocator allocator("SwapChain");
-		allocator.DestroyImage(mDepthStencil.Image, mDepthStencil.MemoryAlloc);
-		CreateDepthStencil();
+		Create(&width, &height, mVSync);
 
 		for (auto& frameBuffer : mFrameBuffers)
 		{
@@ -550,7 +543,7 @@ namespace NR
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = &mSemaphores.RenderComplete;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentImageIndex];
+		submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentBufferIndex];
 		submitInfo.commandBufferCount = 1;
 
 		// Submit to the graphics queue passing a wait fence

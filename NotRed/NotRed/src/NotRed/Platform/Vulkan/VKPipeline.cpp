@@ -127,7 +127,7 @@ namespace NR
 
                 // Color blend state describes how blend factors are calculated (if used)
                 // We need one blend attachment state per color attachment (even if blending is not used)
-                size_t colorAttachmentCount = frameBuffer->GetColorAttachmentCount();
+                size_t colorAttachmentCount = frameBuffer->GetSpecification().SwapChainTarget ? 1 : frameBuffer->GetColorAttachmentCount();
                 std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates(colorAttachmentCount);
                 for (size_t i = 0; i < colorAttachmentCount; ++i)
                 {

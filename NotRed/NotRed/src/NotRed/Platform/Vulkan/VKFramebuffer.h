@@ -30,7 +30,7 @@ namespace NR
 		Ref<Image2D> GetImage(uint32_t attachmentIndex = 0) const override { NR_CORE_ASSERT(attachmentIndex < mAttachmentImages.size()); return mAttachmentImages[attachmentIndex]; }
 		Ref<Image2D> GetDepthImage() const override { return mDepthAttachmentImage; }
 
-		size_t GetColorAttachmentCount() const { return mAttachmentImages.size(); }
+		size_t GetColorAttachmentCount() const { return mSpecification.SwapChainTarget ? 1 : mAttachmentImages.size(); }
 		bool HasDepthAttachment() const { return (bool)mDepthAttachmentImage; }
 
 		VkRenderPass GetRenderPass() const { return mRenderPass; }

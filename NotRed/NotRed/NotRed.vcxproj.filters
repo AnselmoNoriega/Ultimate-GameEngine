@@ -31,6 +31,9 @@
     <Filter Include="src\NotRed\Core\Events">
       <UniqueIdentifier>{645E8248-5058-AB9A-39C5-41AB255E1107}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Debug">
+      <UniqueIdentifier>{9E2D2508-8A26-445A-B358-29DF9FB02366}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Editor">
       <UniqueIdentifier>{5EC5110F-CADB-0FA5-1353-9BC67FA8E02C}</UniqueIdentifier>
     </Filter>
@@ -249,6 +252,9 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Debug\Profiler.h">
+      <Filter>src\NotRed\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -402,7 +408,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDiagnostics.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFramebuffer.h">
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFrameBuffer.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImGuiLayer.h">
@@ -756,7 +762,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Debug\Profiler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

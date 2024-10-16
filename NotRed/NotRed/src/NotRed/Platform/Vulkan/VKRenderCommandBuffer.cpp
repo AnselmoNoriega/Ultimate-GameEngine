@@ -43,8 +43,26 @@ namespace NR
 		}
 	}
 
+	VKRenderCommandBuffer::VKRenderCommandBuffer(const std::string& debugName, bool swapchain)
+		: mDebugName(debugName), mOwnedBySwapChain(true)
+	{
+		uint32_t frames = Renderer::GetConfig().FramesInFlight;
+		mCommandBuffers.resize(frames);
+
+		VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
+		for (uint32_t frame = 0; frame < frames; ++frame)
+		{
+			mCommandBuffers[frame] = swapChain.GetDrawCommandBuffer(frame);
+		}
+	}
+
 	VKRenderCommandBuffer::~VKRenderCommandBuffer()
 	{
+		if (mOwnedBySwapChain)
+		{
+			return;
+		}
+
 		VkCommandPool commandPool = mCommandPool;
 		Renderer::SubmitResourceFree([commandPool]()
 			{
@@ -78,6 +96,11 @@ namespace NR
 
 	void VKRenderCommandBuffer::Submit()
 	{
+		if (mOwnedBySwapChain)
+		{
+			return;
+		}
+
 		Ref<VKRenderCommandBuffer> instance = this;
 		Renderer::Submit([instance]()
 			{

@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "Application.h"
 
+#include <filesystem>
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -34,13 +36,24 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
-    Application::Application(const ApplicationProps& props)
+    Application::Application(const ApplicationSpecification& specification)
+        : mSpecification(specification)
     {
         sInstance = this;
 
+        if (!specification.WorkingDirectory.empty())
+        {
+            std::filesystem::current_path(specification.WorkingDirectory);
+        }
+
         mProfiler = new PerformanceProfiler();
 
-        mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
+        WindowSpecification windowSpec;
+        windowSpec.Title = specification.Name;
+        windowSpec.Width = specification.WindowWidth;
+        windowSpec.Height = specification.WindowHeight;
+        mWindow = std::unique_ptr<Window>(Window::Create(windowSpec));
+
         mWindow->Init();        
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
@@ -49,7 +62,7 @@ namespace NR
         Renderer::Init();
         Renderer::WaitAndRender();
 
-        if (mEnableImGui)
+        if (mSpecification.EnableImGui)
         {
             mImGuiLayer = ImGuiLayer::Create();
             PushOverlay(mImGuiLayer);
@@ -198,8 +211,10 @@ namespace NR
                 {
                     layer->Update((float)mTimeFrame);
                 }
+
                 Application* app = this;
-                if (mEnableImGui)
+
+                if (mSpecification.EnableImGui)
                 {
                     Renderer::Submit([app]() { app->RenderImGui(); });
                     Renderer::Submit([=]() {mImGuiLayer->End(); });

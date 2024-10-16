@@ -273,6 +273,93 @@ project "NotEditor"
 		}
 group ""
 
+group "Runtime"
+project "Not-Runtime"
+	location "Not-Runtime"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "off"
+	
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	links 
+	{ 
+		"NotRed"
+	}
+	
+	files 
+	{ 
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.c", 
+		"%{prj.name}/src/**.hpp", 
+		"%{prj.name}/src/**.cpp" 
+	}
+	
+	includedirs 
+	{
+		"%{prj.name}/src",
+		"NotRed/src",
+		"NotRed/vendor",
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.glm}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.Glad}"
+	}
+	postbuildcommands 
+	{
+		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"'
+	}
+	
+	filter "system:windows"
+		systemversion "latest"
+				
+		defines 
+		{ 
+			"NR_PLATFORM_WINDOWS"
+		}
+	
+	filter "configurations:Debug"
+		defines "NR_DEBUG"
+		symbols "on"
+		links
+		{
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib"
+		}
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/Vulkan/win64/shaderc_sharedd.dll" "%{cfg.targetdir}"'
+		}
+				
+	filter "configurations:Release"
+		defines "NR_RELEASE"
+		optimize "on"
+		links
+		{
+			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+		}
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+		}
+	filter "configurations:Dist"
+		defines "NR_DIST"
+		optimize "on"
+		links
+		{
+			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+		}
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+		}
+group ""
+
 workspace "Sandbox"
 	architecture "x64"
 	targetdir "build"

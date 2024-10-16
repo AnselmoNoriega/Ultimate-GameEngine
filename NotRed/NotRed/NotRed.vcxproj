@@ -245,7 +245,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKContext.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDevice.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDiagnostics.h" />
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFramebuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFrameBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImGuiLayer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImage.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.h" />

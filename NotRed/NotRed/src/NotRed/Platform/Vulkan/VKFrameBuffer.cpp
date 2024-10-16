@@ -46,6 +46,9 @@ namespace NR
         {
             VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
             mRenderPass = swapChain.GetRenderPass();
+
+            mClearValues.clear();
+            mClearValues.emplace_back().color = { 0.0f, 0.0f, 0.0f, 1.0f };
         }
 
         for (auto& callback : mResizeCallbacks)

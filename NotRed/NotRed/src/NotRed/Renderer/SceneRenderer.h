@@ -31,10 +31,15 @@ namespace NR
 		float FOV;
 	};
 
+	struct SceneRendererSpecification
+	{
+		bool SwapChainTarget = false;
+	};
+
 	class SceneRenderer : public RefCounted
 	{
 	public:
-		SceneRenderer(Ref<Scene> scene);
+		SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification = SceneRendererSpecification());
 		~SceneRenderer();
 
 		void Init();
@@ -81,6 +86,7 @@ namespace NR
 
 	private:
 		void FlushDrawList();
+		void ClearPass();
 		void ShadowMapPass();
 		void PreDepthPass();
 		void LightCullingPass();
@@ -92,6 +98,7 @@ namespace NR
 
 	private:
 		Ref<Scene> mScene;
+		SceneRendererSpecification mSpecification;
 		Ref<RenderCommandBuffer> mCommandBuffer;
 
 		struct SceneInfo
@@ -167,7 +174,7 @@ namespace NR
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
 		Ref<RenderPass> ShadowMapRenderPass[4];
 		float LightDistance = 0.1f;
-		float CascadeSplitLambda = 0.98f;
+		float CascadeSplitLambda = 0.95f;
 		glm::vec4 CascadeSplits;
 		float CascadeFarPlaneOffset = 15.0f, CascadeNearPlaneOffset = -15.0f;
 

@@ -10,18 +10,12 @@ namespace NR
 {
 	class VKSwapChain;
 
-	struct WindowProps
+	struct WindowSpecification
 	{
-		std::string Title;
-		uint32_t Width;
-		uint32_t Height;
-
-		WindowProps(const std::string& title = "NotRed Engine",
-			uint32_t width = 1280,
-			uint32_t height = 720)
-			: Title(title), Width(width), Height(height)
-		{
-		}
+		std::string Title = "NotRed";
+		uint32_t Width = 1600;
+		uint32_t Height = 900;
+		bool VSync = true;
 	};
 
 	class Window : public RefCounted
@@ -55,7 +49,7 @@ namespace NR
 
 		virtual void Maximize() = 0;
 
-		static Window* Create(const WindowProps& props = WindowProps());
+		static Window* Create(const WindowSpecification& specification = WindowSpecification());
 	};
 
 }

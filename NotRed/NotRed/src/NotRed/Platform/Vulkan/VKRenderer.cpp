@@ -255,6 +255,30 @@ namespace NR
         return sData->StorageBufferWriteDescriptorCache[storageBufferSet.Raw()][shaderHash];
     }
 
+    static void RT_UpdateMaterialForRendering(Ref<VKMaterial> material, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet)
+    {
+        if (uniformBufferSet)
+        {
+            auto writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, material);
+            if (storageBufferSet)
+            {
+                const auto& storageBufferWriteDescriptors = RT_RetrieveOrCreateStorageBufferWriteDescriptors(storageBufferSet, material);
+                
+                uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+                for (uint32_t frame = 0; frame < framesInFlight; ++frame)
+                {
+                    writeDescriptors[frame].reserve(writeDescriptors[frame].size() + storageBufferWriteDescriptors[frame].size());
+                    writeDescriptors[frame].insert(writeDescriptors[frame].end(), storageBufferWriteDescriptors[frame].begin(), storageBufferWriteDescriptors[frame].end());
+                }
+            }
+            material->RT_UpdateForRendering(writeDescriptors);
+        }
+        else
+        {
+            material->RT_UpdateForRendering();
+        }
+    }
+
     void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
         Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform]() mutable
@@ -286,8 +310,7 @@ namespace NR
                 for (auto& material : materials)
                 {
                     Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
-                    writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
-                    vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
+                    RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
                 }
 
                 const auto& meshAssetSubmeshes = meshAsset->GetSubmeshes();
@@ -355,8 +378,7 @@ namespace NR
                 VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
                 vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-                const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
-                vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
 
                 Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
                 VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
@@ -425,9 +447,8 @@ namespace NR
                 VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-                // Bind descriptor sets describing shader binding points
-                const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
-                vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
                 VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(bufferIndex);
@@ -471,8 +492,8 @@ namespace NR
                 VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-                const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
-                vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, nullptr);
+
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
                 VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(bufferIndex);
@@ -498,23 +519,7 @@ namespace NR
         Renderer::Submit([renderCommandBuffer, pipeline, vulkanMaterial, uniformBufferSet, storageBufferSet, screenSize, workGroups]() mutable
             {
                 const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-                if (uniformBufferSet)
-                {
-                    auto writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
-                    const auto& storageBufferWriteDescriptors = RT_RetrieveOrCreateStorageBufferWriteDescriptors(storageBufferSet, vulkanMaterial);
-
-                    uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
-                    for (uint32_t frame = 0; frame < framesInFlight; ++frame)
-                    {
-                        writeDescriptors[frame].reserve(writeDescriptors[frame].size() + storageBufferWriteDescriptors[frame].size());
-                        writeDescriptors[frame].insert(writeDescriptors[frame].end(), storageBufferWriteDescriptors[frame].begin(), storageBufferWriteDescriptors[frame].end());
-                    }
-                    vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
-                }
-                else
-                {
-                    vulkanMaterial->RT_UpdateForRendering();
-                }
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
 
                 const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
 
@@ -567,16 +572,8 @@ namespace NR
                 VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
-                // Bind descriptor sets describing shader binding points
-                if (uniformBufferSet)
-                {
-                    const auto& writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, vulkanMaterial);
-                    vulkanMaterial->RT_UpdateForRendering(writeDescriptors);
-                }
-                else
-                {
-                    vulkanMaterial->RT_UpdateForRendering();
-                }
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+
                 uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
                 VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(bufferIndex);
@@ -690,6 +687,10 @@ namespace NR
                 uint32_t width = framebuffer->GetWidth();
                 uint32_t height = framebuffer->GetHeight();
 
+                VkViewport viewport = {};
+                viewport.minDepth = 0.0f;
+                viewport.maxDepth = 1.0f;
+
                 VkRenderPassBeginInfo renderPassBeginInfo = {};
                 renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
                 renderPassBeginInfo.pNext = nullptr;
@@ -699,11 +700,51 @@ namespace NR
                 renderPassBeginInfo.renderArea.extent.width = width;
                 renderPassBeginInfo.renderArea.extent.height = height;
 
+                if (framebuffer->GetSpecification().SwapChainTarget)
+                {
+                    VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
+
+                    width = swapChain.GetWidth();
+                    height = swapChain.GetHeight();
+
+                    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                    renderPassBeginInfo.pNext = nullptr;
+                    renderPassBeginInfo.renderPass = framebuffer->GetRenderPass();
+                    renderPassBeginInfo.renderArea.offset.x = 0;
+                    renderPassBeginInfo.renderArea.offset.y = 0;
+                    renderPassBeginInfo.renderArea.extent.width = width;
+                    renderPassBeginInfo.renderArea.extent.height = height;
+                    renderPassBeginInfo.framebuffer = swapChain.GetCurrentFramebuffer();
+
+                    viewport.x = 0.0f;
+                    viewport.y = height;
+                    viewport.width = (float)width;
+                    viewport.height = -(float)height;
+                }
+                else
+                {
+                    width = framebuffer->GetWidth();
+                    height = framebuffer->GetHeight();
+
+                    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                    renderPassBeginInfo.pNext = nullptr;
+                    renderPassBeginInfo.renderPass = framebuffer->GetRenderPass();
+                    renderPassBeginInfo.renderArea.offset.x = 0;
+                    renderPassBeginInfo.renderArea.offset.y = 0;
+                    renderPassBeginInfo.renderArea.extent.width = width;
+                    renderPassBeginInfo.renderArea.extent.height = height;
+                    renderPassBeginInfo.framebuffer = framebuffer->GetVulkanFrameBuffer();
+                    
+                    viewport.x = 0.0f;
+                    viewport.y = 0.0f;
+                    viewport.width = (float)width;
+                    viewport.height = (float)height;
+                }
+
                 const auto& clearValues = framebuffer->GetVulkanClearValues();
 
                 renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
                 renderPassBeginInfo.pClearValues = clearValues.data();
-                renderPassBeginInfo.framebuffer = framebuffer->GetVulkanFrameBuffer();
 
                 vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -740,13 +781,6 @@ namespace NR
                     vkCmdClearAttachments(commandBuffer, totalAttachmentCount, attachments.data(), totalAttachmentCount, clearRects.data());
                 }
 
-                VkViewport viewport = {};
-                viewport.x = 0.0f;
-                viewport.y = 0.0f;
-                viewport.height = (float)height;
-                viewport.width = (float)width;
-                viewport.minDepth = 0.0f;
-                viewport.maxDepth = 1.0f;
                 vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
                 // Update dynamic scissor state

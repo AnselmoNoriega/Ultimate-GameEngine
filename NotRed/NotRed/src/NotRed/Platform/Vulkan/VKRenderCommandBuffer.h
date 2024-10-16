@@ -10,6 +10,7 @@ namespace NR
 	{
 	public:
 		VKRenderCommandBuffer(uint32_t count = 0, const std::string& debugName = "");
+		VKRenderCommandBuffer(const std::string& debugName, bool swapchain);
 		~VKRenderCommandBuffer();
 
 		void Begin() override;
@@ -30,6 +31,6 @@ namespace NR
 		std::vector<VkCommandBuffer> mCommandBuffers;
 		std::vector<VkFence> mWaitFences;
 
-		int mActiveBufferIndex = -1;
+		bool mOwnedBySwapChain = false;
 	};
 }

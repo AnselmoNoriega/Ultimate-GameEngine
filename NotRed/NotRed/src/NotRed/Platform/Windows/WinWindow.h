@@ -11,7 +11,7 @@ namespace NR
     class WinWindow : public Window
     {
     public:
-        WinWindow(const WindowProps& props);
+        WinWindow(const WindowSpecification& specification);
         ~WinWindow() override;
 
         void Init() override;
@@ -44,8 +44,8 @@ namespace NR
     private:
         GLFWwindow* mWindow;
         GLFWcursor* mImGuiMouseCursors[9] = { 0 };
-
-        WindowProps mProperties;
+        
+		WindowSpecification mSpecification;
 
         struct WindowData
         {
