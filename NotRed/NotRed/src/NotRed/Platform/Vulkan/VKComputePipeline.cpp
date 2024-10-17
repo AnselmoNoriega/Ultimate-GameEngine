@@ -21,10 +21,6 @@ namespace NR
 			});
 	}
 
-	VKComputePipeline::~VKComputePipeline()
-	{
-	}
-
 	void VKComputePipeline::CreatePipeline()
 	{
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
@@ -33,7 +29,7 @@ namespace NR
 
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
 		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+		pipelineLayoutCreateInfo.setLayoutCount = (uint32_t)descriptorSetLayouts.size();
 		pipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
 
 		const auto& pushConstantRanges = mShader->GetPushConstantRanges();
@@ -50,7 +46,7 @@ namespace NR
 				vulkanPushConstantRange.size = pushConstantRange.Size;
 			}
 
-			pipelineLayoutCreateInfo.pushConstantRangeCount = vulkanPushConstantRanges.size();
+			pipelineLayoutCreateInfo.pushConstantRangeCount = (uint32_t)vulkanPushConstantRanges.size();
 			pipelineLayoutCreateInfo.pPushConstantRanges = vulkanPushConstantRanges.data();
 		}
 

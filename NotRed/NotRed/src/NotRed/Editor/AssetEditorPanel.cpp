@@ -52,8 +52,8 @@ namespace NR
 	{
 		if (width <= 0) width = 2000;
 		if (height <= 0) height = 2000;
-		if (float(width) <= mMinSize.x) width = mMinSize.x * 2.f;
-		if (float(height) <= mMinSize.y) height = mMinSize.y * 2.f;
+		if (float(width) <= mMinSize.x) width = uint32_t(mMinSize.x * 2.f);
+		if (float(height) <= mMinSize.y) height = uint32_t(mMinSize.y * 2.f);
 
 		mMaxSize = ImVec2((float)width, (float)height);
 	}

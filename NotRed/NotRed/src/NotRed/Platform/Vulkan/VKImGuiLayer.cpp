@@ -242,7 +242,7 @@ namespace NR
         std::vector<VkCommandBuffer> commandBuffers;
         commandBuffers.push_back(sImGuiCommandBuffers[commandBufferIndex]);
 
-        vkCmdExecuteCommands(drawCommandBuffer, commandBuffers.size(), commandBuffers.data());
+        vkCmdExecuteCommands(drawCommandBuffer, uint32_t(commandBuffers.size()), commandBuffers.data());
 
         vkCmdEndRenderPass(drawCommandBuffer);
 

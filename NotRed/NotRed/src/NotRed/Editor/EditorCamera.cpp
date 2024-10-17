@@ -10,7 +10,6 @@
 #include <imgui.h>
 
 #include "NotRed/Core/Application.h"
-#include "../../../../NotEditor/src/EditorLayer.h"
 
 #include "NotRed/Core/Input.h"
 
@@ -145,6 +144,20 @@ namespace NR
         return speed;
     }
 
+    static void DisableMouse()
+    {
+        glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+    }
+
+    static void EnableMouse()
+    {
+        glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+    }
+
     void EditorCamera::Update(float dt)
     {
         const glm::vec2& mouse{ Input::GetMousePositionX(), Input::GetMousePositionY() };
@@ -158,28 +171,28 @@ namespace NR
                 mCameraMode = CameraMode::ARCBALL;
                 if (Input::IsMouseButtonPressed(MouseButton::Middle))
                 {
-                    EditorLayer::DisableMouse();
+                    DisableMouse();
                     MousePan(delta);
                 }
                 else if (Input::IsMouseButtonPressed(MouseButton::Left))
                 {
-                    EditorLayer::DisableMouse();
+                    DisableMouse();
                     MouseRotate(delta);
                 }
                 else if (Input::IsMouseButtonPressed(MouseButton::Right))
                 {
-                    EditorLayer::DisableMouse();
+                    DisableMouse();
                     MouseZoom(delta.x + delta.y);
                 }
                 else
                 {
-                    EditorLayer::EnableMouse();
+                    EnableMouse();
                 }
             }
             else if (Input::IsMouseButtonPressed(MouseButton::Right))
             {
                 mCameraMode = CameraMode::FLYCAM;
-                EditorLayer::DisableMouse();
+                DisableMouse();
 
                 if (Input::IsKeyPressed(KeyCode::Q))
                 {
@@ -210,7 +223,7 @@ namespace NR
             }
             else
             {
-                EditorLayer::EnableMouse();
+                EnableMouse();
             }
         }
 

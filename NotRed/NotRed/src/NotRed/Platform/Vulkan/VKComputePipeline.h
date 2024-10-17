@@ -11,7 +11,7 @@ namespace NR
 	{
 	public:
 		VKComputePipeline(Ref<Shader> computeShader);
-		~VKComputePipeline();
+		~VKComputePipeline() override = default;
 
 		void Execute(VkDescriptorSet* descriptorSets, uint32_t descriptorSetCount, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 

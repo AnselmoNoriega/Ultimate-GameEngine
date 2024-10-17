@@ -136,20 +136,6 @@ namespace NR
         }
     }
 
-    void EditorLayer::DisableMouse()
-    {
-        glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
-    }
-
-    void EditorLayer::EnableMouse()
-    {
-        glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
-    }
-
     void EditorLayer::DeleteEntity(Entity entity)
     {
         for (auto childId : entity.Children())
@@ -502,7 +488,7 @@ namespace NR
             UI::BeginPropertyGrid();
             ImGui::AlignTextToFramePadding();
 
-            UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, Utils::CalculateMipCount(rendererConfig.EnvironmentMapResolution, rendererConfig.EnvironmentMapResolution));
+            UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, (float)Utils::CalculateMipCount(rendererConfig.EnvironmentMapResolution, rendererConfig.EnvironmentMapResolution));
             UI::PropertySlider("Exposure", mEditorCamera.GetExposure(), 0.0f, 5.0f);
             UI::PropertySlider("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
             UI::PropertySlider("Camera Speed", mEditorCamera.GetCameraSpeed(), 0.0005f, 2.f);
@@ -571,7 +557,7 @@ namespace NR
                 int currentSize = (int)glm::log2((float)rendererConfig.EnvironmentMapResolution) - 7;
                 if (UI::PropertyDropdown("Environment Map Size", environmentMapSizes, 6, &currentSize))
                 {
-                    rendererConfig.EnvironmentMapResolution = glm::pow(2, currentSize + 7);
+                    rendererConfig.EnvironmentMapResolution = (uint32_t)glm::pow(2, currentSize + 7);
                 }
             }
 
@@ -580,7 +566,7 @@ namespace NR
                 int currentSamples = (int)glm::log2((float)rendererConfig.IrradianceMapComputeSamples) - 7;
                 if (UI::PropertyDropdown("Irradiance Map Compute Samples", irradianceComputeSamples, 6, &currentSamples))
                 {
-                    rendererConfig.IrradianceMapComputeSamples = glm::pow(2, currentSamples + 7);
+                    rendererConfig.IrradianceMapComputeSamples = (uint32_t)glm::pow(2, currentSamples + 7);
                 }
             }
             UI::EndPropertyGrid();
@@ -743,11 +729,11 @@ namespace NR
             auto data = ImGui::AcceptDragDropPayload("asset_payload");
             if (data)
             {
-                int count = data->DataSize / sizeof(AssetHandle);
+                uint64_t count = data->DataSize / sizeof(AssetHandle);
 
-                for (int i = 0; i < count; ++i)
+                for (uint64_t i = 0; i < count; ++i)
                 {
-                    AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+                    AssetHandle assetHandle = *((AssetHandle*)data->Data + i);
                     const auto& assetData = AssetManager::GetMetadata(assetHandle);
 
                     // We can't really support dragging and dropping scenes when we're dropping multiple assets

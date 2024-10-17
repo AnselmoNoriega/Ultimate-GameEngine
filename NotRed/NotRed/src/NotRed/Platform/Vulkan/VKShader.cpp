@@ -210,11 +210,11 @@ namespace NR
         {
             const auto& name = resource.name;
             auto& bufferType = compiler.get_type(resource.base_type_id);
-            int memberCount = bufferType.member_types.size();
+            int memberCount = (uint32_t)bufferType.member_types.size();
 
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            uint32_t size = compiler.get_declared_struct_size(bufferType);
+            uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
 
             if (descriptorSet >= mShaderDescriptorSets.size())
             {
@@ -253,11 +253,11 @@ namespace NR
         {
             const auto& name = resource.name;
             auto& bufferType = compiler.get_type(resource.base_type_id);
-            int memberCount = bufferType.member_types.size();
+            uint32_t memberCount = (uint32_t)bufferType.member_types.size();
 
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             uint32_t descriptorSet = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            uint32_t size = compiler.get_declared_struct_size(bufferType);
+            uint32_t size = (uint32_t)compiler.get_declared_struct_size(bufferType);
             
             if (descriptorSet >= mShaderDescriptorSets.size())
             {
@@ -295,8 +295,8 @@ namespace NR
         {
             const auto& bufferName = resource.name;
             auto& bufferType = compiler.get_type(resource.base_type_id);
-            auto bufferSize = compiler.get_declared_struct_size(bufferType);
-            int memberCount = bufferType.member_types.size();
+            auto bufferSize = (uint32_t)compiler.get_declared_struct_size(bufferType);
+            uint32_t memberCount = uint32_t(bufferType.member_types.size());
             uint32_t bufferOffset = 0;
 
             if (mPushConstantRanges.size())
@@ -323,14 +323,14 @@ namespace NR
             NR_CORE_TRACE("  Member Count: {0}", memberCount);
             NR_CORE_TRACE("  Size: {0}", bufferSize);
 
-            for (int i = 0; i < memberCount; i++)
+            for (uint32_t i = 0; i < memberCount; ++i)
             {
                 auto type = compiler.get_type(bufferType.member_types[i]);
                 const auto& memberName = compiler.get_member_name(bufferType.self, i);
-                auto size = compiler.get_declared_struct_member_size(bufferType, i);
+                auto size = (uint32_t)compiler.get_declared_struct_member_size(bufferType, i);
                 auto offset = compiler.type_struct_member_offset(bufferType, i) - bufferOffset;
 
-                std::string uniformName = bufferName + "." + memberName;
+                std::string uniformName = fmt::format("{}.{}", bufferName, memberName);
                 buffer.Uniforms[uniformName] = ShaderUniform(uniformName, Utils::SPIRTypeToShaderUniformType(type), size, offset);
             }
         }
@@ -403,25 +403,25 @@ namespace NR
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                typeCount.descriptorCount = shaderDescriptorSet.UniformBuffers.size();
+                typeCount.descriptorCount = (uint32_t)(shaderDescriptorSet.UniformBuffers.size());
             }
             if (shaderDescriptorSet.StorageBuffers.size())
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size();
+                typeCount.descriptorCount = (uint32_t)(shaderDescriptorSet.StorageBuffers.size());
             }
             if (shaderDescriptorSet.ImageSamplers.size())
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                typeCount.descriptorCount = shaderDescriptorSet.ImageSamplers.size();
+                typeCount.descriptorCount = (uint32_t)(shaderDescriptorSet.ImageSamplers.size());
             }
             if (shaderDescriptorSet.StorageImages.size())
             {
                 VkDescriptorPoolSize& typeCount = mTypeCounts[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-                typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size();
+                typeCount.descriptorCount = (uint32_t)(shaderDescriptorSet.StorageImages.size());
             }
 
             // Descriptor Set Layout-------------------------------------------------------
@@ -490,7 +490,6 @@ namespace NR
                 layoutBinding.pImmutableSamplers = nullptr;
 
                 uint32_t binding = bindingAndSet & 0xffffffff;
-                uint32_t descriptorSet = (bindingAndSet >> 32);
                 layoutBinding.binding = binding;
 
                 NR_CORE_ASSERT(shaderDescriptorSet.UniformBuffers.find(binding) == shaderDescriptorSet.UniformBuffers.end(), "Binding is already present!");
@@ -508,7 +507,7 @@ namespace NR
             VkDescriptorSetLayoutCreateInfo descriptorLayout = {};
             descriptorLayout.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
             descriptorLayout.pNext = nullptr;
-            descriptorLayout.bindingCount = layoutBindings.size();
+            descriptorLayout.bindingCount = (uint32_t)(layoutBindings.size());
             descriptorLayout.pBindings = layoutBindings.data();
 
             NR_CORE_INFO("Creating descriptor set {0} with {1} ubo's, {2} ssbo's, {3} samplers and {4} storage images", set,
@@ -519,7 +518,7 @@ namespace NR
 
             if (set >= mDescriptorSetLayouts.size())
             {
-                mDescriptorSetLayouts.resize(set + 1);
+                mDescriptorSetLayouts.resize((size_t)(set + 1));
             }
             VK_CHECK_RESULT(vkCreateDescriptorSetLayout(device, &descriptorLayout, nullptr, &mDescriptorSetLayouts[set]));
         }
@@ -536,7 +535,7 @@ namespace NR
         VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
         descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         descriptorPoolInfo.pNext = nullptr;
-        descriptorPoolInfo.poolSizeCount = mTypeCounts.at(set).size();
+		descriptorPoolInfo.poolSizeCount = (uint32_t)mTypeCounts.at(set).size();
         descriptorPoolInfo.pPoolSizes = mTypeCounts.at(set).data();
         descriptorPoolInfo.maxSets = 1;
 
@@ -572,25 +571,25 @@ namespace NR
             {
                 VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                typeCount.descriptorCount = shaderDescriptorSet.UniformBuffers.size() * numberOfSets;
+                typeCount.descriptorCount = (uint32_t)shaderDescriptorSet.UniformBuffers.size() * numberOfSets;
             }
             if (shaderDescriptorSet.StorageBuffers.size())
             {
                 VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-                typeCount.descriptorCount = shaderDescriptorSet.StorageBuffers.size() * numberOfSets;
+                typeCount.descriptorCount = (uint32_t)shaderDescriptorSet.StorageBuffers.size() * numberOfSets;
             }
             if (shaderDescriptorSet.ImageSamplers.size())
             {
                 VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                typeCount.descriptorCount = shaderDescriptorSet.ImageSamplers.size() * numberOfSets;
+                typeCount.descriptorCount = (uint32_t)shaderDescriptorSet.ImageSamplers.size() * numberOfSets;
             }
             if (shaderDescriptorSet.StorageImages.size())
             {
                 VkDescriptorPoolSize& typeCount = poolSizes[set].emplace_back();
                 typeCount.type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-                typeCount.descriptorCount = shaderDescriptorSet.StorageImages.size() * numberOfSets;
+                typeCount.descriptorCount = (uint32_t)shaderDescriptorSet.StorageImages.size() * numberOfSets;
             }
         }
 
@@ -599,7 +598,7 @@ namespace NR
         VkDescriptorPoolCreateInfo descriptorPoolInfo = {};
         descriptorPoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         descriptorPoolInfo.pNext = nullptr;
-        descriptorPoolInfo.poolSizeCount = poolSizes.at(set).size();
+        descriptorPoolInfo.poolSizeCount = (uint32_t)poolSizes.at(set).size();
         descriptorPoolInfo.pPoolSizes = poolSizes.at(set).data();
         descriptorPoolInfo.maxSets = numberOfSets;
 
@@ -719,8 +718,9 @@ namespace NR
                 auto path = cacheDirectory / (shaderPath.filename().string() + extension);
                 std::string cachedFilePath = path.string();
 
-                FILE* f = fopen(cachedFilePath.c_str(), "rb");
-                if (f)
+                FILE* f;
+                errno_t err = fopen_s(&f, cachedFilePath.c_str(), "rb");
+                if (!err)
                 {
                     fseek(f, 0, SEEK_END);
                     uint64_t size = ftell(f);
@@ -773,7 +773,8 @@ namespace NR
                     auto path = cacheDirectory / (shaderPath.filename().string() + extension);
                     std::string cachedFilePath = path.string();
 
-                    FILE* f = fopen(cachedFilePath.c_str(), "wb");
+                    FILE* f;
+                    fopen_s(&f, cachedFilePath.c_str(), "wb");
                     fwrite(outputBinary[stage].data(), sizeof(uint32_t), outputBinary[stage].size(), f);
                     fclose(f);
                 }

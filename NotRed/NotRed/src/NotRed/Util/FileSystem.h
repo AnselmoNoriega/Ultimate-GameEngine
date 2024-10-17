@@ -21,6 +21,7 @@ namespace NR
 		std::string OldName;
 		std::string NewName;
 		bool IsDirectory;
+		bool WasTracking = false;
 	};
 
 	class FileSystem

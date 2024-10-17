@@ -320,9 +320,9 @@ namespace NR
         auto vulkanDevice = device->GetVulkanDevice();
 
         Ref<VKImage2D> image = mImage.As<VKImage2D>();
-        auto& info = image->GetImageInfo();
+        const auto& info = image->GetImageInfo();
 
-        VkCommandBuffer blitCmd = VKContext::GetCurrentDevice()->GetCommandBuffer(true);
+        const VkCommandBuffer blitCmd = VKContext::GetCurrentDevice()->GetCommandBuffer(true);
 
         VkImageMemoryBarrier barrier = {};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -330,8 +330,8 @@ namespace NR
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-        auto mipLevels = GetMipLevelCount();
-        for (int32_t i = 1; i < mipLevels; ++i)
+        const auto mipLevels = GetMipLevelCount();
+        for (uint32_t i = 1; i < mipLevels; ++i)
         {
             VkImageBlit imageBlit{};
 
@@ -809,7 +809,7 @@ namespace NR
                 mipSubRange);
         }
 
-        for (int32_t i = 1; i < mipLevels; ++i)
+        for (uint32_t i = 1; i < mipLevels; ++i)
         {
             for (uint32_t face = 0; face < 6; ++face)
             {

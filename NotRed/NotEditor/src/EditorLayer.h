@@ -54,9 +54,6 @@ namespace NR
 		void SaveScene();
 		void SaveSceneAs();
 
-		static void DisableMouse();
-		static void EnableMouse();
-
 	private:
 		std::pair<float, float> GetMouseViewportSpace(bool primaryViewport);
 		std::pair<glm::vec3, glm::vec3> CastRay(const EditorCamera& camera, float mx, float my);

@@ -402,15 +402,15 @@ namespace NR
             writeDescriptor.dstSet = descriptorSet.DescriptorSets[0];
         }
 
-        vkUpdateDescriptorSets(vulkanDevice, mWriteDescriptors[frameIndex].size(), mWriteDescriptors[frameIndex].data(), 0, nullptr);
+        vkUpdateDescriptorSets(vulkanDevice, (uint32_t)mWriteDescriptors[frameIndex].size(), mWriteDescriptors[frameIndex].data(), 0, nullptr);
 
         mPendingDescriptors.clear();
     }
 
     void VKMaterial::InvalidateDescriptorSets()
     {
-        uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
-        for (int i = 0; i < framesInFlight; ++i)
+        const uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+        for (uint32_t i = 0; i < framesInFlight; ++i)
         {
             mDirtyDescriptorSets[i] = true;
         }

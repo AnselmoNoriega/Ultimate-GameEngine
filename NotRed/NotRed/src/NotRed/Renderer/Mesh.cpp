@@ -111,7 +111,7 @@ namespace NR
         mBoundingBox.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
 
         mSubmeshes.reserve(scene->mNumMeshes);
-        for (size_t m = 0; m < scene->mNumMeshes; ++m)
+        for (unsigned m = 0; m < scene->mNumMeshes; ++m)
         {
             aiMesh* mesh = scene->mMeshes[m];
 
@@ -472,7 +472,7 @@ namespace NR
 
         if (mIsAnimated)
         {
-            mVertexBuffer = VertexBuffer::Create(mAnimatedVertices.data(), mAnimatedVertices.size() * sizeof(AnimatedVertex));
+            mVertexBuffer = VertexBuffer::Create(mAnimatedVertices.data(), (uint32_t)(mAnimatedVertices.size() * sizeof(AnimatedVertex)));
             mVertexBufferLayout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
@@ -485,7 +485,7 @@ namespace NR
         }
         else
         {
-            mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+            mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
             mVertexBufferLayout = {
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float3, "aNormal" },
@@ -495,7 +495,7 @@ namespace NR
             };
         }
 
-        mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
+        mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
     }
 
     MeshAsset::MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
@@ -504,11 +504,12 @@ namespace NR
         Submesh submesh;
         submesh.BaseVertex = 0;
         submesh.BaseIndex = 0;
-        submesh.IndexCount = indices.size() * 3;
+        submesh.IndexCount = (uint32_t)indices.size() * 3u;
         submesh.Transform = transform;
         mSubmeshes.push_back(submesh);
 
-        mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), mStaticVertices.size() * sizeof(Vertex));
+        mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
+        mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
         mVertexBufferLayout = {
             { ShaderDataType::Float3, "aPosition" },
             { ShaderDataType::Float3, "aNormal" },
@@ -517,7 +518,6 @@ namespace NR
             { ShaderDataType::Float2, "aTexCoord" },
         };
 
-        mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
     }
 
     MeshAsset::MeshAsset(int particleCount)
@@ -533,7 +533,7 @@ namespace NR
             ParticleVertex rightTop;
             rightTop.Position = { 0.5f, 0.0f,  0.5f };
 
-            for (size_t i = 0; i < particleCount; ++i)
+            for (uint32_t i = 0; i < particleCount; ++i)
             {
                 mParticleVertices.push_back(leftBot);
                 mParticleVertices.push_back(rightBot);
@@ -805,7 +805,7 @@ namespace NR
     {
         const auto& assetSubmeshes = mMeshAsset->GetSubmeshes();
         mSubmeshes.resize(assetSubmeshes.size());
-        for (size_t i = 0; i < assetSubmeshes.size(); ++i)
+        for (uint32_t i = 0; i < (uint32_t)assetSubmeshes.size(); ++i)
         {
             mSubmeshes[i] = i;
         }

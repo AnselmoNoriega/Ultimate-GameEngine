@@ -685,14 +685,14 @@ namespace NR
             Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
             if (mOptions.ShowSelectedInWireframe)
             {
-                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform, mWireframeMaterial);
+                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
             }
         }
         if (mOptions.ShowCollidersWireframe)
         {
             for (DrawCommand& dc : mColliderDrawList)
             {
-                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform, mColliderMaterial);
+                Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
             }
         }
 

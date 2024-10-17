@@ -197,7 +197,7 @@ namespace NR
     {
         int x, y;
         glfwGetWindowPos(mWindow, &x, &y);
-        return { x, y };
+        return { (float)x, (float)y };
     }
 
     void WinWindow::ProcessEvents()

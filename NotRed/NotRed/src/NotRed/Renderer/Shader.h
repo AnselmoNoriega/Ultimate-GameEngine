@@ -24,7 +24,7 @@ namespace NR
 	{
 	public:
 		ShaderUniform() = default;
-		ShaderUniform(const std::string& name, ShaderUniformType type, uint32_t size, uint32_t offset);
+		ShaderUniform(std::string name, ShaderUniformType type, uint32_t size, uint32_t offset);
 
 		static const std::string& UniformTypeToString(ShaderUniformType type);
 

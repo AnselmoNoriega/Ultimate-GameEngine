@@ -54,11 +54,7 @@ namespace NR
         }
 
         NR_CORE_ASSERT(spec.Attachments.Attachments.size());
-        Resize(mWidth * spec.Scale, mHeight * spec.Scale, true);
-    }
-
-    VKFrameBuffer::~VKFrameBuffer()
-    {
+        Resize((uint32_t)((float)(mWidth) * spec.Scale), (uint32_t)((float)mHeight * spec.Scale), true);
     }
 
     void VKFrameBuffer::Resize(uint32_t width, uint32_t height, bool forceRecreate)
@@ -105,7 +101,7 @@ namespace NR
 
     void VKFrameBuffer::RT_Invalidate()
     {
-        NR_CORE_TRACE("VKFrameBuffer::RT_Invalidate");
+        NR_CORE_TRACE("VKFrameBuffer::RT_Invalidate ({})", mSpecification.DebugName);
 
         auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
@@ -134,7 +130,7 @@ namespace NR
 
                 if (mDepthAttachmentImage)
                 {
-                    if (mSpecification.ExistingImages.find(mSpecification.Attachments.Attachments.size() - 1) == mSpecification.ExistingImages.end())
+                    if (mSpecification.ExistingImages.find((uint32_t)mSpecification.Attachments.Attachments.size() - 1) == mSpecification.ExistingImages.end())
                     {
                         mDepthAttachmentImage->Release();
                     }
@@ -183,6 +179,9 @@ namespace NR
                 else
                 {
                     Ref<VKImage2D> depthAttachmentImage = mDepthAttachmentImage.As<VKImage2D>();
+                    auto& spec = depthAttachmentImage->GetSpecification();
+                    spec.Width = mWidth;
+                    spec.Height = mHeight;
                     depthAttachmentImage->RT_Invalidate(); // Create immediately
                 }
 
@@ -238,7 +237,7 @@ namespace NR
                         spec.Width = mWidth;
                         spec.Height = mHeight;
                         colorAttachment = mAttachmentImages.emplace_back(Image2D::Create(spec)).As<VKImage2D>();
-                        NR_CORE_VERIFY(false); 
+                        NR_CORE_VERIFY(false);
                     }
                     else
                     {
@@ -274,7 +273,7 @@ namespace NR
 
         VkSubpassDescription subpassDescription = {};
         subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpassDescription.colorAttachmentCount = colorAttachmentReferences.size();
+        subpassDescription.colorAttachmentCount = uint32_t(colorAttachmentReferences.size());
         subpassDescription.pColorAttachments = colorAttachmentReferences.data();
         if (mDepthAttachmentImage)
         {
@@ -368,7 +367,7 @@ namespace NR
         VkFramebufferCreateInfo frameBufferCreateInfo = {};
         frameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         frameBufferCreateInfo.renderPass = mRenderPass;
-        frameBufferCreateInfo.attachmentCount = attachments.size();
+        frameBufferCreateInfo.attachmentCount = uint32_t(attachments.size());
         frameBufferCreateInfo.pAttachments = attachments.data();
         frameBufferCreateInfo.width = mWidth;
         frameBufferCreateInfo.height = mHeight;

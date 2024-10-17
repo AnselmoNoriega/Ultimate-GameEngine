@@ -88,9 +88,9 @@ namespace NR
                 VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {};
                 pPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
                 pPipelineLayoutCreateInfo.pNext = nullptr;
-                pPipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+                pPipelineLayoutCreateInfo.setLayoutCount = (uint32_t)descriptorSetLayouts.size();
                 pPipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-                pPipelineLayoutCreateInfo.pushConstantRangeCount = vulkanPushConstantRanges.size();
+                pPipelineLayoutCreateInfo.pushConstantRangeCount = (uint32_t)vulkanPushConstantRanges.size();
                 pPipelineLayoutCreateInfo.pPushConstantRanges = vulkanPushConstantRanges.data();
 
                 VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pPipelineLayoutCreateInfo, nullptr, &instance->mPipelineLayout));
@@ -143,7 +143,7 @@ namespace NR
 
                 VkPipelineColorBlendStateCreateInfo colorBlendState = {};
                 colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-                colorBlendState.attachmentCount = blendAttachmentStates.size();
+                colorBlendState.attachmentCount = (uint32_t)blendAttachmentStates.size();
                 colorBlendState.pAttachments = blendAttachmentStates.data();
 
                 // Viewport state sets the number of viewports and scissor used in this pipeline
@@ -219,7 +219,7 @@ namespace NR
                 vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
                 vertexInputState.vertexBindingDescriptionCount = 1;
                 vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
-                vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+                vertexInputState.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
                 vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
                 const auto& shaderStages = vulkanShader->GetPipelineShaderStageCreateInfos();

@@ -69,9 +69,9 @@ namespace NR
 		sIgnoreNextChange = true;
 		std::filesystem::path p = filepath;
 		std::string destFilePath = dest + "/" + p.filename().string();
-		BOOL result = MoveFileA(filepath.c_str(), destFilePath.c_str());
+		BOOL result = MoveFileA(filepath.c_str(), destFilePath.c_str()) != 0;
 		sIgnoreNextChange = false;
-		return result != 0;
+		return result;
 	}
 
 	bool FileSystem::DeleteFile(const std::string& filepath)
@@ -103,7 +103,7 @@ namespace NR
 
 	void FileSystem::StopWatching()
 	{
-		sWatching = false;
+		sWatching = true;
 		DWORD result = WaitForSingleObject(sWatcherThread, 5000);
 		if (result == WAIT_TIMEOUT)
 		{
@@ -124,9 +124,7 @@ namespace NR
 
 	static std::string wchar_to_string(wchar_t* input)
 	{
-		std::wstring string_input(input);
-		std::string converted(string_input.begin(), string_input.end());
-		return converted;
+		return std::filesystem::path(input).string();
 	}
 
 	void FileSystem::SkipNextFileSystemChange()
@@ -170,10 +168,10 @@ namespace NR
 
 		while (sWatching)
 		{
-			DWORD status = ReadDirectoryChangesW(
+			const DWORD status = ReadDirectoryChangesW(
 				handle,
 				&buffer[0],
-				buffer.size(),
+				(uint32_t)buffer.size(),
 				TRUE,
 				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
 				&bytesReturned,

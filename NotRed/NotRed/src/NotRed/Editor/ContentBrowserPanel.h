@@ -6,182 +6,210 @@
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/ImGui/ImGui.h"
 
-#define MAX_INPUT_BUFFER_LENGTH 128
+#include "ContentBrowser/ContentBrowserItem.h"
 
 namespace NR
 {
-	struct SelectionStack
-	{
-	public:
-		void Select(AssetHandle item)
-		{
-			mSelections.push_back(item);
-		}
+    class SelectionStack
+    {
+    public:
+        void Select(AssetHandle handle)
+        {
+            if (IsSelected(handle))
+            {
+                return;
+            }
 
-		void Deselect(AssetHandle item)
-		{
-			for (auto it = mSelections.begin(); it != mSelections.end(); it++)
-			{
-				if (*it == item)
-				{
-					mSelections.erase(it);
-					break;
-				}
-			}
-		}
+            mSelections.push_back(handle);
+        }
 
-		bool IsSelected(AssetHandle item) const
-		{
-			if (mSelections.size() == 0)
-			{
-				return false;
-			}
+        void Deselect(AssetHandle handle)
+        {
+            if (!IsSelected(handle))
+            {
+                return;
+            }
 
-			for (auto selection : mSelections)
-			{
-				if (selection == item)
-				{
-					return true;
-				}
-			}
+            for (auto it = mSelections.begin(); it != mSelections.end(); it++)
+            {
+                if (handle == *it)
+                {
+                    mSelections.erase(it);
+                    break;
+                }
+            }
+        }
 
-			return false;
-		}
+        bool IsSelected(AssetHandle handle)
+        {
+            for (const auto& selectedHandle : mSelections)
+            {
+                if (selectedHandle == handle)
+                    return true;
+            }
 
-		void Clear()
-		{
-			if (mSelections.size() > 0)
-			{
-				mSelections.clear();
-			}
-		}
+            return false;
+        }
 
-		size_t SelectionCount() const
-		{
-			return mSelections.size();
-		}
+        void Clear()
+        {
+            mSelections.clear();
+        }
 
-		AssetHandle* GetSelectionData()
-		{
-			return mSelections.data();
-		}
+        size_t SelectionCount() const { return mSelections.size(); }
+        const AssetHandle* SelectionData() const { return mSelections.data(); }
 
-		AssetHandle operator[](size_t index) const
-		{
-			NR_CORE_ASSERT(index >= 0 && index < mSelections.size());
-			return mSelections[index];
-		}
+        AssetHandle operator[](size_t index) const
+        {
+            NR_CORE_ASSERT(index >= 0 && index < mSelections.size());
+            return mSelections[index];
+        }
 
-	private:
-		std::vector<AssetHandle> mSelections;
-	};
+        std::vector<AssetHandle>::iterator begin() { return mSelections.begin(); }
+        std::vector<AssetHandle>::const_iterator begin() const { return mSelections.begin(); }
+        std::vector<AssetHandle>::iterator end() { return mSelections.end(); }
+        std::vector<AssetHandle>::const_iterator end() const { return mSelections.end(); }
 
-	struct DirectoryInfo : public RefCounted
-	{
-		AssetHandle Handle;
-		AssetHandle Parent;
-		std::string Name;
-		std::string FilePath;
-		std::vector<AssetHandle> Assets;
-		std::vector<AssetHandle> SubDirectories;
-	};
+    private:
+        std::vector<AssetHandle> mSelections;
+    };
 
-	struct SearchResults
-	{
-		std::vector<Ref<DirectoryInfo>> Directories;
-		std::vector<AssetMetadata> Assets;
-		void Append(const SearchResults& other)
-		{
-			Directories.insert(Directories.end(), other.Directories.begin(), other.Directories.end());
-			Assets.insert(Assets.end(), other.Assets.begin(), other.Assets.end());
-		}
-	};
 
-	class ContentBrowserPanel
-	{
-	public:
-		ContentBrowserPanel();
+    struct ContentBrowserItemList
+    {
+        static constexpr size_t InvalidItem = std::numeric_limits<size_t>::max();
 
-		void ImGuiRender();
+        std::vector<Ref<ContentBrowserItem>> Items;
 
-	private:
-		AssetHandle ProcessDirectory(const std::string& directoryPath, AssetHandle parent);
+        std::vector<Ref<ContentBrowserItem>>::iterator begin() { return Items.begin(); }
+        std::vector<Ref<ContentBrowserItem>>::iterator end() { return Items.end(); }
+        std::vector<Ref<ContentBrowserItem>>::const_iterator begin() const { return Items.begin(); }
+        std::vector<Ref<ContentBrowserItem>>::const_iterator end() const { return Items.end(); }
 
-		void DrawDirectoryInfo(AssetHandle directory);
+        Ref<ContentBrowserItem>& operator[](size_t index) { return Items[index]; }
+        const Ref<ContentBrowserItem>& operator[](size_t index) const { return Items[index]; }
 
-		void RenderDirectory(Ref<DirectoryInfo>& directory);
-		void RenderAsset(AssetMetadata& assetInfo);
-		void HandleDragDrop(Ref<Image2D> icon, AssetHandle assetHandle);
+        void erase(AssetHandle handle)
+        {
+            size_t index = FindItem(handle);
+            if (index == InvalidItem)
+            {
+                return;
+            }
 
-		void RenderBreadCrumbs();
-		void RenderBottomBar();
+            auto it = Items.begin() + index;
+            Items.erase(it);
+        }
 
-		void SelectAndStartRenaming(AssetHandle handle, const std::string& currentName);
+        size_t FindItem(AssetHandle handle) const
+        {
+            for (size_t i = 0; i < Items.size(); i++)
+            {
+                if (Items[i]->GetID() == handle)
+                {
+                    return i;
+                }
+            }
+            return InvalidItem;
+        }
+    };
 
-		void HandleDirectoryRename(Ref<DirectoryInfo>& dirInfo);
-		void HandleAssetRename(AssetMetadata& asset);
+    class ContentBrowserPanel
+    {
+    public:
+        static ContentBrowserPanel& Get() { return *sInstance; }
 
-		void UpdateCurrentDirectory(AssetHandle directoryHandle);
+    public:
+        ContentBrowserPanel();
 
-		void FileSystemChanged(FileSystemChangedEvent e);
-		void AssetDeleted(const FileSystemChangedEvent& e);
-		void RemoveDirectory(Ref<DirectoryInfo> dirInfo);
-		
-		void MoveDirectory(AssetHandle directoryHandle, const std::string& destinationPath);
+        void ImGuiRender();
 
-		void DirectoryAdded(const std::string& directoryPath);
-		Ref<DirectoryInfo> GetDirectoryInfo(const std::string& filepath) const;
-		Ref<DirectoryInfo> GetDirectoryForAsset(AssetHandle asset) const;
+        const SelectionStack& GetSelectionStack() const { return mSelectionStack; }
+        ContentBrowserItemList& GetCurrentItems() { return mCurrentItems; }
 
-		void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::string& newParentPath);
+        Ref<DirectoryInfo> GetDirectory(const std::string& filepath) const;
 
-		SearchResults Search(const std::string& query, AssetHandle directoryHandle);
+    private:
+        AssetHandle ProcessDirectory(const std::string& directoryPath, const Ref<DirectoryInfo>& parent);
 
-		template<typename T, typename... Args>
-		Ref<T> CreateAsset(const std::string& filename, Args&&... args)
-		{
-			Ref<Asset> asset = AssetManager::CreateNewAsset<T>(filename, mCurrentDirectory->FilePath, std::forward<Args>(args)...);
-			if (!asset)
-			{
-				return nullptr;
-			}
-			mCurrentDirectory->Assets.push_back(asset->Handle);
-			UpdateCurrentDirectory(mCurrentDirHandle);
-			return asset.As<T>();
-		}
+        void ChangeDirectory(Ref<DirectoryInfo>& directory);
+        void RenderDirectoryHeirarchy(Ref<DirectoryInfo>& directory);
+        void RenderTopBar();
+        void RenderItems();
+        void RenderBottomBar();
 
-	private:
-		Ref<Texture2D> mFileTex;
-		Ref<Texture2D> mFolderIcon;
-		Ref<Texture2D> mBackbtnTex;
-		Ref<Texture2D> mFwrdbtnTex;
+        void Refresh();
 
-		bool mIsDragging = false;
-		bool mUpdateBreadCrumbs = true;
-		bool mIsAnyItemHovered = false;
-		bool mUpdateDirectoryNextFrame = false;		
-		bool mRenamingSelected = false;
+        void UpdateInput();
 
-		char mRenameBuffer[MAX_INPUT_BUFFER_LENGTH];
-		char mSearchBuffer[MAX_INPUT_BUFFER_LENGTH];
+        void ClearSelections();
 
-		AssetHandle mCurrentDirHandle;
-		AssetHandle mBaseDirectoryHandle;
-		AssetHandle mPrevDirHandle;
-		AssetHandle mNextDirHandle;
+        void RenderDeleteDialogue();
+        void RemoveDirectory(Ref<DirectoryInfo>& directory);
 
-		Ref<DirectoryInfo> mCurrentDirectory;
-		Ref<DirectoryInfo> mBaseDirectory;
+        void UpdateDropArea(const Ref<DirectoryInfo>& target);
+        void SortItemList();
 
-		std::vector<Ref<DirectoryInfo>> mCurrentDirectories;
-		std::vector<Ref<DirectoryInfo>> mBreadCrumbData;
-		std::vector<AssetMetadata> mCurrentAssets;
+        ContentBrowserItemList Search(const std::string& query, const Ref<DirectoryInfo>& directoryInfo);
 
-		SelectionStack mSelectedAssets;
+        void FileSystemChanged(FileSystemChangedEvent event);
+        void DirectoryAdded(FileSystemChangedEvent event);
+        void DirectoryDeleted(FileSystemChangedEvent event);
+        void DirectoryDeleted(Ref<DirectoryInfo> directory, uint32_t depth = 0);
+        void DirectoryRenamed(FileSystemChangedEvent event);
+        void AssetAdded(FileSystemChangedEvent event);
+        void AssetDeleted(FileSystemChangedEvent event);
+        void AssetDeleted(AssetMetadata metadata, Ref<DirectoryInfo> directory);
+        void AssetRenamed(FileSystemChangedEvent event);
+        void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::string& newParentPath);
 
-		std::map<std::string, Ref<Texture2D>> mAssetIconMap;
+    private:
+        template<typename T, typename... Args>
+        Ref<T> CreateAsset(const std::string& filename, Args&&... args)
+        {
+            Ref<T> asset = AssetManager::CreateNewAsset<T>(filename, mCurrentDirectory->FilePath, std::forward<Args>(args)...);
+            if (!asset)
+            {
+                return nullptr;
+            }
 
-		std::unordered_map<AssetHandle, Ref<DirectoryInfo>> mDirectories;
-	};
+            mCurrentDirectory->Assets.push_back(asset->Handle);
+            ChangeDirectory(mCurrentDirectory);
+            auto& item = mCurrentItems[mCurrentItems.FindItem(asset->Handle)];
+            mSelectionStack.Select(asset->Handle);
+            item->SetSelected(true);
+            item->StartRenaming();
+            return asset;
+        }
+
+    private:
+        Ref<Texture2D> mFileTex;
+        Ref<Texture2D> mFolderIcon;
+        Ref<Texture2D> mBackbtnTex;
+        Ref<Texture2D> mFwrdbtnTex;
+        Ref<Texture2D> mRefreshIcon;
+
+        std::map<std::string, Ref<Texture2D>> mAssetIconMap;
+
+        ContentBrowserItemList mCurrentItems;
+
+        Ref<DirectoryInfo> mCurrentDirectory;
+        Ref<DirectoryInfo> mBaseDirectory;
+        Ref<DirectoryInfo> mNextDirectory, mPreviousDirectory;
+
+        bool mIsAnyItemHovered = false;
+
+        SelectionStack mSelectionStack;
+
+        std::unordered_map<AssetHandle, Ref<DirectoryInfo>> mDirectories;
+
+        char mSearchBuffer[MAX_INPUT_BUFFER_LENGTH];
+
+        std::vector<Ref<DirectoryInfo>> mBreadCrumbData;
+        bool mUpdateNavigationPath = false;
+
+    private:
+        static ContentBrowserPanel* sInstance;
+    };
 
 }

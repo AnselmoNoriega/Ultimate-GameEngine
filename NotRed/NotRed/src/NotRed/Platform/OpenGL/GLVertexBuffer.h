@@ -16,9 +16,6 @@ namespace NR
 		virtual void RT_SetData(void* data, uint32_t size, uint32_t offset = 0) {}
 		void Bind() const override;
 
-		const VertexBufferLayout& GetLayout() const override { return mLayout; }
-		void SetLayout(const VertexBufferLayout& layout) override { mLayout = layout; }
-
 		uint32_t GetSize() const override { return mSize; }
 
 		RendererID GetRendererID() const override { return mID; }

@@ -223,13 +223,13 @@ namespace NR
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
-        bool missingMesh = entity.HasComponent<MeshComponent>() && (entity.GetComponent<MeshComponent>().MeshObj && entity.GetComponent<MeshComponent>().MeshObj->IsFlagSet(AssetFlag::Missing));
+        const bool missingMesh = entity.HasComponent<MeshComponent>() && (entity.GetComponent<MeshComponent>().MeshObj && entity.GetComponent<MeshComponent>().MeshObj->IsFlagSet(AssetFlag::Missing));
         if (missingMesh)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
         }
 
-        bool opened = ImGui::TreeNodeEx((void*)(uint32_t)entity, flags, name);
+        const bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, name);
         if (ImGui::IsItemClicked())
         {
             mSelectionContext = entity;
@@ -694,8 +694,8 @@ namespace NR
                             }
                         }
                     }
-                    UI::EndPropertyGrid();
                 }
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
@@ -925,11 +925,11 @@ namespace NR
                                     }
                                 }
                                 break;
-                                }
                             }
                             }
                         }
                     }
+                }
 
                 UI::EndPropertyGrid();
 #if TODO
@@ -938,7 +938,7 @@ namespace NR
                     ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-                });
+            });
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
@@ -1372,5 +1372,5 @@ namespace NR
 
                 colors[ImGuiCol_Separator] = oldSCol;
             });
-            }
     }
+}

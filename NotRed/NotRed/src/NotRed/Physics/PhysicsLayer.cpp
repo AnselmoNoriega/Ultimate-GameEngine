@@ -151,7 +151,7 @@ namespace NR
 			lastId = layer.ID;
 		}
 
-		return sLayers.size();
+		return (uint32_t)sLayers.size();
 	}
 
 	std::vector<PhysicsLayer> PhysicsLayerManager::sLayers;	

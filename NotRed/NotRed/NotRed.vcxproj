@@ -173,6 +173,7 @@
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
     <ClInclude Include="src\NotRed\Audio\SourceManager.h" />
+    <ClInclude Include="src\NotRed\ContentBrowser\ContentBrowserItem.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
@@ -384,6 +385,7 @@
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
     <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />
     <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
+    <ClCompile Include="src\NotRed\ContentBrowser\ContentBrowserItem.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Hash.cpp" />
@@ -404,7 +406,7 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
-    <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\VKImGui.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />
     <ClCompile Include="src\NotRed\Math\Matrix4x4.cpp" />
     <ClCompile Include="src\NotRed\Math\Noise.cpp" />

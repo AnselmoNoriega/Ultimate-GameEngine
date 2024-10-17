@@ -252,8 +252,8 @@ namespace NR
     {
         sData->CommandBuffer->Begin();
         Renderer::BeginRenderPass(sData->CommandBuffer, sData->QuadPipeline->GetSpecification().RenderPass);
-        
-        uint32_t dataSize = (uint8_t*)sData->QuadVertexBufferPtr - (uint8_t*)sData->QuadVertexBufferBase;
+
+        uint32_t dataSize = (uint32_t)((uint8_t*)sData->QuadVertexBufferPtr - (uint8_t*)sData->QuadVertexBufferBase);
         if (dataSize)
         {
             sData->QuadVertexBuffer->SetData(sData->QuadVertexBufferBase, dataSize);
@@ -268,7 +268,7 @@ namespace NR
             ++sData->Stats.DrawCalls;
         }
 
-        dataSize = (uint8_t*)sData->LineVertexBufferPtr - (uint8_t*)sData->LineVertexBufferBase;
+        dataSize = (uint32_t)((uint8_t*)sData->LineVertexBufferPtr - (uint8_t*)sData->LineVertexBufferBase);
         if (dataSize)
         {
             sData->LineVertexBuffer->SetData(sData->LineVertexBufferBase, dataSize);

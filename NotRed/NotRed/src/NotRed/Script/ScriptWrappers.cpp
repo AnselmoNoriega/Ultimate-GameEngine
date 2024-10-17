@@ -371,7 +371,7 @@ namespace NR::Script
 
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
-        uint64_t arrayLength = mono_array_length(outColliders);
+        const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
 
         uint32_t count;
         if (PhysicsManager::GetScene()->OverlapBox(*origin, *halfSize, sOverlapBuffer, count))
@@ -393,7 +393,7 @@ namespace NR::Script
 
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
-        uint64_t arrayLength = mono_array_length(outColliders);
+        const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
 
         uint32_t count = 0;
         if (PhysicsManager::GetScene()->OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, count))
@@ -415,7 +415,7 @@ namespace NR::Script
 
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
-        uint64_t arrayLength = mono_array_length(outColliders);
+        const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
 
         uint32_t count = 0;
         if (PhysicsManager::GetScene()->OverlapSphere(*origin, radius, sOverlapBuffer, count))
@@ -767,11 +767,11 @@ namespace NR::Script
         return new Ref<Material>(materials[index]);
     }
 
-    int NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh)
+    uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh)
     {
-        Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
+        Ref<Mesh>& mesh = *inMesh;
         const auto& materials = mesh->GetMaterials();
-        return materials.size();
+        return (uint32_t)materials.size();
     }
 
     void* NR_Texture2D_Constructor(uint32_t width, uint32_t height)
@@ -797,7 +797,7 @@ namespace NR::Script
 
         uint8_t* pixels = (uint8_t*)buffer.Data;
         uint32_t index = 0;
-        for (int i = 0; i < instance->GetWidth() * instance->GetHeight(); ++i)
+        for (uint32_t i = 0; i < instance->GetWidth() * instance->GetHeight(); ++i)
         {
             glm::vec4& value = mono_array_get(inData, glm::vec4, i);
             *pixels++ = (uint32_t)(value.x * 255.0f);

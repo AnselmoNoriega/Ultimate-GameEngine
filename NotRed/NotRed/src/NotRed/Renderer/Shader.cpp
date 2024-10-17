@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "Shader.h"
 
+#include <utility>
+
 #include "NotRed/Platform/OpenGL/GLShader.h"
 #include "NotRed/Platform/Vulkan/VKShader.h"
 
@@ -78,26 +80,26 @@ namespace NR
         return mShaders.at(name);
     }
 
-    ShaderUniform::ShaderUniform(const std::string& name, ShaderUniformType type, uint32_t size, uint32_t offset)
-        : mName(name), mType(type), mSize(size), mOffset(offset)
+    ShaderUniform::ShaderUniform(std::string name, const ShaderUniformType type, const uint32_t size, const uint32_t offset)
+        : mName(std::move(name)), mType(type), mSize(size), mOffset(offset)
     {
     }
 
-    const std::string& ShaderUniform::UniformTypeToString(ShaderUniformType type)
+    const std::string& ShaderUniform::UniformTypeToString(const ShaderUniformType type)
     {
-        if (type == ShaderUniformType::Bool)
-        {
-            return "Boolean";
-        }
-        else if (type == ShaderUniformType::Int)
-        {
-            return "Int";
-        }
-        else if (type == ShaderUniformType::Float)
-        {
-            return "Float";
-        }
+		if (type == ShaderUniformType::Bool)
+		{
+			return std::string("Boolean");
+		}
+		else if (type == ShaderUniformType::Int)
+		{
+			return std::string("Int");
+		}
+		else if (type == ShaderUniformType::Float)
+		{
+			return std::string("Float");
+		}
 
-        return "None";
+		return std::string("None");
     }
 }

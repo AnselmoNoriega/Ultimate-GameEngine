@@ -98,7 +98,7 @@ namespace NR::Script
     void NR_Mesh_Destructor(Ref<Mesh>* _this);
     Ref<Material>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
     Ref<Material>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
-    int NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
+    uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 
     void* NR_MeshFactory_CreatePlane(float width, float height);
 

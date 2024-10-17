@@ -2,6 +2,7 @@
 #include "StringUtils.h"
 
 #include <sstream>
+#include <iomanip>
 
 namespace NR::Utils 
 {
@@ -79,5 +80,33 @@ namespace NR::Utils
 			result += std::tolower(character);
 		}
 		return result;
+	}
+
+	std::string BytesToString(uint64_t bytes)
+	{
+		static const double GB = 1024.0 * 1024.0 * 1024.0;
+		static const double MB = 1024.0 * 1024.0;
+		static const double KB = 1024.0;
+
+		char buffer[16];
+
+		if ((double)bytes > GB)
+		{
+			sprintf_s(buffer, "%.2f GB", (double)bytes / GB);
+		}
+		else if ((double)bytes > MB)
+		{
+			sprintf_s(buffer, "%.2f MB", (double)bytes / MB);
+		}
+		else if ((double)bytes > KB)
+		{
+			sprintf_s(buffer, "%.2f KB", (double)bytes / KB);
+		}
+		else
+		{
+			sprintf_s(buffer, "%.2f bytes", (double)bytes);
+		}
+
+		return std::string(buffer);
 	}
 }

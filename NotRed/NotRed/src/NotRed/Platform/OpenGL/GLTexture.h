@@ -64,8 +64,9 @@ namespace NR
 
 		uint32_t GetMipLevelCount() const override;
 
+#if NEEDED
 		const std::string& GetPath() const override { return mFilePath; }
-
+#endif
 	private:
 		RendererID mID;
 

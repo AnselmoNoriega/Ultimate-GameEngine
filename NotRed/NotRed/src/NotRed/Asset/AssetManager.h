@@ -23,13 +23,8 @@ namespace NR
         static AssetMetadata& GetMetadata(AssetHandle handle);
         static AssetMetadata& GetMetadata(const std::string& filepath);
 
-        static bool MoveAsset(AssetHandle assetHandle, const std::string& destinationPath);
-
         static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
         static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
-
-        static void Rename(AssetHandle assetHandle, const std::string& newName);
-        static void RemoveAsset(AssetHandle assetHandle);
 
         static AssetType GetAssetTypeForFileType(const std::string& extension);
 
@@ -123,10 +118,16 @@ namespace NR
         static void FileSystemChanged(FileSystemChangedEvent e);
 
         static void AssetRenamed(AssetHandle assetHandle, const std::string& newFilePath);
+        static void AssetMoved(AssetHandle assetHandle, const std::string& destinationPath);
+        static void AssetDeleted(AssetHandle assetHandle);
 
     private:
         static std::unordered_map<AssetHandle, Ref<Asset>> sLoadedAssets;
         static std::unordered_map<std::string, AssetMetadata> sAssetRegistry;
         static AssetsChangeEventFn sAssetsChangeCallback;
+
+    private:
+        friend class ContentBrowserPanel;
+        friend class ContentBrowserAsset;
     };
 }

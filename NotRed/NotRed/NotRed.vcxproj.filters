@@ -762,6 +762,7 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\ContentBrowser\ContentBrowserItem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -881,7 +882,7 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp">
+    <ClCompile Include="src\NotRed\ImGui\VKImGui.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Math\Math.cpp">
@@ -1241,5 +1242,6 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\ContentBrowser\ContentBrowserItem.cpp" />
   </ItemGroup>
 </Project>

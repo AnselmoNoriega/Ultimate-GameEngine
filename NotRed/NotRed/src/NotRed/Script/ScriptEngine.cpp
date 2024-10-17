@@ -847,7 +847,7 @@ namespace NR
         }
         else
         {
-            uint8_t* outValue;
+            uint8_t* outValue = nullptr;
             mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
             return outValue;
         }

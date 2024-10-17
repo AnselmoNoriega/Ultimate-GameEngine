@@ -48,8 +48,8 @@ namespace NR
 			SetOpen(false);
 		}
 
-		float textureWidth = mAsset->GetWidth();
-		float textureHeight = mAsset->GetHeight();
+		float textureWidth = (float)mAsset->GetWidth();
+		float textureHeight = (float)mAsset->GetHeight();
 		float imageSize = ImGui::GetWindowWidth() - 40;
 		imageSize = glm::min(imageSize, 500.0f);
 

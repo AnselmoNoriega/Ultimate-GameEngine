@@ -716,7 +716,7 @@ namespace NR
                     renderPassBeginInfo.framebuffer = swapChain.GetCurrentFramebuffer();
 
                     viewport.x = 0.0f;
-                    viewport.y = height;
+                    viewport.y = (float)height;
                     viewport.width = (float)width;
                     viewport.height = -(float)height;
                 }

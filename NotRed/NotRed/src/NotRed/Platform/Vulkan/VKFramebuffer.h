@@ -11,7 +11,7 @@ namespace NR
 	{
 	public:
 		VKFrameBuffer(const FrameBufferSpecification& spec);
-		~VKFrameBuffer() override;
+		~VKFrameBuffer() override = default;
 
 		void Resize(uint32_t width, uint32_t height, bool forceRecreate = false) override;
 		void AddResizeCallback(const std::function<void(Ref<FrameBuffer>)>& func) override;
