@@ -132,10 +132,10 @@ namespace NR
         const SelectionStack& GetSelectionStack() const { return mSelectionStack; }
         ContentBrowserItemList& GetCurrentItems() { return mCurrentItems; }
 
-        Ref<DirectoryInfo> GetDirectory(const std::string& filepath) const;
+        Ref<DirectoryInfo> GetDirectory(const std::filesystem::path& filepath) const;
 
     private:
-        AssetHandle ProcessDirectory(const std::string& directoryPath, const Ref<DirectoryInfo>& parent);
+        AssetHandle ProcessDirectory(const std::filesystem::path& directoryPath, const Ref<DirectoryInfo>& parent);
 
         void ChangeDirectory(Ref<DirectoryInfo>& directory);
         void RenderDirectoryHeirarchy(Ref<DirectoryInfo>& directory);
@@ -158,21 +158,25 @@ namespace NR
         ContentBrowserItemList Search(const std::string& query, const Ref<DirectoryInfo>& directoryInfo);
 
         void FileSystemChanged(FileSystemChangedEvent event);
+        
         void DirectoryAdded(FileSystemChangedEvent event);
         void DirectoryDeleted(FileSystemChangedEvent event);
         void DirectoryDeleted(Ref<DirectoryInfo> directory, uint32_t depth = 0);
         void DirectoryRenamed(FileSystemChangedEvent event);
+        
         void AssetAdded(FileSystemChangedEvent event);
         void AssetDeleted(FileSystemChangedEvent event);
         void AssetDeleted(AssetMetadata metadata, Ref<DirectoryInfo> directory);
         void AssetRenamed(FileSystemChangedEvent event);
-        void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::string& newParentPath);
+
+        void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath);
 
     private:
         template<typename T, typename... Args>
         Ref<T> CreateAsset(const std::string& filename, Args&&... args)
         {
-            Ref<T> asset = AssetManager::CreateNewAsset<T>(filename, mCurrentDirectory->FilePath, std::forward<Args>(args)...);
+            FileSystem::SkipNextFileSystemChange();
+            Ref<T> asset = AssetManager::CreateNewAsset<T>(filename, mCurrentDirectory->FilePath.string(), std::forward<Args>(args)...);
             if (!asset)
             {
                 return nullptr;
@@ -214,6 +218,8 @@ namespace NR
 
         std::vector<Ref<DirectoryInfo>> mBreadCrumbData;
         bool mUpdateNavigationPath = false;
+
+        bool mIsContentBrowserHovered = false;
 
     private:
         static ContentBrowserPanel* sInstance;

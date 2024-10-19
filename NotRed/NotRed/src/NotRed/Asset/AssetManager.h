@@ -36,6 +36,7 @@ namespace NR
         static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
 
         static AssetType GetAssetTypeForFileType(const std::string& extension);
+        static std::string GetRelativePath(const std::string& filepath);
 
         static AssetHandle ImportAsset(const std::string& filepath);
 
@@ -51,7 +52,7 @@ namespace NR
             AssetMetadata metadata;
             metadata.Handle = AssetHandle();
             metadata.FilePath = directoryPath + "/" + filename;
-            metadata.FileName = Utils::RemoveExtension(Utils::GetFilename(metadata.FilePath));
+            metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
             metadata.Extension = Utils::GetExtension(filename);
             metadata.IsDataLoaded = true;
             metadata.Type = T::GetStaticType();
@@ -76,14 +77,14 @@ namespace NR
                     {
                         foundAvailableFileName = true;
                         metadata.FilePath = nextFilePath;
-                        metadata.FileName = Utils::RemoveExtension(Utils::GetFilename(metadata.FilePath));
+                        metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
                         break;
                     }
                     current++;
                 }
             }
 
-            sAssetRegistry[metadata.FilePath] = metadata;
+            sAssetRegistry[metadata.FilePath.string()] = metadata;
             WriteRegistryToFile();
 
             Ref<T> asset = Ref<T>::Create(std::forward<Args>(args)...);
@@ -117,7 +118,13 @@ namespace NR
         template<typename T>
         static Ref<T> GetAsset(const std::string& filepath)
         {
-            return GetAsset<T>(GetAssetHandleFromFilePath(filepath));
+            std::string fp = filepath;
+            if (fp.find(Project::GetAssetDirectory().string()) == std::string::npos)
+            {
+                fp = (Project::GetAssetDirectory() / fp).string();
+            }
+
+            return GetAsset<T>(GetAssetHandleFromFilePath(fp));
         }
 
     private:

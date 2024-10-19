@@ -98,7 +98,7 @@ namespace NR::AudioFileUtils
 
 	std::optional<AudioFileInfo> GetFileInfo(const AssetMetadata& metadata)
 	{
-		std::string filepath = AssetManager::GetFileSystemPath(metadata);
+		std::string filepath = metadata.FilePath.string();
 		if (metadata.Extension == "wav")
 		{
 			return GetFileInfoWav(filepath.c_str());
@@ -117,8 +117,8 @@ namespace NR::AudioFileUtils
 	{
 		AssetMetadata metadata;
 		metadata.FilePath = filepath;
-		metadata.FileName = Utils::RemoveExtension(Utils::GetFilename(metadata.FilePath));
-		metadata.Extension = Utils::GetExtension(Utils::GetFilename(metadata.FilePath));
+		metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
+		metadata.Extension = metadata.FilePath.extension().string();
 		metadata.IsDataLoaded = false;
 
 		return GetFileInfo(metadata);

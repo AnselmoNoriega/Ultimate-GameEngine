@@ -918,7 +918,7 @@ namespace NR
 
                             if (count == 1 && assetData.Type == AssetType::Scene)
                             {
-                                OpenScene(assetData.FilePath);
+                                OpenScene(assetData.FilePath.string());
                                 break;
                             }
 

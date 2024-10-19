@@ -172,13 +172,14 @@ namespace NR
 				FILE_NOTIFY_INFORMATION& fni = *(FILE_NOTIFY_INFORMATION*)buf;
 				ZeroMemory(fileName, sizeof(fileName));
 				WideCharToMultiByte(CP_ACP, 0, fni.FileName, fni.FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
-				std::filesystem::path filepath = "assets/" + std::string(fileName);
+
+				std::filesystem::path filepath = std::string(fileName);
 
 				FileSystemChangedEvent e;
-				e.FilePath = filepath.string();
+				e.FilePath = filepath;
 				e.NewName = filepath.filename().string();
 				e.OldName = filepath.filename().string();
-				e.IsDirectory = IsDirectory(e.FilePath);
+				e.IsDirectory = IsDirectory(e.FilePath.string());
 
 				switch (fni.Action)
 				{

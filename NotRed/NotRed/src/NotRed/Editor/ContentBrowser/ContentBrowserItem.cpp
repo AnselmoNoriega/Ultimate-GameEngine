@@ -1,8 +1,6 @@
 #include "nrpch.h"
 #include "ContentBrowserItem.h"
 
-#include <filesystem>
-
 #include "imgui_internal.h"
 
 #include "NotRed/Asset/AssetManager.h"
@@ -191,19 +189,17 @@ namespace NR
 
 	void ContentBrowserDirectory::Renamed(const std::string& newName, bool fromCallback)
 	{
-		std::filesystem::path path = mDirectoryInfo->FilePath;
-		std::string newFilePath = path.parent_path().string() + "/" + newName;
 		if (!fromCallback)
 		{
-			if (FileSystem::Exists(newFilePath))
+			if (FileSystem::Exists((mDirectoryInfo->FilePath / newName).string()))
 			{
 				NR_CORE_ERROR("A directory with that name already exists!");
 				return;
 			}
-			FileSystem::Rename(mDirectoryInfo->FilePath, newName);
+			FileSystem::Rename(mDirectoryInfo->FilePath.string(), newName);
 		}
 		mDirectoryInfo->Name = newName;
-		UpdateDirectoryPath(mDirectoryInfo, path.parent_path().string());
+		UpdateDirectoryPath(mDirectoryInfo, mDirectoryInfo->FilePath.parent_path().string());
 	}
 
 	void ContentBrowserDirectory::UpdateDrop(CBItemActionResult& actionResult)
@@ -240,12 +236,12 @@ namespace NR
 
 	void ContentBrowserDirectory::Delete()
 	{
-		FileSystem::DeleteFile(mDirectoryInfo->FilePath);
+		FileSystem::DeleteFile(mDirectoryInfo->FilePath.string());
 	}
 
-	bool ContentBrowserDirectory::Move(const std::string& destination)
+	bool ContentBrowserDirectory::Move(const std::filesystem::path& destination)
 	{
-		bool wasMoved = FileSystem::MoveFile(mDirectoryInfo->FilePath, destination);
+		bool wasMoved = FileSystem::MoveFile(mDirectoryInfo->FilePath.string(), destination.string());
 		if (!wasMoved)
 		{
 			return false;
@@ -262,16 +258,16 @@ namespace NR
 
 		return true;
 	}
-	void ContentBrowserDirectory::UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::string& newParentPath)
+
+	void ContentBrowserDirectory::UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath)
 	{
-		directoryInfo->FilePath = newParentPath + "/" + directoryInfo->Name;
+		directoryInfo->FilePath = newParentPath / directoryInfo->Name;
 		for (auto assetHandle : directoryInfo->Assets)
 		{
 			auto metadata = AssetManager::GetMetadata(assetHandle);
-			{
-				metadata.FilePath = directoryInfo->FilePath + "/" + metadata.FileName + "." + metadata.Extension;
-			}
+			metadata.FilePath = directoryInfo->FilePath / std::filesystem::path(metadata.FileName + "." + metadata.Extension);
 		}
+
 		for (auto [handle, subdirectory] : directoryInfo->SubDirectories)
 		{
 			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath);
@@ -285,31 +281,31 @@ namespace NR
 
 	void ContentBrowserAsset::Delete()
 	{
-		bool deleted = FileSystem::DeleteFile(mAssetInfo.FilePath);
+		bool deleted = FileSystem::DeleteFile(mAssetInfo.FilePath.string());
 		if (!deleted)
 		{
 			NR_CORE_ERROR("Couldn't delete {0}", mAssetInfo.FilePath);
 			return;
 		}
-		std::filesystem::path currentPath = mAssetInfo.FilePath;
-		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(currentPath.parent_path().string());
+		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path().string());
 		currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), mAssetInfo.Handle), currentDirectory->Assets.end());
 		
 		AssetManager::AssetDeleted(mAssetInfo.Handle);
 	}
 
-	bool ContentBrowserAsset::Move(const std::string& destination)
+	bool ContentBrowserAsset::Move(const std::filesystem::path& destination)
 	{
-		bool wasMoved = FileSystem::MoveFile(mAssetInfo.FilePath, destination);
+		bool wasMoved = FileSystem::MoveFile(mAssetInfo.FilePath.string(), destination.string());
 		if (!wasMoved)
 		{
 			NR_CORE_ERROR("Couldn't move {0} to {1}", mAssetInfo.FilePath, destination);
 			return false;
 		}
-		std::filesystem::path currentPath = mAssetInfo.FilePath;
-		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(currentPath.parent_path().string());
+		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path().string());
 		currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), mAssetInfo.Handle), currentDirectory->Assets.end());
-		AssetManager::AssetMoved(mAssetInfo.Handle, destination);
+
+		AssetManager::AssetMoved(mAssetInfo.Handle, destination.string());
+
 		return true;
 	}
 
@@ -326,8 +322,7 @@ namespace NR
 
 	void ContentBrowserAsset::Renamed(const std::string& newName, bool fromCallback)
 	{
-		std::filesystem::path path = mAssetInfo.FilePath;
-		std::string newFilePath = path.parent_path().string() + "/" + newName + "." + mAssetInfo.Extension;
+		std::string newFilePath = mAssetInfo.FilePath.parent_path().string() + "/" + newName + "." + mAssetInfo.Extension;
 		if (!fromCallback)
 		{
 			if (FileSystem::Exists(newFilePath))
@@ -335,10 +330,11 @@ namespace NR
 				NR_CORE_ERROR("A file with that name already exists!");
 				return;
 			}
-			FileSystem::Rename(mAssetInfo.FilePath, newName);
+			FileSystem::Rename(mAssetInfo.FilePath.string(), newName);
 			AssetManager::AssetRenamed(mAssetInfo.Handle, newFilePath);
 		}
-		mAssetInfo.FilePath = newFilePath;
-		mAssetInfo.FileName = Utils::RemoveExtension(Utils::GetFilename(newFilePath));
+
+		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilePath);
+		mAssetInfo.FileName = Utils::RemoveExtension(mAssetInfo.FilePath.filename().string());
 	}
 }

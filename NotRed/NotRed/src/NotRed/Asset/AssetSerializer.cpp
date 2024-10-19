@@ -15,7 +15,7 @@ namespace NR
 {
 	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		asset = Texture2D::Create(metadata.FilePath);
+		asset = Texture2D::Create(metadata.FilePath.string());
 		asset->Handle = metadata.Handle;
 
 		bool result = asset.As<Texture2D>()->Loaded();
@@ -29,14 +29,14 @@ namespace NR
 	bool MeshAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		Ref<Asset> temp = asset;
-		asset = Ref<MeshAsset>::Create(AssetManager::GetFileSystemPath(metadata));
+		asset = Ref<MeshAsset>::Create(metadata.FilePath.string());
 		asset->Handle = metadata.Handle;
 		return (asset.As<MeshAsset>())->GetVertices().size() > 0;
 	}
 
 	bool EnvironmentSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(AssetManager::GetFileSystemPath(metadata));
+		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(metadata.FilePath.string());
 
 		if (!radiance || !irradiance)
 		{

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include "NotRed/Core/Input.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Asset/AssetMetadata.h"
@@ -59,7 +61,7 @@ namespace NR
 		void RenderEnd();
 
 		virtual void Delete() {}
-		virtual bool Move(const std::string& destination) { return false; }
+		virtual bool Move(const std::filesystem::path& destination) { return false; }
 
 		bool IsSelected() const { return mIsSelected; }
 
@@ -103,7 +105,7 @@ namespace NR
 		Ref<DirectoryInfo> Parent;
 
 		std::string Name;
-		std::string FilePath;
+		std::filesystem::path FilePath;
 
 		std::vector<AssetHandle> Assets;
 		std::unordered_map<AssetHandle, Ref<DirectoryInfo>> SubDirectories;
@@ -117,15 +119,15 @@ namespace NR
 
 		Ref<DirectoryInfo>& GetDirectoryInfo() { return mDirectoryInfo; }
 
-		virtual void Delete() override;
-		virtual bool Move(const std::string& destination) override;
+		void Delete() override;
+		bool Move(const std::filesystem::path& destination) override;
 
 	private:
-		virtual void Activate(CBItemActionResult& actionResult) override;
-		virtual void Renamed(const std::string& newName, bool fromCallback) override;
-		virtual void UpdateDrop(CBItemActionResult& actionResult) override;
+		void Activate(CBItemActionResult& actionResult) override;
+		void Renamed(const std::string& newName, bool fromCallback) override;
+		void UpdateDrop(CBItemActionResult& actionResult) override;
 
-		void UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::string& newParentPath);
+		void UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath);
 
 	private:
 		Ref<DirectoryInfo> mDirectoryInfo;
@@ -135,16 +137,16 @@ namespace NR
 	{
 	public:
 		ContentBrowserAsset(const AssetMetadata& assetInfo, const Ref<Texture2D>& icon);
-		virtual ~ContentBrowserAsset() = default;
+		~ContentBrowserAsset() override = default;
 
 		const AssetMetadata& GetAssetInfo() const { return mAssetInfo; }
 
-		virtual void Delete() override;
-		virtual bool Move(const std::string& destination) override;
+		void Delete() override;
+		bool Move(const std::filesystem::path& destination) override;
 
 	private:
-		virtual void Activate(CBItemActionResult& actionResult) override;
-		virtual void Renamed(const std::string& newName, bool fromCallback) override;
+		void Activate(CBItemActionResult& actionResult) override;
+		void Renamed(const std::string& newName, bool fromCallback) override;
 
 	private:
 		AssetMetadata mAssetInfo;

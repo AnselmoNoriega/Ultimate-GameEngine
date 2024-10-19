@@ -18,9 +18,11 @@ namespace NR
 	struct FileSystemChangedEvent
 	{
 		FileSystemAction Action;
-		std::string FilePath;
+		std::filesystem::path FilePath;
+
 		std::string OldName;
 		std::string NewName;
+
 		bool IsDirectory;
 		bool WasTracking = false;
 	};

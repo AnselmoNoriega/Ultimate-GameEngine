@@ -964,7 +964,7 @@ namespace NR::Script
     MonoString* NR_AudioComponent_GetSound(uint64_t entityID)
     {
         auto& audioComponent = GetEntityComponent<Audio::AudioComponent>(entityID);
-        const std::string& filepath = AssetManager::GetMetadata(audioComponent.SoundConfig.FileAsset->Handle).FilePath;
+        const std::string& filepath = AssetManager::GetMetadata(audioComponent.SoundConfig.FileAsset->Handle).FilePath.string();
         return mono_string_new_wrapper(filepath.c_str());
     }
 

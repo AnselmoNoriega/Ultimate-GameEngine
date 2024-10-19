@@ -650,7 +650,7 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
                 Ref<MeshAsset> meshAsset;
-                if (mc.MeshObj->IsValid())
+                if (mc.MeshObj && mc.MeshObj->IsValid())
                 {
                     if (mc.MeshObj)
                     {

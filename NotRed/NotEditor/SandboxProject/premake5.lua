@@ -37,8 +37,8 @@ project "%{ProjectName}"
 	language "C#"
 
 	targetname "%{ProjectName}"
-	targetdir "Assets/Scripts/Binaries"
-	objdir "Assets/Scripts/Intermediates"
+	targetdir ("%{RootDirectory}NotEditor/Resources/Scripts")
+	objdir ("%{RootDirectory}NotEditor/Resources/Scripts/Intermediates")
 
 	files 
 	{

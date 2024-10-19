@@ -311,8 +311,6 @@ namespace NR
 			std::filesystem::path directoryPath = meshPath.parent_path();
 			std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
 			Ref<Mesh> serializedMesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), mesh);
-			
-			AssetImporter::Serialize(serializedMesh);
 		}
 	}
 

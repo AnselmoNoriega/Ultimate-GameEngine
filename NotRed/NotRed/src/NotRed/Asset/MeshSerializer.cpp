@@ -118,7 +118,7 @@ namespace NR
     void MeshSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
     {
         MeshSerializer serializer;
-        serializer.Serialize(asset.As<Mesh>(), metadata.FilePath);
+        serializer.Serialize(asset.As<Mesh>(), metadata.FilePath.string());
     }
 
     void MeshSerializer::SerializeRuntime(Ref<Mesh> mesh, const std::string& filepath)
