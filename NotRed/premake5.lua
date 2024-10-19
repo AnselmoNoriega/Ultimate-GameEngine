@@ -154,8 +154,8 @@ project "NotRed"
 			"%{Library.SPIRV_Cross_GLSL_Release}"
 		}
 
-project "NotRed-ScriptCore"
-	location "NotRed-ScriptCore"
+project "Not-ScriptCore"
+	location "Not-ScriptCore"
 	kind "SharedLib"
 	language "C#"
 
@@ -164,7 +164,7 @@ project "NotRed-ScriptCore"
 
 	files 
 	{
-		"%{prj.name}/src/**.cs", 
+		"%{prj.name}/Source/**.cs", 
 	}
 group ""
 

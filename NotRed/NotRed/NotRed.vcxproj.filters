@@ -37,6 +37,9 @@
     <Filter Include="src\NotRed\Editor">
       <UniqueIdentifier>{5EC5110F-CADB-0FA5-1353-9BC67FA8E02C}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Editor\ContentBrowser">
+      <UniqueIdentifier>{CC88540F-B8D9-3F51-E13D-2E13CDEDD2BA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
     </Filter>
@@ -63,6 +66,9 @@
     </Filter>
     <Filter Include="src\NotRed\Platform\Windows">
       <UniqueIdentifier>{B6D47291-22E2-A077-ABC8-9C6217D56C2E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Project">
+      <UniqueIdentifier>{6E311A61-5A15-DBB6-C375-D509AF78C538}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
@@ -260,6 +266,9 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h">
       <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h">
+      <Filter>src\NotRed\Editor\ContentBrowser</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h">
       <Filter>src\NotRed\Editor</Filter>
@@ -464,6 +473,12 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h">
       <Filter>src\NotRed\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Project\Project.h">
+      <Filter>src\NotRed\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h">
+      <Filter>src\NotRed\Project</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera.h">
       <Filter>src\NotRed\Renderer</Filter>
@@ -762,9 +777,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
-    <ClInclude Include="src\NotRed\Project\Project.h" />
-    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -853,6 +865,9 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp">
+      <Filter>src\NotRed\Editor\ContentBrowser</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
@@ -1043,6 +1058,12 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp">
       <Filter>src\NotRed\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Project\Project.cpp">
+      <Filter>src\NotRed\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp">
+      <Filter>src\NotRed\Project</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1135,6 +1156,9 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp">
       <Filter>src\NotRed\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Util\FileSystem.cpp">
+      <Filter>src\NotRed\Util</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp">
       <Filter>src\NotRed\Util</Filter>
@@ -1244,9 +1268,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
-    <ClCompile Include="src\NotRed\Project\Project.cpp" />
-    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
-    <ClCompile Include="src\NotRed\Util\FileSystem.cpp" />
   </ItemGroup>
 </Project>

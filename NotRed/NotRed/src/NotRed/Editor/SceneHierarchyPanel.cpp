@@ -659,7 +659,13 @@ namespace NR
 
                     if (UI::PropertyAssetReference("Mesh", meshAsset))
                     {
-                        mc.MeshObj = Ref<Mesh>::Create(meshAsset);
+                        std::filesystem::path meshPath = meshAsset->GetFilePath();
+                        std::filesystem::path directoryPath = meshPath.parent_path();
+                        std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
+
+                        Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), meshAsset);
+                        mc.MeshObj = mesh;
+
                         if (entity.HasComponent<MeshColliderComponent>())
                         {
                             auto& mcc = entity.GetComponent<MeshColliderComponent>();
@@ -679,7 +685,13 @@ namespace NR
                 {
                     if (UI::PropertyAssetReference("Mesh", meshAsset))
                     {
-                        mc.MeshObj = Ref<Mesh>::Create(meshAsset);
+                        std::filesystem::path meshPath = meshAsset->GetFilePath();
+                        std::filesystem::path directoryPath = meshPath.parent_path();
+                        std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
+                        
+                        Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), meshAsset);
+                        mc.MeshObj = mesh;
+
                         if (entity.HasComponent<MeshColliderComponent>())
                         {
                             auto& mcc = entity.GetComponent<MeshColliderComponent>();

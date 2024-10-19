@@ -173,7 +173,6 @@
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
     <ClInclude Include="src\NotRed\Audio\SourceManager.h" />
-    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
@@ -197,6 +196,7 @@
     <ClInclude Include="src\NotRed\Debug\Profiler.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
     <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h" />
+    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
@@ -387,7 +387,6 @@
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
     <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />
     <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Hash.cpp" />
@@ -398,6 +397,7 @@
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
     <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
