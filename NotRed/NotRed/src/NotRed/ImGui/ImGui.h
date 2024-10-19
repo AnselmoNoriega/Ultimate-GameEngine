@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <filesystem>
+
 #include "NotRed/Asset/AssetMetadata.h"
 
 //TODO: This shouldn't be here
@@ -37,6 +39,11 @@ namespace NR::UI
 	{
 		PushID();
 		ImGui::Columns(2);
+	}
+
+	static void Separator()
+	{
+		ImGui::Separator();
 	}
 
 	static bool Property(const char* label, std::string& value, bool error = false)
@@ -518,10 +525,21 @@ namespace NR::UI
 		sCheckboxCount = 0;
 	}
 
+	enum class PropertyAssetReferenceError
+	{
+		None, InvalidMetadata
+	};
+
+	static AssetHandle sPropertyAssetReferenceAssetHandle;
+
 	template<typename T>
-	static bool PropertyAssetReference(const char* label, Ref<T>& object)
+	static bool PropertyAssetReference(const char* label, Ref<T>& object, PropertyAssetReferenceError* outError = nullptr)
 	{
 		bool modified = false;
+		if (outError)
+		{
+			*outError = PropertyAssetReferenceError::None;
+		}
 
 		ImGui::Text(label);
 		ImGui::NextColumn();
@@ -531,8 +549,8 @@ namespace NR::UI
 		{
 			if (!object->IsFlagSet(AssetFlag::Missing))
 			{
-				char* assetName = AssetManager::GetMetadata(object->Handle).FileName.data();
-				ImGui::InputText("##assetRef", assetName, 256, ImGuiInputTextFlags_ReadOnly);
+				auto assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+				ImGui::InputText("##assetRef", (char*)assetFileName.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
 			}
 			else
 			{
@@ -551,6 +569,7 @@ namespace NR::UI
 			if (data)
 			{
 				AssetHandle assetHandle = *(AssetHandle*)data->Data;
+				sPropertyAssetReferenceAssetHandle = assetHandle;
 				Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
 				if (asset->GetAssetType() == T::GetStaticType())
 				{
@@ -563,6 +582,75 @@ namespace NR::UI
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 		return modified;
+	}
+
+	template<typename TAssetType, typename TConversionType, typename Fn>
+	static bool PropertyAssetReferenceWithConversion(const char* label, Ref<TAssetType>& object, Fn&& conversionFunc, PropertyAssetReferenceError* outError = nullptr)
+	{
+		bool succeeded = false;
+		if (outError)
+		{
+			*outError = PropertyAssetReferenceError::None;
+		}
+
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		
+		if (object)
+		{
+			if (!object->IsFlagSet(AssetFlag::Missing))
+			{
+				auto assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+				ImGui::InputText("##assetRef", (char*)assetFileName.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+			}
+			else
+			{
+				ImGui::InputText("##assetRef", "Missing", 256, ImGuiInputTextFlags_ReadOnly);
+			}
+		}
+		else
+		{
+			ImGui::InputText("##assetRef", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+		}
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			auto data = ImGui::AcceptDragDropPayload("asset_payload");
+			if (data)
+			{
+				AssetHandle assetHandle = *(AssetHandle*)data->Data;
+				sPropertyAssetReferenceAssetHandle = assetHandle;
+				Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+				if (asset)
+				{
+					// No conversion necessary 
+					if (asset->GetAssetType() == TAssetType::GetStaticType())
+					{
+						object = asset.As<TAssetType>();
+						succeeded = true;
+					}
+					// Convert
+					else if (asset->GetAssetType() == TConversionType::GetStaticType())
+					{
+						conversionFunc(asset.As<TConversionType>());
+						succeeded = false; // Must be handled my conversion function
+					}
+				}
+				else
+				{
+					if (outError)
+					{
+						*outError = PropertyAssetReferenceError::InvalidMetadata;
+					}
+				}
+			}
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		
+		return succeeded;
 	}
 
 	void Image(const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), const ImVec4& tint_col = ImVec4(1, 1, 1, 1), const ImVec4& border_col = ImVec4(0, 0, 0, 0));

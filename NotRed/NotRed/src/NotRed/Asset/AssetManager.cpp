@@ -6,6 +6,9 @@
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Project/Project.h"
+#include "AssetExtensions.h"
+
+#include "NotRed/ImGui/ImGui.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -25,7 +28,7 @@ namespace NR
     {
         WriteRegistryToFile();
 
-        sAssetRegistry.clear();
+        sAssetRegistry.Clear();
         sLoadedAssets.clear();
     }
 
@@ -63,8 +66,8 @@ namespace NR
             }
             case FileSystemAction::Rename:
             {
-                AssetType previousType = GetAssetTypeForFileType(Utils::GetExtension(e.OldName));
-                AssetType newType = GetAssetTypeForFileType(e.FilePath.stem().string());
+                AssetType previousType = GetAssetTypeFromPath(e.OldName);
+                AssetType newType = GetAssetTypeFromPath(e.FilePath);
 
                 if (previousType == AssetType::None && newType != AssetType::None)
                 {
@@ -100,12 +103,9 @@ namespace NR
 
     AssetMetadata& AssetManager::GetMetadata(const std::string& filepath)
     {
-        std::string fixedFilePath = filepath;
-        std::replace(fixedFilePath.begin(), fixedFilePath.end(), '\\', '/');
-
-        if (sAssetRegistry.find(fixedFilePath) != sAssetRegistry.end())
+        if (sAssetRegistry.Contains(filepath))
         {
-            return sAssetRegistry[fixedFilePath];
+            return sAssetRegistry[filepath];
         }
 
         return sNullMetadata;
@@ -113,12 +113,10 @@ namespace NR
 
     AssetHandle AssetManager::GetAssetHandleFromFilePath(const std::string& filePath)
     {
-        std::string fixedFilePath = filePath;
-        std::replace(fixedFilePath.begin(), fixedFilePath.end(), '\\', '/');
-
-        if (sAssetRegistry.find(fixedFilePath) != sAssetRegistry.end())
+        std::filesystem::path path = filePath;
+        if (sAssetRegistry.Contains(path))
         {
-            return sAssetRegistry[fixedFilePath].Handle;
+            return sAssetRegistry.Get(path).Handle;
         }
 
         return 0;
@@ -139,12 +137,9 @@ namespace NR
     void AssetManager::AssetRenamed(AssetHandle assetHandle, const std::string& newFilePath)
     {
         AssetMetadata metadata = GetMetadata(assetHandle);
-        sAssetRegistry.erase(metadata.FilePath.string());
-
+        sAssetRegistry.Remove(metadata.FilePath);
         metadata.FilePath = newFilePath;
-        metadata.FileName = Utils::RemoveExtension(Utils::GetFilename(newFilePath));
-
-        sAssetRegistry[metadata.FilePath.string()] = metadata;
+        sAssetRegistry[metadata.FilePath] = metadata;
         WriteRegistryToFile();
     }
 
@@ -152,9 +147,9 @@ namespace NR
     {
         AssetMetadata assetInfo = GetMetadata(assetHandle);
 
-        sAssetRegistry.erase(assetInfo.FilePath.string());
-        assetInfo.FilePath = destinationPath + "/" + assetInfo.FileName + "." + assetInfo.Extension;
-        sAssetRegistry[assetInfo.FilePath.string()] = assetInfo;
+        sAssetRegistry.Remove(assetInfo.FilePath);
+        assetInfo.FilePath = destinationPath / assetInfo.FilePath.filename();
+        sAssetRegistry[assetInfo.FilePath] = assetInfo;
 
         WriteRegistryToFile();
     }
@@ -163,24 +158,26 @@ namespace NR
     {
         AssetMetadata metadata = GetMetadata(assetHandle);
 
-        sAssetRegistry.erase(metadata.FilePath.string());
+        sAssetRegistry.Remove(metadata.FilePath);
         sLoadedAssets.erase(assetHandle);
         
         WriteRegistryToFile();
     }
 
-    AssetType AssetManager::GetAssetTypeForFileType(const std::string& extension)
+    AssetType AssetManager::GetAssetTypeFromExtension(const std::string& extension)
     {
-        if (extension == "nrsc") return AssetType::Scene;
-        if (extension == "fbx") return AssetType::MeshAsset;
-        if (extension == "obj") return AssetType::MeshAsset;
-        if (extension == "nrm") return AssetType::Mesh;
-        if (extension == "png") return AssetType::Texture;
-        if (extension == "hdr") return AssetType::EnvMap;
-        if (extension == "hpm") return AssetType::PhysicsMat;
-        if (extension == "wav") return AssetType::Audio;
-        if (extension == "ogg") return AssetType::Audio;
-        return AssetType::None;
+        std::string ext = Utils::String::ToLowerCopy(extension);
+        if (sAssetExtensionMap.find(ext) == sAssetExtensionMap.end())
+        {
+            return AssetType::None;
+        }
+
+        return sAssetExtensionMap.at(ext.c_str());
+    }
+
+    AssetType AssetManager::GetAssetTypeFromPath(const std::filesystem::path& path)
+    {
+        return GetAssetTypeFromExtension(path.extension().string());
     }
 
     void AssetManager::LoadAssetRegistry()
@@ -207,18 +204,10 @@ namespace NR
         for (auto entry : handles)
         {
             std::string filepath = entry["FilePath"].as<std::string>();
-            if (filepath.find(Project::GetActive()->GetAssetDirectory().string()) == std::string::npos)
-            {
-                filepath = Project::GetActive()->GetAssetDirectory().string() + "/" + filepath;
-            }
 
-            std::replace(filepath.begin(), filepath.end(), '\\', '/');
             AssetMetadata metadata;
-
             metadata.Handle = entry["Handle"].as<uint64_t>();
             metadata.FilePath = filepath;
-            metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
-            metadata.Extension = Utils::GetExtension(metadata.FilePath.string());
             metadata.Type = (AssetType)Utils::AssetTypeFromString(entry["Type"].as<std::string>());
 
             if (metadata.Type == AssetType::None)
@@ -277,7 +266,7 @@ namespace NR
                 }
 
                 std::replace(mostLikelyCandiate.begin(), mostLikelyCandiate.end(), '\\', '/');
-                metadata.FilePath = mostLikelyCandiate;
+                metadata.FilePath = std::filesystem::relative(mostLikelyCandiate, Project::GetActive()->GetAssetDirectory());
                 NR_CORE_WARN("Found most likely match '{0}'", metadata.FilePath);
             }
 
@@ -293,17 +282,15 @@ namespace NR
 
     AssetHandle AssetManager::ImportAsset(const std::string& filepath)
     {
-        std::string fixedFilePath = filepath;
-        std::replace(fixedFilePath.begin(), fixedFilePath.end(), '\\', '/');
+        std::filesystem::path path = std::filesystem::relative(filepath, Project::GetAssetDirectory());
 
         // Already in the registry
-        if (sAssetRegistry.find(fixedFilePath) != sAssetRegistry.end())
+        if (sAssetRegistry.Contains(path))
         {
             return 0;
         }
 
-        AssetType type = GetAssetTypeForFileType(Utils::GetExtension(fixedFilePath));
-
+        AssetType type = GetAssetTypeFromPath(path);
         if (type == AssetType::None)
         {
             return 0;
@@ -311,13 +298,25 @@ namespace NR
 
         AssetMetadata metadata;
         metadata.Handle = AssetHandle();
-        metadata.FilePath = fixedFilePath;
-        metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
-        metadata.Extension = Utils::GetExtension(metadata.FilePath.string());
+        metadata.FilePath = path;
         metadata.Type = type;
-        sAssetRegistry[metadata.FilePath.string()] = metadata;
+        sAssetRegistry[metadata.FilePath] = metadata;
 
         return metadata.Handle;
+    }
+
+    bool AssetManager::ReloadData(AssetHandle assetHandle)
+    {
+        auto& metadata = GetMetadata(assetHandle);
+        if (!metadata.IsDataLoaded) // Data 
+        {
+            NR_CORE_WARN("Trying to reload asset that was never loaded");
+        }
+
+        NR_CORE_ASSERT(sLoadedAssets.find(assetHandle) != sLoadedAssets.end());
+        Ref<Asset>& asset = sLoadedAssets.at(assetHandle);
+        metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+        return metadata.IsDataLoaded;
     }
 
     void AssetManager::ProcessDirectory(const std::string& directoryPath)
@@ -350,12 +349,14 @@ namespace NR
         out << YAML::Key << "Assets" << YAML::BeginSeq;
         for (auto& [filepath, metadata] : sAssetRegistry)
         {
-            std::string fp = std::filesystem::relative(metadata.FilePath, Project::GetAssetDirectory()).string();
-            std::replace(fp.begin(), fp.end(), '\\', '/');
+            std::string pathToSerialize = metadata.FilePath.string();
+
+            std::replace(pathToSerialize.begin(), pathToSerialize.end(), '\\', '/');
+            NR_CORE_ASSERT(pathToSerialize.find("Sandbox") == std::string::npos);
 
             out << YAML::BeginMap;
             out << YAML::Key << "Handle" << YAML::Value << metadata.Handle;
-            out << YAML::Key << "FilePath" << YAML::Value << fp;
+            out << YAML::Key << "FilePath" << YAML::Value << pathToSerialize;
             out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
             out << YAML::EndMap;
         }
@@ -367,7 +368,66 @@ namespace NR
         fout << out.c_str();
     }
 
+    void AssetManager::ImGuiRender(bool& open)
+    {
+        if (!open)
+        {
+            return;
+        }
+
+        ImGui::Begin("Asset Manager", &open);
+        if (UI::BeginTreeNode("Registry"))
+        {
+            static char searchBuffer[256];
+            
+            ImGui::InputText("##regsearch", searchBuffer, 256);
+            UI::BeginPropertyGrid();
+            
+            static float columnWidth = 0.0f;
+            if (columnWidth == 0.0f)
+            {
+                ImVec2 textSize = ImGui::CalcTextSize("File Path");
+                columnWidth = textSize.x * 2.0f;
+                ImGui::SetColumnWidth(0, columnWidth);
+            }
+
+            for (const auto& [path, metadata] : sAssetRegistry)
+            {
+                std::string handle = fmt::format("{}", metadata.Handle);
+                std::string filepath = metadata.FilePath.string();
+                std::string type = Utils::AssetTypeToString(metadata.Type);
+
+                if (searchBuffer[0] != 0)
+                {
+                    std::string searchString = searchBuffer;
+                    Utils::String::ToLower(searchString);
+
+                    if (Utils::String::ToLowerCopy(handle).find(searchString) != std::string::npos
+                        || Utils::String::ToLowerCopy(filepath).find(searchString) != std::string::npos
+                        || Utils::String::ToLowerCopy(type).find(searchString) != std::string::npos)
+                    {
+                        UI::Property("Handle", (const std::string&)handle);
+                        UI::Property("File Path", (const std::string&)filepath);
+                        UI::Property("Type", (const std::string&)type);
+                        UI::Separator();
+                    }
+                }
+                else
+                {
+                    UI::Property("Handle", (const std::string&)fmt::format("{0}", metadata.Handle));
+                    UI::Property("File Path", (const std::string&)metadata.FilePath.string());
+                    UI::Property("Type", (const std::string&)Utils::AssetTypeToString(metadata.Type));
+                    UI::Separator();
+                }
+            }
+
+            UI::EndPropertyGrid();
+            UI::EndTreeNode();
+        }
+
+        ImGui::End();
+    }
+
     std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sLoadedAssets;
-    std::unordered_map<std::string, AssetMetadata> AssetManager::sAssetRegistry;
     AssetManager::AssetsChangeEventFn AssetManager::sAssetsChangeCallback;
 }

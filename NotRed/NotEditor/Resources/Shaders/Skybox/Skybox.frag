@@ -10,6 +10,7 @@ layout (binding = 1) uniform samplerCube uTexture;
 layout (std140, binding = 13) uniform Uniforms 
 {
 	float TextureLod;
+	float Intensity;
 } uUniforms;
 
 #else
@@ -17,6 +18,7 @@ layout (std140, binding = 13) uniform Uniforms
 layout (push_constant) uniform Uniforms
 {
 	float TextureLod;
+	float Intensity;
 } uUniforms;
 
 #endif
@@ -26,5 +28,6 @@ layout (location = 0) in vec3 vPosition;
 void main()
 {
 	finalColor = textureLod(uTexture, vPosition, uUniforms.TextureLod);
+	finalColor.rgb = finalColor.rgb * uUniforms.Intensity;
 	oBloom = vec4(0.0);
 }

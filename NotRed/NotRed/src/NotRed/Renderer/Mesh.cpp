@@ -805,12 +805,7 @@ namespace NR
     Mesh::Mesh(Ref<MeshAsset> meshAsset)
         : mMeshAsset(meshAsset)
     {
-        const auto& assetSubmeshes = mMeshAsset->GetSubmeshes();
-        mSubmeshes.resize(assetSubmeshes.size());
-        for (uint32_t i = 0; i < (uint32_t)assetSubmeshes.size(); ++i)
-        {
-            mSubmeshes[i] = i;
-        }
+        SetSubmeshes({});
 
         for (const auto& material : meshAsset->GetMaterials())
         {
@@ -819,8 +814,10 @@ namespace NR
     }
 
     Mesh::Mesh(Ref<MeshAsset> meshAsset, const std::vector<uint32_t>& submeshes)
-        : mMeshAsset(meshAsset), mSubmeshes(submeshes)
+        : mMeshAsset(meshAsset)
     {
+        SetSubmeshes(submeshes);
+
         for (const auto& material : meshAsset->GetMaterials())
         {
             mMaterials.push_back(material);
@@ -828,11 +825,29 @@ namespace NR
     }
 
     Mesh::Mesh(const Ref<Mesh>& other)
-        : mMeshAsset(other->mMeshAsset), mSubmeshes(other->mSubmeshes), mMaterials(other->mMaterials)
+        : mMeshAsset(other->mMeshAsset), mMaterials(other->mMaterials)
     {
+        SetSubmeshes(other->mSubmeshes);
     }
 
     void Mesh::Update(float dt)
     {
+    }
+
+    void Mesh::SetSubmeshes(const std::vector<uint32_t>& submeshes)
+    {
+        if (!submeshes.empty())
+        {
+            mSubmeshes = submeshes;
+        }
+        else
+        {
+            const auto& submeshes = mMeshAsset->GetSubmeshes();
+            mSubmeshes.resize(submeshes.size());
+            for (uint32_t i = 0; i < submeshes.size(); ++i)
+            {
+                mSubmeshes[i] = i;
+            }
+        }
     }
 }

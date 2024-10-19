@@ -96,7 +96,7 @@ namespace NR
         }
         else
         {
-            NR_CORE_ASSERT(false, "Could not load shader!");
+            NR_CORE_VERIFY(false, "Could not load shader!");
         }
         in.close();
         return result;

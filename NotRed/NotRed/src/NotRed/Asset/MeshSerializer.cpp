@@ -3,6 +3,7 @@
 
 #include "yaml-cpp/yaml.h"
 #include "NotRed/Asset/AssetManager.h"
+#include "NotRed/Project/Project.h"
 
 namespace YAML
 {
@@ -58,7 +59,8 @@ namespace NR
 
     bool MeshSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
     {
-        std::ifstream stream(metadata.FilePath);
+        auto filepath = Project::GetAssetDirectory() / metadata.FilePath;
+        std::ifstream stream(filepath);
         NR_CORE_ASSERT(stream);
 
         std::stringstream strStream;
@@ -76,8 +78,13 @@ namespace NR
             return false;
         }
 
-        AssetHandle assetHandle = rootNode["MeshAsset"].as<uint64_t>();
-        Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(assetHandle);
+        AssetHandle meshSourceHandle = rootNode["MeshAsset"].as<uint64_t>();
+        Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(meshSourceHandle);
+        if (!meshAsset)
+        {
+            return false;
+        }
+
         auto submeshIndices = rootNode["SubmeshIndices"].as<std::vector<uint32_t>>();
 
         Ref<Mesh> mesh = Ref<Mesh>::Create(meshAsset, submeshIndices);
@@ -100,13 +107,22 @@ namespace NR
             out << YAML::Value << mesh->GetMeshAsset()->Handle;
             out << YAML::Key << "SubmeshIndices";
             out << YAML::Flow;
-            out << YAML::Value << mesh->GetSubmeshes();
+            if (mesh->GetSubmeshes().size() == mesh->GetMeshAsset()->GetSubmeshes().size())
+            {
+                out << YAML::Value << std::vector<uint32_t>();
+            }
+            else
+            {
+                out << YAML::Value << mesh->GetSubmeshes();
+            }
             out << YAML::EndMap;
         }
         out << YAML::EndMap;
 
-        NR_CORE_WARN("Serializing to {0}", filepath);
-        std::ofstream fout(filepath);
+        auto serializePath = Project::GetActive()->GetAssetDirectory() / filepath;
+        NR_CORE_WARN("Serializing to {0}", serializePath.string());
+        std::ofstream fout(serializePath);
+
         NR_CORE_ASSERT(fout.good());
 
         if (fout.good())

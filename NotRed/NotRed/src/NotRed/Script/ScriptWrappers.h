@@ -35,6 +35,7 @@ namespace NR::Script
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders);
 
     // Entity
+    uint64_t NR_Entity_CreateEntity(uint64_t entityID);
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
@@ -56,11 +57,14 @@ namespace NR::Script
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
+    void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
+    void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
     void NR_RigidBody2DComponent_ApplyImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
     void NR_RigidBody2DComponent_GetVelocity(uint64_t entityID, glm::vec2* outVelocity);
     void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* velocity);
 
-    RigidBodyComponent::Type NR_RigidBodyComponent_GetBodyType(uint64_t entityID);
+    void NR_RigidBodyComponent_GetBodyType(uint64_t entityID, RigidBodyComponent::Type* type);
+    void NR_RigidBodyComponent_SetBodyType(uint64_t entityID, RigidBodyComponent::Type* type);
     void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode foceMode);
     void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
     void NR_RigidBodyComponent_GetVelocity(uint64_t entityID, glm::vec3* outVelocity);

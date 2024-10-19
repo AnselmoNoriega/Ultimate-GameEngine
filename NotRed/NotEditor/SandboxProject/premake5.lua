@@ -22,8 +22,8 @@ project "Not-ScriptCore"
 	kind "SharedLib"
 	language "C#"
 
-	targetdir ("%{RootDirectory}bin/%{OutputDir}/%{prj.name}")
-	objdir ("%{RootDirectory}bin-int/%{OutputDir}/%{prj.name}")
+	targetdir ("%{RootDirectory}NotEditor/Resources/Scripts")
+	objdir ("%{RootDirectory}NotEditor/Resources/Scripts/Intermediates")
 
 	files 
 	{

@@ -60,6 +60,12 @@ namespace NR
 			return std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / sActiveProject->GetConfig().ScriptModulePath;
 		}
 
+		static std::filesystem::path GetMeshPath()
+		{
+			NR_CORE_ASSERT(sActiveProject);
+			return std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / sActiveProject->GetConfig().MeshPath;
+		}
+
 		static std::filesystem::path GetScriptModuleFilePath()
 		{
 			NR_CORE_ASSERT(sActiveProject);

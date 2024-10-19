@@ -53,8 +53,10 @@ namespace NR
         mStopButtonTex = Texture2D::Create("Resources/Editor/StopButton.png");
 
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
-        mSceneHierarchyPanel->SetSelectionChangedCallback(NR_BIND_EVENT_FN(EditorLayer::SelectEntity));
-        mSceneHierarchyPanel->SetEntityDeletedCallback(NR_BIND_EVENT_FN(EditorLayer::EntityDeleted));
+        mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
+        mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
+        mSceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
+        mSceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
 
         Renderer2D::SetLineWidth(mLineWidth);
 
@@ -477,6 +479,128 @@ namespace NR
         }
     }
 
+    void EditorLayer::UI_CreateNewMeshPopup()
+    {
+        if (mShowCreateNewMeshPopup)
+        {
+            ImGui::OpenPopup("Create New Mesh");
+            mShowCreateNewMeshPopup = false;
+        }
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+
+        if (ImGui::BeginPopupModal("Create New Mesh", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextWrapped("A Mesh asset must be created from this Mesh Source file (eg. FBX) before it can be added to your scene. More options can be accessed by double-clicking a Mesh Source file in the Content Browser panel.");
+            
+            const std::string& meshAssetPath = Project::GetActive()->GetConfig().MeshPath;
+
+            ImGui::AlignTextToFramePadding();
+            ImGui::Text("Path: %s/", meshAssetPath.c_str());
+            ImGui::SameLine();
+
+            NR_CORE_ASSERT(mCreateNewMeshPopupData.MeshToCreate);
+            const AssetMetadata& assetData = AssetManager::GetMetadata(mCreateNewMeshPopupData.MeshToCreate->Handle);
+            std::string filepath = fmt::format("{0}/{1}.hmesh", mCurrentScene->GetName(), assetData.FilePath.stem().string());
+            
+            if (!mCreateNewMeshPopupData.CreateMeshFilenameBuffer[0])
+            {
+                strcpy(mCreateNewMeshPopupData.CreateMeshFilenameBuffer.data(), filepath.c_str());
+            }
+
+            ImGui::InputText("##meshPath", mCreateNewMeshPopupData.CreateMeshFilenameBuffer.data(), 256);
+
+            if (ImGui::Button("Create"))
+            {
+                std::string serializePath = mCreateNewMeshPopupData.CreateMeshFilenameBuffer.data();
+                std::filesystem::path path = Project::GetActive()->GetMeshPath() / serializePath;
+                
+                if (!FileSystem::Exists(path.parent_path()))
+                {
+                    FileSystem::CreateDirectory(path.parent_path());
+                }
+
+                Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(path.filename().string(), path.parent_path().string(), mCreateNewMeshPopupData.MeshToCreate);
+                Entity entity = mCreateNewMeshPopupData.TargetEntity;
+                if (entity)
+                {
+                    if (!entity.HasComponent<MeshComponent>())
+                        entity.AddComponent<MeshComponent>();
+                    MeshComponent& mc = entity.GetComponent<MeshComponent>();
+                    mc.MeshObj = mesh;
+                }
+                else
+                {
+                    const auto& meshMetadata = AssetManager::GetMetadata(mesh->Handle);
+                    Entity entity = mEditorScene->CreateEntity(meshMetadata.FilePath.stem().string());
+                    entity.AddComponent<MeshComponent>(mesh);
+                    SelectEntity(entity);
+                }
+                mCreateNewMeshPopupData = {};
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine();
+            
+            if (ImGui::Button("Cancel"))
+            {
+                mCreateNewMeshPopupData = {};
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    void EditorLayer::UI_InvalidAssetMetadataPopup()
+    {
+        if (mShowInvalidAssetMetadataPopup)
+        {
+            ImGui::OpenPopup("Invalid Asset Metadata");
+            mShowInvalidAssetMetadataPopup = false;
+        }
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+
+        if (ImGui::BeginPopupModal("Invalid Asset Metadata", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::TextWrapped("You tried to use an asset with invalid metadata. This most likely happened because an asset has a reference to another non-existent asset.");
+            
+            ImGui::Separator();
+
+            auto& metadata = mInvalidAssetMetadataPopupData.Metadata;
+
+            UI::BeginPropertyGrid();
+            
+            const auto& filepath = metadata.FilePath.string();
+            UI::Property("Asset Filepath", filepath);
+            UI::Property("Asset ID", fmt::format("{0}", (uint64_t)metadata.Handle));
+            UI::EndPropertyGrid();
+            if (ImGui::Button("OK"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+    void EditorLayer::CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset)
+    {
+        mShowCreateNewMeshPopup = true;
+        mCreateNewMeshPopupData.MeshToCreate = meshAsset;
+        mCreateNewMeshPopupData.TargetEntity = entity;
+    }
+
+    void EditorLayer::SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle)
+    {
+        mShowInvalidAssetMetadataPopup = true;
+        mInvalidAssetMetadataPopupData.Metadata = AssetManager::GetMetadata(handle);
+    }
+
     void EditorLayer::ImGuiRender()
     {
         static bool p_open = true;
@@ -787,20 +911,29 @@ namespace NR
                     }
 
                     Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                    if (asset->GetAssetType() == AssetType::MeshAsset)
+                    if (asset)
                     {
-                        Entity entity = mEditorScene->CreateEntity(assetData.FileName);
-                        entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(asset.As<MeshAsset>()));
-                        SelectEntity(entity);
+                        if (asset->GetAssetType() == AssetType::MeshAsset)
+                        {
+                            mShowCreateNewMeshPopup = true;
+                            mCreateNewMeshPopupData.MeshToCreate = asset.As<MeshAsset>();
+                            mCreateNewMeshPopupData.TargetEntity = {};
+                        }
+                        else if (asset->GetAssetType() == AssetType::Mesh)
+                        {
+                            Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
+                            entity.AddComponent<MeshComponent>(asset.As<Mesh>());
+                            SelectEntity(entity);
+                        }
                     }
-                    else if (asset->GetAssetType() == AssetType::Mesh)
+                    else
                     {
-                        Entity entity = mEditorScene->CreateEntity(assetData.FileName);
-                        entity.AddComponent<MeshComponent>(asset.As<Mesh>());
-                        SelectEntity(entity);
+                        mShowInvalidAssetMetadataPopup = true;
+                        mInvalidAssetMetadataPopupData.Metadata = assetData;
                     }
                 }
             }
+
             ImGui::EndDragDropTarget();
         }
 
@@ -925,7 +1058,7 @@ namespace NR
                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
                             if (asset->GetAssetType() == AssetType::Mesh)
                             {
-                                Entity entity = mEditorScene->CreateEntity(assetData.FileName);
+                                Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
                                 entity.AddComponent<MeshComponent>(asset.As<Mesh>());
                                 SelectEntity(entity);
                             }
@@ -983,6 +1116,20 @@ namespace NR
                 ImGui::EndMenu();
             }
 
+            if (ImGui::BeginMenu("Edit"))
+            {
+                ImGui::MenuItem("Physics Settings", nullptr, &mShowPhysicsSettings);
+                ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
+
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("View"))
+            {
+                ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
+                ImGui::EndMenu();
+            }
+
             if (ImGui::BeginMenu("Script"))
             {
                 if (ImGui::MenuItem("Reload C# Assembly"))
@@ -991,14 +1138,6 @@ namespace NR
                 }
 
                 ImGui::MenuItem("Reload assembly on play", nullptr, &mReloadScriptOnPlay);
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Edit"))
-            {
-                ImGui::MenuItem("Physics Settings", nullptr, &mShowPhysicsSettings);
-                ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
-
                 ImGui::EndMenu();
             }
 
@@ -1375,7 +1514,11 @@ namespace NR
         UI_WelcomePopup();
         UI_AboutPopup();
 
+        UI_CreateNewMeshPopup();
+        UI_InvalidAssetMetadataPopup();
+
         AssetEditorPanel::ImGuiRender();
+        AssetManager::ImGuiRender(mAssetManagerPanelOpen);
     }
 
     void EditorLayer::OnEvent(Event& e)

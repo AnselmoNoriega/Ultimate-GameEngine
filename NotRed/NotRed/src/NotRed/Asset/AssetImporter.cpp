@@ -20,7 +20,7 @@ namespace NR
 	{
 		if (sSerializers.find(metadata.Type) == sSerializers.end())
 		{
-			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.Extension);
+			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.extension().string());
 			return;
 		}
 
@@ -37,7 +37,7 @@ namespace NR
 	{
 		if (sSerializers.find(metadata.Type) == sSerializers.end())
 		{
-			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.Extension);
+			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.extension().string());
 			return false;
 		}
 

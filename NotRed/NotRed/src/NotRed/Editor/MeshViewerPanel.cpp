@@ -21,7 +21,7 @@
 namespace NR
 {
 	MeshViewerPanel::MeshViewerPanel()
-		: AssetEditor(nullptr)
+		: AssetEditor("MeshViewerPanel")
 	{}
 
 	void MeshViewerPanel::Update(float dt)
@@ -305,11 +305,8 @@ namespace NR
 		{
 			std::filesystem::path meshPath = meshAsset->GetFilePath();			
 			
-			NR_CORE_WARN("Mesh Name = {0}", meshPath.stem().string());
-			NR_CORE_WARN("Output filename = {0}", fmt::format("{0}.nrm", meshPath.stem().string()));
-
 			std::filesystem::path directoryPath = meshPath.parent_path();
-			std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
+			std::string filename = fmt::format("{0}.nrmesh", meshPath.stem().string());
 			Ref<Mesh> serializedMesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), mesh);
 		}
 	}

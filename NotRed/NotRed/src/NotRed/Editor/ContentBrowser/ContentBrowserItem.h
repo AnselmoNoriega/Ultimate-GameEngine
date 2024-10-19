@@ -22,7 +22,10 @@ namespace NR
 		NavigateToThis = 1 << 6,
 		OpenDeleteDialogue = 1 << 7,
 		SelectToHere = 1 << 8,
-		Moved = 1 << 9
+		Moved = 1 << 9,
+		ShowInExplorer = 1 << 10,
+		OpenExternal = 1 << 11,
+		Reload = 1 << 12
 	};
 
 	struct CBItemActionResult

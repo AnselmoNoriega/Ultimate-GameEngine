@@ -28,6 +28,11 @@ namespace NR
 
         }
 
+        public Entity Create()
+        {
+            return new Entity(CreateEntity_Native(ID));
+        }
+
         public Vector3 Translation
         {
             get
@@ -153,12 +158,12 @@ namespace NR
 
         private void Collision2DBegin(float data)
         {
-            _collision2DBeginCallbacks.Invoke(data);
+            _collision2DBeginCallbacks?.Invoke(data);
         }
 
         private void Collision2DEnd(float data)
         {
-            _collision2DEndCallbacks.Invoke(data);
+            _collision2DEndCallbacks?.Invoke(data);
         }
 
         private void TriggerBegin(float data)
@@ -185,6 +190,8 @@ namespace NR
         private static extern ulong FindEntityByTag_Native(string tag);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong InstantiateEntity_Native();
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ulong CreateEntity_Native(ulong entityID);
 
     }
 }

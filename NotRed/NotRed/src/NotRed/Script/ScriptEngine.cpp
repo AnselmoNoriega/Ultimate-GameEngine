@@ -32,6 +32,8 @@ namespace NR
 
     static MonoMethod* GetMethod(MonoImage* image, const std::string& methodDesc);
 
+    static MonoMethod* sExceptionMethod = nullptr;
+
     struct EntityScriptClass
     {
         std::string FullName;
@@ -197,7 +199,7 @@ namespace NR
         MonoMethodDesc* desc = mono_method_desc_new(methodDesc.c_str(), NULL);
         if (!desc)
         {
-            NR_CORE_ERROR("[ScriptEngine] mono_method_desc_new failed ({0})", methodDesc);
+            NR_CORE_WARN("[ScriptEngine] mono_method_desc_new failed ({0})", methodDesc);
         }
 
         MonoMethod* method = mono_method_desc_search_in_image(desc, image);
@@ -211,8 +213,13 @@ namespace NR
 
     static MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params = nullptr)
     {
-        MonoObject* pException = NULL;
+        MonoObject* pException = nullptr;
         MonoObject* result = mono_runtime_invoke(method, object, params, &pException);
+        if (pException)
+        {
+            void* args[] = { pException };
+            MonoObject* result = mono_runtime_invoke(sExceptionMethod, nullptr, args, nullptr);
+        }
         return result;
     }
 
@@ -262,7 +269,7 @@ namespace NR
         sAssemblyPath = path;
         if (sCurrentMonoDomain)
         {
-            sNewMonoDomain = mono_domain_create_appdomain("NotRed Runtime", nullptr);
+            sNewMonoDomain = mono_domain_create_appdomain((char*)"NotRed Runtime", nullptr);
             mono_domain_set(sNewMonoDomain, false);
             sPostLoadCleanup = true;
         }
@@ -274,6 +281,7 @@ namespace NR
         }
 
         sCoreAssemblyImage = GetAssemblyImage(sCoreAssembly);
+        sExceptionMethod = GetMethod(sCoreAssemblyImage, "NR.RuntimeException:Exception(object)");
 
         return true;
     }

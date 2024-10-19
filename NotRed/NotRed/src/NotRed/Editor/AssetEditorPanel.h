@@ -28,8 +28,11 @@ namespace NR
 		void SetMinSize(uint32_t width, uint32_t height);
 		void SetMaxSize(uint32_t width, uint32_t height);
 
+		const std::string& GetTitle() const;
+		void SetTitle(const std::string& newTitle);
+
 	private:
-		const char* mTitle;
+		std::string mTitle;
 		bool mIsOpen = false;
 
 		ImGuiWindowFlags mFlags = 0;

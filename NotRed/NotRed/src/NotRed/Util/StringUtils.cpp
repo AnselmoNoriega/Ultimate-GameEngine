@@ -6,6 +6,36 @@
 
 namespace NR::Utils 
 {
+	namespace String 
+	{
+		bool EqualsIgnoreCase(const std::string& a, const std::string& b)
+		{
+			if (a.size() != b.size())
+			{
+				return false;
+			}
+
+			return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+				[](char a, char b)
+				{
+					return std::tolower(a) == std::tolower(b);
+				});
+		}
+
+		std::string& ToLower(std::string& string)
+		{
+			std::transform(string.begin(), string.end(), string.begin(), [](unsigned char c) { return std::tolower(c); });
+			return string;
+		}
+
+		std::string ToLowerCopy(const std::string& string)
+		{
+			std::string result = string;
+			ToLower(result);
+			return result;
+		}
+	}
+
 	std::string GetFilename(const std::string& filepath)
 	{
 		std::vector<std::string> parts = SplitString(filepath, "/\\");

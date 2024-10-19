@@ -131,7 +131,6 @@ namespace NR
     {
         Ref<Environment> SceneEnvironment;
         float Intensity = 1.0f;
-        float Angle = 0.0f;
 
         bool DynamicSky = false;
         glm::vec3 TurbidityAzimuthInclination = { 2.0, 0.0, 0.0 };
@@ -184,7 +183,7 @@ namespace NR
     struct BoxCollider2DComponent
     {
         glm::vec2 Offset = { 0.0f,0.0f };
-        glm::vec2 Size = { 1.0f, 1.0f };
+        glm::vec2 Size = { 0.5f, 0.5f };
 
         float Density = 1.0f;
         float Friction = 1.0f;

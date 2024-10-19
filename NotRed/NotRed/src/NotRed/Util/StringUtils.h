@@ -2,6 +2,13 @@
 
 namespace NR::Utils 
 {
+	namespace String
+	{
+		bool EqualsIgnoreCase(const std::string& a, const std::string& b);
+		std::string& ToLower(std::string& string);
+		std::string ToLowerCopy(const std::string& string);
+	}
+
 	std::string GetFilename(const std::string& filepath);
 
 	std::string GetExtension(const std::string& filename);

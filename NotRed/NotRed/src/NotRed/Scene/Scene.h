@@ -131,12 +131,15 @@ namespace NR
 
 		static AssetType GetStaticType() { return AssetType::Scene; }
 		virtual AssetType GetAssetType() const override { return AssetType::Scene; }
+		const std::string& GetName() const { return mName; }
+		void SetName(const std::string& name) { mName = name; }
 
 	private:
 		UUID mSceneID;
 		entt::entity mSceneEntity;
 		entt::registry mRegistry;
 
+		std::string mName = "UntitledScene";
 		std::string mDebugName;
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 

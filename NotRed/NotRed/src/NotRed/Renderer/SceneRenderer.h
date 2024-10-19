@@ -91,6 +91,7 @@ namespace NR
 		void PreDepthPass();
 		void LightCullingPass();
 		void GeometryPass();
+		void JumpFloodPass();
 		void CompositePass();
 		void BloomBlurPass();
 
@@ -148,6 +149,7 @@ namespace NR
 		{
 			DirLight lights;
 			glm::vec3 CameraPosition;
+			float EnvironmentMapIntensity = 1.0f;
 		} SceneDataUB;
 
 		struct UBRendererData
@@ -175,9 +177,9 @@ namespace NR
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
 		Ref<RenderPass> ShadowMapRenderPass[4];
 		float LightDistance = 0.1f;
-		float CascadeSplitLambda = 0.95f;
+		float CascadeSplitLambda = 0.92f;
 		glm::vec4 CascadeSplits;
-		float CascadeFarPlaneOffset = 15.0f, CascadeNearPlaneOffset = -15.0f;
+		float CascadeFarPlaneOffset = 50.0f, CascadeNearPlaneOffset = -50.0f;
 
 		bool EnableBloom = false;
 		float BloomThreshold = 1.5f;
@@ -189,6 +191,7 @@ namespace NR
 		Ref<Material> mLightCullingMaterial;
 
 		Ref<Pipeline> mGeometryPipeline;
+		Ref<Pipeline> mSelectedGeometryPipeline;
 		Ref<Pipeline> mGeometryWireframePipeline;
 		Ref<Pipeline> mParticlePipeline;
 		Ref<Pipeline> mPreDepthPipeline;
@@ -212,6 +215,16 @@ namespace NR
 		std::vector<DrawCommand> mParticlesDrawList;
 		std::vector<DrawCommand> mColliderDrawList;
 		std::vector<DrawCommand> mShadowPassDrawList;
+
+		// Jump Flood Pass
+		Ref<Pipeline> mJumpFloodInitPipeline;
+		Ref<Pipeline> mJumpFloodPassPipeline[2];
+		Ref<Pipeline> mJumpFloodCompositePipeline;
+		Ref<Material> mJumpFloodInitMaterial, mJumpFloodPassMaterial[2];
+		Ref<Material> mJumpFloodCompositeMaterial;
+		Ref<Material> mSelectedGeometryMaterial;
+
+		std::vector<Ref<FrameBuffer>> mTempFrameBuffers;
 
 		// Grid
 		Ref<Pipeline> mGridPipeline;

@@ -10,6 +10,14 @@ namespace NR
 {
 	class FrameBuffer;
 
+	enum class FrameBufferBlendMode
+	{
+		None,
+		OneZero,
+		SrcAlphaOneMinusSrcAlpha,
+		Additive
+	};
+
 	enum class FrameBufferTextureFormat
 	{
 		None,
@@ -30,6 +38,8 @@ namespace NR
 			: Format(format) {}
 
 		ImageFormat Format;
+		bool Blend = true;
+		FrameBufferBlendMode BlendMode = FrameBufferBlendMode::SrcAlphaOneMinusSrcAlpha;
 	};
 
 	struct FrameBufferAttachmentSpecification
@@ -52,6 +62,8 @@ namespace NR
 		uint32_t Samples = 1;
 
 		bool Resizable = true;
+		bool Blend = true;
+		FrameBufferBlendMode BlendMode = FrameBufferBlendMode::None;
 
 		bool SwapChainTarget = false;
 
@@ -96,7 +108,7 @@ namespace NR
 		~FrameBufferPool();
 
 		std::weak_ptr<FrameBuffer> AllocateBuffer();
-		void Add(const Ref<FrameBuffer>& framebuffer);
+		void Add(const Ref<FrameBuffer>& frameBuffer);
 
 		std::vector<Ref<FrameBuffer>>& GetAll() { return mPool; }
 		const std::vector<Ref<FrameBuffer>>& GetAll() const { return mPool; }

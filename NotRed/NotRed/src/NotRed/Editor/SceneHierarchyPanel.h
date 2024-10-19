@@ -16,6 +16,8 @@ namespace NR
 
 		void SetSelectionChangedCallback(const std::function<void(Entity)>& func) { mSelectionChangedCallback = func; }
 		void SetEntityDeletedCallback(const std::function<void(Entity)>& func) { mEntityDeletedCallback = func; }
+		void SetMeshAssetConvertCallback(const std::function<void(Entity, Ref<MeshAsset>)>& func) { mMeshAssetConvertCallback = func; }
+		void SetInvalidMetadataCallback(const std::function<void(Entity, AssetHandle)>& func) { mInvalidMetadataCallback = func; }
 
 		void ImGuiRender();
 
@@ -28,6 +30,8 @@ namespace NR
 		Entity mSelectionContext;
 
 		std::function<void(Entity)> mSelectionChangedCallback, mEntityDeletedCallback;
+		std::function<void(Entity, Ref<MeshAsset>)> mMeshAssetConvertCallback;
+		std::function<void(Entity, AssetHandle)> mInvalidMetadataCallback;
 	};
 
 }

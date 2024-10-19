@@ -159,6 +159,11 @@ namespace NR
 
 	void ContentBrowserItem::ContextMenuOpen(CBItemActionResult& actionResult)
 	{
+		if (ImGui::MenuItem("Reload"))
+		{
+			actionResult.Modify(ContentBrowserAction::Reload, true);
+		}
+
 		if (ImGui::MenuItem("Rename"))
 		{
 			StartRenaming();
@@ -167,6 +172,18 @@ namespace NR
 		{
 			actionResult.Modify(ContentBrowserAction::OpenDeleteDialogue, true);
 		}
+
+		ImGui::Separator();
+
+		if (ImGui::MenuItem("Show In Explorer"))
+		{
+			actionResult.Modify(ContentBrowserAction::ShowInExplorer, true);
+		}
+		if (ImGui::MenuItem("Open Externally"))
+		{
+			actionResult.Modify(ContentBrowserAction::OpenExternal, true);
+		}
+
 		RenderCustomContextItems();
 	}
 
@@ -265,7 +282,7 @@ namespace NR
 		for (auto assetHandle : directoryInfo->Assets)
 		{
 			auto metadata = AssetManager::GetMetadata(assetHandle);
-			metadata.FilePath = directoryInfo->FilePath / std::filesystem::path(metadata.FileName + "." + metadata.Extension);
+			metadata.FilePath = directoryInfo->FilePath / metadata.FilePath.filename();
 		}
 
 		for (auto [handle, subdirectory] : directoryInfo->SubDirectories)
@@ -275,7 +292,7 @@ namespace NR
 	}
 
 	ContentBrowserAsset::ContentBrowserAsset(const AssetMetadata& assetInfo, const Ref<Texture2D>& icon)
-		: ContentBrowserItem(ContentBrowserItem::ItemType::Asset, assetInfo.Handle, assetInfo.FileName, icon), mAssetInfo(assetInfo)
+		: ContentBrowserItem(ContentBrowserItem::ItemType::Asset, assetInfo.Handle, assetInfo.FilePath.stem().string(), icon), mAssetInfo(assetInfo)
 	{
 	}
 
@@ -322,7 +339,8 @@ namespace NR
 
 	void ContentBrowserAsset::Renamed(const std::string& newName, bool fromCallback)
 	{
-		std::string newFilePath = mAssetInfo.FilePath.parent_path().string() + "/" + newName + "." + mAssetInfo.Extension;
+		std::string newFilePath = fmt::format("{0}/{1}.{2}", mAssetInfo.FilePath.parent_path().string(), '.', mAssetInfo.FilePath.extension().string());
+
 		if (!fromCallback)
 		{
 			if (FileSystem::Exists(newFilePath))
@@ -335,6 +353,5 @@ namespace NR
 		}
 
 		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilePath);
-		mAssetInfo.FileName = Utils::RemoveExtension(mAssetInfo.FilePath.filename().string());
 	}
 }

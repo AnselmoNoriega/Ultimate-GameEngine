@@ -151,6 +151,11 @@ namespace NR
         // TODO
     }
 
+    public enum RigidBody2DBodyType
+    {
+        Static, Dynamic, Kinematic
+    }
+
     public class RigidBody2DComponent : Component
     {
         public void ApplyImpulse(Vector2 impulse, Vector2 offset, bool wake)
@@ -174,6 +179,24 @@ namespace NR
             Rotate_Native(Entity.ID, ref rotation);
         }
 
+        public RigidBody2DBodyType BodyType
+        {
+            get
+            {
+                RigidBody2DBodyType type;
+                GetBodyType_Native(Entity.ID, out type);
+                return type;
+            }
+            set
+            {
+                SetBodyType_Native(Entity.ID, ref value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetBodyType_Native(ulong entityID, out RigidBody2DBodyType type);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetBodyType_Native(ulong entityID, ref RigidBody2DBodyType type);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void ApplyImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
 

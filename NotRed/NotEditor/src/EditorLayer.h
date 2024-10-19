@@ -77,6 +77,11 @@ namespace NR
 		void UI_WelcomePopup();
 		void UI_AboutPopup();
 
+		void UI_CreateNewMeshPopup();
+		void UI_InvalidAssetMetadataPopup();
+		void CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset);
+		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
+
 		void UpdateWindowTitle(const std::string& sceneName);
 
 		float GetSnapValue();
@@ -158,7 +163,7 @@ namespace NR
 		bool mShowBoundingBoxes = false;
 		bool mShowBoundingBoxSelectedMeshOnly = true;
 		bool mShowBoundingBoxSubmeshes = false;
-		bool mShowSelectedWireframe = true;
+		bool mShowSelectedWireframe = false;
 		bool mShowPhysicsCollidersWireframe = false;
 
 		bool mViewportPanelMouseOver = false;
@@ -173,6 +178,32 @@ namespace NR
 
 		bool mShowWelcomePopup = true;
 		bool mShowAboutPopup = false;
+
+		bool mShowCreateNewMeshPopup = false;
+
+		bool mAssetManagerPanelOpen = false;
+
+		struct CreateNewMeshPopupData
+		{
+			Ref<MeshAsset> MeshToCreate;
+			std::array<char, 256> CreateMeshFilenameBuffer;
+			Entity TargetEntity;
+
+			CreateNewMeshPopupData()
+			{
+				CreateMeshFilenameBuffer.fill(0);
+				MeshToCreate = nullptr;
+				TargetEntity = {};
+			}
+
+		} mCreateNewMeshPopupData;
+
+		bool mShowInvalidAssetMetadataPopup = false;
+
+		struct InvalidAssetMetadataPopupData
+		{
+			AssetMetadata Metadata;
+		} mInvalidAssetMetadataPopupData;
 
 		enum class SceneState
 		{

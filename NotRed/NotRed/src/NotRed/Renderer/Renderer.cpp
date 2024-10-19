@@ -134,6 +134,13 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Line");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Circle");
 
+        // Jump Flood Shaders
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Init");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Pass");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Composite");
+
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry");
+
         // Compile shaders
         Renderer::WaitAndRender();
 
@@ -253,6 +260,11 @@ namespace NR
     void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material)
     {
         sRendererAPI->SubmitFullscreenQuad(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material);
+    }
+
+    void Renderer::SubmitFullscreenQuadWithOverrides(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Buffer vertexShaderOverrides, Buffer fragmentShaderOverrides)
+    {
+        sRendererAPI->SubmitFullscreenQuadWithOverrides(renderCommandBuffer, pipeline, uniformBufferSet, nullptr, material, vertexShaderOverrides, fragmentShaderOverrides);
     }
 
     void Renderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount)

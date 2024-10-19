@@ -22,7 +22,7 @@ namespace NR
 
 		bool wasOpen = mIsOpen;
 		ImGui::SetNextWindowSizeConstraints(mMinSize, mMaxSize);
-		ImGui::Begin(mTitle, &mIsOpen, mFlags);
+		ImGui::Begin(mTitle.c_str(), &mIsOpen, mFlags);
 		Render();
 		ImGui::End();
 		if (wasOpen && !mIsOpen)
@@ -56,6 +56,16 @@ namespace NR
 		if (float(height) <= mMinSize.y) height = uint32_t(mMinSize.y * 2.f);
 
 		mMaxSize = ImVec2((float)width, (float)height);
+	}
+
+	void AssetEditor::SetTitle(const std::string& newTitle)
+	{
+		mTitle = newTitle;
+	}
+
+	const std::string& AssetEditor::GetTitle() const
+	{
+		return mTitle;
 	}
 
 	void AssetEditorPanel::RegisterDefaultEditors()

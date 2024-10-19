@@ -649,62 +649,36 @@ namespace NR
         DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
             {
                 UI::BeginPropertyGrid();
-                Ref<MeshAsset> meshAsset;
-                if (mc.MeshObj && mc.MeshObj->IsValid())
-                {
-                    if (mc.MeshObj)
+
+                UI::PropertyAssetReferenceError error;
+                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshAsset>("Mesh", mc.MeshObj, [=](Ref<MeshAsset> meshAsset)
                     {
-                        meshAsset = mc.MeshObj->GetMeshAsset();
-                    }
-
-                    if (UI::PropertyAssetReference("Mesh", meshAsset))
-                    {
-                        std::filesystem::path meshPath = meshAsset->GetFilePath();
-                        std::filesystem::path directoryPath = meshPath.parent_path();
-                        std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
-
-                        Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), meshAsset);
-                        mc.MeshObj = mesh;
-
-                        if (entity.HasComponent<MeshColliderComponent>())
+                        if (mMeshAssetConvertCallback)
                         {
-                            auto& mcc = entity.GetComponent<MeshColliderComponent>();
-                            mcc.CollisionMesh = mc.MeshObj;
-                            if (mcc.IsConvex)
-                            {
-                                PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                            }
-                            else
-                            {
-                                PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                            }
+                            mMeshAssetConvertCallback(entity, meshAsset);
+                        }
+                    }, &error))
+                {
+                    if (entity.HasComponent<MeshColliderComponent>())
+                    {
+                        auto& mcc = entity.GetComponent<MeshColliderComponent>();
+                        mcc.CollisionMesh = mc.MeshObj;
+                        if (mcc.IsConvex)
+                        {
+                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
+                        }
+                        else
+                        {
+                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
                         }
                     }
-                }
-                else
+                }			
+                
+                if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
                 {
-                    if (UI::PropertyAssetReference("Mesh", meshAsset))
+                    if (mInvalidMetadataCallback)
                     {
-                        std::filesystem::path meshPath = meshAsset->GetFilePath();
-                        std::filesystem::path directoryPath = meshPath.parent_path();
-                        std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
-                        
-                        Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), meshAsset);
-                        mc.MeshObj = mesh;
-
-                        if (entity.HasComponent<MeshColliderComponent>())
-                        {
-                            auto& mcc = entity.GetComponent<MeshColliderComponent>();
-                            mcc.CollisionMesh = mc.MeshObj;
-                            if (mcc.IsConvex)
-                            {
-                                PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                            }
-                            else
-                            {
-                                PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                            }
-                        }
+                        mInvalidMetadataCallback(entity, UI::sPropertyAssetReferenceAssetHandle);
                     }
                 }
                 UI::EndPropertyGrid();

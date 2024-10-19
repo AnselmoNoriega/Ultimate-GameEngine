@@ -358,7 +358,11 @@ namespace NR
 				out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
 			}
 			out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;
-			out << YAML::Key << "Angle" << YAML::Value << skyLightComponent.Angle;
+			out << YAML::Key << "DynamicSky" << YAML::Value << skyLightComponent.DynamicSky;
+			if (skyLightComponent.DynamicSky)
+			{
+				out << YAML::Key << "TurbidityAzimuthInclination" << YAML::Value << skyLightComponent.TurbidityAzimuthInclination;
+			}
 
 			out << YAML::EndMap; // SkyLightComponent
 		}
@@ -620,7 +624,7 @@ namespace NR
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene";
-		out << YAML::Value << "Scene Name";
+		out << YAML::Value << mScene->GetName();
 
 		if (mScene->GetEnvironment())
 		{
@@ -695,6 +699,7 @@ namespace NR
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		NR_CORE_INFO("Deserializing scene '{0}'", sceneName);
+		mScene->SetName(sceneName);
 
 		std::vector<std::string> missingPaths;
 
@@ -839,12 +844,12 @@ namespace NR
 						else if (metadata.Type == AssetType::MeshAsset)
 						{
 							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(assetHandle);
-							
-							std::filesystem::path meshPath = meshAsset->GetFilePath();
-							std::filesystem::path directoryPath = meshPath.parent_path();
-							std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
-							
-							Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), meshAsset);
+
+							std::filesystem::path meshPath = metadata.FilePath;
+							std::filesystem::path meshDirectory = Project::GetMeshPath();
+							std::string filename = fmt::format("{0}.nrmesh", meshPath.stem().string());
+							Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, meshDirectory.string(), meshAsset);
+
 							component.MeshObj = mesh;
 							
 							AssetImporter::Serialize(mesh);
@@ -967,7 +972,14 @@ namespace NR
 						}
 					}
 					component.Intensity = skyLightComponent["Intensity"].as<float>();
-					component.Angle = skyLightComponent["Angle"].as<float>();
+					if (skyLightComponent["DynamicSky"])
+					{
+						component.DynamicSky = skyLightComponent["DynamicSky"].as<bool>();
+						if (component.DynamicSky)
+						{
+							component.TurbidityAzimuthInclination = skyLightComponent["TurbidityAzimuthInclination"].as<glm::vec3>();
+						}
+					}
 				}
 
 				auto spriteRendererComponent = entity["SpriteRendererComponent"];

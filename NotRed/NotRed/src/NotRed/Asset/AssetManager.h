@@ -8,6 +8,9 @@
 #include "NotRed/Util/StringUtils.h"
 #include "NotRed/Project/Project.h"
 
+#include "AssetImporter.h"
+#include "AssetRegistry.h"
+
 namespace NR
 {
     class AssetManagerConfig
@@ -35,17 +38,23 @@ namespace NR
         static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
         static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
 
-        static AssetType GetAssetTypeForFileType(const std::string& extension);
+        static AssetType GetAssetTypeFromExtension(const std::string& extension);
+        static AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
         static std::string GetRelativePath(const std::string& filepath);
 
         static AssetHandle ImportAsset(const std::string& filepath);
+        static bool ReloadData(AssetHandle assetHandle);
 
         static std::string GetFileSystemPath(const AssetMetadata& metadata) { return (Project::GetAssetDirectory() / metadata.FilePath).string(); }
 
         template<typename T, typename... Args>
-        static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
+        static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directory, Args&&... args)
         {
             static_assert(std::is_base_of<Asset, T>::value, "CreateNewAsset only works for types derived from Asset");
+
+            std::filesystem::path relativePath = std::filesystem::relative(std::filesystem::path(directory), Project::GetAssetDirectory());
+            std::string directoryPath = relativePath.string();
+            std::replace(directoryPath.begin(), directoryPath.end(), '\\', '/');
 
             FileSystem::SkipNextFileSystemChange();
 
@@ -57,13 +66,13 @@ namespace NR
             metadata.IsDataLoaded = true;
             metadata.Type = T::GetStaticType();
 
-            if (FileSystem::Exists(metadata.FilePath))
+            if (FileExists(metadata))
             {
                 bool foundAvailableFileName = false;
                 int current = 1;
                 while (!foundAvailableFileName)
                 {
-                    std::string nextFilePath = directoryPath + "/" + metadata.FileName;
+                    std::string nextFilePath = (relativePath / metadata.FilePath.stem()).string();
                     if (current < 10)
                     {
                         nextFilePath += " (0" + std::to_string(current) + ")";
@@ -72,12 +81,13 @@ namespace NR
                     {
                         nextFilePath += " (" + std::to_string(current) + ")";
                     }
-                    nextFilePath += "." + metadata.Extension;
+                    
+                    nextFilePath += metadata.FilePath.extension().string();
+
                     if (!FileSystem::Exists(nextFilePath))
                     {
                         foundAvailableFileName = true;
                         metadata.FilePath = nextFilePath;
-                        metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
                         break;
                     }
                     current++;
@@ -99,12 +109,16 @@ namespace NR
         static Ref<T> GetAsset(AssetHandle assetHandle)
         {
             auto& metadata = GetMetadata(assetHandle);
-            NR_CORE_ASSERT(metadata.IsValid());
 
             Ref<Asset> asset = nullptr;
             if (!metadata.IsDataLoaded)
             {
                 metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+                if (!metadata.IsDataLoaded)
+                {
+                    return nullptr;
+                }
+
                 sLoadedAssets[assetHandle] = asset;
             }
             else
@@ -127,6 +141,13 @@ namespace NR
             return GetAsset<T>(GetAssetHandleFromFilePath(fp));
         }
 
+        static bool FileExists(AssetMetadata& metadata)
+        {
+            return FileSystem::Exists(Project::GetActive()->GetAssetDirectory() / metadata.FilePath);
+        }
+
+        static void ImGuiRender(bool& open);
+
     private:
         static void LoadAssetRegistry();
         static void ProcessDirectory(const std::string& directoryPath);
@@ -141,8 +162,8 @@ namespace NR
 
     private:
         static std::unordered_map<AssetHandle, Ref<Asset>> sLoadedAssets;
-        static std::unordered_map<std::string, AssetMetadata> sAssetRegistry;
         static AssetsChangeEventFn sAssetsChangeCallback;
+        inline static AssetRegistry sAssetRegistry;
 
     private:
         friend class ContentBrowserPanel;

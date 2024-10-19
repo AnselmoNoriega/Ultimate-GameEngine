@@ -62,7 +62,7 @@ layout(std140, binding = 2) uniform SceneData
 {
 	DirectionalLight uDirectionalLights;
 	vec3 uCameraPosition; // Offset = 32
-	bool uHasEnvironmentMap;
+	float uEnvironmentMapIntensity;
 };
 
 layout(std140, binding = 4) uniform PointLightData
@@ -633,7 +633,7 @@ void main()
 
 	vec3 lightContribution = CalculateDirLights(F0) * shadowAmount;
 	lightContribution += CalculatePointLights(F0);
-	vec3 iblContribution = IBL(F0, Lr);
+	vec3 iblContribution = IBL(F0, Lr) * uEnvironmentMapIntensity;
 
 	color = vec4(iblContribution + lightContribution, 1.0);
 

@@ -175,6 +175,34 @@ namespace NR
             mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
         }
 
+        // Selected Geometry isolation (for outline pass)
+        {
+            PipelineSpecification pipelineSpecification;
+            pipelineSpecification.DebugName = "SelectedGeometry";
+            pipelineSpecification.Layout = {
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float3, "aNormal" },
+                { ShaderDataType::Float3, "aTangent" },
+                { ShaderDataType::Float3, "aBinormal" },
+                { ShaderDataType::Float2, "aTexCoord" },
+            };
+
+            FrameBufferSpecification frameBufferSpec;
+            frameBufferSpec.DebugName = pipelineSpecification.DebugName;
+            frameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+            frameBufferSpec.Samples = 1;
+            frameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+            
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.DebugName = pipelineSpecification.DebugName;
+            renderPassSpec.TargetFrameBuffer = FrameBuffer::Create(frameBufferSpec);
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry");
+            pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+
+            mSelectedGeometryPipeline = Pipeline::Create(pipelineSpecification);
+            mSelectedGeometryMaterial = Material::Create(pipelineSpecification.Shader);
+        }
+
         // Composite
         {
             FrameBufferSpecification compFrameBufferSpec;
@@ -225,6 +253,64 @@ namespace NR
             renderPassSpec.TargetFrameBuffer = frameBuffer;
             renderPassSpec.DebugName = "External-Composite";
             mExternalCompositeRenderPass = RenderPass::Create(renderPassSpec);
+        }
+
+        // Temporary frameBuffers for re-use
+        {
+            FrameBufferSpecification frameBufferSpec;
+            frameBufferSpec.Attachments = { ImageFormat::RGBA32F };
+            frameBufferSpec.Samples = 1;
+            frameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+            frameBufferSpec.BlendMode = FrameBufferBlendMode::OneZero;
+
+            for (uint32_t i = 0; i < 2; ++i)
+            {
+                mTempFrameBuffers.emplace_back(FrameBuffer::Create(frameBufferSpec));
+            }
+        }
+
+        // Jump Flood (outline)
+        {
+            PipelineSpecification pipelineSpecification;
+            pipelineSpecification.Layout = {
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float2, "aTexCoord" }
+            };
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Init");
+            mJumpFloodInitMaterial = Material::Create(pipelineSpecification.Shader, "JumpFlood-Init");
+
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[0];
+            renderPassSpec.DebugName = "JumpFlood-Init";
+            pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+            pipelineSpecification.DebugName = "JumpFlood-Init";
+
+            mJumpFloodInitPipeline = Pipeline::Create(pipelineSpecification);
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Pass");
+            mJumpFloodPassMaterial[0] = Material::Create(pipelineSpecification.Shader, "JumpFloodPass-0");
+            mJumpFloodPassMaterial[1] = Material::Create(pipelineSpecification.Shader, "JumpFloodPass-1");
+
+            const char* passName[2] = { "EvenPass", "OddPass" };
+            for (uint32_t i = 0; i < 2; ++i)
+            {
+                renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[(i + 1) % 2];
+                renderPassSpec.DebugName = fmt::format("JumpFlood-{0}", passName[i]);
+                
+                pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+                pipelineSpecification.DebugName = renderPassSpec.DebugName;
+                
+                mJumpFloodPassPipeline[i] = Pipeline::Create(pipelineSpecification);
+            }
+            // Outline compositing
+            {
+                pipelineSpecification.RenderPass = mCompositePipeline->GetSpecification().RenderPass;
+                pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Composite");
+                pipelineSpecification.DebugName = "JumpFlood-Composite";
+                pipelineSpecification.DepthTest = false;
+                
+                mJumpFloodCompositePipeline = Pipeline::Create(pipelineSpecification);
+                mJumpFloodCompositeMaterial = Material::Create(pipelineSpecification.Shader, "JumpFlood-Composite");
+            }
         }
 
         // Grid
@@ -442,6 +528,11 @@ namespace NR
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
+            for (auto& tempFB : mTempFrameBuffers)
+            {
+                tempFB->Resize(mViewportWidth, mViewportHeight);
+            }
+
             if (mExternalCompositeRenderPass)
             {
                 mExternalCompositeRenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
@@ -501,6 +592,7 @@ namespace NR
         sceneData.lights.Radiance = directionalLight.Radiance;
         sceneData.lights.Multiplier = directionalLight.Multiplier;
         sceneData.CameraPosition = cameraPosition;
+        sceneData.EnvironmentMapIntensity = mSceneData.SceneEnvironmentIntensity;
 
         Renderer::Submit([instance, sceneData]() mutable
             {
@@ -672,10 +764,18 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
+        Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
+        for (auto& dc : mSelectedMeshDrawList)
+        {
+            Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
+        }
+        Renderer::EndRenderPass(mCommandBuffer);
+
         Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass);
 
         // Skybox
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSceneData.SkyboxLod);
+        mSkyboxMaterial->Set("uUniforms.Intensity", mSceneData.SceneEnvironmentIntensity);
 
         Ref<TextureCube> radianceMap = mSceneData.SceneEnvironment ? mSceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
         mSkyboxMaterial->Set("uTexture", radianceMap);
@@ -745,7 +845,48 @@ namespace NR
         CompositeMaterial->Set("uTexture", frameBuffer->GetImage());
 
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, nullptr, CompositeMaterial);
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, nullptr, mJumpFloodCompositeMaterial);
         Renderer::EndRenderPass(mCommandBuffer);
+    }
+
+    void SceneRenderer::JumpFloodPass()
+    {
+        NR_PROFILE_FUNC();
+
+        Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass);
+        
+        auto framebuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
+        mJumpFloodInitMaterial->Set("uTexture", framebuffer->GetImage());
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodInitPipeline, nullptr, nullptr, mJumpFloodInitMaterial);
+        
+        Renderer::EndRenderPass(mCommandBuffer);
+
+        mJumpFloodPassMaterial[0]->Set("uTexture", mTempFrameBuffers[0]->GetImage());
+        mJumpFloodPassMaterial[1]->Set("uTexture", mTempFrameBuffers[1]->GetImage());
+
+        int steps = 2;
+        int step = std::round(std::pow(steps - 1, 2));
+        int index = 0;
+        Buffer vertexOverrides;
+        Ref<FrameBuffer> passFB = mJumpFloodPassPipeline[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
+        glm::vec2 texelSize = { 1.0f / (float)passFB->GetWidth(), 1.0f / (float)passFB->GetHeight() };
+
+        vertexOverrides.Allocate(sizeof(glm::vec2) + sizeof(int));
+        vertexOverrides.Write(glm::value_ptr(texelSize), sizeof(glm::vec2));
+        
+        while (step != 0)
+        {
+            vertexOverrides.Write(&step, sizeof(int), sizeof(glm::vec2));
+            
+            Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodPassPipeline[index]->GetSpecification().RenderPass);
+            Renderer::SubmitFullscreenQuadWithOverrides(mCommandBuffer, mJumpFloodPassPipeline[index], nullptr, mJumpFloodPassMaterial[index], vertexOverrides, Buffer());
+            Renderer::EndRenderPass(mCommandBuffer);
+
+            index = (index + 1) % 2;
+            step /= 2;
+        }
+
+        mJumpFloodCompositeMaterial->Set("uTexture", mTempFrameBuffers[1]->GetImage());
     }
 
     void SceneRenderer::BloomBlurPass()
@@ -812,6 +953,7 @@ namespace NR
             PreDepthPass();
             LightCullingPass();
             GeometryPass();
+            JumpFloodPass();
             CompositePass();
             mCommandBuffer->End();
             mCommandBuffer->Submit();

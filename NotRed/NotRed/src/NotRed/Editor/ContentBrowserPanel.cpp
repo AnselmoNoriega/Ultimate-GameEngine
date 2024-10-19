@@ -26,12 +26,12 @@ namespace NR
 
 		mFileTex = Texture2D::Create("Resources/Editor/file.png");
 		mFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
-		mAssetIconMap["fbx"] = Texture2D::Create("Resources/Editor/fbx.png");
-		mAssetIconMap["obj"] = Texture2D::Create("Resources/Editor/obj.png");
-		mAssetIconMap["wav"] = Texture2D::Create("Resources/Editor/wav.png");
-		mAssetIconMap["cs"] = Texture2D::Create("Resources/Editor/csc.png");
-		mAssetIconMap["png"] = Texture2D::Create("Resources/Editor/png.png");
-		mAssetIconMap["hsc"] = Texture2D::Create("Resources/Editor/notred.png");
+		mAssetIconMap[".fbx"] = Texture2D::Create("Resources/Editor/fbx.png");
+		mAssetIconMap[".obj"] = Texture2D::Create("Resources/Editor/obj.png");
+		mAssetIconMap[".wav"] = Texture2D::Create("Resources/Editor/wav.png");
+		mAssetIconMap[".cs"] = Texture2D::Create("Resources/Editor/csc.png");
+		mAssetIconMap[".png"] = Texture2D::Create("Resources/Editor/png.png");
+		mAssetIconMap[".hscene"] = Texture2D::Create("Resources/Editor/hazel.png");
 		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
 		mFwrdbtnTex = Texture2D::Create("Resources/Editor/btn_fwrd.png");
 		mRefreshIcon = Texture2D::Create("Resources/Editor/refresh.png");
@@ -73,7 +73,7 @@ namespace NR
 			auto& metadata = AssetManager::GetMetadata(entry.path().string());
 			if (!metadata.IsValid())
 			{
-				AssetType type = AssetManager::GetAssetTypeForFileType(Utils::GetExtension(entry.path().string()));
+				AssetType type = AssetManager::GetAssetTypeFromPath(entry.path());
 				if (type == AssetType::None)
 				{
 					continue;
@@ -107,10 +107,12 @@ namespace NR
 		{
 			AssetMetadata metadata = AssetManager::GetMetadata(assetHandle);
 			if (!metadata.IsValid())
+			{
 				invalidAssets.emplace_back(metadata.Handle);
+			}
 			else
 			{
-				mCurrentItems.Items.push_back(Ref<ContentBrowserAsset>::Create(metadata, mAssetIconMap.find(metadata.Extension) != mAssetIconMap.end() ? mAssetIconMap[metadata.Extension] : mFileTex));
+				mCurrentItems.Items.push_back(Ref<ContentBrowserAsset>::Create(metadata, mAssetIconMap.find(metadata.FilePath.extension().string()) != mAssetIconMap.end() ? mAssetIconMap[metadata.FilePath.extension().string()] : mFileTex));
 			}
 		}
 
@@ -194,6 +196,12 @@ namespace NR
 						if (ImGui::MenuItem("Refresh"))
 						{
 							Refresh();
+						}
+
+						ImGui::Separator();
+						if (ImGui::MenuItem("Show in Explorer"))
+						{
+							FileSystem::OpenDirectoryInExplorer(mCurrentDirectory->FilePath);
 						}
 
 						ImGui::EndPopup();
@@ -421,9 +429,35 @@ namespace NR
 				}
 			}
 
+			if (result.IsSet(ContentBrowserAction::Reload))
+			{
+				AssetManager::ReloadData(item->GetID());
+			}
 			if (result.IsSet(ContentBrowserAction::OpenDeleteDialogue))
 			{
 				openDeleteDialogue = true;
+			}
+			if (result.IsSet(ContentBrowserAction::ShowInExplorer))
+			{
+				if (item->GetType() == ContentBrowserItem::ItemType::Directory)
+				{
+					FileSystem::ShowFileInExplorer(mCurrentDirectory->FilePath / item->GetName());
+				}
+				else
+				{
+					FileSystem::ShowFileInExplorer(AssetManager::GetFileSystemPath(AssetManager::GetMetadata(item->GetID())));
+				}
+			}
+			if (result.IsSet(ContentBrowserAction::OpenExternal))
+			{
+				if (item->GetType() == ContentBrowserItem::ItemType::Directory)
+				{
+					FileSystem::OpenExternally(mCurrentDirectory->FilePath / item->GetName());
+				}
+				else
+				{
+					FileSystem::OpenExternally(AssetManager::GetFileSystemPath(AssetManager::GetMetadata(item->GetID())));
+				}
 			}
 			if (result.IsSet(ContentBrowserAction::Hovered))
 			{
@@ -469,14 +503,18 @@ namespace NR
 			{
 				const AssetMetadata& asset = AssetManager::GetMetadata(mSelectionStack[0]);
 
+				std::string filepath;
 				if (asset.IsValid())
 				{
-					ImGui::Text(std::filesystem::relative(asset.FilePath, Project::GetAssetDirectory()).string().c_str());
+					filepath = asset.FilePath.string();
 				}
 				else if (mDirectories.find(mSelectionStack[0]) != mDirectories.end())
 				{
-					ImGui::Text(std::filesystem::relative(mDirectories[mSelectionStack[0]]->FilePath, Project::GetAssetDirectory()).string().c_str());
+					filepath = std::filesystem::relative(mDirectories[mSelectionStack[0]]->FilePath, Project::GetAssetDirectory()).string();
+					std::replace(filepath.begin(), filepath.end(), '\\', '/');
 				}
+
+				ImGui::Text(filepath.c_str());
 			}
 			else if (mSelectionStack.SelectionCount() > 1)
 			{
@@ -693,11 +731,11 @@ namespace NR
 		for (auto& assetHandle : directoryInfo->Assets)
 		{
 			auto& asset = AssetManager::GetMetadata(assetHandle);
-			std::string filename = Utils::ToLower(asset.FileName);
+			std::string filename = Utils::ToLower(asset.FilePath.filename().string());
 
 			if (filename.find(queryLowerCase) != std::string::npos)
 			{
-				results.Items.push_back(Ref<ContentBrowserAsset>::Create(asset, mAssetIconMap.find(asset.Extension) != mAssetIconMap.end() ? mAssetIconMap[asset.Extension] : mFileTex));
+				results.Items.push_back(Ref<ContentBrowserAsset>::Create(asset, mAssetIconMap.find(asset.FilePath.extension().string()) != mAssetIconMap.end() ? mAssetIconMap[asset.FilePath.extension().string()] : mFileTex));
 			}
 
 			if (queryLowerCase[0] != '.')
@@ -705,9 +743,9 @@ namespace NR
 				continue;
 			}
 
-			if (asset.Extension.find(std::string(&queryLowerCase[1])) != std::string::npos)
+			if (asset.FilePath.extension().string().find(std::string(&queryLowerCase[1])) != std::string::npos)
 			{
-				results.Items.push_back(Ref<ContentBrowserAsset>::Create(asset, mAssetIconMap.find(asset.Extension) != mAssetIconMap.end() ? mAssetIconMap[asset.Extension] : mFileTex));
+				results.Items.push_back(Ref<ContentBrowserAsset>::Create(asset, mAssetIconMap.find(asset.FilePath.extension().string()) != mAssetIconMap.end() ? mAssetIconMap[asset.FilePath.extension().string()] : mFileTex));
 			}
 		}
 
@@ -783,13 +821,14 @@ namespace NR
 
 	void ContentBrowserPanel::DirectoryAdded(FileSystemChangedEvent event)
 	{
-		auto parentDirectory = GetDirectory(event.FilePath.parent_path());
+		std::filesystem::path directoryPath = Project::GetActive()->GetAssetDirectory() / event.FilePath;
+		auto parentDirectory = GetDirectory(directoryPath.parent_path().string());
 		if (!parentDirectory)
 		{
 			NR_CORE_ASSERT(false, "How did this even happen?");
 		}
 
-		AssetHandle directoryHandle = ProcessDirectory(event.FilePath, parentDirectory);
+		AssetHandle directoryHandle = ProcessDirectory(directoryPath.string(), parentDirectory);
 		if (directoryHandle == 0)
 		{
 			return;
@@ -817,6 +856,7 @@ namespace NR
 
 	void ContentBrowserPanel::AssetDeleted(FileSystemChangedEvent event)
 	{
+		std::filesystem::path directoryPath = Project::GetActive()->GetAssetDirectory() / event.FilePath;
 		AssetMetadata metadata;
 		Ref<DirectoryInfo> directory;
 		for (const auto& item : mCurrentItems.Items)
@@ -828,7 +868,8 @@ namespace NR
 				if (assetInfo.FilePath == event.FilePath)
 				{
 					metadata = assetInfo;
-					directory = GetDirectory(assetInfo.FilePath.parent_path());
+					std::string parentDirectory = directoryPath.parent_path().string();
+					directory = GetDirectory(parentDirectory);
 					break;
 				}
 			}
@@ -940,7 +981,7 @@ namespace NR
 		for (auto& assetHandle : directoryInfo->Assets)
 		{
 			auto& metadata = AssetManager::GetMetadata(assetHandle);
-			metadata.FilePath = directoryInfo->FilePath / std::filesystem::path(metadata.FileName + "." + metadata.Extension);
+			metadata.FilePath = directoryInfo->FilePath / metadata.FilePath.filename();
 		}
 
 		for (auto& [handle, subdirectory] : directoryInfo->SubDirectories)
