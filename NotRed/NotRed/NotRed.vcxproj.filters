@@ -762,7 +762,9 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\ContentBrowser\ContentBrowserItem.h" />
+    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
+    <ClInclude Include="src\NotRed\Project\Project.h" />
+    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1242,6 +1244,9 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\ContentBrowser\ContentBrowserItem.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
+    <ClCompile Include="src\NotRed\Project\Project.cpp" />
+    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Util\FileSystem.cpp" />
   </ItemGroup>
 </Project>

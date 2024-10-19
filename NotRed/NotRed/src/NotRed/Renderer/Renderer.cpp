@@ -1,8 +1,9 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
-#include <glad/glad.h>
 #include <map>
+#include <filesystem>
+#include <glad/glad.h>
 
 #include "RendererAPI.h"
 #include "SceneRenderer.h"
@@ -10,6 +11,7 @@
 
 #include "Shader.h"
 
+#include "NotRed/Project/Project.h"
 #include "NotRed/Platform/OpenGL/GLRenderer.h"
 #include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
@@ -76,6 +78,7 @@ namespace NR
         Ref<ShaderLibrary> mShaderLibrary;
 
         Ref<Texture2D> WhiteTexture;
+        Ref<Texture2D> BRDFLutTexture;
         Ref<Texture2D> BlackTexture;
         Ref<TextureCube> BlackCubeTexture;
         Ref<Environment> EmptyEnvironment;
@@ -108,28 +111,28 @@ namespace NR
 
         sData->mShaderLibrary = Ref<ShaderLibrary>::Create();
 
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentMipFilter");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EquirectangularToCubeMap");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentIrradiance");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreethamSky");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/EnvironmentMipFilter");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/EquirectangularToCubeMap");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/EnvironmentIrradiance");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreethamSky");
 
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static", true);
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Particle", true);
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ParticleGen", true);
-        Renderer::GetShaderLibrary()->Load("assets/shaders/Wireframe");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/LightCulling", true);
-        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Anim");
-        //Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreDepth_Anim");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Grid");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HDR");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PBR_Static", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen", true);
+        Renderer::GetShaderLibrary()->Load("Resources/shaders/Wireframe");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Skybox");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling", true);
+        //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim.glsl");
+        //Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
 		
 		// Renderer2D Shaders
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Renderer2D");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Renderer2D_Line");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Renderer2D_Circle");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Line");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Circle");
 
         // Compile shaders
         Renderer::WaitAndRender();
@@ -137,11 +140,14 @@ namespace NR
         uint32_t whiteTextureData = 0xffffffff;
         sData->WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 
-        uint32_t blackTextureData = 0xff000000;
-        sData->BlackTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &blackTextureData);
-
         uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
         sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackCubeTextureData);
+        
+        {
+            TextureProperties props;
+            props.SamplerWrap = TextureWrap::Clamp;
+            sData->BRDFLutTexture = Texture2D::Create("Resources/Renderer/BRDF_LUT.tga", props);
+        }
 
         sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
 
@@ -257,6 +263,11 @@ namespace NR
     Ref<Texture2D> Renderer::GetWhiteTexture()
     {
         return sData->WhiteTexture;
+    }
+
+    Ref<Texture2D> Renderer::GetBRDFLutTexture()
+    {
+        return sData->BRDFLutTexture;
     }
 
     Ref<Texture2D> Renderer::GetBlackTexture()

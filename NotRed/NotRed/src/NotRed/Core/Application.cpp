@@ -68,12 +68,10 @@ namespace NR
             mImGuiLayer = ImGuiLayer::Create();
             PushOverlay(mImGuiLayer);
         }
-
-        ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
+        
+		ScriptEngine::Init("Resources/Scripts/Not-ScriptCore.dll");
         PhysicsManager::Init();
         Audio::AudioEngine::Init();
-
-        AssetManager::Init();
     }
 
     Application::~Application()

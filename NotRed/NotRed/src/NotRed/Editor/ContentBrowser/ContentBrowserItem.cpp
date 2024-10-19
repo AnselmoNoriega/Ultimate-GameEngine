@@ -43,9 +43,17 @@ namespace NR
 		}
 
 		UpdateDrop(result);
-		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+		bool dragging = false;
+		if (dragging = ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
+			mIsDragging = true;
+
 			const auto& selectionStack = ContentBrowserPanel::Get().GetSelectionStack();
+			if (!selectionStack.IsSelected(mID))
+			{
+				result.Modify(ContentBrowserAction::ClearSelections, true);
+			}
+
 			auto& currentItems = ContentBrowserPanel::Get().GetCurrentItems();
 			if (selectionStack.SelectionCount() > 0)
 			{
@@ -75,23 +83,20 @@ namespace NR
 			{
 				Activate(result);
 			}
-			else if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+			else
 			{
-				if (mIsSelected)
-				{
-					result.Modify(ContentBrowserAction::DeSelected, true);
-				}
-				else
+				const auto& selectionStack = ContentBrowserPanel::Get().GetSelectionStack();
+				bool action = selectionStack.SelectionCount() > 1 ? ImGui::IsMouseReleased(ImGuiMouseButton_Left) : ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+				bool skipBecauseDragging = mIsDragging && selectionStack.IsSelected(mID);
+				if (action && !skipBecauseDragging)
 				{
 					result.Modify(ContentBrowserAction::Selected, true);
-				}
-				if (!Input::IsKeyPressed(KeyCode::LeftControl) && !Input::IsKeyPressed(KeyCode::LeftShift))
-				{
-					result.Modify(ContentBrowserAction::ClearSelections, true);
-				}
-				if (Input::IsKeyPressed(KeyCode::LeftShift))
-				{
-					result.Modify(ContentBrowserAction::SelectToHere, true);
+
+					if (!Input::IsKeyPressed(KeyCode::LeftControl) && !Input::IsKeyPressed(KeyCode::LeftShift))
+						result.Modify(ContentBrowserAction::ClearSelections, true);
+
+					if (Input::IsKeyPressed(KeyCode::LeftShift))
+						result.Modify(ContentBrowserAction::SelectToHere, true);
 				}
 			}
 		}
@@ -121,6 +126,8 @@ namespace NR
 				result.Modify(ContentBrowserAction::Renamed, true);
 			}
 		}
+
+		mIsDragging = dragging;
 
 		return result;
 	}
@@ -172,8 +179,8 @@ namespace NR
 		ImGui::NextColumn();
 	}
 
-	ContentBrowserDirectory::ContentBrowserDirectory(const Ref<DirectoryInfo>& directoryInfo)
-		: ContentBrowserItem(ContentBrowserItem::ItemType::Directory, directoryInfo->Handle, directoryInfo->Name, AssetManager::GetAsset<Texture2D>("assets/editor/folder.png")), mDirectoryInfo(directoryInfo)
+	ContentBrowserDirectory::ContentBrowserDirectory(const Ref<DirectoryInfo>& directoryInfo, const Ref<Texture2D>& icon)
+		: ContentBrowserItem(ContentBrowserItem::ItemType::Directory, directoryInfo->Handle, directoryInfo->Name, icon), mDirectoryInfo(directoryInfo)
 	{
 	}
 

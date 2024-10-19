@@ -55,9 +55,15 @@ namespace NR
 			instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		}
 
+		VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
+		VkValidationFeaturesEXT features = {};
+		features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+		features.enabledValidationFeatureCount = 1;
+		features.pEnabledValidationFeatures = enables;
+
 		VkInstanceCreateInfo instanceCreateInfo = {};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		instanceCreateInfo.pNext = NULL;
+		instanceCreateInfo.pNext = nullptr;
 		instanceCreateInfo.pApplicationInfo = &appInfo;
 		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();

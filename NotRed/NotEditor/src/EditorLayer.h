@@ -49,8 +49,10 @@ namespace NR
 		void SelectEntity(Entity entity);
 
 		void NewScene();
-		void OpenScene();
+		void OpenProject();
+		void OpenProject(const std::string& filepath);
 		void OpenScene(const std::string& filepath);
+		void OpenScene(const AssetMetadata& assetMetadata);
 		void SaveScene();
 		void SaveSceneAs();
 

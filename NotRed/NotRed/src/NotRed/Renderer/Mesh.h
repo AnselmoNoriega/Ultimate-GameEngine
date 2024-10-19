@@ -198,6 +198,7 @@ namespace NR
 
 		std::vector<Index> mIndices;
 		std::unordered_map<std::string, uint32_t> mBoneMapping;
+		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
 		std::vector<glm::mat4> mBoneTransforms;
 		const aiScene* mScene;
 
@@ -229,10 +230,12 @@ namespace NR
 	public:
 		explicit Mesh(Ref<MeshAsset> meshAsset);
 		Mesh(Ref<MeshAsset> meshAsset, const std::vector<uint32_t>& submeshes);
+		Mesh(const Ref<Mesh>& other);
 		virtual ~Mesh() = default;
 
 		void Update(float dt);
 
+		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes) { mSubmeshes = submeshes; }
 

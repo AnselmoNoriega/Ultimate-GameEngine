@@ -173,7 +173,7 @@
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
     <ClInclude Include="src\NotRed\Audio\SourceManager.h" />
-    <ClInclude Include="src\NotRed\ContentBrowser\ContentBrowserItem.h" />
+    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
     <ClInclude Include="src\NotRed\Core\Application.h" />
     <ClInclude Include="src\NotRed\Core\Assert.h" />
     <ClInclude Include="src\NotRed\Core\Buffer.h" />
@@ -265,6 +265,8 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Vulkan.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
+    <ClInclude Include="src\NotRed\Project\Project.h" />
+    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
@@ -385,7 +387,7 @@
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
     <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />
     <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
-    <ClCompile Include="src\NotRed\ContentBrowser\ContentBrowserItem.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Hash.cpp" />
@@ -459,6 +461,8 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
+    <ClCompile Include="src\NotRed\Project\Project.cpp" />
+    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Image.cpp" />
@@ -490,6 +494,7 @@
     <ClCompile Include="src\NotRed\Script\ScriptEngine.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptEngineRegistry.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
+    <ClCompile Include="src\NotRed\Util\FileSystem.cpp" />
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp" />
     <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
     <ClCompile Include="src\nrpch.cpp">

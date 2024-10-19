@@ -39,7 +39,8 @@ namespace NR
 
 			std::string mName;
 
-			Ref<MeshAsset> mMesh;
+			Ref<MeshAsset> mMeshAsset;
+			Ref<Mesh> mMesh;
 
 			Entity mMeshEntity;
 			Entity mDirectionaLight;
@@ -52,8 +53,8 @@ namespace NR
 
 	private:
 		void RenderMeshTab(ImGuiID dockspaceID, const std::shared_ptr<MeshScene>& sceneData);
-		void DrawMeshNode(const Ref<MeshAsset>& mesh);
-		void MeshNodeHierarchy(const Ref<MeshAsset>& mesh, aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
+		void DrawMeshNode(const Ref<MeshAsset>& meshAsset, const Ref<Mesh>& mesh);
+		void MeshNodeHierarchy(const Ref<MeshAsset>& meshAsset, Ref<Mesh> mesh, aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
 
 	private:
 		bool mResetDockspace = true;

@@ -115,6 +115,12 @@ namespace NR::UI
 
 	bool ImageButton(const char* stringID, const Ref<Texture2D>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 	{
+		NR_CORE_VERIFY(texture);
+		if (!texture)
+		{
+			return false;
+		}
+
 		if (RendererAPI::Current() == RendererAPIType::OpenGL)
 		{
 			Ref<GLImage2D> image = texture->GetImage().As<GLImage2D>();
@@ -122,8 +128,15 @@ namespace NR::UI
 		}
 		else
 		{
-			Ref<VKTexture2D> VkTexture = texture.As<VKTexture2D>();
-			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVulkanDescriptorInfo();
+			Ref<VKTexture2D> vkTexture = texture.As<VKTexture2D>();
+
+			NR_CORE_VERIFY(vkTexture->GetImage());
+			if (!vkTexture->GetImage())
+			{
+				return false;
+			}
+
+			const VkDescriptorImageInfo& imageInfo = vkTexture->GetVulkanDescriptorInfo();
 			const auto textureID = ImGui_ImplVulkan_AddTexture(imageInfo.sampler, imageInfo.imageView, imageInfo.imageLayout);
 
 			ImGuiID id = (ImGuiID)((((uint64_t)imageInfo.imageView) >> 32) ^ (uint32_t)imageInfo.imageView);

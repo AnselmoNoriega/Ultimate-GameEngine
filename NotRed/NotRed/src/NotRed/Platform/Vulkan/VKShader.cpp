@@ -19,7 +19,7 @@ namespace NR
     {
         static const char* GetCacheDirectory()
         {
-            return "Assets/Cache/Shader/Vulkan";
+            return "Resources/Cache/Shader/Vulkan";
         }
 
         static void CreateCacheDirectoryIfNeeded()

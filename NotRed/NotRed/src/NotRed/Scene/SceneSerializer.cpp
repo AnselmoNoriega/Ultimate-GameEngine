@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -284,8 +285,7 @@ namespace NR
 			auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
 			if (mesh)
 			{
-				auto meshAsset = mesh->GetMeshAsset();
-				out << YAML::Key << "AssetID" << YAML::Value << meshAsset->Handle;
+				out << YAML::Key << "AssetID" << YAML::Value << mesh->Handle;
 			}
 			else
 			{
@@ -353,7 +353,10 @@ namespace NR
 			out << YAML::BeginMap; // SkyLightComponent
 
 			auto& skyLightComponent = entity.GetComponent<SkyLightComponent>();
-			out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
+			if (skyLightComponent.SceneEnvironment)
+			{
+				out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
+			}
 			out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;
 			out << YAML::Key << "Angle" << YAML::Value << skyLightComponent.Angle;
 
@@ -827,7 +830,25 @@ namespace NR
 
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						component.MeshObj = Ref<Mesh>::Create(AssetManager::GetAsset<MeshAsset>(assetHandle));
+						const AssetMetadata& metadata = AssetManager::GetMetadata(assetHandle);
+						if (metadata.Type == AssetType::Mesh)
+						{
+							component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+						}
+
+						else if (metadata.Type == AssetType::MeshAsset)
+						{
+							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(assetHandle);
+							
+							std::filesystem::path meshPath = meshAsset->GetFilePath();
+							std::filesystem::path directoryPath = meshPath.parent_path();
+							std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
+							
+							Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), meshAsset);
+							component.MeshObj = mesh;
+							
+							AssetImporter::Serialize(mesh);
+						}
 					}
 					else
 					{
@@ -917,30 +938,32 @@ namespace NR
 				{
 					auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
 
-					AssetHandle assetHandle = 0;
-					if (skyLightComponent["EnvironmentAssetPath"])
+					if (skyLightComponent["EnvironmentMap"])
 					{
-						assetHandle = AssetManager::GetAssetHandleFromFilePath(skyLightComponent["EnvironmentAssetPath"].as<std::string>());
-					}
-					else
-					{
-						assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
-					}
-
-					if (AssetManager::IsAssetHandleValid(assetHandle))
-					{
-						component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
-					}
-					else
-					{
-						std::string filepath = meshComponent["EnvironmentAssetPath"] ? meshComponent["EnvironmentAssetPath"].as<std::string>() : "";
-						if (filepath.empty())
+						AssetHandle assetHandle = 0;
+						if (skyLightComponent["EnvironmentAssetPath"])
 						{
-							NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", (uint64_t)deserializedEntity.GetID());
+							assetHandle = AssetManager::GetAssetHandleFromFilePath(skyLightComponent["EnvironmentAssetPath"].as<std::string>());
 						}
 						else
 						{
-							NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
+							assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
+						}
+						if (AssetManager::IsAssetHandleValid(assetHandle))
+						{
+							component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
+						}
+						else
+						{
+							std::string filepath = meshComponent["EnvironmentAssetPath"] ? meshComponent["EnvironmentAssetPath"].as<std::string>() : "";
+							if (filepath.empty())
+							{
+								NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", (uint64_t)deserializedEntity.GetID());
+							}
+							else
+							{
+								NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
+							}
 						}
 					}
 					component.Intensity = skyLightComponent["Intensity"].as<float>();

@@ -20,7 +20,8 @@
 
 namespace NR
 {
-    static MonoDomain* sMonoDomain = nullptr;
+    static MonoDomain* sCurrentMonoDomain = nullptr;
+    static MonoDomain* sNewMonoDomain = nullptr;
     static std::string sAssemblyPath;
     static Ref<Scene> sSceneContext;
 
@@ -130,13 +131,13 @@ namespace NR
 
     static void InitMono()
     {
-        if (!sMonoDomain)
+        if (!sCurrentMonoDomain)
         {
             mono_set_assemblies_path("mono/lib");
             auto domain = mono_jit_init("NotRed");
 
             char* name = (char*)"NotRedRuntime";
-            sMonoDomain = mono_domain_create_appdomain(name, nullptr);
+            sCurrentMonoDomain = mono_domain_create_appdomain(name, nullptr);
         }
     }
 
@@ -180,7 +181,7 @@ namespace NR
 
     static uint32_t Instantiate(EntityScriptClass& scriptClass)
     {
-        MonoObject* instance = mono_object_new(sMonoDomain, scriptClass.Class);
+        MonoObject* instance = mono_object_new(sCurrentMonoDomain, scriptClass.Class);
         if (!instance)
         {
             std::cout << "mono_object_new failed" << std::endl;
@@ -251,41 +252,70 @@ namespace NR
 
     static MonoString* GetName()
     {
-        return mono_string_new(sMonoDomain, "Hello!");
+        return mono_string_new(sCurrentMonoDomain, "Hello!");
     }
 
-    void ScriptEngine::LoadRuntimeAssembly(const std::string& path)
-    {
-        MonoDomain* domain = nullptr;
-        bool cleanup = false;
-        if (sMonoDomain)
-        {
-            domain = mono_domain_create_appdomain((char*)"NotRed Runtime", nullptr);
-            mono_domain_set(domain, false);
+    static bool sPostLoadCleanup = false;
 
-            cleanup = true;
+    bool ScriptEngine::LoadRuntimeAssembly(const std::string& path)
+    {
+        sAssemblyPath = path;
+        if (sCurrentMonoDomain)
+        {
+            sNewMonoDomain = mono_domain_create_appdomain("NotRed Runtime", nullptr);
+            mono_domain_set(sNewMonoDomain, false);
+            sPostLoadCleanup = true;
         }
 
-        sCoreAssembly = LoadAssembly("Assets/Scripts/NotRed-ScriptCore.dll");
+        sCoreAssembly = LoadAssembly(path);
+        if (!sCoreAssembly)
+        {
+            return false;
+        }
+
         sCoreAssemblyImage = GetAssemblyImage(sCoreAssembly);
 
+        return true;
+    }
+
+    bool ScriptEngine::LoadAppAssembly(const std::string& path)
+    {
+        if (sAppAssembly)
+        {
+            sAppAssembly = nullptr;
+            sAppAssemblyImage = nullptr;
+            return ReloadAssembly(path);
+        }
+
         auto appAssembly = LoadAssembly(path);
+        if (!appAssembly)
+        {
+            return false;
+        }
+
         auto appAssemblyImage = GetAssemblyImage(appAssembly);
         ScriptEngineRegistry::RegisterAll();
 
-        if (cleanup)
+        if (sPostLoadCleanup)
         {
-            mono_domain_unload(sMonoDomain);
-            sMonoDomain = domain;
+            mono_domain_unload(sCurrentMonoDomain);
+            sCurrentMonoDomain = sNewMonoDomain;
+            sNewMonoDomain = nullptr;
         }
 
         sAppAssembly = appAssembly;
         sAppAssemblyImage = appAssemblyImage;
+
+        return true;
     }
 
-    void ScriptEngine::ReloadAssembly(const std::string& path)
+    bool ScriptEngine::ReloadAssembly(const std::string& path)
     {
-        LoadRuntimeAssembly(path);
+        if (!LoadRuntimeAssembly(sAssemblyPath) || !LoadAppAssembly(path))
+        {
+            return false;
+        }
+
         if (sEntityInstanceMap.size())
         {
             Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -301,15 +331,14 @@ namespace NR
                 }
             }
         }
+
+        return true;
     }
 
     void ScriptEngine::Init(const std::string& assemblyPath)
     {
-        sAssemblyPath = assemblyPath;
-
         InitMono();
-
-        LoadRuntimeAssembly(sAssemblyPath);
+        LoadRuntimeAssembly(assemblyPath);
     }
 
     void ScriptEngine::Shutdown()
@@ -555,6 +584,11 @@ namespace NR
     bool ScriptEngine::ModuleExists(const std::string& moduleName)
     {
         NR_PROFILE_FUNC();
+        
+        if (!sAppAssemblyImage)
+        {
+            return false;
+        }
 
         std::string NamespaceName, ClassName;
         if (moduleName.find('.') != std::string::npos)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <functional>
 
 #include "NotRed/Core/Buffer.h"
@@ -30,7 +31,10 @@ namespace NR
 		using FileSystemChangedCallbackFn = std::function<void(FileSystemChangedEvent)>;
 
 	public:
-		static bool CreateFolder(const std::string& filepath);
+		static bool CreateDirectory(const std::filesystem::path& directory);
+		static bool CreateDirectory(const std::string& directory);
+		static bool Exists(const std::filesystem::path& filepath);
+
 		static bool Exists(const std::string& filePath);
 		static std::string Rename(const std::string& filepath, const std::string& newName);
 		static bool DeleteFile(const std::string& filepath);

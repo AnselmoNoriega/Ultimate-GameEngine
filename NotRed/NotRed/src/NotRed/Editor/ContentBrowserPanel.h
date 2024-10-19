@@ -2,11 +2,14 @@
 
 #include <map>
 
+#include "NotRed/Project/Project.h"
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/ImGui/ImGui.h"
 
 #include "ContentBrowser/ContentBrowserItem.h"
+
+#define MAX_INPUT_BUFFER_LENGTH 128
 
 namespace NR
 {
@@ -40,12 +43,14 @@ namespace NR
             }
         }
 
-        bool IsSelected(AssetHandle handle)
+        bool IsSelected(AssetHandle handle) const
         {
             for (const auto& selectedHandle : mSelections)
             {
                 if (selectedHandle == handle)
+                {
                     return true;
+                }
             }
 
             return false;
@@ -120,7 +125,7 @@ namespace NR
         static ContentBrowserPanel& Get() { return *sInstance; }
 
     public:
-        ContentBrowserPanel();
+        ContentBrowserPanel(Ref<Project> project);
 
         void ImGuiRender();
 
@@ -183,6 +188,8 @@ namespace NR
         }
 
     private:
+        Ref<Project> mProject;
+
         Ref<Texture2D> mFileTex;
         Ref<Texture2D> mFolderIcon;
         Ref<Texture2D> mBackbtnTex;

@@ -13,6 +13,7 @@
 
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Asset/MeshSerializer.h"
+#include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/ImGui/ImGui.h"
 #include "NotRed/Math/Math.h"
@@ -154,9 +155,9 @@ namespace NR
 
 	void MeshViewerPanel::SetAsset(const Ref<Asset>& asset)
 	{
-		Ref<MeshAsset> mesh = (Ref<MeshAsset>)asset;
+		Ref<MeshAsset> meshAsset = (Ref<MeshAsset>)asset;
 
-		const std::string& path = mesh->GetFilePath();
+		const std::string& path = meshAsset->GetFilePath();
 		size_t found = path.find_last_of("/\\");
 		std::string name = found != std::string::npos ? path.substr(found + 1) : path;
 		found = name.find_last_of(".");
@@ -170,11 +171,12 @@ namespace NR
 		}
 
 		auto& sceneData = mOpenMeshes[name] = std::make_shared<MeshScene>();
-		sceneData->mMesh = mesh;
+		sceneData->mMeshAsset = meshAsset;
 		sceneData->mName = name;
 		sceneData->mScene = Ref<Scene>::Create("MeshViewerPanel", true);
 		sceneData->mMeshEntity = sceneData->mScene->CreateEntity("Mesh");
-		sceneData->mMeshEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(sceneData->mMesh));
+		sceneData->mMesh = Ref<Mesh>::Create(sceneData->mMeshAsset);
+		sceneData->mMeshEntity.AddComponent<MeshComponent>(sceneData->mMesh);
 		sceneData->mMeshEntity.AddComponent<SkyLightComponent>().DynamicSky = true;
 
 		sceneData->mDirectionaLight = sceneData->mScene->CreateEntity("DirectionalLight");
@@ -284,7 +286,7 @@ namespace NR
 			}
 			{
 				ImGui::Begin(propertiesPanelName.c_str(), nullptr, ImGuiWindowFlags_NoCollapse);
-				DrawMeshNode(sceneData->mMesh);
+				DrawMeshNode(sceneData->mMeshAsset, sceneData->mMesh);
 				ImGui::End();
 			}
 
@@ -294,14 +296,23 @@ namespace NR
 		ImGui::PopID();
 	}
 
-	void MeshViewerPanel::DrawMeshNode(const Ref<MeshAsset>& mesh)
+	void MeshViewerPanel::DrawMeshNode(const Ref<MeshAsset>& meshAsset, const Ref<Mesh>& mesh)
 	{
 		// Mesh Hierarchy
-		auto rootNode = mesh->mScene->mRootNode;
-		MeshNodeHierarchy(mesh, rootNode);
+		auto rootNode = meshAsset->mScene->mRootNode;
+		MeshNodeHierarchy(meshAsset, mesh, rootNode);
 		if (ImGui::Button("Create Mesh"))
 		{
-			NR_CORE_ASSERT(false, "See above");
+			std::filesystem::path meshPath = meshAsset->GetFilePath();			
+			
+			NR_CORE_WARN("Mesh Name = {0}", meshPath.stem().string());
+			NR_CORE_WARN("Output filename = {0}", fmt::format("{0}.nrm", meshPath.stem().string()));
+
+			std::filesystem::path directoryPath = meshPath.parent_path();
+			std::string filename = fmt::format("{0}.nrm", meshPath.stem().string());
+			Ref<Mesh> serializedMesh = AssetManager::CreateNewAsset<Mesh>(filename, directoryPath.string(), mesh);
+			
+			AssetImporter::Serialize(serializedMesh);
 		}
 	}
 
@@ -316,15 +327,37 @@ namespace NR
 		return result;
 	}
 
-	void MeshViewerPanel::MeshNodeHierarchy(const Ref<MeshAsset>& mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
+	void MeshViewerPanel::MeshNodeHierarchy(const Ref<MeshAsset>& meshAsset, Ref<Mesh> mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
 	{
 		glm::mat4 localTransform = AssimpMat4ToMat4(node->mTransformation);
 		glm::mat4 transform = parentTransform * localTransform;
 
-		static bool checked = true;
-		
-		ImGui::Checkbox("##checkbox", &checked);
-		ImGui::SameLine();
+		NR_CORE_ASSERT(meshAsset->mNodeMap.find(node) != meshAsset->mNodeMap.end());
+		auto& meshIndices = meshAsset->mNodeMap.at(node);
+		if (!meshIndices.empty())
+		{
+			ImGui::PushID(node->mName.C_Str());
+
+			uint32_t meshIndex = meshIndices.front();
+			auto& submeshes = mesh->GetSubmeshes();
+			bool checked = std::find(submeshes.begin(), submeshes.end(), meshIndex) != submeshes.end();
+			
+			if (ImGui::Checkbox("##checkbox", &checked))
+			{
+				if (checked)
+				{
+					submeshes.emplace_back(meshIndex);
+				}
+				else
+				{
+					submeshes.erase(std::find(submeshes.begin(), submeshes.end(), meshIndex));
+				}
+			}
+
+			ImGui::PopID();
+			ImGui::SameLine();
+		}
+
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_OpenOnDoubleClick;
 		
 		if (node->mNumChildren == 0)
@@ -354,7 +387,7 @@ namespace NR
 
 			for (uint32_t i = 0; i < node->mNumChildren; ++i)
 			{
-				MeshNodeHierarchy(mesh, node->mChildren[i], transform, level + 1);
+				MeshNodeHierarchy(meshAsset, mesh, node->mChildren[i], transform, level + 1);
 			}
 			ImGui::TreePop();
 		}

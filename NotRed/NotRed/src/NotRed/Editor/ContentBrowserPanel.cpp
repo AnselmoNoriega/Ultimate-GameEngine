@@ -6,35 +6,38 @@
 
 #include <imgui_internal.h>
 
+#include "NotRed/Project/Project.h"
 #include "NotRed/Core/Application.h"
 #include "NotRed/Core/Input.h"
 #include "AssetEditorPanel.h"
+
+#include "NotRed/Audio/Sound.h"
 
 namespace NR
 {
 	static int sColumnCount = 2;
 
-	ContentBrowserPanel::ContentBrowserPanel()
+	ContentBrowserPanel::ContentBrowserPanel(Ref<Project> project)
+		: mProject(project)
 	{
 		sInstance = this;
 
 		AssetManager::SetAssetChangeCallback(NR_BIND_EVENT_FN(ContentBrowserPanel::FileSystemChanged));
 
-		mFileTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/file.png");
-		mFolderIcon = AssetManager::GetAsset<Texture2D>("Assets/Editor/folder.png");
-		mRefreshIcon = Texture2D::Create("Assets/Editor/refresh.png");
-		mAssetIconMap[""] = AssetManager::GetAsset<Texture2D>("Assets/Editor/folder.png");
-		mAssetIconMap["fbx"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/fbx.png");
-		mAssetIconMap["obj"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/obj.png");
-		mAssetIconMap["wav"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/wav.png");
-		mAssetIconMap["cs"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/csc.png");
-		mAssetIconMap["png"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/png.png");
-		mAssetIconMap["nrsc"] = AssetManager::GetAsset<Texture2D>("Assets/Editor/notred.png");
+		mFileTex = Texture2D::Create("Resources/Editor/file.png");
+		mFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
+		mAssetIconMap["fbx"] = Texture2D::Create("Resources/Editor/fbx.png");
+		mAssetIconMap["obj"] = Texture2D::Create("Resources/Editor/obj.png");
+		mAssetIconMap["wav"] = Texture2D::Create("Resources/Editor/wav.png");
+		mAssetIconMap["cs"] = Texture2D::Create("Resources/Editor/csc.png");
+		mAssetIconMap["png"] = Texture2D::Create("Resources/Editor/png.png");
+		mAssetIconMap["hsc"] = Texture2D::Create("Resources/Editor/notred.png");
+		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
+		mFwrdbtnTex = Texture2D::Create("Resources/Editor/btn_fwrd.png");
+		mRefreshIcon = Texture2D::Create("Resources/Editor/refresh.png");
+		std::filesystem::path assetDirectory = project->GetAssetDirectory();
+		AssetHandle baseDirectoryHandle = ProcessDirectory(assetDirectory.string(), nullptr);
 
-		mBackbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/back.png");
-		mFwrdbtnTex = AssetManager::GetAsset<Texture2D>("Assets/Editor/fwrd.png");
-
-		AssetHandle baseDirectoryHandle = ProcessDirectory("Assets", nullptr);
 		mBaseDirectory = mDirectories[baseDirectoryHandle];
 		ChangeDirectory(mBaseDirectory);
 
@@ -69,7 +72,8 @@ namespace NR
 				continue;
 			}
 
-			auto metadata = AssetManager::GetMetadata(entry.path().string());
+			std::filesystem::path relativePath = std::filesystem::relative(entry.path(), Project::GetAssetDirectory());
+			auto& metadata = AssetManager::GetMetadata(relativePath.string());
 			if (!metadata.IsValid())
 			{
 				AssetType type = AssetManager::GetAssetTypeForFileType(Utils::GetExtension(entry.path().string()));
@@ -98,7 +102,7 @@ namespace NR
 
 		for (auto& [subdirHandle, subdir] : directory->SubDirectories)
 		{
-			mCurrentItems.Items.push_back(Ref<ContentBrowserDirectory>::Create(subdir));
+			mCurrentItems.Items.push_back(Ref<ContentBrowserDirectory>::Create(subdir, mFolderIcon));
 		}
 
 		std::vector<AssetHandle> invalidAssets;
@@ -162,7 +166,7 @@ namespace NR
 						{
 							if (ImGui::MenuItem("Folder"))
 							{
-								FileSystem::CreateFolder(mCurrentDirectory->FilePath + "/New Folder");
+								FileSystem::CreateDirectory(mCurrentDirectory->FilePath + "/New Folder");
 							}
 
 							if (ImGui::MenuItem("Physics Material"))
@@ -172,7 +176,7 @@ namespace NR
 
 							if (ImGui::MenuItem("Sound Config"))
 							{
-								CreateAsset<Audio::SoundConfig>("New Sound Config.hsoundc");
+								CreateAsset<Audio::SoundConfig>("New Sound Config.nrsoundc");
 							}
 
 							ImGui::EndMenu();
@@ -674,7 +678,7 @@ namespace NR
 		{
 			if (subdir->Name.find(queryLowerCase) != std::string::npos)
 			{
-				results.Items.push_back(Ref<ContentBrowserDirectory>::Create(subdir));
+				results.Items.push_back(Ref<ContentBrowserDirectory>::Create(subdir, mFolderIcon));
 			}
 
 			ContentBrowserItemList list = Search(query, subdir);

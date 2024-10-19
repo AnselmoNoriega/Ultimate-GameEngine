@@ -21,12 +21,15 @@
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"
 
+#include "NotRed/Project/Project.h"
+#include "NotRed/Project/ProjectSerializer.h"
+
 #include "NotRed/Renderer/RendererAPI.h"
 
 namespace NR
 {
     EditorLayer::EditorLayer()
-        : mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)), mSecondEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)), mSceneType(SceneType::Model)
+        : mSceneType(SceneType::Model)
     {
     }
 
@@ -44,21 +47,21 @@ namespace NR
         using namespace glm;
 
         // Editor
-        mCheckerboardTex = Texture2D::Create("Assets/Editor/Checkerboard.tga");
-        mPlayButtonTex = Texture2D::Create("Assets/Editor/PlayButton.png");
-        mPauseButtonTex = Texture2D::Create("Assets/Editor/PauseButton.png");
-        mStopButtonTex = Texture2D::Create("Assets/Editor/StopButton.png");
+        mCheckerboardTex = Texture2D::Create("Resources/Editor/Checkerboard.tga");
+        mPlayButtonTex = Texture2D::Create("Resources/Editor/PlayButton.png");
+        mPauseButtonTex = Texture2D::Create("Resources/Editor/PauseButton.png");
+        mStopButtonTex = Texture2D::Create("Resources/Editor/StopButton.png");
 
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
         mSceneHierarchyPanel->SetSelectionChangedCallback(NR_BIND_EVENT_FN(EditorLayer::SelectEntity));
         mSceneHierarchyPanel->SetEntityDeletedCallback(NR_BIND_EVENT_FN(EditorLayer::EntityDeleted));
 
-        mContentBrowserPanel = CreateScope<ContentBrowserPanel>();
-        mObjectsPanel = CreateScope<ObjectsPanel>();
-
         Renderer2D::SetLineWidth(mLineWidth);
 
-        NewScene();
+        OpenProject("SandboxProject/Sandbox.nrproj");
+
+        mObjectsPanel = CreateScope<ObjectsPanel>();
+
         mViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
         mSecondViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
         mFocusedRenderer = mViewportRenderer;
@@ -83,7 +86,7 @@ namespace NR
 
         if (mReloadScriptOnPlay)
         {
-            ScriptEngine::ReloadAssembly("Assets/Scripts/ExampleApp.dll");
+            ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
         }
 
         mRuntimeScene = Ref<Scene>::Create();
@@ -110,7 +113,7 @@ namespace NR
     void EditorLayer::UpdateWindowTitle(const std::string& sceneName)
     {
         std::string rendererAPI = RendererAPI::Current() == RendererAPIType::Vulkan ? "Vulkan" : "OpenGL";
-        std::string title = sceneName + " - NotRednut - " + Application::GetPlatformName() + " (" + Application::GetConfigurationName() + ") Renderer: " + rendererAPI;
+        std::string title = fmt::format("{0} ({1}) - NotEditor - {2} ({3}) Renderer: {4}", sceneName, Project::GetActive()->GetConfig().Name, Application::GetPlatformName(), Application::GetConfigurationName(), rendererAPI);
         Application::Get().GetWindow().SetTitle(title);
     }
 
@@ -298,16 +301,6 @@ namespace NR
         mCurrentScene = mEditorScene;
     }
 
-    void EditorLayer::OpenScene()
-    {
-        auto& app = Application::Get();
-        std::string filepath = app.OpenFile("NotRed Scene (*.nrsc)\0*.nrsc\0");
-        if (!filepath.empty())
-        {
-            OpenScene(filepath);
-        }
-    }
-
     void EditorLayer::OpenScene(const std::string& filepath)
     {
         Ref<Scene> newScene = Ref<Scene>::Create("New Scene", true);
@@ -325,6 +318,56 @@ namespace NR
         mSelectionContext.clear();
 
         mCurrentScene = mEditorScene;
+    }
+
+    void EditorLayer::OpenScene(const AssetMetadata& assetMetadata)
+    {
+        std::filesystem::path workingDirPath = Project::GetAssetDirectory() / assetMetadata.FilePath;
+        OpenScene(workingDirPath.string());
+    }
+
+    void EditorLayer::OpenProject()
+    {
+        auto& app = Application::Get();
+        std::string filepath = app.OpenFile("NotRed Project (*.nrproj)\0*.nrproj\0");
+        if (!filepath.empty())
+        {
+            OpenProject(filepath);
+        }
+    }
+
+    void EditorLayer::OpenProject(const std::string& filepath)
+    {
+        if (Project::GetActive())
+        {
+            FileSystem::StopWatching();
+        }
+
+        Ref<Project> project = Ref<Project>::Create();
+        ProjectSerializer serializer(project);
+
+        serializer.Deserialize(filepath);
+
+        Project::SetActive(project);
+        ScriptEngine::LoadAppAssembly((Project::GetScriptModuleFilePath()).string());
+
+        if (mEditorScene)
+        {
+            mEditorScene->SetSelectedEntity({});
+        }
+
+        mSelectionContext.clear();
+        mContentBrowserPanel = CreateScope<ContentBrowserPanel>(project);
+
+        FileSystem::StartWatching();
+
+        mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        
+        if (!project->GetConfig().StartScene.empty())
+        {
+            OpenScene((Project::GetProjectDirectory() / project->GetConfig().StartScene).string());
+        }
     }
 
     void EditorLayer::SaveScene()
@@ -734,12 +777,12 @@ namespace NR
                 for (uint64_t i = 0; i < count; ++i)
                 {
                     AssetHandle assetHandle = *((AssetHandle*)data->Data + i);
-                    const auto& assetData = AssetManager::GetMetadata(assetHandle);
+                    const AssetMetadata& assetData = AssetManager::GetMetadata(assetHandle);
 
                     // We can't really support dragging and dropping scenes when we're dropping multiple assets
                     if (count == 1 && assetData.Type == AssetType::Scene)
                     {
-                        OpenScene(assetData.FilePath);
+                        OpenScene(assetData);
                         break;
                     }
 
@@ -748,6 +791,12 @@ namespace NR
                     {
                         Entity entity = mEditorScene->CreateEntity(assetData.FileName);
                         entity.AddComponent<MeshComponent>(Ref<Mesh>::Create(asset.As<MeshAsset>()));
+                        SelectEntity(entity);
+                    }
+                    else if (asset->GetAssetType() == AssetType::Mesh)
+                    {
+                        Entity entity = mEditorScene->CreateEntity(assetData.FileName);
+                        entity.AddComponent<MeshComponent>(asset.As<Mesh>());
                         SelectEntity(entity);
                     }
                 }
@@ -897,9 +946,9 @@ namespace NR
                 {
                     NewScene();
                 }
-                if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
+                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
                 {
-                    OpenScene();
+                    OpenProject();
                 }
 
                 ImGui::Separator();
@@ -938,7 +987,7 @@ namespace NR
             {
                 if (ImGui::MenuItem("Reload C# Assembly"))
                 {
-                    ScriptEngine::ReloadAssembly("Assets/Scripts/ExampleApp.dll");
+                    ScriptEngine::ReloadAssembly((Project::GetScriptModulePath() / "ExampleApp.dll").string());
                 }
 
                 ImGui::MenuItem("Reload assembly on play", nullptr, &mReloadScriptOnPlay);
@@ -1301,6 +1350,26 @@ namespace NR
         mFocusedRenderer->ImGuiRender();
         PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
+        // Project panel
+        {
+            ImGui::Begin("Project");
+
+            Ref<Project> project = Project::GetActive();
+            const auto& config = project->GetConfig();
+
+            UI::BeginPropertyGrid();
+            UI::Property("Name", config.Name);
+            UI::Property("Asset Directory", config.AssetDirectory);
+            UI::Property("Asset Registry Path", config.AssetRegistryPath);
+            UI::Property("Mesh Path", config.MeshPath);
+            UI::Property("Mesh Source Path", config.MeshSourcePath);
+            UI::Property("Script Module Path", config.ScriptModulePath);
+            UI::Property("Start Scene", config.StartScene);
+            UI::Property("Project Directory", config.ProjectDirectory);
+            UI::EndPropertyGrid();
+            ImGui::End();
+        }
+
         ImGui::End();
 
         UI_WelcomePopup();
@@ -1426,7 +1495,7 @@ namespace NR
             }
             case KeyCode::O:
             {
-                OpenScene();
+                OpenProject();
                 break;
             }
             case KeyCode::S:

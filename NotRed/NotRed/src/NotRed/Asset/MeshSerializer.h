@@ -10,13 +10,13 @@ namespace NR
 	public:
 		MeshSerializer();
 
-		void Serialize(const std::string& filepath);
-		void SerializeRuntime(const std::string& filepath);
+		void Serialize(Ref<Mesh> mesh, const std::string& filepath);
+		void SerializeRuntime(Ref<Mesh> mesh, const std::string& filepath);
 
 		bool Deserialize(const std::string& filepath);
 		bool DeserializeRuntime(const std::string& filepath);
 
-		void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
+		void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override;
 		bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
 	};
 }

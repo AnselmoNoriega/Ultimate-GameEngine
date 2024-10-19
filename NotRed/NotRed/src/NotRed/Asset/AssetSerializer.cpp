@@ -7,6 +7,8 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Audio/AudioFileUtils.h"
 
+#include "AssetManager.h"
+
 #include "yaml-cpp/yaml.h"
 
 namespace NR
@@ -27,14 +29,14 @@ namespace NR
 	bool MeshAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		Ref<Asset> temp = asset;
-		asset = Ref<MeshAsset>::Create(metadata.FilePath);
+		asset = Ref<MeshAsset>::Create(AssetManager::GetFileSystemPath(metadata));
 		asset->Handle = metadata.Handle;
 		return (asset.As<MeshAsset>())->GetVertices().size() > 0;
 	}
 
 	bool EnvironmentSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(metadata.FilePath);
+		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(AssetManager::GetFileSystemPath(metadata));
 
 		if (!radiance || !irradiance)
 		{

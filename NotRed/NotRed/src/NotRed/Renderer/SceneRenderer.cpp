@@ -178,10 +178,17 @@ namespace NR
         // Composite
         {
             FrameBufferSpecification compFrameBufferSpec;
-            compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
+            compFrameBufferSpec.DebugName = "SceneComposite";
             compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
             compFrameBufferSpec.SwapChainTarget = mSpecification.SwapChainTarget;
-            compFrameBufferSpec.DebugName = "Composite";
+            if (mSpecification.SwapChainTarget)
+            {
+                compFrameBufferSpec.Attachments = { ImageFormat::RGBA };
+            }
+            else
+            {
+                compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
+            }
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
 
@@ -195,7 +202,7 @@ namespace NR
 
             RenderPassSpecification renderPassSpec;
             renderPassSpec.TargetFrameBuffer = frameBuffer;
-            renderPassSpec.DebugName = "Composite";
+            renderPassSpec.DebugName = "SceneComposite";
             pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
             pipelineSpecification.DebugName = "SceneComposite";
             pipelineSpecification.DepthWrite = false;

@@ -6,9 +6,18 @@
 #include "AssetImporter.h"
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Util/StringUtils.h"
+#include "NotRed/Project/Project.h"
 
 namespace NR
 {
+    class AssetManagerConfig
+    {
+        std::string AssetDirectory = "Assets/";
+        std::string AssetRegistryPath = "Assets/AssetRegistry.nrr";
+        std::string MeshPath = "Assets/Meshes/";
+        std::string MeshSourcePath = "Assets/Meshes/Source/";
+    };
+
     class AssetManager
     {
     public:
@@ -29,6 +38,8 @@ namespace NR
         static AssetType GetAssetTypeForFileType(const std::string& extension);
 
         static AssetHandle ImportAsset(const std::string& filepath);
+
+        static std::string GetFileSystemPath(const AssetMetadata& metadata) { return (Project::GetAssetDirectory() / metadata.FilePath).string(); }
 
         template<typename T, typename... Args>
         static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)

@@ -1,0 +1,24 @@
+Scene: Scene Name
+Environment:
+  AssetHandle: 15286369895399152165
+  Light:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 16556318751062769949
+    TagComponent:
+      Tag: Sky Light
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    SkyLightComponent:
+      EnvironmentMap: 15286369895399152165
+      Intensity: 1
+      Angle: 0
+PhysicsLayers:
+  []

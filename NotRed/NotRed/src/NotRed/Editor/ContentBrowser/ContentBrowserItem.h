@@ -91,6 +91,7 @@ namespace NR
 
 		bool mIsSelected = false;
 		bool mIsRenaming = false;
+		bool mIsDragging = false;
 
 	private:
 		friend class ContentBrowserPanel;
@@ -111,7 +112,7 @@ namespace NR
 	class ContentBrowserDirectory : public ContentBrowserItem
 	{
 	public:
-		ContentBrowserDirectory(const Ref<DirectoryInfo>& directoryInfo);
+		ContentBrowserDirectory(const Ref<DirectoryInfo>& directoryInfo, const Ref<Texture2D>& icon);
 		virtual ~ContentBrowserDirectory() = default;
 
 		Ref<DirectoryInfo>& GetDirectoryInfo() { return mDirectoryInfo; }

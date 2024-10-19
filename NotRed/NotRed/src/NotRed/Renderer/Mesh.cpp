@@ -617,12 +617,14 @@ namespace NR
     void MeshAsset::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
     {
         glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
+        mNodeMap[node].resize(node->mNumMeshes);
         for (uint32_t i = 0; i < node->mNumMeshes; ++i)
         {
             uint32_t mesh = node->mMeshes[i];
             auto& submesh = mSubmeshes[mesh];
             submesh.NodeName = node->mName.C_Str();
             submesh.Transform = transform;
+            mNodeMap[node][i] = mesh;
         }
 
         for (uint32_t i = 0; i < node->mNumChildren; ++i)
@@ -823,6 +825,11 @@ namespace NR
         {
             mMaterials.push_back(material);
         }
+    }
+
+    Mesh::Mesh(const Ref<Mesh>& other)
+        : mMeshAsset(other->mMeshAsset), mSubmeshes(other->mSubmeshes), mMaterials(other->mMaterials)
+    {
     }
 
     void Mesh::Update(float dt)

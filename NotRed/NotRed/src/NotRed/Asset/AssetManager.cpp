@@ -5,13 +5,12 @@
 
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/SceneRenderer.h"
+#include "NotRed/Project/Project.h"
 
 #include "yaml-cpp/yaml.h"
 
 namespace NR
 {
-    static const char* sAssetRegistryPath = "Assets/AssetRegistry.nrr";
-
     void AssetManager::Init()
     {
         AssetImporter::Init();
@@ -172,12 +171,13 @@ namespace NR
 
     void AssetManager::LoadAssetRegistry()
     {
-        if (!FileSystem::Exists(sAssetRegistryPath))
+        const std::string& assetRegistryPath = Project::GetAssetRegistryPath().string();
+        if (!FileSystem::Exists(assetRegistryPath))
         {
             return;
         }
 
-        std::ifstream stream(sAssetRegistryPath);
+        std::ifstream stream(assetRegistryPath);
         NR_CORE_ASSERT(stream);
         std::stringstream strStream;
         strStream << stream.rdbuf();
@@ -204,14 +204,14 @@ namespace NR
                 continue;
             }
 
-            if (!FileSystem::Exists(metadata.FilePath))
+            if (!FileSystem::Exists(AssetManager::GetFileSystemPath(metadata)))
             {
                 NR_CORE_WARN("Missing asset '{0}' detected in registry file, trying to locate...", metadata.FilePath);
                 
                 std::string mostLikelyCandiate;
                 uint32_t bestScore = 0;
 
-                for (auto& pathEntry : std::filesystem::recursive_directory_iterator("Assets/"))
+                for (auto& pathEntry : std::filesystem::recursive_directory_iterator(Project::GetAssetDirectory()))
                 {
                     const std::filesystem::path& path = pathEntry.path();
                     if (path.filename() != Utils::GetFilename(metadata.FilePath))
@@ -269,7 +269,8 @@ namespace NR
 
     AssetHandle AssetManager::ImportAsset(const std::string& filepath)
     {
-        std::string fixedFilePath = filepath;
+        std::filesystem::path relativePath = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+        std::string fixedFilePath = relativePath.string();
         std::replace(fixedFilePath.begin(), fixedFilePath.end(), '\\', '/');
 
         // Already in the registry
@@ -313,7 +314,7 @@ namespace NR
 
     void AssetManager::ReloadAssets()
     {
-        ProcessDirectory("assets");
+        ProcessDirectory(Project::GetAssetDirectory().string());
 
         WriteRegistryToFile();
     }
@@ -335,7 +336,8 @@ namespace NR
         out << YAML::EndSeq;
         out << YAML::EndMap;
 
-        std::ofstream fout(sAssetRegistryPath);
+        const std::string& assetRegistryPath = Project::GetAssetRegistryPath().string();
+        std::ofstream fout(assetRegistryPath);
         fout << out.c_str();
     }
 

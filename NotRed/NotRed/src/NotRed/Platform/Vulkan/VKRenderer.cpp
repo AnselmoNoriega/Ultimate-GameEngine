@@ -147,11 +147,7 @@ namespace NR
         uint32_t indices[6] = { 0, 1, 2, 2, 3, 0, };
         sData->QuadIndexBuffer = IndexBuffer::Create(indices, 6 * sizeof(uint32_t));
 
-        {
-            TextureProperties props;
-            props.SamplerWrap = TextureWrap::Clamp;
-            sData->BRDFLut = Texture2D::Create("Assets/Textures/BRDF_LUT.tga", props);
-        }
+        sData->BRDFLut = Renderer::GetBRDFLutTexture();
     }
 
     void VKRenderer::Shutdown()

@@ -370,6 +370,23 @@ namespace NR::UI
 		return modified;
 	}
 
+	static void Property(const char* label, const std::string& value)
+	{
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		sIDBuffer[0] = '#';
+		sIDBuffer[1] = '#';
+
+		memset(sIDBuffer + 2, 0, 14);
+		itoa(sCounter++, sIDBuffer + 2, 16);
+
+		ImGui::InputText(sIDBuffer, (char*)value.c_str(), value.size(), ImGuiInputTextFlags_ReadOnly);
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+	}
+
 	static bool PropertyDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected)
 	{
 		const char* current = options[*selected];

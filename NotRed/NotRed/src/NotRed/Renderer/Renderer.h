@@ -103,6 +103,7 @@ namespace NR
         static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material);
         
         static Ref<Texture2D> GetWhiteTexture();
+        static Ref<Texture2D> GetBRDFLutTexture();
         static Ref<Texture2D> GetBlackTexture();
         static Ref<TextureCube> GetBlackCubeTexture();
         static Ref<Environment> GetEmptyEnvironment();

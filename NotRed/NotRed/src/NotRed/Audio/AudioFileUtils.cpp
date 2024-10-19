@@ -5,6 +5,7 @@
 #include "dr_wav.h"
 #include "stb_vorbis.c"
 
+#include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Util/StringUtils.h"
 
@@ -97,13 +98,14 @@ namespace NR::AudioFileUtils
 
 	std::optional<AudioFileInfo> GetFileInfo(const AssetMetadata& metadata)
 	{
+		std::string filepath = AssetManager::GetFileSystemPath(metadata);
 		if (metadata.Extension == "wav")
 		{
-			return GetFileInfoWav(metadata.FilePath.c_str());
+			return GetFileInfoWav(filepath.c_str());
 		}
 		else if (metadata.Extension == "ogg")
 		{
-			return GetFileInfoVorbis(metadata.FilePath.c_str());
+			return GetFileInfoVorbis(filepath.c_str());
 		}
 		else
 		{

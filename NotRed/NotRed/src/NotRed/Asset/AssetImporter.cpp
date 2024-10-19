@@ -1,6 +1,7 @@
 #include "nrpch.h"
 #include "AssetImporter.h"
 
+#include "AssetManager.h"
 #include "MeshSerializer.h"
 
 namespace NR
@@ -24,6 +25,12 @@ namespace NR
 		}
 
 		sSerializers[asset->GetAssetType()]->Serialize(metadata, asset);
+	}
+
+	void AssetImporter::Serialize(const Ref<Asset>& asset)
+	{
+		const AssetMetadata& metadata = AssetManager::GetMetadata(asset->Handle);
+		Serialize(metadata, asset);
 	}
 
 	bool AssetImporter::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset)
