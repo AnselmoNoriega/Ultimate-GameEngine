@@ -748,7 +748,6 @@ namespace NR
                 // Compile shader
                 {
                     auto& shaderSource = mShaderSource.at(stage);
-                    shaderSource.erase(0, shaderSource.find_first_not_of("\xEF\xBB\xBF"));
                     shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
                         shaderSource,
                         VkShaderStageToShaderC(stage),
@@ -788,10 +787,14 @@ namespace NR
 
         if (in)
         {
-            in.seekg(0, std::ios::end);
-            output.resize(in.tellg());
-            in.seekg(0, std::ios::beg);
-            in.read(&output[0], output.size());
+            std::string fileContent((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+
+            if (fileContent.size() >= 3 && fileContent[0] == '\xEF' && fileContent[1] == '\xBB' && fileContent[2] == '\xBF')
+            {
+                fileContent.erase(0, 3);
+            }
+
+            output = fileContent;
         }
         else if (!isCompute)
         {
