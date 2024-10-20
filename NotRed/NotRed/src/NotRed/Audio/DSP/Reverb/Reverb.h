@@ -4,15 +4,14 @@
 
 #include "miniaudio.h"
 
-#include "NotRed/Audio/DSP/Components/revmodel.hpp"
-#include "NotRed/Audio/DSP/Components/DelayLine.h"
-
 class revmodel;
 
 namespace NR::Audio
 {
     namespace DSP
     {
+        class DelayLine;
+
         enum EReverbParameters
         {
             PreDelay, Mode, RoomSize, Damp, Width, Wet, Dry,
@@ -31,10 +30,10 @@ namespace NR::Audio
 
             ma_node_base* GetNode() { return &mNode.base; }
 
-            float GetParameter(EReverbParameters parameter);
-            const char* GetParameterName(EReverbParameters parameter);
-            const char* GetParameterLabel(EReverbParameters parameter);
-            const std::string& GetParameterDisplay(EReverbParameters parameter);
+            float GetParameter(EReverbParameters parameter) const;
+            const char* GetParameterLabel(EReverbParameters parameter) const;
+            std::string GetParameterDisplay(EReverbParameters parameter) const;
+            const char* GetParameterName(EReverbParameters parameter) const;
 
         private:
             friend void reverb_node_process_pcm_frames(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut);

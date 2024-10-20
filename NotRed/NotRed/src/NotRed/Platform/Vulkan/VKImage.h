@@ -13,7 +13,6 @@ namespace NR
         VkImage Image = nullptr;
         VkImageView ImageView = nullptr;
         VkSampler Sampler = nullptr;
-        VkDeviceMemory Memory;
         VmaAllocation MemoryAlloc = nullptr;
     };
 

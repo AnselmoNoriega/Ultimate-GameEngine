@@ -70,7 +70,7 @@ namespace NR
         glm::mat4 mViewMatrix;
         glm::vec3 mPosition, mRotation, mFocalPoint;
 
-        bool mIsActive = false;
+        bool mIsActive = true;
         bool mPanning, mRotating;
         glm::vec2 mInitialMousePosition {};
         glm::vec3 mInitialFocalPoint, mInitialRotation;

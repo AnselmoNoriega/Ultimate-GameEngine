@@ -68,8 +68,10 @@ namespace NR
 					const auto& name = item->GetName();
 					ImGui::TextUnformatted(name.c_str());
 				}
+
 				ImGui::SetDragDropPayload("asset_payload", selectionStack.SelectionData(), sizeof(AssetHandle) * selectionStack.SelectionCount());
 			}
+
 			result.Modify(ContentBrowserAction::Selected, true);
 			ImGui::EndDragDropSource();
 		}

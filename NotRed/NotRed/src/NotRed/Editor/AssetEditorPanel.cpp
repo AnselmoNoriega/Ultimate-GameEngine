@@ -72,7 +72,9 @@ namespace NR
 	{
 		RegisterEditor<TextureViewer>(AssetType::Texture);
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
+		RegisterEditor<AudioFileViewer>(AssetType::Audio);
 		RegisterEditor<MeshViewerPanel>(AssetType::MeshAsset);
+		RegisterEditor<SoundConfigEditor>(AssetType::SoundConfig);
 	}
 
 	void AssetEditorPanel::UnregisterAllEditors()

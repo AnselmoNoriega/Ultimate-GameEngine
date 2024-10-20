@@ -384,6 +384,7 @@ namespace NR
 			{
 				MeshNodeHierarchy(meshAsset, mesh, node->mChildren[i], transform, level + 1);
 			}
+
 			ImGui::TreePop();
 		}
 	}

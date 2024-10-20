@@ -26,12 +26,14 @@ namespace NR
 
 		mFileTex = Texture2D::Create("Resources/Editor/file.png");
 		mFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
+
 		mAssetIconMap[".fbx"] = Texture2D::Create("Resources/Editor/fbx.png");
 		mAssetIconMap[".obj"] = Texture2D::Create("Resources/Editor/obj.png");
 		mAssetIconMap[".wav"] = Texture2D::Create("Resources/Editor/wav.png");
 		mAssetIconMap[".cs"] = Texture2D::Create("Resources/Editor/csc.png");
 		mAssetIconMap[".png"] = Texture2D::Create("Resources/Editor/png.png");
-		mAssetIconMap[".hscene"] = Texture2D::Create("Resources/Editor/hazel.png");
+		mAssetIconMap[".nrscene"] = Texture2D::Create("Resources/Editor/notred.png");
+
 		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
 		mFwrdbtnTex = Texture2D::Create("Resources/Editor/btn_fwrd.png");
 		mRefreshIcon = Texture2D::Create("Resources/Editor/refresh.png");
@@ -277,7 +279,9 @@ namespace NR
 		if (open != previousState && directory->Handle != mCurrentDirectory->Handle)
 		{
 			if (!ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.01f))
+			{
 				ChangeDirectory(directory);
+			}
 		}
 
 		if (open)

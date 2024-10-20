@@ -378,7 +378,7 @@ namespace NR::Audio
 		ma_sound_set_velocity(&mSound, velocity.x, velocity.y, velocity.z);
 	}
 
-	void Sound::Update(TimeFrame dt)
+	void Sound::Update(TimeFrame tf)
 	{
 		auto notifyIfFinished = [&]
 			{
@@ -398,7 +398,7 @@ namespace NR::Audio
 				return mStopFadeTime <= 0.0;
 			};
 
-		mStopFadeTime = std::max(0.0, mStopFadeTime - (double)dt.GetSeconds());
+		mStopFadeTime = std::max(0.0, mStopFadeTime - (double)tf.GetSeconds());
 
 		switch (mPlayState)
 		{
@@ -429,20 +429,23 @@ namespace NR::Audio
 			}
 			break;
 		}
-		case ESoundPlayState::Paused:
-			break;
 		case ESoundPlayState::Stopping:
+		{
 			if (isFadeFinished())
 			{
 				StopNow(true, true);
 				mPlayState = ESoundPlayState::Stopped;
 			}
 			break;
+		}
+		case ESoundPlayState::Paused:
 		case ESoundPlayState::Stopped:
 		case ESoundPlayState::FadingOut:
 		case ESoundPlayState::FadingIn:
 		default:
+		{
 			break;
+		}
 		}
 	}
 

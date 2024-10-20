@@ -6,10 +6,6 @@ bin-int/
 Intermediates/
 obj/
 **/cache/**
-NotEditor/Assets/Cache/Shader/
-NotEditor/Logs/
-NotEditor/Assets/Cache/
-NotEditor/Assets/Scripts/
 
 # NotRed files
 *.log
@@ -23,8 +19,6 @@ NotEditor/Assets/Scripts/
 **.nsight-gfxproj
 
 **.meta
-**.pxd2
-**.pvd
 
 !AssetRegistryCache.nrr
 *.nvdbg
@@ -33,6 +27,3 @@ NotEditor/Assets/Scripts/
 
 # Directories
 NotRed/vendor/VulkanSDK
-NotEditor/assets/cache
-scripts/__pycache__
-scripts/__pycache__

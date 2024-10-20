@@ -10,7 +10,9 @@ namespace NR::Audio
 			const float* pFramesIn_0 = ppFramesIn[0]; // Input bus @ index 0.
 			const float* pFramesIn_1 = ppFramesIn[1]; // Input bus @ index 1.
 			float* pFramesOut_0 = ppFramesOut[0];     // Output bus @ index 0.
+
 			auto* node = static_cast<HighPassFilter::hpf_node*>(pNode);
+
 			ma_hpf2_process_pcm_frames(&node->filter, pFramesOut_0, pFramesIn_0, *pFrameCountOut);
 		}
 
@@ -88,7 +90,7 @@ namespace NR::Audio
 			}
 		}
 
-		float HighPassFilter::GetParameter(uint8_t parameterIdx)
+		float HighPassFilter::GetParameter(uint8_t parameterIdx) const
 		{
 			if (parameterIdx == EHPFParameters::CutOffFrequency)
 			{
@@ -98,7 +100,7 @@ namespace NR::Audio
 			return -1.0f;
 		}
 
-		const char* HighPassFilter::GetParameterLabel(uint8_t parameterIdx)
+		const char* HighPassFilter::GetParameterLabel(uint8_t parameterIdx) const
 		{
 			if (parameterIdx == EHPFParameters::CutOffFrequency)
 			{
@@ -107,7 +109,8 @@ namespace NR::Audio
 
 			return "Unkonw parameter index";
 		}
-		const std::string& HighPassFilter::GetParameterDisplay(uint8_t parameterIdx)
+
+		std::string HighPassFilter::GetParameterDisplay(uint8_t parameterIdx) const
 		{
 			if (parameterIdx == EHPFParameters::CutOffFrequency)
 			{
@@ -116,7 +119,8 @@ namespace NR::Audio
 
 			return "Unkonw parameter index";
 		}
-		const char* HighPassFilter::GetParameterName(uint8_t parameterIdx)
+
+		const char* HighPassFilter::GetParameterName(uint8_t parameterIdx) const
 		{
 			if (parameterIdx == EHPFParameters::CutOffFrequency)
 			{
@@ -125,7 +129,8 @@ namespace NR::Audio
 
 			return "Unkonw parameter index";
 		}
-		uint8_t HighPassFilter::GetNumberOfParameters()
+
+		uint8_t HighPassFilter::GetNumberOfParameters() const
 		{
 			return 1;
 		}

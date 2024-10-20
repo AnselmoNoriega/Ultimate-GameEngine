@@ -9,33 +9,6 @@
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/Util/StringUtils.h"
 
-std::string BytesToString(uint64_t bytes)
-{
-	static const float gb = 1024 * 1024 * 1024;
-	static const float mb = 1024 * 1024;
-	static const float kb = 1024;
-
-	char buffer[16];
-
-	if (bytes > gb)
-	{
-		sprintf_s(buffer, "%.2f GB", bytes / gb);
-	}
-	else if (bytes > mb)
-	{
-		sprintf_s(buffer, "%.2f MB", bytes / mb);
-	}
-	else if (bytes > kb)
-	{
-		sprintf_s(buffer, "%.2f KB", bytes / kb);
-	}
-	else
-	{
-		sprintf_s(buffer, "%.2f bytes", bytes);
-	}
-	return std::string(buffer);
-}
-
 #if NR_PLATFORM_WINDOWS
 int64_t GetFileSizeWindows(const char* name)
 {
@@ -44,9 +17,11 @@ int64_t GetFileSizeWindows(const char* name)
 	{
 		return -1; // error condition, could call GetLastError to find out more
 	}
+
 	LARGE_INTEGER size;
 	size.HighPart = fad.nFileSizeHigh;
 	size.LowPart = fad.nFileSizeLow;
+
 	return size.QuadPart;
 }
 #endif
@@ -61,11 +36,13 @@ namespace NR::AudioFileUtils
 			ma_uint16 bitDepth = wav.bitsPerSample;
 			ma_uint16 channels = wav.channels;
 			ma_uint32 sampleRate = wav.sampleRate;
+
 			double duration = (double)wav.totalPCMFrameCount / (double)sampleRate;
+
 			auto dataSize = wav.dataChunkDataSize;
 			auto pos = wav.dataChunkDataPos;
 			auto fileSize = dataSize + pos;
-			auto sizestr = BytesToString(fileSize);
+
 			drwav_uninit(&wav);
 
 			return AudioFileInfo{ duration, sampleRate, bitDepth, channels, fileSize };
@@ -82,17 +59,17 @@ namespace NR::AudioFileUtils
 			ma_uint16 bitDepth = 0;
 			ma_uint16 channels = vorbis->channels;
 			ma_uint32 sampleRate = vorbis->sample_rate;
-			double duration = (double)vorbis->total_samples / (double)sampleRate;
-			uint64_t fileSize;
 
+			double duration = (double)vorbis->total_samples / (double)sampleRate;
+
+			uint64_t fileSize;
 #if NR_PLATFORM_WINDOWS
 			fileSize = GetFileSizeWindows(filepath);
 #endif
-
-			auto sizestr = BytesToString(fileSize);
 			stb_vorbis_close(vorbis);
 			return AudioFileInfo{ duration, sampleRate, bitDepth, channels, fileSize };
 		}
+
 		return std::optional<AudioFileInfo>();
 	}
 
@@ -118,7 +95,24 @@ namespace NR::AudioFileUtils
 		AssetMetadata metadata;
 		metadata.FilePath = filepath;
 		metadata.IsDataLoaded = false;
-
 		return GetFileInfo(metadata);
+	}
+
+	std::string ChannelsToLayoutString(uint16_t numChannels)
+	{
+		std::string str;
+		switch (numChannels)
+		{
+		case 1: str = "Mono"; break;
+		case 2: str = "Stereo"; break;
+		case 3: str = "3.0"; break;
+		case 4: str = "Quad"; break;
+		case 5: str = "5.0"; break;
+		case 6: str = "5.1"; break;
+		//case 7: str = "Unknown"; break;
+		case 8: str = "7.1"; break;
+		default: str = "Unknown layout"; break;
+		}
+		return str;
 	}
 }

@@ -651,7 +651,9 @@ namespace NR
                 UI::BeginPropertyGrid();
 
                 UI::PropertyAssetReferenceError error;
-                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshAsset>("Mesh", mc.MeshObj, [=](Ref<MeshAsset> meshAsset)
+
+                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshAsset>("Mesh", mc.MeshObj,
+                    [=](Ref<MeshAsset> meshAsset)
                     {
                         if (mMeshAssetConvertCallback)
                         {
@@ -663,17 +665,9 @@ namespace NR
                     {
                         auto& mcc = entity.GetComponent<MeshColliderComponent>();
                         mcc.CollisionMesh = mc.MeshObj;
-                        if (mcc.IsConvex)
-                        {
-                            PhysicsWrappers::CreateConvexMesh(mcc, entity.Transform().Scale, true);
-                        }
-                        else
-                        {
-                            PhysicsWrappers::CreateTriangleMesh(mcc, entity.Transform().Scale, true);
-                        }
                     }
-                }			
-                
+                }
+
                 if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
                 {
                     if (mInvalidMetadataCallback)
@@ -992,9 +986,6 @@ namespace NR
                     UI::Property("Disable Gravity", rbc.DisableGravity);
                     UI::Property("Is Kinematic", rbc.IsKinematic);
 
-                    const char* rbCollisionDetectionNames[] = { "Discrete", "Continuous", "Continuous Speculative" };
-                    UI::PropertyDropdown("Collision Detection", rbCollisionDetectionNames, 3, (int32_t*)&rbc.CollisionDetection);
-
                     UI::EndPropertyGrid();
 
                     if (ImGui::TreeNode("Constraints", "Constraints"))
@@ -1029,7 +1020,6 @@ namespace NR
                 {
                     bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                 }
-                UI::Property("Offset", bcc.Offset);
                 UI::Property("Is Trigger", bcc.IsTrigger);
                 UI::PropertyAssetReference("Material", bcc.Material);
 
@@ -1116,10 +1106,6 @@ namespace NR
                             e.GetComponent<AudioListenerComponent>().Active = ent == entity;
                         }
                     }
-                    else
-                    {
-
-                    }
                 }
                 float inAngle = glm::degrees(alc.ConeInnerAngleInRadians);
                 float outAngle = glm::degrees(alc.ConeOuterAngleInRadians);
@@ -1127,17 +1113,26 @@ namespace NR
                 //? Have to manually clamp here because UI::Property doesn't take flags to pass in ImGuiSliderFlags_ClampOnInput
                 if (UI::Property("Inner Cone Angle", inAngle, 1.0f, 0.0f, 360.0f))
                 {
-                    if (inAngle > 360.0f) inAngle = 360.0f;
+                    if (inAngle > 360.0f) 
+                    {
+                        inAngle = 360.0f;
+                    }
                     alc.ConeInnerAngleInRadians = glm::radians(inAngle);
                 }
                 if (UI::Property("Outer Cone Angle", outAngle, 1.0f, 0.0f, 360.0f))
                 {
-                    if (outAngle > 360.0f) outAngle = 360.0f;
+                    if (outAngle > 360.0f) 
+                    {
+                        outAngle = 360.0f;
+                    }
                     alc.ConeOuterAngleInRadians = glm::radians(outAngle);
                 }
                 if (UI::Property("Outer Gain", outGain, 0.01f, 0.0f, 1.0f))
                 {
-                    if (outGain > 1.0f) outGain = 1.0f;
+                    if (outGain > 1.0f) 
+                    {
+                        outGain = 1.0f;
+                    }
                     alc.ConeOuterGain = outGain;
                 }
                 UI::EndPropertyGrid();
@@ -1287,14 +1282,10 @@ namespace NR
                         {
                             switch (model)
                             {
-                            case AttModel::None:
-                                return "None";
-                            case AttModel::Inverse:
-                                return "Inverse";
-                            case AttModel::Linear:
-                                return "Linear";
-                            case AttModel::Exponential:
-                                return "Exponential";
+                            case AttModel::None:             return "None";
+                            case AttModel::Inverse:          return "Inverse";
+                            case AttModel::Linear:           return "Linear";
+                            case AttModel::Exponential:      return "Exponential";
                             }
                         };
 

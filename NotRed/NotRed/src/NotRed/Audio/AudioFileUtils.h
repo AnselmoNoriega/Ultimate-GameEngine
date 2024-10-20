@@ -17,5 +17,7 @@ namespace NR::AudioFileUtils
 	};
 
 	std::optional<AudioFileInfo> GetFileInfo(const AssetMetadata& metadata);
-	std::optional<AudioFileInfo> GetFileInfo(const char* filepath);
+	std::optional<AudioFileInfo> GetFileInfo(const char* filepath);	
+	
+	std::string ChannelsToLayoutString(uint16_t numChannels);
 }

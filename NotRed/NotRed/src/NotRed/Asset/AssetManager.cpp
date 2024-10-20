@@ -137,9 +137,11 @@ namespace NR
     void AssetManager::AssetRenamed(AssetHandle assetHandle, const std::string& newFilePath)
     {
         AssetMetadata metadata = GetMetadata(assetHandle);
+
         sAssetRegistry.Remove(metadata.FilePath);
         metadata.FilePath = newFilePath;
         sAssetRegistry[metadata.FilePath] = metadata;
+        
         WriteRegistryToFile();
     }
 

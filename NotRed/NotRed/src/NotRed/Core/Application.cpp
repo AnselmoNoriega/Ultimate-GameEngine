@@ -86,7 +86,6 @@ namespace NR
 
         PhysicsManager::Shutdown();
         ScriptEngine::Shutdown();
-
         AssetManager::Shutdown();
         Audio::AudioEngine::Shutdown();
 

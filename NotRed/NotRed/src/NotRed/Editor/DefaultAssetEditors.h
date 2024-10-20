@@ -5,6 +5,11 @@
 
 namespace NR
 {
+	namespace Audio
+	{
+		struct SoundConfig;
+	}
+
 	class PhysicsMaterialEditor : public AssetEditor
 	{
 	public:
@@ -35,4 +40,31 @@ namespace NR
 		Ref<Texture> mAsset;
 	};
 
+	class AudioFileViewer : public AssetEditor
+	{
+	public:
+		AudioFileViewer();
+		void SetAsset(const Ref<Asset>& asset) override;
+
+	private:
+		void Close() override;
+		void Render() override;
+
+	private:
+		Ref<AudioFile> mAsset;
+	};
+
+	class SoundConfigEditor : public AssetEditor
+	{
+	public:
+		SoundConfigEditor();
+		void SetAsset(const Ref<Asset>& asset) override;
+
+	private:
+		void Close() override;
+		void Render() override;
+
+	private:
+		Ref<Audio::SoundConfig> mAsset;
+	};
 }

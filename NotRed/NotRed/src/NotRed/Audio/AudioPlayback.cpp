@@ -64,6 +64,7 @@ namespace NR::Audio
         audioComponent.PitchMultiplier = pitch;
         audioComponent.SourcePosition = location;
         audioComponent.AutoDestroy = true;
+
         SoundConfig config = audioComponent.SoundConfig;
         uint64_t handle = entity.GetID();
         AudioEngine::ExecuteOnAudioThread([handle, config]
@@ -139,6 +140,6 @@ namespace NR::Audio
             return audioComponent->SoundConfig.MasterReverbSend;
         }
 
-        return 0.0f;
+        return -1.0f;
     }
 }

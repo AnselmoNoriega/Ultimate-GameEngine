@@ -14,6 +14,7 @@ namespace NR
 		sSerializers[AssetType::EnvMap] = CreateScope<EnvironmentSerializer>();
 		sSerializers[AssetType::PhysicsMat] = CreateScope<PhysicsMaterialSerializer>();
 		sSerializers[AssetType::Audio] = CreateScope<AudioFileSourceSerializer>();
+		sSerializers[AssetType::SoundConfig] = CreateScope<SoundConfigSerializer>();
 	}
 
 	void AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)

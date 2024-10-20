@@ -12,8 +12,8 @@ namespace NR
 		AssetType Type;
 
 		std::filesystem::path FilePath;
-
 		bool IsDataLoaded = false;
+
 		bool IsValid() const { return Handle != 0; }
 	};
 }

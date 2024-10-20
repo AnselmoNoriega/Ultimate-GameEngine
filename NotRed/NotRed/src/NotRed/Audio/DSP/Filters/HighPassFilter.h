@@ -22,11 +22,12 @@ namespace NR::Audio
             void SetCutoffValue(double cutoffMultiplier);
 
             void SetParameter(uint8_t parameterIdx, float value);
-            float GetParameter(uint8_t parameterIdx);
-            const char* GetParameterLabel(uint8_t parameterIdx);
-            const std::string& GetParameterDisplay(uint8_t parameterIdx);
-            const char* GetParameterName(uint8_t parameterIdx);
-            uint8_t GetNumberOfParameters();
+            float GetParameter(uint8_t parameterIdx) const;
+            const char* GetParameterLabel(uint8_t parameterIdx) const;
+            std::string GetParameterDisplay(uint8_t parameterIdx) const;
+            const char* GetParameterName(uint8_t parameterIdx) const;
+            uint8_t GetNumberOfParameters() const;
+
             ma_node_base* GetNode() { return &mNode.base; }
 
         private:

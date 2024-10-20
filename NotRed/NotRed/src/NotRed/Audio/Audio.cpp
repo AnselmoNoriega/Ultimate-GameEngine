@@ -23,9 +23,12 @@ namespace NR::Audio
             {
                 NR_PROFILE_THREAD("AudioThread");
 
-#if defined(NR_PLATFORM_WINDOWS)
+#if defined(NR_PLATFORM_WINDOWS)                
                 HRESULT r;
-                r = SetThreadDescription(GetCurrentThread(), L"NotRed Audio Thread");
+                r = SetThreadDescription(
+                    GetCurrentThread(),
+                    L"NotRed Audio Thread"
+                );
 #endif
                 NR_CORE_INFO("Spinning up Audio Thread.");
                 while (sThreadActive)

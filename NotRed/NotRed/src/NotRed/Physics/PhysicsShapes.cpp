@@ -18,14 +18,14 @@ namespace NR
 {
 	namespace Utils
 	{
-		static const char* GetCacheDirectory()
+		static std::filesystem::path GetCacheDirectory()
 		{
-			return "Assets/Cache/Colliders/";
+			return Project::GetCacheDirectory();
 		}
 
 		static void CreateCacheDirectoryIfNeeded()
 		{
-			std::string cacheDirectory = GetCacheDirectory();
+			std::filesystem::path cacheDirectory = GetCacheDirectory();
 			if (!std::filesystem::exists(cacheDirectory))
 			{
 				std::filesystem::create_directories(cacheDirectory);
@@ -178,7 +178,7 @@ namespace NR
 			NR_CORE_ERROR("Invalid mesh");
 		}
 
-		/*std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_convex.pxm");
+		std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_convex.pxm");
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookConvexMesh(component.CollisionMesh, cookedData);
@@ -187,7 +187,7 @@ namespace NR
 		else
 		{
 			DeserializeCached(filepath.string(), cookedData);
-		}*/
+		}
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
 
@@ -374,7 +374,7 @@ namespace NR
 			NR_CORE_ERROR("Invalid mesh");
 		}
 
-		/*std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_tri.pxm");
+		std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_tri.pxm");
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookTriangleMesh(component.CollisionMesh, cookedData);
@@ -383,7 +383,7 @@ namespace NR
 		else
 		{
 			DeserializeCached(filepath.string(), cookedData);
-		}*/
+		}
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
 

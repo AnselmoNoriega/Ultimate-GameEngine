@@ -58,10 +58,13 @@ namespace NR
 		
 		bool mAllowViewportCameraEvents = false;
 		bool mDrawOnTopBoundingBoxes = false;
+
 		bool mUIShowBoundingBoxes = false;
 		bool mUIShowBoundingBoxesOnTop = false;
+
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
+
 		bool mShowPhysicsSettings = false;
 	};
 }

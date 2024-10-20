@@ -7,7 +7,7 @@ namespace Audio
 	class AudioEventsEditor
 	{
 	public:
-		static void OnImGuiRender(bool& show);
+		static void ImGuiRender(bool& show);
 
 	private:
 		static void DrawEventsList();
@@ -24,4 +24,4 @@ namespace Audio
 		static std::vector<CommandID> sMarkedForDelete;
 		static uint32_t sRenamingEntry;
 	};
-}*/
+} // namespace Audio*/
