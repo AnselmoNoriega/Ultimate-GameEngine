@@ -303,7 +303,7 @@ namespace NR
 		bool deleted = FileSystem::DeleteFile(mAssetInfo.FilePath.string());
 		if (!deleted)
 		{
-			NR_CORE_ERROR("Couldn't delete {0}", mAssetInfo.FilePath);
+			NR_CORE_ERROR("Couldn't delete {0}", mAssetInfo.FilePath.string());
 			return;
 		}
 		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path().string());
@@ -317,7 +317,7 @@ namespace NR
 		bool wasMoved = FileSystem::MoveFile(mAssetInfo.FilePath.string(), destination.string());
 		if (!wasMoved)
 		{
-			NR_CORE_ERROR("Couldn't move {0} to {1}", mAssetInfo.FilePath, destination);
+			NR_CORE_ERROR("Couldn't move {0} to {1}", mAssetInfo.FilePath.string(), destination.string());
 			return false;
 		}
 		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path().string());

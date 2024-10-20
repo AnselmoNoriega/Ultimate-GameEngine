@@ -139,4 +139,15 @@ namespace NR::Utils
 
 		return std::string(buffer);
 	}
+
+	std::string DurationToString(std::chrono::duration<double> duration)
+	{
+		auto durations = BreakDownDuration<std::chrono::minutes, std::chrono::seconds, std::chrono::milliseconds>(duration);
+		std::stringstream durSs;
+		durSs << std::setfill('0') << std::setw(1) << std::get<0>(durations).count() << ':'
+			<< std::setfill('0') << std::setw(2) << std::get<1>(durations).count() << '.'
+			<< std::setfill('0') << std::setw(3) << std::get<2>(durations).count();
+
+		return durSs.str();
+	}
 }

@@ -263,18 +263,18 @@ namespace NR
 
                 if (mostLikelyCandiate.empty() && bestScore == 0)
                 {
-                    NR_CORE_ERROR("Failed to locate a potential match for '{0}'", metadata.FilePath);
+                    NR_CORE_ERROR("Failed to locate a potential match for '{0}'", metadata.FilePath.string());
                     continue;
                 }
 
                 std::replace(mostLikelyCandiate.begin(), mostLikelyCandiate.end(), '\\', '/');
                 metadata.FilePath = std::filesystem::relative(mostLikelyCandiate, Project::GetActive()->GetAssetDirectory());
-                NR_CORE_WARN("Found most likely match '{0}'", metadata.FilePath);
+                NR_CORE_WARN("Found most likely match '{0}'", metadata.FilePath.string());
             }
 
             if (metadata.Handle == 0)
             {
-                NR_CORE_WARN("AssetHandle for {0} is 0, this shouldn't happen.", metadata.FilePath);
+                NR_CORE_WARN("AssetHandle for {0} is 0, this shouldn't happen.", metadata.FilePath.string());
                 continue;
             }
 
@@ -395,7 +395,7 @@ namespace NR
 
             for (const auto& [path, metadata] : sAssetRegistry)
             {
-                std::string handle = fmt::format("{}", metadata.Handle);
+                std::string handle = fmt::format("{}", (uint64_t)metadata.Handle);
                 std::string filepath = metadata.FilePath.string();
                 std::string type = Utils::AssetTypeToString(metadata.Type);
 
@@ -416,7 +416,7 @@ namespace NR
                 }
                 else
                 {
-                    UI::Property("Handle", (const std::string&)fmt::format("{0}", metadata.Handle));
+                    UI::Property("Handle", (const std::string&)fmt::format("{0}", (uint64_t)metadata.Handle));
                     UI::Property("File Path", (const std::string&)metadata.FilePath.string());
                     UI::Property("Type", (const std::string&)Utils::AssetTypeToString(metadata.Type));
                     UI::Separator();

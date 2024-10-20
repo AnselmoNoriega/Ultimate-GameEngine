@@ -1,9 +1,5 @@
 #include <nrpch.h>
-
 #include "Reverb.h"
-
-#include "NotRed/Audio/DSP/Components/revmodel.hpp"
-#include "NotRed/Audio/DSP/Components/DelayLine.h"
 
 namespace NR::Audio
 {
@@ -84,8 +80,6 @@ namespace NR::Audio
 
         //===========================================================================
         static ma_allocation_callbacks allocation_callbacks;
-
-        Reverb::Reverb() {}
 
         Reverb::~Reverb()
         {

@@ -41,8 +41,6 @@ namespace NR
 		static std::string Rename(const std::string& filepath, const std::string& newName);
 		static bool DeleteFile(const std::string& filepath);
 		static bool MoveFile(const std::string& filepath, const std::string& dest);
-		static bool WriteBytes(const std::string& filepath, const Buffer& buffer);
-		static Buffer ReadBytes(const std::string& filepath);
 
 		static void SetChangeCallback(const FileSystemChangedCallbackFn& callback);
 		static void StartWatching();
@@ -52,6 +50,9 @@ namespace NR
 		static bool ShowFileInExplorer(const std::filesystem::path& path);
 		static bool OpenDirectoryInExplorer(const std::filesystem::path& path);
 		static bool OpenExternally(const std::filesystem::path& path);
+
+		static bool WriteBytes(const std::filesystem::path& filepath, const Buffer& buffer);
+		static Buffer ReadBytes(const std::filesystem::path& filepath);
 
 		static void SkipNextFileSystemChange();
 

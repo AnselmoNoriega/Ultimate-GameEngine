@@ -138,11 +138,39 @@ namespace NR
         }
     }
 
+    static void AudioComponentConstruct(entt::registry& registry, entt::entity entity)
+    {
+        auto sceneView = registry.view<SceneComponent>();
+        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
+
+        Scene* scene = sActiveScenes[sceneID];
+
+        auto entityID = registry.get<IDComponent>(entity).ID;
+        NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
+        registry.get<Audio::AudioComponent>(entity).ParentHandle = entityID;
+        Audio::AudioEngine::Get().RegisterAudioComponent(scene->mEntityIDMap.at(entityID));
+    }
+
+    static void AudioComponentDestroy(entt::registry& registry, entt::entity entity)
+    {
+        auto sceneView = registry.view<SceneComponent>();
+        UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
+
+        Scene* scene = sActiveScenes[sceneID];
+
+        auto entityID = registry.get<IDComponent>(entity).ID;
+        NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
+        Audio::AudioEngine::Get().UnregisterAudioComponent(sceneID, scene->mEntityIDMap.at(entityID).GetID());
+    }
+
     Scene::Scene(const std::string& debugName, bool isEditorScene)
         : mDebugName(debugName), mIsEditorScene(isEditorScene)
     {
         mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
         mRegistry.on_destroy<ScriptComponent>().connect<&ScriptComponentDestroy>();
+
+        mRegistry.on_construct<Audio::AudioComponent>().connect<&AudioComponentConstruct>();
+        ////mRegistry.on_destroy<Audio::AudioComponent>().connect<&AudioComponentDestroy>();
 
         mSceneEntity = mRegistry.create();
         mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
@@ -258,11 +286,11 @@ namespace NR
                     auto worldSpaceTransform = GetWorldSpaceTransform(listener);
                     Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
 
-                    if (auto physicsActor = PhysicsManager::GetActorForEntity(listener))
+                    if (auto physicsActor = PhysicsManager::GetScene()->GetActor(listener))
                     {
                         if (physicsActor->IsDynamic())
                         {
-                            Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetLinearVelocity());
+                            Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetVelocity());
                         }
                     }
                     break;
@@ -284,11 +312,11 @@ namespace NR
                     auto worldSpaceTransform = GetWorldSpaceTransform(listener);
                     Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
 
-                    if (auto physicsActor = PhysicsManager::GetActorForEntity(listener))
+                    if (auto physicsActor = PhysicsManager::GetScene()->GetActor(listener))
                     {
                         if (physicsActor->IsDynamic())
                         {
-                            Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetLinearVelocity());
+                            Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetVelocity());
                         }
                     }
                 }
@@ -325,11 +353,11 @@ namespace NR
 
                 // 3. Update velocities of associated sound sources
                 glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
-                if (auto physicsActor = PhysicsManager::GetActorForEntity(e))
+                if (auto physicsActor = PhysicsManager::GetScene()->GetActor(e))
                 {
                     if (physicsActor->IsDynamic())
                     {
-                        velocity = physicsActor->GetLinearVelocity();
+                        velocity = physicsActor->GetVelocity();
                     }
                 }
 
@@ -351,8 +379,10 @@ namespace NR
             }
         }
 
-        //TODO
-        //PhysicsManager::Simulate(dt);
+        if (mShouldSimulate)
+        {
+            PhysicsManager::GetScene()->Simulate(dt, mIsPlaying);
+        }
     }
 
     void Scene::RenderRuntime(Ref<SceneRenderer> renderer, float dt)
@@ -669,6 +699,54 @@ namespace NR
         renderer->EndScene();
         /////////////////////////////////////////////////////////////////////
 
+        {
+            const auto& camPosition = editorCamera.GetPosition();
+            auto camDirection = glm::rotate(editorCamera.GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
+            Audio::AudioEngine::Get().UpdateListenerPosition(camPosition, camDirection);
+
+        }
+        {	//--- Update Audio Component (editor scene update) ---
+            //====================================================
+
+            auto view = mRegistry.view<Audio::AudioComponent>();
+
+            std::vector<Entity> deadEntities;
+
+            std::vector<Audio::SoundSourceUpdateData> updateData;
+            updateData.reserve(view.size());
+
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& audioComponent = e.GetComponent<Audio::AudioComponent>();
+
+                // AutoDestroy flag is only set for "one-shot" sounds
+                if (audioComponent.AutoDestroy && audioComponent.MarkedForDestroy)
+                {
+                    deadEntities.push_back(e);
+                    continue;
+                }
+
+                auto worldSpaceTransform = GetWorldSpaceTransform(e);
+
+                glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+                updateData.emplace_back(Audio::SoundSourceUpdateData{ 
+                    e.GetID(),
+                    audioComponent.VolumeMultiplier,
+                    audioComponent.PitchMultiplier,
+                    worldSpaceTransform.Translation,
+                    velocity });
+            }
+
+            //--- Submit values to AudioEngine to update associated sound sources ---
+            //-----------------------------------------------------------------------
+            Audio::AudioEngine::Get().SubmitSourceUpdateData(updateData);
+
+            for (int i = (int)deadEntities.size() - 1; i >= 0; --i)
+            {
+                DestroyEntity(deadEntities[i]);
+            }
+        }
 #if 0
         // Render all sprites
         Renderer2D::BeginScene(*camera);
@@ -688,6 +766,196 @@ namespace NR
 #endif
     }
 
+    void Scene::RenderSimulation(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera)
+    {
+        NR_PROFILE_FUNC();
+
+        // Lighting
+        {
+            mLightEnvironment = LightEnvironment();
+            //Directional Lights
+            {
+                auto dirLights = mRegistry.group<DirectionalLightComponent>(entt::get<TransformComponent>);
+                uint32_t directionalLightIndex = 0;
+                for (auto entity : dirLights)
+                {
+                    auto [transformComponent, lightComponent] = dirLights.get<TransformComponent, DirectionalLightComponent>(entity);
+                    glm::vec3 direction = -glm::normalize(glm::mat3(transformComponent.GetTransform()) * glm::vec3(1.0f));
+                    mLightEnvironment.DirectionalLights[directionalLightIndex++] =
+                    {
+                        direction,
+                        lightComponent.Radiance,
+                        lightComponent.Intensity,
+                        lightComponent.CastShadows
+                    };
+                }
+            }
+
+            //Point Lights
+            {
+                auto pointLights = mRegistry.group<PointLightComponent>(entt::get<TransformComponent>);
+                mLightEnvironment.PointLights.resize(pointLights.size());
+                uint32_t pointLightIndex = 0;
+                for (auto entity : pointLights)
+                {
+                    auto [transformComponent, lightComponent] = pointLights.get<TransformComponent, PointLightComponent>(entity);
+                    //Also copy the light size?
+                    mLightEnvironment.PointLights[pointLightIndex++] = {
+                        transformComponent.Translation,
+                        lightComponent.Intensity,
+                        lightComponent.Radiance,
+                        lightComponent.MinRadius,
+                        lightComponent.Radius,
+                        lightComponent.Falloff,
+                        lightComponent.LightSize,
+                        lightComponent.CastsShadows
+                    };
+
+                }
+            }
+        }
+
+        {
+            auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
+            if (lights.empty())
+                mEnvironment = Ref<Environment>::Create(Renderer::GetBlackCubeTexture(), Renderer::GetBlackCubeTexture());
+
+            for (auto entity : lights)
+            {
+                auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
+                if (!skyLightComponent.SceneEnvironment && skyLightComponent.DynamicSky)
+                {
+                    Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLightComponent.TurbidityAzimuthInclination.x, skyLightComponent.TurbidityAzimuthInclination.y, skyLightComponent.TurbidityAzimuthInclination.z);
+                    skyLightComponent.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
+                }
+                mEnvironment = skyLightComponent.SceneEnvironment;
+                mEnvironmentIntensity = skyLightComponent.Intensity;
+                if (mEnvironment)
+                    SetSkybox(mEnvironment->RadianceMap);
+            }
+        }
+
+        mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
+
+        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
+        renderer->SetScene(this);
+        renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+        for (auto entity : group)
+        {
+            auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
+            if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+            {
+                meshComponent.MeshObj->Update(dt);
+
+                glm::mat4 transform = GetTransformRelativeToParent(Entity{ entity, this });
+
+                if (mSelectedEntity == entity)
+                {
+                    renderer->SubmitSelectedMesh(meshComponent, transform);
+                }
+                else
+                {
+                    renderer->SubmitMesh(meshComponent, transform);
+                }
+            }
+        }
+
+        auto groupParticles = mRegistry.group<ParticleComponent>(entt::get<TransformComponent>);
+        for (auto entity : groupParticles)
+        {
+            auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
+            if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+            {
+                particleComponent.MeshObj->Update(dt);
+                glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+
+                renderer->SubmitParticles(particleComponent, transform);
+            }
+        }
+
+        {
+            auto view = mRegistry.view<BoxColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    transform = e.Transform().GetTransform();
+                }
+
+                auto& collider = e.GetComponent<BoxColliderComponent>();
+
+                if (mSelectedEntity == entity)
+                {
+                    renderer->SubmitColliderMesh(collider, transform);
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<SphereColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    transform = e.Transform().GetTransform();
+                }
+
+                auto& collider = e.GetComponent<SphereColliderComponent>();
+
+                if (mSelectedEntity == entity)
+                {
+                    renderer->SubmitColliderMesh(collider, transform);
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<CapsuleColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    transform = e.Transform().GetTransform();
+                }
+
+                auto& collider = e.GetComponent<CapsuleColliderComponent>();
+
+                if (mSelectedEntity == entity)
+                {
+                    renderer->SubmitColliderMesh(collider, transform);
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<MeshColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+                if (e.HasComponent<RigidBodyComponent>())
+                {
+                    transform = e.Transform().GetTransform();
+                }
+
+                auto& collider = e.GetComponent<MeshColliderComponent>();
+
+                if (mSelectedEntity == entity)
+                {
+                    renderer->SubmitColliderMesh(collider, transform);
+                }
+            }
+        }
+
+        renderer->EndScene();
+    }
+
     void Scene::OnEvent(Event& e)
     {
     }
@@ -697,6 +965,7 @@ namespace NR
         NR_PROFILE_FUNC();
 
         ScriptEngine::SetSceneContext(this);
+        Audio::AudioEngine::SetSceneContext(this);
 
         {
             auto view = mRegistry.view<ScriptComponent>();
@@ -803,32 +1072,92 @@ namespace NR
             }
         }
 
-        // If the entity doesn't have a rigidbody but has a collider, give it a default rigidbody
-        {
-            auto view = mRegistry.view<TransformComponent>(entt::exclude<RigidBodyComponent>);
-            for (auto entity : view)
+        PhysicsManager::CreateScene();
+        PhysicsManager::CreateActors(this);
+
+        {	//--- Make sure we have an audio listener ---
+            //===========================================
+
+            Entity mainCam = GetMainCameraEntity();
+            Entity listener;
+
+            auto view = mRegistry.view<AudioListenerComponent>();
+            bool listenerFound = !view.empty();
+
+            if (mainCam.mEntityHandle != entt::null)
             {
-                if (mRegistry.any_of<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent>(entity))
+                if (!mainCam.HasComponent<AudioListenerComponent>())
                 {
-                    Entity e = { entity, this };
-                    if (!e.HasComponent<RigidBodyComponent>())
-                    {
-                        e.AddComponent<RigidBodyComponent>();
-                    }
+                    mainCam.AddComponent<AudioListenerComponent>();
                 }
             }
-        }
 
-        {
-            auto view = mRegistry.view<RigidBodyComponent>();
-            for (auto entity : view)
+            if (listenerFound)
             {
-                Entity e = { entity, this };
-                PhysicsManager::CreateActor(e);
+                for (auto entity : view)
+                {
+                    listener = { entity, this };
+                    if (listener.GetComponent<AudioListenerComponent>().Active)
+                    {
+                        listenerFound = true;
+                        break;
+                    }
+                    listenerFound = false;
+                }
+            }
+
+            // If found listener has not been set Active, fallback to using Main Camera
+            if (!listenerFound)
+            {
+                listener = mainCam;
+            }
+
+            // Don't update position if we faild to get active listener and Main Camera
+            if (listener.mEntityHandle != entt::null)
+            {
+                // Initialize listener's position
+                auto worldSpaceTransform = GetWorldSpaceTransform(listener);
+                Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
             }
         }
 
+        {	//--- Initialize audio component sound positions ---
+            //==================================================
+
+            auto view = mRegistry.view<Audio::AudioComponent>();
+
+            std::vector<Audio::SoundSourceUpdateData> updateData;
+            updateData.reserve(view.size());
+
+            for (auto entity : view)
+            {
+                const auto& [audioComponent] = view.get(entity);
+
+                Entity e = { entity, this };
+                auto worldSpaceTransform = GetWorldSpaceTransform(e);
+
+                // If sounds are not spawned yet, this sets "spawn" position
+                audioComponent.SourcePosition = worldSpaceTransform.Translation;
+
+                glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+                updateData.emplace_back(Audio::SoundSourceUpdateData{
+                    e.GetID(),
+                    audioComponent.VolumeMultiplier,
+                    audioComponent.PitchMultiplier,
+                    worldSpaceTransform.Translation,
+                    velocity });
+            }
+
+            //--- Submit values to AudioEngine to update associated sound sources ---
+            //-----------------------------------------------------------------------
+            Audio::AudioEngine::Get().SubmitSourceUpdateData(updateData);
+        }
+
+
         mIsPlaying = true;
+        mShouldSimulate = true;
+
+        Audio::AudioEngine::RuntimePlaying(mSceneID);
     }
 
     void Scene::RuntimeStop()
@@ -838,6 +1167,118 @@ namespace NR
         delete[] mPhysics2DBodyEntityBuffer;
         PhysicsManager::DestroyScene();
         mIsPlaying = false;
+        mShouldSimulate = false;
+    }
+
+    void Scene::SimulationStart()
+    {
+        // Box2D physics
+        auto sceneView = mRegistry.view<Box2DWorldComponent>();
+        auto& world = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
+
+        {
+            auto view = mRegistry.view<RigidBody2DComponent>();
+            mPhysics2DBodyEntityBuffer = new Entity[view.size()];
+            uint32_t physicsBodyEntityBufferIndex = 0;
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                UUID entityID = e.GetComponent<IDComponent>().ID;
+                TransformComponent& transform = e.GetComponent<TransformComponent>();
+                auto& rigidBody2D = mRegistry.get<RigidBody2DComponent>(entity);
+
+                b2BodyDef bodyDef;
+                if (rigidBody2D.BodyType == RigidBody2DComponent::Type::Static)
+                {
+                    bodyDef.type = b2_staticBody;
+                }
+                else if (rigidBody2D.BodyType == RigidBody2DComponent::Type::Dynamic)
+                {
+                    bodyDef.type = b2_dynamicBody;
+                }
+                else if (rigidBody2D.BodyType == RigidBody2DComponent::Type::Kinematic)
+                {
+                    bodyDef.type = b2_kinematicBody;
+                }
+                bodyDef.position.Set(transform.Translation.x, transform.Translation.y);
+
+                bodyDef.angle = transform.Rotation.z;
+
+                b2Body* body = world->CreateBody(&bodyDef);
+                body->SetFixedRotation(rigidBody2D.FixedRotation);
+                Entity* entityStorage = &mPhysics2DBodyEntityBuffer[physicsBodyEntityBufferIndex++];
+                *entityStorage = e;
+                body->GetUserData().pointer = (uintptr_t)entityStorage;
+                rigidBody2D.RuntimeBody = body;
+            }
+        }
+
+        {
+            auto view = mRegistry.view<BoxCollider2DComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& boxCollider2D = mRegistry.get<BoxCollider2DComponent>(entity);
+                if (e.HasComponent<RigidBody2DComponent>())
+                {
+                    auto& rigidBody2D = e.GetComponent<RigidBody2DComponent>();
+                    NR_CORE_ASSERT(rigidBody2D.RuntimeBody);
+                    b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
+
+                    b2PolygonShape polygonShape;
+                    polygonShape.SetAsBox(boxCollider2D.Size.x, boxCollider2D.Size.y);
+
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &polygonShape;
+                    fixtureDef.density = boxCollider2D.Density;
+                    fixtureDef.friction = boxCollider2D.Friction;
+                    body->CreateFixture(&fixtureDef);
+                }
+            }
+        }
+
+        {
+            auto view = mRegistry.view<CircleCollider2DComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                auto& transform = e.Transform();
+
+                auto& circleCollider2D = mRegistry.get<CircleCollider2DComponent>(entity);
+                if (e.HasComponent<RigidBody2DComponent>())
+                {
+                    auto& rigidBody2D = e.GetComponent<RigidBody2DComponent>();
+                    NR_CORE_ASSERT(rigidBody2D.RuntimeBody);
+                    b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
+
+                    b2CircleShape circleShape;
+                    circleShape.m_radius = circleCollider2D.Radius;
+
+                    b2FixtureDef fixtureDef;
+                    fixtureDef.shape = &circleShape;
+                    fixtureDef.density = circleCollider2D.Density;
+                    fixtureDef.friction = circleCollider2D.Friction;
+                    body->CreateFixture(&fixtureDef);
+                }
+            }
+        }
+
+        PhysicsManager::CreateScene();
+        PhysicsManager::CreateActors(this);
+
+        mShouldSimulate = true;
+    }
+
+    void Scene::SimulationEnd()
+    {
+        Input::SetCursorMode(CursorMode::Normal);
+
+        delete[] mPhysics2DBodyEntityBuffer;
+        PhysicsManager::DestroyScene();
+
+        mShouldSimulate = false;
     }
 
     void Scene::SetViewportSize(uint32_t width, uint32_t height)
@@ -916,6 +1357,11 @@ namespace NR
             ScriptEngine::ScriptComponentDestroyed(mSceneID, entity.GetID());
         }
 
+        if (entity.HasComponent<Audio::AudioComponent>())
+        {
+            Audio::AudioEngine::Get().UnregisterAudioComponent(mSceneID, entity.GetID());
+        }
+
         mRegistry.destroy(entity.mEntityHandle);
     }
 
@@ -972,6 +1418,8 @@ namespace NR
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<Audio::AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<AudioListenerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
     }
 
     Entity Scene::FindEntityByTag(const std::string& tag)
@@ -1161,6 +1609,8 @@ namespace NR
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshColliderComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<Audio::AudioComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<AudioListenerComponent>(target->mRegistry, mRegistry, enttMap);
 
         const auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();
         if (entityInstanceMap.find(target->GetID()) != entityInstanceMap.end())

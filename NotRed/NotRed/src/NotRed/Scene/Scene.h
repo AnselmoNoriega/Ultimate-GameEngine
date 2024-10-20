@@ -70,11 +70,14 @@ namespace NR
 		void Update(float dt);
 		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
 		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
+		void RenderSimulation(Ref<SceneRenderer> renderer, float ts, const EditorCamera& editorCamera);
 		void OnEvent(Event& e);
 
 		// Runtime
 		void RuntimeStart();
 		void RuntimeStop();
+		void SimulationStart();
+		void SimulationEnd();
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
@@ -131,6 +134,7 @@ namespace NR
 
 		static AssetType GetStaticType() { return AssetType::Scene; }
 		virtual AssetType GetAssetType() const override { return AssetType::Scene; }
+
 		const std::string& GetName() const { return mName; }
 		void SetName(const std::string& name) { mName = name; }
 
@@ -160,7 +164,8 @@ namespace NR
 		Entity* mPhysics2DBodyEntityBuffer = nullptr;
 
 		float mSkyboxLod = 1.0f;
-		bool mIsPlaying = false; 
+		bool mIsPlaying = false;
+		bool mShouldSimulate = false;
 		bool mIsEditorScene = false;
 
 	private:
@@ -171,6 +176,8 @@ namespace NR
 
 		friend void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
 		friend void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
+		friend void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
+		friend void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
 	};
 
 }

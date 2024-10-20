@@ -664,7 +664,7 @@ namespace NR
         mShadowPassDrawList.push_back({ mesh, nullptr, transform });
     }
 
-    void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f))
+    void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform)
     {
         mParticlesDrawList.push_back({ mesh, nullptr, transform });
     }

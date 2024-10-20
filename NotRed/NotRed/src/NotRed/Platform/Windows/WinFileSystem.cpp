@@ -8,9 +8,10 @@
 
 namespace NR
 {
+
 	FileSystem::FileSystemChangedCallbackFn FileSystem::sCallback;
 
-	static bool sWatching = false;
+	static bool sWatching = true;
 	static bool sIgnoreNextChange = false;
 	static HANDLE sWatcherThread;
 
@@ -22,28 +23,36 @@ namespace NR
 	std::string FileSystem::Rename(const std::string& filepath, const std::string& newName)
 	{
 		sIgnoreNextChange = true;
+
 		std::filesystem::path p = filepath;
 		std::string newFilePath = p.parent_path().string() + "/" + newName + p.extension().string();
+
 		MoveFileA(filepath.c_str(), newFilePath.c_str());
 		sIgnoreNextChange = false;
+		
 		return newFilePath;
 	}
 
 	bool FileSystem::MoveFile(const std::string& filepath, const std::string& dest)
 	{
 		sIgnoreNextChange = true;
+		
 		std::filesystem::path p = filepath;
 		std::string destFilePath = dest + "/" + p.filename().string();
+		
 		BOOL result = MoveFileA(filepath.c_str(), destFilePath.c_str()) != 0;
 		sIgnoreNextChange = false;
+		
 		return result;
 	}
 
 	bool FileSystem::DeleteFile(const std::string& filepath)
 	{
 		sIgnoreNextChange = true;
+		
 		std::string fp = filepath;
 		fp.append(1, '\0');
+		
 		SHFILEOPSTRUCTA file_op;
 		file_op.hwnd = NULL;
 		file_op.wFunc = FO_DELETE;
@@ -53,43 +62,51 @@ namespace NR
 		file_op.fAnyOperationsAborted = false;
 		file_op.hNameMappings = 0;
 		file_op.lpszProgressTitle = "";
+
 		int result = SHFileOperationA(&file_op);
 		sIgnoreNextChange = false;
+		
 		return result == 0;
 	}
 
 	void FileSystem::StartWatching()
 	{
 		sWatching = true;
-		DWORD threadID;
-		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadID);
+		DWORD threadId;
+		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadId);
 		NR_CORE_ASSERT(sWatcherThread != NULL);
 	}
 
 	void FileSystem::StopWatching()
 	{
-		sWatching = true;
+		sWatching = false;
 		DWORD result = WaitForSingleObject(sWatcherThread, 5000);
+		
 		if (result == WAIT_TIMEOUT)
 		{
 			TerminateThread(sWatcherThread, 0);
 		}
+		
 		CloseHandle(sWatcherThread);
 	}
 
 	bool FileSystem::IsDirectory(const std::string& filepath)
 	{
 		bool result = std::filesystem::is_directory(filepath);
+
 		if (!result)
 		{
 			result = Utils::GetExtension(filepath).empty();
 		}
+
 		return result;
 	}
 
 	static std::string wchar_to_string(wchar_t* input)
 	{
-		return std::filesystem::path(input).string();
+		std::wstring string_input(input);
+		std::string converted(string_input.begin(), string_input.end());
+		return converted;
 	}
 
 	void FileSystem::SkipNextFileSystemChange()
@@ -133,10 +150,10 @@ namespace NR
 
 		while (sWatching)
 		{
-			const DWORD status = ReadDirectoryChangesW(
+			DWORD status = ReadDirectoryChangesW(
 				handle,
 				&buffer[0],
-				(uint32_t)buffer.size(),
+				buffer.size(),
 				TRUE,
 				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
 				&bytesReturned,
@@ -150,7 +167,6 @@ namespace NR
 			}
 
 			DWORD waitOperation = WaitForSingleObject(overlapped.hEvent, 5000);
-
 			if (waitOperation != WAIT_OBJECT_0)
 			{
 				continue;
@@ -166,13 +182,11 @@ namespace NR
 			char fileName[MAX_PATH * 10] = "";
 
 			BYTE* buf = buffer.data();
-
 			for (;;)
 			{
 				FILE_NOTIFY_INFORMATION& fni = *(FILE_NOTIFY_INFORMATION*)buf;
 				ZeroMemory(fileName, sizeof(fileName));
 				WideCharToMultiByte(CP_ACP, 0, fni.FileName, fni.FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
-
 				std::filesystem::path filepath = std::string(fileName);
 
 				FileSystemChangedEvent e;
@@ -227,32 +241,38 @@ namespace NR
 		return 0;
 	}
 
-	bool FileSystem::WriteBytes(const std::string& filepath, const Buffer& buffer)
+	bool FileSystem::WriteBytes(const std::filesystem::path& filepath, const Buffer& buffer)
 	{
-		FILE* f = fopen(filepath.c_str(), "wb");
-		if (f)
+		std::ofstream stream(filepath, std::ios::binary | std::ios::trunc);
+
+		if (!stream)
 		{
-			fwrite(buffer.Data, sizeof(byte), buffer.Size / sizeof(byte), f);
-			fclose(f);
-			return true;
+			stream.close();
+			return false;
 		}
-		return false;
+
+		stream.write((char*)buffer.Data, buffer.Size);
+		stream.close();
+
+		return true;
 	}
 
-	Buffer FileSystem::ReadBytes(const std::string& filepath)
+	Buffer FileSystem::ReadBytes(const std::filesystem::path& filepath)
 	{
 		Buffer buffer;
-		FILE* f = fopen(filepath.c_str(), "rb");
-		uint32_t size = 0;
-		if (f)
-		{
-			fseek(f, 0, SEEK_END);
-			size = ftell(f);
-			fseek(f, 0, SEEK_SET);
-			buffer.Allocate(size);
-			fread(buffer.Data, sizeof(byte), size / sizeof(byte), f);
-			fclose(f);
-		}
+
+		std::ifstream stream(filepath, std::ios::binary | std::ios::ate);
+		NR_CORE_ASSERT(stream);
+
+		std::streampos end = stream.tellg();
+		stream.seekg(0, std::ios::beg);
+		uint32_t size = end - stream.tellg();
+		NR_CORE_ASSERT(size != 0);
+
+		buffer.Allocate(size);
+		stream.read((char*)buffer.Data, buffer.Size);
+
 		return buffer;
 	}
+
 }

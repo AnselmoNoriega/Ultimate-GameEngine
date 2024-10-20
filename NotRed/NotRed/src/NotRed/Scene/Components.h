@@ -89,13 +89,13 @@ namespace NR
 
         ParticleComponent()
         {
-            MeshObj = Ref<Mesh>::Create(ParticleCount);
+            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(ParticleCount));
         }
         ParticleComponent(const ParticleComponent& other) = default;
         ParticleComponent(const int particleNum)
         {
             ParticleCount = particleNum;
-            MeshObj = Ref<Mesh>::Create(particleNum);
+            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(particleNum));
         }
 
         operator Ref<Mesh>() { return MeshObj; }

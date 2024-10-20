@@ -178,7 +178,7 @@ namespace NR
 		}
 		else
 		{
-			NR_CORE_ERROR("Tried to load invalid Audio File asset in SoundConfig: {0}", metadata.FilePath);
+			NR_CORE_ERROR("Tried to load invalid Audio File asset in SoundConfig: {0}", metadata.FilePath.string());
 		}
 
 #define NR_DESERIALIZE_PROPERTY(propName, destination, data, defaultValue) destination = data[#propName] ? data[#propName].as<decltype(defaultValue)>() : defaultValue

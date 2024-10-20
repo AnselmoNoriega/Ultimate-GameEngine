@@ -61,8 +61,6 @@ namespace NR
             AssetMetadata metadata;
             metadata.Handle = AssetHandle();
             metadata.FilePath = directoryPath + "/" + filename;
-            metadata.FileName = Utils::RemoveExtension(metadata.FilePath.filename().string());
-            metadata.Extension = Utils::GetExtension(filename);
             metadata.IsDataLoaded = true;
             metadata.Type = T::GetStaticType();
 

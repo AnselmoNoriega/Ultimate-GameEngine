@@ -126,6 +126,9 @@
     <ClInclude Include="src\NotRed\Asset\Asset.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetExtensions.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetImporter.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
@@ -133,6 +136,9 @@
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetMetadata.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetRegistry.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h">
@@ -777,14 +783,15 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Asset\AssetExtensions.h" />
-    <ClInclude Include="src\NotRed\Asset\AssetRegistry.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Asset\AssetRegistry.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp">
@@ -1270,6 +1277,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Asset\AssetRegistry.cpp" />
   </ItemGroup>
 </Project>

@@ -688,7 +688,7 @@ namespace NR
                     {
                         pc.ParticleCount = 1;
                     }
-                    pc.MeshObj = Ref<Mesh>::Create(pc.ParticleCount);
+                    pc.MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(pc.ParticleCount));
                 }
 
                 UI::EndPropertyGrid();

@@ -4,14 +4,15 @@
 
 #include "miniaudio.h"
 
+#include "NotRed/Audio/DSP/Components/revmodel.hpp"
+#include "NotRed/Audio/DSP/Components/DelayLine.h"
+
 class revmodel;
 
 namespace NR::Audio
 {
     namespace DSP
     {
-        class DelayLine;
-
         enum EReverbParameters
         {
             PreDelay, Mode, RoomSize, Damp, Width, Wet, Dry,
