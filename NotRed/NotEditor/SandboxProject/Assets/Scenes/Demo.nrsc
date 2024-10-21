@@ -1,0 +1,9 @@
+Scene: Demo
+PhysicsLayers:
+  []
+SceneAudio:
+  MasterReverb:
+    Pre-delay: 50
+    Room size: 0.49999994
+    Damping: 0.5
+    Width: 1

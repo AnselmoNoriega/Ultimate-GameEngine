@@ -1,0 +1,55 @@
+Assets:
+  - Handle: 15272235050081576314
+    FilePath: Env/birchwood_4k.hdr
+    Type: EnvMap
+  - Handle: 17368199773201413024
+    FilePath: Env/HDR_blue_nebulae-1.hdr
+    Type: EnvMap
+  - Handle: 14620522465487178210
+    FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
+    Type: MeshAsset
+  - Handle: 940471849831676394
+    FilePath: Meshes/ZIS101Sport.fbx
+    Type: MeshAsset
+  - Handle: 8519206479186164059
+    FilePath: Models/m1911/m1911_color.png
+    Type: Texture
+  - Handle: 10980127482056009670
+    FilePath: Meshes/TestScene.fbx
+    Type: MeshAsset
+  - Handle: 15893506865529566834
+    FilePath: Models/Cube.fbx
+    Type: MeshAsset
+  - Handle: 5188472444224712633
+    FilePath: Models/m1911/M1911Materials.fbx
+    Type: MeshAsset
+  - Handle: 16446025442881349728
+    FilePath: Models/m1911/m1911.fbx
+    Type: MeshAsset
+  - Handle: 17411810395613661663
+    FilePath: Models/m1911/m1911_metalness.png
+    Type: Texture
+  - Handle: 12602547663011984911
+    FilePath: Models/m1911/m1911_normal.png
+    Type: Texture
+  - Handle: 12046046325573209881
+    FilePath: Models/m1911/m1911_roughness.png
+    Type: Texture
+  - Handle: 16819679542065464007
+    FilePath: Models/Plane1m.fbx
+    Type: MeshAsset
+  - Handle: 928769566187218326
+    FilePath: Models/Plane1m.obj
+    Type: MeshAsset
+  - Handle: 5083906341107188436
+    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
+    Type: Texture
+  - Handle: 5380732386756511583
+    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Emissive.png
+    Type: Texture
+  - Handle: 15826414915342885037
+    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Normal.png
+    Type: Texture
+  - Handle: 3078466047646632934
+    FilePath: Models/Sphere1m.fbx
+    Type: MeshAsset

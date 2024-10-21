@@ -10,10 +10,6 @@ struct VertexOutput
 };
 layout (location = 0) in VertexOutput Input;
 
-in vec2 vLocalPosition;
-in float vThickness;
-in vec4 vColor;
-
 void main()
 {
 	float fade = 0.01;

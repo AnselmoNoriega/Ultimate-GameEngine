@@ -11,7 +11,7 @@ layout (std140, binding = 1) uniform ShadowData
 	mat4 uViewProjectionMatrix[4];
 };
 
-layout (pushconstant) uniform Transform
+layout (push_constant) uniform Transform
 {
 	mat4 Transform;
 	uint Cascade;

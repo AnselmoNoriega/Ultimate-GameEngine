@@ -50,7 +50,7 @@ namespace NR
         mUniformBufferSet->Create(sizeof(UBRendererData), 3);
         mUniformBufferSet->Create(sizeof(UBPointLights), 4);
 
-        mCompositeShader = Renderer::GetShaderLibrary()->Get("SceneComposite");
+        mCompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
         CompositeMaterial = Material::Create(mCompositeShader);
         //Light culling compute pipeline
         {
@@ -157,7 +157,7 @@ namespace NR
                 { ShaderDataType::Float3, "aBinormal" },
                 { ShaderDataType::Float2, "aTexCoord" },
             };
-            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HazelPBR_Static");
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
 
             RenderPassSpecification renderPassSpec;
             renderPassSpec.TargetFrameBuffer = frameBuffer;
@@ -226,7 +226,7 @@ namespace NR
                 { ShaderDataType::Float2, "aTexCoord" }
             };
             pipelineSpecification.BackfaceCulling = false;
-            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HDR");
 
             RenderPassSpecification renderPassSpec;
             renderPassSpec.TargetFrameBuffer = frameBuffer;

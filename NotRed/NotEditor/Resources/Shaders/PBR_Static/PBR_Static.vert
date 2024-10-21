@@ -1,4 +1,4 @@
-﻿// -----------------------------
+// -----------------------------
 // -- Hazel Engine PBR shader --
 // -----------------------------
 // Note: this shader is still very much in progress. There are likely many bugs and future additions that will go in.
@@ -7,7 +7,7 @@
 // References upon which this is based:
 // - Unreal Engine 4 PBR notes (https://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013pbsepicnotesv2.pdf)
 // - Frostbite's SIGGRAPH 2014 paper (https://seblagarde.wordpress.com/2015/07/14/siggraph-2014-moving-frostbite-to-physically-based-rendering/)
-// - Michał Siejak's PBR project (https://github.com/Nadrin)
+// - Micha Siejak's PBR project (https://github.com/Nadrin)
 // - My implementation from years ago in the Sparky engine (https://github.com/TheCherno/Sparky)
 #version 450 core
 
@@ -65,5 +65,5 @@ void main()
 	Output.ShadowMapCoords[3] = uLightMatrix[3] * vec4(Output.WorldPosition, 1.0);
 	Output.ViewPosition = vec3(uViewMatrix * vec4(Output.WorldPosition, 1.0));
 
-	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);﻿
+	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
 }
