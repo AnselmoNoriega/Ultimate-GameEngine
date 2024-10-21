@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Vulkan.h"
 #include "VKDevice.h"
-#include "VKAllocator.h"
 #include "VKSwapChain.h"
 
 #include "NotRed/Renderer/Renderer.h"
@@ -14,18 +12,12 @@ namespace NR
 	class VKContext : public RendererContext
 	{
 	public:
-		VKContext(GLFWwindow* windowHandle);
+		VKContext();
 		~VKContext() override;
 
-		void Create() override;
-		void SwapBuffers() override;
-
-		void Resize(uint32_t width, uint32_t height) override;
-
-		void BeginFrame() override;
+		void Init() override;
 
 		Ref<VKDevice> GetDevice() { return mDevice; }
-		VKSwapChain& GetSwapChain() { return mSwapChain; }
 
 		static VkInstance GetInstance() { return sVKInstance; }
 
@@ -33,8 +25,6 @@ namespace NR
 		static Ref<VKDevice> GetCurrentDevice() { return Get()->GetDevice(); }
 
 	private:
-		GLFWwindow* mWindowHandle;
-
 		Ref<VKPhysicalDevice> mPhysicalDevice;
 		Ref<VKDevice> mDevice;
 

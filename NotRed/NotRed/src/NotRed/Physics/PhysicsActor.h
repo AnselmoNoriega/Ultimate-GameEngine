@@ -33,7 +33,7 @@ namespace NR
 		void SetLinearDrag(float drag) const;
 		void SetAngularDrag(float drag) const;
 
-		void SetLayer(uint32_t layerId);
+		void SetSimulationData(uint32_t layerId);
 
 		bool IsDynamic() const { return mRigidBodyData.BodyType == RigidBodyComponent::Type::Dynamic; }
 
@@ -48,10 +48,10 @@ namespace NR
 
 		void FixedUpdate(float fixedDeltaTime);
 
-		void AddCollider(BoxColliderComponent& collider);
-		void AddCollider(SphereColliderComponent& collider);
-		void AddCollider(CapsuleColliderComponent& collider);
-		void AddCollider(MeshColliderComponent& collider);
+		void AddCollider(BoxColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
+		void AddCollider(SphereColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
+		void AddCollider(CapsuleColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
+		void AddCollider(MeshColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 
 		Entity GetEntity() const { return mEntity; }
 		const TransformComponent& GetTransform() const { return mEntity.GetComponent<TransformComponent>(); }
@@ -67,7 +67,7 @@ namespace NR
 
 	private:
 		Entity mEntity;
-		RigidBodyComponent& mRigidBodyData;
+		RigidBodyComponent mRigidBodyData;
 		uint32_t mLockFlags = 0;
 
 		physx::PxRigidActor* mRigidActor;

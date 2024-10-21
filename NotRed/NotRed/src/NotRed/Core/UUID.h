@@ -31,3 +31,8 @@ namespace std
 		}
 	};
 }
+
+inline std::ostream& operator<<(std::ostream& os, const NR::UUID& uuid)
+{
+	return os << std::hex << uuid;
+}

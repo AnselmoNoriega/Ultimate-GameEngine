@@ -5,24 +5,27 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "NotRed/Asset/AssetManager.h"
 #include "PhysicsInternal.h"
 #include "PhysicsActor.h"
 
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"
 
+//#include "NotRed/Project/Project.h"
+
 namespace NR
 {
 	namespace Utils
 	{
-		static const char* GetCacheDirectory()
+		static std::filesystem::path GetCacheDirectory()
 		{
-			return "Assets/Cache/Colliders/";
+			return Project::GetCacheDirectory();
 		}
 
 		static void CreateCacheDirectoryIfNeeded()
 		{
-			std::string cacheDirectory = GetCacheDirectory();
+			std::filesystem::path cacheDirectory = GetCacheDirectory();
 			if (!std::filesystem::exists(cacheDirectory))
 			{
 				std::filesystem::create_directories(cacheDirectory);
@@ -46,17 +49,17 @@ namespace NR
 		mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
 	}
 
-	BoxColliderShape::BoxColliderShape(BoxColliderComponent& component, const PhysicsActor& actor)
+	BoxColliderShape::BoxColliderShape(BoxColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::Box), mComponent(component)
 	{
 		SetMaterial(mComponent.Material);
 
-		glm::vec3 colliderSize = actor.GetTransform().Scale * mComponent.Size;
+		glm::vec3 colliderSize = entity.Transform().Scale * mComponent.Size;
 		physx::PxBoxGeometry geometry = physx::PxBoxGeometry(colliderSize.x / 2.0f, colliderSize.y / 2.0f, colliderSize.z / 2.0f);
 		mShape = physx::PxRigidActorExt::createExclusiveShape(actor.GetPhysicsActor(), geometry, *mMaterial);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(mComponent.Offset, glm::vec3(0.0f)));
+		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f)));
 	}
 
 	void BoxColliderShape::SetOffset(const glm::vec3& offset)
@@ -82,19 +85,19 @@ namespace NR
 		mShape->setSimulationFilterData(filterData);
 	}
 
-	SphereColliderShape::SphereColliderShape(SphereColliderComponent& component, const PhysicsActor& actor)
+	SphereColliderShape::SphereColliderShape(SphereColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::Sphere), mComponent(component)
 	{
 		SetMaterial(mComponent.Material);
 
-		auto& actorScale = actor.GetTransform().Scale;
+		auto& actorScale = entity.Transform().Scale;
 		float largestComponent = glm::max(actorScale.x, glm::max(actorScale.y, actorScale.z));
 
 		physx::PxSphereGeometry geometry = physx::PxSphereGeometry(largestComponent * mComponent.Radius);
 		mShape = physx::PxRigidActorExt::createExclusiveShape(actor.GetPhysicsActor(), geometry, *mMaterial);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(mComponent.Offset, glm::vec3(0.0f)));
+		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f)));
 	}
 
 	void SphereColliderShape::SetOffset(const glm::vec3& offset)
@@ -120,19 +123,19 @@ namespace NR
 		mShape->setSimulationFilterData(filterData);
 	}
 
-	CapsuleColliderShape::CapsuleColliderShape(CapsuleColliderComponent& component, const PhysicsActor& actor)
+	CapsuleColliderShape::CapsuleColliderShape(CapsuleColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::Capsule), mComponent(component)
 	{
 		SetMaterial(mComponent.Material);
 
-		auto& actorScale = actor.GetTransform().Scale;
+		auto& actorScale = entity.Transform().Scale;
 		float radiusScale = glm::max(actorScale.x, actorScale.z);
 
 		physx::PxCapsuleGeometry geometry = physx::PxCapsuleGeometry(mComponent.Radius * radiusScale, (mComponent.Height / 2.0f) * actorScale.y);
 		mShape = physx::PxRigidActorExt::createExclusiveShape(actor.GetPhysicsActor(), geometry, *mMaterial);
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(mComponent.Offset, glm::vec3(0.0f, 0.0f, physx::PxHalfPi)));
+		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f, 0.0f, physx::PxHalfPi)));
 	}
 
 	void CapsuleColliderShape::SetOffset(const glm::vec3& offset)
@@ -158,7 +161,7 @@ namespace NR
 		mShape->setSimulationFilterData(filterData);
 	}
 
-	ConvexMeshShape::ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor)
+	ConvexMeshShape::ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::ConvexMesh), mComponent(component)
 	{
 		NR_CORE_ASSERT(component.IsConvex);
@@ -169,15 +172,21 @@ namespace NR
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
 
 		Utils::CreateCacheDirectoryIfNeeded();
-		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + "_convex.pxm";
+		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
+		if (!metadata.IsValid())
+		{
+			NR_CORE_ERROR("Invalid mesh");
+		}
+
+		std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_convex.pxm");
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookConvexMesh(component.CollisionMesh, cookedData);
-			SerializeData(filepath, cookedData);
+			SerializeData(filepath.string(), cookedData);
 		}
 		else
 		{
-			DeserializeCached(filepath, cookedData);
+			DeserializeCached(filepath.string(), cookedData);
 		}
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
@@ -189,13 +198,13 @@ namespace NR
 
 			physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
 			physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
-			physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * actor.GetTransform().Scale)));
+			physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
 			convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
 
 			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(convexGeometry, *mMaterial, true);
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submeshTranslation, submeshRotation));
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + submeshTranslation, submeshRotation));
 
 			actor.GetPhysicsActor().attachShape(*shape);
 
@@ -273,7 +282,10 @@ namespace NR
 		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
 		uint32_t offset = 0;
 
-		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
+		const auto& meshAsset = mComponent.CollisionMesh->GetMeshAsset();
+		const auto& submeshes = meshAsset->GetSubmeshes();
+
+		for (auto submesh : mComponent.CollisionMesh->GetSubmeshes())
 		{
 			MeshColliderData& data = outData.emplace_back();
 
@@ -281,7 +293,7 @@ namespace NR
 			offset += sizeof(uint32_t);
 			data.Data = colliderBuffer.ReadBytes(data.Size, offset);
 			offset += data.Size;
-			data.Transform = submesh.Transform;
+			data.Transform = submeshes[submesh].Transform;
 		}
 
 		colliderBuffer.Release();
@@ -340,12 +352,13 @@ namespace NR
 					++indexCounter;
 				}
 
-				mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(collisionVertices, collisionIndices, PhysicsUtils::FromPhysicsTransform(shape->getLocalPose())));
+				Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create(collisionVertices, collisionIndices, PhysicsUtils::FromPhysicsTransform(shape->getLocalPose()));
+				mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(meshAsset));
 			}
 		}
 	}
 	
-	TriangleMeshShape::TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor)
+	TriangleMeshShape::TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::TriangleMesh), mComponent(component)
 	{
 		NR_CORE_ASSERT(!component.IsConvex);
@@ -355,16 +368,21 @@ namespace NR
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
 
 		Utils::CreateCacheDirectoryIfNeeded();
+		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
+		if (!metadata.IsValid())
+		{
+			NR_CORE_ERROR("Invalid mesh");
+		}
 
-		std::string filepath = Utils::GetCacheDirectory() + std::filesystem::path(component.CollisionMesh->FilePath).filename().string() + "_tri.pxm";
+		std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_tri.pxm");
 		if (!FileSystem::Exists(filepath))
 		{
 			CookingFactory::CookTriangleMesh(component.CollisionMesh, cookedData);
-			SerializeData(filepath, cookedData);
+			SerializeData(filepath.string(), cookedData);
 		}
 		else
 		{
-			DeserializeCached(filepath, cookedData);
+			DeserializeCached(filepath.string(), cookedData);
 		}
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
@@ -376,12 +394,12 @@ namespace NR
 
 			physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
 			physx::PxTriangleMesh* trimesh = PhysicsInternal::GetPhysicsSDK().createTriangleMesh(input);
-			physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * actor.GetTransform().Scale)));
+			physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
 			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(triangleGeometry, *mMaterial, true);
 
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submeshTranslation, submeshRotation));
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + submeshTranslation, submeshRotation));
 
 			actor.GetPhysicsActor().attachShape(*shape);
 			mShapes.push_back(shape);
@@ -454,6 +472,9 @@ namespace NR
 		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
 		uint32_t offset = 0;
 
+		const auto& meshAsset = mComponent.CollisionMesh->GetMeshAsset();
+		const auto& submeshes = meshAsset->GetSubmeshes();
+
 		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
 		{
 			MeshColliderData& data = outData.emplace_back();
@@ -463,7 +484,7 @@ namespace NR
 
 			offset += data.Size;
 
-			data.Transform = submesh.Transform;
+			data.Transform = submeshes[submesh].Transform;
 		}
 
 		colliderBuffer.Release();
@@ -508,7 +529,8 @@ namespace NR
 
 			glm::mat4 scale = glm::scale(glm::mat4(1.0f), PhysicsUtils::FromPhysicsVector(triangleGeometry.scale.scale));
 			glm::mat4 transform = PhysicsUtils::FromPhysicsTransform(shape->getLocalPose()) * scale;
-			mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(vertices, indices, transform));
+			Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create(vertices, indices, transform);
+			mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(meshAsset));
 		}
 	}
 }

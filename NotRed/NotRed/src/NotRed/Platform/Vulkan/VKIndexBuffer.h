@@ -13,7 +13,7 @@ namespace NR
 	public:
 		VKIndexBuffer(uint32_t size);
 		VKIndexBuffer(void* data, uint32_t size = 0);
-		~VKIndexBuffer() override = default;
+		~VKIndexBuffer() override;
 
 		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
 		void Bind() const override;
@@ -29,7 +29,7 @@ namespace NR
 		uint32_t mSize = 0;
 		Buffer mLocalData;
 
-		VkBuffer mVulkanBuffer;
-		VkDeviceMemory mDeviceMemory;
+		VkBuffer mVulkanBuffer = nullptr;
+		VmaAllocation mMemoryAllocation;
 	};
 }

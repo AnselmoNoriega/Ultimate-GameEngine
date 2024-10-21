@@ -89,13 +89,13 @@ namespace NR
 
         ParticleComponent()
         {
-            MeshObj = Ref<Mesh>::Create(ParticleCount);
+            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(ParticleCount));
         }
         ParticleComponent(const ParticleComponent& other) = default;
         ParticleComponent(const int particleNum)
         {
             ParticleCount = particleNum;
-            MeshObj = Ref<Mesh>::Create(particleNum);
+            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(particleNum));
         }
 
         operator Ref<Mesh>() { return MeshObj; }
@@ -115,11 +115,22 @@ namespace NR
         float LightSize = 0.5f; // For PCSS
     };
 
+    struct PointLightComponent
+    {
+        glm::vec3 Radiance = { 1.0f, 1.0f, 1.0f };
+        float Intensity = 1.0f;
+        float LightSize = 0.5f; // For PCSS
+        float MinRadius = 1.f;
+        float Radius = 10.f;
+        bool CastsShadows = true;
+        bool SoftShadows = true;
+        float Falloff = 1.f;
+    };
+
     struct SkyLightComponent
     {
         Ref<Environment> SceneEnvironment;
         float Intensity = 1.0f;
-        float Angle = 0.0f;
 
         bool DynamicSky = false;
         glm::vec3 TurbidityAzimuthInclination = { 2.0, 0.0, 0.0 };
@@ -172,7 +183,7 @@ namespace NR
     struct BoxCollider2DComponent
     {
         glm::vec2 Offset = { 0.0f,0.0f };
-        glm::vec2 Size = { 1.0f, 1.0f };
+        glm::vec2 Size = { 0.5f, 0.5f };
 
         float Density = 1.0f;
         float Friction = 1.0f;

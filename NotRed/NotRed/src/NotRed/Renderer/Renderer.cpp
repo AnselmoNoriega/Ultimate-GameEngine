@@ -1,8 +1,9 @@
 #include "nrpch.h"
 #include "Renderer.h"
 
-#include <glad/glad.h>
 #include <map>
+#include <filesystem>
+#include <glad/glad.h>
 
 #include "RendererAPI.h"
 #include "SceneRenderer.h"
@@ -10,12 +11,15 @@
 
 #include "Shader.h"
 
+#include "NotRed/Project/Project.h"
 #include "NotRed/Platform/OpenGL/GLRenderer.h"
+#include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 
 #include "NotRed/Platform/Vulkan/VKContext.h"
 
 #include "NotRed/Core/Timer.h"
+#include "NotRed/Debug/Profiler.h"
 
 namespace NR
 {
@@ -41,7 +45,7 @@ namespace NR
         sShaderDependencies[shader->GetHash()].Materials.push_back(material);
     }
 
-    void Renderer::OnShaderReloaded(size_t hash)
+    void Renderer::ShaderReloaded(size_t hash)
     {
         if (sShaderDependencies.find(hash) != sShaderDependencies.end())
         {
@@ -60,24 +64,24 @@ namespace NR
 
     void RendererAPI::SetAPI(RendererAPIType api)
     {
+        NR_CORE_VERIFY(api == RendererAPIType::Vulkan, "Vulkan is currently the only supported Renderer API");
         sCurrentRendererAPI = api;
     }
 
     uint32_t Renderer::GetCurrentFrameIndex()
     {
-        return VKContext::Get()->GetSwapChain().GetCurrentBufferIndex();
+        return Application::Get().GetWindow().GetSwapChain().GetCurrentBufferIndex();
     }
 
     struct RendererData
     {
-        RendererConfig Config;
-
         Ref<ShaderLibrary> mShaderLibrary;
 
         Ref<Texture2D> WhiteTexture;
+        Ref<Texture2D> BRDFLutTexture;
+        Ref<Texture2D> BlackTexture;
         Ref<TextureCube> BlackCubeTexture;
         Ref<Environment> EmptyEnvironment;
-        std::map<uint32_t, std::map<uint32_t, std::map<uint32_t, Ref<UniformBuffer>>>> UniformBuffers;
     };
 
     static RendererData* sData = nullptr;
@@ -88,7 +92,7 @@ namespace NR
     {
         switch (RendererAPI::Current())
         {
-        case RendererAPIType::OpenGL: return new GLRenderer();
+        //case RendererAPIType::OpenGL: return new GLRenderer();
         case RendererAPIType::Vulkan: return new VKRenderer();
         default:
         {
@@ -103,23 +107,39 @@ namespace NR
         sData = new RendererData();
         sCommandQueue = new RenderCommandQueue();
 
-        sData->Config.FramesInFlight = 3;
         sRendererAPI = InitRendererAPI();
 
         sData->mShaderLibrary = Ref<ShaderLibrary>::Create();
 
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentMipFilter");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EquirectangularToCubeMap");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/EnvironmentIrradiance");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PreethamSky");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/EnvironmentMipFilter");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/EquirectangularToCubeMap");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/EnvironmentIrradiance");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreethamSky");
 
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Grid");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/HDR");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/PBR_Static", true);
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Particle", true);
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ParticleGen", true);
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/Skybox");
-        Renderer::GetShaderLibrary()->Load("Assets/Shaders/ShadowMap");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Grid");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HDR");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PBR_Static", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen", true);
+        Renderer::GetShaderLibrary()->Load("Resources/shaders/Wireframe");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Skybox");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling", true);
+        //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim.glsl");
+        //Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
+		
+		// Renderer2D Shaders
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Line");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Circle");
+
+        // Jump Flood Shaders
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Init");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Pass");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Composite");
+
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry");
 
         // Compile shaders
         Renderer::WaitAndRender();
@@ -127,19 +147,26 @@ namespace NR
         uint32_t whiteTextureData = 0xffffffff;
         sData->WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 
-        uint32_t blackTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
-        sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackTextureData);
+        uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
+        sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackCubeTextureData);
+        
+        {
+            TextureProperties props;
+            props.SamplerWrap = TextureWrap::Clamp;
+            sData->BRDFLutTexture = Texture2D::Create("Resources/Renderer/BRDF_LUT.tga", props);
+        }
 
         sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
 
         sRendererAPI->Init();
-        SceneRenderer::Init();
+        Renderer2D::Init();
     }
 
     void Renderer::Shutdown()
     {
+        Renderer2D::Shutdown();
+
         sShaderDependencies.clear();
-        SceneRenderer::Shutdown();
         sRendererAPI->Shutdown();
 
         delete sData;
@@ -158,20 +185,21 @@ namespace NR
 
     void Renderer::WaitAndRender()
     {
+        NR_PROFILE_FUNC();
         NR_SCOPE_PERF("Renderer::WaitAndRender");
         sCommandQueue->Execute();
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderPass> renderPass, bool clear)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool explicitClear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
-        sRendererAPI->BeginRenderPass(renderPass);
+        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass, explicitClear);
     }
 
-    void Renderer::EndRenderPass()
+    void Renderer::EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer)
     {
-        sRendererAPI->EndRenderPass();
+        sRendererAPI->EndRenderPass(renderCommandBuffer);
     }
 
     void Renderer::BeginFrame()
@@ -184,9 +212,9 @@ namespace NR
         sRendererAPI->EndFrame();
     }
 
-    void Renderer::SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow)
+    void Renderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow)
     {
-        sRendererAPI->SetSceneEnvironment(environment, shadow);
+        sRendererAPI->SetSceneEnvironment(sceneRenderer, environment, shadow);
     }
 
     std::pair<Ref<TextureCube>, Ref<TextureCube>> Renderer::CreateEnvironmentMap(const std::string& filepath)
@@ -199,93 +227,64 @@ namespace NR
         sRendererAPI->GenerateParticles();
     }
 
-    void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
     {
-        sRendererAPI->RenderMesh(pipeline, mesh, transform);
+        return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
     }
 
-    void Renderer::RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sRendererAPI->RenderParticles(pipeline, mesh, transform);
+        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform);
     }
 
-    void Renderer::RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms)
     {
-        sRendererAPI->RenderMesh(pipeline, mesh, material, transform, additionalUniforms);
+        sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, material, transform, additionalUniforms);
     }
 
-    void Renderer::RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform)
+    void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        sRendererAPI->RenderQuad(pipeline, material, transform);
+        sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform);
     }
 
-    void Renderer::SubmitQuad(Ref<Material> material, const glm::mat4& transform)
+    void Renderer::RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::mat4& transform)
     {
+        sRendererAPI->RenderQuad(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, transform);
     }
 
-    void Renderer::SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material)
+    void Renderer::SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform)
     {
-        sRendererAPI->SubmitFullScreenQuad(pipeline, material);
+        NR_CORE_ASSERT(false, "Not Implemented");
     }
 
-    void Renderer::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
+    void Renderer::SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material)
     {
-        for (Submesh& submesh : mesh->mSubmeshes)
-        {
-            auto& aabb = submesh.BoundingBox;
-            auto aabbTransform = transform * submesh.Transform;
-            DrawAABB(aabb, aabbTransform);
-        }
+        sRendererAPI->SubmitFullscreenQuad(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material);
     }
 
-    void Renderer::DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color)
+    void Renderer::SubmitFullscreenQuadWithOverrides(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Buffer vertexShaderOverrides, Buffer fragmentShaderOverrides)
     {
-        glm::vec4 min = { aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f };
-        glm::vec4 max = { aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f };
-
-        glm::vec4 corners[8] =
-        {
-            transform * glm::vec4 { aabb.Min.x, aabb.Min.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4 { aabb.Min.x, aabb.Max.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Max.y, aabb.Max.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Min.y, aabb.Max.z, 1.0f },
-
-            transform * glm::vec4 { aabb.Min.x, aabb.Min.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4 { aabb.Min.x, aabb.Max.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Max.y, aabb.Min.z, 1.0f },
-            transform * glm::vec4 { aabb.Max.x, aabb.Min.y, aabb.Min.z, 1.0f }
-        };
-        for (uint32_t i = 0; i < 4; ++i)
-        {
-            Renderer2D::DrawLine(corners[i], corners[(i + 1) % 4], color);
-        }
-        for (uint32_t i = 0; i < 4; ++i)
-        {
-            Renderer2D::DrawLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
-        }
-        for (uint32_t i = 0; i < 4; ++i)
-        {
-            Renderer2D::DrawLine(corners[i], corners[i + 4], color);
-        }
+        sRendererAPI->SubmitFullscreenQuadWithOverrides(renderCommandBuffer, pipeline, uniformBufferSet, nullptr, material, vertexShaderOverrides, fragmentShaderOverrides);
     }
 
-    void Renderer::SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t frame, uint32_t set)
+    void Renderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount)
     {
-        sData->UniformBuffers[frame][set][uniformBuffer->GetBinding()] = uniformBuffer;
-    }
-
-    Ref<UniformBuffer> Renderer::GetUniformBuffer(uint32_t frame, uint32_t binding, uint32_t set)
-    {
-        NR_CORE_ASSERT(sData->UniformBuffers.find(frame) != sData->UniformBuffers.end());
-        NR_CORE_ASSERT(sData->UniformBuffers.at(frame).find(set) != sData->UniformBuffers.at(frame).end());
-        NR_CORE_ASSERT(sData->UniformBuffers.at(frame).at(set).find(binding) != sData->UniformBuffers.at(frame).at(set).end());
-
-        return sData->UniformBuffers.at(frame).at(set).at(binding);
+        sRendererAPI->RenderGeometry(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, vertexBuffer, indexBuffer, transform, indexCount);
     }
 
     Ref<Texture2D> Renderer::GetWhiteTexture()
     {
         return sData->WhiteTexture;
+    }
+
+    Ref<Texture2D> Renderer::GetBRDFLutTexture()
+    {
+        return sData->BRDFLutTexture;
+    }
+
+    Ref<Texture2D> Renderer::GetBlackTexture()
+    {
+        return sData->BlackTexture;
     }
 
     Ref<TextureCube> Renderer::GetBlackCubeTexture()
@@ -305,12 +304,13 @@ namespace NR
 
     RendererConfig& Renderer::GetConfig()
     {
-        return sData->Config;
+        static RendererConfig config;
+        return config;
     }
 
-    Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
+    void Renderer::LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
     {
-        return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
+        sRendererAPI->LightCulling(renderCommandBuffer, computePipeline, uniformBufferSet, storageBufferSet, material, screenSize, workGroups);
     }
 
     RenderCommandQueue& Renderer::GetRenderResourceReleaseQueue(uint32_t index)

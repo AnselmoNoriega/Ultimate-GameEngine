@@ -172,12 +172,13 @@ namespace NR
 				if (mInstance->GetRefCount() == 0)
 				{
 					delete mInstance;
+					mInstance = nullptr;
 				}
 			}
 		}
 
 		template<class T2>
 		friend class Ref;
-		T* mInstance;
+		mutable T* mInstance;
 	};
 }

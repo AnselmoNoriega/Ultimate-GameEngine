@@ -43,7 +43,7 @@ namespace NR
 		indices[10] = { 3, 2, 6 };
 		indices[11] = { 6, 7, 3 };
 
-		return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+		return Ref<Mesh>::Create(Ref<MeshAsset>::Create(vertices, indices, glm::mat4(1.0f)));
 	}
 
 	Ref<Mesh> MeshFactory::CreateSphere(float radius)
@@ -56,15 +56,15 @@ namespace NR
 
 		for (int latitude = 0.0f; latitude <= latitudeBands; ++latitude)
 		{
-			float theta = latitude * M_PI / latitudeBands;
-			float sinTheta = glm::sin(theta);
-			float cosTheta = glm::cos(theta);
+			const float theta = latitude * M_PI / latitudeBands;
+			const float sinTheta = glm::sin(theta);
+			const float cosTheta = glm::cos(theta);
 
 			for (float longitude = 0.0f; longitude <= longitudeBands; ++longitude)
 			{
-				float phi = longitude * 2 * M_PI / longitudeBands;
-				float sinPhi = glm::sin(phi);
-				float cosPhi = glm::cos(phi);
+				const float phi = longitude * 2 * M_PI / longitudeBands;
+				const float sinPhi = glm::sin(phi);
+				const float cosPhi = glm::cos(phi);
 
 				Vertex vertex;
 				vertex.Normal = { cosPhi * sinTheta, cosTheta, sinPhi * sinTheta };
@@ -73,19 +73,19 @@ namespace NR
 			}
 		}
 
-		for (uint32_t latitude = 0; latitude < latitudeBands; ++latitude)
+		for (uint32_t latitude = 0; latitude < (uint32_t)latitudeBands; latitude++)
 		{
-			for (uint32_t longitude = 0; longitude < longitudeBands; longitude++)
+			for (uint32_t longitude = 0; longitude < (uint32_t)longitudeBands; longitude++)
 			{
-				uint32_t first = (latitude * (longitudeBands + 1)) + longitude;
-				uint32_t second = first + longitudeBands + 1;
+				const uint32_t first = (latitude * ((uint32_t)longitudeBands + 1)) + longitude;
+				const uint32_t second = first + (uint32_t)longitudeBands + 1;
 
 				indices.push_back({ first, second, first + 1 });
 				indices.push_back({ second, second + 1, first + 1 });
 			}
 		}
 
-		return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+		return Ref<Mesh>::Create(Ref<MeshAsset>::Create(vertices, indices, glm::mat4(1.0f)));
 	}
 
 	Ref<Mesh> MeshFactory::CreateCapsule(float radius, float height)
@@ -124,7 +124,7 @@ namespace NR
 			yOffset = 0.0f;
 		}
 
-		int top = glm::ceil(pointCount * 0.5f);
+		int top = (int)glm::ceil(pointCount * 0.5f);
 
 		for (int y = 0; y < top; ++y)
 		{
@@ -136,7 +136,7 @@ namespace NR
 			}
 		}
 
-		int bottom = glm::floor(pointCount * 0.5f);
+		int bottom = (int)glm::floor(pointCount * 0.5f);
 
 		for (int y = bottom; y < pointCount; ++y)
 		{
@@ -166,6 +166,6 @@ namespace NR
 			}
 		}
 
-		return Ref<Mesh>::Create(vertices, indices, glm::mat4(1.0f));
+		return Ref<Mesh>::Create(Ref<MeshAsset>::Create(vertices, indices, glm::mat4(1.0f)));
 	}
 }

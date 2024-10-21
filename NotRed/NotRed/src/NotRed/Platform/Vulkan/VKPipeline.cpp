@@ -10,6 +10,25 @@
 
 namespace NR
 {
+    namespace Utils
+    {
+        static VkPrimitiveTopology GetVulkanTopology(PrimitiveTopology topology)
+        {
+            switch (topology)
+            {
+            case PrimitiveTopology::Points:			return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+            case PrimitiveTopology::Lines:			return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+            case PrimitiveTopology::Triangles:		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+            case PrimitiveTopology::LineStrip:		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+            case PrimitiveTopology::TriangleStrip:	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+            case PrimitiveTopology::TriangleFan:	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+            default:
+                NR_CORE_ASSERT(false, "Unknown toplogy");
+                return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+            }
+        }
+    }
+
     static VkFormat ShaderDataTypeToVulkanFormat(ShaderDataType type)
     {
         switch (type)
@@ -42,8 +61,9 @@ namespace NR
         Ref<VKPipeline> instance = this;
         Renderer::Submit([instance]() mutable
             {
-                VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                NR_CORE_WARN("[VulkanPipeline] Creating pipeline {0}", instance->mSpecification.DebugName);
 
+                VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
                 NR_CORE_ASSERT(instance->mSpecification.Shader);
                 Ref<VKShader> vulkanShader = Ref<VKShader>(instance->mSpecification.Shader);
                 Ref<VKFrameBuffer> frameBuffer = instance->mSpecification.RenderPass->GetSpecification().TargetFrameBuffer.As<VKFrameBuffer>();
@@ -68,9 +88,9 @@ namespace NR
                 VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {};
                 pPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
                 pPipelineLayoutCreateInfo.pNext = nullptr;
-                pPipelineLayoutCreateInfo.setLayoutCount = descriptorSetLayouts.size();
+                pPipelineLayoutCreateInfo.setLayoutCount = (uint32_t)descriptorSetLayouts.size();
                 pPipelineLayoutCreateInfo.pSetLayouts = descriptorSetLayouts.data();
-                pPipelineLayoutCreateInfo.pushConstantRangeCount = vulkanPushConstantRanges.size();
+                pPipelineLayoutCreateInfo.pushConstantRangeCount = (uint32_t)vulkanPushConstantRanges.size();
                 pPipelineLayoutCreateInfo.pPushConstantRanges = vulkanPushConstantRanges.data();
 
                 VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pPipelineLayoutCreateInfo, nullptr, &instance->mPipelineLayout));
@@ -92,38 +112,75 @@ namespace NR
                 // This pipeline will assemble vertex data as a triangle lists (though we only use one triangle)
                 VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = {};
                 inputAssemblyState.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-                inputAssemblyState.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+                inputAssemblyState.topology = Utils::GetVulkanTopology(instance->mSpecification.Topology);
 
                 // Rasterization state
                 VkPipelineRasterizationStateCreateInfo rasterizationState = {};
                 rasterizationState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-                rasterizationState.polygonMode = VK_POLYGON_MODE_FILL;
-                rasterizationState.cullMode = VK_CULL_MODE_NONE;
-                rasterizationState.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+                rasterizationState.polygonMode = instance->mSpecification.Wireframe ? VK_POLYGON_MODE_LINE : VK_POLYGON_MODE_FILL;
+                rasterizationState.cullMode = instance->mSpecification.BackfaceCulling ? VK_CULL_MODE_BACK_BIT : VK_CULL_MODE_NONE;
+                rasterizationState.frontFace = VK_FRONT_FACE_CLOCKWISE;
                 rasterizationState.depthClampEnable = VK_FALSE;
                 rasterizationState.rasterizerDiscardEnable = VK_FALSE;
                 rasterizationState.depthBiasEnable = VK_FALSE;
-                rasterizationState.lineWidth = 1.0f;
+                rasterizationState.lineWidth = instance->mSpecification.LineWidth;
 
                 // Color blend state describes how blend factors are calculated (if used)
                 // We need one blend attachment state per color attachment (even if blending is not used)
-                size_t colorAttachmentCount = frameBuffer->GetColorAttachmentCount();
+                size_t colorAttachmentCount = frameBuffer->GetSpecification().SwapChainTarget ? 1 : frameBuffer->GetColorAttachmentCount();
                 std::vector<VkPipelineColorBlendAttachmentState> blendAttachmentStates(colorAttachmentCount);
-                for (size_t i = 0; i < colorAttachmentCount; ++i)
+                if (frameBuffer->GetSpecification().SwapChainTarget)
                 {
-                    blendAttachmentStates[i].colorWriteMask = 0xf;
-                    blendAttachmentStates[i].blendEnable = VK_TRUE;
-                    blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-                    blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-                    blendAttachmentStates[i].colorBlendOp = VK_BLEND_OP_ADD;
-                    blendAttachmentStates[i].alphaBlendOp = VK_BLEND_OP_ADD;
-                    blendAttachmentStates[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-                    blendAttachmentStates[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                    blendAttachmentStates[0].colorWriteMask = 0xf;
+                    blendAttachmentStates[0].blendEnable = VK_TRUE;
+                    blendAttachmentStates[0].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                    blendAttachmentStates[0].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                    blendAttachmentStates[0].colorBlendOp = VK_BLEND_OP_ADD;
+                    blendAttachmentStates[0].alphaBlendOp = VK_BLEND_OP_ADD;
+                    blendAttachmentStates[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                    blendAttachmentStates[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                }
+                else
+                {
+                    for (size_t i = 0; i < colorAttachmentCount; ++i)
+                    {
+                        if (!frameBuffer->GetSpecification().Blend)
+                        {
+                            break;
+                        }
+
+                        const auto& attachmentSpec = frameBuffer->GetSpecification().Attachments.Attachments[i];
+                        FrameBufferBlendMode blendMode = frameBuffer->GetSpecification().BlendMode == FrameBufferBlendMode::None
+                            ? attachmentSpec.BlendMode
+                            : frameBuffer->GetSpecification().BlendMode;
+
+                        blendAttachmentStates[i].colorWriteMask = 0xf;
+                        blendAttachmentStates[i].blendEnable = attachmentSpec.Blend ? VK_TRUE : VK_FALSE;
+
+                        if (blendMode == FrameBufferBlendMode::SrcAlphaOneMinusSrcAlpha)
+                        {
+                            blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                            blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                        }
+                        else if (blendMode == FrameBufferBlendMode::OneZero)
+                        {
+                            blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+                            blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+                        }
+                        else
+                        {
+                            NR_CORE_VERIFY(false);
+                        }
+                        blendAttachmentStates[i].colorBlendOp = VK_BLEND_OP_ADD;
+                        blendAttachmentStates[i].alphaBlendOp = VK_BLEND_OP_ADD;
+                        blendAttachmentStates[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+                        blendAttachmentStates[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                    }
                 }
 
                 VkPipelineColorBlendStateCreateInfo colorBlendState = {};
                 colorBlendState.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-                colorBlendState.attachmentCount = blendAttachmentStates.size();
+                colorBlendState.attachmentCount = (uint32_t)blendAttachmentStates.size();
                 colorBlendState.pAttachments = blendAttachmentStates.data();
 
                 // Viewport state sets the number of viewports and scissor used in this pipeline
@@ -140,6 +197,11 @@ namespace NR
                 std::vector<VkDynamicState> dynamicStateEnables;
                 dynamicStateEnables.push_back(VK_DYNAMIC_STATE_VIEWPORT);
                 dynamicStateEnables.push_back(VK_DYNAMIC_STATE_SCISSOR);
+                if (instance->mSpecification.Topology == PrimitiveTopology::Lines || instance->mSpecification.Topology == PrimitiveTopology::LineStrip || instance->mSpecification.Wireframe)
+                {
+                    dynamicStateEnables.push_back(VK_DYNAMIC_STATE_LINE_WIDTH);
+                }
+
                 VkPipelineDynamicStateCreateInfo dynamicState = {};
                 dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
                 dynamicState.pDynamicStates = dynamicStateEnables.data();
@@ -149,8 +211,8 @@ namespace NR
                 // We only use depth tests and want depth tests and writes to be enabled and compare with less or equal
                 VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
                 depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-                depthStencilState.depthTestEnable = VK_TRUE;
-                depthStencilState.depthWriteEnable = VK_TRUE;
+                depthStencilState.depthTestEnable = instance->mSpecification.DepthTest ? VK_TRUE : VK_FALSE;
+                depthStencilState.depthWriteEnable = instance->mSpecification.DepthWrite ? VK_TRUE : VK_FALSE;
                 depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
                 depthStencilState.depthBoundsTestEnable = VK_FALSE;
                 depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;
@@ -194,7 +256,7 @@ namespace NR
                 vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
                 vertexInputState.vertexBindingDescriptionCount = 1;
                 vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
-                vertexInputState.vertexAttributeDescriptionCount = vertexInputAttributs.size();
+                vertexInputState.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributs.size();
                 vertexInputState.pVertexAttributeDescriptions = vertexInputAttributs.data();
 
                 const auto& shaderStages = vulkanShader->GetPipelineShaderStageCreateInfos();

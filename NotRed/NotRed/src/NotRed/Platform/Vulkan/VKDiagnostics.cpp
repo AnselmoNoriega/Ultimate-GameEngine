@@ -10,7 +10,7 @@ namespace NR::Utils
 
     void SetVKCheckpoint(VkCommandBuffer commandBuffer, const std::string& data)
     {
-        bool supported = VKContext::GetCurrentDevice()->GetPhysicalDevice()->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
+        const bool supported = VKContext::GetCurrentDevice()->GetPhysicalDevice()->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME);
         if (!supported)
         {
             return;
@@ -19,7 +19,7 @@ namespace NR::Utils
         sCheckpointStorageIndex = (sCheckpointStorageIndex + 1) % 1024;
         VKCheckpointData& checkpoint = sCheckpointStorage[sCheckpointStorageIndex];
         memset(checkpoint.Data, 0, sizeof(checkpoint.Data));
-        strcpy(checkpoint.Data, data.data());
+        strcpy_s(checkpoint.Data, data.data());
         vkCmdSetCheckpointNV(commandBuffer, &checkpoint);
     }
 }

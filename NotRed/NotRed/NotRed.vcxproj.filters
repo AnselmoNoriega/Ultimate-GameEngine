@@ -31,8 +31,14 @@
     <Filter Include="src\NotRed\Core\Events">
       <UniqueIdentifier>{645E8248-5058-AB9A-39C5-41AB255E1107}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Debug">
+      <UniqueIdentifier>{9E2D2508-8A26-445A-B358-29DF9FB02366}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Editor">
       <UniqueIdentifier>{5EC5110F-CADB-0FA5-1353-9BC67FA8E02C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Editor\ContentBrowser">
+      <UniqueIdentifier>{CC88540F-B8D9-3F51-E13D-2E13CDEDD2BA}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
@@ -60,6 +66,9 @@
     </Filter>
     <Filter Include="src\NotRed\Platform\Windows">
       <UniqueIdentifier>{B6D47291-22E2-A077-ABC8-9C6217D56C2E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Project">
+      <UniqueIdentifier>{6E311A61-5A15-DBB6-C375-D509AF78C538}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
@@ -117,13 +126,28 @@
     <ClInclude Include="src\NotRed\Asset\Asset.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetExtensions.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetImporter.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetManager.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetMetadata.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetRegistry.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssetTypes.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\MeshSerializer.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\Audio.h">
@@ -133,6 +157,9 @@
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioFileUtils.h">
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h">
@@ -201,6 +228,9 @@
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h">
       <Filter>src\NotRed\Core\Events</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Core\Hash.h">
+      <Filter>src\NotRed\Core</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Core\Input.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
@@ -234,8 +264,17 @@
     <ClInclude Include="src\NotRed\Core\Window.h">
       <Filter>src\NotRed\Core</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Debug\Profiler.h">
+      <Filter>src\NotRed\Debug</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h">
       <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h">
+      <Filter>src\NotRed\Editor\ContentBrowser</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h">
       <Filter>src\NotRed\Editor</Filter>
@@ -244,6 +283,9 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h">
@@ -351,6 +393,9 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h">
+      <Filter>src\NotRed\Platform\OpenGL</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
       <Filter>src\NotRed\Platform\OpenGL</Filter>
     </ClInclude>
@@ -378,7 +423,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDiagnostics.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFramebuffer.h">
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFrameBuffer.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImGuiLayer.h">
@@ -396,6 +441,9 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKPipeline.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderPass.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
@@ -403,6 +451,12 @@
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKShader.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBufferSet.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKSwapChain.h">
@@ -414,6 +468,9 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
@@ -422,6 +479,12 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h">
       <Filter>src\NotRed\Platform\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Project\Project.h">
+      <Filter>src\NotRed\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h">
+      <Filter>src\NotRed\Project</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera.h">
       <Filter>src\NotRed\Renderer</Filter>
@@ -445,6 +508,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h">
@@ -483,10 +549,19 @@
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h">
@@ -716,7 +791,13 @@
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Asset\AssetRegistry.cpp">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\Audio.cpp">
@@ -726,6 +807,9 @@
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioFileUtils.cpp">
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp">
@@ -767,6 +851,9 @@
     <ClCompile Include="src\NotRed\Core\Core.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Hash.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Core\Layer.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
@@ -788,6 +875,9 @@
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp">
+      <Filter>src\NotRed\Editor\ContentBrowser</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
@@ -795,6 +885,9 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp">
@@ -815,7 +908,7 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp">
+    <ClCompile Include="src\NotRed\ImGui\VKImGui.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Math\Math.cpp">
@@ -935,6 +1028,9 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.cpp">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
@@ -942,6 +1038,9 @@
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp">
+      <Filter>src\NotRed\Platform\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.cpp">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKSwapChain.cpp">
@@ -968,6 +1067,12 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp">
       <Filter>src\NotRed\Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Project\Project.cpp">
+      <Filter>src\NotRed\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp">
+      <Filter>src\NotRed\Project</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -990,6 +1095,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp">
@@ -1016,10 +1124,19 @@
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp">
@@ -1048,6 +1165,9 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp">
       <Filter>src\NotRed\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Util\FileSystem.cpp">
+      <Filter>src\NotRed\Util</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp">
       <Filter>src\NotRed\Util</Filter>

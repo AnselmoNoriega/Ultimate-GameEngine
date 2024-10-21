@@ -4,7 +4,9 @@
 
 #include "SoundObject.h"
 #include "miniaudioInc.h"
+
 #include "NotRed/Asset/Asset.h"
+#include "NotRed/Asset/AssetTypes.h"
 
 #include "DSP/Filters/LowPassFilter.h"
 #include "DSP/Filters/HighPassFilter.h"
@@ -34,12 +36,15 @@ namespace NR::Audio
 		float DopplerFactor{ 1.0f };                                      // The amount of doppler effect to apply. Set to 0 to disables doppler effect. 
 		float Rolloff{ 0.6f };                                            // Affects steepness of the attenuation curve. At 1.0 Inverse model is the same as Exponential
 
-		bool AirAbsorptionEnabled{ true };                               // Enable Air Absorption filter
+		bool AirAbsorptionEnabled{ true };
+
+		static AssetType GetStaticType() { return AssetType::SpatializationConfig; }
+		AssetType GetAssetType() const override { return AssetType::SpatializationConfig; }                             // Enable Air Absorption filter
 	};
 
 	struct SoundConfig : public Asset
 	{
-		Ref<Asset> FileAsset;
+		Ref<AudioFile> FileAsset;
 
 		bool Looping = false;
 		float VolumeMultiplier = 1.0f;
@@ -53,6 +58,9 @@ namespace NR::Audio
 
 		float LPFilterValue = 1.0f;
 		float HPFilterValue = 0.0f;
+
+		static AssetType GetStaticType() { return AssetType::SoundConfig; }
+		AssetType GetAssetType() const override { return AssetType::SoundConfig; }
 	};
 
 	class Sound : public SoundObject

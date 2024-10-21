@@ -8,18 +8,15 @@
 
 namespace NR
 {
-	struct WindowProps
-	{
-		std::string Title;
-		uint32_t Width;
-		uint32_t Height;
+	class VKSwapChain;
 
-		WindowProps(const std::string& title = "NotRed Engine",
-			uint32_t width = 1280,
-			uint32_t height = 720)
-			: Title(title), Width(width), Height(height)
-		{
-		}
+	struct WindowSpecification
+	{
+		std::string Title = "NotRed";
+		uint32_t Width = 1600;
+		uint32_t Height = 900;
+		bool Fullscreen = false;
+		bool VSync = true;
 	};
 
 	class Window : public RefCounted
@@ -28,6 +25,8 @@ namespace NR
 		using EventCallbackFn = std::function<void(Event&)>;
 
 		virtual ~Window() {}
+
+		virtual void Init() = 0;
 
 		virtual void ProcessEvents() = 0;
 		virtual void SwapBuffers() = 0;
@@ -47,10 +46,11 @@ namespace NR
 		virtual std::pair<float, float> GetWindowPos() const = 0;
 
 		virtual Ref<RendererContext> GetRenderContext() = 0;
+		virtual VKSwapChain& GetSwapChain() = 0;
 
 		virtual void Maximize() = 0;
 
-		static Window* Create(const WindowProps& props = WindowProps());
+		static Window* Create(const WindowSpecification& specification = WindowSpecification());
 	};
 
 }

@@ -1,37 +1,23 @@
 #pragma once
 
-#include <Entt/include/entt.hpp>
+#include "NotRed/Asset/AssetTypes.h"
 
 #include "NotRed/Core/UUID.h"
 
 namespace NR
 {
-	enum class AssetType : int8_t
-	{
-		Scene, 
-		Mesh, Texture, EnvMap, 
-		Audio,
-		Script,
-		PhysicsMat,
-		Directory,
-		Other,
-		None,
-		Missing
-	};
-
 	using AssetHandle = UUID;
 
 	class Asset : public RefCounted
 	{
 	public:
 		AssetHandle Handle;
-		AssetType Type = AssetType::None;
+		uint16_t Flags = (uint16_t)AssetFlag::None;
 
-		std::string FilePath;
-		std::string FileName;
-		std::string Extension;
-		AssetHandle ParentDirectory;
-		bool IsDataLoaded = false;
+		virtual ~Asset() = default;
+		virtual AssetType GetAssetType() const { return AssetType::None; }
+
+		bool IsValid() const { return ((Flags & (uint16_t)AssetFlag::Missing) | (Flags & (uint16_t)AssetFlag::Invalid)) == 0; }
 
 		virtual bool operator==(const Asset& other) const
 		{
@@ -43,7 +29,18 @@ namespace NR
 			return !(*this == other);
 		}
 
-		virtual ~Asset() = default;
+		bool IsFlagSet(AssetFlag flag) const { return (uint16_t)flag & Flags; }
+		void ModifyFlags(AssetFlag flag, bool add = true)
+		{
+			if (add)
+			{
+				Flags |= (uint16_t)flag;
+			}
+			else
+			{
+				Flags &= ~(uint16_t)flag;
+			}
+		}
 	};
 
 	class PhysicsMaterial : public Asset
@@ -58,13 +55,26 @@ namespace NR
 			: StaticFriction(staticFriction), DynamicFriction(dynamicFriction), Bounciness(bounciness)
 		{
 		}
+
+		static AssetType GetStaticType() { return AssetType::PhysicsMat; }
+		virtual AssetType GetAssetType() const override { return AssetType::PhysicsMat; }
 	};
 
-	class Directory : public Asset
+	class AudioFile : public Asset
 	{
 	public:
-		std::vector<AssetHandle> ChildDirectories;
+		double Duration;
+		uint32_t SamplingRate;
+		uint16_t BitDepth;
+		uint16_t NumChannels;
+		uint64_t FileSize;
 
-		Directory() = default;
+		AudioFile() = default;
+		AudioFile(double duration, uint32_t samplingRate, uint16_t bitDepth, uint16_t numChannels, uint64_t fileSize)
+			: Duration(duration), SamplingRate(samplingRate), BitDepth(bitDepth), NumChannels(numChannels), FileSize(fileSize)
+		{}
+
+		static AssetType GetStaticType() { return AssetType::Audio; }
+		virtual AssetType GetAssetType() const override { return AssetType::Audio; }
 	};
 }

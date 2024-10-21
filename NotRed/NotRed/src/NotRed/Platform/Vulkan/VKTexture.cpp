@@ -73,6 +73,7 @@ namespace NR
         : mPath(path), mProperties(properties)
     {
         int width, height, channels;
+
         if (stbi_is_hdr(path.c_str()))
         {
             mImageData.Data = (byte*)stbi_loadf(path.c_str(), &width, &height, &channels, 4);
@@ -127,11 +128,10 @@ namespace NR
 
     VKTexture2D::~VKTexture2D()
     {
-        Ref<Image2D> image = mImage;
-        Renderer::Submit([image]() mutable
-            {
-                image->Release();
-            });
+        if (mImage)
+        {
+            mImage->Release();
+        }
     }
 
     void VKTexture2D::Invalidate()
@@ -170,7 +170,7 @@ namespace NR
         bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         VkBuffer stagingBuffer;
-        VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+        VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, stagingBuffer);
 
         // Copy data to staging buffer
         uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
@@ -304,11 +304,6 @@ namespace NR
         return mImageData;
     }
 
-    bool VKTexture2D::Loaded() const
-    {
-        return true;
-    }
-
     const std::string& VKTexture2D::GetPath() const
     {
         return mPath;
@@ -325,9 +320,9 @@ namespace NR
         auto vulkanDevice = device->GetVulkanDevice();
 
         Ref<VKImage2D> image = mImage.As<VKImage2D>();
-        auto& info = image->GetImageInfo();
+        const auto& info = image->GetImageInfo();
 
-        VkCommandBuffer blitCmd = VKContext::GetCurrentDevice()->GetCommandBuffer(true);
+        const VkCommandBuffer blitCmd = VKContext::GetCurrentDevice()->GetCommandBuffer(true);
 
         VkImageMemoryBarrier barrier = {};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -335,8 +330,8 @@ namespace NR
         barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-        auto mipLevels = GetMipLevelCount();
-        for (int32_t i = 1; i < mipLevels; ++i)
+        const auto mipLevels = GetMipLevelCount();
+        for (uint32_t i = 1; i < mipLevels; ++i)
         {
             VkImageBlit imageBlit{};
 
@@ -625,7 +620,7 @@ namespace NR
             bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
             bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             VkBuffer stagingBuffer;
-            VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_ONLY, stagingBuffer);
+            VmaAllocation stagingBufferAllocation = allocator.AllocateBuffer(bufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, stagingBuffer);
 
             // Copy data to staging buffer
             uint8_t* destData = allocator.MapMemory<uint8_t>(stagingBufferAllocation);
@@ -814,7 +809,7 @@ namespace NR
                 mipSubRange);
         }
 
-        for (int32_t i = 1; i < mipLevels; ++i)
+        for (uint32_t i = 1; i < mipLevels; ++i)
         {
             for (uint32_t face = 0; face < 6; ++face)
             {

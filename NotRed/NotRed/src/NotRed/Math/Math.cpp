@@ -37,7 +37,7 @@ namespace NR::Math {
 		translation = vec3(LocalMatrix[3]);
 		LocalMatrix[3] = vec4(0, 0, 0, LocalMatrix[3].w);
 
-		vec3 Row[3], Pdum3;
+		vec3 Row[3];
 
 		// Now get scale and shear.
 		for (length_t i = 0; i < 3; ++i)
@@ -57,7 +57,7 @@ namespace NR::Math {
 		Row[2] = detail::scale(Row[2], static_cast<T>(1));
 
 		rotation.y = asin(-Row[0][2]);
-		if (cos(rotation.y) != 0) 
+		if (cos(rotation.y) != 0.0f)
 		{
 			rotation.x = atan2(Row[1][2], Row[2][2]);
 			rotation.z = atan2(Row[0][1], Row[0][0]);

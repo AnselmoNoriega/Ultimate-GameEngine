@@ -177,9 +177,11 @@ namespace NR::Audio
         {
             std::shared_lock lock{ mMutex };
             if (mEntityIDMap.find(sceneID) != mEntityIDMap.end())
+            {
                 return mEntityIDMap.at(sceneID).size();
-            else
-                return 0;
+            }
+
+            return 0;
         }
 
     private:
@@ -196,11 +198,10 @@ namespace NR::Audio
             {
                 return &o->GetComponent<AudioComponent>();
             }
-
             else
             {
-               NR_CORE_ASSERT("Component was not found in registry");
-               return nullptr;
+                NR_CORE_ASSERT("Component was not found in registry");
+                return nullptr;
             }
         }
 
@@ -383,4 +384,4 @@ namespace NR::Audio
         AllocationCallbackData mEngineCallbackData{ false, sStats };
         AllocationCallbackData mRMCallbackData{ true, sStats };
     };
-} 
+}

@@ -8,14 +8,16 @@
 #include "NotRed/Renderer/Material.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 
+#include "Entt/include/entt.hpp"
+
 #include "SceneCamera.h"
 #include "NotRed/Editor/EditorCamera.h"
 
-#include "entt.hpp"
-
 namespace NR
 {
-	struct Light
+	class SceneRenderer;
+
+	struct DirLight
 	{
 		glm::vec3 Direction = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
@@ -32,17 +34,32 @@ namespace NR
 		bool CastShadows = true;
 	};
 
+	struct PointLight
+	{
+		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+		float Multiplier = 0.0f;
+		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
+		float MinRadius = 0.001f;
+		float Radius = 25.0f;
+		float Falloff = 1.f;
+		float SourceSize = 0.1f;
+		bool CastsShadows = true;
+		char Padding[3]{ 0, 0, 0 };
+	};
+
 	struct LightEnvironment
 	{
 		DirectionalLight DirectionalLights[4];
+		std::vector<PointLight> PointLights;
 	};
+
 
 	class Entity;
 	struct TransformComponent;
 
 	using EntityMap = std::unordered_map<UUID, Entity>;
 
-	class Scene : public RefCounted
+	class Scene : public Asset
 	{
 	public:
 		Scene(const std::string& debugName = "Scene", bool isEditorScene = false);
@@ -51,13 +68,14 @@ namespace NR
 		void Init();
 
 		void Update(float dt);
-		void RenderRuntime(float dt);
-		void RenderEditor(float dt, const EditorCamera& editorCamera);
+		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
+		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
+		void RenderSimulation(Ref<SceneRenderer> renderer, float ts, const EditorCamera& editorCamera);
 		void OnEvent(Event& e);
 
+		// Runtime
 		void RuntimeStart();
 		void RuntimeStop();
-
 		void SimulationStart();
 		void SimulationEnd();
 
@@ -66,37 +84,37 @@ namespace NR
 		const Ref<Environment>& GetEnvironment() const { return mEnvironment; }
 		void SetSkybox(const Ref<TextureCube>& skybox);
 
+		DirLight& GetLight() { return mLight; }
+		const DirLight& GetLight() const { return mLight; }
+
+		Entity GetMainCameraEntity();
+
 		float& GetSkyboxLod() { return mSkyboxLod; }
 		float GetSkyboxLod() const { return mSkyboxLod; }
 
-		Light& GetLight() { return mLight; }
-		const Light& GetLight() const { return mLight; }
-
-		Entity CreateEntity(const std::string& name = "Entity");
-		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
-		void DuplicateEntity(Entity entity);
+		Entity CreateEntity(const std::string& name = "");
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
 		void DestroyEntity(Entity entity);
 
-		Entity GetMainCameraEntity();
-		Entity FindEntityByTag(const std::string& tag);
-		Entity FindEntityByID(UUID id);
-
-		void ConvertToLocalSpace(Entity entity);
-		void ConvertToWorldSpace(Entity entity);
-
-		glm::mat4 GetTransformRelativeToParent(Entity entity);
-		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
-
-		TransformComponent GetWorldSpaceTransform(Entity entity);
-
-		void ParentEntity(Entity entity, Entity parent);
-		void UnparentEntity(Entity entity);
+		void DuplicateEntity(Entity entity);
 
 		template<typename T>
 		auto GetAllEntitiesWith()
 		{
 			return mRegistry.view<T>();
 		}
+
+		Entity FindEntityByTag(const std::string& tag);
+		Entity FindEntityByID(UUID id);
+
+		void ConvertToLocalSpace(Entity entity);
+		void ConvertToWorldSpace(Entity entity);
+		glm::mat4 GetTransformRelativeToParent(Entity entity);
+		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+		TransformComponent GetWorldSpaceTransform(Entity entity);
+
+		void ParentEntity(Entity entity, Entity parent);
+		void UnparentEntity(Entity entity);
 
 		const EntityMap& GetEntityMap() const { return mEntityIDMap; }
 		void CopyTo(Ref<Scene>& target);
@@ -111,20 +129,27 @@ namespace NR
 		float GetPhysics2DGravity() const;
 		void SetPhysics2DGravity(float gravity);
 
+		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { mSelectedEntity = entity; }
+
+		static AssetType GetStaticType() { return AssetType::Scene; }
+		virtual AssetType GetAssetType() const override { return AssetType::Scene; }
+
+		const std::string& GetName() const { return mName; }
+		void SetName(const std::string& name) { mName = name; }
 
 	private:
 		UUID mSceneID;
 		entt::entity mSceneEntity;
 		entt::registry mRegistry;
 
+		std::string mName = "UntitledScene";
 		std::string mDebugName;
-		bool mIsEditorScene = false;
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 
 		EntityMap mEntityIDMap;
 
-		Light mLight;
+		DirLight mLight;
 		float mLightMultiplier = 0.3f;
 
 		LightEnvironment mLightEnvironment;
@@ -141,7 +166,9 @@ namespace NR
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;
 		bool mShouldSimulate = false;
+		bool mIsEditorScene = false;
 
+	private:
 		friend class Entity;
 		friend class SceneRenderer;
 		friend class SceneSerializer;
@@ -152,4 +179,5 @@ namespace NR
 		friend void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
 		friend void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
 	};
+
 }

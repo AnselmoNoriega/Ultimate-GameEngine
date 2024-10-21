@@ -43,6 +43,9 @@ namespace NR
 
 		virtual const std::string& GetPath() const = 0;
 		TextureType GetType() const override { return TextureType::Texture2D; }
+
+		static AssetType GetStaticType() { return AssetType::Texture; }
+		AssetType GetAssetType() const override { return AssetType::Texture; }
 	};
 
 	class TextureCube : public Texture
@@ -51,7 +54,12 @@ namespace NR
 		static Ref<TextureCube> Create(ImageFormat format, uint32_t width, uint32_t height, const void* data = nullptr, TextureProperties properties = TextureProperties());
 		static Ref<TextureCube> Create(const std::string& path, TextureProperties properties = TextureProperties());
 
+#if NEEDED
 		virtual const std::string& GetPath() const = 0;
+#endif
 		TextureType GetType() const override { return TextureType::TextureCube; }
+
+		static AssetType GetStaticType() { return AssetType::EnvMap; }
+		AssetType GetAssetType() const override { return AssetType::EnvMap; }
 	};
 }

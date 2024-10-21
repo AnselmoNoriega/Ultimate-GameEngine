@@ -38,6 +38,7 @@ inline float allpass::process(float input)
 	output = -input + bufout;
 	buffer[bufidx] = input + (bufout * feedback);
 	if (++bufidx >= bufsize) bufidx = 0;
+
 	return output;
 }
 #endif//_allpass

@@ -7,12 +7,6 @@
 
 namespace NR
 {
-	namespace Utils 
-	{
-		std::string BytesToString(uint64_t bytes);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	}
-
 	struct GPUMemoryStats
 	{
 		uint64_t Used = 0;

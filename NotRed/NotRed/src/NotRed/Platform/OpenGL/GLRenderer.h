@@ -4,29 +4,30 @@
 
 namespace NR
 {
-	class GLRenderer : public RendererAPI
+	class GLRenderer
 	{
 	public:
-		void Init() override;
-		void Shutdown() override;
+		void Init() ;
+		void Shutdown() ;
 
-		RendererCapabilities& GetCapabilities() override;
+		RendererCapabilities& GetCapabilities() ;
 
-		void BeginFrame() override;
-		void EndFrame() override;
+		void BeginFrame() ;
+		void EndFrame() ;
 
-		void BeginRenderPass(const Ref<RenderPass>& renderPass) override;
-		void EndRenderPass() override;
-		void SubmitFullScreenQuad(Ref<Pipeline> pipeline, Ref<Material> material) override;
+		void BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass) ;
+		void EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer) ;
+		void SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material) ;
 
-		void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow) override;
-		virtual Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination) override { NR_CORE_ASSERT(false); return nullptr; }
-		std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath) override;
-		void GenerateParticles() override {};
+		void SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow) ;
+		Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination)  { NR_CORE_ASSERT(false); return nullptr; }
+		std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath) ;
+		void GenerateParticles()  {};
 
-		void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) override;
-		void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform) override {};
-		void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer()) override;
-		void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform) override;
+		void RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform) {};
+		void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, const glm::mat4& transform) ;
+		void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer()) ;
+		void RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::mat4& transform);
+		void LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups);
 	};
 }

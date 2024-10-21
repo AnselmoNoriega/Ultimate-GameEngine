@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "Application.h"
 
+#include <filesystem>
+
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -19,6 +21,11 @@
 
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 #include "NotRed/Platform/Vulkan/VKAllocator.h"
+#include "NotRed/Platform/Vulkan/VKSwapChain.h"
+
+#include "NotRed/Util/StringUtils.h"
+
+#include "NotRed/Debug/Profiler.h"
 
 extern bool gApplicationRunning;
 extern ImGuiContext* GImGui;
@@ -29,13 +36,26 @@ namespace NR
 
     Application* Application::sInstance = nullptr;
 
-    Application::Application(const ApplicationProps& props)
+    Application::Application(const ApplicationSpecification& specification)
+        : mSpecification(specification)
     {
         sInstance = this;
 
+        if (!specification.WorkingDirectory.empty())
+        {
+            std::filesystem::current_path(specification.WorkingDirectory);
+        }
+
         mProfiler = new PerformanceProfiler();
 
-        mWindow = std::unique_ptr<Window>(Window::Create(WindowProps(props.Name, props.WindowWidth, props.WindowHeight)));
+        WindowSpecification windowSpec;
+        windowSpec.Title = specification.Name;
+        windowSpec.Width = specification.WindowWidth;
+        windowSpec.Height = specification.WindowHeight;
+        windowSpec.Fullscreen = specification.Fullscreen;
+        mWindow = std::unique_ptr<Window>(Window::Create(windowSpec));
+
+        mWindow->Init();        
         mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
         mWindow->Maximize();
         mWindow->SetVSync(true);
@@ -43,14 +63,15 @@ namespace NR
         Renderer::Init();
         Renderer::WaitAndRender();
 
-        mImGuiLayer = ImGuiLayer::Create();
-        PushOverlay(mImGuiLayer);
-
-        ScriptEngine::Init("Assets/Scripts/ExampleApp.dll");
+        if (mSpecification.EnableImGui)
+        {
+            mImGuiLayer = ImGuiLayer::Create();
+            PushOverlay(mImGuiLayer);
+        }
+        
+		ScriptEngine::Init("Resources/Scripts/Not-ScriptCore.dll");
         PhysicsManager::Init();
         Audio::AudioEngine::Init();
-
-        AssetManager::Init();
     }
 
     Application::~Application()
@@ -65,11 +86,15 @@ namespace NR
 
         PhysicsManager::Shutdown();
         ScriptEngine::Shutdown();
-
         AssetManager::Shutdown();
         Audio::AudioEngine::Shutdown();
 
         Renderer::WaitAndRender();
+        for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; ++i)
+        {
+            auto& queue = Renderer::GetRenderResourceReleaseQueue(i);
+            queue.Execute();
+        }
         Renderer::Shutdown();
 
         delete mProfiler;
@@ -98,20 +123,15 @@ namespace NR
                 ImGui::Text("Free VRAM: %s", free.c_str());
             }
         }
-        ImGui::End();
+
+        bool vsync = mWindow->IsVSync();
+        if (ImGui::Checkbox("Vsync", &vsync))
         {
-            ImGui::Begin("Performance");
-            ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-
-            const auto& perFrameData = mProfiler->GetPerFrameData();
-            for (auto&& [name, time] : perFrameData)
-            {
-                ImGui::Text("%s: %.3fms\n", name, time);
-            }
-
-            ImGui::End();
-            mProfiler->Clear();
+            mWindow->SetVSync(vsync);
         }
+
+        ImGui::End();
+
         {
             ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
             ImGui::Begin("Audio Stats");
@@ -138,6 +158,19 @@ namespace NR
 
             ImGui::End();
         }
+        {
+            ImGui::Begin("Performance");
+            ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+
+            const auto& perFrameData = mProfiler->GetPerFrameData();
+            for (auto&& [name, time] : perFrameData)
+            {
+                ImGui::Text("%s: %.3fms\n", name, time);
+            }
+
+            ImGui::End();
+            mProfiler->Clear();
+        }
 
         for (Layer* layer : mLayerStack)
         {
@@ -163,6 +196,8 @@ namespace NR
 
         while (mRunning)
         {
+            NR_PROFILE_FRAME("MainThread");
+
             static uint64_t frameCounter = 0;
             mWindow->ProcessEvents();
 
@@ -174,12 +209,17 @@ namespace NR
                 {
                     layer->Update((float)mTimeFrame);
                 }
+
                 Application* app = this;
-                Renderer::Submit([app]() { app->RenderImGui(); });
-                Renderer::Submit([=]() {mImGuiLayer->End(); });
+
+                if (mSpecification.EnableImGui)
+                {
+                    Renderer::Submit([app]() { app->RenderImGui(); });
+                    Renderer::Submit([=]() {mImGuiLayer->End(); });
+                }
                 Renderer::EndFrame();
 
-                mWindow->GetRenderContext()->BeginFrame();
+                mWindow->GetSwapChain().BeginFrame();
                 Renderer::WaitAndRender();
                 mWindow->SwapBuffers();
             }
@@ -225,7 +265,7 @@ namespace NR
         }
         mMinimized = false;
 
-        mWindow->GetRenderContext()->Resize(width, height);
+        mWindow->GetSwapChain().Resize(width, height);
 
         auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
         for (auto& fb : fbs)

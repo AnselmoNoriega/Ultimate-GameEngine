@@ -12,21 +12,20 @@ namespace NR
     public:
         struct UniformBuffer
         {
-            std::string Name;
-            VkDeviceMemory Memory = nullptr;
-            uint32_t Size = 0;
             VkDescriptorBufferInfo Descriptor;
+            uint32_t Size = 0;
             uint32_t BindingPoint = 0;
+            std::string Name;
             VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         };
 
-        struct StorageBuffer 
+        struct StorageBuffer
         {
-            std::string Name;
-            VkDeviceMemory Memory = nullptr;
-            uint32_t Size = 0;
+            VmaAllocation MemoryAlloc = nullptr;
             VkDescriptorBufferInfo Descriptor;
+            uint32_t Size = 0;
             uint32_t BindingPoint = 0;
+            std::string Name;
             VkShaderStageFlagBits ShaderStage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
         };
 
@@ -84,7 +83,12 @@ namespace NR
         VkDescriptorSetLayout GetDescriptorSetLayout(uint32_t set) { return mDescriptorSetLayouts.at(set); }
         std::vector<VkDescriptorSetLayout> GetAllDescriptorSetLayouts();
 
-        UniformBuffer& GetUniformBuffer(uint32_t binding = 0, uint32_t set = 0) { NR_CORE_ASSERT(mShaderDescriptorSets.at(set).UniformBuffers.size() > binding); return *mShaderDescriptorSets.at(set).UniformBuffers.at(binding); }
+        UniformBuffer& GetUniformBuffer(uint32_t binding = 0, uint32_t set = 0) 
+        { 
+            NR_CORE_ASSERT(mShaderDescriptorSets.at(set).UniformBuffers.size() > binding); 
+            return *mShaderDescriptorSets.at(set).UniformBuffers.at(binding); 
+        }
+
         uint32_t GetUniformBufferCount(uint32_t set = 0)
         {
             if (mShaderDescriptorSets.size() < set)
@@ -92,7 +96,7 @@ namespace NR
                 return 0;
             }
 
-            return mShaderDescriptorSets[set].UniformBuffers.size();
+            return (uint32_t)mShaderDescriptorSets[set].UniformBuffers.size();
         }
 
         const std::vector<ShaderDescriptorSet>& GetShaderDescriptorSets() const { return mShaderDescriptorSets; }
@@ -115,6 +119,9 @@ namespace NR
         void ReflectAllShaderStages(const std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>>& shaderData);
 
         void CreateDescriptors();
+
+        void AllocateUniformBuffer(UniformBuffer& dst);
+        void AllocateStorageBuffer(StorageBuffer& dst);
 
     private:
         std::vector<VkPipelineShaderStageCreateInfo> mPipelineShaderStageCreateInfos;

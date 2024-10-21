@@ -92,7 +92,6 @@ namespace NR
 		Ref<GLShader> instance = this;
 		Renderer::Submit([instance, forceCompile]() mutable
 			{
-				std::array<std::vector<uint32_t>, 2> vulkanBinaries;
 				std::unordered_map<uint32_t, std::vector<uint32_t>> shaderData;
 				instance->CompileOrGetVulkanBinary(shaderData, forceCompile);
 				instance->CompileOrGetOpenGLBinary(shaderData, forceCompile);
@@ -200,7 +199,8 @@ namespace NR
 				auto path = cacheDirectory / (shaderPath.filename().string() + extension);
 				std::string cachedFilePath = path.string();
 
-				FILE* f = fopen(cachedFilePath.c_str(), "rb");
+				FILE* f;
+				fopen_s(&f, cachedFilePath.c_str(), "rb");
 				if (f)
 				{
 					fseek(f, 0, SEEK_END);
@@ -252,7 +252,8 @@ namespace NR
 					auto path = cacheDirectory / (shaderPath.filename().string() + extension);
 					std::string cachedFilePath = path.string();
 
-					FILE* f = fopen(cachedFilePath.c_str(), "wb");
+					FILE* f;
+					fopen_s(&f, cachedFilePath.c_str(), "wb");
 					fwrite(outputBinary[stage].data(), sizeof(uint32_t), outputBinary[stage].size(), f);
 					fclose(f);
 				}
@@ -304,7 +305,8 @@ namespace NR
 
 				if (!forceCompile)
 				{
-					FILE* f = fopen(cachedFilePath.c_str(), "rb");
+					FILE* f;
+					fopen_s(&f, cachedFilePath.c_str(), "rb");
 					if (f)
 					{
 						fseek(f, 0, SEEK_END);
@@ -341,14 +343,15 @@ namespace NR
 					{
 						auto path = cacheDirectory / (shaderPath.filename().string() + GLShaderStageCachedOpenGLFileExtension(stage));
 						std::string cachedFilePath = path.string();
-						FILE* f = fopen(cachedFilePath.c_str(), "wb");
+						FILE* f;
+						fopen_s(&f, cachedFilePath.c_str(), "wb");
 						fwrite(shaderStageData.data(), sizeof(uint32_t), shaderStageData.size(), f);
 						fclose(f);
 					}
 				}
 
 				GLuint shaderID = glCreateShader(stage);
-				glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, shaderStageData.data(), shaderStageData.size() * sizeof(uint32_t));
+				glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, shaderStageData.data(), uint32_t(shaderStageData.size() * sizeof(uint32_t)));
 				glSpecializeShader(shaderID, "main", 0, nullptr, nullptr);
 				glAttachShader(program, shaderID);
 
@@ -410,16 +413,20 @@ namespace NR
 		switch (type.basetype)
 		{
 		case spirv_cross::SPIRType::Boolean:    return ShaderUniformType::Bool;
-		case spirv_cross::SPIRType::Int:        return ShaderUniformType::Int;
+		case spirv_cross::SPIRType::Int:
+			if (type.vecsize == 1)            return ShaderUniformType::Int;
+			if (type.vecsize == 2)            return ShaderUniformType::IVec2;
+			if (type.vecsize == 3)            return ShaderUniformType::IVec3;
+			if (type.vecsize == 4)            return ShaderUniformType::IVec4;
 		case spirv_cross::SPIRType::UInt:       return ShaderUniformType::UInt;
 		case spirv_cross::SPIRType::Float:
+			if (type.columns == 3)              return ShaderUniformType::Mat3;
+			if (type.columns == 4)              return ShaderUniformType::Mat4;
+
 			if (type.vecsize == 1)              return ShaderUniformType::Float;
 			if (type.vecsize == 2)              return ShaderUniformType::Vec2;
 			if (type.vecsize == 3)              return ShaderUniformType::Vec3;
 			if (type.vecsize == 4)              return ShaderUniformType::Vec4;
-
-			if (type.columns == 3)              return ShaderUniformType::Mat3;
-			if (type.columns == 4)              return ShaderUniformType::Mat4;
 			else
 			{
 				NR_CORE_ASSERT(false, "Unknown type!");
@@ -444,7 +451,7 @@ namespace NR
 		{
 			const auto& bufferName = compiler.get_name(resource.id);
 			auto& bufferType = compiler.get_type(resource.base_type_id);
-			auto bufferSize = compiler.get_declared_struct_size(bufferType);
+			const auto bufferSize = (uint32_t)compiler.get_declared_struct_size(bufferType);
 
 			// Skip empty push constant buffers - these are for the renderer only
 			if (bufferName.empty())
@@ -454,19 +461,19 @@ namespace NR
 			}
 
 			auto location = compiler.get_decoration(resource.id, spv::DecorationLocation);
-			int memberCount = bufferType.member_types.size();
-			ShaderBuffer& buffer = mBuffers[bufferName];
-			buffer.Name = bufferName;
-			buffer.Size = bufferSize - mConstantBufferOffset;
+			const int memberCount = int(bufferType.member_types.size());
+			auto& [bufName, bufSize, uniforms] = mBuffers[bufferName];
+			bufName = bufferName;
+			bufSize = bufferSize - mConstantBufferOffset;
 			for (int i = 0; i < memberCount; ++i)
 			{
-				auto type = compiler.get_type(bufferType.member_types[i]);
+				const auto& type = compiler.get_type(bufferType.member_types[i]);
 				const auto& memberName = compiler.get_member_name(bufferType.self, i);
-				auto size = compiler.get_declared_struct_member_size(bufferType, i);
-				auto offset = compiler.type_struct_member_offset(bufferType, i) - mConstantBufferOffset;
+				const auto size = compiler.get_declared_struct_member_size(bufferType, i);
+				const auto offset = compiler.type_struct_member_offset(bufferType, i) - mConstantBufferOffset;
 
 				std::string uniformName = bufferName + "." + memberName;
-				buffer.Uniforms[uniformName] = ShaderUniform(uniformName, SPIRTypeToShaderUniformType(type), size, offset);
+				uniforms[uniformName] = ShaderUniform(uniformName, SPIRTypeToShaderUniformType(type), size, offset);
 			}
 
 			mConstantBufferOffset += bufferSize;
@@ -480,50 +487,93 @@ namespace NR
 
 		NR_CORE_TRACE("GLShader::Reflect - {0}", mAssetPath);
 		NR_CORE_TRACE("   {0} Uniform Buffers", res.uniform_buffers.size());
+		NR_CORE_TRACE("   {0} Storage Buffers", res.storage_buffers.size());
 		NR_CORE_TRACE("   {0} Resources", res.sampled_images.size());
 
 		glUseProgram(mID);
 
-		uint32_t bufferIndex = 0;
-		for (const spirv_cross::Resource& resource : res.uniform_buffers)
+		//Uniform buffers
 		{
-			auto& bufferType = comp.get_type(resource.base_type_id);
-			int memberCount = bufferType.member_types.size();
-			uint32_t bindingPoint = comp.get_decoration(resource.id, spv::DecorationBinding);
-			uint32_t bufferSize = comp.get_declared_struct_size(bufferType);
-
-			if (sUniformBuffers.find(bindingPoint) == sUniformBuffers.end())
+			uint32_t bufferIndex = 0;
+			for (const spirv_cross::Resource& resource : res.uniform_buffers)
 			{
-				ShaderUniformBuffer& buffer = sUniformBuffers[bindingPoint];
-				buffer.Name = resource.name;
-				buffer.BindingPoint = bindingPoint;
-				buffer.Size = bufferSize;
+				auto& bufferType = comp.get_type(resource.base_type_id);
+				int memberCount = bufferType.member_types.size();
+				uint32_t bindingPoint = comp.get_decoration(resource.id, spv::DecorationBinding);
+				uint32_t bufferSize = comp.get_declared_struct_size(bufferType);
 
-				glCreateBuffers(1, &buffer.RendererID);
-				glBindBuffer(GL_UNIFORM_BUFFER, buffer.RendererID);
-				glBufferData(GL_UNIFORM_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
-				glBindBufferBase(GL_UNIFORM_BUFFER, buffer.BindingPoint, buffer.RendererID);
-
-				NR_CORE_TRACE("Created Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
-
-				glBindBuffer(GL_UNIFORM_BUFFER, 0);
-			}
-			else
-			{
-				// Validation
-				ShaderUniformBuffer& buffer = sUniformBuffers.at(bindingPoint);
-				NR_CORE_ASSERT(buffer.Name == resource.name); // Must be the same buffer
-				if (bufferSize > buffer.Size) // Resize buffer if needed
+				if (sUniformBuffers.find(bindingPoint) == sUniformBuffers.end())
 				{
+					ShaderUniformBuffer& buffer = sUniformBuffers[bindingPoint];
+					buffer.Name = resource.name;
+					buffer.BindingPoint = bindingPoint;
 					buffer.Size = bufferSize;
 
-					glDeleteBuffers(1, &buffer.RendererID);
 					glCreateBuffers(1, &buffer.RendererID);
 					glBindBuffer(GL_UNIFORM_BUFFER, buffer.RendererID);
 					glBufferData(GL_UNIFORM_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
 					glBindBufferBase(GL_UNIFORM_BUFFER, buffer.BindingPoint, buffer.RendererID);
+					NR_CORE_TRACE("Created Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
 
-					NR_CORE_TRACE("Resized Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+					glBindBuffer(GL_UNIFORM_BUFFER, 0);
+				}
+				else
+				{
+					// Validation
+					ShaderUniformBuffer& buffer = sUniformBuffers.at(bindingPoint);
+					NR_CORE_ASSERT(buffer.Name == resource.name); // Must be the same buffer
+					if (bufferSize > buffer.Size) // Resize buffer if needed
+					{
+						buffer.Size = bufferSize;
+						glDeleteBuffers(1, &buffer.RendererID);
+						glCreateBuffers(1, &buffer.RendererID);
+						glBindBuffer(GL_UNIFORM_BUFFER, buffer.RendererID);
+						glBufferData(GL_UNIFORM_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
+						glBindBufferBase(GL_UNIFORM_BUFFER, buffer.BindingPoint, buffer.RendererID);
+
+						NR_CORE_TRACE("Resized Uniform Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+					}
+				}
+			}
+		}
+		//Storage Buffers
+		{
+			uint32_t bufferIndex = 0;
+			for (const spirv_cross::Resource& resource : res.storage_buffers)
+			{
+				const auto& bufferType = comp.get_type(resource.base_type_id);
+				//int memberCount = bufferType.member_types.size();
+				const uint32_t bindingPoint = comp.get_decoration(resource.id, spv::DecorationBinding);
+				const uint32_t bufferSize = comp.get_declared_struct_size(bufferType);
+				if (sUniformBuffers.find(bindingPoint) == sUniformBuffers.end())
+				{
+					ShaderStorageBuffer& buffer = sStorageBuffers[bindingPoint];
+					buffer.Name = resource.name;
+					buffer.BindingPoint = bindingPoint;
+					buffer.Size = bufferSize;
+					glCreateBuffers(1, &buffer.RendererID);
+					glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer.RendererID);
+					glBufferData(GL_SHADER_STORAGE_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
+					glBindBufferBase(GL_SHADER_STORAGE_BUFFER, buffer.BindingPoint, buffer.RendererID);
+					NR_CORE_TRACE("Created Storage Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+					glBindBuffer(GL_UNIFORM_BUFFER, 0);
+				}
+				else
+				{
+					// Validation
+					ShaderStorageBuffer& buffer = sStorageBuffers.at(bindingPoint);
+					NR_CORE_ASSERT(buffer.Name == resource.name); // Must be the same buffer
+					if (bufferSize > buffer.Size) // Resize buffer if needed
+					{
+						buffer.Size = bufferSize;
+						glDeleteBuffers(1, &buffer.RendererID);
+						glCreateBuffers(1, &buffer.RendererID);
+						glBindBuffer(GL_SHADER_STORAGE_BUFFER, buffer.RendererID);
+						glBufferData(GL_SHADER_STORAGE_BUFFER, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
+						glBindBufferBase(GL_SHADER_STORAGE_BUFFER, buffer.BindingPoint, buffer.RendererID);
+
+						NR_CORE_TRACE("Resized Storage Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+					}
 				}
 			}
 		}
@@ -642,6 +692,61 @@ namespace NR
 		return std::hash<std::string>{}(mAssetPath);
 	}
 
+	const ShaderUniformBuffer& GLShader::FindUniformBuffer(const std::string& name)
+	{
+		ShaderUniformBuffer* uniformBuffer = nullptr;
+		for (auto& [bindingPoint, ub] : sUniformBuffers)
+		{
+			if (ub.Name == name)
+			{
+				uniformBuffer = &ub;
+				break;
+			}
+		}
+		NR_CORE_ASSERT(uniformBuffer);
+		return *uniformBuffer;
+	}
+
+	void GLShader::SetUniformBuffer(const ShaderUniformBuffer& buffer, const void* data, uint32_t size, const uint32_t offset)
+	{
+		glNamedBufferSubData(buffer.RendererID, offset, size, data);
+	}
+
+	void GLShader::SetStorageBuffer(const ShaderStorageBuffer& buffer, const void* data, uint32_t size, const uint32_t offset)
+	{
+		glNamedBufferSubData(buffer.RendererID, offset, size, data);
+	}
+
+	void GLShader::SetStorageBuffer(const std::string& name, const void* data, uint32_t size)
+	{
+		ShaderStorageBuffer* storageBuffer = nullptr;
+		for (auto& [bindingPoint, ub] : sStorageBuffers)
+		{
+			if (ub.Name == name)
+			{
+				storageBuffer = &ub;
+				break;
+			}
+		}
+		NR_CORE_ASSERT(storageBuffer);
+		NR_CORE_ASSERT(storageBuffer->Size >= size);
+		glNamedBufferSubData(storageBuffer->RendererID, 0, size, data);
+	}
+
+	void GLShader::ResizeStorageBuffer(const uint32_t bindingPoint, const uint32_t newSize)
+	{
+		// Validation
+		ShaderStorageBuffer& buffer = sStorageBuffers.at(bindingPoint);
+		if (newSize == buffer.Size)
+		{
+			return;
+		}
+
+		buffer.Size = newSize;
+		glNamedBufferData(buffer.RendererID, buffer.Size, nullptr, GL_DYNAMIC_DRAW);
+		NR_CORE_TRACE("Resized Storage Buffer at binding point {0} with name '{1}', size is {2} bytes", buffer.BindingPoint, buffer.Name, buffer.Size);
+	}
+
 	void GLShader::SetUniformBuffer(const std::string& name, const void* data, uint32_t size)
 	{
 		ShaderUniformBuffer* uniformBuffer = nullptr;
@@ -696,6 +801,36 @@ namespace NR
 				NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
 				GLint location = mUniformLocations.at(fullname);
 				glUniform2fv(location, 1, glm::value_ptr(value));
+			});
+	}
+
+	void GLShader::SetUniform(const std::string& fullname, const glm::ivec2& value)
+	{
+		Renderer::Submit([=]()
+			{
+				NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+				GLint location = mUniformLocations.at(fullname);
+				glUniform2i(location, value.x, value.y);
+			});
+	}
+
+	void GLShader::SetUniform(const std::string& fullname, const glm::ivec3& value)
+	{
+		Renderer::Submit([=]()
+			{
+				NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+				GLint location = mUniformLocations.at(fullname);
+				glUniform3i(location, value.x, value.y, value.z);
+			});
+	}
+
+	void GLShader::SetUniform(const std::string& fullname, const glm::ivec4& value)
+	{
+		Renderer::Submit([=]()
+			{
+				NR_CORE_ASSERT(mUniformLocations.find(fullname) != mUniformLocations.end());
+				GLint location = mUniformLocations.at(fullname);
+				glUniform4i(location, value.x, value.y, value.z, value.w);
 			});
 	}
 

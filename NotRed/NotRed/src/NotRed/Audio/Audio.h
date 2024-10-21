@@ -7,11 +7,11 @@
 #include "NotRed/Core/Timer.h"
 #include "NotRed/Core/TimeFrame.h"
 
+namespace NR::Audio
+{
 #define PCM_FRAME_CHUNK_SIZE 1024
 #define STOPPING_FADE_MS 28
 
-namespace NR::Audio
-{
     using AudioThreadCallbackFunction = std::function<void()>;
 
     class AudioFunctionCallback

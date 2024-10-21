@@ -30,7 +30,7 @@ namespace NR
 		void Unlock() override;
 
 		Buffer GetWriteableBuffer() override;
-		bool Loaded() const override;
+		bool Loaded() const override { return mImageData; }
 		const std::string& GetPath() const override;
 		uint32_t GetMipLevelCount() const override;
 
@@ -59,7 +59,9 @@ namespace NR
 		VKTextureCube(const std::string& path, TextureProperties properties);
 		~VKTextureCube() override;
 
-		const std::string& GetPath() const override { return ""; }
+#if EMPTY
+		const std::string& GetPath() const override { return std::string(); }
+#endif
 
 		void Bind(uint32_t slot = 0) const override {}
 

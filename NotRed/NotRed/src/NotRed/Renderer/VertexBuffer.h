@@ -89,12 +89,12 @@ namespace NR
 
         uint32_t GetStride() const { return mStride; }
         const std::vector<VertexBufferElement>& GetElements() const { return mElements; }
-        uint32_t GetElementCount() const { return mElements.size(); }
+        uint32_t GetElementCount() const { return (uint32_t)mElements.size(); }
 
-        std::vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
-        std::vector<VertexBufferElement>::iterator end() { return mElements.end(); }
-        std::vector<VertexBufferElement>::const_iterator begin() const { return mElements.begin(); }
-        std::vector<VertexBufferElement>::const_iterator end() const { return mElements.end(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::iterator begin() { return mElements.begin(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::iterator end() { return mElements.end(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::const_iterator begin() const { return mElements.begin(); }
+        [[nodiscard]] std::vector<VertexBufferElement>::const_iterator end() const { return mElements.end(); }
 
     private:
         void CalculateOffsetsAndStride()
@@ -130,10 +130,8 @@ namespace NR
         virtual ~VertexBuffer() {}
 
         virtual void SetData(void* data, uint32_t size, uint32_t offset = 0) = 0;
+        virtual void RT_SetData(void* buffer, uint32_t size, uint32_t offset = 0) = 0;
         virtual void Bind() const = 0;
-
-        virtual const VertexBufferLayout& GetLayout() const = 0;
-        virtual void SetLayout(const VertexBufferLayout& layout) = 0;
 
         virtual uint32_t GetSize() const = 0;
         virtual RendererID GetRendererID() const = 0;

@@ -1,8 +1,41 @@
 #include "nrpch.h"
 #include "StringUtils.h"
 
+#include <sstream>
+#include <iomanip>
+
 namespace NR::Utils 
 {
+	namespace String 
+	{
+		bool EqualsIgnoreCase(const std::string& a, const std::string& b)
+		{
+			if (a.size() != b.size())
+			{
+				return false;
+			}
+
+			return std::equal(a.begin(), a.end(), b.begin(), b.end(),
+				[](char a, char b)
+				{
+					return std::tolower(a) == std::tolower(b);
+				});
+		}
+
+		std::string& ToLower(std::string& string)
+		{
+			std::transform(string.begin(), string.end(), string.begin(), [](unsigned char c) { return std::tolower(c); });
+			return string;
+		}
+
+		std::string ToLowerCopy(const std::string& string)
+		{
+			std::string result = string;
+			ToLower(result);
+			return result;
+		}
+	}
+
 	std::string GetFilename(const std::string& filepath)
 	{
 		std::vector<std::string> parts = SplitString(filepath, "/\\");
@@ -67,5 +100,54 @@ namespace NR::Utils
 	std::vector<std::string> SplitString(const std::string& string, const char delimiter)
 	{
 		return SplitString(string, std::string(1, delimiter));
+	}
+
+	std::string ToLower(const std::string& string)
+	{
+		std::string result;
+		for (const auto& character : string)
+		{
+			result += std::tolower(character);
+		}
+		return result;
+	}
+
+	std::string BytesToString(uint64_t bytes)
+	{
+		static const double GB = 1024.0 * 1024.0 * 1024.0;
+		static const double MB = 1024.0 * 1024.0;
+		static const double KB = 1024.0;
+
+		char buffer[16];
+
+		if ((double)bytes > GB)
+		{
+			sprintf_s(buffer, "%.2f GB", (double)bytes / GB);
+		}
+		else if ((double)bytes > MB)
+		{
+			sprintf_s(buffer, "%.2f MB", (double)bytes / MB);
+		}
+		else if ((double)bytes > KB)
+		{
+			sprintf_s(buffer, "%.2f KB", (double)bytes / KB);
+		}
+		else
+		{
+			sprintf_s(buffer, "%.2f bytes", (double)bytes);
+		}
+
+		return std::string(buffer);
+	}
+
+	std::string DurationToString(std::chrono::duration<double> duration)
+	{
+		auto durations = BreakDownDuration<std::chrono::minutes, std::chrono::seconds, std::chrono::milliseconds>(duration);
+		std::stringstream durSs;
+		durSs << std::setfill('0') << std::setw(1) << std::get<0>(durations).count() << ':'
+			<< std::setfill('0') << std::setw(2) << std::get<1>(durations).count() << '.'
+			<< std::setfill('0') << std::setw(3) << std::get<2>(durations).count();
+
+		return durSs.str();
 	}
 }

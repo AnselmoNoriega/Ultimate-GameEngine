@@ -10,10 +10,9 @@ namespace NR
 {
     struct VKImageInfo
     {
-        VkImage Image;
-        VkImageView ImageView;
-        VkSampler Sampler;
-        VkDeviceMemory Memory;
+        VkImage Image = nullptr;
+        VkImageView ImageView = nullptr;
+        VkSampler Sampler = nullptr;
         VmaAllocation MemoryAlloc = nullptr;
     };
 

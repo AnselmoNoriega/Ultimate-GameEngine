@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Log.h"
+
 #ifdef NR_DEBUG
     #define NR_ENABLE_ASSERTS
 #endif

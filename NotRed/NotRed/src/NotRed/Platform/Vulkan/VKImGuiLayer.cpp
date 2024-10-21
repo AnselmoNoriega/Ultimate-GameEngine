@@ -5,7 +5,9 @@
 
 #include "imgui.h"
 
-#define IMGUI_IMPL_API
+#ifndef IMGUI_IMPL_API
+    #define IMGUI_IMPL_API
+#endif
 #include "backends/imgui_impl_glfw.h"
 #include "examples/imgui_impl_vulkan_with_textures.h"
 
@@ -46,9 +48,9 @@ namespace NR
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
-        io.Fonts->AddFontFromFileTTF("Assets/Fonts/Roboto/Roboto-Bold.ttf", 18.0f);
-        io.Fonts->AddFontFromFileTTF("Assets/Fonts/Roboto/Roboto-Regular.ttf", 24.0f);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("Assets/Fonts/Roboto/Roboto-Regular.ttf", 18.0f);
+        io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Bold.ttf", 18.0f);
+        io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Regular.ttf", 24.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Regular.ttf", 18.0f);
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
@@ -102,14 +104,15 @@ namespace NR
                 initInfo.PhysicalDevice = VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetVulkanPhysicalDevice();
                 initInfo.Device = device;
                 initInfo.QueueFamily = VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetQueueFamilyIndices().Graphics;
-                initInfo.Queue = VKContext::GetCurrentDevice()->GetQueue();
+                initInfo.Queue = VKContext::GetCurrentDevice()->GetGraphicsQueue();
                 initInfo.PipelineCache = nullptr;
                 initInfo.DescriptorPool = descriptorPool;
                 initInfo.Allocator = nullptr;
                 initInfo.MinImageCount = 2;
-                initInfo.ImageCount = vulkanContext->GetSwapChain().GetImageCount();
+                VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
+                initInfo.ImageCount = swapChain.GetImageCount();
                 initInfo.CheckVkResultFn = Utils::VulkanCheckResult;
-                ImGui_ImplVulkan_Init(&initInfo, vulkanContext->GetSwapChain().GetRenderPass());
+                ImGui_ImplVulkan_Init(&initInfo, swapChain.GetRenderPass());
 
                 // Load Fonts
                 // - If no fonts are loaded, dear imgui will use the default font. You can also load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
@@ -171,9 +174,7 @@ namespace NR
     {
         ImGui::Render();
 
-        Ref<VKContext> context = VKContext::Get();
-        VKSwapChain& swapChain = context->GetSwapChain();
-        VkCommandBuffer drawCommandBuffer = swapChain.GetCurrentDrawCommandBuffer();
+        VKSwapChain& swapChain = Application::Get().GetWindow().GetSwapChain();
 
         VkClearValue clearValues[2];
         clearValues[0].color = { {0.1f, 0.1f,0.1f, 1.0f} };
@@ -183,6 +184,13 @@ namespace NR
         uint32_t height = swapChain.GetHeight();
 
         uint32_t commandBufferIndex = swapChain.GetCurrentBufferIndex();
+
+        VkCommandBufferBeginInfo drawCmdBufInfo = {};
+        drawCmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        drawCmdBufInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        drawCmdBufInfo.pNext = nullptr;
+        VkCommandBuffer drawCommandBuffer = swapChain.GetCurrentDrawCommandBuffer();
+        VK_CHECK_RESULT(vkBeginCommandBuffer(drawCommandBuffer, &drawCmdBufInfo));
 
         VkRenderPassBeginInfo renderPassBeginInfo = {};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -234,9 +242,11 @@ namespace NR
         std::vector<VkCommandBuffer> commandBuffers;
         commandBuffers.push_back(sImGuiCommandBuffers[commandBufferIndex]);
 
-        vkCmdExecuteCommands(drawCommandBuffer, commandBuffers.size(), commandBuffers.data());
+        vkCmdExecuteCommands(drawCommandBuffer, uint32_t(commandBuffers.size()), commandBuffers.data());
 
         vkCmdEndRenderPass(drawCommandBuffer);
+
+        VK_CHECK_RESULT(vkEndCommandBuffer(drawCommandBuffer));
 
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

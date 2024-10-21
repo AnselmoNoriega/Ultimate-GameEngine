@@ -129,21 +129,15 @@ namespace NR
 		std::string NodeName, MeshName;
 	};
 
-	class Mesh : public Asset
+	class MeshAsset : public Asset
 	{
 	public:
-		Mesh(const std::string& filename);
-		Mesh(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
-		Mesh(Ref<Mesh> originalMesh, Submesh submesh);
-		Mesh(int particleCount);
-		~Mesh();
+		MeshAsset(const std::string& filename);
+		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		MeshAsset(int particleCount);
+		virtual ~MeshAsset() = default;
 
-		void Update(float dt);
 		void DumpVertexBuffer();
-
-		const std::string& GetFilePath() const { return mFilePath; }
-
-		bool IsAnimated() const { return mIsAnimated; }
 
 		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
@@ -151,10 +145,11 @@ namespace NR
 		const std::vector<Vertex>& GetVertices() const { return mStaticVertices; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
 
-		Ref<Shader> GetMeshShader() { return mMeshShader; }		
+		Ref<Shader> GetMeshShader() { return mMeshShader; }
 		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
 		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
 		const std::vector<Ref<Texture2D>>& GetTextures() const { return mTextures; }
+		const std::string& GetFilePath() const { return mFilePath; }
 
 		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }
 
@@ -162,13 +157,17 @@ namespace NR
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 		const VertexBufferLayout& GetVertexBufferLayout() const { return mVertexBufferLayout; }
 
+		static AssetType GetStaticType() { return AssetType::MeshAsset; }
+		virtual AssetType GetAssetType() const override { return AssetType::MeshAsset; }
+
+		const AABB& GetBoundingBox() const { return mBoundingBox; }
+
 	private:
 		void BoneTransform(float time);
 		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
 		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
 
 		const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName);
-
 		uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
 		uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
 		uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
@@ -192,10 +191,14 @@ namespace NR
 		VertexBufferLayout mVertexBufferLayout;
 
 		std::vector<Vertex> mStaticVertices;
-		std::vector<ParticleVertex> mParticleVertices;
 		std::vector<AnimatedVertex> mAnimatedVertices;
+		std::vector<ParticleVertex> mParticleVertices;
+
+		AABB mBoundingBox;
+
 		std::vector<Index> mIndices;
 		std::unordered_map<std::string, uint32_t> mBoneMapping;
+		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
 		std::vector<glm::mat4> mBoneTransforms;
 		const aiScene* mScene;
 
@@ -209,16 +212,67 @@ namespace NR
 
 		// Animation
 		bool mIsAnimated = false;
-		float mAnimationTime = 0.0f;
-		float mWorldTime = 0.0f;
 		float mTimeMultiplier = 1.0f;
 		bool mAnimationPlaying = true;
 
 		std::string mFilePath;
 
+	private:
 		friend class Renderer;
-		friend class VkRenderer;
+		friend class VKRenderer;
 		friend class GLRenderer;
 		friend class SceneHierarchyPanel;
+		friend class MeshViewerPanel;
+	};
+
+	class Mesh : public Asset
+	{
+	public:
+		explicit Mesh(Ref<MeshAsset> meshAsset);
+		Mesh(Ref<MeshAsset> meshAsset, const std::vector<uint32_t>& submeshes);
+		Mesh(const Ref<Mesh>& other);
+		virtual ~Mesh() = default;
+
+		void Update(float dt);
+
+		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
+		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
+		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
+
+		Ref<MeshAsset> GetMeshAsset() { return mMeshAsset; }
+		Ref<MeshAsset> GetMeshAsset() const { return mMeshAsset; }
+		void SetMeshAsset(Ref<MeshAsset> meshAsset) { mMeshAsset = meshAsset; }
+
+		Ref<Shader> GetMeshShader() { return mMeshShader; }
+		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
+		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
+
+		static AssetType GetStaticType() { return AssetType::Mesh; }
+		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
+
+	private:
+		Ref<MeshAsset> mMeshAsset;
+		std::vector<uint32_t> mSubmeshes;
+
+		uint32_t mBoneCount = 0;
+		std::vector<BoneInfo> mBoneInfo;
+
+		// Materials
+		Ref<Shader> mMeshShader;
+		std::vector<Ref<Material>> mMaterials;
+
+		// Animation
+		bool mIsAnimated = false;
+		float mAnimationTime = 0.0f;
+		float mWorldTime = 0.0f;
+		float mTimeMultiplier = 1.0f;
+		bool mAnimationPlaying = true;
+
+	private:
+		friend class Renderer;
+		friend class VKRenderer;
+		friend class GLRenderer;
+		friend class SceneHierarchyPanel;
+		friend class MeshViewerPanel;
 	};
 }

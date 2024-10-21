@@ -251,6 +251,8 @@ namespace NR
     VKDevice::VKDevice(const Ref<VKPhysicalDevice>& physicalDevice, VkPhysicalDeviceFeatures enabledFeatures)
         : mPhysicalDevice(physicalDevice), mEnabledFeatures(enabledFeatures)
     {
+        constexpr bool enableAftermath = true;
+
         std::vector<const char*> deviceExtensions;
         // If the device will be used for presenting to a display via a swapchain we need to request the swapchain extension
         NR_CORE_ASSERT(mPhysicalDevice->IsExtensionSupported(VK_KHR_SWAPCHAIN_EXTENSION_NAME));
@@ -267,7 +269,7 @@ namespace NR
         }
 
         VkDeviceDiagnosticsConfigCreateInfoNV aftermathInfo = {};
-        bool canEnableAftermath = mPhysicalDevice->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME) && mPhysicalDevice->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
+        bool canEnableAftermath = enableAftermath && mPhysicalDevice->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME) && mPhysicalDevice->IsExtensionSupported(VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME);
         if (canEnableAftermath)
         {
             GpuCrashTracker* gpuCrashTracker = new GpuCrashTracker({});
@@ -318,7 +320,7 @@ namespace NR
         VK_CHECK_RESULT(vkCreateCommandPool(mLogicalDevice, &cmdPoolInfo, nullptr, &mComputeCommandPool));
 
         // Get a graphics queue from the device
-        vkGetDeviceQueue(mLogicalDevice, mPhysicalDevice->mQueueFamilyIndices.Graphics, 0, &mQueue);
+        vkGetDeviceQueue(mLogicalDevice, mPhysicalDevice->mQueueFamilyIndices.Graphics, 0, &mGraphicsQueue);
         vkGetDeviceQueue(mLogicalDevice, mPhysicalDevice->mQueueFamilyIndices.Compute, 0, &mComputeQueue);
     }
 
@@ -360,7 +362,7 @@ namespace NR
 
     void VKDevice::FlushCommandBuffer(VkCommandBuffer commandBuffer)
     {
-        FlushCommandBuffer(commandBuffer, mQueue);
+        FlushCommandBuffer(commandBuffer, mGraphicsQueue);
     }
 
     void VKDevice::FlushCommandBuffer(VkCommandBuffer commandBuffer, VkQueue queue)

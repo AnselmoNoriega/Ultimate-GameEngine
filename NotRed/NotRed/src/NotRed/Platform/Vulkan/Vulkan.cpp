@@ -34,7 +34,7 @@ namespace NR::Utils
 			}
 
 			uint32_t retrievedCount = checkpointCount;
-			vkGetQueueCheckpointDataNV(::NR::VKContext::GetCurrentDevice()->GetQueue(), &retrievedCount, data);
+			vkGetQueueCheckpointDataNV(::NR::VKContext::GetCurrentDevice()->GetGraphicsQueue(), &retrievedCount, data);
 			NR_CORE_ERROR("RetrieveDiagnosticCheckpoints (Graphics Queue):");
 			for (uint32_t i = 0; i < retrievedCount; ++i)
 			{

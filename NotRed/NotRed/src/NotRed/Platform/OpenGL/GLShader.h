@@ -21,10 +21,20 @@ namespace NR
 
 		size_t GetHash() const override;
 
+		static const ShaderUniformBuffer& FindUniformBuffer(const std::string& name);
+		static void SetUniformBuffer(const ShaderUniformBuffer& buffer, const void* data, uint32_t size, uint32_t offset = 0);
+		static void SetStorageBuffer(const ShaderStorageBuffer& buffer, const void* data, uint32_t size, uint32_t offset = 0);
+
 		void SetUniformBuffer(const std::string& name, const void* data, uint32_t size);
+
+		void SetStorageBuffer(const std::string& name, const void* data, uint32_t size);
+		void ResizeStorageBuffer(uint32_t bindingPoint, uint32_t newSize);
 		void SetUniform(const std::string& fullname, uint32_t value);
 		void SetUniform(const std::string& fullname, int value);
 		void SetUniform(const std::string& fullname, float value);
+		void SetUniform(const std::string& fullname, const glm::ivec2& value);
+		void SetUniform(const std::string& fullname, const glm::ivec3& value);
+		void SetUniform(const std::string& fullname, const glm::ivec4& value);
 		void SetUniform(const std::string& fullname, const glm::vec2& value);
 		void SetUniform(const std::string& fullname, const glm::vec3& value);
 		void SetUniform(const std::string& fullname, const glm::vec4& value);
@@ -98,5 +108,6 @@ namespace NR
 		std::unordered_map<std::string, GLint> mUniformLocations;
 
 		inline static std::unordered_map<uint32_t, ShaderUniformBuffer> sUniformBuffers;
+		inline static std::unordered_map<uint32_t, ShaderStorageBuffer> sStorageBuffers;
 	};
 }

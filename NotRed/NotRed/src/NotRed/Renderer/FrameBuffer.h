@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <glm/glm.hpp>
 
 #include "Image.h"
@@ -7,6 +8,16 @@
 
 namespace NR
 {
+	class FrameBuffer;
+
+	enum class FrameBufferBlendMode
+	{
+		None,
+		OneZero,
+		SrcAlphaOneMinusSrcAlpha,
+		Additive
+	};
+
 	enum class FrameBufferTextureFormat
 	{
 		None,
@@ -27,6 +38,8 @@ namespace NR
 			: Format(format) {}
 
 		ImageFormat Format;
+		bool Blend = true;
+		FrameBufferBlendMode BlendMode = FrameBufferBlendMode::SrcAlphaOneMinusSrcAlpha;
 	};
 
 	struct FrameBufferAttachmentSpecification
@@ -44,15 +57,22 @@ namespace NR
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		bool ClearOnLoad = true;
 		FrameBufferAttachmentSpecification Attachments;
 		uint32_t Samples = 1;
 
 		bool Resizable = true;
+		bool Blend = true;
+		FrameBufferBlendMode BlendMode = FrameBufferBlendMode::None;
 
 		bool SwapChainTarget = false;
 
 		Ref<Image2D> ExistingImage;
 		uint32_t ExistingImageLayer;
+
+		std::map<uint32_t, Ref<Image2D>> ExistingImages;
+
+		Ref<FrameBuffer> ExistingFrameBuffer;
 
 		std::string DebugName;
 	};
@@ -88,7 +108,7 @@ namespace NR
 		~FrameBufferPool();
 
 		std::weak_ptr<FrameBuffer> AllocateBuffer();
-		void Add(const Ref<FrameBuffer>& framebuffer);
+		void Add(const Ref<FrameBuffer>& frameBuffer);
 
 		std::vector<Ref<FrameBuffer>>& GetAll() { return mPool; }
 		const std::vector<Ref<FrameBuffer>>& GetAll() const { return mPool; }

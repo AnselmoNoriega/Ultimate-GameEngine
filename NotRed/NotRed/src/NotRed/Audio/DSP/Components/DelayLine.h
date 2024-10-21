@@ -31,7 +31,7 @@ namespace NR::Audio
 				assert(newDelayInSamples > 0 && newDelayInSamples < upperLimit);
 
 				mDelay = std::clamp(newDelayInSamples, (float)0, upperLimit);
-				mDelayInt = static_cast<int> (std::floor(mDelay));
+				mDelayInt = (int)std::floor(mDelay);
 			}
 
 			void SetDelayMs(uint32_t milliseconds)

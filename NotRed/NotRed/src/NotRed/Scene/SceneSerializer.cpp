@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -330,15 +331,38 @@ namespace NR
 			out << YAML::EndMap; // DirectionalLightComponent
 		}
 
+		if (entity.HasComponent<PointLightComponent>())
+		{
+			out << YAML::Key << "PointLightComponent";
+			out << YAML::BeginMap; // PointLightComponent
+			auto& directionalLightComponent = entity.GetComponent<PointLightComponent>();
+			out << YAML::Key << "Radiance" << YAML::Value << directionalLightComponent.Radiance;
+			out << YAML::Key << "Intensity" << YAML::Value << directionalLightComponent.Intensity;
+			out << YAML::Key << "CastShadows" << YAML::Value << directionalLightComponent.CastsShadows;
+			out << YAML::Key << "SoftShadows" << YAML::Value << directionalLightComponent.SoftShadows;
+			out << YAML::Key << "MinRadius" << YAML::Value << directionalLightComponent.MinRadius;
+			out << YAML::Key << "Radius" << YAML::Value << directionalLightComponent.Radius;
+			out << YAML::Key << "LightSize" << YAML::Value << directionalLightComponent.LightSize;
+			out << YAML::Key << "Falloff" << YAML::Value << directionalLightComponent.Falloff;
+			out << YAML::EndMap; // PointLightComponent
+		}
+
 		if (entity.HasComponent<SkyLightComponent>())
 		{
 			out << YAML::Key << "SkyLightComponent";
 			out << YAML::BeginMap; // SkyLightComponent
 
 			auto& skyLightComponent = entity.GetComponent<SkyLightComponent>();
-			out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
+			if (skyLightComponent.SceneEnvironment)
+			{
+				out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
+			}
 			out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;
-			out << YAML::Key << "Angle" << YAML::Value << skyLightComponent.Angle;
+			out << YAML::Key << "DynamicSky" << YAML::Value << skyLightComponent.DynamicSky;
+			if (skyLightComponent.DynamicSky)
+			{
+				out << YAML::Key << "TurbidityAzimuthInclination" << YAML::Value << skyLightComponent.TurbidityAzimuthInclination;
+			}
 
 			out << YAML::EndMap; // SkyLightComponent
 		}
@@ -586,7 +610,7 @@ namespace NR
 		out << YAML::BeginMap; // Environment
 		out << YAML::Key << "AssetHandle" << YAML::Value << scene->GetEnvironment()->Handle;
 		const auto& light = scene->GetLight();
-		out << YAML::Key << "Light" << YAML::Value;
+		out << YAML::Key << "DirLight" << YAML::Value;
 		out << YAML::BeginMap; // Light
 		out << YAML::Key << "Direction" << YAML::Value << light.Direction;
 		out << YAML::Key << "Radiance" << YAML::Value << light.Radiance;
@@ -600,7 +624,7 @@ namespace NR
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene";
-		out << YAML::Value << "Scene Name";
+		out << YAML::Value << mScene->GetName();
 
 		if (mScene->GetEnvironment())
 		{
@@ -675,6 +699,7 @@ namespace NR
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		NR_CORE_INFO("Deserializing scene '{0}'", sceneName);
+		mScene->SetName(sceneName);
 
 		std::vector<std::string> missingPaths;
 
@@ -810,12 +835,30 @@ namespace NR
 
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+						const AssetMetadata& metadata = AssetManager::GetMetadata(assetHandle);
+						if (metadata.Type == AssetType::Mesh)
+						{
+							component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+						}
+
+						else if (metadata.Type == AssetType::MeshAsset)
+						{
+							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(assetHandle);
+
+							std::filesystem::path meshPath = metadata.FilePath;
+							std::filesystem::path meshDirectory = Project::GetMeshPath();
+							std::string filename = fmt::format("{0}.nrmesh", meshPath.stem().string());
+							Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, meshDirectory.string(), meshAsset);
+
+							component.MeshObj = mesh;
+							
+							AssetImporter::Serialize(mesh);
+						}
 					}
 					else
 					{
 						component.MeshObj = Ref<Asset>::Create().As<Mesh>();
-						component.MeshObj->Type = AssetType::Missing;
+						component.MeshObj->ModifyFlags(AssetFlag::Missing, true);
 
 						std::string filepath = meshComponent["AssetPath"] ? meshComponent["AssetPath"].as<std::string>() : "";
 						if (filepath.empty())
@@ -825,6 +868,7 @@ namespace NR
 						else
 						{
 							NR_CORE_ERROR("Tried to load invalid mesh '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
+							component.MeshObj->ModifyFlags(AssetFlag::Invalid, true);
 						}
 					}
 				}
@@ -836,41 +880,43 @@ namespace NR
 					const auto& cameraNode = cameraComponent["Camera"];
 					component.CameraObj = SceneCamera();
 
-					auto& camera = component.CameraObj;
-					if (cameraNode["ProjectionType"])
+					auto& camera = component.CameraObj;					
+					if (cameraNode.IsMap())
 					{
-						camera.SetProjectionType((SceneCamera::ProjectionType)cameraNode["ProjectionType"].as<int>());
-					}
-					if (cameraNode["PerspectiveFOV"])
-					{
-						camera.SetPerspectiveVerticalFOV(cameraNode["PerspectiveFOV"].as<float>());
-					}
-					if (cameraNode["PerspectiveNear"])
-					{
-						camera.SetPerspectiveNearClip(cameraNode["PerspectiveNear"].as<float>());
-					}
-					if (cameraNode["PerspectiveFar"])
-					{
-						camera.SetPerspectiveFarClip(cameraNode["PerspectiveFar"].as<float>());
-					}
-					if (cameraNode["OrthographicSize"])
-					{
-						camera.SetOrthographicSize(cameraNode["OrthographicSize"].as<float>());
-					}
-					if (cameraNode["OrthographicNear"])
-					{
-						camera.SetOrthographicNearClip(cameraNode["OrthographicNear"].as<float>());
-					}
-					if (cameraNode["OrthographicFar"])
-					{
-						camera.SetOrthographicFarClip(cameraNode["OrthographicFar"].as<float>());
+						if (cameraNode["ProjectionType"])
+						{
+							camera.SetProjectionType((SceneCamera::ProjectionType)cameraNode["ProjectionType"].as<int>());
+						}
+						if (cameraNode["PerspectiveFOV"])
+						{
+							camera.SetPerspectiveVerticalFOV(cameraNode["PerspectiveFOV"].as<float>());
+						}
+						if (cameraNode["PerspectiveNear"])
+						{
+							camera.SetPerspectiveNearClip(cameraNode["PerspectiveNear"].as<float>());
+						}
+						if (cameraNode["PerspectiveFar"])
+						{
+							camera.SetPerspectiveFarClip(cameraNode["PerspectiveFar"].as<float>());
+						}
+						if (cameraNode["OrthographicSize"])
+						{
+							camera.SetOrthographicSize(cameraNode["OrthographicSize"].as<float>());
+						}
+						if (cameraNode["OrthographicNear"])
+						{
+							camera.SetOrthographicNearClip(cameraNode["OrthographicNear"].as<float>());
+						}
+						if (cameraNode["OrthographicFar"])
+						{
+							camera.SetOrthographicFarClip(cameraNode["OrthographicFar"].as<float>());
+						}
 					}
 
 					component.Primary = cameraComponent["Primary"].as<bool>();
 				}
 
-				auto directionalLightComponent = entity["DirectionalLightComponent"];
-				if (directionalLightComponent)
+				if (auto directionalLightComponent = entity["DirectionalLightComponent"]; directionalLightComponent)
 				{
 					auto& component = deserializedEntity.AddComponent<DirectionalLightComponent>();
 					component.Radiance = directionalLightComponent["Radiance"].as<glm::vec3>();
@@ -879,39 +925,61 @@ namespace NR
 					component.LightSize = directionalLightComponent["LightSize"].as<float>();
 				}
 
+				if (auto pointLightComponent = entity["PointLightComponent"]; pointLightComponent)
+				{
+					auto& component = deserializedEntity.AddComponent<PointLightComponent>();
+					component.Radiance = pointLightComponent["Radiance"].as<glm::vec3>();
+					component.Intensity = pointLightComponent["Intensity"].as<float>();
+					component.CastsShadows = pointLightComponent["CastShadows"].as<bool>();
+					component.SoftShadows = pointLightComponent["SoftShadows"].as<bool>();
+					component.LightSize = pointLightComponent["LightSize"].as<float>();
+					component.Radius = pointLightComponent["Radius"].as<float>();
+					component.MinRadius = pointLightComponent["MinRadius"].as<float>();
+					component.Falloff = pointLightComponent["Falloff"].as<float>();
+				}
+
 				auto skyLightComponent = entity["SkyLightComponent"];
 				if (skyLightComponent)
 				{
 					auto& component = deserializedEntity.AddComponent<SkyLightComponent>();
 
-					AssetHandle assetHandle = 0;
-					if (skyLightComponent["EnvironmentAssetPath"])
+					if (skyLightComponent["EnvironmentMap"])
 					{
-						assetHandle = AssetManager::GetAssetHandleFromFilePath(skyLightComponent["EnvironmentAssetPath"].as<std::string>());
-					}
-					else
-					{
-						assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
-					}
-
-					if (AssetManager::IsAssetHandleValid(assetHandle))
-					{
-						component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
-					}
-					else
-					{
-						std::string filepath = meshComponent["EnvironmentAssetPath"] ? meshComponent["EnvironmentAssetPath"].as<std::string>() : "";
-						if (filepath.empty())
+						AssetHandle assetHandle = 0;
+						if (skyLightComponent["EnvironmentAssetPath"])
 						{
-							NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", (uint64_t)deserializedEntity.GetID());
+							assetHandle = AssetManager::GetAssetHandleFromFilePath(skyLightComponent["EnvironmentAssetPath"].as<std::string>());
 						}
 						else
 						{
-							NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
+							assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
+						}
+						if (AssetManager::IsAssetHandleValid(assetHandle))
+						{
+							component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
+						}
+						else
+						{
+							std::string filepath = meshComponent["EnvironmentAssetPath"] ? meshComponent["EnvironmentAssetPath"].as<std::string>() : "";
+							if (filepath.empty())
+							{
+								NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", (uint64_t)deserializedEntity.GetID());
+							}
+							else
+							{
+								NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, (uint64_t)deserializedEntity.GetID());
+							}
 						}
 					}
 					component.Intensity = skyLightComponent["Intensity"].as<float>();
-					component.Angle = skyLightComponent["Angle"].as<float>();
+					if (skyLightComponent["DynamicSky"])
+					{
+						component.DynamicSky = skyLightComponent["DynamicSky"].as<bool>();
+						if (component.DynamicSky)
+						{
+							component.TurbidityAzimuthInclination = skyLightComponent["TurbidityAzimuthInclination"].as<glm::vec3>();
+						}
+					}
 				}
 
 				auto spriteRendererComponent = entity["SpriteRendererComponent"];
@@ -1065,7 +1133,7 @@ namespace NR
 						}
 					}
 
-					if (component.CollisionMesh && component.CollisionMesh->Type == AssetType::Mesh)
+					if (component.CollisionMesh && !component.CollisionMesh->IsFlagSet(AssetFlag::Missing))
 					{
 						component.OverrideMesh = overrideMesh;
 					}
@@ -1098,7 +1166,7 @@ namespace NR
 					AssetHandle assetHandle = audioComponent["AssetID"] ? audioComponent["AssetID"].as<uint64_t>() : 0;
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						soundConfig.FileAsset = AssetManager::GetAsset<Asset>(assetHandle);
+						soundConfig.FileAsset = AssetManager::GetAsset<AudioFile>(assetHandle);
 					}
 					else
 					{

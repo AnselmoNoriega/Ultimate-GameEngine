@@ -3,13 +3,11 @@
 
 #include "EditorLayer.h"
 
-#include "NotRed/Renderer/RendererAPI.h"
-
 class NotEditorApplication : public NR::Application
 {
 public:
-	NotEditorApplication(const NR::ApplicationProps& props)
-		: Application(props)
+	NotEditorApplication(const NR::ApplicationSpecification& specification)
+		: Application(specification)
 	{
 	}
 
@@ -21,6 +19,10 @@ public:
 
 NR::Application* NR::CreateApplication(int argc, char** argv)
 {
-	NR::RendererAPI::SetAPI(NR::RendererAPIType::Vulkan);
-	return new NotEditorApplication({ "NotEditor", 1600, 900 });
+	NR::ApplicationSpecification specification;
+	specification.Name = "NotEditor";
+	specification.WindowWidth = 1600;
+	specification.WindowHeight = 900;
+	specification.VSync = true;
+	return new NotEditorApplication(specification);
 }
