@@ -527,7 +527,9 @@ namespace NR
                 if (entity)
                 {
                     if (!entity.HasComponent<MeshComponent>())
+                    {
                         entity.AddComponent<MeshComponent>();
+                    }
                     MeshComponent& mc = entity.GetComponent<MeshComponent>();
                     mc.MeshObj = mesh;
                 }
