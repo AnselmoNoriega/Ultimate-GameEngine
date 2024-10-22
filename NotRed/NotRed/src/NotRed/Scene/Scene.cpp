@@ -1319,7 +1319,7 @@ namespace NR
 
 		auto entity = Entity{ mRegistry.create(), this };
 		auto& idComponent = entity.AddComponent<IDComponent>();
-		idComponent.ID = 0;
+		idComponent.ID = {};
 
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<TagComponent>(name);
@@ -1439,8 +1439,7 @@ namespace NR
 
 	Entity Scene::FindEntityByID(UUID id)
 	{
-		u
-			auto view = mRegistry.view<IDComponent>();
+		auto view = mRegistry.view<IDComponent>();
 		for (auto entity : view)
 		{
 			auto& idComponent = mRegistry.get<IDComponent>(entity);
