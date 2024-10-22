@@ -780,7 +780,7 @@ namespace NR
         Ref<TextureCube> radianceMap = mSceneData.SceneEnvironment ? mSceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
         mSkyboxMaterial->Set("uTexture", radianceMap);
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, nullptr, mSkyboxMaterial);
-
+         
         // Render entities
         for (auto& dc : mDrawList)
         {

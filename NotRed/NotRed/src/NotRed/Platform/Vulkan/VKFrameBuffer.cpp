@@ -24,12 +24,14 @@ namespace NR
         uint32_t attachmentIndex = 0;
         if (!mSpecification.ExistingFrameBuffer)
         {
-            for (auto attachmentSpec : mSpecification.Attachments.Attachments)
+            for (auto& attachmentSpec : mSpecification.Attachments.Attachments)
             {
                 if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
                 {
                     if (!Utils::IsDepthFormat(attachmentSpec.Format))
+                    {
                         mAttachmentImages.emplace_back();
+                    }
                 }
                 else if (Utils::IsDepthFormat(attachmentSpec.Format))
                 {
