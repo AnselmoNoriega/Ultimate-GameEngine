@@ -65,13 +65,13 @@ namespace NR
 
 		void Bind(uint32_t slot = 0) const override {}
 
-		ImageFormat GetFormat() const { return mFormat; }
+		virtual ImageFormat GetFormat() const override { return mFormat; }
 
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 		uint32_t GetMipLevelCount() const override;
 
-		uint64_t GetHash() const override { return (uint64_t)mImage; }
+		virtual uint64_t GetHash() const override { return (uint64_t)mImage; }
 
 		const VkDescriptorImageInfo& GetVulkanDescriptorInfo() const { return mDescriptorImageInfo; }
 		VkImageView CreateImageViewSingleMip(uint32_t mip);

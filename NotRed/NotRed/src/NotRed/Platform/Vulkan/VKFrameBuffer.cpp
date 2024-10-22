@@ -26,7 +26,12 @@ namespace NR
         {
             for (auto& attachmentSpec : mSpecification.Attachments.Attachments)
             {
-                if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
+                if (mSpecification.ExistingImage && mSpecification.ExistingImage->GetSpecification().Deinterleaved)
+                {
+                    NR_CORE_ASSERT(!Utils::IsDepthFormat(attachmentSpec.Format), "Only supported for color attachments");
+                    mAttachmentImages.emplace_back(mSpecification.ExistingImage);
+                }
+                else if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
                 {
                     if (!Utils::IsDepthFormat(attachmentSpec.Format))
                     {
@@ -35,28 +40,28 @@ namespace NR
                 }
                 else if (Utils::IsDepthFormat(attachmentSpec.Format))
                 {
-                    ImageSpecification spec;
-                    spec.Format = attachmentSpec.Format;
-                    spec.Usage = ImageUsage::Attachment;
-                    spec.Width = mWidth;
-                    spec.Height = mHeight;
-                    mDepthAttachmentImage = Image2D::Create(spec);
+                    ImageSpecification imageSpec;
+                    imageSpec.Format = attachmentSpec.Format;
+                    imageSpec.Usage = ImageUsage::Attachment;
+                    imageSpec.Width = mWidth;
+                    imageSpec.Height = mHeight;
+                    mDepthAttachmentImage = Image2D::Create(imageSpec);
                 }
                 else
                 {
-                    ImageSpecification spec;
-                    spec.Format = attachmentSpec.Format;
-                    spec.Usage = ImageUsage::Attachment;
-                    spec.Width = mWidth;
-                    spec.Height = mHeight;
-                    mAttachmentImages.emplace_back(Image2D::Create(spec));
+                    ImageSpecification imageSpec;
+                    imageSpec.Format = attachmentSpec.Format;
+                    imageSpec.Usage = ImageUsage::Attachment;
+                    imageSpec.Width = mWidth;
+                    imageSpec.Height = mHeight;
+                    mAttachmentImages.emplace_back(Image2D::Create(imageSpec));
                 }
                 ++attachmentIndex;
             }
         }
 
         NR_CORE_ASSERT(spec.Attachments.Attachments.size());
-        Resize((uint32_t)((float)(mWidth) * spec.Scale), (uint32_t)((float)mHeight * spec.Scale), true);
+        Resize((uint32_t)((float)(mWidth)*spec.Scale), (uint32_t)((float)mHeight * spec.Scale), true);
     }
 
     void VKFrameBuffer::Resize(uint32_t width, uint32_t height, bool forceRecreate)
@@ -112,21 +117,24 @@ namespace NR
             VkFramebuffer frameBuffer = mFrameBuffer;
             Renderer::SubmitResourceFree([frameBuffer]()
                 {
-                    auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                    const auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
                     vkDestroyFramebuffer(device, frameBuffer, nullptr);
                 });
 
             if (!mSpecification.ExistingFrameBuffer)
             {
                 uint32_t attachmentIndex = 0;
-                for (auto image : mAttachmentImages)
+                for (Ref<VKImage2D> image : mAttachmentImages)
                 {
                     if (mSpecification.ExistingImages.find(attachmentIndex) != mSpecification.ExistingImages.end())
                     {
                         continue;
                     }
 
-                    image->Release();
+                    if (!image->GetSpecification().Deinterleaved || attachmentIndex == 0 && !image->GetLayerImageView(0))
+                    {
+                        image->Release();
+                    }
                     ++attachmentIndex;
                 }
 
@@ -213,8 +221,6 @@ namespace NR
             }
             else
             {
-                NR_CORE_ASSERT(!mSpecification.ExistingImage, "Not supported for color attachments");
-
                 Ref<VKImage2D> colorAttachment;
                 if (mSpecification.ExistingFrameBuffer)
                 {
@@ -248,11 +254,17 @@ namespace NR
                         spec.Width = mWidth;
                         spec.Height = mHeight;
                         colorAttachment = image.As<VKImage2D>();
+                        if (!colorAttachment->GetSpecification().Deinterleaved)
+                        {
+                            colorAttachment->RT_Invalidate(); // Create immediately
+                        }
+                        else if (attachmentIndex == 0)// Only invalidate the first layer
+                        {
+                            colorAttachment->RT_Invalidate(); // Create immediately
+                            colorAttachment->RT_CreatePerSpecificLayerImageViews(mSpecification.ExistingImageLayers);
+                        }
                     }
-                    colorAttachment->RT_Invalidate();
                 }
-
-                colorAttachment->RT_Invalidate();
 
                 VkAttachmentDescription& attachmentDescription = attachmentDescriptions.emplace_back();
                 attachmentDescription.flags = 0;
@@ -347,8 +359,16 @@ namespace NR
         for (uint32_t i = 0; i < mAttachmentImages.size(); ++i)
         {
             Ref<VKImage2D> image = mAttachmentImages[i].As<VKImage2D>();
-            attachments[i] = image->GetImageInfo().ImageView;
-            NR_CORE_ASSERT(attachments[i]);
+            if (image->GetSpecification().Deinterleaved)
+            {
+                attachments[i] = image->GetLayerImageView(mSpecification.ExistingImageLayers[i]);
+                NR_CORE_ASSERT(attachments[i]);
+            }
+            else
+            {
+                attachments[i] = image->GetImageInfo().ImageView;
+                NR_CORE_ASSERT(attachments[i]);
+            }
         }
 
         if (mDepthAttachmentImage)
@@ -356,7 +376,8 @@ namespace NR
             Ref<VKImage2D> image = mDepthAttachmentImage.As<VKImage2D>();
             if (mSpecification.ExistingImage)
             {
-                attachments.emplace_back(image->GetLayerImageView(mSpecification.ExistingImageLayer));
+                NR_CORE_ASSERT(mSpecification.ExistingImageLayers.size() == 1, "Depth attachments do not support deinterleaving");
+                attachments.emplace_back(image->GetLayerImageView(mSpecification.ExistingImageLayers[0]));
                 NR_CORE_ASSERT(attachments.back());
             }
             else

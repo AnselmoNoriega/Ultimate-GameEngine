@@ -125,9 +125,13 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling");
         //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim.glsl");
         //Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
+        // 
+		//HBAO
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Deinterleaving", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO", true);
 		
 		// Renderer2D Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
@@ -190,11 +194,11 @@ namespace NR
         sCommandQueue->Execute();
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool explicitClear)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, const std::string& debugName, bool explicitClear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
-        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass, explicitClear);
+        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass, debugName, explicitClear);
     }
 
     void Renderer::EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer)
@@ -212,9 +216,9 @@ namespace NR
         sRendererAPI->EndFrame();
     }
 
-    void Renderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow)
+    void Renderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow, Ref<Image2D> linearDepth)
     {
-        sRendererAPI->SetSceneEnvironment(sceneRenderer, environment, shadow);
+        sRendererAPI->SetSceneEnvironment(sceneRenderer, environment, shadow, linearDepth);
     }
 
     std::pair<Ref<TextureCube>, Ref<TextureCube>> Renderer::CreateEnvironmentMap(const std::string& filepath)
@@ -225,6 +229,11 @@ namespace NR
     void Renderer::GenerateParticles()
     {
         sRendererAPI->GenerateParticles();
+    }
+
+    void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
+    {
+        sRendererAPI->DispatchComputeShader(renderCommandBuffer, computePipeline, uniformBufferSet, storageBufferSet, material, workGroups);
     }
 
     Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)

@@ -769,7 +769,6 @@ namespace NR
                 UI::BeginPropertyGrid();
                 UI::PropertyColor("Radiance", dlc.Radiance);
                 UI::Property("Intensity", dlc.Intensity, 0.05f, 0.f, 500.f);
-                UI::Property("Min Radius", dlc.MinRadius, 0.05f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Radius", dlc.Radius, 0.1f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Falloff", dlc.Falloff, 0.005f, 0.f, 1.f);
                 UI::EndPropertyGrid();

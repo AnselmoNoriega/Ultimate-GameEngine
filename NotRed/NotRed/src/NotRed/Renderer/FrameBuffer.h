@@ -68,7 +68,7 @@ namespace NR
 		bool SwapChainTarget = false;
 
 		Ref<Image2D> ExistingImage;
-		uint32_t ExistingImageLayer;
+		std::vector<uint32_t> ExistingImageLayers;
 
 		std::map<uint32_t, Ref<Image2D>> ExistingImages;
 

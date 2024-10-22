@@ -56,7 +56,8 @@ struct VertexOutput
 layout(location = 0) in VertexOutput Input;
 
 layout(location = 0) out vec4 color;
-layout(location = 1) out vec4 o_BloomColor;
+layout(location = 1) out vec4 oViewNormals;
+layout(location = 2) out vec4 oViewPosition;
 
 layout(std140, binding = 2) uniform SceneData
 {
@@ -90,6 +91,29 @@ layout(set = 1, binding = 11) uniform sampler2D uBRDFLUTTexture;
 
 // Shadow maps
 layout(set = 1, binding = 12) uniform sampler2DArray uShadowMapTexture;
+
+//HBAO Linear Depth
+layout(set = 1, binding = 16) uniform sampler2D uLinearDepthTex;
+
+layout(std140, binding = 17) uniform ScreenData
+{
+	vec2 uInvFullResolution;
+	vec2 uFullResolution;
+};
+
+layout(std140, binding = 18) uniform HBAOData
+{
+	vec4    uFloat2Offsets[16];
+	vec4    uJitters[16];
+	vec4	uPerspectiveInfo;   // R = (x) * (R - L)/N \\\\\\ G = (y) * (T - B)/N \\\\\\ B =  L/N \\\\\\ A =  B/N
+	vec2    uInvQuarterResolution;
+	float   uRadiusToScreen;        // radius
+	float   uNegInvR2;     // radius * radius
+	float   uNDotVBias;
+	float   uAOMultiplier;
+	float   uPowExponent;
+	bool	uIsOrtho;
+};
 
 layout(push_constant) uniform Material
 {
@@ -287,8 +311,8 @@ vec3 CalculatePointLights(in vec3 F0)
 		float lightDistance = length(light.Position - Input.WorldPosition);
 		vec3 Lh = normalize(Li + m_Params.View);
 		
-		float attenuation = clamp(1.0 - lightDistance * lightDistance / (light.Radius * light.Radius + light.Falloff * 2), 0.0, 1.0);
-		attenuation *= attenuation;
+		float attenuation = clamp(1.0 - (lightDistance * lightDistance) / (light.Radius * light.Radius), 0.0, 1.0);
+		attenuation *= mix(attenuation, 1.0, light.Falloff);
 
 		vec3 Lradiance = light.Radiance * light.Multiplier * attenuation;
 
@@ -525,6 +549,33 @@ float PCSS_DirectionalLight(sampler2DArray shadowMap, uint cascade, vec3 shadowC
 	return PCF_DirectionalLight(shadowMap, cascade, shadowCoords, uvRadius) * ShadowFade;
 }
 
+vec3 UVToView(vec2 uv, float eye_z)
+{
+	return vec3((uv * uPerspectiveInfo.xy + uPerspectiveInfo.zw) * (uIsOrtho ? 1.0 : eye_z), eye_z);
+}
+
+vec3 FetchViewPos(vec2 UV)
+{
+	float ViewDepth = textureLod(uLinearDepthTex, UV, 0).r;
+	return UVToView(UV, ViewDepth);
+}
+
+vec3 MinDiff(vec3 P, vec3 Pr, vec3 Pl)
+{
+	vec3 V1 = Pr - P;
+	vec3 V2 = P - Pl;
+	return (dot(V1, V1) < dot(V2, V2)) ? V1 : V2;
+}
+
+vec3 ReconstructNormal(vec2 UV, vec3 P)
+{
+	vec3 pRight = FetchViewPos(UV + vec2(uInvFullResolution.x, 0));
+	vec3 pLeft = FetchViewPos(UV + vec2(-uInvFullResolution.x, 0));
+	vec3 pTop = FetchViewPos(UV + vec2(0, uInvFullResolution.y));
+	vec3 pBottom = FetchViewPos(UV + vec2(0, -uInvFullResolution.y));
+	return normalize(cross(MinDiff(P, pRight, pLeft), MinDiff(P, pTop, pBottom)));
+}
+
 /////////////////////////////////////////////
 
 void main()
@@ -636,8 +687,13 @@ void main()
 	vec3 iblContribution = IBL(F0, Lr) * uEnvironmentMapIntensity;
 
 	color = vec4(iblContribution + lightContribution, 1.0);
-
-	o_BloomColor = vec4(1.0, 0.0, 1.0, 1.0);
+	
+	// View normals .. used by HBAO
+	vec2 screenSpaceCoords = gl_FragCoord.xy * uInvFullResolution;
+	vec3 P = FetchViewPos(screenSpaceCoords);
+	vec3 N = ReconstructNormal(screenSpaceCoords, P);
+	oViewNormals = vec4(N * 0.5 + 0.5, 1.0);
+	oViewPosition = vec4(Input.ViewPosition, 1.0);
 
 	if (uShowCascades)
 	{

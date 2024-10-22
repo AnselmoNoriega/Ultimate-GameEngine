@@ -49,6 +49,8 @@ namespace NR
         mUniformBufferSet->Create(sizeof(UBScene), 2);
         mUniformBufferSet->Create(sizeof(UBRendererData), 3);
         mUniformBufferSet->Create(sizeof(UBPointLights), 4);
+        mUniformBufferSet->Create(sizeof(UBScreenData), 17);
+        mUniformBufferSet->Create(sizeof(UBHBAOData), 18);
 
         mCompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
         CompositeMaterial = Material::Create(mCompositeShader);
@@ -87,12 +89,13 @@ namespace NR
             // 4 cascades
             for (int i = 0; i < 4; ++i)
             {
-                shadowMapFrameBufferSpec.ExistingImageLayer = i;
+                shadowMapFrameBufferSpec.ExistingImageLayers.clear();
+                shadowMapFrameBufferSpec.ExistingImageLayers.emplace_back(i);
 
                 RenderPassSpecification shadowMapRenderPassSpec;
                 shadowMapRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(shadowMapFrameBufferSpec);
                 shadowMapRenderPassSpec.DebugName = "ShadowMap";
-                ShadowMapRenderPass[i] = RenderPass::Create(shadowMapRenderPassSpec);
+                mShadowMapRenderPass[i] = RenderPass::Create(shadowMapRenderPassSpec);
             }
 
             auto shadowPassShader = Renderer::GetShaderLibrary()->Get("ShadowMap");
@@ -107,7 +110,7 @@ namespace NR
                 { ShaderDataType::Float3, "aBinormal" },
                 { ShaderDataType::Float2, "aTexCoord" }
             };
-            pipelineSpec.RenderPass = ShadowMapRenderPass[0];
+            pipelineSpec.RenderPass = mShadowMapRenderPass[0];
             mShadowPassPipeline = Pipeline::Create(pipelineSpec);
             mShadowPassMaterial = Material::Create(shadowPassShader, "ShadowPass");
         }
@@ -115,7 +118,7 @@ namespace NR
         // PreDepth
         {
             FrameBufferSpecification preDepthFrameBufferSpec;
-            preDepthFrameBufferSpec.Attachments = { ImageFormat::DEPTH32F };
+            preDepthFrameBufferSpec.Attachments = { ImageFormat::RED32F, ImageFormat::DEPTH32F };
             preDepthFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
             preDepthFrameBufferSpec.DebugName = "PreDepth";
 
@@ -142,9 +145,9 @@ namespace NR
         // Geometry
         {
             FrameBufferSpecification geoFrameBufferSpec;
-            geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA32F, ImageFormat::Depth };
+            geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
             geoFrameBufferSpec.Samples = 1;
-            geoFrameBufferSpec.ClearColor = { 0.1f, 0.5f, 0.1f, 1.0f };
+            geoFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
             geoFrameBufferSpec.DebugName = "Geometry";
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(geoFrameBufferSpec);
@@ -173,6 +176,52 @@ namespace NR
             pipelineSpecification.DebugName = "Wireframe";
 
             mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
+        }
+
+        // Deinterleaving
+        {
+            ImageSpecification imageSpec;
+            imageSpec.Format = ImageFormat::RED32F;
+            imageSpec.Layers = 16;
+            imageSpec.Usage = ImageUsage::Attachment;
+            imageSpec.Deinterleaved = true;
+            Ref<Image2D> image = Image2D::Create(imageSpec);
+            image->Invalidate();
+            image->CreatePerLayerImageViews();
+
+            FrameBufferSpecification deinterleavingFrameBufferSpec;
+            deinterleavingFrameBufferSpec.Attachments = { ImageFormat::RED32F, ImageFormat::RED32F, ImageFormat::RED32F, ImageFormat::RED32F, ImageFormat::RED32F, ImageFormat::RED32F, ImageFormat::RED32F, ImageFormat::RED32F, };
+            deinterleavingFrameBufferSpec.ClearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+            deinterleavingFrameBufferSpec.DebugName = "Deinterleaving";
+            deinterleavingFrameBufferSpec.ExistingImage = image;
+
+            for (int fb = 0; fb < 2; ++fb)
+            {
+                deinterleavingFrameBufferSpec.ExistingImageLayers.clear();
+                for (int layer = 0; layer < 8; ++layer)
+                {
+                    deinterleavingFrameBufferSpec.ExistingImageLayers.emplace_back(fb * 8 + layer);
+                }
+                Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(deinterleavingFrameBufferSpec);
+
+                RenderPassSpecification deinterleavingRenderPassSpec;
+                deinterleavingRenderPassSpec.TargetFrameBuffer = frameBuffer;
+                deinterleavingRenderPassSpec.DebugName = "Deinterleaving";
+                mDeinterleavingRenderPasses[fb] = RenderPass::Create(deinterleavingRenderPassSpec);
+            }
+
+            Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("Deinterleaving");
+            PipelineSpecification pipelineSpec;
+            pipelineSpec.RenderPass = mDeinterleavingRenderPasses[0];
+            pipelineSpec.DebugName = "Deinterleaving";
+
+            pipelineSpec.Shader = shader;
+            pipelineSpec.Layout = {
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float2, "aTexCoord" }
+            };
+            mDeinterleavingPipeline = Pipeline::Create(pipelineSpec);
+            mDeinterleavingMaterial = Material::Create(shader, "Deinterleaving");
         }
 
         // Selected Geometry isolation (for outline pass)
@@ -379,124 +428,33 @@ namespace NR
             mNeedsResize = true;
         }
     }
-    void SceneRenderer::CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const
+
+    void SceneRenderer::UpdateHBAOData()
     {
-        struct FrustumBounds
-        {
-            float r, l, b, t, f, n;
-        };
+        const auto& opts = mOptions;
+        UBHBAOData& hbaoData = HBAODataUB;
 
-        auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+        // radius
+        const float meters2viewSpace = 1.0f;
+        const float R = opts.HBAORadius * meters2viewSpace;
+        const float R2 = R * R;
 
-        const int SHADOW_MAP_CASCADE_COUNT = 4;
-        float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
+        hbaoData.NegInvR2 = -1.0f / R2;
+        hbaoData.RadiusToScreen = R * 0.5f * (float)mViewportHeight / (tanf(glm::radians(mSceneData.SceneCamera.FOV) * 0.5f) * 2.0f); //FOV is hard coded
+        const float* P = glm::value_ptr(mSceneData.SceneCamera.CameraObj.GetProjectionMatrix());
 
-        float nearClip = 0.1f;
-        float farClip = 1000.0f;
-        float clipRange = farClip - nearClip;
-
-        float minZ = nearClip;
-        float maxZ = nearClip + clipRange;
-
-        float range = maxZ - minZ;
-        float ratio = maxZ / minZ;
-
-        // Calculate split depths based on view camera frustum
-        // Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-        for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
-        {
-            float p = (i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
-            float log = minZ * std::pow(ratio, p);
-            float uniform = minZ + range * p;
-            float d = CascadeSplitLambda * (log - uniform) + uniform;
-            cascadeSplits[i] = (d - nearClip) / clipRange;
+        const glm::vec4 projInfoPerspective = {
+                 2.0f / (P[4 * 0 + 0]),                  // (x) * (R - L)/N
+                 2.0f / (P[4 * 1 + 1]),                  // (y) * (T - B)/N
+                -(1.0f - P[4 * 2 + 0]) / P[4 * 0 + 0],  // L/N
+                -(1.0f + P[4 * 2 + 1]) / P[4 * 1 + 1],  // B/N
         }
-
-        cascadeSplits[3] = 0.3f;
-
-        // Manually set cascades here
-        // cascadeSplits[0] = 0.05f;
-        // cascadeSplits[1] = 0.15f;
-        // cascadeSplits[2] = 0.3f;
-        // cascadeSplits[3] = 1.0f;
-
-        // Calculate orthographic projection matrix for each cascade
-        float lastSplitDist = 0.0;
-        for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
-        {
-            float splitDist = cascadeSplits[i];
-
-            glm::vec3 frustumCorners[8] =
-            {
-                glm::vec3(-1.0f,  1.0f, -1.0f),
-                glm::vec3(1.0f,  1.0f, -1.0f),
-                glm::vec3(1.0f, -1.0f, -1.0f),
-                glm::vec3(-1.0f, -1.0f, -1.0f),
-                glm::vec3(-1.0f,  1.0f,  1.0f),
-                glm::vec3(1.0f,  1.0f,  1.0f),
-                glm::vec3(1.0f, -1.0f,  1.0f),
-                glm::vec3(-1.0f, -1.0f,  1.0f),
-            };
-
-            // Project frustum corners into world space
-            glm::mat4 invCam = glm::inverse(viewProjection);
-            for (uint32_t i = 0; i < 8; ++i)
-            {
-                glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
-                frustumCorners[i] = invCorner / invCorner.w;
-            }
-
-            for (uint32_t i = 0; i < 4; ++i)
-            {
-                glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
-                frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
-                frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
-            }
-
-            // Get frustum center
-            glm::vec3 frustumCenter = glm::vec3(0.0f);
-            for (uint32_t i = 0; i < 8; ++i)
-            {
-                frustumCenter += frustumCorners[i];
-            }
-
-            frustumCenter /= 8.0f;
-            //frustumCenter *= 0.01f;
-
-            float radius = 0.0f;
-            for (uint32_t i = 0; i < 8; ++i)
-            {
-                float distance = glm::length(frustumCorners[i] - frustumCenter);
-                radius = glm::max(radius, distance);
-            }
-            radius = std::ceil(radius * 16.0f) / 16.0f;
-
-            glm::vec3 maxExtents = glm::vec3(radius);
-            glm::vec3 minExtents = -maxExtents;
-
-            glm::vec3 lightDir = -lightDirection;
-            glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
-            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + CascadeNearPlaneOffset, maxExtents.z - minExtents.z + CascadeFarPlaneOffset);
-
-            // Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
-            glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
-            const float ShadowMapResolution = 4096.0f;
-            glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
-            glm::vec4 roundedOrigin = glm::round(shadowOrigin);
-            glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-            roundOffset = roundOffset * 2.0f / ShadowMapResolution;
-            roundOffset.z = 0.0f;
-            roundOffset.w = 0.0f;
-
-            lightOrthoMatrix[3] += roundOffset;
-
-            // Store split distance and matrix in cascade
-            cascades[i].SplitDepth = (nearClip + splitDist * clipRange) * -1.0f;
-            cascades[i].ViewProj = lightOrthoMatrix * lightViewMatrix;
-            cascades[i].View = lightViewMatrix;
-
-            lastSplitDist = cascadeSplits[i];
-        }
+        ;
+        hbaoData.PerspectiveInfo = projInfoPerspective;
+        hbaoData.IsOrtho = false;
+        hbaoData.PowExponent = glm::max(mOptions.HBAOIntensity, 0.0f);
+        hbaoData.NDotVBias = glm::min(std::max(0.0f, mOptions.HBAOBias), 1.f);
+        hbaoData.AOMultiplier = 1.f / (1.f - hbaoData.NDotVBias);
     }
 
     void SceneRenderer::BeginScene(const SceneRendererCamera& camera)
@@ -524,6 +482,9 @@ namespace NR
         {
             mNeedsResize = false;
 
+            mDeinterleavingRenderPasses[0]->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth / 4, mViewportHeight / 4);
+            mDeinterleavingRenderPasses[1]->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth / 4, mViewportHeight / 4);
+
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
@@ -548,21 +509,23 @@ namespace NR
 
             RendererDataUB.TilesCountX = mLightCullingWorkGroups.x;
 
-            mStorageBufferSet->Resize(14, 0, mLightCullingWorkGroups.x * mLightCullingWorkGroups.y * 4 * 1024);
+            mStorageBufferSet->Resize(14, 0, mLightCullingWorkGroups.x * mLightCullingWorkGroups.y * 4096);
         }
 
         // Update uniform buffers
-        UBCamera& cameraData = CameraData;
+        UBCamera& cameraData = CameraDataUB;
         UBScene& sceneData = SceneDataUB;
         UBShadow& shadowData = ShadowData;
         UBRendererData& rendererData = RendererDataUB;
         UBPointLights& pointLightData = PointLightsUB;
+        UBHBAOData& hbaoData = HBAODataUB;
+        UBScreenData& screenData = ScreenDataUB;
 
         auto& sceneCamera = mSceneData.SceneCamera;
-        auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
-        glm::vec3 cameraPosition = glm::inverse(sceneCamera.ViewMatrix)[3];
-
-        auto inverseVP = glm::inverse(viewProjection);
+        const auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+        const glm::vec3 cameraPosition = glm::inverse(sceneCamera.ViewMatrix)[3];
+        
+        const auto inverseVP = glm::inverse(viewProjection);
         cameraData.ViewProjection = viewProjection;
         cameraData.InverseViewProjection = inverseVP;
         cameraData.Projection = sceneCamera.CameraObj.GetProjectionMatrix();
@@ -571,7 +534,7 @@ namespace NR
         Ref<SceneRenderer> instance = this;
         Renderer::Submit([instance, cameraData]() mutable
             {
-                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(0, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
             });
 
@@ -600,6 +563,21 @@ namespace NR
                 instance->mUniformBufferSet->Get(2, 0, bufferIndex)->RT_SetData(&sceneData, sizeof(sceneData));
             });
 
+        UpdateHBAOData();
+        Renderer::Submit([instance, hbaoData]() mutable
+            {
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                instance->mUniformBufferSet->Get(18, 0, bufferIndex)->RT_SetData(&hbaoData, sizeof(hbaoData));
+            });
+
+        screenData.FullResolution = { mViewportWidth, mViewportHeight };
+        screenData.InvFullResolution = 1.f / glm::vec2{ mViewportWidth, mViewportHeight };
+        Renderer::Submit([instance, screenData]() mutable
+            {
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                instance->mUniformBufferSet->Get(17, 0, bufferIndex)->RT_SetData(&screenData, sizeof(screenData));
+            });
+
         CascadeData cascades[4];
         CalculateCascades(cascades, sceneCamera, directionalLight.Direction);
 
@@ -611,18 +589,20 @@ namespace NR
 
         Renderer::Submit([instance, shadowData]() mutable
             {
-                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(1, 0, bufferIndex)->RT_SetData(&shadowData, sizeof(shadowData));
             });
 
         rendererData.CascadeSplits = CascadeSplits;
         Renderer::Submit([instance, rendererData]() mutable
             {
-                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(3, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
             });
 
-        Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
+
+        Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),
+            mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
     }
 
     void SceneRenderer::EndScene()
@@ -714,7 +694,7 @@ namespace NR
             for (int i = 0; i < 4; ++i)
             {
                 // Clear shadow maps
-                Renderer::BeginRenderPass(mCommandBuffer, ShadowMapRenderPass[i]);
+                Renderer::BeginRenderPass(mCommandBuffer, mShadowMapRenderPass[i], "Shadow pass clear");
                 Renderer::EndRenderPass(mCommandBuffer);
             }
             return;
@@ -722,10 +702,10 @@ namespace NR
 
         for (int i = 0; i < 4; ++i)
         {
-            Renderer::BeginRenderPass(mCommandBuffer, ShadowMapRenderPass[i]);
+            Renderer::BeginRenderPass(mCommandBuffer, mShadowMapRenderPass[i], "Shadow Pass");
 
             // Render entities
-            Buffer cascade(&i, sizeof(uint32_t));
+            const Buffer cascade(&i, sizeof(uint32_t));
             for (auto& dc : mShadowPassDrawList)
             {
                 Renderer::RenderMesh(mCommandBuffer, mShadowPassPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
@@ -737,7 +717,7 @@ namespace NR
     void SceneRenderer::PreDepthPass()
     {
         // PreDepth Pass, used for light culling
-        Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
+        Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass, "PreDepth");
 
         for (auto& dc : mDrawList)
         {
@@ -764,20 +744,20 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
+        Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass, "Selected Geometry");
         for (auto& dc : mSelectedMeshDrawList)
         {
             Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
         }
         Renderer::EndRenderPass(mCommandBuffer);
 
-        Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass);
+        Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass, "Geometry");
 
         // Skybox
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSceneData.SkyboxLod);
         mSkyboxMaterial->Set("uUniforms.Intensity", mSceneData.SceneEnvironmentIntensity);
 
-        Ref<TextureCube> radianceMap = mSceneData.SceneEnvironment ? mSceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
+        const Ref<TextureCube> radianceMap = mSceneData.SceneEnvironment ? mSceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
         mSkyboxMaterial->Set("uTexture", radianceMap);
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, nullptr, mSkyboxMaterial);
          
@@ -830,11 +810,40 @@ namespace NR
         Renderer::EndRenderPass(mCommandBuffer);
     }
 
+    void SceneRenderer::DeinterleavingPass()
+    {
+        mDeinterleavingMaterial->Set("uLinearDepthTex", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+        for (int i = 0, j = 0; i < 16; i += 8, j++)
+        {
+            mDeinterleavingMaterial->Set("uInfo.UVOffset", glm::vec2{ float(i % 4) + 0.5f, float(i / 4) + 0.5f });
+
+            Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingRenderPasses[j], fmt::format("Deinterleaving#{}", j));
+            Renderer::SubmitFullscreenQuad(mCommandBuffer, mDeinterleavingPipeline, mUniformBufferSet, nullptr, mDeinterleavingMaterial);
+            Renderer::EndRenderPass(mCommandBuffer);
+        }
+    }
+
+    void SceneRenderer::HBAOPass()
+    {
+        //mHBAOMaterial->Set("uLinearDepthTexArray", mDeinterleavingRenderPasses[0]->GetSpecification().TargetFramebuffer->GetImage());
+        //mHBAOMaterial->Set("uViewNormalsTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFramebuffer->GetImage(1));
+        //mHBAOMaterial->Set("uViewPositionTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFramebuffer->GetImage(2));
+        //mHBAOMaterial->Set("outputTexture", mHBAOOutputImage);
+        //
+        //
+        //Renderer::DispatchComputeShader(mCommandBuffer, mHBAOPipeline, mUniformBufferSet, nullptr, mHBAOMaterial, mHBAOWorkGroups);
+        //Renderer::BeginRenderPass(mCommandBuffer, mHBAOPipeline->GetSpecification().RenderPass);
+        //
+        //Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOPipeline, mUniformBufferSet, nullptr, mHBAOMaterial);
+        //
+        //Renderer::EndRenderPass(mCommandBuffer);
+    }
+
     void SceneRenderer::CompositePass()
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
+        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, "Composite", true);
 
         auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
         float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();
@@ -853,10 +862,10 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass);
+        Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass, "Jump Flood Init");
         
-        auto framebuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
-        mJumpFloodInitMaterial->Set("uTexture", framebuffer->GetImage());
+        auto frameBuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
+        mJumpFloodInitMaterial->Set("uTexture", frameBuffer->GetImage());
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodInitPipeline, nullptr, nullptr, mJumpFloodInitMaterial);
         
         Renderer::EndRenderPass(mCommandBuffer);
@@ -878,7 +887,7 @@ namespace NR
         {
             vertexOverrides.Write(&step, sizeof(int), sizeof(glm::vec2));
             
-            Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodPassPipeline[index]->GetSpecification().RenderPass);
+            Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodPassPipeline[index]->GetSpecification().RenderPass, "Jump Flood");
             Renderer::SubmitFullscreenQuadWithOverrides(mCommandBuffer, mJumpFloodPassPipeline[index], nullptr, mJumpFloodPassMaterial[index], vertexOverrides, Buffer());
             Renderer::EndRenderPass(mCommandBuffer);
 
@@ -953,6 +962,8 @@ namespace NR
             PreDepthPass();
             LightCullingPass();
             GeometryPass();
+            DeinterleavingPass();
+            HBAOPass();
             JumpFloodPass();
             CompositePass();
             mCommandBuffer->End();
@@ -978,7 +989,7 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
+        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, "Clear Pass", true);
         Renderer::EndRenderPass(mCommandBuffer);
     }
 
@@ -1000,6 +1011,121 @@ namespace NR
     SceneRendererOptions& SceneRenderer::GetOptions()
     {
         return mOptions;
+    }
+
+    void SceneRenderer::CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const
+    {
+        struct FrustumBounds
+        {
+            float r, l, b, t, f, n;
+        };
+
+        auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+        const int SHADOW_MAP_CASCADE_COUNT = 4;
+        float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
+
+        float nearClip = 0.1f;
+        float farClip = 1000.0f;
+        float clipRange = farClip - nearClip;
+        float minZ = nearClip;
+        float maxZ = nearClip + clipRange;
+        float range = maxZ - minZ;
+        float ratio = maxZ / minZ;
+
+        // Calculate split depths based on view camera frustum
+        // Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+        for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
+        {
+            float p = (i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
+            float log = minZ * std::pow(ratio, p);
+            float uniform = minZ + range * p;
+            float d = CascadeSplitLambda * (log - uniform) + uniform;
+            cascadeSplits[i] = (d - nearClip) / clipRange;
+        }
+
+        cascadeSplits[3] = 0.3f;
+
+        // Manually set cascades here
+        // cascadeSplits[0] = 0.05f;
+        // cascadeSplits[1] = 0.15f;
+        // cascadeSplits[2] = 0.3f;
+        // cascadeSplits[3] = 1.0f;
+        // Calculate orthographic projection matrix for each cascade
+
+        float lastSplitDist = 0.0;
+        for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
+        {
+            float splitDist = cascadeSplits[i];
+            glm::vec3 frustumCorners[8] =
+            {
+                glm::vec3(-1.0f,  1.0f, -1.0f),
+                glm::vec3(1.0f,  1.0f, -1.0f),
+                glm::vec3(1.0f, -1.0f, -1.0f),
+                glm::vec3(-1.0f, -1.0f, -1.0f),
+                glm::vec3(-1.0f,  1.0f,  1.0f),
+                glm::vec3(1.0f,  1.0f,  1.0f),
+                glm::vec3(1.0f, -1.0f,  1.0f),
+                glm::vec3(-1.0f, -1.0f,  1.0f),
+            };
+
+            // Project frustum corners into world space
+            glm::mat4 invCam = glm::inverse(viewProjection);
+            for (uint32_t i = 0; i < 8; ++i)
+            {
+                glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
+                frustumCorners[i] = invCorner / invCorner.w;
+            }
+
+            for (uint32_t i = 0; i < 4; ++i)
+            {
+                glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
+                frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
+                frustumCorners[i] = frustumCorners[i] + (dist * lastSplitDist);
+            }
+
+            // Get frustum center
+            glm::vec3 frustumCenter = glm::vec3(0.0f);
+            for (uint32_t i = 0; i < 8; ++i)
+            {
+                frustumCenter += frustumCorners[i];
+            }
+
+            frustumCenter /= 8.0f;
+            //frustumCenter *= 0.01f;
+
+            float radius = 0.0f;
+            for (uint32_t i = 0; i < 8; ++i)
+            {
+                float distance = glm::length(frustumCorners[i] - frustumCenter);
+                radius = glm::max(radius, distance);
+            }
+            radius = std::ceil(radius * 16.0f) / 16.0f;
+
+            glm::vec3 maxExtents = glm::vec3(radius);
+            glm::vec3 minExtents = -maxExtents;
+            glm::vec3 lightDir = -lightDirection;
+            glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + CascadeNearPlaneOffset, maxExtents.z - minExtents.z + CascadeFarPlaneOffset);
+            
+            // Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
+            glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
+            const float ShadowMapResolution = 4096.0f;
+            glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
+            glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+            glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+            
+            roundOffset = roundOffset * 2.0f / ShadowMapResolution;
+            roundOffset.z = 0.0f;
+            roundOffset.w = 0.0f;
+            lightOrthoMatrix[3] += roundOffset;
+            // Store split distance and matrix in cascade
+            
+            cascades[i].SplitDepth = (nearClip + splitDist * clipRange) * -1.0f;
+            cascades[i].ViewProj = lightOrthoMatrix * lightViewMatrix;
+            cascades[i].View = lightViewMatrix;
+            
+            lastSplitDist = cascadeSplits[i];
+        }
     }
 
     void SceneRenderer::ImGuiRender()
@@ -1024,6 +1150,12 @@ namespace NR
                 }
             }
             ImGui::TreePop();
+        }
+
+        if (UI::BeginTreeNode("Depth"))
+        {
+            UI::PropertySlider("Work groups", mHBAOWorkGroups, 0.f, 500.f);
+            UI::EndTreeNode();
         }
 
         if (UI::BeginTreeNode("Shadows"))
@@ -1054,7 +1186,7 @@ namespace NR
             if (UI::BeginTreeNode("Shadow Map", false))
             {
                 static int cascadeIndex = 0;
-                auto fb = ShadowMapRenderPass[cascadeIndex]->GetSpecification().TargetFrameBuffer;
+                auto fb = mShadowMapRenderPass[cascadeIndex]->GetSpecification().TargetFrameBuffer;
                 auto image = fb->GetDepthImage();
 
                 float size = ImGui::GetContentRegionAvail().x;

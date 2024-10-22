@@ -21,6 +21,13 @@ namespace NR
 		bool ShowBoundingBoxes = false;
 		bool ShowSelectedInWireframe = false;
 		bool ShowCollidersWireframe = false;
+
+		//HBAO
+		bool EnableHBAO = true;
+		float HBAORadius = 2.5f;
+		float HBAOBias = 0.2f;
+		float HBAOIntensity = 2.f;
+		float AOMultiplier = 1.f;
 	};
 
 	struct SceneRendererCamera
@@ -47,6 +54,8 @@ namespace NR
 		void SetScene(Ref<Scene> scene);
 
 		void SetViewportSize(uint32_t width, uint32_t height);
+
+		void UpdateHBAOData();
 
 		void BeginScene(const SceneRendererCamera& camera);
 		void EndScene();
@@ -87,6 +96,8 @@ namespace NR
 	private:
 		void FlushDrawList();
 		void ClearPass();
+		void DeinterleavingPass();
+		void HBAOPass();
 		void ShadowMapPass();
 		void PreDepthPass();
 		void LightCullingPass();
@@ -123,7 +134,30 @@ namespace NR
 			glm::mat4 InverseViewProjection;
 			glm::mat4 Projection;
 			glm::mat4 View;
-		} CameraData;
+		} CameraDataUB;
+
+		struct UBHBAOData
+		{
+			glm::vec4 Float2Offsets[16];
+			glm::vec4 Jitters[16];
+			glm::vec4 PerspectiveInfo;
+			glm::vec2 InvQuarterResolution;
+		
+			float RadiusToScreen;
+			float NegInvR2;
+			float NDotVBias;
+			float AOMultiplier;
+			float PowExponent;
+			
+			bool IsOrtho;
+			char Padding0[3]{ 0, 0, 0 };
+		} HBAODataUB;
+
+		struct UBScreenData
+		{
+			glm::vec2 InvFullResolution;
+			glm::vec2 FullResolution;
+		} ScreenDataUB;
 
 		struct UBShadow
 		{
@@ -168,6 +202,13 @@ namespace NR
 			float CascadeTransitionFade = 1.0f;
 		} RendererDataUB;
 
+		glm::vec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
+		
+		//HBAO
+		Ref<Material> mDeinterleavingMaterial;
+		Ref<Material> mHBAOMaterial;
+		Ref<Pipeline> mDeinterleavingPipeline;
+
 		glm::ivec3 mLightCullingWorkGroups;
 		Ref<VKComputePipeline> mLightCullingPipeline;
 
@@ -175,7 +216,9 @@ namespace NR
 		Ref<StorageBufferSet> mStorageBufferSet;
 
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
-		Ref<RenderPass> ShadowMapRenderPass[4];
+		Ref<RenderPass> mShadowMapRenderPass[4];
+		Ref<RenderPass> mDeinterleavingRenderPasses[2];
+
 		float LightDistance = 0.1f;
 		float CascadeSplitLambda = 0.92f;
 		glm::vec4 CascadeSplits;
@@ -186,7 +229,6 @@ namespace NR
 
 		glm::vec2 FocusPoint = { 0.5f, 0.5f };
 
-		RendererID ShadowMapSampler;
 		Ref<Material> CompositeMaterial;
 		Ref<Material> mLightCullingMaterial;
 

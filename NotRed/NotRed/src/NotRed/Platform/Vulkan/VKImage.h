@@ -35,7 +35,9 @@ namespace NR
         void CreatePerLayerImageViews() override;
         void RT_CreatePerLayerImageViews();
 
-        VkImageView GetLayerImageView(uint32_t layer)
+        void RT_CreatePerSpecificLayerImageViews(const std::vector<uint32_t>& layerIndices);
+
+        virtual VkImageView GetLayerImageView(uint32_t layer)
         {
             NR_CORE_ASSERT(layer < mPerLayerImageViews.size());
             return mPerLayerImageViews[layer];
@@ -58,21 +60,25 @@ namespace NR
 
         Buffer mImageData;
 
-        VKImageInfo mInfo; 
+        VKImageInfo mInfo;
         std::vector<VkImageView> mPerLayerImageViews;
         VkDescriptorImageInfo mDescriptorImageInfo = {};
     };
 
-    namespace Utils 
+    namespace Utils
     {
         inline VkFormat VulkanImageFormat(ImageFormat format)
         {
             switch (format)
             {
-            case ImageFormat::RGBA:            return VK_FORMAT_R8G8B8A8_UNORM;
-            case ImageFormat::RGBA32F:         return VK_FORMAT_R32G32B32A32_SFLOAT;
-            case ImageFormat::DEPTH32F:        return VK_FORMAT_D32_SFLOAT;
-            case ImageFormat::DEPTH24STENCIL8: return VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetDepthFormat();
+            case ImageFormat::RED32F:            return VK_FORMAT_R32_SFLOAT;
+            case ImageFormat::RG16F:		     return VK_FORMAT_R16G16_SFLOAT;
+            case ImageFormat::RG32F:		     return VK_FORMAT_R32G32_SFLOAT;
+            case ImageFormat::RGBA:              return VK_FORMAT_R8G8B8A8_UNORM;
+            case ImageFormat::RGBA16F:           return VK_FORMAT_R16G16B16A16_SFLOAT;
+            case ImageFormat::RGBA32F:           return VK_FORMAT_R32G32B32A32_SFLOAT;
+            case ImageFormat::DEPTH32F:          return VK_FORMAT_D32_SFLOAT;
+            case ImageFormat::DEPTH24STENCIL8:   return VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetDepthFormat();
             default:
                 NR_CORE_ASSERT(false);
                 return VK_FORMAT_UNDEFINED;
