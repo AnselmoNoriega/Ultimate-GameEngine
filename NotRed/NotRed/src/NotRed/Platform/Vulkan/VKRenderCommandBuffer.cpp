@@ -44,7 +44,7 @@ namespace NR
 	}
 
 	VKRenderCommandBuffer::VKRenderCommandBuffer(const std::string& debugName, bool swapchain)
-		: mDebugName(debugName), mOwnedBySwapChain(true)
+		: mOwnedBySwapChain(true), mDebugName(debugName)
 	{
 		uint32_t frames = Renderer::GetConfig().FramesInFlight;
 		mCommandBuffers.resize(frames);

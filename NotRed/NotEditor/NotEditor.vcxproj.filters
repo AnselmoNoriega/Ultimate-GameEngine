@@ -13,13 +13,8 @@
     <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Shaders\JumpFlood_Composite\JumpFlood_Composite.vert" />
-    <None Include="Resources\Shaders\JumpFlood_Composite\JumpFlood_Composite.frag" />
-    <None Include="Resources\Shaders\JumpFlood_Init\JumpFlood_Init.vert" />
-    <None Include="Resources\Shaders\JumpFlood_Init\JumpFlood_Init.frag" />
-    <None Include="Resources\Shaders\JumpFlood_Pass\JumpFlood_Pass.vert" />
-    <None Include="Resources\Shaders\JumpFlood_Pass\JumpFlood_Pass.frag" />
-    <None Include="Resources\Shaders\SelectedGeometry\SelectedGeometry.vert" />
-    <None Include="Resources\Shaders\SelectedGeometry\SelectedGeometry.frag" />
+    <None Include="Resources\Shaders\Deinterleaving\Deinterleaving.vert" />
+    <None Include="Resources\Shaders\Deinterleaving\Deinterleaving.frag" />
+    <None Include="Resources\Shaders\HBAO\HBAO.comp" />
   </ItemGroup>
 </Project>

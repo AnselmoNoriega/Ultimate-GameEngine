@@ -108,7 +108,7 @@ namespace NR
     }
 
     VKTexture2D::VKTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)
-        : mFormat(format), mProperties(properties)
+        : mProperties(properties), mFormat(format)
     {
         mWidth = width;
         mHeight = height;

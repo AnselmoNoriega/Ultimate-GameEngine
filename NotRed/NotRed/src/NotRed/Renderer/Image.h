@@ -8,10 +8,12 @@ namespace NR
     enum class ImageFormat
     {
         None,
+        RED32F,
         RGB,
         RGBA,
         RGBA16F,
         RGBA32F,
+        RG16F,
         RG32F,
 
         SRGB,
@@ -25,7 +27,8 @@ namespace NR
     {
         None,
         Texture,
-        Attachment
+        Attachment,
+        Storage
     };
     enum class TextureWrap
     {
@@ -49,10 +52,11 @@ namespace NR
     {
         ImageFormat Format = ImageFormat::RGBA;
         ImageUsage Usage = ImageUsage::Texture;
-        uint32_t Width = 0;
-        uint32_t Height = 0;
+        uint32_t Width = 1;
+        uint32_t Height = 1;
         uint32_t Mips = 1;
         uint32_t Layers = 1;
+        bool Deinterleaved = false;
     };
 
     struct TextureProperties
@@ -99,10 +103,11 @@ namespace NR
             switch (format)
             {
             case ImageFormat::RGB:
-            case ImageFormat::SRGB:         return 3;
-            case ImageFormat::RGBA:         return 4;
-            case ImageFormat::RGBA16F:      return 2 * 4;
-            case ImageFormat::RGBA32F:      return 4 * 4;
+            case ImageFormat::SRGB:    return 3;
+            case ImageFormat::RED32F:
+            case ImageFormat::RGBA:    return 4;
+            case ImageFormat::RGBA16F: return 2 * 4;
+            case ImageFormat::RGBA32F: return 4 * 4;
             default:
             {
                 NR_CORE_ASSERT(false);

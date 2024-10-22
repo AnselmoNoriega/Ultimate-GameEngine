@@ -251,7 +251,7 @@ namespace NR
     void Renderer2D::EndScene()
     {
         sData->CommandBuffer->Begin();
-        Renderer::BeginRenderPass(sData->CommandBuffer, sData->QuadPipeline->GetSpecification().RenderPass);
+        Renderer::BeginRenderPass(sData->CommandBuffer, sData->QuadPipeline->GetSpecification().RenderPass, "2D Renderer");
 
         uint32_t dataSize = (uint32_t)((uint8_t*)sData->QuadVertexBufferPtr - (uint8_t*)sData->QuadVertexBufferBase);
         if (dataSize)

@@ -112,7 +112,7 @@ namespace NR
                 pool_info.pPoolSizes = pool_sizes;
 
                 VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-                uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+                const uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
                 for (uint32_t i = 0; i < framesInFlight; ++i)
                 {
                     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &pool_info, nullptr, &sData->DescriptorPools[i]));
@@ -281,8 +281,8 @@ namespace NR
                 NR_PROFILE_FUNC("VulkanRenderer::RenderMesh");
                 NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
 
-                uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-                VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
+                const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                const VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
                 Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
                 Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
@@ -507,6 +507,21 @@ namespace NR
             });
     }
 
+    void VKRenderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
+    {
+        auto vulkanMaterial = material.As<VKMaterial>();
+        Renderer::Submit([renderCommandBuffer, pipeline, vulkanMaterial, uniformBufferSet, storageBufferSet, workGroups]() mutable
+            {
+                const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+                const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
+
+                pipeline->Begin(renderCommandBuffer);
+                pipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
+                pipeline->End();
+            });
+    }
+
     void VKRenderer::LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
     {
         auto vulkanMaterial = material.As<VKMaterial>();
@@ -644,24 +659,24 @@ namespace NR
             });
     }
 
-    void VKRenderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow)
+    void VKRenderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow, Ref<Image2D> linearDepth)
     {
         if (!environment)
         {
             environment = Renderer::GetEmptyEnvironment();
         }
 
-        Renderer::Submit([sceneRenderer, environment, shadow]() mutable
+        Renderer::Submit([sceneRenderer, environment, shadow, linearDepth]() mutable
             {
                 NR_PROFILE_FUNC("VulkanRenderer::SetSceneEnvironment");
 
-                auto shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
+                const auto shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
                 Ref<VKShader> pbrShader = shader.As<VKShader>();
-                uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
+                const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
                 if (sData->RendererDescriptorSet.find(sceneRenderer.Raw()) == sData->RendererDescriptorSet.end())
                 {
-                    uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
+                    const uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
                     sData->RendererDescriptorSet[sceneRenderer.Raw()].resize(framesInFlight);
 
                     for (uint32_t i = 0; i < framesInFlight; ++i)
@@ -673,7 +688,7 @@ namespace NR
                 VkDescriptorSet descriptorSet = sData->RendererDescriptorSet.at(sceneRenderer.Raw())[bufferIndex].DescriptorSets[0];
                 sData->ActiveRendererDescriptorSet = descriptorSet;
 
-                std::array<VkWriteDescriptorSet, 4> writeDescriptors;
+                std::array<VkWriteDescriptorSet, 5> writeDescriptors;
 
                 Ref<VKTextureCube> radianceMap = environment->RadianceMap.As<VKTextureCube>();
                 Ref<VKTextureCube> irradianceMap = environment->IrradianceMap.As<VKTextureCube>();
@@ -697,6 +712,11 @@ namespace NR
                 writeDescriptors[3].dstSet = descriptorSet;
                 const auto& shadowImageInfo = shadow.As<VKImage2D>()->GetDescriptor();
                 writeDescriptors[3].pImageInfo = &shadowImageInfo;
+
+                writeDescriptors[4] = *pbrShader->GetDescriptorSet("uLinearDepthTex", 1);
+                writeDescriptors[4].dstSet = descriptorSet;
+                const auto& linearDepthImageInfo = linearDepth.As<VKImage2D>()->GetDescriptor();
+                writeDescriptors[4].pImageInfo = &linearDepthImageInfo;
 
                 auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
                 vkUpdateDescriptorSets(vulkanDevice, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
@@ -723,11 +743,11 @@ namespace NR
     {
     }
 
-    void VKRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass, bool explicitClear)
+    void VKRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass, const std::string& debugName, bool explicitClear)
     {
-        Renderer::Submit([renderCommandBuffer, renderPass, explicitClear]()
+        Renderer::Submit([renderCommandBuffer, renderPass, explicitClear, debugName]()
             {
-                NR_PROFILE_FUNC("VulkanRenderer::BeginRenderPass");
+                NR_PROFILE_FUNC(fmt::format("VulkanRenderer::BeginRenderPass ({})", debugName).c_str());
 
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
@@ -802,8 +822,8 @@ namespace NR
 
                 if (explicitClear)
                 {
-                    uint32_t colorAttachmentCount = (uint32_t)framebuffer->GetColorAttachmentCount();
-                    uint32_t totalAttachmentCount = colorAttachmentCount + (framebuffer->HasDepthAttachment() ? 1 : 0);
+                    const uint32_t colorAttachmentCount = (uint32_t)framebuffer->GetColorAttachmentCount();
+                    const uint32_t totalAttachmentCount = colorAttachmentCount + (framebuffer->HasDepthAttachment() ? 1 : 0);
 
                     NR_CORE_ASSERT(clearValues.size() == totalAttachmentCount);
 

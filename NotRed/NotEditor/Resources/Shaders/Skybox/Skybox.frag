@@ -2,6 +2,7 @@
 
 layout(location = 0) out vec4 finalColor;
 layout(location = 1) out vec4 oBloom;
+layout(location = 2) out vec4 unuesd;
 
 layout (binding = 1) uniform samplerCube uTexture;
 
@@ -30,4 +31,5 @@ void main()
 	finalColor = textureLod(uTexture, vPosition, uUniforms.TextureLod);
 	finalColor.rgb = finalColor.rgb * uUniforms.Intensity;
 	oBloom = vec4(0.0);
+	unuesd = vec4(0.0);
 }

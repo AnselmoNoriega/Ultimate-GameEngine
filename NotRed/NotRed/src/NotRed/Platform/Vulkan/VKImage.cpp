@@ -15,15 +15,24 @@ namespace NR
 		if (mInfo.Image)
 		{
 			const VKImageInfo& info = mInfo;
-			Renderer::Submit([info]()
+			Renderer::Submit([info, layerViews = mPerLayerImageViews]()
 				{
 					auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 					vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
 					vkDestroySampler(vulkanDevice, info.Sampler, nullptr);
-					VKAllocator allocator("VKImage2D");
+					for (auto& view : layerViews)
+					{
+						if (view)
+						{
+							vkDestroyImageView(vulkanDevice, view, nullptr);
+						}
+					}
+					VKAllocator allocator("VulkanImage2D");
 					allocator.DestroyImage(info.Image, info.MemoryAlloc);
-					NR_CORE_WARN("VKImage2D::Release ImageView = {0}", (const void*)info.ImageView);
+					NR_CORE_WARN("VulkanImage2D::Release ImageView = {0}", (const void*)info.ImageView);
 				});
+
+			mPerLayerImageViews.clear();
 		}
 	}
 
@@ -39,13 +48,19 @@ namespace NR
 	void VKImage2D::Release()
 	{
 		VKImageInfo info = mInfo;
-		Renderer::SubmitResourceFree([info]() mutable
+		Renderer::SubmitResourceFree([info, layerViews = mPerLayerImageViews]() mutable
 			{
 				auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 				NR_CORE_WARN("VulkanImage2D::Release ImageView = {0}", (const void*)info.ImageView);
 				vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
 				vkDestroySampler(vulkanDevice, info.Sampler, nullptr);
-
+				for (auto& view : layerViews)
+				{
+					if (view)
+					{
+						vkDestroyImageView(vulkanDevice, view, nullptr);
+					}
+				}
 				VKAllocator allocator("VulkanImage2D");
 				allocator.DestroyImage(info.Image, info.MemoryAlloc);
 			});
@@ -53,6 +68,7 @@ namespace NR
 		mInfo.Image = nullptr;
 		mInfo.ImageView = nullptr;
 		mInfo.Sampler = nullptr;
+		mPerLayerImageViews.clear();
 	}
 
 	void VKImage2D::RT_Invalidate()
@@ -75,6 +91,10 @@ namespace NR
 		else if (mSpecification.Usage == ImageUsage::Texture)
 		{
 			usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		}
+		else if (mSpecification.Usage == ImageUsage::Storage)
+		{
+			usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 		}
 
 		VkImageAspectFlags aspectMask = Utils::IsDepthFormat(mSpecification.Format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
@@ -153,9 +173,45 @@ namespace NR
 			aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
 
-		VkFormat vulkanFormat = Utils::VulkanImageFormat(mSpecification.Format);
+		const VkFormat vulkanFormat = Utils::VulkanImageFormat(mSpecification.Format);
 		mPerLayerImageViews.resize(mSpecification.Layers);
 		for (uint32_t layer = 0; layer < mSpecification.Layers; layer++)
+		{
+			VkImageViewCreateInfo imageViewCreateInfo = {};
+			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			imageViewCreateInfo.format = vulkanFormat;
+			imageViewCreateInfo.flags = 0;
+			imageViewCreateInfo.subresourceRange = {};
+			imageViewCreateInfo.subresourceRange.aspectMask = aspectMask;
+			imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+			imageViewCreateInfo.subresourceRange.levelCount = mSpecification.Mips;
+			imageViewCreateInfo.subresourceRange.baseArrayLayer = layer;
+			imageViewCreateInfo.subresourceRange.layerCount = 1;
+			imageViewCreateInfo.image = mInfo.Image;
+			VK_CHECK_RESULT(vkCreateImageView(device, &imageViewCreateInfo, nullptr, &mPerLayerImageViews[layer]));
+		}
+	}
+
+	void VKImage2D::RT_CreatePerSpecificLayerImageViews(const std::vector<uint32_t>& layerIndices)
+	{
+		NR_CORE_ASSERT(mSpecification.Layers > 1);
+		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+		VkImageAspectFlags aspectMask = Utils::IsDepthFormat(mSpecification.Format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+		
+		if (mSpecification.Format == ImageFormat::DEPTH24STENCIL8)
+		{
+			aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+
+		const VkFormat vulkanFormat = Utils::VulkanImageFormat(mSpecification.Format);
+		
+		if (mPerLayerImageViews.empty())
+		{
+			mPerLayerImageViews.resize(mSpecification.Layers);
+		}
+
+		for (uint32_t layer : layerIndices)
 		{
 			VkImageViewCreateInfo imageViewCreateInfo = {};
 			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -183,6 +239,12 @@ namespace NR
 		{
 			mDescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
+
+		if (mSpecification.Usage == ImageUsage::Storage)
+		{
+			mDescriptorImageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+		}
+
 		mDescriptorImageInfo.imageView = mInfo.ImageView;
 		mDescriptorImageInfo.sampler = mInfo.Sampler;
 	}
