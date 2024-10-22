@@ -503,7 +503,7 @@ namespace NR
 
             NR_CORE_ASSERT(mCreateNewMeshPopupData.MeshToCreate);
             const AssetMetadata& assetData = AssetManager::GetMetadata(mCreateNewMeshPopupData.MeshToCreate->Handle);
-            std::string filepath = fmt::format("{0}/{1}.hmesh", mCurrentScene->GetName(), assetData.FilePath.stem().string());
+            std::string filepath = fmt::format("{0}/{1}.nrmesh", mCurrentScene->GetName(), assetData.FilePath.stem().string());
             
             if (!mCreateNewMeshPopupData.CreateMeshFilenameBuffer[0])
             {

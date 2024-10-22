@@ -1490,6 +1490,7 @@ namespace NR
 
     glm::mat4 Scene::GetTransformRelativeToParent(Entity entity)
     {
+        //Todo
         glm::mat4 transform(1.0f);
 
         Entity parent = FindEntityByID(entity.GetParentID());
