@@ -580,7 +580,9 @@ namespace NR
         {
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             if (lights.empty())
+            {
                 mEnvironment = Ref<Environment>::Create(Renderer::GetBlackCubeTexture(), Renderer::GetBlackCubeTexture());
+            }
 
             for (auto entity : lights)
             {
@@ -593,7 +595,9 @@ namespace NR
                 mEnvironment = skyLightComponent.SceneEnvironment;
                 mEnvironmentIntensity = skyLightComponent.Intensity;
                 if (mEnvironment)
+                {
                     SetSkybox(mEnvironment->RadianceMap);
+                }
             }
         }
 
@@ -818,7 +822,9 @@ namespace NR
         {
             auto lights = mRegistry.group<SkyLightComponent>(entt::get<TransformComponent>);
             if (lights.empty())
+            {
                 mEnvironment = Ref<Environment>::Create(Renderer::GetBlackCubeTexture(), Renderer::GetBlackCubeTexture());
+            }
 
             for (auto entity : lights)
             {

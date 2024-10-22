@@ -314,7 +314,6 @@ namespace NR
                 {
                     const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
                     auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
-                    material->RT_UpdateForRendering();
 
                     VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
                     VkDescriptorSet descriptorSet = material->GetDescriptorSet(frameIndex);

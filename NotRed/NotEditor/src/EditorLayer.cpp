@@ -710,8 +710,6 @@ namespace NR
                 mSelectionMode = mSelectionMode == SelectionMode::Entity ? SelectionMode::SubMesh : SelectionMode::Entity;
             }
 
-            UI::EndPropertyGrid();
-
             ImGui::Separator();
             ImGui::PushFont(boldFont);
             ImGui::Text("Renderer Settings");
