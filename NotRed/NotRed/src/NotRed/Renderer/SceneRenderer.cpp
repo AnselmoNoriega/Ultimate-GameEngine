@@ -51,9 +51,11 @@ namespace NR
         mUniformBufferSet->Create(sizeof(UBPointLights), 4);
         mUniformBufferSet->Create(sizeof(UBScreenData), 17);
         mUniformBufferSet->Create(sizeof(UBHBAOData), 18);
+        mUniformBufferSet->Create(sizeof(UBStarParams), 19);
 
         mCompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
         CompositeMaterial = Material::Create(mCompositeShader);
+
         //Light culling compute pipeline
         {
             mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
@@ -176,6 +178,45 @@ namespace NR
             pipelineSpecification.DebugName = "Wireframe";
 
             mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
+        }
+
+        // Particles Gen
+        {
+            int numParticles = 10;
+            int localSizeX = 256;
+
+            int workGroupsX = int((numParticles + localSizeX - 1) / localSizeX);
+
+            mParticleGenWorkGroups = { workGroupsX, 1, 1 };
+            int particleSize = 36;
+            mStorageBufferSet->Create(particleSize * 10, 16);
+
+            mParticleGenMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("ParticleGen"), "ParticleGen");
+            Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");
+            mParticleGenPipeline = Ref<VKComputePipeline>::Create(particleGenShader);
+        }
+
+        // Particles
+        {
+            FrameBufferSpecification particleFrameBufferSpec;
+            particleFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+            particleFrameBufferSpec.Samples = 1;
+            particleFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+            particleFrameBufferSpec.DebugName = "Particles";
+
+            Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(particleFrameBufferSpec);
+
+            PipelineSpecification pipelineSpecification;
+            pipelineSpecification.Layout = {
+            };
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
+
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.TargetFrameBuffer = frameBuffer;
+            renderPassSpec.DebugName = "ParticlesRenderer";
+            pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+            pipelineSpecification.DebugName = "Particles";
+            mParticlePipeline = Pipeline::Create(pipelineSpecification);
         }
 
         // Deinterleaving
@@ -514,6 +555,7 @@ namespace NR
 
         // Update uniform buffers
         UBCamera& cameraData = CameraDataUB;
+        UBStarParams& starParamsData = StarParamsUB;
         UBScene& sceneData = SceneDataUB;
         UBShadow& shadowData = ShadowData;
         UBRendererData& rendererData = RendererDataUB;
@@ -532,10 +574,11 @@ namespace NR
         cameraData.View = sceneCamera.ViewMatrix;
 
         Ref<SceneRenderer> instance = this;
-        Renderer::Submit([instance, cameraData]() mutable
+        Renderer::Submit([instance, cameraData, starParamsData]() mutable
             {
                 const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(0, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
+                instance->mUniformBufferSet->Get(19, 0, bufferIndex)->RT_SetData(&starParamsData, sizeof(starParamsData));
             });
 
         const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
@@ -600,6 +643,7 @@ namespace NR
                 instance->mUniformBufferSet->Get(3, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
             });
 
+        Renderer::GenerateParticles(mCommandBuffer, mParticleGenPipeline, mUniformBufferSet, mStorageBufferSet, mParticleGenMaterial, mParticleGenWorkGroups);
 
         Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());

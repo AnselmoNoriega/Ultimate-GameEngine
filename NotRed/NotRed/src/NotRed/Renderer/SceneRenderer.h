@@ -184,7 +184,33 @@ namespace NR
 			DirLight lights;
 			glm::vec3 CameraPosition;
 			float EnvironmentMapIntensity = 1.0f;
-		} SceneDataUB;
+		} SceneDataUB; 
+		
+		struct UBStarParams
+		{
+			uint32_t NumStars;
+
+			float MaxRad;
+			float BulgeRad;
+
+			float AngleOffset;
+			float Eccentricity;
+
+			float BaseHeight;
+			float Height;
+
+			float MinTemp;
+			float MaxTemp;
+			float DustBaseTemp;
+
+			float MinStarOpacity;
+			float MaxStarOpacity;
+
+			float MinDustOpacity;
+			float MaxDustOpacity;
+
+			float Speed;
+		} StarParamsUB;
 
 		struct UBRendererData
 		{
@@ -212,6 +238,10 @@ namespace NR
 		glm::ivec3 mLightCullingWorkGroups;
 		Ref<VKComputePipeline> mLightCullingPipeline;
 
+		glm::ivec3 mParticleGenWorkGroups;
+		Ref<VKComputePipeline> mParticleGenPipeline;
+		Ref<Pipeline> mParticlePipeline;
+
 		Ref<UniformBufferSet> mUniformBufferSet;
 		Ref<StorageBufferSet> mStorageBufferSet;
 
@@ -231,11 +261,11 @@ namespace NR
 
 		Ref<Material> CompositeMaterial;
 		Ref<Material> mLightCullingMaterial;
+		Ref<Material> mParticleGenMaterial;
 
 		Ref<Pipeline> mGeometryPipeline;
 		Ref<Pipeline> mSelectedGeometryPipeline;
 		Ref<Pipeline> mGeometryWireframePipeline;
-		Ref<Pipeline> mParticlePipeline;
 		Ref<Pipeline> mPreDepthPipeline;
 		Ref<Pipeline> mCompositePipeline;
 		Ref<Pipeline> mShadowPassPipeline;

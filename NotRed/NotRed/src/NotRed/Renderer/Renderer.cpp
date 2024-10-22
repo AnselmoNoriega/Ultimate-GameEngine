@@ -229,9 +229,9 @@ namespace NR
         return sRendererAPI->CreateEnvironmentMap(filepath);
     }
 
-    void Renderer::GenerateParticles()
+    void Renderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
     {
-        sRendererAPI->GenerateParticles();
+        sRendererAPI->GenerateParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, workGroups);
     }
 
     void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
