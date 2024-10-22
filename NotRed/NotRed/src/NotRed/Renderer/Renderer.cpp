@@ -151,6 +151,9 @@ namespace NR
         uint32_t whiteTextureData = 0xffffffff;
         sData->WhiteTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &whiteTextureData);
 
+        uint32_t blackTextureData = 0xff000000;
+        sData->BlackTexture = Texture2D::Create(ImageFormat::RGBA, 1, 1, &blackTextureData);
+
         uint32_t blackCubeTextureData[6] = { 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000, 0xff000000 };
         sData->BlackCubeTexture = TextureCube::Create(ImageFormat::RGBA, 1, 1, &blackCubeTextureData);
         

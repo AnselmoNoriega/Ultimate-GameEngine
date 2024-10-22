@@ -92,8 +92,8 @@ namespace NR
 		float& GetSkyboxLod() { return mSkyboxLod; }
 		float GetSkyboxLod() const { return mSkyboxLod; }
 
-		Entity CreateEntity(const std::string& name = "");
-		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
+		Entity CreateEntity(const std::string& name = "Entity");
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
 		void DestroyEntity(Entity entity);
 
 		void DuplicateEntity(Entity entity);

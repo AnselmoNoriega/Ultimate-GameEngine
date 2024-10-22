@@ -53,3 +53,6 @@ Assets:
   - Handle: 3078466047646632934
     FilePath: Models/Sphere1m.fbx
     Type: MeshAsset
+  - Handle: 10610151712161516910
+    FilePath: Meshes/Demo/TestScene.nrmesh
+    Type: Mesh
