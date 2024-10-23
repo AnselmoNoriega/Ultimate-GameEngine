@@ -233,7 +233,11 @@ namespace NR
 		//HBAO
 		Ref<Material> mDeinterleavingMaterial;
 		Ref<Material> mHBAOMaterial;
-		Ref<Pipeline> mDeinterleavingPipeline;
+		Ref<Pipeline> mDeinterleavingPipelines[2];
+
+		Ref<VKComputePipeline> mHBAOPipeline;
+		Ref<Image2D> mHBAOOutputImage;
+		Ref<RenderPass> mHBAORenderPass;
 
 		glm::ivec3 mLightCullingWorkGroups;
 		Ref<VKComputePipeline> mLightCullingPipeline;
@@ -246,8 +250,6 @@ namespace NR
 		Ref<StorageBufferSet> mStorageBufferSet;
 
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
-		Ref<RenderPass> mShadowMapRenderPass[4];
-		Ref<RenderPass> mDeinterleavingRenderPasses[2];
 
 		float LightDistance = 0.1f;
 		float CascadeSplitLambda = 0.92f;
@@ -268,7 +270,7 @@ namespace NR
 		Ref<Pipeline> mGeometryWireframePipeline;
 		Ref<Pipeline> mPreDepthPipeline;
 		Ref<Pipeline> mCompositePipeline;
-		Ref<Pipeline> mShadowPassPipeline;
+		Ref<Pipeline> mShadowPassPipelines[4];
 		Ref<Material> mShadowPassMaterial;
 		Ref<Material> mPreDepthMaterial;
 		Ref<Pipeline> mSkyboxPipeline;

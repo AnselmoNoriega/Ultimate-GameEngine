@@ -258,9 +258,13 @@ namespace NR
                         {
                             colorAttachment->RT_Invalidate(); // Create immediately
                         }
-                        else if (attachmentIndex == 0)// Only invalidate the first layer
+                        else if (attachmentIndex == 0 && mSpecification.ExistingImageLayers[0] == 0)// Only invalidate the first layer from only the first framebuffer
                         {
                             colorAttachment->RT_Invalidate(); // Create immediately
+                            colorAttachment->RT_CreatePerSpecificLayerImageViews(mSpecification.ExistingImageLayers);
+                        }
+                        else if (attachmentIndex == 0)
+                        {
                             colorAttachment->RT_CreatePerSpecificLayerImageViews(mSpecification.ExistingImageLayers);
                         }
                     }

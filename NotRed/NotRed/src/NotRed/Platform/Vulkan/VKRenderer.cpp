@@ -792,7 +792,7 @@ namespace NR
                 const auto& linearDepthImageInfo = linearDepth.As<VKImage2D>()->GetDescriptor();
                 writeDescriptors[4].pImageInfo = &linearDepthImageInfo;
 
-                auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                const auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
                 vkUpdateDescriptorSets(vulkanDevice, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
             });
     }

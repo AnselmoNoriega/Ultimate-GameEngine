@@ -88,20 +88,7 @@ namespace NR
             shadowMapFrameBufferSpec.ExistingImage = cascadedDepthImage;
             shadowMapFrameBufferSpec.DebugName = "Shadow Map";
 
-            // 4 cascades
-            for (int i = 0; i < 4; ++i)
-            {
-                shadowMapFrameBufferSpec.ExistingImageLayers.clear();
-                shadowMapFrameBufferSpec.ExistingImageLayers.emplace_back(i);
-
-                RenderPassSpecification shadowMapRenderPassSpec;
-                shadowMapRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(shadowMapFrameBufferSpec);
-                shadowMapRenderPassSpec.DebugName = "ShadowMap";
-                mShadowMapRenderPass[i] = RenderPass::Create(shadowMapRenderPassSpec);
-            }
-
             auto shadowPassShader = Renderer::GetShaderLibrary()->Get("ShadowMap");
-
             PipelineSpecification pipelineSpec;
             pipelineSpec.DebugName = "ShadowPass";
             pipelineSpec.Shader = shadowPassShader;
@@ -112,8 +99,20 @@ namespace NR
                 { ShaderDataType::Float3, "aBinormal" },
                 { ShaderDataType::Float2, "aTexCoord" }
             };
-            pipelineSpec.RenderPass = mShadowMapRenderPass[0];
-            mShadowPassPipeline = Pipeline::Create(pipelineSpec);
+
+            // 4 cascades
+            for (int i = 0; i < 4; ++i)
+            {
+                shadowMapFrameBufferSpec.ExistingImageLayers.clear();
+                shadowMapFrameBufferSpec.ExistingImageLayers.emplace_back(i);
+
+                RenderPassSpecification shadowMapRenderPassSpec;
+                shadowMapRenderPassSpec.TargetFrameBuffer = FrameBuffer::Create(shadowMapFrameBufferSpec);
+                shadowMapRenderPassSpec.DebugName = "ShadowMap";
+                pipelineSpec.RenderPass = RenderPass::Create(shadowMapRenderPassSpec);
+                mShadowPassPipelines[i] = Pipeline::Create(pipelineSpec);
+            }
+
             mShadowPassMaterial = Material::Create(shadowPassShader, "ShadowPass");
         }
 
@@ -236,33 +235,69 @@ namespace NR
             deinterleavingFrameBufferSpec.DebugName = "Deinterleaving";
             deinterleavingFrameBufferSpec.ExistingImage = image;
 
-            for (int fb = 0; fb < 2; ++fb)
+            Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("Deinterleaving");
+            PipelineSpecification pipelineSpec;
+            pipelineSpec.DebugName = "Deinterleaving";
+            pipelineSpec.Shader = shader;
+            pipelineSpec.Layout = {
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float2, "aTexCoord" }
+            };
+
+            for (int rp = 0; rp < 2; ++rp)
             {
                 deinterleavingFrameBufferSpec.ExistingImageLayers.clear();
                 for (int layer = 0; layer < 8; ++layer)
                 {
-                    deinterleavingFrameBufferSpec.ExistingImageLayers.emplace_back(fb * 8 + layer);
+                    deinterleavingFrameBufferSpec.ExistingImageLayers.emplace_back(rp * 8 + layer);
                 }
                 Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(deinterleavingFrameBufferSpec);
 
                 RenderPassSpecification deinterleavingRenderPassSpec;
                 deinterleavingRenderPassSpec.TargetFrameBuffer = frameBuffer;
                 deinterleavingRenderPassSpec.DebugName = "Deinterleaving";
-                mDeinterleavingRenderPasses[fb] = RenderPass::Create(deinterleavingRenderPassSpec);
+                pipelineSpec.RenderPass = RenderPass::Create(deinterleavingRenderPassSpec);
+                mDeinterleavingPipelines[rp] = Pipeline::Create(pipelineSpec);
             }
 
-            Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("Deinterleaving");
-            PipelineSpecification pipelineSpec;
-            pipelineSpec.RenderPass = mDeinterleavingRenderPasses[0];
-            pipelineSpec.DebugName = "Deinterleaving";
-
-            pipelineSpec.Shader = shader;
-            pipelineSpec.Layout = {
-                { ShaderDataType::Float3, "aPosition" },
-                { ShaderDataType::Float2, "aTexCoord" }
-            };
-            mDeinterleavingPipeline = Pipeline::Create(pipelineSpec);
             mDeinterleavingMaterial = Material::Create(shader, "Deinterleaving");
+        }
+
+        //HBAO
+        {
+            ImageSpecification imageSpec;
+            imageSpec.Format = ImageFormat::RG16F;
+            imageSpec.Usage = ImageUsage::Storage;
+            imageSpec.Layers = 16;
+
+            Ref<Image2D> image = Image2D::Create(imageSpec);
+            image->Invalidate();
+            image->CreatePerLayerImageViews();
+
+            mHBAOOutputImage = image;
+            /*FramebufferSpecification hbaoFramebufferSpec;
+            hbaoFramebufferSpec.Attachments = { ImageFormat::RG16F };
+            hbaoFramebufferSpec.DebugName = "HBAO";
+            hbaoFramebufferSpec.ClearColor = { 0.f, 0.f, 0.f, 1.f };
+            hbaoFramebufferSpec.ExistingImage = image;
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.DebugName = "HBAO";
+            renderPassSpec.TargetFramebuffer = Framebuffer::Create(hbaoFramebufferSpec);
+            m_HBAORenderPass = RenderPass::Create(renderPassSpec);
+            */
+            Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("HBAO");
+            //PipelineSpecification pipelineSpec;
+            //pipelineSpec.RenderPass = RenderPass::Create(renderPassSpec);
+            //pipelineSpec.DebugName = "HBAO";
+            //pipelineSpec.Shader = shader;
+            //pipelineSpec.Layout = {
+            //	{ ShaderDataType::Float3, "a_Position" },
+            //	{ ShaderDataType::Float2, "a_TexCoord" }
+            //};
+            //m_HBAOPipeline = Pipeline::Create(pipelineSpec);
+                    //Light culling compute pipeline
+            mHBAOPipeline = Ref<VKComputePipeline>::Create(shader);
+            mHBAOMaterial = Material::Create(shader, "HBAO");
         }
 
         // Selected Geometry isolation (for outline pass)
@@ -282,7 +317,7 @@ namespace NR
             frameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
             frameBufferSpec.Samples = 1;
             frameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-            
+
             RenderPassSpecification renderPassSpec;
             renderPassSpec.DebugName = pipelineSpecification.DebugName;
             renderPassSpec.TargetFrameBuffer = FrameBuffer::Create(frameBufferSpec);
@@ -385,10 +420,10 @@ namespace NR
             {
                 renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[(i + 1) % 2];
                 renderPassSpec.DebugName = fmt::format("JumpFlood-{0}", passName[i]);
-                
+
                 pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
                 pipelineSpecification.DebugName = renderPassSpec.DebugName;
-                
+
                 mJumpFloodPassPipeline[i] = Pipeline::Create(pipelineSpecification);
             }
             // Outline compositing
@@ -397,7 +432,7 @@ namespace NR
                 pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Composite");
                 pipelineSpecification.DebugName = "JumpFlood-Composite";
                 pipelineSpecification.DepthTest = false;
-                
+
                 mJumpFloodCompositePipeline = Pipeline::Create(pipelineSpecification);
                 mJumpFloodCompositeMaterial = Material::Create(pipelineSpecification.Shader, "JumpFlood-Composite");
             }
@@ -523,8 +558,18 @@ namespace NR
         {
             mNeedsResize = false;
 
-            mDeinterleavingRenderPasses[0]->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth / 4, mViewportHeight / 4);
-            mDeinterleavingRenderPasses[1]->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth / 4, mViewportHeight / 4);
+            const uint32_t quarterWidth = mViewportWidth / 4;
+            const uint32_t quarterHeight = mViewportHeight / 4;
+
+            mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
+            mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
+
+            auto& spec = mHBAOOutputImage->GetSpecification();
+            spec.Width = quarterWidth;
+            spec.Height = quarterHeight;
+
+            mHBAOOutputImage->Invalidate();
+            mHBAOOutputImage->CreatePerLayerImageViews();
 
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
@@ -566,7 +611,7 @@ namespace NR
         auto& sceneCamera = mSceneData.SceneCamera;
         const auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;
         const glm::vec3 cameraPosition = glm::inverse(sceneCamera.ViewMatrix)[3];
-        
+
         const auto inverseVP = glm::inverse(viewProjection);
         cameraData.ViewProjection = viewProjection;
         cameraData.InverseViewProjection = inverseVP;
@@ -645,7 +690,7 @@ namespace NR
 
         Renderer::GenerateParticles(mCommandBuffer, mParticleGenPipeline, mUniformBufferSet, mStorageBufferSet, mParticleGenMaterial, mParticleGenWorkGroups);
 
-        Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),
+        Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
     }
 
@@ -664,7 +709,7 @@ namespace NR
 #endif
 
         mActive = false;
-}
+    }
 
     void SceneRenderer::WaitForThreads()
     {
@@ -738,7 +783,7 @@ namespace NR
             for (int i = 0; i < 4; ++i)
             {
                 // Clear shadow maps
-                Renderer::BeginRenderPass(mCommandBuffer, mShadowMapRenderPass[i], "Shadow pass clear");
+                Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass, "Shadow pass clear");
                 Renderer::EndRenderPass(mCommandBuffer);
             }
             return;
@@ -746,13 +791,13 @@ namespace NR
 
         for (int i = 0; i < 4; ++i)
         {
-            Renderer::BeginRenderPass(mCommandBuffer, mShadowMapRenderPass[i], "Shadow Pass");
+            Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass, "Shadow Pass");
 
             // Render entities
             const Buffer cascade(&i, sizeof(uint32_t));
             for (auto& dc : mShadowPassDrawList)
             {
-                Renderer::RenderMesh(mCommandBuffer, mShadowPassPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
+                Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
             }
 
             Renderer::EndRenderPass(mCommandBuffer);
@@ -804,7 +849,7 @@ namespace NR
         const Ref<TextureCube> radianceMap = mSceneData.SceneEnvironment ? mSceneData.SceneEnvironment->RadianceMap : Renderer::GetBlackCubeTexture();
         mSkyboxMaterial->Set("uTexture", radianceMap);
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, nullptr, mSkyboxMaterial);
-         
+
         // Render entities
         for (auto& dc : mDrawList)
         {
@@ -846,7 +891,7 @@ namespace NR
             for (auto& dc : DrawList)
             {
                 Renderer::DrawAABB(dc.Mesh, dc.Transform);
-    }
+            }
             Renderer2D::EndScene();
 #endif
         }
@@ -857,25 +902,27 @@ namespace NR
     void SceneRenderer::DeinterleavingPass()
     {
         mDeinterleavingMaterial->Set("uLinearDepthTex", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
-        for (int i = 0, j = 0; i < 16; i += 8, j++)
+        constexpr static glm::vec2 offsets[2]{ { 0.5f, 0.5f }, { 0.5f, 2.5f } };
+        for (int i = 0; i < 2; ++i)
         {
             mDeinterleavingMaterial->Set("uInfo.UVOffset", glm::vec2{ float(i % 4) + 0.5f, float(i / 4) + 0.5f });
 
-            Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingRenderPasses[j], fmt::format("Deinterleaving#{}", j));
-            Renderer::SubmitFullscreenQuad(mCommandBuffer, mDeinterleavingPipeline, mUniformBufferSet, nullptr, mDeinterleavingMaterial);
+            mDeinterleavingMaterial->Set("uInfo.UVOffset", offsets[i]);
+            Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass, fmt::format("Deinterleaving#{}", i));
+            Renderer::SubmitFullscreenQuad(mCommandBuffer, mDeinterleavingPipelines[i], mUniformBufferSet, nullptr, mDeinterleavingMaterial);
             Renderer::EndRenderPass(mCommandBuffer);
         }
     }
 
     void SceneRenderer::HBAOPass()
     {
-        //mHBAOMaterial->Set("uLinearDepthTexArray", mDeinterleavingRenderPasses[0]->GetSpecification().TargetFramebuffer->GetImage());
-        //mHBAOMaterial->Set("uViewNormalsTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFramebuffer->GetImage(1));
-        //mHBAOMaterial->Set("uViewPositionTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFramebuffer->GetImage(2));
-        //mHBAOMaterial->Set("outputTexture", mHBAOOutputImage);
-        //
-        //
-        //Renderer::DispatchComputeShader(mCommandBuffer, mHBAOPipeline, mUniformBufferSet, nullptr, mHBAOMaterial, mHBAOWorkGroups);
+        mHBAOMaterial->Set("uLinearDepthTexArray", mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+        mHBAOMaterial->Set("uViewNormalsTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(1));
+        mHBAOMaterial->Set("uViewPositionTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(2));
+        mHBAOMaterial->Set("outputTexture", mHBAOOutputImage);
+
+        Renderer::DispatchComputeShader(mCommandBuffer, mHBAOPipeline, mUniformBufferSet, nullptr, mHBAOMaterial, mHBAOWorkGroups);
+
         //Renderer::BeginRenderPass(mCommandBuffer, mHBAOPipeline->GetSpecification().RenderPass);
         //
         //Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOPipeline, mUniformBufferSet, nullptr, mHBAOMaterial);
@@ -890,7 +937,7 @@ namespace NR
         Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, "Composite", true);
 
         auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
-        float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();
+        const float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();
         int textureSamples = frameBuffer->GetSpecification().Samples;
 
         CompositeMaterial->Set("uUniforms.Exposure", exposure);
@@ -907,11 +954,11 @@ namespace NR
         NR_PROFILE_FUNC();
 
         Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass, "Jump Flood Init");
-        
+
         auto frameBuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
         mJumpFloodInitMaterial->Set("uTexture", frameBuffer->GetImage());
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodInitPipeline, nullptr, nullptr, mJumpFloodInitMaterial);
-        
+
         Renderer::EndRenderPass(mCommandBuffer);
 
         mJumpFloodPassMaterial[0]->Set("uTexture", mTempFrameBuffers[0]->GetImage());
@@ -926,11 +973,11 @@ namespace NR
 
         vertexOverrides.Allocate(sizeof(glm::vec2) + sizeof(int));
         vertexOverrides.Write(glm::value_ptr(texelSize), sizeof(glm::vec2));
-        
+
         while (step != 0)
         {
             vertexOverrides.Write(&step, sizeof(int), sizeof(glm::vec2));
-            
+
             Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodPassPipeline[index]->GetSpecification().RenderPass, "Jump Flood");
             Renderer::SubmitFullscreenQuadWithOverrides(mCommandBuffer, mJumpFloodPassPipeline[index], nullptr, mJumpFloodPassMaterial[index], vertexOverrides, Buffer());
             Renderer::EndRenderPass(mCommandBuffer);
@@ -993,7 +1040,7 @@ namespace NR
 
             Renderer::SubmitFullscreenQuad(nullptr);
             Renderer::EndRenderPass();
-        }
+}
 #endif
     }
 
@@ -1150,24 +1197,24 @@ namespace NR
             glm::vec3 lightDir = -lightDirection;
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 0.0f, 1.0f));
             glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f + CascadeNearPlaneOffset, maxExtents.z - minExtents.z + CascadeFarPlaneOffset);
-            
+
             // Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
             glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
             const float ShadowMapResolution = 4096.0f;
             glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
             glm::vec4 roundedOrigin = glm::round(shadowOrigin);
             glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
-            
+
             roundOffset = roundOffset * 2.0f / ShadowMapResolution;
             roundOffset.z = 0.0f;
             roundOffset.w = 0.0f;
             lightOrthoMatrix[3] += roundOffset;
             // Store split distance and matrix in cascade
-            
+
             cascades[i].SplitDepth = (nearClip + splitDist * clipRange) * -1.0f;
             cascades[i].ViewProj = lightOrthoMatrix * lightViewMatrix;
             cascades[i].View = lightViewMatrix;
-            
+
             lastSplitDist = cascadeSplits[i];
         }
     }
@@ -1230,7 +1277,7 @@ namespace NR
             if (UI::BeginTreeNode("Shadow Map", false))
             {
                 static int cascadeIndex = 0;
-                auto fb = mShadowMapRenderPass[cascadeIndex]->GetSpecification().TargetFrameBuffer;
+                auto fb = mShadowPassPipelines[cascadeIndex]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
                 auto image = fb->GetDepthImage();
 
                 float size = ImGui::GetContentRegionAvail().x;
