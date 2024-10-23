@@ -1254,10 +1254,15 @@ namespace NR
                     static uint32_t selectedMaterialIndex = 0;
                     for (uint32_t i = 0; i < materials.size(); ++i)
                     {
-                        auto& materialInstance = materials[i];
+                        auto& material = materials[i];
+                        std::string materialName = material->GetName();
+                        if (materialName.empty())
+                        {
+                            materialName = fmt::format("Unnamed Material #{0}", i);
+                        }
 
                         ImGuiTreeNodeFlags node_flags = (selectedMaterialIndex == i ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_Leaf;
-                        bool opened = ImGui::TreeNodeEx((void*)(&materialInstance), node_flags, materialInstance->GetName().c_str());
+                        bool opened = ImGui::TreeNodeEx((void*)(&material), node_flags, materialName.c_str());
                         if (ImGui::IsItemClicked())
                         {
                             selectedMaterialIndex = i;
@@ -1273,8 +1278,8 @@ namespace NR
                     // Selected material
                     if (selectedMaterialIndex < materials.size())
                     {
-                        auto& materialInstance = materials[selectedMaterialIndex];
-                        ImGui::Text("Shader: %s", materialInstance->GetShader()->GetName().c_str());
+                        auto& material = materials[selectedMaterialIndex];
+                        ImGui::Text("Shader: %s", material->GetShader()->GetName().c_str());
                         // Textures ------------------------------------------------------------------------------
                         {
                             // Albedo
@@ -1282,9 +1287,9 @@ namespace NR
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
 
-                                auto& albedoColor = materialInstance->GetVector3("uMaterialUniforms.AlbedoColor");
-                                bool useAlbedoMap = true;// materialInstance->GetFloat("uMaterialUniforms.AlbedoTexToggle");
-                                Ref<Texture2D> albedoMap = materialInstance->TryGetTexture2D("uAlbedoTexture");
+                                auto& albedoColor = material->GetVector3("uMaterialUniforms.AlbedoColor");
+                                bool useAlbedoMap = true;
+                                Ref<Texture2D> albedoMap = material->TryGetTexture2D("uAlbedoTexture");
                                 bool hasAlbedoMap = !albedoMap.EqualsObject(Renderer::GetWhiteTexture()) && albedoMap->GetImage();
                                 Ref<Texture2D> albedoUITexture = hasAlbedoMap ? albedoMap : mCheckerboardTex;
                                 UI::Image(albedoUITexture, ImVec2(64, 64));
@@ -1311,7 +1316,7 @@ namespace NR
                                             }
 
                                             albedoMap = asset.As<Texture2D>();
-                                            materialInstance->Set("uAlbedoTexture", albedoMap);
+                                            material->Set("uAlbedoTexture", albedoMap);
                                         }
                                     }
 
@@ -1338,7 +1343,7 @@ namespace NR
                                             TextureProperties props;
                                             props.StandardRGB = true;
                                             albedoMap = Texture2D::Create(filename, props);
-                                            materialInstance->Set("uAlbedoTexture", albedoMap);
+                                            material->Set("uAlbedoTexture", albedoMap);
                                         }
                                     }
                                 }
@@ -1356,8 +1361,8 @@ namespace NR
                             if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                                bool useNormalMap = materialInstance->GetFloat("uMaterialUniforms.UseNormalMap");
-                                Ref<Texture2D> normalMap = materialInstance->TryGetTexture2D("uNormalTexture");
+                                bool useNormalMap = material->GetFloat("uMaterialUniforms.UseNormalMap");
+                                Ref<Texture2D> normalMap = material->TryGetTexture2D("uNormalTexture");
                                 UI::Image((normalMap && normalMap->GetImage()) ? normalMap : mCheckerboardTex, ImVec2(64, 64));
 
                                 if (ImGui::BeginDragDropTarget())
@@ -1382,8 +1387,8 @@ namespace NR
                                             }
 
                                             normalMap = asset.As<Texture2D>();
-                                            materialInstance->Set("uNormalTexture", normalMap);
-                                            materialInstance->Set("uMaterialUniforms.UseNormalMap", true);
+                                            material->Set("uNormalTexture", normalMap);
+                                            material->Set("uMaterialUniforms.UseNormalMap", true);
                                         }
                                     }
 
@@ -1408,14 +1413,14 @@ namespace NR
                                         if (filename != "")
                                         {
                                             normalMap = Texture2D::Create(filename);
-                                            materialInstance->Set("uNormalTexture", normalMap);
+                                            material->Set("uNormalTexture", normalMap);
                                         }
                                     }
                                 }
                                 ImGui::SameLine();
                                 if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
                                 {
-                                    materialInstance->Set("uMaterialUniforms.UseNormalMap", useNormalMap);
+                                    material->Set("uMaterialUniforms.UseNormalMap", useNormalMap);
                                 }
                             }
                         }
@@ -1424,9 +1429,9 @@ namespace NR
                             if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                                float& metalnessValue = materialInstance->GetFloat("uMaterialUniforms.Metalness");
-                                bool useMetalnessMap = true;// materialInstance->GetFloat("uMaterialUniforms.MetalnessTexToggle");
-                                Ref<Texture2D> metalnessMap = materialInstance->TryGetTexture2D("uMetalnessTexture");
+                                float& metalnessValue = material->GetFloat("uMaterialUniforms.Metalness");
+                                bool useMetalnessMap = true;
+                                Ref<Texture2D> metalnessMap = material->TryGetTexture2D("uMetalnessTexture");
                                 UI::Image((metalnessMap && metalnessMap->GetImage()) ? metalnessMap : mCheckerboardTex, ImVec2(64, 64));
 
                                 if (ImGui::BeginDragDropTarget())
@@ -1451,7 +1456,7 @@ namespace NR
                                             }
 
                                             metalnessMap = asset.As<Texture2D>();
-                                            materialInstance->Set("uMetalnessTexture", metalnessMap);
+                                            material->Set("uMetalnessTexture", metalnessMap);
                                         }
                                     }
 
@@ -1476,7 +1481,7 @@ namespace NR
                                         if (filename != "")
                                         {
                                             metalnessMap = Texture2D::Create(filename);
-                                            materialInstance->Set("uMetalnessTexture", metalnessMap);
+                                            material->Set("uMetalnessTexture", metalnessMap);
                                         }
                                     }
                                 }
@@ -1491,9 +1496,9 @@ namespace NR
                             if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
                             {
                                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
-                                float& roughnessValue = materialInstance->GetFloat("uMaterialUniforms.Roughness");
-                                bool useRoughnessMap = true;// materialInstance->GetFloat("uMaterialUniforms.RoughnessTexToggle");
-                                Ref<Texture2D> roughnessMap = materialInstance->TryGetTexture2D("uRoughnessTexture");
+                                float& roughnessValue = material->GetFloat("uMaterialUniforms.Roughness");
+                                bool useRoughnessMap = true;
+                                Ref<Texture2D> roughnessMap = material->TryGetTexture2D("uRoughnessTexture");
                                 UI::Image((roughnessMap && roughnessMap->GetImage()) ? roughnessMap : mCheckerboardTex, ImVec2(64, 64));
 
                                 if (ImGui::BeginDragDropTarget())
@@ -1518,9 +1523,7 @@ namespace NR
                                             }
 
                                             roughnessMap = asset.As<Texture2D>();
-                                            materialInstance->Set("uRoughnessTexture", roughnessMap);
-                                            // NOTE: Uncomment when uMaterialUniforms.RoughnessTexToggle is a thing
-                                            //materialInstance->Set("uMaterialUniforms.RoughnessTexToggle", true);
+                                            material->Set("uRoughnessTexture", roughnessMap);
                                         }
                                     }
 
@@ -1545,7 +1548,7 @@ namespace NR
                                         if (filename != "")
                                         {
                                             roughnessMap = Texture2D::Create(filename);
-                                            materialInstance->Set("uRoughnessTexture", roughnessMap);
+                                            material->Set("uRoughnessTexture", roughnessMap);
                                         }
                                     }
                                 }

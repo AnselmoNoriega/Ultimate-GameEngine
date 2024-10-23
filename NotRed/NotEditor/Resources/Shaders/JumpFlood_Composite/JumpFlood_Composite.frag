@@ -22,6 +22,6 @@ void main()
     if (alpha == 0.0)
         discard;
 
-    vec3 outlineColor = vec3(1.0f, 0.5f, 0.0f);
+    vec3 outlineColor = vec3(0.949f, 0.0f, 0.0f);
     oColor = vec4(outlineColor, alpha);
 }
