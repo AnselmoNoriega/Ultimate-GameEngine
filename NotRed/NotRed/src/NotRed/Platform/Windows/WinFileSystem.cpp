@@ -104,9 +104,7 @@ namespace NR
 
 	static std::string wchar_to_string(wchar_t* input)
 	{
-		std::wstring string_input(input);
-		std::string converted(string_input.begin(), string_input.end());
-		return converted;
+		return std::filesystem::path(input).string();
 	}
 
 	void FileSystem::SkipNextFileSystemChange()
@@ -150,10 +148,10 @@ namespace NR
 
 		while (sWatching)
 		{
-			DWORD status = ReadDirectoryChangesW(
+			const DWORD status = ReadDirectoryChangesW(
 				handle,
 				&buffer[0],
-				buffer.size(),
+				(uint32_t)buffer.size(),
 				TRUE,
 				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
 				&bytesReturned,

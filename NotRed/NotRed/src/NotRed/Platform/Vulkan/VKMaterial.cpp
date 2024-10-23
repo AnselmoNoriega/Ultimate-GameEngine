@@ -116,28 +116,45 @@ namespace NR
         return nullptr;
     }
 
-    void VKMaterial::SetVulkanDescriptor(const std::string& name, const Ref<Texture2D>& texture)
+    void VKMaterial::SetVulkanDescriptor(const std::string& name, const Ref<Texture2D>& texture, uint32_t arrayIndex)
     {
         const ShaderResourceDeclaration* resource = FindResourceDeclaration(name);
         NR_CORE_ASSERT(resource);
 
         uint32_t binding = resource->GetRegister();
-        if (binding < mTextures.size() && mTextures[binding] && texture->GetHash() == mTextures[binding]->GetHash())
+        // Texture is already set
+        if (binding < mTextureArrays.size() && mTextureArrays[binding].size() < arrayIndex && texture->GetHash() == mTextureArrays[binding][arrayIndex]->GetHash())
         {
             return;
         }
 
-        if (binding >= mTextures.size())
+        if (binding >= mTextureArrays.size())
         {
-            mTextures.resize(binding + 1);
+            mTextureArrays.resize(binding + 1);
         }
-        mTextures[binding] = texture;
 
+        if (arrayIndex >= mTextureArrays[binding].size())
+        {
+            mTextureArrays[binding].resize(arrayIndex + 1);
+        }
+
+        mTextureArrays[binding][arrayIndex] = texture;
         const VkWriteDescriptorSet* wds = mShader.As<VKShader>()->GetDescriptorSet(name);
         NR_CORE_ASSERT(wds);
-        mResidentDescriptors[binding] = std::make_shared<PendingDescriptor>(PendingDescriptor{ PendingDescriptorType::Texture2D, *wds, {}, texture.As<Texture>(), nullptr });
-        mPendingDescriptors.push_back(mResidentDescriptors.at(binding));
 
+        if (mResidentDescriptorArrays.find(binding) == mResidentDescriptorArrays.end())
+        {
+            mResidentDescriptorArrays[binding] = std::make_shared<PendingDescriptorArray>(PendingDescriptorArray{ PendingDescriptorType::Texture2D, *wds, {}, {}, {} });
+        }
+
+        auto& residentDesriptorArray = mResidentDescriptorArrays.at(binding);
+        if (arrayIndex >= residentDesriptorArray->Textures.size())
+        {
+            residentDesriptorArray->Textures.resize(arrayIndex + 1);
+        }
+
+        residentDesriptorArray->Textures[arrayIndex] = texture;
+        
         InvalidateDescriptorSets();
     }
 
@@ -189,6 +206,31 @@ namespace NR
         mResidentDescriptors[binding] = std::make_shared<PendingDescriptor>(PendingDescriptor{ PendingDescriptorType::Image2D, *wds, {}, nullptr, image.As<Image>() });
         mPendingDescriptors.push_back(mResidentDescriptors.at(binding));
         
+        InvalidateDescriptorSets();
+    }
+
+    void VKMaterial::SetVulkanDescriptor(const std::string& name, const Ref<Texture2D>& texture)
+    {
+        const ShaderResourceDeclaration* resource = FindResourceDeclaration(name);
+        NR_CORE_ASSERT(resource);
+
+        uint32_t binding = resource->GetRegister();
+        if (binding < mTextures.size() && mTextures[binding] && texture->GetHash() == mTextures[binding]->GetHash())
+        {
+            return;
+        }
+
+        if (binding >= mTextures.size())
+        {
+            mTextures.resize(binding + 1);
+        }
+        mTextures[binding] = texture;
+
+        const VkWriteDescriptorSet* wds = mShader.As<VKShader>()->GetDescriptorSet(name);
+        NR_CORE_ASSERT(wds);
+        mResidentDescriptors[binding] = std::make_shared<PendingDescriptor>(PendingDescriptor{ PendingDescriptorType::Texture2D, *wds, {}, texture.As<Texture>(), nullptr });
+        mPendingDescriptors.push_back(mResidentDescriptors.at(binding));
+
         InvalidateDescriptorSets();
     }
 
@@ -265,6 +307,11 @@ namespace NR
     void VKMaterial::Set(const std::string& name, const Ref<Image2D>& image)
     {
         SetVulkanDescriptor(name, image);
+    }
+
+    void VKMaterial::Set(const std::string& name, const Ref<Texture2D>& texture, uint32_t arrayIndex)
+    {
+        SetVulkanDescriptor(name, texture, arrayIndex);
     }
 
     uint32_t& VKMaterial::GetUInt(const std::string& name)
@@ -353,6 +400,7 @@ namespace NR
                 }
             }
         }
+        std::vector<VkDescriptorImageInfo> arrayImageInfos;
 
         uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
         if (mDirtyDescriptorSets[frameIndex] || true)
@@ -389,6 +437,22 @@ namespace NR
                     pd->WDS.pImageInfo = &pd->ImageInfo;
                 }
 
+                mWriteDescriptors[frameIndex].push_back(pd->WDS);
+            }
+
+            for (auto&& [binding, pd] : mResidentDescriptorArrays)
+            {
+                if (pd->Type == PendingDescriptorType::Texture2D)
+                {
+                    for (auto tex : pd->Textures)
+                    {
+                        Ref<VKTexture2D> texture = tex.As<VKTexture2D>();
+                        arrayImageInfos.emplace_back(texture->GetVulkanDescriptorInfo());
+                    }
+                }
+
+                pd->WDS.pImageInfo = arrayImageInfos.data();
+                pd->WDS.descriptorCount = arrayImageInfos.size();
                 mWriteDescriptors[frameIndex].push_back(pd->WDS);
             }
         }

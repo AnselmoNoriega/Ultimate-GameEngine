@@ -30,6 +30,7 @@ namespace NR
         void Set(const std::string& name, const Ref<Texture2D>& texture) override;
         void Set(const std::string& name, const Ref<TextureCube>& texture) override;
         void Set(const std::string& name, const Ref<Image2D>& image) override;
+        void Set(const std::string& name, const Ref<Texture2D>& texture, uint32_t arrayIndex) override;
 
         uint32_t& GetUInt(const std::string& name) override;
         bool& GetBool(const std::string& name) override;
@@ -130,6 +131,7 @@ namespace NR
         void SetVulkanDescriptor(const std::string& name, const Ref<Texture2D>& texture);
         void SetVulkanDescriptor(const std::string& name, const Ref<TextureCube>& texture);
         void SetVulkanDescriptor(const std::string& name, const Ref<Image2D>& image);
+        void SetVulkanDescriptor(const std::string& name, const Ref<Texture2D>& texture, uint32_t arrayIndex);
 
         const ShaderUniform* FindUniformDeclaration(const std::string& name);
         const ShaderResourceDeclaration* FindResourceDeclaration(const std::string& name);
@@ -147,10 +149,20 @@ namespace NR
         {
             PendingDescriptorType Type = PendingDescriptorType::None;
             VkWriteDescriptorSet WDS;
-            VkDescriptorImageInfo ImageInfo{};
+            VkDescriptorImageInfo ImageInfo;
             Ref<Texture> Texture;
             Ref<Image> Image;
             VkDescriptorImageInfo SubmittedImageInfo{};
+        };		
+        
+        struct PendingDescriptorArray
+        {
+            PendingDescriptorType Type = PendingDescriptorType::None;
+            VkWriteDescriptorSet WDS;
+            std::vector<VkDescriptorImageInfo> ImageInfos;
+            std::vector<Ref<Texture>> Textures;
+            std::vector<Ref<Image>> Images;
+            VkDescriptorImageInfo SubmittedImageInfo {};
         };
 
     private:
@@ -158,6 +170,7 @@ namespace NR
         std::string mName;
 
         std::unordered_map<uint32_t, std::shared_ptr<PendingDescriptor>> mResidentDescriptors;
+        std::unordered_map<uint32_t, std::shared_ptr<PendingDescriptorArray>> mResidentDescriptorArrays;
         std::vector<std::shared_ptr<PendingDescriptor>> mPendingDescriptors;
 
         uint32_t mMaterialFlags = 0;
@@ -165,6 +178,7 @@ namespace NR
         Buffer mUniformStorageBuffer;
         std::vector<Ref<Texture>> mTextures;
         std::vector<Ref<Image>> mImages;
+        std::vector<std::vector<Ref<Texture>>> mTextureArrays;
 
         std::unordered_map<uint32_t, uint64_t> mImageHashes;
 

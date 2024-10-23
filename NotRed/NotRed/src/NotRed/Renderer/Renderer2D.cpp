@@ -81,6 +81,7 @@ namespace NR
         LineVertex* LineVertexBufferPtr = nullptr;
 
         glm::mat4 CameraViewProj;
+        glm::mat4 CameraView;
         bool DepthTest = true;
 
         float LineWidth = 1.0f;
@@ -225,9 +226,10 @@ namespace NR
         delete sData;
     }
 
-    void Renderer2D::BeginScene(const glm::mat4& viewProj, bool depthTest)
+    void Renderer2D::BeginScene(const glm::mat4& viewProj, const glm::mat4& view, bool depthTest)
     {
         sData->CameraViewProj = viewProj;
+        sData->CameraView = view;
         sData->DepthTest = depthTest;
 
         Renderer::Submit([viewProj]() mutable
@@ -246,6 +248,11 @@ namespace NR
         sData->CircleVertexBufferPtr = sData->CircleVertexBufferBase;
 
         sData->TextureSlotIndex = 1;
+
+        for (uint32_t i = 1; i < sData->TextureSlots.size(); ++i)
+        {
+            sData->TextureSlots[i] = nullptr;
+        }
     }
 
     void Renderer2D::EndScene()
@@ -258,11 +265,18 @@ namespace NR
         {
             sData->QuadVertexBuffer->SetData(sData->QuadVertexBufferBase, dataSize);
 
-            for (uint32_t i = 0; i < sData->TextureSlotIndex; ++i)
+            for (uint32_t i = 0; i < sData->TextureSlots.size(); ++i)
             {
-                //sData->QuadMaterial->Set("")
-                //sData->TextureSlots[i]->Bind(i);
+                if (sData->TextureSlots[i])
+                {
+                    sData->QuadMaterial->Set("uTextures", sData->TextureSlots[i], i);
+                }
+                else
+                {
+                    sData->QuadMaterial->Set("uTextures", sData->WhiteTexture, i);
+                }
             }
+
             Renderer::RenderGeometry(sData->CommandBuffer, sData->QuadPipeline, sData->UniformBufferSet, nullptr, sData->QuadMaterial, sData->QuadVertexBuffer, sData->QuadIndexBuffer, glm::mat4(1.0f), sData->QuadIndexCount);
 
             ++sData->Stats.DrawCalls;
@@ -281,7 +295,7 @@ namespace NR
                     vkCmdSetLineWidth(commandBuffer, sData->LineWidth);
                 });
 
-            Renderer::RenderGeometry(sData->CommandBuffer, sData->LineOnTopPipeline, sData->UniformBufferSet, nullptr, sData->LineMaterial, sData->LineVertexBuffer, sData->LineIndexBuffer, glm::mat4(1.0f), sData->LineIndexCount);
+            Renderer::RenderGeometry(sData->CommandBuffer, sData->LinePipeline, sData->UniformBufferSet, nullptr, sData->LineMaterial, sData->LineVertexBuffer, sData->LineIndexBuffer, glm::mat4(1.0f), sData->LineIndexCount);
 
             ++sData->Stats.DrawCalls;
         }
@@ -356,6 +370,112 @@ namespace NR
 
         sData->QuadIndexCount += 6;
 
+        ++sData->Stats.QuadCount;
+    }
+
+    void Renderer2D::DrawQuadBillboard(const glm::vec3& position, const glm::vec2& size, const glm::vec4& color)
+    {
+        if (sData->QuadIndexCount >= Renderer2DData::MaxIndices)
+        {
+            FlushAndReset();
+        }
+
+        const float textureIndex = 0.0f; // White Texture
+        const float tilingFactor = 1.0f;
+
+        glm::vec3 camRightWS = { sData->CameraView[0][0], sData->CameraView[1][0], sData->CameraView[2][0] };
+        glm::vec3 camUpWS = { sData->CameraView[0][1], sData->CameraView[1][1], sData->CameraView[2][1] };
+        
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * (sData->QuadVertexPositions[0].x) * size.x + camUpWS * sData->QuadVertexPositions[0].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * sData->QuadVertexPositions[1].x * size.x + camUpWS * sData->QuadVertexPositions[1].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * sData->QuadVertexPositions[2].x * size.x + camUpWS * sData->QuadVertexPositions[2].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * sData->QuadVertexPositions[3].x * size.x + camUpWS * sData->QuadVertexPositions[3].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadIndexCount += 6;
+        ++sData->Stats.QuadCount;
+    }
+
+    void Renderer2D::DrawQuadBillboard(const glm::vec3& position, const glm::vec2& size, const Ref<Texture2D>& texture, float tilingFactor, const glm::vec4& tintColor)
+    {
+        if (sData->QuadIndexCount >= Renderer2DData::MaxIndices)
+        {
+            FlushAndReset();
+        }
+
+        constexpr glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float textureIndex = 0.0f;
+
+        for (uint32_t i = 1; i < sData->TextureSlotIndex; ++i)
+        {
+            if (*sData->TextureSlots[i].Raw() == *texture.Raw())
+            {
+                textureIndex = (float)i;
+                break;
+            }
+        }
+
+        if (textureIndex == 0.0f)
+        {
+            textureIndex = (float)sData->TextureSlotIndex;
+            sData->TextureSlots[sData->TextureSlotIndex] = texture;
+            ++sData->TextureSlotIndex;
+        }
+
+        glm::vec3 camRightWS = { sData->CameraView[0][0], sData->CameraView[1][0], sData->CameraView[2][0] };
+        glm::vec3 camUpWS = { sData->CameraView[0][1], sData->CameraView[1][1], sData->CameraView[2][1] };
+        
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * (sData->QuadVertexPositions[0].x) * size.x + camUpWS * sData->QuadVertexPositions[0].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 0.0f, 1.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * sData->QuadVertexPositions[1].x * size.x + camUpWS * sData->QuadVertexPositions[1].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 0.0f, 0.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * sData->QuadVertexPositions[2].x * size.x + camUpWS * sData->QuadVertexPositions[2].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 1.0f, 0.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadVertexBufferPtr->Position = position + camRightWS * sData->QuadVertexPositions[3].x * size.x + camUpWS * sData->QuadVertexPositions[3].y * size.y;
+        sData->QuadVertexBufferPtr->Color = color;
+        sData->QuadVertexBufferPtr->TexCoord = { 1.0f, 1.0f };
+        sData->QuadVertexBufferPtr->TexIndex = textureIndex;
+        sData->QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        ++sData->QuadVertexBufferPtr;
+
+        sData->QuadIndexCount += 6;
         ++sData->Stats.QuadCount;
     }
 
@@ -687,12 +807,12 @@ namespace NR
         }
     }
 
-    void Renderer2D::DrawCircle(const glm::vec2& position, float radius, const glm::vec4& color, float thickness)
+    void Renderer2D::FillCircle(const glm::vec2& position, float radius, const glm::vec4& color, float thickness)
     {
-        DrawCircle({ position.x, position.y, 0.0f }, radius, color, thickness);
+        FillCircle({ position.x, position.y, 0.0f }, radius, color, thickness);
     }
 
-    void Renderer2D::DrawCircle(const glm::vec3& position, float radius, const glm::vec4& color, float thickness)
+    void Renderer2D::FillCircle(const glm::vec3& position, float radius, const glm::vec4& color, float thickness)
     {
         if (sData->CircleIndexCount >= Renderer2DData::MaxIndices)
         {
@@ -714,6 +834,29 @@ namespace NR
             ++sData->Stats.QuadCount;
         }
 
+    }
+
+    void Renderer2D::DrawCircle(const glm::vec3& position, const glm::vec3& rotation, float radius, const glm::vec4& color)
+    {
+        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position)
+            * glm::rotate(glm::mat4(1.0f), rotation.x, { 1.0f, 0.0f, 0.0f })
+            * glm::rotate(glm::mat4(1.0f), rotation.y, { 0.0f, 1.0f, 0.0f })
+            * glm::rotate(glm::mat4(1.0f), rotation.z, { 0.0f, 0.0f, 1.0f })
+            * glm::scale(glm::mat4(1.0f), glm::vec3(radius));
+
+        int segments = 32;
+        for (int i = 0; i < segments; ++i)
+        {
+            float angle = 2.0f * glm::pi<float>() * (float)i / segments;
+            glm::vec4 startPosition = { glm::cos(angle), glm::sin(angle), 0.0f, 1.0f };
+            angle = 2.0f * glm::pi<float>() * (float)((i + 1) % segments) / segments;
+            
+            glm::vec4 endPosition = { glm::cos(angle), glm::sin(angle), 0.0f, 1.0f };
+            glm::vec3 p0 = transform * startPosition;
+            glm::vec3 p1 = transform * endPosition;
+            
+            DrawLine(p0, p1, color);
+        }
     }
 
     void Renderer2D::DrawLine(const glm::vec3& p0, const glm::vec3& p1, const glm::vec4& color)
@@ -778,15 +921,17 @@ namespace NR
 
         for (uint32_t i = 0; i < 4; ++i)
         {
-            Renderer2D::DrawLine(corners[i], corners[(i + 1) % 4], color);
+            DrawLine(corners[i], corners[(i + 1) % 4], color);
         }
+
         for (uint32_t i = 0; i < 4; ++i)
         {
-            Renderer2D::DrawLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
+            DrawLine(corners[i + 4], corners[((i + 1) % 4) + 4], color);
         }
+
         for (uint32_t i = 0; i < 4; ++i)
         {
-            Renderer2D::DrawLine(corners[i], corners[i + 4], color);
+            DrawLine(corners[i], corners[i + 4], color);
         }
     }
     

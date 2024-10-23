@@ -13,6 +13,8 @@ namespace NR
 		{ ".nrsounc", AssetType::SoundConfig },
 		{ ".nrpm", AssetType::PhysicsMat },
 		{ ".fbx", AssetType::MeshAsset },
+		{ ".gltf", AssetType::MeshAsset },
+		{ ".glb", AssetType::MeshAsset },
 		{ ".obj", AssetType::MeshAsset },
 		{ ".png", AssetType::Texture },
 		{ ".hdr", AssetType::EnvMap },

@@ -277,6 +277,7 @@
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
+    <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
@@ -474,6 +475,7 @@
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
     <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\PipelineCompute.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />

@@ -226,6 +226,8 @@ namespace NR
 			bool CascadeFading = true;
 			char Padding2[3] = { 0,0,0 };
 			float CascadeTransitionFade = 1.0f;
+			bool ShowLightComplexity = false;
+			char Padding3[3] = { 0,0,0 };
 		} RendererDataUB;
 
 		glm::vec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };

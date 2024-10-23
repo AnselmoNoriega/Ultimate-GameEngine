@@ -1245,7 +1245,15 @@ namespace NR
 
         if (UI::BeginTreeNode("Depth"))
         {
-            UI::PropertySlider("Work groups", mHBAOWorkGroups, 0.f, 500.f);
+            UI::PropertySlider("Work groups", mHBAOWorkGroups, 0.0f, 500.f);
+            UI::EndTreeNode();
+        }
+        if (UI::BeginTreeNode("Visualization"))
+        {
+            UI::BeginPropertyGrid();
+            UI::Property("Show Light Complexity", RendererDataUB.ShowLightComplexity);
+            UI::Property("Show Shadow Cascades", RendererDataUB.ShowCascades);
+            UI::EndPropertyGrid();
             UI::EndTreeNode();
         }
 
@@ -1264,7 +1272,6 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
                 {
-                    UI::Property("Show Cascades", RendererDataUB.ShowCascades);
                     UI::Property("Cascade Fading", RendererDataUB.CascadeFading);
                     UI::Property("Cascade Transition Fade", RendererDataUB.CascadeTransitionFade, 0.05f, 0.0f, FLT_MAX);
                     UI::Property("Cascade Split", CascadeSplitLambda, 0.01f);

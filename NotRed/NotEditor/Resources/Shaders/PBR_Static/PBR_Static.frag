@@ -31,6 +31,7 @@ layout(std140, binding = 3) uniform RendererData
 	uniform float uShadowFade;
 	uniform bool uCascadeFading;
 	uniform float uCascadeTransitionFade;
+	uniform bool uShowLightComplexity;
 };
 
 struct DirectionalLight
@@ -290,6 +291,27 @@ vec3 CalculateDirLights(vec3 F0)
 		vec3 specularBRDF = (F * D * G) / max(Epsilon, 4.0 * cosLi * m_Params.NdotV);
 
 		result += (diffuseBRDF + specularBRDF) * Lradiance * cosLi;
+	}
+	return result;
+}
+
+int GetLightBufferIndex(int i)
+{
+	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
+	uint index = tileID.y * uTilesCountX + tileID.x;
+	uint offset = index * 1024;
+	return visibleLightIndicesBuffer.indices[offset + i];
+}
+
+int GetPointLightCount()
+{
+	int result = 0;
+	for (int i = 0; i < uPointLightsCount; i++)
+	{
+		uint lightIndex = GetLightBufferIndex(i);
+		if (lightIndex == -1)
+			break;
+		result++;
 	}
 	return result;
 }
@@ -578,6 +600,30 @@ vec3 ReconstructNormal(vec2 UV, vec3 P)
 
 /////////////////////////////////////////////
 
+vec3 GetGradient(float value)
+{
+	vec3 zero = vec3(0.0, 0.0, 0.0);
+	vec3 white = vec3(0.0, 0.1, 0.9);
+	vec3 red = vec3(0.2, 0.9, 0.4);
+	vec3 blue = vec3(0.8, 0.8, 0.3);
+	vec3 green = vec3(0.9, 0.2, 0.3);
+
+	float step0 = 0.0f;
+	float step1 = 2.0f;
+	float step2 = 4.0f;
+	float step3 = 8.0f;
+	float step4 = 16.0f;
+
+	vec3 color = mix(zero, white, smoothstep(step0, step1, value));
+
+	color = mix(color, white, smoothstep(step1, step2, value));
+	color = mix(color, red, smoothstep(step1, step2, value));
+	color = mix(color, blue, smoothstep(step2, step3, value));
+	color = mix(color, green, smoothstep(step3, step4, value));
+
+	return color;
+}
+
 void main()
 {
 	// Standard PBR inputs
@@ -687,6 +733,12 @@ void main()
 	vec3 iblContribution = IBL(F0, Lr) * uEnvironmentMapIntensity;
 
 	color = vec4(iblContribution + lightContribution, 1.0);
+	if (uShowLightComplexity)
+	{
+		int pointLightCount = GetPointLightCount();
+		float value = float(pointLightCount);
+		color.rgb = (color.rgb * 0.2) + GetGradient(value);
+	}
 	
 	// View normals .. used by HBAO
 	vec2 screenSpaceCoords = gl_FragCoord.xy * uInvFullResolution;

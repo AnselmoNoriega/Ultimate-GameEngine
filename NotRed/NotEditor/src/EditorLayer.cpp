@@ -52,6 +52,8 @@ namespace NR
         mPauseButtonTex = Texture2D::Create("Resources/Editor/PauseButton.png");
         mStopButtonTex = Texture2D::Create("Resources/Editor/StopButton.png");
 
+        mPointLightIcon = Texture2D::Create("Resources/Editor/Icons/PointLight.png");
+
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
         mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
@@ -160,84 +162,20 @@ namespace NR
         {
             mEditorCamera.SetActive(mAllowViewportCameraEvents || glfwGetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
             mEditorCamera.Update(dt);
-
             mEditorScene->RenderEditor(mViewportRenderer, dt, mEditorCamera);
 
-            if (mDrawOnTopBoundingBoxes)
+            if (mShowSecondViewport)
             {
-                mEditorCamera.SetActive(mViewportPanelFocused);
-                mEditorCamera.Update(dt);
-
-                mEditorScene->RenderEditor(mViewportRenderer, dt, mEditorCamera);
-                if (mShowSecondViewport)
-                {
-                    mSecondEditorCamera.SetActive(mViewportPanel2Focused);
-                    mSecondEditorCamera.Update(dt);
-                    mEditorScene->RenderEditor(mSecondViewportRenderer, dt, mSecondEditorCamera);
-                }
-
-                Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
-                if (mShowBoundingBoxes)
-                {
-                    Renderer2D::BeginScene(mEditorCamera.GetViewProjection());
-                    if (mShowBoundingBoxSelectedMeshOnly)
-                    {
-                        if (mSelectionContext.size())
-                        {
-                            auto& selection = mSelectionContext[0];
-                            if (selection.EntityObj.HasComponent<MeshComponent>())
-                            {
-                                if (mShowBoundingBoxSubmeshes)
-                                {
-                                    auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
-                                    if (mesh)
-                                    {
-                                        auto& submeshIndices = mesh->GetSubmeshes();
-                                        auto meshAsset = mesh->GetMeshAsset();
-                                        auto& submeshes = meshAsset->GetSubmeshes();
-                                        for (uint32_t submeshIndex : submeshIndices)
-                                        {
-                                            glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
-                                            const AABB& aabb = submeshes[submeshIndex].BoundingBox;
-                                            Renderer2D::DrawAABB(aabb, transform * submeshes[submeshIndex].Transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
-                                    if (mesh)
-                                    {
-                                        glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
-                                        const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
-                                        Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        auto entities = mCurrentScene->GetAllEntitiesWith<MeshComponent>();
-                        for (auto e : entities)
-                        {
-                            Entity entity = { e, mCurrentScene.Raw() };
-                            glm::mat4 transform = entity.GetComponent<TransformComponent>().GetTransform();
-                            const AABB& aabb = entity.GetComponent<MeshComponent>().MeshObj->GetMeshAsset()->GetBoundingBox();
-                            Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
-                        }
-                    }
-                    Renderer2D::EndScene();
-                }
+                mSecondEditorCamera.SetActive(mViewportPanel2Focused);
+                mSecondEditorCamera.Update(dt);
+                mEditorScene->RenderEditor(mSecondViewportRenderer, dt, mSecondEditorCamera);
             }
 
+            Render2D();
             break;
         }
         case SceneState::Play:
         {
-            mEditorCamera.SetActive(mViewportPanelMouseOver);
-            mEditorCamera.Update(dt);
-
             mRuntimeScene->Update(dt);
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);
             break;
@@ -246,14 +184,11 @@ namespace NR
         {
             mEditorCamera.SetActive(mViewportPanelMouseOver);
             mEditorCamera.Update(dt);
-
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);
             break;
         }
         }
-
         AssetEditorPanel::Update(dt);
-
         SceneRenderer::WaitForThreads();
     }
 
@@ -262,15 +197,15 @@ namespace NR
         mViewportRenderer->GetOptions().ShowBoundingBoxes = show && !onTop;
         mDrawOnTopBoundingBoxes = show && onTop;
     }
-
     void EditorLayer::SelectEntity(Entity entity)
     {
         if (!entity)
         {
             return;
         }
-
+        
         SelectedSubmesh selection;
+
         if (entity.HasComponent<MeshComponent>())
         {
             auto& meshComp = entity.GetComponent<MeshComponent>();
@@ -280,23 +215,178 @@ namespace NR
                 selection.Mesh = &meshComp.MeshObj->GetMeshAsset()->GetSubmeshes()[0];
             }
         }
+
         selection.EntityObj = entity;
+        
         mSelectionContext.clear();
         mSelectionContext.push_back(selection);
-
         mEditorScene->SetSelectedEntity(entity);
-
         mCurrentScene = mEditorScene;
+    }
+
+    void EditorLayer::Render2D()
+    {
+        Renderer2D::BeginScene(mEditorCamera.GetViewProjection(), mEditorCamera.GetViewMatrix());
+        
+        if (mDrawOnTopBoundingBoxes)
+        {
+            Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
+            if (mShowBoundingBoxes)
+            {
+                if (mShowBoundingBoxSelectedMeshOnly)
+                {
+                    if (mSelectionContext.size())
+                    {
+                        auto& selection = mSelectionContext[0];
+                        if (selection.EntityObj.HasComponent<MeshComponent>())
+                        {
+                            if (mShowBoundingBoxSubmeshes)
+                            {
+                                auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
+                                if (mesh)
+                                {
+                                    auto& submeshIndices = mesh->GetSubmeshes();
+                                    auto meshAsset = mesh->GetMeshAsset();
+                                    auto& submeshes = meshAsset->GetSubmeshes();
+                                    for (uint32_t submeshIndex : submeshIndices)
+                                    {
+                                        glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
+                                        const AABB& aabb = submeshes[submeshIndex].BoundingBox;
+                                        Renderer2D::DrawAABB(aabb, transform * submeshes[submeshIndex].Transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
+                                if (mesh)
+                                {
+                                    glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
+                                    const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
+                                    Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    auto entities = mCurrentScene->GetAllEntitiesWith<MeshComponent>();
+                    for (auto e : entities)
+                    {
+                        Entity entity = { e, mCurrentScene.Raw() };
+                        glm::mat4 transform = entity.GetComponent<TransformComponent>().GetTransform();
+                        const AABB& aabb = entity.GetComponent<MeshComponent>().MeshObj->GetMeshAsset()->GetBoundingBox();
+                        Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                    }
+                }
+            }
+
+
+#if RENDERER_2D
+            if (mDrawOnTopBoundingBoxes)
+            {
+                Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
+                auto viewProj = mEditorCamera.GetViewProjection();
+                Renderer2D::BeginScene(viewProj, false);
+                glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
+                Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.Transform().GetTransform() * selection.Mesh->Transform, color);
+                Renderer2D::EndScene();
+                Renderer::EndRenderPass();
+            }
+        }
+        if (mSelectionContext.size())
+        {
+            auto& selection = mSelectionContext[0];
+            if (selection.Entity.HasComponent<BoxCollider2DComponent>() && false)
+            {
+                const auto& size = selection.Entity.GetComponent<BoxCollider2DComponent>().Size;
+                const TransformComponent& transform = selection.Entity.GetComponent<TransformComponent>();
+                if (selection.Mesh && selection.Entity.HasComponent<MeshComponent>())
+                {
+                    Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
+                    auto viewProj = mEditorCamera.GetViewProjection();
+                    Renderer2D::BeginScene(viewProj, false);
+                    glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
+                    Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.Transform().GetTransform() * selection.Mesh->Transform, color);
+                    Renderer2D::EndScene();
+                    Renderer::EndRenderPass();
+                }
+            }
+
+            if (selection.Entity.HasComponent<CircleCollider2DComponent>())
+            {
+                auto& selection = mSelectionContext[0];
+                if (selection.Entity.HasComponent<BoxCollider2DComponent>() && false)
+                {
+                    const auto& size = selection.Entity.GetComponent<BoxCollider2DComponent>().Size;
+                    const TransformComponent& transform = selection.Entity.GetComponent<TransformComponent>();
+
+                    Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
+                    auto viewProj = mEditorCamera.GetViewProjection();
+                    Renderer2D::BeginScene(viewProj, false);
+                    Renderer2D::DrawRotatedRect({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 0.0f, 1.0f, 1.0f, 1.0f });
+                    Renderer2D::EndScene();
+                    Renderer::EndRenderPass();
+                }
+
+                if (selection.Entity.HasComponent<CircleCollider2DComponent>() && false)
+                {
+                    const auto& size = selection.Entity.GetComponent<CircleCollider2DComponent>().Radius;
+                    const TransformComponent& transform = selection.Entity.GetComponent<TransformComponent>();
+
+                    Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
+                    auto viewProj = mEditorCamera.GetViewProjection();
+                    Renderer2D::BeginScene(viewProj, false);
+                    Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
+                    Renderer2D::EndScene();
+                    Renderer::EndRenderPass();
+                }
+
+                Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
+                auto viewProj = mEditorCamera.GetViewProjection();
+                Renderer2D::BeginScene(viewProj, false);
+                Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
+                Renderer2D::EndScene();
+                Renderer::EndRenderPass();
+            }
+#endif
+        }
+
+        auto entities = mCurrentScene->GetAllEntitiesWith<PointLightComponent>();
+        for (auto e : entities)
+        {
+            Entity entity = { e, mCurrentScene.Raw() };
+            auto& tc = entity.GetComponent<TransformComponent>();
+            auto& plc = entity.GetComponent<PointLightComponent>();
+            Renderer2D::DrawQuadBillboard(tc.Translation, { 1.5f, 1.5f }, mPointLightIcon);
+
+        }
+
+        if (mSelectionContext.size())
+        {
+            auto& selection = mSelectionContext[0];
+            if (selection.EntityObj.HasComponent<PointLightComponent>())
+            {
+                auto& tc = selection.EntityObj.GetComponent<TransformComponent>();
+                auto& plc = selection.EntityObj.GetComponent<PointLightComponent>();
+                Renderer2D::DrawCircle(tc.Translation, { 0.0f, 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                Renderer2D::DrawCircle(tc.Translation, { glm::radians(90.0f), 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                Renderer2D::DrawCircle(tc.Translation, { 0.0f, glm::radians(90.0f), 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+            }
+        }
+
+        Renderer2D::EndScene();
     }
 
     void EditorLayer::NewScene()
     {
         mSelectionContext = {};
 
-        mEditorScene = Ref<Scene>::Create("Empty Scene", true);
+        mEditorScene = Ref<Scene>::Create("Scene", true);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
-        UpdateWindowTitle("Untitled Scene");
+        UpdateWindowTitle("Scene");
         mSceneFilePath = std::string();
 
         mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
@@ -416,11 +506,7 @@ namespace NR
         {
             ImGui::Text("Welcome to NotRed!");
             ImGui::Separator();
-            ImGui::TextWrapped("Environment maps are currently disabled because they're a little unstable on certain GPU drivers.");
-        
-            UI::BeginPropertyGrid();
-            UI::Property("Enable environment maps?", Renderer::GetConfig().ComputeEnvironmentMaps);
-            UI::EndPropertyGrid();
+            ImGui::TextWrapped("NotRed is an early-stage interactive application and rendering engine for Windows.");
             
             if (ImGui::Button("OK"))
             {
@@ -820,7 +906,7 @@ namespace NR
         mAllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
 
         // Gizmos
-        if (mGizmoType != -1 && mSelectionContext.size() && mViewportPanelMouseOver)
+        if (mGizmoType != -1 && mSelectionContext.size())
         {
             auto& selection = mSelectionContext[0];
 

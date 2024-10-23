@@ -20,17 +20,17 @@ struct VertexOutput
 {
 	vec4 Color;
 	vec2 TexCoord;
-	float TexIndex;
 	float TilingFactor;
 };
 
 layout (location = 0) out VertexOutput Output;
+layout (location = 5) out flat float TexIndex;
 
 void main()
 {
 	Output.Color = aColor;
 	Output.TexCoord = aTexCoord;
-	Output.TexIndex = aTexIndex;
+	TexIndex = aTexIndex;
 	Output.TilingFactor = aTilingFactor;
 	gl_Position = uViewProjection * uRenderer.Transform * vec4(aPosition, 1.0);
 }
