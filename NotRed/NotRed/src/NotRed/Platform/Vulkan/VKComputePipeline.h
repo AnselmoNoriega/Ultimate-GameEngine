@@ -18,6 +18,8 @@ namespace NR
 		void Begin(Ref<RenderCommandBuffer> renderCommandBuffer = nullptr) override;
 		void Dispatch(VkDescriptorSet descriptorSet, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ);
 		void End() override;
+		
+		void CreatePipeline();
 
 		Ref<Shader> GetShader() override { return mShader; }
 
@@ -27,7 +29,7 @@ namespace NR
 		VkPipelineLayout GetVulkanPipelineLayout() { return mComputePipelineLayout; }
 
 	private:
-		void CreatePipeline();
+		void RT_CreatePipeline();
 
 	private:
 		Ref<VKShader> mShader;

@@ -138,8 +138,6 @@ namespace NR
 
 		struct UBHBAOData
 		{
-			glm::vec4 Float2Offsets[16];
-			glm::vec4 Jitters[16];
 			glm::vec4 PerspectiveInfo;
 			glm::vec2 InvQuarterResolution;
 		
@@ -151,6 +149,9 @@ namespace NR
 			
 			bool IsOrtho;
 			char Padding0[3]{ 0, 0, 0 };
+
+			glm::vec4 Float2Offsets[16];
+			glm::vec4 Jitters[16];
 		} HBAODataUB;
 
 		struct UBScreenData
@@ -230,7 +231,7 @@ namespace NR
 			char Padding3[3] = { 0,0,0 };
 		} RendererDataUB;
 
-		glm::vec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
+		glm::ivec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
 		
 		//HBAO
 		Ref<Material> mDeinterleavingMaterial;

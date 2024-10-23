@@ -11,6 +11,8 @@
 #include "Renderer2D.h"
 #include "UniformBuffer.h"
 
+#include "NotRed/Math/Noise.h"
+
 #include "NotRed/ImGui/ImGui.h"
 
 #include "NotRed/Debug/Profiler.h"
@@ -275,29 +277,17 @@ namespace NR
             image->CreatePerLayerImageViews();
 
             mHBAOOutputImage = image;
-            /*FramebufferSpecification hbaoFramebufferSpec;
-            hbaoFramebufferSpec.Attachments = { ImageFormat::RG16F };
-            hbaoFramebufferSpec.DebugName = "HBAO";
-            hbaoFramebufferSpec.ClearColor = { 0.f, 0.f, 0.f, 1.f };
-            hbaoFramebufferSpec.ExistingImage = image;
-            RenderPassSpecification renderPassSpec;
-            renderPassSpec.DebugName = "HBAO";
-            renderPassSpec.TargetFramebuffer = Framebuffer::Create(hbaoFramebufferSpec);
-            m_HBAORenderPass = RenderPass::Create(renderPassSpec);
-            */
             Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("HBAO");
-            //PipelineSpecification pipelineSpec;
-            //pipelineSpec.RenderPass = RenderPass::Create(renderPassSpec);
-            //pipelineSpec.DebugName = "HBAO";
-            //pipelineSpec.Shader = shader;
-            //pipelineSpec.Layout = {
-            //	{ ShaderDataType::Float3, "a_Position" },
-            //	{ ShaderDataType::Float2, "a_TexCoord" }
-            //};
-            //m_HBAOPipeline = Pipeline::Create(pipelineSpec);
-                    //Light culling compute pipeline
+
             mHBAOPipeline = Ref<VKComputePipeline>::Create(shader);
             mHBAOMaterial = Material::Create(shader, "HBAO");
+
+            for (int i = 0; i < 16; ++i)
+            {
+                HBAODataUB.Float2Offsets[i] = glm::vec4((float)(i % 4) + 0.5f, (float)(i / 4) + 0.5f, 0.0f, 1.f);
+            }
+
+            std::memcpy(HBAODataUB.Jitters, Noise::HBAOJitter().data(), sizeof glm::vec4 * 16);
         }
 
         // Selected Geometry isolation (for outline pass)
@@ -516,6 +506,7 @@ namespace NR
         const float R2 = R * R;
 
         hbaoData.NegInvR2 = -1.0f / R2;
+        hbaoData.InvQuarterResolution = 1.f / glm::vec2{ (float)mViewportWidth, (float)mViewportHeight };
         hbaoData.RadiusToScreen = R * 0.5f * (float)mViewportHeight / (tanf(glm::radians(mSceneData.SceneCamera.FOV) * 0.5f) * 2.0f); //FOV is hard coded
         const float* P = glm::value_ptr(mSceneData.SceneCamera.CameraObj.GetProjectionMatrix());
 
@@ -558,11 +549,15 @@ namespace NR
         {
             mNeedsResize = false;
 
-            const uint32_t quarterWidth = mViewportWidth / 4;
-            const uint32_t quarterHeight = mViewportHeight / 4;
+            const uint32_t quarterWidth = mViewportWidth / 4 + 3;
+            const uint32_t quarterHeight = mViewportHeight / 4 + 3;
 
             mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
             mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
+
+            mHBAOWorkGroups.x = quarterWidth / 16 + 3;
+            mHBAOWorkGroups.y = quarterHeight / 16 + 3;
+            mHBAOWorkGroups.z = 16;
 
             auto& spec = mHBAOOutputImage->GetSpecification();
             spec.Width = quarterWidth;
@@ -901,6 +896,17 @@ namespace NR
 
     void SceneRenderer::DeinterleavingPass()
     {
+        if (!mOptions.EnableHBAO)
+        {
+            for (int i = 0; i < 2; ++i)
+            {
+                // Clear shadow maps
+                Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass, "Deinterleaving Clear");
+                Renderer::EndRenderPass(mCommandBuffer);
+            }
+            return;
+        }
+
         mDeinterleavingMaterial->Set("uLinearDepthTex", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
         constexpr static glm::vec2 offsets[2]{ { 0.5f, 0.5f }, { 0.5f, 2.5f } };
         for (int i = 0; i < 2; ++i)
@@ -1243,11 +1249,13 @@ namespace NR
             ImGui::TreePop();
         }
 
-        if (UI::BeginTreeNode("Depth"))
+        if (UI::BeginTreeNode("HBAO"))
         {
-            UI::PropertySlider("Work groups", mHBAOWorkGroups, 0.0f, 500.f);
+            float size = ImGui::GetContentRegionAvail().x;
+            UI::Image(mHBAOOutputImage, { size, size * (0.9f / 1.6f) }, { 0, 1 }, { 1, 0 });
             UI::EndTreeNode();
         }
+
         if (UI::BeginTreeNode("Visualization"))
         {
             UI::BeginPropertyGrid();

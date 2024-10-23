@@ -29,11 +29,17 @@ namespace NR
 
     struct ShaderDependencies
     {
+        std::vector<Ref<VKComputePipeline>> ComputePipelines;
         std::vector<Ref<Pipeline>> Pipelines;
         std::vector<Ref<Material>> Materials;
     };
 
     static std::unordered_map<size_t, ShaderDependencies> sShaderDependencies;
+
+    void Renderer::RegisterShaderDependency(Ref<Shader> shader, Ref<VKComputePipeline> computePipeline)
+    {
+        sShaderDependencies[shader->GetHash()].ComputePipelines.push_back(computePipeline);
+    }
 
     void Renderer::RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline)
     {
@@ -53,6 +59,11 @@ namespace NR
             for (auto& pipeline : dependencies.Pipelines)
             {
                 pipeline->Invalidate();
+            }
+
+            for (auto& computePipeline : dependencies.ComputePipelines)
+            {
+                computePipeline->CreatePipeline();
             }
 
             for (auto& material : dependencies.Materials)

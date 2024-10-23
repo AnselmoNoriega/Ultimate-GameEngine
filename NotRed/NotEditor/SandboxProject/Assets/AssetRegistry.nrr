@@ -2,18 +2,18 @@ Assets:
   - Handle: 15272235050081576314
     FilePath: Env/birchwood_4k.hdr
     Type: EnvMap
-  - Handle: 17368199773201413024
-    FilePath: Env/HDR_blue_nebulae-1.hdr
-    Type: EnvMap
+  - Handle: 8519206479186164059
+    FilePath: Models/m1911/m1911_color.png
+    Type: Texture
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
   - Handle: 940471849831676394
     FilePath: Meshes/ZIS101Sport.fbx
     Type: MeshAsset
-  - Handle: 8519206479186164059
-    FilePath: Models/m1911/m1911_color.png
-    Type: Texture
+  - Handle: 17368199773201413024
+    FilePath: Env/HDR_blue_nebulae-1.hdr
+    Type: EnvMap
   - Handle: 10980127482056009670
     FilePath: Meshes/TestScene.fbx
     Type: MeshAsset
@@ -23,12 +23,12 @@ Assets:
   - Handle: 5188472444224712633
     FilePath: Models/m1911/M1911Materials.fbx
     Type: MeshAsset
-  - Handle: 16446025442881349728
-    FilePath: Models/m1911/m1911.fbx
-    Type: MeshAsset
   - Handle: 17411810395613661663
     FilePath: Models/m1911/m1911_metalness.png
     Type: Texture
+  - Handle: 16446025442881349728
+    FilePath: Models/m1911/m1911.fbx
+    Type: MeshAsset
   - Handle: 12602547663011984911
     FilePath: Models/m1911/m1911_normal.png
     Type: Texture

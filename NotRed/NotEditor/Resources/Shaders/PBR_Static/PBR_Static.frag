@@ -104,8 +104,6 @@ layout(std140, binding = 17) uniform ScreenData
 
 layout(std140, binding = 18) uniform HBAOData
 {
-	vec4    uFloat2Offsets[16];
-	vec4    uJitters[16];
 	vec4	uPerspectiveInfo;   // R = (x) * (R - L)/N \\\\\\ G = (y) * (T - B)/N \\\\\\ B =  L/N \\\\\\ A =  B/N
 	vec2    uInvQuarterResolution;
 	float   uRadiusToScreen;        // radius
@@ -114,6 +112,8 @@ layout(std140, binding = 18) uniform HBAOData
 	float   uAOMultiplier;
 	float   uPowExponent;
 	bool	uIsOrtho;
+	vec4    uFloat2Offsets[16];
+	vec4    uJitters[16];
 };
 
 layout(push_constant) uniform Material
