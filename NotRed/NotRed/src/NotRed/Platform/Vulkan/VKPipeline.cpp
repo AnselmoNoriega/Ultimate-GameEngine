@@ -167,6 +167,11 @@ namespace NR
                             blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
                             blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
                         }
+                        else if (blendMode == FrameBufferBlendMode::Zero_SrcColor)
+                        {
+                            blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+                            blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
+                        }
                         else
                         {
                             NR_CORE_VERIFY(false);

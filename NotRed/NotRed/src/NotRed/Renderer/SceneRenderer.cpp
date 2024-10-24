@@ -280,7 +280,7 @@ namespace NR
 
             for (int i = 0; i < 16; ++i)
             {
-                HBAODataUB.Float2Offsets[i] = glm::vec4((float)(i % 4) + 0.5f, (float)(i / 4) + 0.5f, 0.0f, 1.f);
+                HBAODataUB.Float2Offsets[i] = glm::vec4((float)(i % 4) + 0.5f, (float)(i / 4) + 0.5f, 0.0f, 1.0f);
             }
 
             std::memcpy(HBAODataUB.Jitters, Noise::HBAOJitter().data(), sizeof glm::vec4 * 16);
@@ -316,10 +316,6 @@ namespace NR
 
         //HBAO Blur
         {
-            FrameBufferSpecification hbaoBlurFrameBufferSpec;
-            hbaoBlurFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
-            hbaoBlurFrameBufferSpec.DebugName = "HBAOBlur";
-
             PipelineSpecification pipelineSpecification;
             pipelineSpecification.DebugName = "HBAOBlur";
             pipelineSpecification.DepthWrite = false;
@@ -331,21 +327,48 @@ namespace NR
 
             constexpr char* shaderNames[2] = { (char*)"HBAOBlur", (char*)"HBAOBlur2" };
             constexpr ImageFormat formats[2] = { ImageFormat::RG16F, ImageFormat::RGBA16F };
-            for (int i = 0; i < 2; ++i)
+
+            //HBAO first blur pass
             {
-                hbaoBlurFrameBufferSpec.Attachments.Attachments.clear();
-                hbaoBlurFrameBufferSpec.Attachments.Attachments.emplace_back(formats[i]);
+                FrameBufferSpecification hbaoBlurFrameBufferSpec;
+                hbaoBlurFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+                hbaoBlurFrameBufferSpec.Attachments.Attachments.emplace_back(ImageFormat::RG16F);
+                hbaoBlurFrameBufferSpec.DebugName = "HBAOBlur";
 
                 RenderPassSpecification renderPassSpec;
                 renderPassSpec.TargetFrameBuffer = FrameBuffer::Create(hbaoBlurFrameBufferSpec);
-                renderPassSpec.DebugName = "HBAOBlur";
+                renderPassSpec.DebugName = hbaoBlurFrameBufferSpec.DebugName;
                 pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 
-                auto shader = Renderer::GetShaderLibrary()->Get(shaderNames[i]);
+                auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur");
                 pipelineSpecification.Shader = shader;
-                
-                mHBAOBlurPipelines[i] = Pipeline::Create(pipelineSpecification);
-                mHBAOBlurMaterials[i] = Material::Create(shader, shaderNames[i]);
+                pipelineSpecification.DebugName = "HBAOBlur";
+
+                mHBAOBlurPipelines[0] = Pipeline::Create(pipelineSpecification);
+                mHBAOBlurMaterials[0] = Material::Create(shader, "HBAOBlur");
+            }
+
+            //HBAO second blur pass
+            {
+                FrameBufferSpecification hbaoBlurFrameBufferSpec;
+                hbaoBlurFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+                hbaoBlurFrameBufferSpec.Attachments.Attachments.emplace_back(ImageFormat::RGBA32F);
+                hbaoBlurFrameBufferSpec.DebugName = "HBAOBlur";
+                hbaoBlurFrameBufferSpec.ClearOnLoad = false;
+                hbaoBlurFrameBufferSpec.ExistingImages[0] = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(0);
+                hbaoBlurFrameBufferSpec.BlendMode = FrameBufferBlendMode::Zero_SrcColor;
+
+                RenderPassSpecification renderPassSpec;
+                renderPassSpec.TargetFrameBuffer = FrameBuffer::Create(hbaoBlurFrameBufferSpec);
+                renderPassSpec.DebugName = hbaoBlurFrameBufferSpec.DebugName;
+                pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+
+                auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur2");
+                pipelineSpecification.Shader = shader;
+                pipelineSpecification.DebugName = "HBAOBlur2";
+
+                mHBAOBlurPipelines[1] = Pipeline::Create(pipelineSpecification);
+                mHBAOBlurMaterials[1] = Material::Create(shader, "HBAOBlur2");
             }
         }
 
@@ -550,8 +573,8 @@ namespace NR
         {
             mViewportWidth = width;
             mViewportHeight = height;
-            mInvViewportWidth = 1.f / (float)width;
-            mInvViewportHeight = 1.f / (float)height;
+            mInvViewportWidth = 1.0f / (float)width;
+            mInvViewportHeight = 1.0f / (float)height;
             mNeedsResize = true;
         }
     }
@@ -567,7 +590,7 @@ namespace NR
         const float R2 = R * R;
 
         hbaoData.NegInvR2 = -1.0f / R2;
-        hbaoData.InvQuarterResolution = 1.f / glm::vec2{ (float)mViewportWidth, (float)mViewportHeight };
+        hbaoData.InvQuarterResolution = 1.0f / glm::vec2{ (float)mViewportWidth / 4, (float)mViewportHeight / 4 };
         hbaoData.RadiusToScreen = R * 0.5f * (float)mViewportHeight / (tanf(glm::radians(mSceneData.SceneCamera.FOV) * 0.5f) * 2.0f); //FOV is hard coded
         const float* P = glm::value_ptr(mSceneData.SceneCamera.CameraObj.GetProjectionMatrix());
 
@@ -580,9 +603,9 @@ namespace NR
         ;
         hbaoData.PerspectiveInfo = projInfoPerspective;
         hbaoData.IsOrtho = false;
-        hbaoData.PowExponent = glm::max(opts.HBAOIntensity, 0.f);
-        hbaoData.NDotVBias = glm::min(std::max(0.f, opts.HBAOBias), 1.f);
-        hbaoData.AOMultiplier = 1.f / (1.f - hbaoData.NDotVBias);
+        hbaoData.PowExponent = glm::max(opts.HBAOIntensity, 0.0f);
+        hbaoData.NDotVBias = glm::min(std::max(0.0f, opts.HBAOBias), 1.0f);
+        hbaoData.AOMultiplier = 1.0f / (1.0f - hbaoData.NDotVBias);
     }
 
     void SceneRenderer::BeginScene(const SceneRendererCamera& camera)
@@ -613,6 +636,7 @@ namespace NR
             const uint32_t quarterWidth = mViewportWidth / 4;
             const uint32_t quarterHeight = mViewportHeight / 4;
 
+            mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
             mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
 
@@ -632,7 +656,6 @@ namespace NR
             mHBAOBlurPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-            mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
             for (auto& tempFB : mTempFrameBuffers)
@@ -957,7 +980,7 @@ namespace NR
         }
 
         Renderer::EndRenderPass(mCommandBuffer);
-    }
+        }
 
     void SceneRenderer::DeinterleavingPass()
     {
@@ -998,9 +1021,9 @@ namespace NR
     void SceneRenderer::ReinterleavingPass()
     {
         Renderer::BeginRenderPass(mCommandBuffer, mReinterleavingPipeline->GetSpecification().RenderPass, "Reinterleaving");
-        
+
         mReinterleavingMaterial->Set("uTexResultsArray", mHBAOOutputImage);
-        
+
         Renderer::SubmitFullscreenQuad(mCommandBuffer, mReinterleavingPipeline, nullptr, nullptr, mReinterleavingMaterial);
         Renderer::EndRenderPass(mCommandBuffer);
     }
@@ -1009,22 +1032,22 @@ namespace NR
     {
         {
             Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[0]->GetSpecification().RenderPass, "HBAOBlur");
-            
-            mHBAOBlurMaterials[0]->Set("uInfo.InvResDirection", glm::vec2{ mInvViewportWidth, 0.f });
+
+            mHBAOBlurMaterials[0]->Set("uInfo.InvResDirection", glm::vec2{ mInvViewportWidth, 0.0f });
             mHBAOBlurMaterials[0]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
             mHBAOBlurMaterials[0]->Set("uInputTex", mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
-            
+
             Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOBlurPipelines[0], nullptr, nullptr, mHBAOBlurMaterials[0]);
             Renderer::EndRenderPass(mCommandBuffer);
         }
 
         {
             Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[1]->GetSpecification().RenderPass, "HBAOBlur2");
-            
-            mHBAOBlurMaterials[1]->Set("uInfo.InvResDirection", glm::vec2{ 0.f, mInvViewportHeight });
+
+            mHBAOBlurMaterials[1]->Set("uInfo.InvResDirection", glm::vec2{ 0.0f, mInvViewportHeight });
             mHBAOBlurMaterials[1]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
             mHBAOBlurMaterials[1]->Set("uInputTex", mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
-            
+
             Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOBlurPipelines[1], nullptr, nullptr, mHBAOBlurMaterials[1]);
             Renderer::EndRenderPass(mCommandBuffer);
         }
@@ -1126,7 +1149,7 @@ namespace NR
             }
             Renderer::SubmitFullscreenQuad(nullptr);
             Renderer::EndRenderPass();
-        }
+    }
 
         // Composite bloom
         {
@@ -1140,7 +1163,7 @@ namespace NR
 
             Renderer::SubmitFullscreenQuad(nullptr);
             Renderer::EndRenderPass();
-}
+        }
 #endif
     }
 
@@ -1345,13 +1368,6 @@ namespace NR
             ImGui::TreePop();
         }
 
-        if (UI::BeginTreeNode("HBAO"))
-        {
-            float size = ImGui::GetContentRegionAvail().x;
-            UI::Image(mHBAOBlurPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(), { size, size * (0.9f / 1.6f) }, { 0, 1 }, { 1, 0 });
-            UI::EndTreeNode();
-        }
-
         if (UI::BeginTreeNode("Visualization"))
         {
             UI::BeginPropertyGrid();
@@ -1365,10 +1381,10 @@ namespace NR
         {
             UI::BeginPropertyGrid();
             UI::Property("Enable", mOptions.EnableHBAO);
-            UI::Property("Intensity", mOptions.HBAOIntensity, 0.05f, 0.f, 4.f);
-            UI::Property("Radius", mOptions.HBAORadius, 0.05f, 0, 4.f);
-            UI::Property("Bias", mOptions.HBAOBias, 0.02f, 0.f, 1.f);
-            UI::Property("Blur Sharpness", mOptions.HBAOBlurSharpness, 0.5f, 0.f, 128.f);
+            UI::Property("Intensity", mOptions.HBAOIntensity, 0.05f, 0.1f, 4.0f);
+            UI::Property("Radius", mOptions.HBAORadius, 0.05f, 0.0f, 4.0f);
+            UI::Property("Bias", mOptions.HBAOBias, 0.02f, 0.0f, 0.95f);
+            UI::Property("Blur Sharpness", mOptions.HBAOBlurSharpness, 0.5f, 0.0f, 100.0f);
             UI::EndPropertyGrid();
             UI::EndTreeNode();
         }
@@ -1436,5 +1452,5 @@ namespace NR
 #endif
 
         ImGui::End();
-    }
+            }
         }

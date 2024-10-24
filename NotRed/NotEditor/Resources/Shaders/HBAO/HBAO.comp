@@ -138,7 +138,7 @@ void main()
 {
 
 	vec2 base = gl_GlobalInvocationID.xy * 4 + gFloat2Offset;
-	vec2 uv = base * uInvQuarterResolution;
+	vec2 uv = base * uInvQuarterResolution / 4;
 
 	vec3 viewPosition = texelFetch(uViewPositionTex, ivec2(base), 0).xyz;
 	viewPosition.z = -viewPosition.z;

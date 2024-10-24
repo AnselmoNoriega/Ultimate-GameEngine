@@ -15,7 +15,7 @@
 
 namespace NR
 {
-	static int sColumnCount = 2;
+	static int sColumnCount = 9;
 
 	ContentBrowserPanel::ContentBrowserPanel(Ref<Project> project)
 		: mProject(project)

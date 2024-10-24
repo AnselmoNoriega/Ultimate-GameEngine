@@ -1,33 +1,30 @@
 Assets:
-  - Handle: 15272235050081576314
-    FilePath: Env/birchwood_4k.hdr
+  - Handle: 17368199773201413024
+    FilePath: Env/HDR_blue_nebulae-1.hdr
     Type: EnvMap
-  - Handle: 8519206479186164059
-    FilePath: Models/m1911/m1911_color.png
-    Type: Texture
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
   - Handle: 940471849831676394
     FilePath: Meshes/ZIS101Sport.fbx
     Type: MeshAsset
-  - Handle: 17368199773201413024
-    FilePath: Env/HDR_blue_nebulae-1.hdr
-    Type: EnvMap
+  - Handle: 8519206479186164059
+    FilePath: Models/m1911/m1911_color.png
+    Type: Texture
   - Handle: 10980127482056009670
     FilePath: Meshes/TestScene.fbx
     Type: MeshAsset
   - Handle: 15893506865529566834
     FilePath: Models/Cube.fbx
     Type: MeshAsset
-  - Handle: 5188472444224712633
-    FilePath: Models/m1911/M1911Materials.fbx
+  - Handle: 16446025442881349728
+    FilePath: Models/m1911/m1911.fbx
     Type: MeshAsset
   - Handle: 17411810395613661663
     FilePath: Models/m1911/m1911_metalness.png
     Type: Texture
-  - Handle: 16446025442881349728
-    FilePath: Models/m1911/m1911.fbx
+  - Handle: 5188472444224712633
+    FilePath: Models/m1911/M1911Materials.fbx
     Type: MeshAsset
   - Handle: 12602547663011984911
     FilePath: Models/m1911/m1911_normal.png
@@ -41,6 +38,9 @@ Assets:
   - Handle: 928769566187218326
     FilePath: Models/Plane1m.obj
     Type: MeshAsset
+  - Handle: 13163247778782548346
+    FilePath: Env/thatch_chapel_4k.hdr
+    Type: EnvMap
   - Handle: 5083906341107188436
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
     Type: Texture
@@ -59,3 +59,12 @@ Assets:
   - Handle: 2452864457812440606
     FilePath: Meshes/Demo/TestScene (01).nrmesh
     Type: Mesh
+  - Handle: 10191359667784106151
+    FilePath: Env/autumn_field_puresky_4k.hdr
+    Type: EnvMap
+  - Handle: 17514496322347391178
+    FilePath: Env/cobblestone_street_night_4k.hdr
+    Type: EnvMap
+  - Handle: 4194858078388327029
+    FilePath: Env/lonely_road_afternoon_puresky_4k.hdr
+    Type: EnvMap

@@ -24,10 +24,10 @@ namespace NR
 
 		//HBAO
 		bool EnableHBAO = true;
-		float HBAORadius = 2.5f;
-		float HBAOBias = 0.2f;
-		float HBAOIntensity = 2.0f;
-		float HBAOBlurSharpness = 40.f;
+		float HBAOIntensity = 1.6f;
+		float HBAORadius = 1.3f;
+		float HBAOBias = 0.3f;
+		float HBAOBlurSharpness = 20.f;
 	};
 
 	struct SceneRendererCamera

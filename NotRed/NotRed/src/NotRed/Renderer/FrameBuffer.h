@@ -15,7 +15,8 @@ namespace NR
 		None,
 		OneZero,
 		SrcAlphaOneMinusSrcAlpha,
-		Additive
+		Additive,
+		Zero_SrcColor
 	};
 
 	enum class FrameBufferTextureFormat
