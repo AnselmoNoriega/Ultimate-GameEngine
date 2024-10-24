@@ -26,8 +26,8 @@ namespace NR
 		bool EnableHBAO = true;
 		float HBAORadius = 2.5f;
 		float HBAOBias = 0.2f;
-		float HBAOIntensity = 2.f;
-		float AOMultiplier = 1.f;
+		float HBAOIntensity = 2.0f;
+		float HBAOBlurSharpness = 40.f;
 	};
 
 	struct SceneRendererCamera
@@ -47,7 +47,6 @@ namespace NR
 	{
 	public:
 		SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification = SceneRendererSpecification());
-		~SceneRenderer();
 
 		void Init();
 
@@ -98,6 +97,8 @@ namespace NR
 		void ClearPass();
 		void DeinterleavingPass();
 		void HBAOPass();
+		void ReinterleavingPass();
+		void HBAOBlurPass();
 		void ShadowMapPass();
 		void PreDepthPass();
 		void LightCullingPass();
@@ -235,8 +236,12 @@ namespace NR
 		
 		//HBAO
 		Ref<Material> mDeinterleavingMaterial;
+		Ref<Material> mReinterleavingMaterial;
+		Ref<Material> mHBAOBlurMaterials[2];
 		Ref<Material> mHBAOMaterial;
 		Ref<Pipeline> mDeinterleavingPipelines[2];
+		Ref<Pipeline> mReinterleavingPipeline;
+		Ref<Pipeline> mHBAOBlurPipelines[2];
 
 		Ref<VKComputePipeline> mHBAOPipeline;
 		Ref<Image2D> mHBAOOutputImage;
@@ -314,6 +319,7 @@ namespace NR
 		SceneRendererOptions mOptions;
 
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
+		float mInvViewportWidth = 0.0f, mInvViewportHeight = 0.0f;
 		bool mNeedsResize = false;
 		bool mActive = false;
 		bool mResourcesCreated = false;

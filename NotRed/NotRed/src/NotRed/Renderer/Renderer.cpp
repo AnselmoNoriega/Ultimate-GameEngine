@@ -137,12 +137,15 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling");
-        //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim.glsl");
+        //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim");
         //Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
-        // 
+        
 		//HBAO
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Deinterleaving", true);
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Deinterleaving");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Reinterleaving");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur2", true);
 		
 		// Renderer2D Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
