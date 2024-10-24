@@ -41,7 +41,7 @@ namespace NR
 
         //This controls how the heading is changed if the camera is pointed straight up or down
         //The heading delta direction changes
-        if (mPitch > glm::radians(90.f) && mPitch < glm::radians(270.f) || mPitch < glm::radians(-90.f) && mPitch > glm::radians(-270.f))
+        if (mPitch > glm::radians(90.0f) && mPitch < glm::radians(270.0f) || mPitch < glm::radians(-90.0f) && mPitch > glm::radians(-270.0f))
         {
             mYaw -= degrees;
         }
@@ -51,13 +51,13 @@ namespace NR
         }
 
         //Check bounds for the camera heading
-        if (mYaw > glm::radians(360.f))
+        if (mYaw > glm::radians(360.0f))
         {
-            mYaw -= glm::radians(360.f);
+            mYaw -= glm::radians(360.0f);
         }
-        else if (mYaw < glm::radians(-360.f))
+        else if (mYaw < glm::radians(-360.0f))
         {
-            mYaw += glm::radians(360.f);
+            mYaw += glm::radians(360.0f);
         }
     }
 
@@ -70,13 +70,13 @@ namespace NR
         mPitch += degrees;
 
         //Check bounds for the camera pitch
-        if (mPitch > glm::radians(360.f))
+        if (mPitch > glm::radians(360.0f))
         {
-            mPitch -= glm::radians(360.f);
+            mPitch -= glm::radians(360.0f);
         }
-        else if (mPitch < -glm::radians(360.f))
+        else if (mPitch < -glm::radians(360.0f))
         {
-            mPitch += glm::radians(360.f);
+            mPitch += glm::radians(360.0f);
         }
     }
 
@@ -85,9 +85,9 @@ namespace NR
         if (mCameraMode == CameraMode::FLYCAM)
         {
             mRotation = glm::normalize(mFocalPoint - mPosition);
-            mRightDirection = glm::cross(mRotation, glm::vec3{ 0.f, 1.f, 0.f });
+            mRightDirection = glm::cross(mRotation, glm::vec3{ 0.0f, 1.0f, 0.0f });
             mRotation = glm::rotate(glm::normalize(glm::cross(glm::angleAxis(mPitch, mRightDirection),
-                glm::angleAxis(mYaw, glm::vec3{ 0.f, 1.f, 0.f }))), mRotation);
+                glm::angleAxis(mYaw, glm::vec3{ 0.0f, 1.0f, 0.0f }))), mRotation);
 
             mPosition += mCameraPositionDelta;
 
@@ -96,7 +96,7 @@ namespace NR
             mPitch *= 0.5f;
             mCameraPositionDelta *= 0.8f;
             mFocalPoint = mPosition + mRotation;
-            mViewMatrix = glm::lookAt(mPosition, mFocalPoint, glm::vec3{ 0.f, 1.f, 0.f });
+            mViewMatrix = glm::lookAt(mPosition, mFocalPoint, glm::vec3{ 0.0f, 1.0f, 0.0f });
         }
         else
         {
@@ -144,14 +144,14 @@ namespace NR
         return speed;
     }
 
-    static void DisableMouse()
+    void DisableMouse()
     {
         glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
     }
 
-    static void EnableMouse()
+    void EnableMouse()
     {
         glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         ImGuiIO& io = ImGui::GetIO();
@@ -166,6 +166,7 @@ namespace NR
 
         if (mIsActive)
         {
+            mCameraMode = CameraMode::ARCBALL;
             if (Input::IsKeyPressed(KeyCode::LeftAlt))
             {
                 mCameraMode = CameraMode::ARCBALL;
@@ -196,11 +197,11 @@ namespace NR
 
                 if (Input::IsKeyPressed(KeyCode::Q))
                 {
-                    mCameraPositionDelta -= dt * mSpeed * glm::vec3{ 0.f, 1.f, 0.f };
+                    mCameraPositionDelta -= dt * mSpeed * glm::vec3{ 0.0f, 1.0f, 0.0f };
                 }
                 if (Input::IsKeyPressed(KeyCode::E))
                 {
-                    mCameraPositionDelta += dt * mSpeed * glm::vec3{ 0.f, 1.f, 0.f };
+                    mCameraPositionDelta += dt * mSpeed * glm::vec3{ 0.0f, 1.0f, 0.0f };
                 }
                 if (Input::IsKeyPressed(KeyCode::S))
                 {
@@ -242,26 +243,23 @@ namespace NR
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
     {
-        if (mCameraMode == CameraMode::ARCBALL)
-        {
-            MouseZoom(e.GetYOffset() * 0.1f);
-            UpdateCameraView();
-        }
-        else if (Input::IsMouseButtonPressed(MouseButton::Right))
-        {
-            e.GetYOffset() > 0 ? mSpeed += 0.3f * mSpeed : mSpeed -= 0.3f * mSpeed;
-            mSpeed = std::clamp(mSpeed, 0.0005f, 2.f);
-        }
+		if (mCameraMode == CameraMode::ARCBALL)
+		{
+			MouseZoom(e.GetYOffset() * 0.1f);
+			UpdateCameraView();
+		}
+		else if (Input::IsMouseButtonPressed(MouseButton::Right))
+		{
+			e.GetYOffset() > 0 ? mSpeed += 0.3f * mSpeed : mSpeed -= 0.3f * mSpeed;
+			mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
+		}
 
-        float delta = e.GetYOffset() * 0.1f;
-        MouseZoom(delta);
-        UpdateCameraView();
-        return false;
+		return false;
     }
 
     bool EditorCamera::OnKeyPressed(KeyPressedEvent& e)
     {
-        if (mLastSpeed == 0.f)
+        if (mLastSpeed == 0.0f)
         {
             if (e.GetKeyCode() == KeyCode::LeftShift)
             {
@@ -273,7 +271,7 @@ namespace NR
                 mLastSpeed = mSpeed;
                 mSpeed /= 2 - std::log(mSpeed);
             }
-            mSpeed = std::clamp(mSpeed, 0.0005f, 2.f);
+            mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
         }
         return true;
     }
@@ -282,12 +280,12 @@ namespace NR
     {
         if (e.GetKeyCode() == KeyCode::LeftShift || e.GetKeyCode() == KeyCode::LeftControl)
         {
-            if (mLastSpeed != 0.f)
+            if (mLastSpeed != 0.0f)
             {
                 mSpeed = mLastSpeed;
-                mLastSpeed = 0.f;
+                mLastSpeed = 0.0f;
             }
-            mSpeed = std::clamp(mSpeed, 0.0005f, 2.f);
+            mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
         }
         return true;
     }

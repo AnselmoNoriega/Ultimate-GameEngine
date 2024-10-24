@@ -26,8 +26,8 @@ namespace NR
 		bool EnableHBAO = true;
 		float HBAORadius = 2.5f;
 		float HBAOBias = 0.2f;
-		float HBAOIntensity = 2.f;
-		float AOMultiplier = 1.f;
+		float HBAOIntensity = 2.0f;
+		float HBAOBlurSharpness = 40.f;
 	};
 
 	struct SceneRendererCamera
@@ -47,7 +47,6 @@ namespace NR
 	{
 	public:
 		SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification = SceneRendererSpecification());
-		~SceneRenderer();
 
 		void Init();
 
@@ -98,6 +97,8 @@ namespace NR
 		void ClearPass();
 		void DeinterleavingPass();
 		void HBAOPass();
+		void ReinterleavingPass();
+		void HBAOBlurPass();
 		void ShadowMapPass();
 		void PreDepthPass();
 		void LightCullingPass();
@@ -138,8 +139,6 @@ namespace NR
 
 		struct UBHBAOData
 		{
-			glm::vec4 Float2Offsets[16];
-			glm::vec4 Jitters[16];
 			glm::vec4 PerspectiveInfo;
 			glm::vec2 InvQuarterResolution;
 		
@@ -151,6 +150,9 @@ namespace NR
 			
 			bool IsOrtho;
 			char Padding0[3]{ 0, 0, 0 };
+
+			glm::vec4 Float2Offsets[16];
+			glm::vec4 Jitters[16];
 		} HBAODataUB;
 
 		struct UBScreenData
@@ -184,7 +186,33 @@ namespace NR
 			DirLight lights;
 			glm::vec3 CameraPosition;
 			float EnvironmentMapIntensity = 1.0f;
-		} SceneDataUB;
+		} SceneDataUB; 
+		
+		struct UBStarParams
+		{
+			uint32_t NumStars;
+
+			float MaxRad;
+			float BulgeRad;
+
+			float AngleOffset;
+			float Eccentricity;
+
+			float BaseHeight;
+			float Height;
+
+			float MinTemp;
+			float MaxTemp;
+			float DustBaseTemp;
+
+			float MinStarOpacity;
+			float MaxStarOpacity;
+
+			float MinDustOpacity;
+			float MaxDustOpacity;
+
+			float Speed;
+		} StarParamsUB;
 
 		struct UBRendererData
 		{
@@ -200,24 +228,36 @@ namespace NR
 			bool CascadeFading = true;
 			char Padding2[3] = { 0,0,0 };
 			float CascadeTransitionFade = 1.0f;
+			bool ShowLightComplexity = false;
+			char Padding3[3] = { 0,0,0 };
 		} RendererDataUB;
 
-		glm::vec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
+		glm::ivec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
 		
 		//HBAO
 		Ref<Material> mDeinterleavingMaterial;
+		Ref<Material> mReinterleavingMaterial;
+		Ref<Material> mHBAOBlurMaterials[2];
 		Ref<Material> mHBAOMaterial;
-		Ref<Pipeline> mDeinterleavingPipeline;
+		Ref<Pipeline> mDeinterleavingPipelines[2];
+		Ref<Pipeline> mReinterleavingPipeline;
+		Ref<Pipeline> mHBAOBlurPipelines[2];
+
+		Ref<VKComputePipeline> mHBAOPipeline;
+		Ref<Image2D> mHBAOOutputImage;
+		Ref<RenderPass> mHBAORenderPass;
 
 		glm::ivec3 mLightCullingWorkGroups;
 		Ref<VKComputePipeline> mLightCullingPipeline;
+
+		glm::ivec3 mParticleGenWorkGroups;
+		Ref<VKComputePipeline> mParticleGenPipeline;
+		Ref<Pipeline> mParticlePipeline;
 
 		Ref<UniformBufferSet> mUniformBufferSet;
 		Ref<StorageBufferSet> mStorageBufferSet;
 
 		Ref<Shader> ShadowMapShader, ShadowMapAnimShader;
-		Ref<RenderPass> mShadowMapRenderPass[4];
-		Ref<RenderPass> mDeinterleavingRenderPasses[2];
 
 		float LightDistance = 0.1f;
 		float CascadeSplitLambda = 0.92f;
@@ -231,14 +271,14 @@ namespace NR
 
 		Ref<Material> CompositeMaterial;
 		Ref<Material> mLightCullingMaterial;
+		Ref<Material> mParticleGenMaterial;
 
 		Ref<Pipeline> mGeometryPipeline;
 		Ref<Pipeline> mSelectedGeometryPipeline;
 		Ref<Pipeline> mGeometryWireframePipeline;
-		Ref<Pipeline> mParticlePipeline;
 		Ref<Pipeline> mPreDepthPipeline;
 		Ref<Pipeline> mCompositePipeline;
-		Ref<Pipeline> mShadowPassPipeline;
+		Ref<Pipeline> mShadowPassPipelines[4];
 		Ref<Material> mShadowPassMaterial;
 		Ref<Material> mPreDepthMaterial;
 		Ref<Pipeline> mSkyboxPipeline;
@@ -279,6 +319,7 @@ namespace NR
 		SceneRendererOptions mOptions;
 
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
+		float mInvViewportWidth = 0.0f, mInvViewportHeight = 0.0f;
 		bool mNeedsResize = false;
 		bool mActive = false;
 		bool mResourcesCreated = false;

@@ -5,6 +5,41 @@
 
 namespace NR
 {
+	namespace Utils 
+	{
+		static void InsertImageMemoryBarrier(
+			VkCommandBuffer cmdbuffer,
+			VkImage image,
+			VkAccessFlags srcAccessMask,
+			VkAccessFlags dstAccessMask,
+			VkImageLayout oldImageLayout,
+			VkImageLayout newImageLayout,
+			VkPipelineStageFlags srcStageMask,
+			VkPipelineStageFlags dstStageMask,
+			VkImageSubresourceRange subresourceRange)
+		{
+			VkImageMemoryBarrier imageMemoryBarrier{};
+			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.srcAccessMask = srcAccessMask;
+			imageMemoryBarrier.dstAccessMask = dstAccessMask;
+			imageMemoryBarrier.oldLayout = oldImageLayout;
+			imageMemoryBarrier.newLayout = newImageLayout;
+			imageMemoryBarrier.image = image;
+			imageMemoryBarrier.subresourceRange = subresourceRange;
+
+			vkCmdPipelineBarrier(
+				cmdbuffer,
+				srcStageMask,
+				dstStageMask,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &imageMemoryBarrier);
+		}
+	}
+
 	VKImage2D::VKImage2D(ImageSpecification specification)
 		: mSpecification(specification)
 	{
@@ -17,7 +52,7 @@ namespace NR
 			const VKImageInfo& info = mInfo;
 			Renderer::Submit([info, layerViews = mPerLayerImageViews]()
 				{
-					auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
+					const auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 					vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
 					vkDestroySampler(vulkanDevice, info.Sampler, nullptr);
 					for (auto& view : layerViews)
@@ -50,7 +85,7 @@ namespace NR
 		VKImageInfo info = mInfo;
 		Renderer::SubmitResourceFree([info, layerViews = mPerLayerImageViews]() mutable
 			{
-				auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				const auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 				NR_CORE_WARN("VulkanImage2D::Release ImageView = {0}", (const void*)info.ImageView);
 				vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
 				vkDestroySampler(vulkanDevice, info.Sampler, nullptr);
@@ -94,7 +129,7 @@ namespace NR
 		}
 		else if (mSpecification.Usage == ImageUsage::Storage)
 		{
-			usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+			usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 		}
 
 		VkImageAspectFlags aspectMask = Utils::IsDepthFormat(mSpecification.Format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
@@ -148,6 +183,26 @@ namespace NR
 		samplerCreateInfo.maxLod = 1.0f;
 		samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
 		VK_CHECK_RESULT(vkCreateSampler(device, &samplerCreateInfo, nullptr, &mInfo.Sampler));
+
+		if (mSpecification.Usage == ImageUsage::Storage)
+		{
+			// Transition image to GENERAL layout
+			VkCommandBuffer commandBuffer = VKContext::GetCurrentDevice()->GetCommandBuffer(true);
+			VkImageSubresourceRange subresourceRange = {};
+			subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			subresourceRange.baseMipLevel = 0;
+			subresourceRange.levelCount = mSpecification.Mips;
+			subresourceRange.layerCount = mSpecification.Layers;
+
+			Utils::InsertImageMemoryBarrier(
+				commandBuffer, mInfo.Image,
+				0, 0,
+				VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL,
+				VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+				subresourceRange);
+
+			VKContext::GetCurrentDevice()->FlushCommandBuffer(commandBuffer);
+		}
 
 		UpdateDescriptor();
 	}

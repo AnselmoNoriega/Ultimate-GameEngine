@@ -17,8 +17,11 @@ obj/
 **.vcxproj.user
 **.csproj
 **.nsight-gfxproj
+**.DotSettings
+**.user
 
 **.meta
+**.log
 
 !AssetRegistryCache.nrr
 *.nvdbg

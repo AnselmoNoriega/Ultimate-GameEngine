@@ -335,9 +335,83 @@ namespace NR
             });
     }
 
+    void VKRenderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
+    {
+        //TODO FIX
+        auto vulkanMaterial = material.As<VKMaterial>();
+        Renderer::Submit([renderCommandBuffer, pipeline, vulkanMaterial, uniformBufferSet, storageBufferSet, workGroups]() mutable
+            {
+                const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+
+                const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
+
+                pipeline->Begin(renderCommandBuffer);
+                //pipeline->SetPushConstants(glm::value_ptr(screenSize), sizeof(glm::ivec2));
+                pipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
+                pipeline->End();
+            });
+    }
+
     void VKRenderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
     {
-        //TODO
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform]() mutable
+            {
+                NR_PROFILE_FUNC("VulkanRenderer::RenderMesh");
+                NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
+
+                const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                const VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
+
+                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
+
+                VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
+                VkDeviceSize offsets[1] = { 0 };
+                vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
+
+                auto vulkanMeshIB = Ref<VKIndexBuffer>(meshAsset->GetIndexBuffer());
+                VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
+                vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+                Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
+                VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
+                vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+
+                std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
+
+                auto& materials = mesh->GetMaterials();
+                for (auto& material : materials)
+                {
+                    Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
+                    RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+                }
+
+                const auto& meshAssetSubmeshes = meshAsset->GetSubmeshes();
+                auto& submeshes = mesh->GetSubmeshes();
+                for (uint32_t submeshIndex : submeshes)
+                {
+                    const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
+                    auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
+
+                    VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
+                    VkDescriptorSet descriptorSet = material->GetDescriptorSet(frameIndex);
+
+                    // Bind descriptor sets describing shader binding points
+                    std::array<VkDescriptorSet, 2> descriptorSets = {
+                        descriptorSet,
+                        sData->ActiveRendererDescriptorSet
+                    };
+                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
+
+                    glm::mat4 worldTransform = transform * submesh.Transform;
+
+                    Buffer uniformStorageBuffer = material->GetUniformStorageBuffer();
+                    vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &worldTransform);
+                    vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+                    vkCmdDrawIndexed(commandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
+                }
+            });
     }
 
     void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
@@ -718,7 +792,7 @@ namespace NR
                 const auto& linearDepthImageInfo = linearDepth.As<VKImage2D>()->GetDescriptor();
                 writeDescriptors[4].pImageInfo = &linearDepthImageInfo;
 
-                auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                const auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
                 vkUpdateDescriptorSets(vulkanDevice, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
             });
     }
@@ -1000,13 +1074,6 @@ namespace NR
             });
 
         return { envFiltered, irradianceMap };
-    }
-
-    void VKRenderer::GenerateParticles()
-    {
-        // Convert equirectangular to cubemap
-        Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");
-        Ref<VKComputePipeline> particleGenPipeline = Ref<VKComputePipeline>::Create(particleGenShader);
     }
 
     Ref<TextureCube> VKRenderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)

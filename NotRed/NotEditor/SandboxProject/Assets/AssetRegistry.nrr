@@ -56,3 +56,6 @@ Assets:
   - Handle: 10610151712161516910
     FilePath: Meshes/Demo/TestScene.nrmesh
     Type: Mesh
+  - Handle: 2452864457812440606
+    FilePath: Meshes/Demo/TestScene (01).nrmesh
+    Type: Mesh

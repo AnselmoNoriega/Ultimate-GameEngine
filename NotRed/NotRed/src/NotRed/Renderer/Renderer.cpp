@@ -29,11 +29,17 @@ namespace NR
 
     struct ShaderDependencies
     {
+        std::vector<Ref<VKComputePipeline>> ComputePipelines;
         std::vector<Ref<Pipeline>> Pipelines;
         std::vector<Ref<Material>> Materials;
     };
 
     static std::unordered_map<size_t, ShaderDependencies> sShaderDependencies;
+
+    void Renderer::RegisterShaderDependency(Ref<Shader> shader, Ref<VKComputePipeline> computePipeline)
+    {
+        sShaderDependencies[shader->GetHash()].ComputePipelines.push_back(computePipeline);
+    }
 
     void Renderer::RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline)
     {
@@ -53,6 +59,11 @@ namespace NR
             for (auto& pipeline : dependencies.Pipelines)
             {
                 pipeline->Invalidate();
+            }
+
+            for (auto& computePipeline : dependencies.ComputePipelines)
+            {
+                computePipeline->CreatePipeline();
             }
 
             for (auto& material : dependencies.Materials)
@@ -126,12 +137,15 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling");
-        //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim.glsl");
+        //Renderer::GetShaderLibrary()->Load("Resources/Shaders("Resources/Shaders/PBR_Anim");
         //Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
-        // 
+        
 		//HBAO
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Deinterleaving", true);
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Deinterleaving");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Reinterleaving");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur2", true);
 		
 		// Renderer2D Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
@@ -229,9 +243,9 @@ namespace NR
         return sRendererAPI->CreateEnvironmentMap(filepath);
     }
 
-    void Renderer::GenerateParticles()
+    void Renderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
     {
-        sRendererAPI->GenerateParticles();
+        sRendererAPI->GenerateParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, workGroups);
     }
 
     void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)

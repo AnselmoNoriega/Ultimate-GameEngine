@@ -267,15 +267,6 @@ namespace NR
 
         mWindow->GetSwapChain().Resize(width, height);
 
-        auto& fbs = FrameBufferPool::GetGlobal()->GetAll();
-        for (auto& fb : fbs)
-        {
-            if (fb->GetSpecification().Resizable)
-            {
-                fb->Resize(width, height);
-            }
-        }
-
         return false;
     }
 

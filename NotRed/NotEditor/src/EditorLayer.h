@@ -45,6 +45,8 @@ namespace NR
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 		void OnEvent(Event& e) override;
 
+		void Render2D();
+
 		void ShowBoundingBoxes(bool show, bool onTop = false);
 		void SelectEntity(Entity entity);
 
@@ -147,6 +149,9 @@ namespace NR
 		// Editor resources
 		Ref<Texture2D> mCheckerboardTex;
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
+		
+		// Icons
+		Ref<Texture2D> mPointLightIcon;
 
 		glm::vec2 mViewportBounds[2];
 		glm::vec2 mSecondViewportBounds[2];
@@ -158,7 +163,7 @@ namespace NR
 		float mSnapValue = 0.5f;
 		float mRotationSnapValue = 45.0f;
 
-		bool mDrawOnTopBoundingBoxes = false;
+		bool mDrawOnTopBoundingBoxes = true;
 
 		bool mShowBoundingBoxes = false;
 		bool mShowBoundingBoxSelectedMeshOnly = true;

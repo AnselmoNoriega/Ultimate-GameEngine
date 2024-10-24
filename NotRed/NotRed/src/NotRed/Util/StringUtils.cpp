@@ -114,27 +114,27 @@ namespace NR::Utils
 
 	std::string BytesToString(uint64_t bytes)
 	{
-		static const double GB = 1024.0 * 1024.0 * 1024.0;
-		static const double MB = 1024.0 * 1024.0;
-		static const double KB = 1024.0;
+		constexpr uint64_t GB = 1024 * 1024 * 1024;
+		constexpr uint64_t MB = 1024 * 1024;
+		constexpr uint64_t KB = 1024;
 
 		char buffer[16];
 
-		if ((double)bytes > GB)
+		if (bytes > GB)
 		{
-			sprintf_s(buffer, "%.2f GB", (double)bytes / GB);
+			sprintf_s(buffer, "%.2f GB", (float)bytes / (float)GB);
 		}
-		else if ((double)bytes > MB)
+		else if (bytes > MB)
 		{
-			sprintf_s(buffer, "%.2f MB", (double)bytes / MB);
+			sprintf_s(buffer, "%.2f MB", (float)bytes / (float)MB);
 		}
-		else if ((double)bytes > KB)
+		else if (bytes > KB)
 		{
-			sprintf_s(buffer, "%.2f KB", (double)bytes / KB);
+			sprintf_s(buffer, "%.2f KB", (float)bytes / (float)KB);
 		}
 		else
 		{
-			sprintf_s(buffer, "%.2f bytes", (double)bytes);
+			sprintf_s(buffer, "%.2f bytes", (float)bytes);
 		}
 
 		return std::string(buffer);

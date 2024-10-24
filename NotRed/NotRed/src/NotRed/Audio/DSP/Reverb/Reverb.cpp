@@ -95,7 +95,7 @@ namespace NR::Audio
             uint8_t numChannels = ma_node_get_output_channels(nodeToAttachTo, 0);
 
             // Setting max pre-delay time to 1 second
-            mDelayLine = std::make_unique<DelayLine>(sampleRate + 1);
+            mDelayLine = std::make_unique<DelayLine>((int)sampleRate + 1);
             mRevModel = std::make_unique<revmodel>(sampleRate);
 
             uint32_t inputChannels[2] = { numChannels, numChannels };
