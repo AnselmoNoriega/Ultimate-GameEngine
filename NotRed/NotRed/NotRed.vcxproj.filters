@@ -423,7 +423,7 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKDiagnostics.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFrameBuffer.h">
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKFramebuffer.h">
       <Filter>src\NotRed\Platform\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKImGuiLayer.h">
@@ -508,6 +508,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h">
@@ -783,7 +786,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -909,7 +911,7 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\ImGui\VKImGui.cpp">
+    <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Math\Math.cpp">
@@ -1098,6 +1100,9 @@
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\PipelineCompute.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1278,6 +1283,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\PipelineCompute.cpp" />
   </ItemGroup>
 </Project>

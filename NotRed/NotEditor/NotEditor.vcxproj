@@ -180,17 +180,6 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Shaders\Deinterleaving\Deinterleaving.frag" />
-    <None Include="Resources\Shaders\Deinterleaving\Deinterleaving.vert" />
-    <None Include="Resources\Shaders\HBAOBlur2\HBAOBlur2.frag" />
-    <None Include="Resources\Shaders\HBAOBlur2\HBAOBlur2.vert" />
-    <None Include="Resources\Shaders\HBAOBlur\HBAOBlur.frag" />
-    <None Include="Resources\Shaders\HBAOBlur\HBAOBlur.vert" />
-    <None Include="Resources\Shaders\HBAO\HBAO.comp" />
-    <None Include="Resources\Shaders\Reinterleaving\Reinterleaving.frag" />
-    <None Include="Resources\Shaders\Reinterleaving\Reinterleaving.vert" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
