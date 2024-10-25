@@ -1,16 +1,16 @@
 Assets:
-  - Handle: 17368199773201413024
-    FilePath: Env/HDR_blue_nebulae-1.hdr
-    Type: EnvMap
+  - Handle: 8519206479186164059
+    FilePath: Models/m1911/m1911_color.png
+    Type: Texture
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
   - Handle: 940471849831676394
     FilePath: Meshes/ZIS101Sport.fbx
     Type: MeshAsset
-  - Handle: 8519206479186164059
-    FilePath: Models/m1911/m1911_color.png
-    Type: Texture
+  - Handle: 17368199773201413024
+    FilePath: Env/HDR_blue_nebulae-1.hdr
+    Type: EnvMap
   - Handle: 10980127482056009670
     FilePath: Meshes/TestScene.fbx
     Type: MeshAsset
@@ -38,12 +38,12 @@ Assets:
   - Handle: 928769566187218326
     FilePath: Models/Plane1m.obj
     Type: MeshAsset
-  - Handle: 13163247778782548346
-    FilePath: Env/thatch_chapel_4k.hdr
-    Type: EnvMap
   - Handle: 5083906341107188436
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
     Type: Texture
+  - Handle: 13163247778782548346
+    FilePath: Env/thatch_chapel_4k.hdr
+    Type: EnvMap
   - Handle: 5380732386756511583
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Emissive.png
     Type: Texture
@@ -68,3 +68,6 @@ Assets:
   - Handle: 4194858078388327029
     FilePath: Env/lonely_road_afternoon_puresky_4k.hdr
     Type: EnvMap
+  - Handle: 10413987595091730657
+    FilePath: Meshes/Demo/ZIS101Sport.nrmesh
+    Type: Mesh

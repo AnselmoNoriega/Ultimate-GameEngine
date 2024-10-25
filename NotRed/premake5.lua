@@ -228,12 +228,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib"
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
 		    '{COPY} "../NotRed/vendor/Vulkan/win64/shaderc_sharedd.dll" "%{cfg.targetdir}"'
 		}
@@ -248,12 +248,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 
@@ -263,12 +263,12 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
 		}
 
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 group ""
@@ -325,11 +325,11 @@ project "Not-Runtime"
 		symbols "on"
 		links
 		{
-			"NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.lib"
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib"
 		}
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/Vulkan/win64/shaderc_sharedd.dll" "%{cfg.targetdir}"'
 		}
@@ -339,11 +339,11 @@ project "Not-Runtime"
 		optimize "on"
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
 		}
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 	filter "configurations:Dist"
@@ -351,11 +351,11 @@ project "Not-Runtime"
 		optimize "on"
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc141-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
 		}
 		postbuildcommands 
 		{
-			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc141-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 group ""
