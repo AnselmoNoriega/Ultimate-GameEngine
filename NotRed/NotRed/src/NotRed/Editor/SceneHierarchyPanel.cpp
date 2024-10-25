@@ -117,49 +117,49 @@ namespace NR
                         if (ImGui::MenuItem("Cube"))
                         {
                             auto newEntity = mContext->CreateEntity("Cube");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cube.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Cube.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Sphere"))
                         {
                             auto newEntity = mContext->CreateEntity("Sphere");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Sphere.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Sphere.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Capsule"))
                         {
                             auto newEntity = mContext->CreateEntity("Capsule");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Capsule.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Capsule.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Cylinder"))
                         {
                             auto newEntity = mContext->CreateEntity("Cylinder");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cylinder.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Cylinder.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Torus"))
                         {
                             auto newEntity = mContext->CreateEntity("Torus");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Torus.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Torus.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Plane"))
                         {
                             auto newEntity = mContext->CreateEntity("Plane");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Plane.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Plane.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Cone"))
                         {
                             auto newEntity = mContext->CreateEntity("Cone");
-                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Assets/Mehses/Default/Cone.fbx");
+                            Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Cone.fbx");
                             newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
                             SetSelected(newEntity);
                         }

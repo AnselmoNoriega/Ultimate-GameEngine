@@ -1,22 +1,31 @@
 Assets:
-  - Handle: 8519206479186164059
-    FilePath: Models/m1911/m1911_color.png
+  - Handle: 16266072468258787845
+    FilePath: Models/Source/stormtrooper/Stormtrooper_D.png
     Type: Texture
+  - Handle: 17368199773201413024
+    FilePath: Env/HDR_blue_nebulae-1.hdr
+    Type: EnvMap
+  - Handle: 16518116033380006148
+    FilePath: Models/Source/Default/Capsule.fbx
+    Type: MeshAsset
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
   - Handle: 940471849831676394
     FilePath: Meshes/ZIS101Sport.fbx
     Type: MeshAsset
-  - Handle: 17368199773201413024
-    FilePath: Env/HDR_blue_nebulae-1.hdr
-    Type: EnvMap
+  - Handle: 8519206479186164059
+    FilePath: Models/m1911/m1911_color.png
+    Type: Texture
   - Handle: 10980127482056009670
     FilePath: Meshes/TestScene.fbx
     Type: MeshAsset
   - Handle: 15893506865529566834
     FilePath: Models/Cube.fbx
     Type: MeshAsset
+  - Handle: 4846994273130567862
+    FilePath: Models/Source/pilot/Material.002_Metallic.png
+    Type: Texture
   - Handle: 16446025442881349728
     FilePath: Models/m1911/m1911.fbx
     Type: MeshAsset
@@ -29,26 +38,53 @@ Assets:
   - Handle: 12602547663011984911
     FilePath: Models/m1911/m1911_normal.png
     Type: Texture
+  - Handle: 3669032698877721658
+    FilePath: Models/Source/pilot/Material.002_Mixed_AO.png
+    Type: Texture
   - Handle: 12046046325573209881
     FilePath: Models/m1911/m1911_roughness.png
     Type: Texture
   - Handle: 16819679542065464007
     FilePath: Models/Plane1m.fbx
     Type: MeshAsset
+  - Handle: 788492981695594073
+    FilePath: Models/Source/Sponza/16275776544635328252.png
+    Type: Texture
+  - Handle: 9370517366295976499
+    FilePath: Models/Source/Default/Torus.fbx
+    Type: MeshAsset
+  - Handle: 18211924834184589924
+    FilePath: Meshes/Default/Cone.fbx
+    Type: MeshAsset
   - Handle: 928769566187218326
     FilePath: Models/Plane1m.obj
     Type: MeshAsset
-  - Handle: 5083906341107188436
-    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
+  - Handle: 16122708668740826516
+    FilePath: Models/Source/Sponza/8006627369776289000.png
     Type: Texture
+  - Handle: 6249827114591471084
+    FilePath: Models/Source/Sponza/5061699253647017043.png
+    Type: Texture
+  - Handle: 10493809290632571562
+    FilePath: Models/Source/cerberus/CerberusMaterials.fbx
+    Type: MeshAsset
   - Handle: 13163247778782548346
     FilePath: Env/thatch_chapel_4k.hdr
     Type: EnvMap
+  - Handle: 5083906341107188436
+    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
+    Type: Texture
   - Handle: 5380732386756511583
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Emissive.png
     Type: Texture
   - Handle: 15826414915342885037
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Normal.png
+    Type: Texture
+  - Handle: 4180098690103428077
+    FilePath: Models/Source/pilot/Material.002_Normal_OpenGL.png
+    Type: Texture
+  - Handle: 4163970111022102808
+    FilePath: Models/Source/cerberus/Textures/Cerberus_R.png
     Type: Texture
   - Handle: 3078466047646632934
     FilePath: Models/Sphere1m.fbx
@@ -62,6 +98,9 @@ Assets:
   - Handle: 10191359667784106151
     FilePath: Env/autumn_field_puresky_4k.hdr
     Type: EnvMap
+  - Handle: 11378497880036335834
+    FilePath: Models/Source/Default/Plane.fbx
+    Type: MeshAsset
   - Handle: 17514496322347391178
     FilePath: Env/cobblestone_street_night_4k.hdr
     Type: EnvMap
@@ -71,3 +110,72 @@ Assets:
   - Handle: 10413987595091730657
     FilePath: Meshes/Demo/ZIS101Sport.nrmesh
     Type: Mesh
+  - Handle: 13980122424358325905
+    FilePath: Meshes/Default/Capsule.fbx
+    Type: MeshAsset
+  - Handle: 5997943153421320909
+    FilePath: Models/Source/Default/Sphere.fbx
+    Type: MeshAsset
+  - Handle: 7620121883529511759
+    FilePath: Meshes/Default/Cube.fbx
+    Type: MeshAsset
+  - Handle: 15241730571501316311
+    FilePath: Meshes/Default/Cylinder.fbx
+    Type: MeshAsset
+  - Handle: 409230346208159714
+    FilePath: Meshes/Default/Plane.fbx
+    Type: MeshAsset
+  - Handle: 1382881797124834321
+    FilePath: Meshes/Default/Sphere.fbx
+    Type: MeshAsset
+  - Handle: 15637941359961024561
+    FilePath: Models/Source/Default/Cone.fbx
+    Type: MeshAsset
+  - Handle: 133486771381258107
+    FilePath: Meshes/Default/Torus.fbx
+    Type: MeshAsset
+  - Handle: 16812491990447046066
+    FilePath: Models/Source/cerberus/cerberus.fbx
+    Type: MeshAsset
+  - Handle: 13140776552192957249
+    FilePath: Models/Source/cerberus/Textures/Cerberus_A.png
+    Type: Texture
+  - Handle: 16075841579979782367
+    FilePath: Models/Source/cerberus/Textures/Cerberus_M.png
+    Type: Texture
+  - Handle: 4210539429630763432
+    FilePath: Models/Source/pilot/Material.002_Base_Color.png
+    Type: Texture
+  - Handle: 3169145106377838570
+    FilePath: Models/Source/cerberus/Textures/Cerberus_N.png
+    Type: Texture
+  - Handle: 16937671899017176025
+    FilePath: Models/Source/CubeScene.fbx
+    Type: MeshAsset
+  - Handle: 262413514796708586
+    FilePath: Models/Source/Default/Cube.fbx
+    Type: MeshAsset
+  - Handle: 7782017952273710340
+    FilePath: Models/Source/Default/Cylinder.fbx
+    Type: MeshAsset
+  - Handle: 3813279530466117779
+    FilePath: Models/Source/Tests/TransformTest.fbx
+    Type: MeshAsset
+  - Handle: 1180668109189713166
+    FilePath: Models/Source/pilot/Material.002_Roughness.png
+    Type: Texture
+  - Handle: 6791575183051968345
+    FilePath: Models/Source/Sponza/white.png
+    Type: Texture
+  - Handle: 12626786852730282428
+    FilePath: Models/Source/pilot/Pilot_LP_Animated.fbx
+    Type: MeshAsset
+  - Handle: 12567304604732680570
+    FilePath: Models/Source/Sponza/Sponza.gltf
+    Type: MeshAsset
+  - Handle: 4472115398838612294
+    FilePath: Models/Source/stormtrooper/silly_dancing.fbx
+    Type: MeshAsset
+  - Handle: 2856077084921523787
+    FilePath: Models/Source/TestScene.fbx
+    Type: MeshAsset
