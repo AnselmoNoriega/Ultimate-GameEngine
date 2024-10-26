@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/detail/type_quat.hpp>
+
 #include "NotRed/Renderer/Camera.h"
 #include "NotRed/Core/TimeFrame.h"
 #include "NotRed/Core/Events/KeyEvent.h"
@@ -33,9 +35,9 @@ namespace NR
 
         inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
 
-        glm::vec3 GetUpDirection();
-        glm::vec3 GetRightDirection();
-        glm::vec3 GetForwardDirection();
+        glm::vec3 GetUpDirection() const;
+        glm::vec3 GetRightDirection() const;
+        glm::vec3 GetForwardDirection() const;
         glm::quat GetOrientation() const;
 
         const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
@@ -48,8 +50,6 @@ namespace NR
         [[nodiscard]] float GetCameraSpeed() const { return mSpeed; }
 
     private:
-        void CalculateYaw(float degrees);
-        void CalculatePitch(float degrees);
         void UpdateCameraView();
 
         bool OnMouseScroll(MouseScrolledEvent& e);
@@ -60,7 +60,7 @@ namespace NR
         void MouseRotate(const glm::vec2& delta);
         void MouseZoom(float delta);
 
-        glm::vec3 CalculatePosition();
+        glm::vec3 CalculatePosition() const;
 
         std::pair<float, float> PanSpeed() const;
         float RotationSpeed() const;
@@ -68,7 +68,7 @@ namespace NR
 
     private:
         glm::mat4 mViewMatrix;
-        glm::vec3 mPosition, mRotation, mFocalPoint;
+        glm::vec3 mPosition, mWorldRotation, mFocalPoint;
 
         bool mIsActive = true;
         bool mPanning, mRotating;
@@ -82,12 +82,17 @@ namespace NR
 
         bool mIsAllowed = false;
 
-        glm::vec3 mCameraPositionDelta;
+        float mPitchDelta{}, mYawDelta{};
+        glm::vec3 mPositionDelta{};
         glm::vec3 mRightDirection {};
+
         CameraMode mCameraMode = CameraMode::NONE;
 
         float mMinFocusDistance = 100.0f;
 
         uint32_t mViewportWidth = 1280, mViewportHeight = 720;
+
+    private:
+        friend class EditorLayer;
     };
 }

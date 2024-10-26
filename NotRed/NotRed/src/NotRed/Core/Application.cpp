@@ -55,8 +55,8 @@ namespace NR
         windowSpec.Fullscreen = specification.Fullscreen;
         mWindow = std::unique_ptr<Window>(Window::Create(windowSpec));
 
-        mWindow->Init();        
-        mWindow->SetEventCallback(BIND_EVENT_FN(OnEvent));
+        mWindow->Init();
+        mWindow->SetEventCallback([this](Event& e) {return OnEvent(e); });
         mWindow->Maximize();
         mWindow->SetVSync(true);
         
@@ -242,8 +242,8 @@ namespace NR
     void Application::OnEvent(Event& event)
     {
         EventDispatcher dispatcher(event);
-        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OnWindowResize));
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClose));
+        dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
+        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
 
         for (auto it = mLayerStack.end(); it != mLayerStack.begin(); )
         {
@@ -257,7 +257,7 @@ namespace NR
 
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {
-        int width = e.GetWidth(), height = e.GetHeight();
+        const uint32_t width = e.GetWidth(), height = e.GetHeight();
         if (width == 0 || height == 0)
         {
             mMinimized = true;

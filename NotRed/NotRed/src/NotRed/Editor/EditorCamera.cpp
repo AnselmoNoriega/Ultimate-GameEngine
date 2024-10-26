@@ -21,7 +21,6 @@ namespace NR
     EditorCamera::EditorCamera(const glm::mat4& projectionMatrix)
         : Camera(projectionMatrix)
     {
-        mRotation = glm::vec3(90.0f, 0.0f, 0.0f);
         mFocalPoint = glm::vec3(0.0f);
 
         glm::vec3 position = { -5, 5, 5 };
@@ -30,128 +29,20 @@ namespace NR
         mYaw = 3.0f * (float)mPI / 4.0f;
         mPitch = mPI / 4.0f;
 
-        UpdateCameraView();
+        mPosition = CalculatePosition();
+        const glm::quat orientation = GetOrientation();
+        mWorldRotation = glm::eulerAngles(orientation) * (180.0f / (float)mPI);
+        mViewMatrix = glm::translate(glm::mat4(1.0f), mPosition) * glm::toMat4(orientation);
+        mViewMatrix = glm::inverse(mViewMatrix);
     }
 
-    void EditorCamera::CalculateYaw(float degrees)
-    {
-        //Check bounds with the max heading rate so that we aren't moving too fast
-        constexpr float maxYawRate = 0.12f;
-
-        degrees = glm::clamp(degrees, -maxYawRate, maxYawRate);
-
-        //This controls how the heading is changed if the camera is pointed straight up or down
-        //The heading delta direction changes
-        if (mPitch > glm::radians(90.0f) && mPitch < glm::radians(270.0f) || mPitch < glm::radians(-90.0f) && mPitch > glm::radians(-270.0f))
-        {
-            mYaw -= degrees;
-        }
-        else
-        {
-            mYaw += degrees;
-        }
-
-        //Check bounds for the camera heading
-        if (mYaw > glm::radians(360.0f))
-        {
-            mYaw -= glm::radians(360.0f);
-        }
-        else if (mYaw < glm::radians(-360.0f))
-        {
-            mYaw += glm::radians(360.0f);
-        }
-    }
-
-    void EditorCamera::CalculatePitch(float degrees)
-    {
-        //Check bounds with the max pitch rate so that we aren't moving too fast
-        constexpr float maxPitchRate = 0.12f;
-
-        degrees = glm::clamp(degrees, -maxPitchRate, maxPitchRate);
-        mPitch += degrees;
-
-        //Check bounds for the camera pitch
-        if (mPitch > glm::radians(360.0f))
-        {
-            mPitch -= glm::radians(360.0f);
-        }
-        else if (mPitch < -glm::radians(360.0f))
-        {
-            mPitch += glm::radians(360.0f);
-        }
-    }
-
-    void EditorCamera::UpdateCameraView()
-    {
-        if (mCameraMode == CameraMode::FLYCAM)
-        {
-            mRotation = glm::normalize(mFocalPoint - mPosition);
-            mRightDirection = glm::cross(mRotation, glm::vec3{ 0.0f, 1.0f, 0.0f });
-            mRotation = glm::rotate(glm::normalize(glm::cross(glm::angleAxis(mPitch, mRightDirection),
-                glm::angleAxis(mYaw, glm::vec3{ 0.0f, 1.0f, 0.0f }))), mRotation);
-
-            mPosition += mCameraPositionDelta;
-
-            //damping for smooth camera
-            mYaw *= 0.5f;
-            mPitch *= 0.5f;
-            mCameraPositionDelta *= 0.8f;
-            mFocalPoint = mPosition + mRotation;
-            mViewMatrix = glm::lookAt(mPosition, mFocalPoint, glm::vec3{ 0.0f, 1.0f, 0.0f });
-        }
-        else
-        {
-            mPosition = CalculatePosition();
-            glm::quat orientation = GetOrientation();
-            mRotation = glm::eulerAngles(orientation) * (180.0f / (float)mPI);
-            mViewMatrix = glm::translate(glm::mat4(1.0f), mPosition) * glm::toMat4(orientation);
-            mViewMatrix = glm::inverse(mViewMatrix);
-        }
-    }
-
-    void EditorCamera::Focus(const glm::vec3& focusPoint)
-    {
-        mFocalPoint = focusPoint;
-        if (mDistance > mMinFocusDistance)
-        {
-            float distance = mDistance - mMinFocusDistance;
-            MouseZoom(distance / ZoomSpeed());
-            UpdateCameraView();
-        }
-    }
-
-    std::pair<float, float> EditorCamera::PanSpeed() const
-    {
-        float x = std::min((float)mViewportWidth / 1000.0f, 2.4f); // max = 2.4f
-        float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
-
-        float y = std::min((float)mViewportHeight / 1000.0f, 2.4f); // max = 2.4f
-        float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
-
-        return { xFactor, yFactor };
-    }
-
-    float EditorCamera::RotationSpeed() const
-    {
-        return 0.8f;
-    }
-
-    float EditorCamera::ZoomSpeed() const
-    {
-        float distance = mDistance * 0.2f;
-        distance = std::max(distance, 0.0f);
-        float speed = distance * distance;
-        speed = std::min(speed, 100.0f); // max speed = 100
-        return speed;
-    }
-
-    void DisableMouse()
+    static void DisableMouse()
     {
         Input::SetCursorMode(CursorMode::Locked);
         UI::SetMouseEnabled(false);
     }
 
-    void EnableMouse()
+    static void EnableMouse()
     {
         Input::SetCursorMode(CursorMode::Normal);
         UI::SetMouseEnabled(true);
@@ -165,10 +56,50 @@ namespace NR
 
         if (mIsActive)
         {
-            mCameraMode = CameraMode::ARCBALL;
-            if (Input::IsKeyPressed(KeyCode::LeftAlt))
+            if (Input::IsMouseButtonPressed(MouseButton::Right) && !Input::IsKeyPressed(KeyCode::LeftAlt))
+            {
+                mCameraMode = CameraMode::FLYCAM;
+                DisableMouse();
+                const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+
+                if (Input::IsKeyPressed(KeyCode::Q))
+                {
+                    mPositionDelta -= dt * mSpeed * glm::vec3{ 0.f, yawSign, 0.f };
+                }
+                if (Input::IsKeyPressed(KeyCode::E))
+                {
+                    mPositionDelta += dt * mSpeed * glm::vec3{ 0.f, yawSign, 0.f };
+                }
+                if (Input::IsKeyPressed(KeyCode::S))
+                {
+                    mPositionDelta -= dt * mSpeed * mWorldRotation;
+                }
+                if (Input::IsKeyPressed(KeyCode::W))
+                {
+                    mPositionDelta += dt * mSpeed * mWorldRotation;
+                }
+                if (Input::IsKeyPressed(KeyCode::A))
+                {
+                    mPositionDelta -= dt * mSpeed * mRightDirection;
+                }
+                if (Input::IsKeyPressed(KeyCode::D))
+                {
+                    mPositionDelta += dt * mSpeed * mRightDirection;
+                }
+
+                constexpr float maxRate{ 0.12f };
+
+                mYawDelta += glm::clamp(yawSign * delta.x, -maxRate, maxRate);
+                mPitchDelta += glm::clamp(delta.y, -maxRate, maxRate);
+
+                mRightDirection = glm::cross(mWorldRotation, glm::vec3{ 0.f, yawSign, 0.f });
+                mWorldRotation = glm::rotate(glm::normalize(glm::cross(glm::angleAxis(-mPitchDelta, mRightDirection),
+                    glm::angleAxis(-mYawDelta, glm::vec3{ 0.f, yawSign, 0.f }))), mWorldRotation);
+            }
+            else if (Input::IsKeyPressed(KeyCode::LeftAlt))
             {
                 mCameraMode = CameraMode::ARCBALL;
+
                 if (Input::IsMouseButtonPressed(MouseButton::Middle))
                 {
                     DisableMouse();
@@ -189,38 +120,6 @@ namespace NR
                     EnableMouse();
                 }
             }
-            else if (Input::IsMouseButtonPressed(MouseButton::Right))
-            {
-                mCameraMode = CameraMode::FLYCAM;
-                DisableMouse();
-
-                if (Input::IsKeyPressed(KeyCode::Q))
-                {
-                    mCameraPositionDelta -= dt * mSpeed * glm::vec3{ 0.0f, 1.0f, 0.0f };
-                }
-                if (Input::IsKeyPressed(KeyCode::E))
-                {
-                    mCameraPositionDelta += dt * mSpeed * glm::vec3{ 0.0f, 1.0f, 0.0f };
-                }
-                if (Input::IsKeyPressed(KeyCode::S))
-                {
-                    mCameraPositionDelta -= dt * mSpeed * mRotation;
-                }
-                if (Input::IsKeyPressed(KeyCode::W))
-                {
-                    mCameraPositionDelta += dt * mSpeed * mRotation;
-                }
-                if (Input::IsKeyPressed(KeyCode::A))
-                {
-                    mCameraPositionDelta -= dt * mSpeed * mRightDirection;
-                }
-                if (Input::IsKeyPressed(KeyCode::D))
-                {
-                    mCameraPositionDelta += dt * mSpeed * mRightDirection;
-                }
-                CalculateYaw(-delta.x);
-                CalculatePitch(-delta.y);
-            }
             else
             {
                 EnableMouse();
@@ -229,31 +128,101 @@ namespace NR
 
         mInitialMousePosition = mouse;
 
+        mPosition += mPositionDelta;
+        mYaw += mYawDelta;
+        mPitch += mPitchDelta;
+
+        if (mCameraMode == CameraMode::ARCBALL)
+        {
+            mPosition = CalculatePosition();
+        }
+
         UpdateCameraView();
     }
+    
+	void EditorCamera::UpdateCameraView()
+	{
+		const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
 
-    void EditorCamera::OnEvent(Event& e)
+		// Extra step to handle the problem when the camera direction is the same as the up vector
+		const float cosAngle = glm::dot(GetForwardDirection(), GetUpDirection());
+		if (cosAngle * yawSign > 0.99f)
+        {
+            mPitchDelta = 0.f;
+        }
+
+		const glm::vec3 lookAt = mPosition + GetForwardDirection();
+		mWorldRotation = glm::normalize(mFocalPoint - mPosition);
+
+		mFocalPoint = mPosition + GetForwardDirection() * mDistance;
+		mDistance = glm::distance(mPosition, mFocalPoint);
+		mViewMatrix = glm::lookAt(mPosition, lookAt, glm::vec3{ 0.f, yawSign, 0.f });
+		
+		//damping for smooth camera
+		mYawDelta *= 0.6f;
+		mPitchDelta *= 0.6f;
+		mPositionDelta *= 0.8f;
+    }
+
+
+    void EditorCamera::Focus(const glm::vec3& focusPoint)
     {
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<MouseScrolledEvent>(NR_BIND_EVENT_FN(EditorCamera::OnMouseScroll));
-        dispatcher.Dispatch<KeyReleasedEvent>(NR_BIND_EVENT_FN(EditorCamera::OnKeyReleased));
-        dispatcher.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorCamera::OnKeyPressed));
+        mFocalPoint = focusPoint;
+        if (mDistance > mMinFocusDistance)
+        {
+            const float distance = mDistance - mMinFocusDistance;
+            MouseZoom(distance / ZoomSpeed());
+            mCameraMode = CameraMode::ARCBALL;
+            UpdateCameraView();
+        }
+    }
+
+    std::pair<float, float> EditorCamera::PanSpeed() const
+    {
+        const float x = std::min(float(mViewportWidth) / 1000.0f, 2.4f); // max = 2.4f
+        const float xFactor = 0.0366f * (x * x) - 0.1778f * x + 0.3021f;
+        const float y = std::min(float(mViewportHeight) / 1000.0f, 2.4f); // max = 2.4f
+        const float yFactor = 0.0366f * (y * y) - 0.1778f * y + 0.3021f;
+
+        return { xFactor, yFactor };
+    }
+
+    float EditorCamera::RotationSpeed() const
+    {
+        return 0.8f;
+    }
+
+    float EditorCamera::ZoomSpeed() const
+    {
+        float distance = mDistance * 0.2f;
+        distance = std::max(distance, 0.0f);
+        float speed = distance * distance;
+        speed = std::min(speed, 100.0f); // max speed = 100
+        return speed;
+    }
+
+    void EditorCamera::OnEvent(Event& event)
+    {
+        EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& e) { return OnMouseScroll(e); });
+        dispatcher.Dispatch<KeyReleasedEvent>([this](KeyReleasedEvent& e) { return OnKeyReleased(e); });
+        dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return OnKeyPressed(e); });
     }
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
     {
-		if (mCameraMode == CameraMode::ARCBALL)
-		{
-			MouseZoom(e.GetYOffset() * 0.1f);
-			UpdateCameraView();
-		}
-		else if (Input::IsMouseButtonPressed(MouseButton::Right))
-		{
-			e.GetYOffset() > 0 ? mSpeed += 0.3f * mSpeed : mSpeed -= 0.3f * mSpeed;
-			mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
-		}
+        if (Input::IsMouseButtonPressed(MouseButton::Right))
+        {
+            e.GetYOffset() > 0 ? mSpeed += 0.3f * mSpeed : mSpeed -= 0.3f * mSpeed;
+            mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
+        }
+        else
+        {
+            MouseZoom(e.GetYOffset() * 0.1f);
+            UpdateCameraView();
+        }
 
-		return false;
+        return false;
     }
 
     bool EditorCamera::OnKeyPressed(KeyPressedEvent& e)
@@ -298,43 +267,45 @@ namespace NR
 
     void EditorCamera::MouseRotate(const glm::vec2& delta)
     {
-        float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-        mYaw += yawSign * delta.x * RotationSpeed();
-        mPitch += delta.y * RotationSpeed();
+        const float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
+        mYawDelta += yawSign * delta.x * RotationSpeed();
+        mPitchDelta += delta.y * RotationSpeed();
     }
 
     void EditorCamera::MouseZoom(float delta)
     {
         mDistance -= delta * ZoomSpeed();
+        const glm::vec3 forwardDir = GetForwardDirection();
+
         if (mDistance < 1.0f)
         {
-            mFocalPoint += GetForwardDirection();
+            mFocalPoint += forwardDir;
             mDistance = 1.0f;
         }
     }
 
-    glm::vec3 EditorCamera::GetUpDirection()
+    glm::vec3 EditorCamera::GetUpDirection() const
     {
         return glm::rotate(GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
     }
 
-    glm::vec3 EditorCamera::GetRightDirection()
+    glm::vec3 EditorCamera::GetRightDirection() const
     {
-        return glm::rotate(GetOrientation(), glm::vec3(1.0f, 0.0f, 0.0f));
+        return glm::rotate(GetOrientation(), glm::vec3(1.f, 0.f, 0.f));
     }
 
-    glm::vec3 EditorCamera::GetForwardDirection()
+    glm::vec3 EditorCamera::GetForwardDirection() const
     {
         return glm::rotate(GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
     }
 
-    glm::vec3 EditorCamera::CalculatePosition()
+    glm::vec3 EditorCamera::CalculatePosition() const
     {
-        return mFocalPoint - GetForwardDirection() * mDistance;
+        return mFocalPoint - GetForwardDirection() * mDistance + mPositionDelta;
     }
 
     glm::quat EditorCamera::GetOrientation() const
     {
-        return glm::quat(glm::vec3(-mPitch, -mYaw, 0.0f));
+        return glm::quat(glm::vec3(-mPitch - mPitchDelta, -mYaw - mYawDelta, 0.0f));
     }
 }
