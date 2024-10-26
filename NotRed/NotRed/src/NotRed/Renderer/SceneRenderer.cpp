@@ -1010,16 +1010,28 @@ namespace NR
 
     void SceneRenderer::HBAOPass()
     {
+        if (!mOptions.EnableHBAO)
+        {
+            Renderer::ClearImage(mCommandBuffer, mHBAOOutputImage);
+            return;
+        }
+
         mHBAOMaterial->Set("uLinearDepthTexArray", mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
         mHBAOMaterial->Set("uViewNormalsTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(1));
         mHBAOMaterial->Set("uViewPositionTex", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(2));
-        mHBAOMaterial->Set("outputTexture", mHBAOOutputImage);
+        mHBAOMaterial->Set("outColor", mHBAOOutputImage);
 
         Renderer::DispatchComputeShader(mCommandBuffer, mHBAOPipeline, mUniformBufferSet, nullptr, mHBAOMaterial, mHBAOWorkGroups);
     }
 
     void SceneRenderer::ReinterleavingPass()
     {
+        if (!mOptions.EnableHBAO)
+        {
+            ClearPass(mReinterleavingPipeline->GetSpecification().RenderPass);
+            return;
+        }
+
         Renderer::BeginRenderPass(mCommandBuffer, mReinterleavingPipeline->GetSpecification().RenderPass, "Reinterleaving");
 
         mReinterleavingMaterial->Set("uTexResultsArray", mHBAOOutputImage);
@@ -1030,6 +1042,12 @@ namespace NR
 
     void SceneRenderer::HBAOBlurPass()
     {
+        if (!mOptions.EnableHBAO)
+        {
+            ClearPass(mHBAOBlurPipelines[0]->GetSpecification().RenderPass);
+            return;
+        }
+
         {
             Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[0]->GetSpecification().RenderPass, "HBAOBlur");
 
@@ -1189,7 +1207,7 @@ namespace NR
         else
         {
             mCommandBuffer->Begin();
-            ClearPass();
+            ClearPass(mCompositePipeline->GetSpecification().RenderPass, true);
             mCommandBuffer->End();
             mCommandBuffer->Submit();
         }
@@ -1201,11 +1219,11 @@ namespace NR
         mSceneData = {};
     }
 
-    void SceneRenderer::ClearPass()
+    void SceneRenderer::ClearPass(Ref<RenderPass> renderPass, const bool explicitClear) const
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, "Clear Pass", true);
+        Renderer::BeginRenderPass(mCommandBuffer, renderPass, "", explicitClear);
         Renderer::EndRenderPass(mCommandBuffer);
     }
 

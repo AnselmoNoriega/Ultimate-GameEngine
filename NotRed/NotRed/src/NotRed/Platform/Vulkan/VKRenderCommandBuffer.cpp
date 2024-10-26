@@ -1,12 +1,14 @@
 #include "NRpch.h"
 #include "VKRenderCommandBuffer.h"
 
+#include <utility>
+
 #include "NotRed/Platform/Vulkan/VKContext.h"
 
 namespace NR
 {
-	VKRenderCommandBuffer::VKRenderCommandBuffer(uint32_t count, const std::string& debugName)
-		: mDebugName(debugName)
+	VKRenderCommandBuffer::VKRenderCommandBuffer(uint32_t count, std::string debugName)
+		: mDebugName(std::move(debugName))
 	{
 		auto device = VKContext::GetCurrentDevice();
 
@@ -43,8 +45,8 @@ namespace NR
 		}
 	}
 
-	VKRenderCommandBuffer::VKRenderCommandBuffer(const std::string& debugName, bool swapchain)
-		: mOwnedBySwapChain(true), mDebugName(debugName)
+	VKRenderCommandBuffer::VKRenderCommandBuffer(std::string debugName, bool swapchain)
+		: mDebugName(std::move(debugName)), mOwnedBySwapChain(true)
 	{
 		uint32_t frames = Renderer::GetConfig().FramesInFlight;
 		mCommandBuffers.resize(frames);

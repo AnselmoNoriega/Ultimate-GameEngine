@@ -94,7 +94,7 @@ namespace NR
 
 	private:
 		void FlushDrawList();
-		void ClearPass();
+		void ClearPass(Ref<RenderPass> renderPass, bool explicitClear = false) const;
 		void DeinterleavingPass();
 		void HBAOPass();
 		void ReinterleavingPass();

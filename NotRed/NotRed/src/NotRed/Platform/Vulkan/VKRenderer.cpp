@@ -581,6 +581,21 @@ namespace NR
             });
     }
 
+    void VKRenderer::ClearImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Image2D> image)
+    {
+        Renderer::Submit([commandBuffer, image = image.As<VKImage2D>()]
+            {
+                const auto vulkanCommandBuffer = commandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex());
+                VkImageSubresourceRange subresourceRange{};
+                subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                subresourceRange.baseMipLevel = 0;
+                subresourceRange.levelCount = image->GetSpecification().Mips;
+                subresourceRange.layerCount = image->GetSpecification().Layers;
+                VkClearColorValue clearColor{ 0.f, 0.f, 0.f, 0.f };
+                vkCmdClearColorImage(vulkanCommandBuffer, image->GetImageInfo().Image, image->GetSpecification().Usage == ImageUsage::Storage ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, &clearColor, 1, &subresourceRange);
+            });
+    }
+
     void VKRenderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
     {
         auto vulkanMaterial = material.As<VKMaterial>();
@@ -817,11 +832,11 @@ namespace NR
     {
     }
 
-    void VKRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass, const std::string& debugName, bool explicitClear)
+    void VKRenderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, const Ref<RenderPass>& renderPass, bool explicitClear)
     {
-        Renderer::Submit([renderCommandBuffer, renderPass, explicitClear, debugName]()
+        Renderer::Submit([renderCommandBuffer, renderPass, explicitClear]()
             {
-                NR_PROFILE_FUNC(fmt::format("VulkanRenderer::BeginRenderPass ({})", debugName).c_str());
+                NR_PROFILE_FUNC(fmt::format("VulkanRenderer::BeginRenderPass ({})", renderPass->GetSpecification().DebugName).c_str());
 
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);

@@ -9,9 +9,9 @@ namespace NR
 	class VKRenderCommandBuffer : public RenderCommandBuffer
 	{
 	public:
-		VKRenderCommandBuffer(uint32_t count = 0, const std::string& debugName = "");
-		VKRenderCommandBuffer(const std::string& debugName, bool swapchain);
-		~VKRenderCommandBuffer();
+		VKRenderCommandBuffer(uint32_t count = 0, std::string debugName = "");
+		VKRenderCommandBuffer(std::string debugName, bool swapchain);
+		~VKRenderCommandBuffer() override;
 
 		void Begin() override;
 		void End() override;

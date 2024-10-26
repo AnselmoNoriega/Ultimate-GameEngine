@@ -106,6 +106,7 @@ namespace NR
         static void SubmitFullscreenQuadWithOverrides(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Buffer vertexShaderOverrides, Buffer fragmentShaderOverrides);
 
         static void DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups);
+        static void ClearImage(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Image2D> image);
 
         static Ref<Texture2D> GetWhiteTexture();
         static Ref<Texture2D> GetBRDFLutTexture();

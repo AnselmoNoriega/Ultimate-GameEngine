@@ -144,8 +144,8 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Deinterleaving");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Reinterleaving");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur", true);
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur2", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur2");
 		
 		// Renderer2D Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
@@ -215,7 +215,7 @@ namespace NR
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 
-        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass, debugName, explicitClear);
+        sRendererAPI->BeginRenderPass(renderCommandBuffer, renderPass, explicitClear);
     }
 
     void Renderer::EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer)
@@ -251,6 +251,11 @@ namespace NR
     void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
     {
         sRendererAPI->DispatchComputeShader(renderCommandBuffer, computePipeline, uniformBufferSet, storageBufferSet, material, workGroups);
+    }
+
+    void Renderer::ClearImage(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Image2D> image)
+    {
+        sRendererAPI->ClearImage(renderCommandBuffer, image);
     }
 
     Ref<TextureCube> Renderer::CreatePreethamSky(float turbidity, float azimuth, float inclination)
