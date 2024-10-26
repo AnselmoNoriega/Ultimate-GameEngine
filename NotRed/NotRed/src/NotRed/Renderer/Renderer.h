@@ -80,7 +80,7 @@ namespace NR
 
         static void WaitAndRender();
 
-        static void BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, const std::string& debugName, bool explicitClear = false);
+        static void BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool explicitClear = false);
         static void EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer);
 
         static void BeginFrame();

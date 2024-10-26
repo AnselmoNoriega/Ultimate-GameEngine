@@ -211,7 +211,7 @@ namespace NR
         sCommandQueue->Execute();
     }
 
-    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, const std::string& debugName, bool explicitClear)
+    void Renderer::BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool explicitClear)
     {
         NR_CORE_ASSERT(renderPass, "Render pass cannot be null!");
 

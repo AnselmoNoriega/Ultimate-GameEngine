@@ -633,10 +633,11 @@ namespace NR
         {
             mNeedsResize = false;
 
+            mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+            
             const uint32_t quarterWidth = mViewportWidth / 4;
             const uint32_t quarterHeight = mViewportHeight / 4;
 
-            mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
             mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
 
@@ -866,15 +867,14 @@ namespace NR
             for (int i = 0; i < 4; ++i)
             {
                 // Clear shadow maps
-                Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass, "Shadow pass clear");
-                Renderer::EndRenderPass(mCommandBuffer);
+                ClearPass(mShadowPassPipelines[i]->GetSpecification().RenderPass);
             }
             return;
         }
 
         for (int i = 0; i < 4; ++i)
         {
-            Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass, "Shadow Pass");
+            Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass);
 
             // Render entities
             const Buffer cascade(&i, sizeof(uint32_t));
@@ -889,7 +889,7 @@ namespace NR
     void SceneRenderer::PreDepthPass()
     {
         // PreDepth Pass, used for light culling
-        Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass, "PreDepth");
+        Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
 
         for (auto& dc : mDrawList)
         {
@@ -916,14 +916,14 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass, "Selected Geometry");
+        Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
         for (auto& dc : mSelectedMeshDrawList)
         {
             Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
         }
         Renderer::EndRenderPass(mCommandBuffer);
 
-        Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass, "Geometry");
+        Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass);
 
         // Skybox
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSceneData.SkyboxLod);
@@ -989,8 +989,7 @@ namespace NR
             for (int i = 0; i < 2; ++i)
             {
                 // Clear shadow maps
-                Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass, "Deinterleaving Clear");
-                Renderer::EndRenderPass(mCommandBuffer);
+                ClearPass(mDeinterleavingPipelines[i]->GetSpecification().RenderPass);
             }
             return;
         }
@@ -1002,7 +1001,7 @@ namespace NR
             mDeinterleavingMaterial->Set("uInfo.UVOffset", glm::vec2{ float(i % 4) + 0.5f, float(i / 4) + 0.5f });
 
             mDeinterleavingMaterial->Set("uInfo.UVOffset", offsets[i]);
-            Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass, fmt::format("Deinterleaving#{}", i));
+            Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass);
             Renderer::SubmitFullscreenQuad(mCommandBuffer, mDeinterleavingPipelines[i], mUniformBufferSet, nullptr, mDeinterleavingMaterial);
             Renderer::EndRenderPass(mCommandBuffer);
         }
@@ -1032,7 +1031,7 @@ namespace NR
             return;
         }
 
-        Renderer::BeginRenderPass(mCommandBuffer, mReinterleavingPipeline->GetSpecification().RenderPass, "Reinterleaving");
+        Renderer::BeginRenderPass(mCommandBuffer, mReinterleavingPipeline->GetSpecification().RenderPass);
 
         mReinterleavingMaterial->Set("uTexResultsArray", mHBAOOutputImage);
 
@@ -1049,7 +1048,7 @@ namespace NR
         }
 
         {
-            Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[0]->GetSpecification().RenderPass, "HBAOBlur");
+            Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[0]->GetSpecification().RenderPass);
 
             mHBAOBlurMaterials[0]->Set("uInfo.InvResDirection", glm::vec2{ mInvViewportWidth, 0.0f });
             mHBAOBlurMaterials[0]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
@@ -1060,7 +1059,7 @@ namespace NR
         }
 
         {
-            Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[1]->GetSpecification().RenderPass, "HBAOBlur2");
+            Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[1]->GetSpecification().RenderPass);
 
             mHBAOBlurMaterials[1]->Set("uInfo.InvResDirection", glm::vec2{ 0.0f, mInvViewportHeight });
             mHBAOBlurMaterials[1]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
@@ -1075,7 +1074,7 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, "Composite", true);
+        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
 
         auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
         const float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();
@@ -1094,7 +1093,7 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass, "Jump Flood Init");
+        Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass);
 
         auto frameBuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
         mJumpFloodInitMaterial->Set("uTexture", frameBuffer->GetImage());
@@ -1119,7 +1118,7 @@ namespace NR
         {
             vertexOverrides.Write(&step, sizeof(int), sizeof(glm::vec2));
 
-            Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodPassPipeline[index]->GetSpecification().RenderPass, "Jump Flood");
+            Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodPassPipeline[index]->GetSpecification().RenderPass);
             Renderer::SubmitFullscreenQuadWithOverrides(mCommandBuffer, mJumpFloodPassPipeline[index], nullptr, mJumpFloodPassMaterial[index], vertexOverrides, Buffer());
             Renderer::EndRenderPass(mCommandBuffer);
 
@@ -1223,7 +1222,7 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
-        Renderer::BeginRenderPass(mCommandBuffer, renderPass, "", explicitClear);
+        Renderer::BeginRenderPass(mCommandBuffer, renderPass, explicitClear);
         Renderer::EndRenderPass(mCommandBuffer);
     }
 
