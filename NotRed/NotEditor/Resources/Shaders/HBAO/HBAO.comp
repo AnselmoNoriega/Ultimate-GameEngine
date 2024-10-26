@@ -1,12 +1,11 @@
+// References:
+// - Implementation mostly adapted from https://github.com/bcrusco/Forward-Plus-Renderer
+//
 #version 450
-
-#define AO_RANDOMTEX_SIZE 4
-
-layout(binding = 19, rgba16f) restrict writeonly uniform image2DArray outputTexture;
 
 layout(std140, binding = 18) uniform HBAOData
 {
-	vec4	uPerspectiveInfo;   // R = (x) * (R - L)/N \\\\\\ G = (y) * (T - B)/N \\\\\\ B =  L/N \\\\\\ A =  B/N
+	vec4	uPerspectiveInfo;   // R = (x) * (R - L)/N ||| G = (y) * (T - B)/N ||| B =  L/N ||| A =  B/N
 	vec2    uInvQuarterResolution;
 	float   uRadiusToScreen;        // radius
 	float   uNegInvR2;     // radius * radius
@@ -21,6 +20,7 @@ layout(std140, binding = 18) uniform HBAOData
 layout(binding = 0) uniform sampler2DArray uLinearDepthTexArray;
 layout(binding = 1) uniform sampler2D uViewNormalsTex;
 layout(binding = 2) uniform sampler2D uViewPositionTex;
+layout(binding = 19, rg16f) restrict writeonly uniform image2DArray outColor;
 
 // The pragma below is critical for optimal performance
 // in this fragment shader to let the shader compiler
@@ -31,6 +31,7 @@ layout(binding = 2) uniform sampler2D uViewPositionTex;
 
 
 #define M_PI 3.14159265f
+#define AO_RANDOMTEX_SIZE 4
 
 // tweakables
 const float  NUM_STEPS = 4;
@@ -154,7 +155,6 @@ void main()
 	float AO = ComputeCoarseAO(uv, radiusPixels, rand, viewPosition, viewNormal);
 
 	//out_Color = vec4(pow(AO, uPowExponent), ViewPosition.z, 0, 1);
-	imageStore(outputTexture, ivec3(gl_GlobalInvocationID), vec4(pow(AO, uPowExponent), viewPosition.z, 0, 1));
-
+	imageStore(outColor, ivec3(gl_GlobalInvocationID), vec4(pow(AO, uPowExponent), viewPosition.z, 0.0, 1.0));
 }
 

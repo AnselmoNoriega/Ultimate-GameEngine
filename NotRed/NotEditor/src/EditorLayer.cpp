@@ -87,6 +87,8 @@ namespace NR
         mSelectionContext.clear();
 
         mSceneState = SceneState::Play;
+        UI::SetMouseEnabled(true);
+        Input::SetCursorMode(CursorMode::Normal);
 
         if (mReloadScriptOnPlay)
         {
@@ -105,6 +107,8 @@ namespace NR
     {
         mRuntimeScene->RuntimeStop();
         mSceneState = SceneState::Edit;
+        Input::SetCursorMode(CursorMode::Normal);
+        UI::SetMouseEnabled(true);
 
         mRuntimeScene = nullptr;
 
@@ -176,13 +180,18 @@ namespace NR
         }
         case SceneState::Play:
         {
+            mEditorCamera.SetActive(false);
+            UI::SetMouseEnabled(true);
+
             mRuntimeScene->Update(dt);
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);
             break;
         }
         case SceneState::Pause:
         {
-            mEditorCamera.SetActive(mViewportPanelMouseOver);
+            mEditorCamera.SetActive(true);
+            UI::SetMouseEnabled(true);
+
             mEditorCamera.Update(dt);
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);
             break;
@@ -1629,8 +1638,8 @@ namespace NR
         }
 
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::OnKeyPressedEvent));
-        dispatcher.Dispatch<MouseButtonPressedEvent>(NR_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
+        dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) { return OnKeyPressedEvent(event); });
+        dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& event) { return OnMouseButtonPressed(event); });
 
         AssetEditorPanel::OnEvent(e);
     }

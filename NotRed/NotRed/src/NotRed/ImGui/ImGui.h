@@ -23,6 +23,23 @@ namespace NR::UI
 	static uint32_t sCounter = 0;
 	static char sIDBuffer[16];
 
+	static bool IsMouseEnabled()
+	{
+		return ImGui::GetIO().ConfigFlags & ~ImGuiConfigFlags_NoMouse;
+	}
+
+	static void SetMouseEnabled(const bool enable)
+	{
+		if (enable)
+		{
+			ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+		}
+		else
+		{
+			ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+		}
+	}
+
 	static void PushID()
 	{
 		ImGui::PushID(sUIContextID++);

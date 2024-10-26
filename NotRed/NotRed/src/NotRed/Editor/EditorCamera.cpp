@@ -8,6 +8,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include <imgui.h>
+#include "NotRed/ImGui/ImGui.h"
 
 #include "NotRed/Core/Application.h"
 
@@ -146,16 +147,14 @@ namespace NR
 
     void DisableMouse()
     {
-        glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
+        Input::SetCursorMode(CursorMode::Locked);
+        UI::SetMouseEnabled(false);
     }
 
     void EnableMouse()
     {
-        glfwSetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        Input::SetCursorMode(CursorMode::Normal);
+        UI::SetMouseEnabled(true);
     }
 
     void EditorCamera::Update(float dt)

@@ -34,7 +34,7 @@ namespace NR
 
 	public:
 		EditorLayer();
-		~EditorLayer();
+		~EditorLayer() override;
 
 		void Attach() override;
 		void Detach() override;
