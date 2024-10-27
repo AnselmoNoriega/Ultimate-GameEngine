@@ -476,7 +476,7 @@ namespace NR
 
 		auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
 		renderer->SetScene(this);
-		renderer->BeginScene({ camera, cameraViewMatrix });
+		renderer->BeginScene({ camera, cameraViewMatrix, 0.1f, 1000.0f, 45.0f });
 		for (auto entity : group)
 		{
 			auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
@@ -1307,6 +1307,7 @@ namespace NR
 			auto& comp = view.get<CameraComponent>(entity);
 			if (comp.Primary)
 			{
+				NR_CORE_ASSERT(comp.CameraObj.GetOrthographicSize() || comp.CameraObj.GetPerspectiveVerticalFOV(), "Camera is not fully initialized");
 				return { entity, this };
 			}
 		}

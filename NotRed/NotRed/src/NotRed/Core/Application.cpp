@@ -98,6 +98,8 @@ namespace NR
         }
         Renderer::Shutdown();
 
+        Project::SetActive(nullptr);
+
         delete mProfiler;
         mProfiler = nullptr;
     }

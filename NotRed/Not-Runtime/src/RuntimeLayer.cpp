@@ -67,12 +67,6 @@ namespace NR
 		mRuntimeScene->RenderRuntime(mSceneRenderer, dt);
 	}
 
-	void RuntimeLayer::ShowBoundingBoxes(bool show, bool onTop)
-	{
-		mSceneRenderer->GetOptions().ShowBoundingBoxes = show && !onTop;
-		mDrawOnTopBoundingBoxes = show && onTop;
-	}
-
 	void RuntimeLayer::OpenProject(const std::string& filepath)
 	{
 		Ref<Project> project = Ref<Project>::Create();

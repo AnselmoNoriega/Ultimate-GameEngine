@@ -16,7 +16,10 @@ namespace NR
 	void Project::SetActive(Ref<Project> project)
 	{
 		sActiveProject = project;
-		AssetManager::Init();
+		if (sActiveProject) 
+		{
+			AssetManager::Init();
+		}
 	}
 
 	void Project::Deserialized()

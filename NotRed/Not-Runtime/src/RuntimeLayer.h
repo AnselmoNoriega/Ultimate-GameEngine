@@ -36,8 +36,6 @@ namespace NR
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-		void ShowBoundingBoxes(bool show, bool onTop = false);
-
 		void OpenProject(const std::string& filepath);
 		void OpenScene(const std::string& filepath);
 

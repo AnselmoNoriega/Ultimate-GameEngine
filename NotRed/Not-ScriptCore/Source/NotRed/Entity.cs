@@ -96,6 +96,12 @@ namespace NR
         public Entity FindEntityByTag(string tag)
         {
             ulong entityID = FindEntityByTag_Native(tag);
+            
+            if (entityID == 0)
+            {
+                return null;
+            }
+
             return new Entity(entityID);
         }
 

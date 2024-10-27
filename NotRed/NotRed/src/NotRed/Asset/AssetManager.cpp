@@ -345,23 +345,36 @@ namespace NR
 
     void AssetManager::WriteRegistryToFile()
     {
-        YAML::Emitter out;
-        out << YAML::BeginMap;
+        // Sort assets by UUID to make project managment easier
+        struct AssetRegistryEntry
+        {
+            std::string FilePath;
+            AssetType Type;
+        };
+        std::map<UUID, AssetRegistryEntry> sortedMap;
 
-        out << YAML::Key << "Assets" << YAML::BeginSeq;
         for (auto& [filepath, metadata] : sAssetRegistry)
         {
             std::string pathToSerialize = metadata.FilePath.string();
 
             std::replace(pathToSerialize.begin(), pathToSerialize.end(), '\\', '/');
+            sortedMap[metadata.Handle] = { pathToSerialize, metadata.Type };
             NR_CORE_ASSERT(pathToSerialize.find("Sandbox") == std::string::npos);
+        }
 
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Assets" << YAML::BeginSeq;
+
+        for (auto& [handle, entry] : sortedMap)
+        {
             out << YAML::BeginMap;
-            out << YAML::Key << "Handle" << YAML::Value << metadata.Handle;
-            out << YAML::Key << "FilePath" << YAML::Value << pathToSerialize;
-            out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(metadata.Type);
+            out << YAML::Key << "Handle" << YAML::Value << handle;
+            out << YAML::Key << "FilePath" << YAML::Value << entry.FilePath;
+            out << YAML::Key << "Type" << YAML::Value << Utils::AssetTypeToString(entry.Type);
             out << YAML::EndMap;
         }
+
         out << YAML::EndSeq;
         out << YAML::EndMap;
 

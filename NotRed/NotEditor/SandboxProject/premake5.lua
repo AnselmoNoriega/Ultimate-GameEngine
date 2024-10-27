@@ -22,7 +22,7 @@ project "Not-ScriptCore"
 	kind "SharedLib"
 	language "C#"
 
-	targetdir ("%{RootDirectory}NotEditor/Resources/Scripts")
+	targetdir ("%{prj.location}/Binaries")
 	objdir ("%{RootDirectory}NotEditor/Resources/Scripts/Intermediates")
 
 	files 

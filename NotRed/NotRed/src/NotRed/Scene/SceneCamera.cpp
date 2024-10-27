@@ -5,14 +5,6 @@
 
 namespace NR
 {
-    SceneCamera::SceneCamera()
-    {
-    }
-
-    SceneCamera::~SceneCamera()
-    {
-    }
-
     void SceneCamera::SetPerspective(float verticalFOV, float nearClip, float farClip)
     {
         mProjectionType = ProjectionType::Perspective;

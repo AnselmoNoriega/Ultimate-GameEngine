@@ -46,7 +46,6 @@ namespace NR
         VkDescriptorSet ActiveRendererDescriptorSet = nullptr;
         std::vector<VkDescriptorPool> DescriptorPools;
         std::vector<uint32_t> DescriptorPoolAllocationCount;
-        VkQueryPool QueryPool;
 
         std::unordered_map<UniformBufferSet*, std::unordered_map<uint64_t, std::vector<std::vector<VkWriteDescriptorSet>>>> UniformBufferWriteDescriptorCache;
         std::unordered_map<StorageBufferSet*, std::unordered_map<uint64_t, std::vector<std::vector<VkWriteDescriptorSet>>>> StorageBufferWriteDescriptorCache;
@@ -120,13 +119,6 @@ namespace NR
                     VK_CHECK_RESULT(vkCreateDescriptorPool(device, &pool_info, nullptr, &sData->DescriptorPools[i]));
                     sData->DescriptorPoolAllocationCount[i] = 0;
                 }
-
-                VkQueryPoolCreateInfo createInfo = {};
-                createInfo.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
-                createInfo.pNext = nullptr;
-                createInfo.queryType = VK_QUERY_TYPE_TIMESTAMP;
-                createInfo.queryCount = 2;
-                VK_CHECK_RESULT(vkCreateQueryPool(device, &createInfo, nullptr, &sData->QueryPool));
             });
 
         float x = -1;
@@ -1004,8 +996,6 @@ namespace NR
                 scissor.offset.x = 0;
                 scissor.offset.y = 0;
                 vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-                vkCmdResetQueryPool(commandBuffer, sData->QueryPool, 0, 2);
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, sData->QueryPool, 0);
             });
     }
 
@@ -1018,8 +1008,6 @@ namespace NR
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
                 vkCmdEndRenderPass(commandBuffer);
-                
-                vkCmdWriteTimestamp(commandBuffer, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, sData->QueryPool, 1);
             });
     }
 

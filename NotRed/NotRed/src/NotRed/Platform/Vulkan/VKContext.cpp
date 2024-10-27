@@ -126,6 +126,7 @@ namespace NR
 		enabledFeatures.samplerAnisotropy = true;
 		enabledFeatures.wideLines = true;
 		enabledFeatures.fillModeNonSolid = true;
+		enabledFeatures.pipelineStatisticsQuery = true;
 		mDevice = Ref<VKDevice>::Create(mPhysicalDevice, enabledFeatures);
 
 		VKAllocator::Init(mDevice);

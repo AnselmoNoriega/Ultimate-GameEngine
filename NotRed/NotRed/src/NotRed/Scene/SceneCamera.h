@@ -14,10 +14,10 @@ namespace NR
 		};
 
 	public:
-		SceneCamera();
-		virtual ~SceneCamera();
+		SceneCamera() = default;
+		~SceneCamera() override = default;
 
-		void SetPerspective(float verticalFOV, float nearClip = 0.01f, float farClip = 10000.0f);
+		void SetPerspective(float verticalFOV, float nearClip = 0.01f, float farClip = 1000.0f);
 		void SetOrthographic(float size, float nearClip = -1.0f, float farClip = 1.0f);
 		void SetViewportSize(uint32_t width, uint32_t height);
 
