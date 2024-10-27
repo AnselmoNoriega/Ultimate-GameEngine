@@ -144,6 +144,7 @@ namespace NR
                 {
                     for (size_t i = 0; i < colorAttachmentCount; ++i)
                     {
+                        blendAttachmentStates[i].colorWriteMask = 0xf;
                         if (!frameBuffer->GetSpecification().Blend)
                         {
                             break;

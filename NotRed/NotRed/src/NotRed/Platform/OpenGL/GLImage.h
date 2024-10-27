@@ -36,6 +36,7 @@ namespace NR
 
         RendererID& GetSamplerRendererID() { return mSamplerRendererID; }
         RendererID GetSamplerRendererID() const { return mSamplerRendererID; }
+        float GetAspectRatio() const override { return (float)mSpecification.Width / (float)mSpecification.Height; }
 
     private:
         RendererID mID = 0;

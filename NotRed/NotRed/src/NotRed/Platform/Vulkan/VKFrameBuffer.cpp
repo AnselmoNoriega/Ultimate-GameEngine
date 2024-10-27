@@ -43,8 +43,9 @@ namespace NR
                     ImageSpecification imageSpec;
                     imageSpec.Format = attachmentSpec.Format;
                     imageSpec.Usage = ImageUsage::Attachment;
-                    imageSpec.Width = mWidth;
-                    imageSpec.Height = mHeight;
+                    imageSpec.Width = mWidth * mSpecification.Scale;
+                    imageSpec.Height = mHeight * mSpecification.Scale;
+                    imageSpec.DebugName = fmt::format("{0} - DepthAttachment {1}", mSpecification.DebugName.empty() ? "Unnamed FB" : mSpecification.DebugName, attachmentIndex);
                     mDepthAttachmentImage = Image2D::Create(imageSpec);
                 }
                 else
@@ -52,8 +53,9 @@ namespace NR
                     ImageSpecification imageSpec;
                     imageSpec.Format = attachmentSpec.Format;
                     imageSpec.Usage = ImageUsage::Attachment;
-                    imageSpec.Width = mWidth;
-                    imageSpec.Height = mHeight;
+                    imageSpec.Width = mWidth * mSpecification.Scale;
+                    imageSpec.Height = mHeight * mSpecification.Scale;
+                    imageSpec.DebugName = fmt::format("{0} - ColorAttachment{1}", mSpecification.DebugName.empty() ? "Unnamed FB" : mSpecification.DebugName, attachmentIndex);
                     mAttachmentImages.emplace_back(Image2D::Create(imageSpec));
                 }
                 ++attachmentIndex;
@@ -61,7 +63,7 @@ namespace NR
         }
 
         NR_CORE_ASSERT(spec.Attachments.Attachments.size());
-        Resize((uint32_t)((float)(mWidth)*spec.Scale), (uint32_t)((float)mHeight * spec.Scale), true);
+        Resize(mWidth, mHeight, true);
     }
 
     void VKFrameBuffer::Resize(uint32_t width, uint32_t height, bool forceRecreate)
@@ -71,8 +73,8 @@ namespace NR
             return;
         }
 
-        mWidth = width;
-        mHeight = height;
+        mWidth = width * mSpecification.Scale;
+        mHeight = height * mSpecification.Scale;
         if (!mSpecification.SwapChainTarget)
         {
             Invalidate();

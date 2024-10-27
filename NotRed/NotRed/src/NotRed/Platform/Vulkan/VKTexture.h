@@ -15,6 +15,8 @@ namespace NR
 		VKTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
 		~VKTexture2D() override;
 
+		void Resize(uint32_t width, uint32_t height) override;
+
 		void Invalidate();
 
 		ImageFormat GetFormat() const override { return mFormat; }
@@ -33,10 +35,11 @@ namespace NR
 		bool Loaded() const override { return mImageData; }
 		const std::string& GetPath() const override;
 		uint32_t GetMipLevelCount() const override;
+		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const override;
 
 		void GenerateMips();
 
-		uint64_t GetHash() const override { return (uint64_t)mImage; }
+		uint64_t GetHash() const override { return (uint64_t)mImage.As<VKImage2D>()->GetDescriptor().imageView; }
 
 	private:
 		std::string mPath;
@@ -70,6 +73,7 @@ namespace NR
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 		uint32_t GetMipLevelCount() const override;
+		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const override;
 
 		virtual uint64_t GetHash() const override { return (uint64_t)mImage; }
 

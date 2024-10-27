@@ -15,8 +15,15 @@ namespace NR
 			});
 	}
 
+	VKStorageBuffer::~VKStorageBuffer()
+	{
+		Release();
+	}
+
 	void VKStorageBuffer::RT_Invalidate()
 	{
+		Release();
+
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
 		VkBufferCreateInfo bufferInfo = {};
@@ -29,6 +36,23 @@ namespace NR
 		mDescriptorInfo.buffer = mBuffer;
 		mDescriptorInfo.offset = 0;
 		mDescriptorInfo.range = mSize;
+	}
+
+	void VKStorageBuffer::Release()
+	{
+		if (!mMemoryAlloc)
+		{
+			return;
+		}
+
+		Renderer::SubmitResourceFree([buffer = mBuffer, memoryAlloc = mMemoryAlloc]()
+			{
+				VKAllocator allocator("StorageBuffer");
+				allocator.DestroyBuffer(buffer, memoryAlloc);
+			});
+
+		mBuffer = nullptr;
+		mMemoryAlloc = nullptr;
 	}
 
 	void VKStorageBuffer::SetData(const void* data, uint32_t size, uint32_t offset)

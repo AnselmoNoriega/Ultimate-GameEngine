@@ -34,13 +34,13 @@ namespace NR
 
 		VkRenderPass GetRenderPass() { return mRenderPass; }
 
-		VkFramebuffer GetCurrentFramebuffer() { return GetFramebuffer(mCurrentImageIndex); }
+		VkFramebuffer GetCurrentFrameBuffer() { return GetFrameBuffer(mCurrentBufferIndex); }
 		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentBufferIndex); }
 
 		VkFormat GetColorFormat() { return mColorFormat; }
 
 		uint32_t GetCurrentBufferIndex() const { return mCurrentBufferIndex; }
-		VkFramebuffer GetFramebuffer(uint32_t index)
+		VkFramebuffer GetFrameBuffer(uint32_t index)
 		{
 			NR_CORE_ASSERT(index < mFrameBuffers.size());
 			return mFrameBuffers[index];

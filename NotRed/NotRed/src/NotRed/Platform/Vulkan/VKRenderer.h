@@ -5,6 +5,10 @@
 
 #include "Vulkan/vulkan.h"
 
+#include "VKMaterial.h"
+#include "VKUniformBuffer.h"
+#include "VKStorageBuffer.h"
+
 namespace NR
 {
 	class VKRenderer : public RendererAPI
@@ -41,5 +45,12 @@ namespace NR
 		void ClearImage(Ref<RenderCommandBuffer> commandBuffer, Ref<Image2D> image) override;
 		
 		static VkDescriptorSet RT_AllocateDescriptorSet(VkDescriptorSetAllocateInfo& allocInfo);
+		static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateStorageBufferWriteDescriptors(Ref<StorageBufferSet> storageBufferSet, Ref<VKMaterial> vulkanMaterial);
+		static const std::vector<std::vector<VkWriteDescriptorSet>>& RT_RetrieveOrCreateUniformBufferWriteDescriptors(Ref<UniformBufferSet> uniformBufferSet, Ref<VKMaterial> vulkanMaterial);
+
+		static void RT_UpdateMaterialForRendering(Ref<VKMaterial> material, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet);
+
+		static VkSampler GetClampSampler();
+		static int32_t& GetSelectedDrawCall();
 	};
 }

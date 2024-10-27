@@ -51,7 +51,7 @@ namespace NR::Audio
 		}
 	}
 
-	bool Sound::InitializeDataSource(const SoundConfig& config, AudioEngine* audioEngine)
+	bool Sound::InitializeDataSource(const Ref<SoundConfig>& config, AudioEngine* audioEngine)
 	{
 		if (mIsReadyToPlay)
 		{
@@ -68,7 +68,7 @@ namespace NR::Audio
 			ma_node_uninit(&mMasterSplitter, &mSound.engineNode.pEngine->pResourceManager->config.allocationCallbacks);
 		}
 
-		auto& assetMetadata = AssetManager::GetMetadata(config.FileAsset->Handle);
+		auto& assetMetadata = AssetManager::GetMetadata(config->FileAsset->Handle);
 
 		std::string filepath = AssetManager::GetFileSystemPath(assetMetadata);
 		ma_result result;
@@ -81,14 +81,14 @@ namespace NR::Audio
 
 		InitializeEffects(config);
 
-		const bool isSpatializationEnabled = config.SpatializationEnabled;
+		const bool isSpatializationEnabled = config->SpatializationEnabled;
 
 		auto& spatializer = mSound.engineNode.spatializer;
 		mSound.engineNode.isSpatializationDisabled = !isSpatializationEnabled;
 
 		if (isSpatializationEnabled)
 		{
-			const auto& spatialization = config.Spatialization;
+			const auto& spatialization = config->Spatialization;
 			ma_attenuation_model attMod{ ma_attenuation_model_inverse };
 
 			switch (spatialization.AttenuationMod)
@@ -119,14 +119,14 @@ namespace NR::Audio
 			spatializer.rolloff = spatialization.Rolloff;
 		}
 
-		SetLooping(config.Looping);
-		SetLocation(config.SpawnLocation);
+		SetLooping(config->Looping);
+		SetLocation(config->SpawnLocation);
 
 		mIsReadyToPlay = result == MA_SUCCESS;
 		return result == MA_SUCCESS;
 	}
 
-	void Sound::InitializeEffects(const SoundConfig& config)
+	void Sound::InitializeEffects(const Ref<SoundConfig>& config)
 	{
 		ma_node_base* currentHeaderNode = &mSound.engineNode.baseNode;
 
@@ -136,8 +136,8 @@ namespace NR::Audio
 		mHighPass.Initialize(mSound.engineNode.pEngine, currentHeaderNode);
 		currentHeaderNode = mHighPass.GetNode();
 
-		mLowPass.SetCutoffValue(config.LPFilterValue);
-		mHighPass.SetCutoffValue(config.HPFilterValue);
+		mLowPass.SetCutoffValue(config->LPFilterValue);
+		mHighPass.SetCutoffValue(config->HPFilterValue);
 
 		ma_result result = MA_SUCCESS;
 		ma_splitter_node_config splitterConfig = ma_splitter_node_config_init(mSound.engineNode.baseNode.pOutputBuses[0].channels);

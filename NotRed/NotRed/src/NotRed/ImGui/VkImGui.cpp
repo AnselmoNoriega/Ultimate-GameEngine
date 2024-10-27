@@ -77,6 +77,21 @@ namespace NR::UI
 		}
 	}
 
+	void ImageMip(const Ref<Image2D>& image, uint32_t mip, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
+	{
+		Ref<VKImage2D> vulkanImage = image.As<VKImage2D>();
+		auto imageInfo = vulkanImage->GetImageInfo();
+		imageInfo.ImageView = vulkanImage->GetMipImageView(mip);
+		
+		if (!imageInfo.ImageView)
+		{
+			return;
+		}
+
+		const auto textureID = ImGui_ImplVulkan_AddTexture(imageInfo.Sampler, imageInfo.ImageView, vulkanImage->GetDescriptor().imageLayout);
+		ImGui::Image(textureID, size, uv0, uv1, tint_col, border_col);
+	}
+
 	bool ImageButton(const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 	{
 		return ImageButton(nullptr, image, size, uv0, uv1, frame_padding, bg_col, tint_col);

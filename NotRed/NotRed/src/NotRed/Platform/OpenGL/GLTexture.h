@@ -12,9 +12,12 @@ namespace NR
 		GLTexture2D(const std::string& path, TextureProperties properties);
 		~GLTexture2D() override;
 
+		void Resize(uint32_t width, uint32_t height) override {}
+
 		void Bind(uint32_t slot = 0) const override;
 
 		uint32_t GetMipLevelCount() const override;
+		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const override { return { 0, 0 }; }
 
 		void Lock() override;
 		void Unlock() override;
@@ -63,6 +66,7 @@ namespace NR
 		uint32_t GetHeight() const override { return mHeight; }
 
 		uint32_t GetMipLevelCount() const override;
+		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const override { return { 0, 0 }; }
 
 #if NEEDED
 		const std::string& GetPath() const override { return mFilePath; }

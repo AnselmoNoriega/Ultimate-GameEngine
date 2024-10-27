@@ -271,6 +271,7 @@ namespace NR
                 }
 
                 mi->Set("uMaterialUniforms.AlbedoColor", albedoColor);
+                mi->Set("uMaterialUniforms.Emissive", 0.0f);
 
                 float shininess, metalness;
                 if (aiMaterial->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS)

@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Vulkan.h"
+#include "VKImage.h"
 
 namespace NR
 {
@@ -16,8 +17,15 @@ namespace NR
 	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
 	{
 		(void)flags; (void)object; (void)location; (void)messageCode; (void)pUserData; (void)pLayerPrefix; // Unused arguments
-		//TODO: Handle when closeing Window
-		//NR_CORE_WARN("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", (const char*)objectType, pMessage);
+		
+		NR_CORE_WARN("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", (const char*)objectType, pMessage);
+		
+		const auto& imageRefs = VKImage2D::GetImageRefs();
+		if (strstr(pMessage, "CoreValidation-DrawState-InvalidImageLayout"))
+		{
+			NR_CORE_ASSERT(false);
+		}
+
 		return VK_FALSE;
 	}
 

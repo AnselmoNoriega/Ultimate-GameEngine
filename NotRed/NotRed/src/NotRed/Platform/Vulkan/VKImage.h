@@ -27,6 +27,7 @@ namespace NR
 
         uint32_t GetWidth() const override { return mSpecification.Width; }
         uint32_t GetHeight() const override { return mSpecification.Height; }
+        float GetAspectRatio() const override { return (float)mSpecification.Width / (float)mSpecification.Height; }
 
         ImageSpecification& GetSpecification() override { return mSpecification; }
         const ImageSpecification& GetSpecification() const override { return mSpecification; }
@@ -43,6 +44,9 @@ namespace NR
             return mPerLayerImageViews[layer];
         }
 
+        VkImageView GetMipImageView(uint32_t mip);
+        VkImageView RT_GetMipImageView(uint32_t mip);
+
         VKImageInfo& GetImageInfo() { return mInfo; }
         const VKImageInfo& GetImageInfo() const { return mInfo; }
 
@@ -55,6 +59,8 @@ namespace NR
 
         void UpdateDescriptor();
 
+        static const std::map<VkImage, WeakRef<VKImage2D>>& GetImageRefs();
+
     private:
         ImageSpecification mSpecification;
 
@@ -62,6 +68,7 @@ namespace NR
 
         VKImageInfo mInfo;
         std::vector<VkImageView> mPerLayerImageViews;
+        std::map<uint32_t, VkImageView> mMipImageViews;
         VkDescriptorImageInfo mDescriptorImageInfo = {};
     };
 

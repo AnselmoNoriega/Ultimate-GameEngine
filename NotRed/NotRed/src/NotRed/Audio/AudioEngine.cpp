@@ -324,7 +324,7 @@ namespace NR::Audio
         return mComponentSoundMap.Get(sceneID, audioComponentID).value_or(nullptr);
     }
 
-    Sound* AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID, const SoundConfig& sourceConfig)
+    Sound* AudioEngine::GetSoundForAudioComponent(uint64_t audioComponentID, const Ref<SoundConfig>& sourceConfig)
     {
         NR_PROFILE_FUNC();
 
@@ -365,7 +365,7 @@ namespace NR::Audio
 
     //==================================================================================
 
-    void AudioEngine::SubmitSoundToPlay(uint64_t audioComponentID, const SoundConfig& sourceConfig)
+    void AudioEngine::SubmitSoundToPlay(uint64_t audioComponentID, const Ref<SoundConfig>& sourceConfig)
     {
         NR_PROFILE_FUNC();
 
@@ -381,8 +381,8 @@ namespace NR::Audio
                             }
                         };
 
-                    sound->SetVolume(sourceConfig.VolumeMultiplier);
-                    sound->SetPitch(sourceConfig.PitchMultiplier);
+                    sound->SetVolume(sourceConfig->VolumeMultiplier);
+                    sound->SetPitch(sourceConfig->PitchMultiplier);
                     mSoundsToStart.push_back(sound);
                 }
             };
@@ -400,8 +400,8 @@ namespace NR::Audio
             return false;
         }
 
-        ac->VolumeMultiplier = ac->SoundConfig.VolumeMultiplier;
-        ac->PitchMultiplier = ac->SoundConfig.PitchMultiplier;
+        ac->VolumeMultiplier = ac->SoundConfig->VolumeMultiplier;
+        ac->PitchMultiplier = ac->SoundConfig->PitchMultiplier;
         SubmitSoundToPlay(audioComponentID, ac->SoundConfig);
 
         return true;
@@ -644,7 +644,7 @@ namespace NR::Audio
                 {
                     auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
                     ac.SourcePosition = translation;
-                    ac.SoundConfig.SpawnLocation = translation;
+                    ac.SoundConfig->SpawnLocation = translation;
                     audioEngine.SubmitSoundToPlay(audioEntity.GetID());
                 }
             }
@@ -686,7 +686,7 @@ namespace NR::Audio
             {
                 auto translation = newScene->GetWorldSpaceTransform(audioEntity).Translation;
                 ac->SourcePosition = translation;
-                ac->SoundConfig.SpawnLocation = translation;
+                ac->SoundConfig->SpawnLocation = translation;
                 SubmitSoundToPlay(entityID);
             }
         }

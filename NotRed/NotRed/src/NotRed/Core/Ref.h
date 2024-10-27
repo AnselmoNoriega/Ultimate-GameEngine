@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <atomic>
 
 namespace NR
 {
@@ -16,11 +17,18 @@ namespace NR
 			--mRefCount;
 		}
 
-		uint32_t GetRefCount() const { return mRefCount; }
+		uint32_t GetRefCount() const { return mRefCount.load(); }
 
 	private:
-		mutable uint32_t mRefCount = 0; // TODO: atomic
+		mutable std::atomic<uint32_t> mRefCount = 0;
 	};
+
+	namespace RefUtils 
+	{
+		void AddToLiveReferences(void* instance);
+		void RemoveFromLiveReferences(void* instance);
+		bool IsLive(void* instance);
+	}
 
 	template<typename T>
 	class Ref
@@ -56,6 +64,13 @@ namespace NR
 		{
 			mInstance = (T*)other.mInstance;
 			other.mInstance = nullptr;
+		}
+
+		static Ref<T> CopyWithoutIncrement(const Ref<T>& other)
+		{
+			Ref<T> result = nullptr;
+			result->mInstance = other.mInstance;
+			return result;
 		}
 
 		~Ref()
@@ -161,6 +176,7 @@ namespace NR
 			if (mInstance)
 			{
 				mInstance->IncRefCount();
+				RefUtils::AddToLiveReferences((void*)mInstance);
 			}
 		}
 
@@ -172,6 +188,7 @@ namespace NR
 				if (mInstance->GetRefCount() == 0)
 				{
 					delete mInstance;
+					RefUtils::RemoveFromLiveReferences((void*)mInstance);
 					mInstance = nullptr;
 				}
 			}
@@ -180,5 +197,27 @@ namespace NR
 		template<class T2>
 		friend class Ref;
 		mutable T* mInstance;
+	};
+
+	template<typename T>
+	class WeakRef
+	{
+	public:
+		WeakRef() = default;
+
+		WeakRef(Ref<T> ref)
+		{
+			mInstance = ref.Raw();
+		}
+
+		WeakRef(T* instance)
+		{
+			mInstance = instance;
+		}
+		bool IsValid() const { return mInstance ? RefUtils::IsLive(mInstance) : false; }
+		operator bool() const { return IsValid(); }
+
+	private:
+		T* mInstance = nullptr;
 	};
 }

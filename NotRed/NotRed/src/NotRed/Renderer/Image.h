@@ -57,6 +57,8 @@ namespace NR
         uint32_t Mips = 1;
         uint32_t Layers = 1;
         bool Deinterleaved = false;
+
+        std::string DebugName;
     };
 
     struct TextureProperties
@@ -77,6 +79,7 @@ namespace NR
 
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
+        virtual float GetAspectRatio() const = 0;
 
         virtual ImageSpecification& GetSpecification() = 0;
         virtual const ImageSpecification& GetSpecification() const = 0;

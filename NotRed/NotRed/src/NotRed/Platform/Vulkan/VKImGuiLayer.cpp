@@ -202,14 +202,14 @@ namespace NR
         renderPassBeginInfo.renderArea.extent.height = height;
         renderPassBeginInfo.clearValueCount = 2; // Color + depth
         renderPassBeginInfo.pClearValues = clearValues;
-        renderPassBeginInfo.framebuffer = swapChain.GetCurrentFramebuffer();
+        renderPassBeginInfo.framebuffer = swapChain.GetCurrentFrameBuffer();
 
         vkCmdBeginRenderPass(drawCommandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
 
         VkCommandBufferInheritanceInfo inheritanceInfo = {};
         inheritanceInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
         inheritanceInfo.renderPass = swapChain.GetRenderPass();
-        inheritanceInfo.framebuffer = swapChain.GetCurrentFramebuffer();
+        inheritanceInfo.framebuffer = swapChain.GetCurrentFrameBuffer();
 
         VkCommandBufferBeginInfo cmdBufInfo = {};
         cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

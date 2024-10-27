@@ -18,7 +18,6 @@ namespace NR
 	struct SceneRendererOptions
 	{
 		bool ShowGrid = true;
-		bool ShowBoundingBoxes = false;
 		bool ShowSelectedInWireframe = false;
 		bool ShowCollidersWireframe = false;
 
@@ -36,6 +35,17 @@ namespace NR
 		glm::mat4 ViewMatrix;
 		float Near, Far;
 		float FOV;
+	};
+
+	struct BloomSettings
+	{
+		bool Enabled = true;
+
+		float Threshold = 1.0f;
+		float Knee = 0.1f;
+		float UpsampleScale = 1.0f;
+		float Intensity = 1.0f;
+		float DirtIntensity = 1.0f;
 	};
 
 	struct SceneRendererSpecification
@@ -81,6 +91,8 @@ namespace NR
 			CascadeSplitLambda = lambda;
 		}
 
+		BloomSettings& GetBloomSettings() { return mBloomSettings; }
+
 		void ImGuiRender();
 
 		static void WaitForThreads();
@@ -104,8 +116,10 @@ namespace NR
 		void LightCullingPass();
 		void GeometryPass();
 		void JumpFloodPass();
+
+		// Post-processing
+		void BloomCompute();
 		void CompositePass();
-		void BloomBlurPass();
 
 		void CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const;
 
@@ -272,6 +286,10 @@ namespace NR
 		Ref<Material> CompositeMaterial;
 		Ref<Material> mLightCullingMaterial;
 		Ref<Material> mParticleGenMaterial;
+		Ref<Material> mShadowPassMaterial;
+		Ref<Material> mPreDepthMaterial;
+		Ref<Material> mSkyboxMaterial;
+		Ref<Material> mDOFMaterial;
 
 		Ref<Pipeline> mGeometryPipeline;
 		Ref<Pipeline> mSelectedGeometryPipeline;
@@ -279,10 +297,8 @@ namespace NR
 		Ref<Pipeline> mPreDepthPipeline;
 		Ref<Pipeline> mCompositePipeline;
 		Ref<Pipeline> mShadowPassPipelines[4];
-		Ref<Material> mShadowPassMaterial;
-		Ref<Material> mPreDepthMaterial;
 		Ref<Pipeline> mSkyboxPipeline;
-		Ref<Material> mSkyboxMaterial;
+		Ref<Pipeline> mDOFPipeline;
 
 		Ref<RenderPass> mExternalCompositeRenderPass;
 
@@ -306,6 +322,12 @@ namespace NR
 		Ref<Material> mJumpFloodCompositeMaterial;
 		Ref<Material> mSelectedGeometryMaterial;
 
+		// Bloom compute
+		uint32_t mBloomComputeWorkgroupSize = 4;
+		Ref<PipelineCompute> mBloomComputePipeline;
+		Ref<Texture2D> mBloomComputeTextures[3];
+		Ref<Material> mBloomComputeMaterial;
+
 		std::vector<Ref<FrameBuffer>> mTempFrameBuffers;
 
 		// Grid
@@ -323,6 +345,19 @@ namespace NR
 		bool mNeedsResize = false;
 		bool mActive = false;
 		bool mResourcesCreated = false;
+
+		BloomSettings mBloomSettings;
+		Ref<Texture2D> mBloomDirtTexture;
+		struct GPUTimeQueries
+		{
+			uint32_t ShadowMapPassQuery = 0;
+			uint32_t DepthPrePassQuery = 0;
+			uint32_t LightCullingPassQuery = 0;
+			uint32_t GeometryPassQuery = 0;
+			uint32_t BloomComputePassQuery = 0;
+			uint32_t JumpFloodPassQuery = 0;
+			uint32_t CompositePassQuery = 0;
+		} mGPUTimeQueries;
 	};
 
 }

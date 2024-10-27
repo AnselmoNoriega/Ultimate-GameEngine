@@ -9,6 +9,7 @@ namespace NR
 	{
 	public:
 		VKStorageBuffer(uint32_t size, uint32_t binding);
+		~VKStorageBuffer() override;
 
 		void SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
 		void RT_SetData(const void* data, uint32_t size, uint32_t offset = 0) override;
@@ -21,6 +22,7 @@ namespace NR
 
 	private:
 		void RT_Invalidate();
+		void Release();
 
 	private:
 		VmaAllocation mMemoryAlloc = nullptr;

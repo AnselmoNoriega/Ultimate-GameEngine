@@ -985,12 +985,12 @@ namespace NR::Script
 
     bool NR_AudioComponent_GetLooping(uint64_t entityID)
     {
-        return GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.Looping;
+        return GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->Looping;
     }
 
     void NR_AudioComponent_SetLooping(uint64_t entityID, bool looping)
     {
-        GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.Looping = looping;
+        GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->Looping = looping;
     }
 
     float NR_AudioComponent_GetMasterReverbSend(uint64_t entityID)
@@ -1006,20 +1006,20 @@ namespace NR::Script
     void NR_AudioComponent_SetSound(uint64_t entityID, Ref<AudioFile>* sound)
     {
         NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-        GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.FileAsset = *sound;
+        GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->FileAsset = *sound;
     }
 
     void NR_AudioComponent_SetSoundPath(uint64_t entityID, MonoString* filepath)
     {
         auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
         NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-        GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig.FileAsset = asset;
+        GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->FileAsset = asset;
     }
 
     MonoString* NR_AudioComponent_GetSound(uint64_t entityID)
     {
         auto& audioComponent = GetEntityComponent<Audio::AudioComponent>(entityID);
-        const std::string& filepath = AssetManager::GetMetadata(audioComponent.SoundConfig.FileAsset->Handle).FilePath.string();
+        const std::string& filepath = AssetManager::GetMetadata(audioComponent.SoundConfig->FileAsset->Handle).FilePath.string();
         return mono_string_new_wrapper(filepath.c_str());
     }
 
@@ -1069,7 +1069,7 @@ namespace NR::Script
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
         auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
 
-        audioComponent.SoundConfig.FileAsset = *sound;
+        audioComponent.SoundConfig->FileAsset = *sound;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
 
@@ -1084,7 +1084,7 @@ namespace NR::Script
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
         auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
 
-        audioComponent.SoundConfig.FileAsset = asset;
+        audioComponent.SoundConfig->FileAsset = asset;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
 
@@ -1097,9 +1097,9 @@ namespace NR::Script
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
         auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
 
-        audioComponent.SoundConfig.FileAsset = *sound;
-        audioComponent.SoundConfig.SpatializationEnabled = true;
-        audioComponent.SoundConfig.SpawnLocation = *location;
+        audioComponent.SoundConfig->FileAsset = *sound;
+        audioComponent.SoundConfig->SpatializationEnabled = true;
+        audioComponent.SoundConfig->SpawnLocation = *location;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
         audioComponent.SourcePosition = *location;
@@ -1115,9 +1115,9 @@ namespace NR::Script
         Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
         auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
 
-        audioComponent.SoundConfig.FileAsset = asset;
-        audioComponent.SoundConfig.SpatializationEnabled = true;
-        audioComponent.SoundConfig.SpawnLocation = *location;
+        audioComponent.SoundConfig->FileAsset = asset;
+        audioComponent.SoundConfig->SpatializationEnabled = true;
+        audioComponent.SoundConfig->SpawnLocation = *location;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
         audioComponent.SourcePosition = *location;

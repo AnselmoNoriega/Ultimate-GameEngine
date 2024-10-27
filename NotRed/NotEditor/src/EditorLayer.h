@@ -47,7 +47,6 @@ namespace NR
 
 		void Render2D();
 
-		void ShowBoundingBoxes(bool show, bool onTop = false);
 		void SelectEntity(Entity entity);
 
 		void NewScene();

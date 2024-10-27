@@ -53,6 +53,7 @@ namespace NR
         windowSpec.Width = specification.WindowWidth;
         windowSpec.Height = specification.WindowHeight;
         windowSpec.Fullscreen = specification.Fullscreen;
+        windowSpec.VSync = specification.VSync;
         mWindow = std::unique_ptr<Window>(Window::Create(windowSpec));
 
         mWindow->Init();
@@ -103,6 +104,8 @@ namespace NR
 
     void Application::RenderImGui()
     {
+        NR_SCOPE_PERF("Application::RenderImGui");
+
         mImGuiLayer->Begin();
 
         {
@@ -204,10 +207,12 @@ namespace NR
             if (!mMinimized)
             {
                 Renderer::BeginFrame();
-
-                for (Layer* layer : mLayerStack)
                 {
-                    layer->Update((float)mTimeFrame);
+                    NR_SCOPE_PERF("Application Layer::Update");
+                    for (Layer* layer : mLayerStack)
+                    {
+                        layer->Update((float)mTimeFrame);
+                    }
                 }
 
                 Application* app = this;

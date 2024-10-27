@@ -201,11 +201,6 @@ namespace NR
         SceneRenderer::WaitForThreads();
     }
 
-    void EditorLayer::ShowBoundingBoxes(bool show, bool onTop)
-    {
-        mViewportRenderer->GetOptions().ShowBoundingBoxes = show && !onTop;
-        mDrawOnTopBoundingBoxes = show && onTop;
-    }
     void EditorLayer::SelectEntity(Entity entity)
     {
         if (!entity)
@@ -235,6 +230,11 @@ namespace NR
 
     void EditorLayer::Render2D()
     {
+        if (!mViewportRenderer->GetFinalPassImage())
+        {
+            return;
+        }
+
         Renderer2D::BeginScene(mEditorCamera.GetViewProjection(), mEditorCamera.GetViewMatrix());
         
         if (mDrawOnTopBoundingBoxes)
@@ -368,7 +368,7 @@ namespace NR
             Entity entity = { e, mCurrentScene.Raw() };
             auto& tc = entity.GetComponent<TransformComponent>();
             auto& plc = entity.GetComponent<PointLightComponent>();
-            Renderer2D::DrawQuadBillboard(tc.Translation, { 1.5f, 1.5f }, mPointLightIcon);
+            Renderer2D::DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
 
         }
 
@@ -1363,6 +1363,8 @@ namespace NR
                                 ImGui::EndGroup();
                                 ImGui::SameLine();
                                 ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
+                                float& emissive = material->GetFloat("uMaterialUniforms.Emissive");
+                                ImGui::DragFloat("Emissive", &emissive);
                             }
                         }
                         {

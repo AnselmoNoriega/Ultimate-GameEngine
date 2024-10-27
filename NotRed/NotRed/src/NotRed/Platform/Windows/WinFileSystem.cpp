@@ -11,7 +11,7 @@ namespace NR
 
 	FileSystem::FileSystemChangedCallbackFn FileSystem::sCallback;
 
-	static bool sWatching = true;
+	static bool sWatching = false;
 	static bool sIgnoreNextChange = false;
 	static HANDLE sWatcherThread;
 
@@ -71,7 +71,7 @@ namespace NR
 
 	void FileSystem::StartWatching()
 	{
-		sWatching = true;
+		sWatching = false;
 		DWORD threadId;
 		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadId);
 		NR_CORE_ASSERT(sWatcherThread != NULL);

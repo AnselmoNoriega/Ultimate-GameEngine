@@ -8,6 +8,10 @@
 #include "Renderer.h"
 #include "SceneEnvironment.h"
 
+#include "NotRed/Platform/Vulkan/VKComputePipeline.h"
+#include "NotRed/Platform/Vulkan/VKMaterial.h"
+#include "NotRed/Platform/Vulkan/VKRenderer.h"
+
 #include "Renderer2D.h"
 #include "UniformBuffer.h"
 
@@ -86,6 +90,7 @@ namespace NR
             shadowMapFrameBufferSpec.ExistingImage = cascadedDepthImage;
             shadowMapFrameBufferSpec.DebugName = "Shadow Map";
 
+            // 4 cascades
             auto shadowPassShader = Renderer::GetShaderLibrary()->Get("ShadowMap");
             PipelineSpecification pipelineSpec;
             pipelineSpec.DebugName = "ShadowPass";
@@ -98,8 +103,7 @@ namespace NR
                 { ShaderDataType::Float2, "aTexCoord" }
             };
 
-            // 4 cascades
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < 4; i++)
             {
                 shadowMapFrameBufferSpec.ExistingImageLayers.clear();
                 shadowMapFrameBufferSpec.ExistingImageLayers.emplace_back(i);
@@ -110,8 +114,6 @@ namespace NR
                 pipelineSpec.RenderPass = RenderPass::Create(shadowMapRenderPassSpec);
                 mShadowPassPipelines[i] = Pipeline::Create(pipelineSpec);
             }
-
-            mShadowPassMaterial = Material::Create(shadowPassShader, "ShadowPass");
         }
 
         // PreDepth
@@ -144,9 +146,9 @@ namespace NR
         // Geometry
         {
             FrameBufferSpecification geoFrameBufferSpec;
-            geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+            geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
             geoFrameBufferSpec.Samples = 1;
-            geoFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+            geoFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
             geoFrameBufferSpec.DebugName = "Geometry";
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(geoFrameBufferSpec);
@@ -356,7 +358,7 @@ namespace NR
                 hbaoBlurFrameBufferSpec.DebugName = "HBAOBlur";
                 hbaoBlurFrameBufferSpec.ClearOnLoad = false;
                 hbaoBlurFrameBufferSpec.ExistingImages[0] = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(0);
-                hbaoBlurFrameBufferSpec.BlendMode = FrameBufferBlendMode::Zero_SrcColor;
+                hbaoBlurFrameBufferSpec.BlendMode = FrameBufferBlendMode::ZeroSrcColor;
 
                 RenderPassSpecification renderPassSpec;
                 renderPassSpec.TargetFrameBuffer = FrameBuffer::Create(hbaoBlurFrameBufferSpec);
@@ -400,6 +402,21 @@ namespace NR
             mSelectedGeometryMaterial = Material::Create(pipelineSpecification.Shader);
         }
 
+        // Bloom Compute
+        {
+            auto shader = Renderer::GetShaderLibrary()->Get("Bloom");
+            mBloomComputePipeline = PipelineCompute::Create(shader);
+
+            TextureProperties props;
+            props.SamplerWrap = TextureWrap::Clamp;
+            mBloomComputeTextures[0] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+            mBloomComputeTextures[1] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+            mBloomComputeTextures[2] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+            mBloomComputeMaterial = Material::Create(shader);
+
+            mBloomDirtTexture = Renderer::GetBlackTexture();
+        }
+
         // Composite
         {
             FrameBufferSpecification compFrameBufferSpec;
@@ -432,6 +449,43 @@ namespace NR
             pipelineSpecification.DebugName = "SceneComposite";
             pipelineSpecification.DepthWrite = false;
             mCompositePipeline = Pipeline::Create(pipelineSpecification);
+        }
+
+        // DOF
+        {
+            FrameBufferSpecification compFrameBufferSpec;
+            compFrameBufferSpec.DebugName = "POST-DepthOfField";
+            compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
+
+            // No depth for swapchain
+            if (mSpecification.SwapChainTarget)
+            {
+                compFrameBufferSpec.Attachments = { ImageFormat::RGBA };
+            }
+            else
+            {
+                compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
+            }
+
+            Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
+            PipelineSpecification pipelineSpecification;
+            pipelineSpecification.Layout = {
+                { ShaderDataType::Float3, "aPosition" },
+                { ShaderDataType::Float2, "aTexCoord" }
+            };
+
+            pipelineSpecification.BackfaceCulling = false;
+            pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("DOF");
+
+            RenderPassSpecification renderPassSpec;
+            renderPassSpec.TargetFrameBuffer = frameBuffer;
+            renderPassSpec.DebugName = compFrameBufferSpec.DebugName;
+            pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+            pipelineSpecification.DebugName = compFrameBufferSpec.DebugName;
+            pipelineSpecification.DepthWrite = false;
+
+            mDOFPipeline = Pipeline::Create(pipelineSpecification);
+            mDOFMaterial = Material::Create(pipelineSpecification.Shader, "POST-DepthOfField");
         }
 
         // External compositing
@@ -634,7 +688,7 @@ namespace NR
             mNeedsResize = false;
 
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-            
+
             const uint32_t quarterWidth = mViewportWidth / 4;
             const uint32_t quarterHeight = mViewportHeight / 4;
 
@@ -658,6 +712,19 @@ namespace NR
 
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+
+            // Half-size bloom texture
+            {
+                uint32_t viewportWidth = mViewportWidth / 2;
+                uint32_t viewportHeight = mViewportHeight / 2;
+
+                viewportWidth += (mBloomComputeWorkgroupSize - (viewportWidth % mBloomComputeWorkgroupSize));
+                viewportHeight += (mBloomComputeWorkgroupSize - (viewportHeight % mBloomComputeWorkgroupSize));
+
+                mBloomComputeTextures[0]->Resize(viewportWidth, viewportHeight);
+                mBloomComputeTextures[1]->Resize(viewportWidth, viewportHeight);
+                mBloomComputeTextures[2]->Resize(viewportWidth, viewportHeight);
+            }
 
             for (auto& tempFB : mTempFrameBuffers)
             {
@@ -861,6 +928,8 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
+        mGPUTimeQueries.ShadowMapPassQuery = mCommandBuffer->BeginTimestampQuery();
+
         auto& directionalLights = mSceneData.SceneLightEnvironment.DirectionalLights;
         if (directionalLights[0].Multiplier == 0.0f || !directionalLights[0].CastShadows)
         {
@@ -885,10 +954,14 @@ namespace NR
 
             Renderer::EndRenderPass(mCommandBuffer);
         }
+
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.ShadowMapPassQuery);
     }
+
     void SceneRenderer::PreDepthPass()
     {
         // PreDepth Pass, used for light culling
+        mGPUTimeQueries.DepthPrePassQuery = mCommandBuffer->BeginTimestampQuery();
         Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
 
         for (auto& dc : mDrawList)
@@ -902,6 +975,7 @@ namespace NR
         }
 
         Renderer::EndRenderPass(mCommandBuffer);
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.DepthPrePassQuery);
     }
 
     void SceneRenderer::LightCullingPass()
@@ -909,12 +983,16 @@ namespace NR
         mLightCullingMaterial->Set("uPreDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
         mLightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ mViewportWidth, mViewportHeight });
 
+        mGPUTimeQueries.LightCullingPassQuery = mCommandBuffer->BeginTimestampQuery();
         Renderer::LightCulling(mCommandBuffer, mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.LightCullingPassQuery);
     }
 
     void SceneRenderer::GeometryPass()
     {
         NR_PROFILE_FUNC();
+
+        mGPUTimeQueries.GeometryPassQuery = mCommandBuffer->BeginTimestampQuery();
 
         Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
         for (auto& dc : mSelectedMeshDrawList)
@@ -967,20 +1045,9 @@ namespace NR
             Renderer::RenderQuad(mCommandBuffer, mGridPipeline, mUniformBufferSet, nullptr, mGridMaterial, transform);
         }
 
-        if (GetOptions().ShowBoundingBoxes)
-        {
-#if 0
-            Renderer2D::BeginScene(viewProjection);
-            for (auto& dc : DrawList)
-            {
-                Renderer::DrawAABB(dc.Mesh, dc.Transform);
-            }
-            Renderer2D::EndScene();
-#endif
-        }
-
         Renderer::EndRenderPass(mCommandBuffer);
-        }
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.GeometryPassQuery);
+    }
 
     void SceneRenderer::DeinterleavingPass()
     {
@@ -1070,29 +1137,11 @@ namespace NR
         }
     }
 
-    void SceneRenderer::CompositePass()
-    {
-        NR_PROFILE_FUNC();
-
-        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
-
-        auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
-        const float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();
-        int textureSamples = frameBuffer->GetSpecification().Samples;
-
-        CompositeMaterial->Set("uUniforms.Exposure", exposure);
-
-        CompositeMaterial->Set("uTexture", frameBuffer->GetImage());
-
-        Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, nullptr, CompositeMaterial);
-        Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, nullptr, mJumpFloodCompositeMaterial);
-        Renderer::EndRenderPass(mCommandBuffer);
-    }
-
     void SceneRenderer::JumpFloodPass()
     {
         NR_PROFILE_FUNC();
 
+        mGPUTimeQueries.JumpFloodPassQuery = mCommandBuffer->BeginTimestampQuery();
         Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodInitPipeline->GetSpecification().RenderPass);
 
         auto frameBuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
@@ -1127,60 +1176,233 @@ namespace NR
         }
 
         mJumpFloodCompositeMaterial->Set("uTexture", mTempFrameBuffers[1]->GetImage());
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.JumpFloodPassQuery);
     }
 
-    void SceneRenderer::BloomBlurPass()
+    void SceneRenderer::BloomCompute()
     {
-#if 0
-        int amount = 10;
-        int index = 0;
+        Ref<VKComputePipeline> pipeline = mBloomComputePipeline.As<VKComputePipeline>();
 
-        int horizontalCounter = 0, verticalCounter = 0;
-        for (int i = 0; i < amount; ++i)
+        struct BloomComputePushConstants
         {
-            index = i % 2;
-            Renderer::BeginRenderPass(BloomBlurPass[index]);
-            BloomBlurShader->Bind();
-            BloomBlurShader->SetBool("uHorizontal", index);
-            if (index)
+            glm::vec4 Params;
+            float LOD = 0.0f;
+            int Mode = 0;
+        } bloomComputePushConstants;
+
+        bloomComputePushConstants.Params = { mBloomSettings.Threshold, mBloomSettings.Threshold - mBloomSettings.Knee, mBloomSettings.Knee * 2.0f, 0.25f / mBloomSettings.Knee };
+        bloomComputePushConstants.Mode = 0;
+        
+        auto inputTexture = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage().As<VKImage2D>();
+        mGPUTimeQueries.BloomComputePassQuery = mCommandBuffer->BeginTimestampQuery();
+        
+        Renderer::Submit([bloomComputePushConstants, inputTexture, workGroupSize = mBloomComputeWorkgroupSize, commandBuffer = mCommandBuffer, bloomTextures = mBloomComputeTextures, ubs = mUniformBufferSet, material = mBloomComputeMaterial.As<VKMaterial>(), pipeline]() mutable
             {
-                ++horizontalCounter;
-            }
-            else
-            {
-                ++verticalCounter;
-            }
-            if (i > 0)
-            {
-                auto fb = BloomBlurPass[1 - index]->GetSpecification().TargetFrameBuffer;
-                fb->BindTexture();
-            }
-            else
-            {
-                auto fb = CompositePass->GetSpecification().TargetFrameBuffer;
-                auto id = fb->GetColorAttachmentRendererID(1);
-                Renderer::Submit([id]()
+                VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+                Ref<VKImage2D> images[3] =
+                {
+                    bloomTextures[0]->GetImage().As<VKImage2D>(),
+                    bloomTextures[1]->GetImage().As<VKImage2D>(),
+                    bloomTextures[2]->GetImage().As<VKImage2D>()
+                };
+
+                auto shader = material->GetShader().As<VKShader>();
+                auto descriptorImageInfo = images[0]->GetDescriptor();
+                descriptorImageInfo.imageView = images[0]->RT_GetMipImageView(0);
+                
+                std::array<VkWriteDescriptorSet, 3> writeDescriptors;
+                VkDescriptorSetLayout descriptorSetLayout = shader->GetDescriptorSetLayout(0);
+                
+                VkDescriptorSetAllocateInfo allocInfo = {};
+                allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+                allocInfo.descriptorSetCount = 1;
+                allocInfo.pSetLayouts = &descriptorSetLayout;
+                pipeline->Begin(commandBuffer);
+
+                // Output image
+                VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+                writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+                writeDescriptors[0].dstSet = descriptorSet;
+                writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+                // Input image
+                writeDescriptors[1] = *shader->GetDescriptorSet("uTexture");
+                writeDescriptors[1].dstSet = descriptorSet;
+                writeDescriptors[1].pImageInfo = &inputTexture->GetDescriptor();
+                writeDescriptors[2] = *shader->GetDescriptorSet("uBloomTexture");
+                writeDescriptors[2].dstSet = descriptorSet;
+                writeDescriptors[2].pImageInfo = &inputTexture->GetDescriptor();
+
+                vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+                uint32_t workGroupsX = bloomTextures[0]->GetWidth() / workGroupSize;
+                uint32_t workGroupsY = bloomTextures[0]->GetHeight() / workGroupSize;
+                
+                pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
+                pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+                bloomComputePushConstants.Mode = 1;
+                
+                VkSampler samplerClamp = VKRenderer::GetClampSampler();
+                uint32_t mips = bloomTextures[0]->GetMipLevelCount() - 2;
+                
+                for (uint32_t i = 1; i < mips; ++i)
+                {
+                    auto [mipWidth, mipHeight] = bloomTextures[0]->GetMipSize(i);
+                    workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)workGroupSize);
+                    workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)workGroupSize);
                     {
-                        glBindTextureUnit(0, id);
-                    });
-            }
-            Renderer::SubmitFullscreenQuad(nullptr);
-            Renderer::EndRenderPass();
+                        // Output image
+                        descriptorImageInfo.imageView = images[1]->RT_GetMipImageView(i);
+
+                        descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+                        writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+                        writeDescriptors[0].dstSet = descriptorSet;
+                        writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+                        // Input image
+                        writeDescriptors[1] = *shader->GetDescriptorSet("uTexture");
+                        writeDescriptors[1].dstSet = descriptorSet;
+                        auto descriptor = bloomTextures[0]->GetImage().As<VKImage2D>()->GetDescriptor();
+                        
+                        //descriptor.sampler = samplerClamp;
+                        writeDescriptors[1].pImageInfo = &descriptor;
+                        writeDescriptors[2] = *shader->GetDescriptorSet("uBloomTexture");
+                        writeDescriptors[2].dstSet = descriptorSet;
+                        writeDescriptors[2].pImageInfo = &inputTexture->GetDescriptor();
+                        
+                        vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+                        bloomComputePushConstants.LOD = i - 1.0f;
+                        pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
+                        pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+                    }
+                    {
+                        descriptorImageInfo.imageView = images[0]->RT_GetMipImageView(i);
+                        
+                        // Output image
+                        descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+                        writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+                        writeDescriptors[0].dstSet = descriptorSet;
+                        writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+                        
+                        // Input image
+                        writeDescriptors[1] = *shader->GetDescriptorSet("uTexture");
+                        writeDescriptors[1].dstSet = descriptorSet;
+                        auto descriptor = bloomTextures[1]->GetImage().As<VKImage2D>()->GetDescriptor();
+                        writeDescriptors[1].pImageInfo = &descriptor;
+                        writeDescriptors[2] = *shader->GetDescriptorSet("uBloomTexture");
+                        writeDescriptors[2].dstSet = descriptorSet;
+                        writeDescriptors[2].pImageInfo = &inputTexture->GetDescriptor();
+                        
+                        vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+                        bloomComputePushConstants.LOD = i;
+                        
+                        pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
+                        pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+                    }
+                }
+
+                bloomComputePushConstants.Mode = 2;
+                workGroupsX *= 2;
+                workGroupsY *= 2;
+                
+                // Output image
+                descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+                descriptorImageInfo.imageView = images[2]->RT_GetMipImageView(mips - 2);
+                writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+                writeDescriptors[0].dstSet = descriptorSet;
+                writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+                // Input image
+                writeDescriptors[1] = *shader->GetDescriptorSet("uTexture");
+                writeDescriptors[1].dstSet = descriptorSet;
+                writeDescriptors[1].pImageInfo = &bloomTextures[0]->GetImage().As<VKImage2D>()->GetDescriptor();
+                writeDescriptors[2] = *shader->GetDescriptorSet("uBloomTexture");
+                writeDescriptors[2].dstSet = descriptorSet;
+                writeDescriptors[2].pImageInfo = &inputTexture->GetDescriptor();
+                
+                vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+                bloomComputePushConstants.LOD--;
+                pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
+                
+                auto [mipWidth, mipHeight] = bloomTextures[2]->GetMipSize(mips - 2);
+                workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)workGroupSize);
+                workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)workGroupSize);
+                pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+                bloomComputePushConstants.Mode = 3;
+                
+                // Upsample
+                for (int32_t mip = mips - 3; mip >= 0; --mip)
+                {
+                    auto [mipWidth, mipHeight] = bloomTextures[2]->GetMipSize(mip);
+                    workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)workGroupSize);
+                    workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)workGroupSize);
+                    
+                    // Output image
+                    descriptorImageInfo.imageView = images[2]->RT_GetMipImageView(mip);
+                    auto descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+                    writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+                    writeDescriptors[0].dstSet = descriptorSet;
+                    writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+                    
+                    // Input image
+                    writeDescriptors[1] = *shader->GetDescriptorSet("uTexture");
+                    writeDescriptors[1].dstSet = descriptorSet;
+                    writeDescriptors[1].pImageInfo = &bloomTextures[0]->GetImage().As<VKImage2D>()->GetDescriptor();
+                    writeDescriptors[2] = *shader->GetDescriptorSet("uBloomTexture");
+                    writeDescriptors[2].dstSet = descriptorSet;
+                    writeDescriptors[2].pImageInfo = &images[2]->GetDescriptor();
+                    
+                    vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+                    bloomComputePushConstants.LOD = mip;
+                    
+                    pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
+                    pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+                }
+
+                pipeline->End();
+            });
+
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.BloomComputePassQuery);
     }
 
-        // Composite bloom
+    void SceneRenderer::CompositePass()
+    {
+        NR_PROFILE_FUNC();
+
+        mGPUTimeQueries.CompositePassQuery = mCommandBuffer->BeginTimestampQuery();
+        Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
+        
+        auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
+        float exposure = mSceneData.SceneCamera.CameraObj.GetExposure();
+        int textureSamples = frameBuffer->GetSpecification().Samples;
+
+        CompositeMaterial->Set("uUniforms.Exposure", exposure);
+        if (mBloomSettings.Enabled)
         {
-            Renderer::BeginRenderPass(BloomBlendPass);
-            BloomBlendShader->Bind();
-            BloomBlendShader->SetFloat("uExposure", SceneData.SceneCamera.Camera.GetExposure());
-            BloomBlendShader->SetBool("uEnableBloom", EnableBloom);
-
-            CompositePass->GetSpecification().TargetFrameBuffer->BindTexture(0);
-            BloomBlurPass[index]->GetSpecification().TargetFrameBuffer->BindTexture(1);
-
-            Renderer::SubmitFullscreenQuad(nullptr);
-            Renderer::EndRenderPass();
+            CompositeMaterial->Set("uUniforms.BloomIntensity", mBloomSettings.Intensity);
+            CompositeMaterial->Set("uUniforms.BloomDirtIntensity", mBloomSettings.DirtIntensity);
         }
+        else
+        {
+            CompositeMaterial->Set("uUniforms.BloomIntensity", 0.0f);
+            CompositeMaterial->Set("uUniforms.BloomDirtIntensity", 0.0f);
+        }
+
+        CompositeMaterial->Set("uTexture", frameBuffer->GetImage());
+        CompositeMaterial->Set("uBloomTexture", mBloomComputeTextures[2]);
+        CompositeMaterial->Set("uBloomDirtTexture", mBloomDirtTexture);
+        
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, CompositeMaterial);
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, mJumpFloodCompositeMaterial);
+        Renderer::EndRenderPass(mCommandBuffer);
+        
+        mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.CompositePassQuery);
+#if 0 // WIP
+        // DOF
+        Renderer::BeginRenderPass(mCommandBuffer, mDOFPipeline->GetSpecification().RenderPass);
+        mDOFMaterial->Set("uTexture", mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+        mDOFMaterial->Set("uDepthTexture", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mDOFPipeline, nullptr, mDOFMaterial);
+        Renderer::EndRenderPass(mCommandBuffer);
 #endif
     }
 
@@ -1188,7 +1410,9 @@ namespace NR
     {
         if (mResourcesCreated)
         {
-            mCommandBuffer->Begin();
+            mCommandBuffer->Begin();			
+            
+            // Main render passes
             ShadowMapPass();
             PreDepthPass();
             LightCullingPass();
@@ -1197,14 +1421,18 @@ namespace NR
             HBAOPass();
             ReinterleavingPass();
             HBAOBlurPass();
+
+            // Post-processing
             JumpFloodPass();
+            BloomCompute();
             CompositePass();
+
             mCommandBuffer->End();
             mCommandBuffer->Submit();
-            //BloomBlurPass();
         }
         else
         {
+            // Empty pass
             mCommandBuffer->Begin();
             ClearPass(mCompositePipeline->GetSpecification().RenderPass, true);
             mCommandBuffer->End();
@@ -1390,6 +1618,62 @@ namespace NR
             UI::BeginPropertyGrid();
             UI::Property("Show Light Complexity", RendererDataUB.ShowLightComplexity);
             UI::Property("Show Shadow Cascades", RendererDataUB.ShowCascades);
+            static int maxDrawCall = 1000;
+            UI::PropertySlider("Selected Draw", VKRenderer::GetSelectedDrawCall(), -1, maxDrawCall);
+            UI::Property("Max Draw Call", maxDrawCall);
+            UI::EndPropertyGrid();
+            UI::EndTreeNode();
+        }
+
+        if (UI::BeginTreeNode("Render Statistics"))
+        {
+            uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+            ImGui::Text("GPU time: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex));
+            ImGui::Text("Shadow Map Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.ShadowMapPassQuery));
+            ImGui::Text("Depth Pre-Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.DepthPrePassQuery));
+            ImGui::Text("Light Culling Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.LightCullingPassQuery));
+            ImGui::Text("Geometry Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.GeometryPassQuery));
+            ImGui::Text("Bloom Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.BloomComputePassQuery));
+            ImGui::Text("Jump Flood Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.JumpFloodPassQuery));
+            ImGui::Text("Composite Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.CompositePassQuery));
+
+            if (UI::BeginTreeNode("Pipeline Statistics"))
+            {
+                const PipelineStatistics& pipelineStats = mCommandBuffer->GetPipelineStatistics(frameIndex);
+                ImGui::Text("Input Assembly Vertices: %llu", pipelineStats.InputAssemblyVertices);
+                ImGui::Text("Input Assembly Primitives: %llu", pipelineStats.InputAssemblyPrimitives);
+                ImGui::Text("Vertex Shader Invocations: %llu", pipelineStats.VertexShaderInvocations);
+                ImGui::Text("Clipping Invocations: %llu", pipelineStats.ClippingInvocations);
+                ImGui::Text("Clipping Primitives: %llu", pipelineStats.ClippingPrimitives);
+                ImGui::Text("Fragment Shader Invocations: %llu", pipelineStats.FragmentShaderInvocations);
+                ImGui::Text("Compute Shader Invocations: %llu", pipelineStats.ComputeShaderInvocations);
+                UI::EndTreeNode();
+            }
+
+            UI::EndTreeNode();
+        }
+
+        if (UI::BeginTreeNode("Bloom Settings"))
+        {
+            UI::BeginPropertyGrid();
+            UI::Property("Bloom Enabled", mBloomSettings.Enabled);
+            UI::Property("Threshold", mBloomSettings.Threshold);
+            UI::Property("Knee", mBloomSettings.Knee);
+            UI::Property("Upsample Scale", mBloomSettings.UpsampleScale);
+            UI::Property("Intensity", mBloomSettings.Intensity, 0.05f, 0.0f, 20.0f);
+            UI::Property("Dirt Intensity", mBloomSettings.DirtIntensity, 0.05f, 0.0f, 20.0f);
+            UI::Image(mBloomDirtTexture, ImVec2(64, 64));
+
+            if (ImGui::IsItemHovered())
+            {
+                if (ImGui::IsItemClicked())
+                {
+                    std::string filename = Application::Get().OpenFile("");
+                    if (!filename.empty())
+                        mBloomDirtTexture = Texture2D::Create(filename);
+                }
+            }
+
             UI::EndPropertyGrid();
             UI::EndTreeNode();
         }
@@ -1442,32 +1726,36 @@ namespace NR
                 UI::PropertySlider("Cascade Index", cascadeIndex, 0, 3);
                 UI::EndPropertyGrid();
 
-                UI::Image(image, (uint32_t)cascadeIndex, { size, size }, { 0, 1 }, { 1, 0 });
+                if (mResourcesCreated)
+                {
+                    UI::Image(image, (uint32_t)cascadeIndex, { size, size }, { 0, 1 }, { 1, 0 });
+                }
+
                 UI::EndTreeNode();
             }
 
             UI::EndTreeNode();
         }
 
-#if 0
-        if (UI::BeginTreeNode("Bloom"))
+        if (UI::BeginTreeNode("Compute Bloom"))
         {
-            UI::BeginPropertyGrid();
-            UI::Property("Bloom", EnableBloom);
-            UI::Property("Bloom threshold", BloomThreshold, 0.05f);
-            UI::EndPropertyGrid();
+            float size = ImGui::GetContentRegionAvail().x;
+            if (mResourcesCreated)
+            {
+                static int tex = 0;
+                UI::PropertySlider("Texture", tex, 0, 2);
+                
+                static int mip = 0;
+                auto [mipWidth, mipHeight] = mBloomComputeTextures[tex]->GetMipSize(mip);
+                std::string label = fmt::format("Mip ({0}x{1})", mipWidth, mipHeight);
 
-            auto fb = BloomBlurPass[0]->GetSpecification().TargetFrameBuffer;
-            auto id = fb->GetColorAttachmentRendererID();
+                UI::PropertySlider(label.c_str(), mip, 0, mBloomComputeTextures[tex]->GetMipLevelCount() - 1);
+                UI::ImageMip(mBloomComputeTextures[tex]->GetImage(), mip, { size, size * (1.0f / mBloomComputeTextures[tex]->GetImage()->GetAspectRatio()) }, { 0, 1 }, { 1, 0 });
+            }
 
-            float size = ImGui::GetContentRegionAvailWidth(); // (float)fb->GetWidth() * 0.5f, (float)fb->GetHeight() * 0.5f
-            float w = size;
-            float h = w / ((float)fb->GetWidth() / (float)fb->GetHeight());
-            ImGui::Image((ImTextureID)id, { w, h }, { 0, 1 }, { 1, 0 });
             UI::EndTreeNode();
         }
-#endif
 
         ImGui::End();
-            }
-        }
+    }
+}

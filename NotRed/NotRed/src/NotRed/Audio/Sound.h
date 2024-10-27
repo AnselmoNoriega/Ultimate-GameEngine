@@ -91,7 +91,7 @@ namespace NR::Audio
 
 			@returns true - if successfully initialized data source
 		 */
-		bool InitializeDataSource(const SoundConfig& soundConfig, AudioEngine* audioEngine);
+		bool InitializeDataSource(const Ref<SoundConfig>& soundConfig, AudioEngine* audioEngine);
 
 		void SetLocation(const glm::vec3& location);
 		void SetVelocity(const glm::vec3& velocity = { 0.0f, 0.0f, 0.0f });
@@ -164,7 +164,7 @@ namespace NR::Audio
 		*/
 		int StopNow(bool notifyPlaybackComplete = true, bool resetPlaybackPosition = true);
 
-		void InitializeEffects(const SoundConfig& config);
+		void InitializeEffects(const Ref<SoundConfig>& config);
 
 		static const std::string StringFromState(Sound::ESoundPlayState state);
 

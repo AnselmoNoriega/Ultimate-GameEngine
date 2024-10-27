@@ -1158,39 +1158,39 @@ namespace NR
                 const float brM = 0.6f;
                 colors[ImGuiCol_Separator] = ImVec4{ oldSCol.x * brM, oldSCol.y * brM, oldSCol.z * brM, 1.0f };
 
-                auto& soundConfig = ac.SoundConfig;
+                Ref<Audio::SoundConfig> soundConfig = ac.SoundConfig;
 
                 ImGui::Spacing();
 
                 UI::PushID();
                 UI::BeginPropertyGrid();
 
-                bool bWasEmpty = soundConfig.FileAsset == nullptr;
-                if (UI::PropertyAssetReference("Sound", soundConfig.FileAsset))
+                bool bWasEmpty = soundConfig->FileAsset == nullptr;
+                if (UI::PropertyAssetReference("Sound", soundConfig->FileAsset))
                 {
                     if (bWasEmpty)
                     {
-                        soundConfig.FileAsset.Create();
+                        soundConfig->FileAsset.Create();
                     }
                 }
 
                 propertyGridSpacing();
                 propertyGridSpacing();
 
-                if (UI::Property("Volume Multiplier", soundConfig.VolumeMultiplier, 0.01f, 0.0f, 1.0f))
+                if (UI::Property("Volume Multiplier", soundConfig->VolumeMultiplier, 0.01f, 0.0f, 1.0f))
                 {
-                    ac.VolumeMultiplier = soundConfig.VolumeMultiplier;
+                    ac.VolumeMultiplier = soundConfig->VolumeMultiplier;
                 }
-                if (UI::Property("Pitch Multiplier", soundConfig.PitchMultiplier, 0.01f, 0.0f, 24.0f))
+                if (UI::Property("Pitch Multiplier", soundConfig->PitchMultiplier, 0.01f, 0.0f, 24.0f))
                 {
-                    ac.PitchMultiplier = soundConfig.PitchMultiplier;
+                    ac.PitchMultiplier = soundConfig->PitchMultiplier;
                 }
 
                 propertyGridSpacing();
                 propertyGridSpacing();
 
                 UI::Property("Play on Awake", ac.PlayOnAwake);
-                UI::Property("Looping", soundConfig.Looping);
+                UI::Property("Looping", soundConfig->Looping);
 
                 singleColumnSeparator();
                 propertyGridSpacing();
@@ -1206,30 +1206,30 @@ namespace NR
                         return pow(2.0f, 8.0f * sliderValue - 8.0f);
                     };
 
-                float lpfFreq = 1.0f - soundConfig.LPFilterValue;
+                float lpfFreq = 1.0f - soundConfig->LPFilterValue;
                 if (UI::Property("Low-Pass Filter", lpfFreq, 0.0f, 0.0f, 1.0f))
                 {
                     lpfFreq = std::clamp(lpfFreq, 0.0f, 1.0f);
-                    soundConfig.LPFilterValue = 1.0f - lpfFreq;
+                    soundConfig->LPFilterValue = 1.0f - lpfFreq;
                 }
 
-                float hpfFreq = soundConfig.HPFilterValue;
+                float hpfFreq = soundConfig->HPFilterValue;
                 if (UI::Property("High-Pass Filter", hpfFreq, 0.0f, 0.0f, 1.0f))
                 {
                     hpfFreq = std::clamp(hpfFreq, 0.0f, 1.0f);
-                    soundConfig.HPFilterValue = hpfFreq;
+                    soundConfig->HPFilterValue = hpfFreq;
                 }
 
                 singleColumnSeparator();
                 propertyGridSpacing();
                 propertyGridSpacing();
 
-                UI::Property("Master Reverb send", soundConfig.MasterReverbSend, 0.01f, 0.0f, 1.0f);
+                UI::Property("Master Reverb send", soundConfig->MasterReverbSend, 0.01f, 0.0f, 1.0f);
 
                 UI::EndPropertyGrid();
                 UI::PopID();
 
-                if (soundConfig.FileAsset != nullptr)
+                if (soundConfig->FileAsset != nullptr)
                 {
                     ImGui::Spacing();
                     ImGui::Spacing();
@@ -1266,9 +1266,9 @@ namespace NR
 
                 ImGui::Text("Spatialization");
                 ImGui::SameLine(contentRegionAvailable.x - (ImGui::GetFrameHeight() + GImGui->Style.FramePadding.y));
-                ImGui::Checkbox("##enabled", &soundConfig.SpatializationEnabled);
+                ImGui::Checkbox("##enabled", &soundConfig->SpatializationEnabled);
 
-                if (soundConfig.SpatializationEnabled)
+                if (soundConfig->SpatializationEnabled)
                 {
                     ImGui::Spacing();
                     ImGui::Separator();
@@ -1276,7 +1276,7 @@ namespace NR
                     ImGui::Spacing();
 
                     using AttModel = Audio::AttenuationModel;
-                    auto& spatialConfig = soundConfig.Spatialization;
+                    auto& spatialConfig = soundConfig->Spatialization;
                     auto getTextForModel = [&](AttModel model)
                         {
                             switch (model)

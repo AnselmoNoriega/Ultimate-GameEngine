@@ -13,7 +13,7 @@
 
 namespace NR::Audio
 {
-    bool AudioPlayback::PlaySound2D(const SoundConfig& sound, float volume, float pitch)
+    bool AudioPlayback::PlaySound2D(const Ref<SoundConfig>& sound, float volume, float pitch)
     {
         NR_PROFILE_FUNC();
 
@@ -23,7 +23,7 @@ namespace NR::Audio
 
         auto& audioComponent = entity.AddComponent<AudioComponent>(entity.GetID());
         audioComponent.SoundConfig = sound;
-        audioComponent.SoundConfig.SpatializationEnabled = false;
+        audioComponent.SoundConfig->SpatializationEnabled = false;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
         audioComponent.AutoDestroy = true;
@@ -41,12 +41,12 @@ namespace NR::Audio
     {
         NR_PROFILE_FUNC();
 
-        SoundConfig sc;
-        sc.FileAsset = soundAsset;
+        Ref<SoundConfig> sc = Ref<SoundConfig>::Create();
+        sc->FileAsset = soundAsset;
         return PlaySound2D(sc, volume, pitch);
     }
 
-    bool AudioPlayback::PlaySoundAtLocation(const SoundConfig& sound, glm::vec3 location, float volume, float pitch)
+    bool AudioPlayback::PlaySoundAtLocation(const Ref<SoundConfig>& sound, glm::vec3 location, float volume, float pitch)
     {
         NR_PROFILE_FUNC();
 
@@ -58,14 +58,14 @@ namespace NR::Audio
 
         auto& audioComponent = entity.AddComponent<AudioComponent>(entity.GetID());
         audioComponent.SoundConfig = sound;
-        audioComponent.SoundConfig.SpawnLocation = location;
-        audioComponent.SoundConfig.SpatializationEnabled = true;
+        audioComponent.SoundConfig->SpawnLocation = location;
+        audioComponent.SoundConfig->SpatializationEnabled = true;
         audioComponent.VolumeMultiplier = volume;
         audioComponent.PitchMultiplier = pitch;
         audioComponent.SourcePosition = location;
         audioComponent.AutoDestroy = true;
 
-        SoundConfig config = audioComponent.SoundConfig;
+        Ref<SoundConfig> config = audioComponent.SoundConfig;
         uint64_t handle = entity.GetID();
         AudioEngine::ExecuteOnAudioThread([handle, config]
             {
@@ -78,8 +78,8 @@ namespace NR::Audio
     {
         NR_PROFILE_FUNC();
 
-        SoundConfig sc;
-        sc.FileAsset = soundAsset;
+        Ref<SoundConfig> sc = Ref<SoundConfig>::Create();
+        sc->FileAsset = soundAsset;
         return PlaySoundAtLocation(sc, location, volume, pitch);
     }
 
@@ -125,7 +125,7 @@ namespace NR::Audio
             SourceManager::SetMasterReverbSendForSource(sound, sendLevel);
             if (auto* audioComponent = engine.GetAudioComponentFromID(engine.mCurrentSceneID, audioComponetnID))
             {
-                audioComponent->SoundConfig.MasterReverbSend = sendLevel;
+                audioComponent->SoundConfig->MasterReverbSend = sendLevel;
             }
         }
     }
@@ -137,7 +137,7 @@ namespace NR::Audio
         auto& engine = AudioEngine::Get();
         if (auto* audioComponent = engine.GetAudioComponentFromID(engine.mCurrentSceneID, audioComponetnID))
         {
-            return audioComponent->SoundConfig.MasterReverbSend;
+            return audioComponent->SoundConfig->MasterReverbSend;
         }
 
         return -1.0f;

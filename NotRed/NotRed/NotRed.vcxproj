@@ -397,6 +397,7 @@
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
+    <ClCompile Include="src\NotRed\Core\Ref.cpp" />
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />

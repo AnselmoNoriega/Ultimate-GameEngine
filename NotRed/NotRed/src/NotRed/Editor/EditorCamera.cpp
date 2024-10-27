@@ -211,15 +211,18 @@ namespace NR
 
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent& e)
     {
-        if (Input::IsMouseButtonPressed(MouseButton::Right))
+        if (mIsActive)
         {
-            e.GetYOffset() > 0 ? mSpeed += 0.3f * mSpeed : mSpeed -= 0.3f * mSpeed;
-            mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
-        }
-        else
-        {
-            MouseZoom(e.GetYOffset() * 0.1f);
-            UpdateCameraView();
+            if (Input::IsMouseButtonPressed(MouseButton::Right))
+            {
+                e.GetYOffset() > 0 ? mSpeed += 0.3f * mSpeed : mSpeed -= 0.3f * mSpeed;
+                mSpeed = std::clamp(mSpeed, 0.0005f, 2.0f);
+            }
+            else
+            {
+                MouseZoom(e.GetYOffset() * 0.1f);
+                UpdateCameraView();
+            }
         }
 
         return false;
