@@ -244,6 +244,7 @@ namespace NR
 				VK_CHECK_RESULT(vkWaitForFences(device->GetVulkanDevice(), 1, &instance->mWaitFences[frameIndex], VK_TRUE, UINT64_MAX));
 				VK_CHECK_RESULT(vkResetFences(device->GetVulkanDevice(), 1, &instance->mWaitFences[frameIndex]));
 				VK_CHECK_RESULT(vkQueueSubmit(device->GetGraphicsQueue(), 1, &submitInfo, instance->mWaitFences[frameIndex]));
+				
 				// Retrieve timestamp query results
 				vkGetQueryPoolResults(device->GetVulkanDevice(), instance->mTimestampQueryPools[frameIndex], 0, instance->mTimestampNextAvailableQuery,
 					instance->mTimestampNextAvailableQuery * sizeof(uint64_t), instance->mTimestampQueryResults[frameIndex].data(), sizeof(uint64_t), VK_QUERY_RESULT_64_BIT);

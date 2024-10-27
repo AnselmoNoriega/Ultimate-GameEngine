@@ -146,7 +146,7 @@ namespace NR
 			return 0;
 		}
 
-		while (sWatching)
+		while (sWatching & false)
 		{
 			const DWORD status = ReadDirectoryChangesW(
 				handle,

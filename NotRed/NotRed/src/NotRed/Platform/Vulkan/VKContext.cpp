@@ -18,7 +18,8 @@ namespace NR
 	{
 		(void)flags; (void)object; (void)location; (void)messageCode; (void)pUserData; (void)pLayerPrefix; // Unused arguments
 		
-		NR_CORE_WARN("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", (const char*)objectType, pMessage);
+		// It brakes the Engine at init and destroy
+		//NR_CORE_WARN("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", (const char*)objectType, pMessage);
 		
 		const auto& imageRefs = VKImage2D::GetImageRefs();
 		if (strstr(pMessage, "CoreValidation-DrawState-InvalidImageLayout"))

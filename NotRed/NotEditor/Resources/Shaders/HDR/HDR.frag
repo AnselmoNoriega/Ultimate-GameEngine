@@ -66,7 +66,6 @@ void main()
 	const float gamma     = 2.2;
 	const float pureWhite = 1.0;
 	float sampleScale = 0.5;
-	float sampleScale = 0.5;
 
 	ivec2 texSize = textureSize(uBloomTexture, 0);
 	vec2 fTexSize = vec2(float(texSize.x), float(texSize.y));

@@ -207,7 +207,7 @@ namespace NR
         {
             return;
         }
-        
+
         SelectedSubmesh selection;
 
         if (entity.HasComponent<MeshComponent>())
@@ -221,7 +221,7 @@ namespace NR
         }
 
         selection.EntityObj = entity;
-        
+
         mSelectionContext.clear();
         mSelectionContext.push_back(selection);
         mEditorScene->SetSelectedEntity(entity);
@@ -236,10 +236,10 @@ namespace NR
         }
 
         Renderer2D::BeginScene(mEditorCamera.GetViewProjection(), mEditorCamera.GetViewMatrix());
-        
+        Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
+
         if (mDrawOnTopBoundingBoxes)
         {
-            Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
             if (mShowBoundingBoxes)
             {
                 if (mShowBoundingBoxSelectedMeshOnly)
@@ -464,7 +464,7 @@ namespace NR
 
         mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
         mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
-        
+
         if (!project->GetConfig().StartScene.empty())
         {
             OpenScene((Project::GetProjectDirectory() / project->GetConfig().StartScene).string());
@@ -510,13 +510,13 @@ namespace NR
         ImVec2 center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
         ImGui::SetNextWindowSize(ImVec2{ 400,0 });
-        
+
         if (ImGui::BeginPopupModal("Welcome", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::Text("Welcome to NotRed!");
             ImGui::Separator();
             ImGui::TextWrapped("NotRed is an early-stage interactive application and rendering engine for Windows.");
-            
+
             if (ImGui::Button("OK"))
             {
                 ImGui::CloseCurrentPopup();
@@ -547,24 +547,24 @@ namespace NR
         {
             ImGui::PushFont(largeFont);
             ImGui::Text("NotRed Engine");
-            
+
             ImGui::PopFont();
             ImGui::Separator();
-            
+
             ImGui::TextWrapped("NotRed is an early-stage interactive application and rendering engine for Windows.");
-            
+
             ImGui::Separator();
             ImGui::PushFont(boldFont);
-            
+
             ImGui::Text("NotRed Core Team");
             ImGui::PopFont();
-            
+
             ImGui::Text("Anselmo Noriega");
             ImGui::Text("Special Thanks To: The Cherno Team");
 
             ImGui::Separator();
             ImGui::TextColored(ImVec4{ 0.7f, 0.7f, 0.7f, 1.0f }, "This software contains source code provided by NVIDIA Corporation.");
-            
+
             if (ImGui::Button("OK"))
             {
                 ImGui::CloseCurrentPopup();
@@ -589,7 +589,7 @@ namespace NR
         if (ImGui::BeginPopupModal("Create New Mesh", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::TextWrapped("A Mesh asset must be created from this Mesh Source file (eg. FBX) before it can be added to your scene. More options can be accessed by double-clicking a Mesh Source file in the Content Browser panel.");
-            
+
             const std::string& meshAssetPath = Project::GetActive()->GetConfig().MeshPath;
 
             ImGui::AlignTextToFramePadding();
@@ -599,7 +599,7 @@ namespace NR
             NR_CORE_ASSERT(mCreateNewMeshPopupData.MeshToCreate);
             const AssetMetadata& assetData = AssetManager::GetMetadata(mCreateNewMeshPopupData.MeshToCreate->Handle);
             std::string filepath = fmt::format("{0}/{1}.nrmesh", mCurrentScene->GetName(), assetData.FilePath.stem().string());
-            
+
             if (!mCreateNewMeshPopupData.CreateMeshFilenameBuffer[0])
             {
                 strcpy(mCreateNewMeshPopupData.CreateMeshFilenameBuffer.data(), filepath.c_str());
@@ -611,7 +611,7 @@ namespace NR
             {
                 std::string serializePath = mCreateNewMeshPopupData.CreateMeshFilenameBuffer.data();
                 std::filesystem::path path = Project::GetActive()->GetMeshPath() / serializePath;
-                
+
                 if (!FileSystem::Exists(path.parent_path()))
                 {
                     FileSystem::CreateDirectory(path.parent_path());
@@ -640,7 +640,7 @@ namespace NR
             }
 
             ImGui::SameLine();
-            
+
             if (ImGui::Button("Cancel"))
             {
                 mCreateNewMeshPopupData = {};
@@ -666,13 +666,13 @@ namespace NR
         if (ImGui::BeginPopupModal("Invalid Asset Metadata", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
             ImGui::TextWrapped("You tried to use an asset with invalid metadata. This most likely happened because an asset has a reference to another non-existent asset.");
-            
+
             ImGui::Separator();
 
             auto& metadata = mInvalidAssetMetadataPopupData.Metadata;
 
             UI::BeginPropertyGrid();
-            
+
             const auto& filepath = metadata.FilePath.string();
             UI::Property("Asset Filepath", filepath);
             UI::Property("Asset ID", fmt::format("{0}", (uint64_t)metadata.Handle));
@@ -888,15 +888,15 @@ namespace NR
 
         auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
         auto viewportSize = ImGui::GetContentRegionAvail();
-        
+
         mViewportRenderer->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         mEditorScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-        
+
         if (mRuntimeScene)
         {
             mRuntimeScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         }
-        
+
         mEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
         mEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
@@ -1180,7 +1180,7 @@ namespace NR
                 }
 
                 ImGui::Separator();
-                
+
                 if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
                 {
                     SaveScene();
@@ -1194,15 +1194,15 @@ namespace NR
 
                 std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
                 std::string label = std::string("Restart with ") + otherRenderer;
-                
+
                 if (ImGui::MenuItem(label.c_str()))
                 {
                     RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
                     Application::Get().Close();
                 }
-                
+
                 ImGui::Separator();
-                
+
                 if (ImGui::MenuItem("Exit"))
                 {
                     p_open = false;
@@ -1718,7 +1718,7 @@ namespace NR
             {
                 mShowBoundingBoxes = !mShowBoundingBoxes;
             }
-                break;
+            break;
             case KeyCode::D:
                 if (mSelectionContext.size())
                 {

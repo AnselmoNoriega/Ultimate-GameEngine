@@ -1,7 +1,6 @@
 #include "nrpch.h"
 #include "SceneRenderer.h"
 
-#include <glad/glad.h>
 #include <imgui.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -11,6 +10,8 @@
 #include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 #include "NotRed/Platform/Vulkan/VKMaterial.h"
 #include "NotRed/Platform/Vulkan/VKRenderer.h"
+#include "NotRed/Platform/Vulkan/VKContext.h"
+#include "NotRed/Platform/Vulkan/VKImage.h"
 
 #include "Renderer2D.h"
 #include "UniformBuffer.h"
@@ -90,7 +91,6 @@ namespace NR
             shadowMapFrameBufferSpec.ExistingImage = cascadedDepthImage;
             shadowMapFrameBufferSpec.DebugName = "Shadow Map";
 
-            // 4 cascades
             auto shadowPassShader = Renderer::GetShaderLibrary()->Get("ShadowMap");
             PipelineSpecification pipelineSpec;
             pipelineSpec.DebugName = "ShadowPass";
@@ -103,6 +103,7 @@ namespace NR
                 { ShaderDataType::Float2, "aTexCoord" }
             };
 
+            // 4 cascades
             for (int i = 0; i < 4; i++)
             {
                 shadowMapFrameBufferSpec.ExistingImageLayers.clear();
@@ -146,7 +147,7 @@ namespace NR
         // Geometry
         {
             FrameBufferSpecification geoFrameBufferSpec;
-            geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
+            geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
             geoFrameBufferSpec.Samples = 1;
             geoFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
             geoFrameBufferSpec.DebugName = "Geometry";
@@ -358,7 +359,7 @@ namespace NR
                 hbaoBlurFrameBufferSpec.DebugName = "HBAOBlur";
                 hbaoBlurFrameBufferSpec.ClearOnLoad = false;
                 hbaoBlurFrameBufferSpec.ExistingImages[0] = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(0);
-                hbaoBlurFrameBufferSpec.BlendMode = FrameBufferBlendMode::ZeroSrcColor;
+                hbaoBlurFrameBufferSpec.BlendMode = FrameBufferBlendMode::Zero_SrcColor;
 
                 RenderPassSpecification renderPassSpec;
                 renderPassSpec.TargetFrameBuffer = FrameBuffer::Create(hbaoBlurFrameBufferSpec);
@@ -1391,8 +1392,8 @@ namespace NR
         CompositeMaterial->Set("uBloomTexture", mBloomComputeTextures[2]);
         CompositeMaterial->Set("uBloomDirtTexture", mBloomDirtTexture);
         
-        Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, CompositeMaterial);
-        Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, mJumpFloodCompositeMaterial);
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, nullptr, CompositeMaterial);
+        Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, nullptr, mJumpFloodCompositeMaterial);
         Renderer::EndRenderPass(mCommandBuffer);
         
         mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.CompositePassQuery);
@@ -1417,10 +1418,14 @@ namespace NR
             PreDepthPass();
             LightCullingPass();
             GeometryPass();
+
+            // HBAO
+            mGPUTimeQueries.HBAOPassQuery = mCommandBuffer->BeginTimestampQuery();
             DeinterleavingPass();
             HBAOPass();
             ReinterleavingPass();
             HBAOBlurPass();
+            mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.HBAOPassQuery);
 
             // Post-processing
             JumpFloodPass();
@@ -1633,6 +1638,7 @@ namespace NR
             ImGui::Text("Depth Pre-Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.DepthPrePassQuery));
             ImGui::Text("Light Culling Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.LightCullingPassQuery));
             ImGui::Text("Geometry Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.GeometryPassQuery));
+            ImGui::Text("HBAO Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.HBAOPassQuery));
             ImGui::Text("Bloom Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.BloomComputePassQuery));
             ImGui::Text("Jump Flood Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.JumpFloodPassQuery));
             ImGui::Text("Composite Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.CompositePassQuery));

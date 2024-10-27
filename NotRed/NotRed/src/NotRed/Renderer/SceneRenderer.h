@@ -106,7 +106,6 @@ namespace NR
 
 	private:
 		void FlushDrawList();
-		void ClearPass(Ref<RenderPass> renderPass, bool explicitClear = false) const;
 		void DeinterleavingPass();
 		void HBAOPass();
 		void ReinterleavingPass();
@@ -120,6 +119,8 @@ namespace NR
 		// Post-processing
 		void BloomCompute();
 		void CompositePass();
+
+		void ClearPass(Ref<RenderPass> renderPass, bool explicitClear = false) const;
 
 		void CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const;
 
@@ -246,7 +247,7 @@ namespace NR
 			char Padding3[3] = { 0,0,0 };
 		} RendererDataUB;
 
-		glm::ivec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
+		glm::ivec3 mHBAOWorkGroups{ 32.0f, 32.0f, 16.0f };
 		
 		//HBAO
 		Ref<Material> mDeinterleavingMaterial;
@@ -354,6 +355,7 @@ namespace NR
 			uint32_t DepthPrePassQuery = 0;
 			uint32_t LightCullingPassQuery = 0;
 			uint32_t GeometryPassQuery = 0;
+			uint32_t HBAOPassQuery = 0;
 			uint32_t BloomComputePassQuery = 0;
 			uint32_t JumpFloodPassQuery = 0;
 			uint32_t CompositePassQuery = 0;

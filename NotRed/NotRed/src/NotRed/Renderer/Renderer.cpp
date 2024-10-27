@@ -140,7 +140,7 @@ namespace NR
         // Post-processing
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PostProcessing/Bloom");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PostProcessing/DOF");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HDR");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HDR", true);
         
         // Light-culling
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
