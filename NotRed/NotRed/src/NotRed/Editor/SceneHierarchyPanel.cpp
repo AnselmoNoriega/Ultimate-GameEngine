@@ -640,9 +640,9 @@ namespace NR
         DrawComponent<TransformComponent>("Transform", entity, [](TransformComponent& component)
             {
                 DrawVec3Control("Translation", component.Translation);
-                glm::vec3 rotation = glm::degrees(component.Rotation);
-                DrawVec3Control("Rotation", rotation);
-                component.Rotation = glm::radians(rotation);
+                //glm::vec3 rotation = glm::degrees(component.Rotation);
+                DrawVec3Control("Rotation", component.Rotation);
+                //component.Rotation = glm::radians(rotation);
                 DrawVec3Control("Scale", component.Scale, 1.0f);
             }, false);
 

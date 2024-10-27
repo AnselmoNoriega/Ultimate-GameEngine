@@ -1,16 +1,31 @@
 Scene: Demo
 Environment:
-  AssetHandle: 10191359667784106151
+  AssetHandle: 5891183239894280007
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 3341184822646445148
+    TagComponent:
+      Tag: Directional Light
+    TransformComponent:
+      Position: [0, 4.19999981, 0]
+      Rotation: [0, 3.29999995, -189.5]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    DirectionalLightComponent:
+      Radiance: [1, 1, 1]
+      CastShadows: true
+      SoftShadows: true
+      LightSize: 0.5
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light
     TransformComponent:
-      Position: [0, 5.20689201, 0]
+      Position: [0, 7.55172777, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Parent: 0
@@ -37,20 +52,18 @@ Entities:
       []
     MeshComponent:
       AssetID: 10610151712161516910
-  - Entity: 3691607972219686695
+  - Entity: 13790836390258583099
     TagComponent:
-      Tag: Sky Light
+      Tag: Cube
     TransformComponent:
-      Position: [0, 4.71119785, 0]
+      Position: [0, 5.89292049, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Parent: 0
     Children:
       []
-    SkyLightComponent:
-      EnvironmentMap: 10191359667784106151
-      Intensity: 1
-      DynamicSky: false
+    MeshComponent:
+      AssetID: 8366434151043859381
 PhysicsLayers:
   []
 SceneAudio:

@@ -8,7 +8,6 @@ const int LightCount = 1;
 // Constant normal incidence Fresnel factor for all dielectrics.
 const vec3 Fdielectric = vec3(0.04);
 
-
 struct PointLight {
 	vec3 Position;
 	float Multiplier;
@@ -67,11 +66,13 @@ layout(std140, binding = 2) uniform SceneData
 	float uEnvironmentMapIntensity;
 };
 
+
 layout(std140, binding = 4) uniform PointLightData
 {
 	uint uPointLightsCount;
 	PointLight upointLights[1024];
 };
+
 
 layout(std430, binding = 14) readonly buffer VisibleLightIndicesBuffer {
 	int indices[];
@@ -280,7 +281,7 @@ vec3 CalculateDirLights(vec3 F0)
 		// Calculate angles between surface normal and various light vectors.
 		float cosLi = max(0.0, dot(mParams.Normal, Li));
 		float cosLh = max(0.0, dot(mParams.Normal, Lh));
-		
+
 		vec3 F = fresnelSchlickRoughness(F0, max(0.0, dot(Lh, mParams.View)), mParams.Roughness);
 		float D = ndfGGX(cosLh, mParams.Roughness);
 		float G = gaSchlickGGX(cosLi, mParams.NdotV, mParams.Roughness);
@@ -300,6 +301,7 @@ int GetLightBufferIndex(int i)
 {
 	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
 	uint index = tileID.y * uTilesCountX + tileID.x;
+
 	uint offset = index * 1024;
 	return visibleLightIndicesBuffer.indices[offset + i];
 }
@@ -312,28 +314,27 @@ int GetPointLightCount()
 		uint lightIndex = GetLightBufferIndex(i);
 		if (lightIndex == -1)
 			break;
+
 		result++;
 	}
+
 	return result;
 }
-
 
 vec3 CalculatePointLights(in vec3 F0)
 {
 	vec3 result = vec3(0.0);
-
-	ivec2 tileID = ivec2(gl_FragCoord) / ivec2(16, 16);
-	uint index = tileID.y * uTilesCountX + tileID.x;
-
-	uint offset = index * 1024;
-	for (int i = 0; i < uPointLightsCount && visibleLightIndicesBuffer.indices[offset + i] != -1; i++)
+	for (int i = 0; i < uPointLightsCount; i++)
 	{
-		uint lightIndex = visibleLightIndicesBuffer.indices[offset + i];
+		uint lightIndex = GetLightBufferIndex(i);
+		if (lightIndex == -1)
+			break;
+
 		PointLight light = upointLights[lightIndex];
 		vec3 Li = normalize(light.Position - Input.WorldPosition);
 		float lightDistance = length(light.Position - Input.WorldPosition);
 		vec3 Lh = normalize(Li + mParams.View);
-		
+
 		float attenuation = clamp(1.0 - (lightDistance * lightDistance) / (light.Radius * light.Radius), 0.0, 1.0);
 		attenuation *= mix(attenuation, 1.0, light.Falloff);
 
@@ -342,7 +343,7 @@ vec3 CalculatePointLights(in vec3 F0)
 		// Calculate angles between surface normal and various light vectors.
 		float cosLi = max(0.0, dot(mParams.Normal, Li));
 		float cosLh = max(0.0, dot(mParams.Normal, Lh));
-		
+
 		vec3 F = fresnelSchlickRoughness(F0, max(0.0, dot(Lh, mParams.View)), mParams.Roughness);
 		float D = ndfGGX(cosLh, mParams.Roughness);
 		float G = gaSchlickGGX(cosLi, mParams.NdotV, mParams.Roughness);
@@ -376,6 +377,7 @@ vec3 IBL(vec3 F0, vec3 Lr)
 	float NoV = clamp(mParams.NdotV, 0.0, 1.0);
 	vec3 R = 2.0 * dot(mParams.View, mParams.Normal) * mParams.Normal - mParams.View;
 	vec3 specularIrradiance = textureLod(uEnvRadianceTex, RotateVectorAboutY(uMaterialUniforms.EnvMapRotation, Lr), (mParams.Roughness) * envRadianceTexLevels).rgb;
+	//specularIrradiance = vec3(Convert_sRGB_FromLinear(specularIrradiance.r), Convert_sRGB_FromLinear(specularIrradiance.g), Convert_sRGB_FromLinear(specularIrradiance.b));
 
 	// Sample BRDF Lut, 1.0 - roughness for y-coord because texture was generated (in Sparky) for gloss model
 	vec2 specularBRDF = texture(uBRDFLUTTexture, vec2(mParams.NdotV, 1.0 - mParams.Roughness)).rg;
@@ -392,8 +394,8 @@ float ShadowFade = 1.0;
 
 float GetShadowBias()
 {
-	const float MINIMUM_SHADOW_BIAS = 0.002;
-	float bias = max(MINIMUM_SHADOW_BIAS * (1.0 - dot(mParams.Normal, uDirectionalLights.Direction)), MINIMUM_SHADOW_BIAS);
+	const float MINIMUmSHADOW_BIAS = 0.002;
+	float bias = max(MINIMUmSHADOW_BIAS * (1.0 - dot(mParams.Normal, uDirectionalLights.Direction)), MINIMUmSHADOW_BIAS);
 	return bias;
 }
 
@@ -624,7 +626,6 @@ vec3 GetGradient(float value)
 	float step4 = 16.0f;
 
 	vec3 color = mix(zero, white, smoothstep(step0, step1, value));
-
 	color = mix(color, white, smoothstep(step1, step2, value));
 	color = mix(color, red, smoothstep(step1, step2, value));
 	color = mix(color, blue, smoothstep(step2, step3, value));
@@ -652,6 +653,7 @@ void main()
 	mParams.View = normalize(uCameraPosition - Input.WorldPosition);
 	mParams.NdotV = max(dot(mParams.Normal, mParams.View), 0.0);
 
+
 	// Specular reflection vector
 	vec3 Lr = 2.0 * mParams.NdotV * mParams.Normal - mParams.View;
 
@@ -661,9 +663,9 @@ void main()
 	uint cascadeIndex = 0;
 
 	const uint SHADOW_MAP_CASCADE_COUNT = 4;
-	for(uint i = 0; i < SHADOW_MAP_CASCADE_COUNT - 1; i++)
+	for (uint i = 0; i < SHADOW_MAP_CASCADE_COUNT - 1; i++)
 	{
-		if(Input.ViewPosition.z < uCascadeSplits[i])
+		if (Input.ViewPosition.z < uCascadeSplits[i])
 			cascadeIndex = i + 1;
 	}
 
@@ -679,7 +681,7 @@ void main()
 	if (fadeCascades)
 	{
 		float cascadeTransitionFade = uCascadeTransitionFade;
-		
+
 		float c0 = smoothstep(uCascadeSplits[0] + cascadeTransitionFade * 0.5f, uCascadeSplits[0] - cascadeTransitionFade * 0.5f, Input.ViewPosition.z);
 		float c1 = smoothstep(uCascadeSplits[1] + cascadeTransitionFade * 0.5f, uCascadeSplits[1] - cascadeTransitionFade * 0.5f, Input.ViewPosition.z);
 		float c2 = smoothstep(uCascadeSplits[2] + cascadeTransitionFade * 0.5f, uCascadeSplits[2] - cascadeTransitionFade * 0.5f, Input.ViewPosition.z);
@@ -725,29 +727,35 @@ void main()
 		shadowAmount = uSoftShadows ? PCSS_DirectionalLight(uShadowMapTexture, cascadeIndex, shadowMapCoords, uLightSize) : HardShadows_DirectionalLight(uShadowMapTexture, cascadeIndex, shadowMapCoords);
 	}
 
+
 	vec3 lightContribution = CalculateDirLights(F0) * shadowAmount;
 	lightContribution += CalculatePointLights(F0);
 	lightContribution += mParams.Albedo * uMaterialUniforms.Emissive;
 	vec3 iblContribution = IBL(F0, Lr) * uEnvironmentMapIntensity;
 
 	color = vec4(iblContribution + lightContribution, 1.0);
+
+	// View normals .. used by HBAO
+	vec2 screenSpaceCoords = gl_FragCoord.xy * uInvFullResolution;
+	vec3 P = FetchViewPos(screenSpaceCoords);
+	vec3 N = ReconstructNormal(screenSpaceCoords, P);
+	oViewNormals = vec4(N * 0.5 + 0.5, 1.0);
+
+	oViewPosition = vec4(Input.ViewPosition, 1.0);
+	
 	if (uShowLightComplexity)
 	{
 		int pointLightCount = GetPointLightCount();
 		float value = float(pointLightCount);
 		color.rgb = (color.rgb * 0.2) + GetGradient(value);
 	}
-	
-	// View normals .. used by HBAO
-	vec2 screenSpaceCoords = gl_FragCoord.xy * uInvFullResolution;
-	vec3 P = FetchViewPos(screenSpaceCoords);
-	vec3 N = ReconstructNormal(screenSpaceCoords, P);
-	oViewNormals = vec4(N * 0.5 + 0.5, 1.0);
-	oViewPosition = vec4(Input.ViewPosition, 1.0);
+
+	// (shading-only)
+	// color.rgb = vec3(1.0) * shadowAmount + 0.2f;
 
 	if (uShowCascades)
 	{
-		switch(cascadeIndex)
+		switch (cascadeIndex)
 		{
 		case 0:
 			color.rgb *= vec3(1.0f, 0.25f, 0.25f);
