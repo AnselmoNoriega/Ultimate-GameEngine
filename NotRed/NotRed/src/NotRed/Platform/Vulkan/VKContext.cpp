@@ -24,7 +24,7 @@ namespace NR
 		const auto& imageRefs = VKImage2D::GetImageRefs();
 		if (strstr(pMessage, "CoreValidation-DrawState-InvalidImageLayout"))
 		{
-			NR_CORE_ASSERT(false);
+			NR_CORE_WARN(pMessage);
 		}
 
 		return VK_FALSE;

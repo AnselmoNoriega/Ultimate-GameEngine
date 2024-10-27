@@ -31,6 +31,7 @@ namespace NR::Audio
             ma_uint32 channels;
 
             channels = ma_node_get_input_channels(pNodeBase, 0);
+            
             NR_CORE_ASSERT(channels == 2);
 
             // 1. Feed Pre-Delay

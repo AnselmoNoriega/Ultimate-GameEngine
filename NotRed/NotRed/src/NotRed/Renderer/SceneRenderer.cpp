@@ -91,6 +91,7 @@ namespace NR
             shadowMapFrameBufferSpec.ExistingImage = cascadedDepthImage;
             shadowMapFrameBufferSpec.DebugName = "Shadow Map";
 
+            // 4 cascades
             auto shadowPassShader = Renderer::GetShaderLibrary()->Get("ShadowMap");
             PipelineSpecification pipelineSpec;
             pipelineSpec.DebugName = "ShadowPass";
@@ -115,6 +116,8 @@ namespace NR
                 pipelineSpec.RenderPass = RenderPass::Create(shadowMapRenderPassSpec);
                 mShadowPassPipelines[i] = Pipeline::Create(pipelineSpec);
             }
+
+            mShadowPassMaterial = Material::Create(shadowPassShader, "ShadowPass");
         }
 
         // PreDepth
@@ -780,7 +783,6 @@ namespace NR
 
         const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
         pointLightData.Count = uint32_t(pointLightsVec.size());
-
         std::memcpy(pointLightData.PointLights, pointLightsVec.data(), sizeof PointLight * pointLightsVec.size());
 
         Renderer::Submit([instance, &pointLightData]() mutable
