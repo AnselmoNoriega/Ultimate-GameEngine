@@ -22,10 +22,10 @@ struct Particle
 
 //----------------------------------------------------------------------------//
 
-layout(std430, binding = 16) buffer Particles
+layout(std430, binding = 16) writeonly buffer Particles
 {
-	Particle particles[];
-};
+	Particle particlesData[];
+} particles;
 
 //----------------------------------------------------------------------------//
 
@@ -182,5 +182,5 @@ void main()
 			particle.height = u_baseHeight;
 	}
 
-	particles[gl_GlobalInvocationID.x] = particle;
+	particles.particlesData[gl_GlobalInvocationID.x] = particle;
 }

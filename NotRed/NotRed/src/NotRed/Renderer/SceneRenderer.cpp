@@ -191,8 +191,8 @@ namespace NR
             int workGroupsX = int((numParticles + localSizeX - 1) / localSizeX);
 
             mParticleGenWorkGroups = { workGroupsX, 1, 1 };
-            int particleSize = 36;
-            mStorageBufferSet->Create(particleSize * 10, 16);
+            int particleSize = 32;
+            mStorageBufferSet->Create(particleSize * 1, 16);
 
             mParticleGenMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("ParticleGen"), "ParticleGen");
             Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");

@@ -27,15 +27,15 @@ struct Particle
 	float temp;
 };
 
-layout(std430, binding = 16) buffer Particles
+layout(std430, binding = 16) readonly buffer Particles
 {
-    Particle data[];
-};
+    Particle particlesData[];
+} particles;
 //---------------------------------------------------
 
 void main()
 {
-	if(data[0].height != 0)
+	if(particles.particlesData[0].height != 0)
 	{
 		fragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	}
