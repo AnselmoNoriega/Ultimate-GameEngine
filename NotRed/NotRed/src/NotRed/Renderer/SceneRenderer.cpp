@@ -211,6 +211,7 @@ namespace NR
 
             PipelineSpecification pipelineSpecification;
             pipelineSpecification.Layout = {
+                { ShaderDataType::Float3, "aPosition" }
             };
             pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
 
@@ -714,6 +715,8 @@ namespace NR
             mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mHBAOBlurPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
+            mParticlePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+            
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
             mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
@@ -1449,6 +1452,7 @@ namespace NR
         mDrawList.clear();
         mSelectedMeshDrawList.clear();
         mShadowPassDrawList.clear();
+        mParticlesDrawList.clear();
         mColliderDrawList.clear();
         mSceneData = {};
     }

@@ -16,14 +16,18 @@ layout (push_constant) uniform Transform
 } uRenderer;
 
 //---------------------------------------------------
-struct Particle {
-    vec4 position;
-    vec4 velocity;
-    float mass;
-    int id;
+struct Particle
+{
+	vec2 pos;
+	float height;
+	float angle;
+	float tiltAngle;
+	float angleVel;
+	float opacity;
+	float temp;
 };
 
-layout(set = 0, binding = 8) buffer ParticleData 
+layout(std430, binding = 16) buffer Particles
 {
     Particle data[];
 };
@@ -31,7 +35,7 @@ layout(set = 0, binding = 8) buffer ParticleData
 
 void main()
 {
-	if(data[0].id != 0)
+	if(data[0].height != 0)
 	{
 		fragColor = vec4(0.0f, 1.0f, 0.0f, 1.0f);
 	}

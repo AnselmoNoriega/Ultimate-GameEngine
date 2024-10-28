@@ -441,9 +441,9 @@ namespace NR
                     VkDescriptorSet descriptorSet = material->GetDescriptorSet(frameIndex);
 
                     // Bind descriptor sets describing shader binding points
-                    std::array<VkDescriptorSet, 2> descriptorSets = {
-                        descriptorSet,
-                        sData->ActiveRendererDescriptorSet
+                    std::array<VkDescriptorSet, 1> descriptorSets = {
+                        descriptorSet
+                        //sData->ActiveRendererDescriptorSet
                     };
                     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
