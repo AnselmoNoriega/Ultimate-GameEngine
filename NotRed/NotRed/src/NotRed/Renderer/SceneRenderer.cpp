@@ -845,8 +845,6 @@ namespace NR
                 instance->mUniformBufferSet->Get(3, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
             });
 
-        Renderer::GenerateParticles(mCommandBuffer, mParticleGenPipeline, mUniformBufferSet, mStorageBufferSet, mParticleGenMaterial, mParticleGenWorkGroups);
-
         Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),
             mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
     }
@@ -1031,12 +1029,22 @@ namespace NR
                 Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
             }
         }
+
         if (mOptions.ShowCollidersWireframe)
         {
             for (DrawCommand& dc : mColliderDrawList)
             {
                 Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
             }
+        }
+
+        static bool createGalaxyPositions = true;
+        if (createGalaxyPositions)
+        {
+            // TODO: Fix it and check whats happening
+            // It runs for not every pixel
+            Renderer::GenerateParticles(mCommandBuffer, mParticleGenPipeline, mUniformBufferSet, mStorageBufferSet, mParticleGenMaterial, mParticleGenWorkGroups); 
+            createGalaxyPositions = false;
         }
 
         for (auto& dc : mParticlesDrawList)
