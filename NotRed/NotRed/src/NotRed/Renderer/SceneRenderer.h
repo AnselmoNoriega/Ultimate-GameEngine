@@ -205,28 +205,28 @@ namespace NR
 		
 		struct UBStarParams
 		{
-			uint32_t NumStars;
+			uint32_t NumStars = 1;
 
-			float MaxRad;
-			float BulgeRad;
+			float MaxRad = 3500.0f;
+			float BulgeRad = 1250.0f;
 
-			float AngleOffset;
-			float Eccentricity;
+			float AngleOffset = 6.28f;
+			float Eccentricity = 0.85f;
 
-			float BaseHeight;
-			float Height;
+			float BaseHeight = 300.0f;
+			float Height = 250.0f;
 
-			float MinTemp;
-			float MaxTemp;
-			float DustBaseTemp;
+			float MinTemp = 3000.0f;
+			float MaxTemp = 9000.0f;
+			float DustBaseTemp = 4000.0f;
 
-			float MinStarOpacity;
-			float MaxStarOpacity;
+			float MinStarOpacity = 0.1f;
+			float MaxStarOpacity = 0.5f;
 
-			float MinDustOpacity;
-			float MaxDustOpacity;
+			float MinDustOpacity = 0.01f;
+			float MaxDustOpacity = 0.05f;
 
-			float Speed;
+			float Speed = 10.0f;
 		} StarParamsUB;
 
 		struct UBRendererData
