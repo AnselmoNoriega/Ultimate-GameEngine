@@ -1044,7 +1044,7 @@ namespace NR
             // TODO: Fix it and check whats happening
             // It runs for not every pixel
             Renderer::GenerateParticles(mCommandBuffer, mParticleGenPipeline, mUniformBufferSet, mStorageBufferSet, mParticleGenMaterial, mParticleGenWorkGroups); 
-            createGalaxyPositions = false;
+            //createGalaxyPositions = false;
         }
 
         for (auto& dc : mParticlesDrawList)
