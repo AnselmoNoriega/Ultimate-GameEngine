@@ -299,10 +299,11 @@ void main()
 {
 	vec3 a_pos    = aPosition;
 	vec2 a_texPos = aPosition.xz + vec2(0.5);
+	uint particleIndex = (uint)floor(gl_VertexIndex / NUM_VERTICES);
 
-	Particle particle = particles.particlesData[gl_VertexIndex / NUM_VERTICES];
-	uint type = (gl_VertexIndex / NUM_VERTICES) > u_numStars ? 1 : 0;
-	if(type == 0 && gl_VertexIndex / NUM_VERTICES % 150 == 0)
+	Particle particle = particles.particlesData[particleIndex];
+	uint type = (particleIndex) > u_numStars ? 1 : 0;
+	if(type == 0 && particleIndex % 150 == 0)
 		type = 2;
 
 	float scale;
