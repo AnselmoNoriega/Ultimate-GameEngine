@@ -866,6 +866,9 @@
     <ClCompile Include="src\NotRed\Core\Log.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Core\Ref.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
@@ -1283,6 +1286,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Core\Ref.cpp" />
   </ItemGroup>
 </Project>

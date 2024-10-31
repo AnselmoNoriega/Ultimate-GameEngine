@@ -551,12 +551,6 @@ namespace NR
 
         mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
         auto mi = Material::Create(mMeshShader, "Particle-Effect");
-        mi->Set("u_time", 0.0f);
-        mi->Set("numStars", 1.0f);
-        mi->Set("starSize", 10.0f);
-        mi->Set("dustSize", 500.0f);
-        mi->Set("h2Size", 150.0f);
-        mi->Set("h2Dist", 300.0f);
         mMaterials.push_back(mi);
 
         Submesh& submesh = mSubmeshes.emplace_back();

@@ -229,6 +229,19 @@ namespace NR
 			float Speed = 10.0f;
 		} StarParamsUB;
 
+		struct UBEnvironmentParams
+		{
+			float Time = 0.0f;
+
+			uint32_t NumStars = 1;
+			float StarSize = 10.0f;
+
+			float DustSize = 500.0f;
+			float H2Size = 150.0f;
+
+			float H2DistCheck = 300.0f;
+		} EnvironmentParamsUB;
+
 		struct UBRendererData
 		{
 			glm::vec4 CascadeSplits;

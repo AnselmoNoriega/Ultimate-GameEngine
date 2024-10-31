@@ -55,6 +55,7 @@ namespace NR
         mUniformBufferSet->Create(sizeof(UBScreenData), 17);
         mUniformBufferSet->Create(sizeof(UBHBAOData), 18);
         mUniformBufferSet->Create(sizeof(UBStarParams), 19);
+        mUniformBufferSet->Create(sizeof(UBEnvironmentParams), 20);
 
         mCompositeShader = Renderer::GetShaderLibrary()->Get("HDR");
         CompositeMaterial = Material::Create(mCompositeShader);
@@ -759,6 +760,7 @@ namespace NR
         // Update uniform buffers
         UBCamera& cameraData = CameraDataUB;
         UBStarParams& starParamsData = StarParamsUB;
+        UBEnvironmentParams& environmentParamsData = EnvironmentParamsUB;
         UBScene& sceneData = SceneDataUB;
         UBShadow& shadowData = ShadowData;
         UBRendererData& rendererData = RendererDataUB;
@@ -777,11 +779,12 @@ namespace NR
         cameraData.View = sceneCamera.ViewMatrix;
 
         Ref<SceneRenderer> instance = this;
-        Renderer::Submit([instance, cameraData, starParamsData]() mutable
+        Renderer::Submit([instance, cameraData, starParamsData, environmentParamsData]() mutable
             {
                 const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
                 instance->mUniformBufferSet->Get(0, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
                 instance->mUniformBufferSet->Get(19, 0, bufferIndex)->RT_SetData(&starParamsData, sizeof(starParamsData));
+                instance->mUniformBufferSet->Get(20, 0, bufferIndex)->RT_SetData(&environmentParamsData, sizeof(environmentParamsData));
             });
 
         const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
