@@ -3,7 +3,7 @@
 #define NUM_VERTICES 6
 
 layout(location = 0) in vec3 aPosition;
-layout(location = 1) in int aIndex;
+layout(location = 1) in float aIndex;
 
 layout(location = 0) out vec2 o_texPos;
 layout(location = 1) out vec4 o_color;
@@ -300,7 +300,7 @@ void main()
 {
 	vec3 a_pos    = aPosition;
 	vec2 a_texPos = aPosition.xz + vec2(0.5);
-	uint particleIndex = aIndex;
+	uint particleIndex = uint(aIndex);
 
 	Particle particle = particles.particlesData[particleIndex];
 	uint type = (particleIndex) > u_numStars ? 1 : 0;
@@ -338,8 +338,6 @@ void main()
 	//gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos, 1.0);
 	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
 
-	if(aIndex >= 0 && aIndex <= 10)
-		o_color = vec4(1.0, 1.0, 1.0, 0.5);
-	else
-		o_color = vec4(1.0, 0.1, 0.1, 1.0);
+	float vecCol = aIndex / 10.0;
+	o_color = vec4(vecCol, vecCol, vecCol, 0.5);
 }
