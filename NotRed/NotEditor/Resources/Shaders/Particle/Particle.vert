@@ -335,8 +335,11 @@ void main()
 	o_texPos = a_texPos;
 	o_color = vec4(color, particle.opacity);
 	o_type = type;
-	//gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos, 1.0);
-	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
+
+	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos / 10, 1.0);
+	
+	// This is for debug
+	//gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
 
 	float vecCol = aIndex / 10.0;
 	o_color = vec4(vecCol, vecCol, vecCol, 0.5);
