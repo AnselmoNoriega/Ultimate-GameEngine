@@ -525,20 +525,26 @@ namespace NR
         : mIsAnimated(false)
     {
         {
-            ParticleVertex leftBot;
-            leftBot.Position = { -0.5f, 0.0f, -0.5f };
-            ParticleVertex rightBot;
-            rightBot.Position = { 0.5f, 0.0f, -0.5f };
-            ParticleVertex leftTop;
-            leftTop.Position = { -0.5f, 0.0f,  0.5f };
-            ParticleVertex rightTop;
-            rightTop.Position = { 0.5f, 0.0f,  0.5f };
-
             for (uint32_t i = 0; i < particleCount; ++i)
             {
+                ParticleVertex leftBot;
+                leftBot.Position = { i + -0.5f, 0.0f, -0.5f };
+                leftBot.Index = i;
                 mParticleVertices.push_back(leftBot);
+
+                ParticleVertex rightBot;
+                rightBot.Position = { i + 0.5f, 0.0f, -0.5f };
+                rightBot.Index = i;
                 mParticleVertices.push_back(rightBot);
+
+                ParticleVertex leftTop;
+                leftTop.Position = { i + -0.5f, 0.0f,  0.5f };
+                leftTop.Index = i;
                 mParticleVertices.push_back(leftTop);
+
+                ParticleVertex rightTop;
+                rightTop.Position = { i + 0.5f, 0.0f,  0.5f };
+                rightTop.Index = i;
                 mParticleVertices.push_back(rightTop);
 
                 unsigned int index = i * 2;
@@ -565,7 +571,8 @@ namespace NR
         mVertexBuffer = VertexBuffer::Create(mParticleVertices.data(), mParticleVertices.size() * sizeof(ParticleVertex));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
         mVertexBufferLayout = {
-            { ShaderDataType::Float3, "aPosition" }
+            { ShaderDataType::Float3, "aPosition" },
+            { ShaderDataType::Int, "aIndex" }
         };
     }
 
