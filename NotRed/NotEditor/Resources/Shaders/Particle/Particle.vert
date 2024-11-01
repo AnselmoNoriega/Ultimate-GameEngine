@@ -338,16 +338,8 @@ void main()
 	//gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos, 1.0);
 	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
 
-	if(aIndex == 0)
-		o_color = vec4(1.0, 0.0, 0.0, 1.0);
-	else if(aIndex == 1)
-		o_color = vec4(1.0, 1.0, 0.0, 1.0);
-	else if(aIndex == 2)
-		o_color = vec4(1.0, 0.0, 1.0, 1.0);
-	else if(aIndex == 3)
-		o_color = vec4(1.0, 1.0, 1.0, 1.0);
-	else if(aIndex == 4)
-		o_color = vec4(0.5, 0.2, 0.3, 1.0);
+	if(aIndex >= 0 && aIndex <= 10)
+		o_color = vec4(1.0, 1.0, 1.0, 0.5);
 	else
-		o_color = vec4(0.1, 0.1, 0.1, 1.0);
+		o_color = vec4(1.0, 0.1, 0.1, 1.0);
 }

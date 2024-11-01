@@ -28,7 +28,7 @@ namespace NR
 	struct ParticleVertex
 	{
 		glm::vec3 Position;
-		int Index;
+		float Index;
 	};
 
 	struct Vertex

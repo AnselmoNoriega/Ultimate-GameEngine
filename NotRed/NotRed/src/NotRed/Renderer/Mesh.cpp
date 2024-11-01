@@ -528,32 +528,32 @@ namespace NR
             for (uint32_t i = 0; i < particleCount; ++i)
             {
                 ParticleVertex leftBot;
-                leftBot.Position = { i + -0.5f, 0.0f, -0.5f };
-                leftBot.Index = i;
+                leftBot.Position = { i + 0.2 + -0.5f, 0.0f, -0.5f};
+                leftBot.Index = (float)i;
                 mParticleVertices.push_back(leftBot);
 
                 ParticleVertex rightBot;
-                rightBot.Position = { i + 0.5f, 0.0f, -0.5f };
-                rightBot.Index = i;
+                rightBot.Position = { i + 0.2 + 0.5f, 0.0f, -0.5f };
+                rightBot.Index = (float)i;
                 mParticleVertices.push_back(rightBot);
 
                 ParticleVertex leftTop;
-                leftTop.Position = { i + -0.5f, 0.0f,  0.5f };
-                leftTop.Index = i;
+                leftTop.Position = { i + 0.2 + -0.5f, 0.0f,  0.5f };
+                leftTop.Index = (float)i;
                 mParticleVertices.push_back(leftTop);
 
                 ParticleVertex rightTop;
-                rightTop.Position = { i + 0.5f, 0.0f,  0.5f };
-                rightTop.Index = i;
+                rightTop.Position = { i + 0.2 + 0.5f, 0.0f,  0.5f };
+                rightTop.Index = (float)i;
                 mParticleVertices.push_back(rightTop);
 
                 unsigned int index = i * 2;
-                Index indexA = { index + 0, index + 1, index + 2 };
-                Index indexB = { index + 1, index + 3, index + 2 };
+                Index indexA = { (index * 4) + 0, (index * 4) + 1, (index * 4) + 2 };
+                Index indexB = { (index * 4) + 1, (index * 4) + 3, (index * 4) + 2 };
                 mIndices.push_back(indexA);
                 mIndices.push_back(indexB);
             }
-        }
+        }       
 
         mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
         auto mi = Material::Create(mMeshShader, "Particle-Effect");
@@ -572,7 +572,7 @@ namespace NR
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
         mVertexBufferLayout = {
             { ShaderDataType::Float3, "aPosition" },
-            { ShaderDataType::Int, "aIndex" }
+            { ShaderDataType::Float, "aIndex" }
         };
     }
 
