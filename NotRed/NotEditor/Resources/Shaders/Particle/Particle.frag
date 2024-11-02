@@ -10,5 +10,23 @@ layout(location = 0) out vec4 o_color;
 
 void main() 
 {
-    o_color = a_color;
+	vec2 centeredPos = 2.0 * (a_texPos - 0.5);
+	
+	vec4 color = a_color;
+	if(a_type == 0) //stars
+	{
+		color = vec4(0, 0, 1, 1);
+	}
+	else if(a_type == 1) //dust
+	{
+		color = vec4(0, 1, 0, 1);
+	}
+	else //h-2 regions
+	{
+		float dist = max(1.0 - length(centeredPos), 0.0);
+
+		color = vec4(1, 0, 0, 1);
+	}
+
+	o_color = color;
 }

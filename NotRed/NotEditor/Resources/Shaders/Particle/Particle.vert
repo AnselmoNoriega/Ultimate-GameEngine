@@ -336,7 +336,7 @@ void main()
 	o_color = vec4(color, particle.opacity);
 	o_type = type;
 
-	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos / 10, 1.0);
+	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos / 100, 1.0);
 	
 	// This is for debug
 	//gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
