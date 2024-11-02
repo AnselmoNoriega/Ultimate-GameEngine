@@ -528,22 +528,22 @@ namespace NR
             for (uint32_t i = 0; i < particleCount; ++i)
             {
                 ParticleVertex leftBot;
-                leftBot.Position = { i - 0.5f, 0.0f, -0.5f};
+                leftBot.Position = { -0.5f, 0.0f, -0.5f};
                 leftBot.Index = (float)i;
                 mParticleVertices.push_back(leftBot);
 
                 ParticleVertex rightBot;
-                rightBot.Position = { i + 0.5f, 0.0f, -0.5f };
+                rightBot.Position = { 0.5f, 0.0f, -0.5f };
                 rightBot.Index = (float)i;
                 mParticleVertices.push_back(rightBot);
 
                 ParticleVertex leftTop;
-                leftTop.Position = { i - 0.5f, 0.0f,  0.5f };
+                leftTop.Position = { -0.5f, 0.0f,  0.5f };
                 leftTop.Index = (float)i;
                 mParticleVertices.push_back(leftTop);
 
                 ParticleVertex rightTop;
-                rightTop.Position = { i + 0.5f, 0.0f,  0.5f };
+                rightTop.Position = { 0.5f, 0.0f,  0.5f };
                 rightTop.Index = (float)i;
                 mParticleVertices.push_back(rightTop);
 
