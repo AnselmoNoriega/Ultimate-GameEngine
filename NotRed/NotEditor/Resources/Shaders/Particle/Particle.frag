@@ -15,18 +15,25 @@ void main()
 	vec4 color = a_color;
 	if(a_type == 0) //stars
 	{
-		color = vec4(0, 0, 1, 1);
+		//color = vec4(0, 0, 1, 1);
+		if(dot(centeredPos, centeredPos) > 1.0)
+			discard;
 	}
 	else if(a_type == 1) //dust
 	{
-		color = vec4(0, 1, 0, 1);
+		//color = vec4(0, 1, 0, 1);
+		color.rgb *= vec3(0.5, 0.5, 1.0);
+		color.a *= max(1.0 - length(centeredPos), 0.0);
 	}
 	else //h-2 regions
 	{
+		//color = vec4(1, 0, 0, 1);
+
 		float dist = max(1.0 - length(centeredPos), 0.0);
 
-		color = vec4(1, 0, 0, 1);
+		color.rgb = mix(vec3(1.0, 0.0, 0.0), vec3(1.0), dist * dist * dist);
+		color.a = dist * dist;
 	}
 
-	o_color = color;
+	o_color = clamp(color, 0.0, 2.0) ;
 }

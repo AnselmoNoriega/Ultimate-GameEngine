@@ -205,7 +205,7 @@ namespace NR
 		
 		struct UBStarParams
 		{
-			uint32_t NumStars = 800;
+			uint32_t NumStars = 75000;
 
 			float MaxRad = 3500.0f;
 			float BulgeRad = 1250.0f;
@@ -233,7 +233,7 @@ namespace NR
 		{
 			float Time = 0.0f;
 
-			uint32_t NumStars = 800;
+			uint32_t NumStars = 75000;
 			float StarSize = 10.0f;
 
 			float DustSize = 500.0f;

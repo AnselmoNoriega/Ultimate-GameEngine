@@ -186,7 +186,7 @@ namespace NR
 
         // Particles Gen
         {
-            int numParticles = StarParamsUB.NumStars;
+            int numParticles = 80128;
             int localSizeX = 256;
 
             int workGroupsX = int((numParticles + localSizeX - 1) / localSizeX);

@@ -13,6 +13,7 @@ layout (std140, binding = 0) uniform Camera
 {
 	mat4 uViewProjectionMatrix;
 	mat4 uInverseViewProjectionMatrix;
+	mat4 Projection;
 	mat4 uViewMatrix;
 };
 
@@ -303,7 +304,7 @@ void main()
 	uint particleIndex = uint(aIndex);
 
 	Particle particle = particles.particlesData[particleIndex];
-	uint type = (particleIndex) > u_numStars ? 1 : 0;
+	uint type = particleIndex > u_numStars ? 1 : 0;
 	if(type == 0 && particleIndex % 150 == 0)
 		type = 2;
 
