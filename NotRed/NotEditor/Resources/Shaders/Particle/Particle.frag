@@ -22,8 +22,9 @@ void main()
 	else if(a_type == 1) //dust
 	{
 		//color = vec4(0, 1, 0, 1);
+		color = clamp(color, 0.0, 1.0);
 		color.rgb *= vec3(0.5, 0.5, 1.0);
-		color.a *= max(1.0 - length(centeredPos), 0.0);
+		color.a *= max(1.0 - length(centeredPos), 0.0) * 0.1;
 	}
 	else //h-2 regions
 	{
@@ -35,5 +36,9 @@ void main()
 		color.a = dist * dist;
 	}
 
-	o_color = clamp(color, 0.0, 2.0) ;
+	//if(color.a <= 0.1)
+	//{
+	//	discard;
+	//}
+	o_color = clamp(color, 0.0, 2.0);
 }

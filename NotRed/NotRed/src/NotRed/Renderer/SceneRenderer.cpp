@@ -204,8 +204,9 @@ namespace NR
         {
             FrameBufferSpecification particleFrameBufferSpec;
             particleFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+            particleFrameBufferSpec.BlendMode = FrameBufferBlendMode::SrcAlphaOneMinusSrcAlpha;
             particleFrameBufferSpec.Samples = 1;
-            particleFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+            particleFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
             particleFrameBufferSpec.DebugName = "Particles";
 
             Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(particleFrameBufferSpec);
@@ -216,6 +217,7 @@ namespace NR
                 { ShaderDataType::Float, "aIndex" }
             };
             pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
+            pipelineSpecification.DepthWrite = false;
 
             RenderPassSpecification renderPassSpec;
             renderPassSpec.TargetFrameBuffer = frameBuffer;
