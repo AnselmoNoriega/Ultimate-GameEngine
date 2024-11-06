@@ -476,7 +476,7 @@ namespace NR
 
 		auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
 		renderer->SetScene(this);
-		renderer->BeginScene({ camera, cameraViewMatrix, 0.1f, 1000.0f, 45.0f });
+		renderer->BeginScene({ camera, cameraViewMatrix, 0.1f, 1000.0f, 45.0f }, dt);
 		for (auto entity : group)
 		{
 			auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
@@ -605,7 +605,7 @@ namespace NR
 
 		auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
 		renderer->SetScene(this);
-		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f }, dt);
 		for (auto entity : group)
 		{
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
@@ -845,7 +845,7 @@ namespace NR
 
 		auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
 		renderer->SetScene(this);
-		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f });
+		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f }, dt);
 		for (auto entity : group)
 		{
 			auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);

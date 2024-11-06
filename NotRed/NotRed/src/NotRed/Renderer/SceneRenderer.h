@@ -66,7 +66,7 @@ namespace NR
 
 		void UpdateHBAOData();
 
-		void BeginScene(const SceneRendererCamera& camera);
+		void BeginScene(const SceneRendererCamera& camera, float dt);
 		void EndScene();
 
 		void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);

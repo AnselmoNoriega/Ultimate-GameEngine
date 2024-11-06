@@ -671,7 +671,7 @@ namespace NR
         hbaoData.AOMultiplier = 1.0f / (1.0f - hbaoData.NDotVBias);
     }
 
-    void SceneRenderer::BeginScene(const SceneRendererCamera& camera)
+    void SceneRenderer::BeginScene(const SceneRendererCamera& camera, float dt)
     {
         NR_PROFILE_FUNC();
 
@@ -762,14 +762,16 @@ namespace NR
 
         // Update uniform buffers
         UBCamera& cameraData = CameraDataUB;
-        UBStarParams& starParamsData = StarParamsUB;
-        UBEnvironmentParams& environmentParamsData = EnvironmentParamsUB;
         UBScene& sceneData = SceneDataUB;
         UBShadow& shadowData = ShadowData;
         UBRendererData& rendererData = RendererDataUB;
         UBPointLights& pointLightData = PointLightsUB;
         UBHBAOData& hbaoData = HBAODataUB;
         UBScreenData& screenData = ScreenDataUB;
+
+        UBStarParams& starParamsData = StarParamsUB;
+        UBEnvironmentParams& environmentParamsData = EnvironmentParamsUB;
+        EnvironmentParamsUB.Time += dt;
 
         auto& sceneCamera = mSceneData.SceneCamera;
         const auto viewProjection = sceneCamera.CameraObj.GetProjectionMatrix() * sceneCamera.ViewMatrix;

@@ -23,7 +23,7 @@ void main()
 	else if(a_type == 1) //dust
 	{
 		color = clamp(color, 0.0, 1.0);
-		color.rgb *= vec3(0.506, 0.0, 1.0);
+		color.rgb *= vec3(0.388, 0.333, 1.0);
 		color.a *= max(1.0 - length(centeredPos), 0.0) * 0.1;
 
 		//clamp(color, 0.0, 1.0);
@@ -32,7 +32,7 @@ void main()
 	{
 		float dist = max(1.0 - length(centeredPos), 0.0);
 
-		color.rgb = mix(vec3(1.0, 0.0, 0.0), vec3(1.0), dist * dist * dist);
+		color.rgb = mix(vec3(0.8, 0.071, 0.165), vec3(1.0), dist * dist * dist);
 		color.a = dist * dist * 4;
 
 		color = clamp(color, 0.0, 4.0);
