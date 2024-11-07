@@ -902,6 +902,11 @@ namespace NR
                     component.StarColor = particleComponent["StarColor"].as<glm::vec3>();
                     component.DustColor = particleComponent["DustColor"].as<glm::vec3>();
                     component.h2RegionColor = particleComponent["h2RegionColor"].as<glm::vec3>();
+
+                    auto& mat = component.MeshObj->GetMaterials()[0];
+                    mat->Set("uGalaxySpecs.StarColor", component.StarColor);
+                    mat->Set("uGalaxySpecs.DustColor", component.DustColor);
+                    mat->Set("uGalaxySpecs.h2RegionColor", component.h2RegionColor);
                 }
 
                 auto cameraComponent = entity["CameraComponent"];
