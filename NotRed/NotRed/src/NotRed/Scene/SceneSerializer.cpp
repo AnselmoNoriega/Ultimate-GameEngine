@@ -295,6 +295,23 @@ namespace NR
             out << YAML::EndMap; // MeshComponent
         }
 
+        if (entity.HasComponent<ParticleComponent>())
+        {
+            out << YAML::Key << "ParticleComponent";
+            out << YAML::BeginMap; // ParticleComponent
+
+            auto particleComponent = entity.GetComponent<ParticleComponent>();
+
+            out << YAML::Key << "ParticleCount" << YAML::Value << particleComponent.ParticleCount;
+            out << YAML::Key << "Velocity" << YAML::Value << particleComponent.Velocity;
+
+            out << YAML::Key << "StarColor" << YAML::Value << particleComponent.StarColor;
+            out << YAML::Key << "DustColor" << YAML::Value << particleComponent.DustColor;
+            out << YAML::Key << "h2RegionColor" << YAML::Value << particleComponent.h2RegionColor;
+
+            out << YAML::EndMap; // ParticleComponent
+        }
+
         if (entity.HasComponent<CameraComponent>())
         {
             out << YAML::Key << "CameraComponent";
@@ -871,6 +888,20 @@ namespace NR
                             component.MeshObj->ModifyFlags(AssetFlag::Invalid, true);
                         }
                     }
+                }
+
+                auto particleComponent = entity["ParticleComponent"];
+                if (particleComponent)
+                {
+                    int particleCount = particleComponent["ParticleCount"].as<int>();
+
+                    auto& component = deserializedEntity.AddComponent<ParticleComponent>(particleCount);
+
+                    component.Velocity = particleComponent["Velocity"].as<float>();
+
+                    component.StarColor = particleComponent["StarColor"].as<glm::vec3>();
+                    component.DustColor = particleComponent["DustColor"].as<glm::vec3>();
+                    component.h2RegionColor = particleComponent["h2RegionColor"].as<glm::vec3>();
                 }
 
                 auto cameraComponent = entity["CameraComponent"];

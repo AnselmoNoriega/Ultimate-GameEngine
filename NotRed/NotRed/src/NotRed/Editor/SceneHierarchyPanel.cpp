@@ -691,6 +691,10 @@ namespace NR
                     pc.MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(pc.ParticleCount));
                 }
 
+                UI::PropertyColor("Star Color", pc.StarColor);
+                UI::PropertyColor("Dust Color", pc.DustColor);
+                UI::PropertyColor("h2Region Color", pc.h2RegionColor);
+
                 UI::EndPropertyGrid();
             });
 

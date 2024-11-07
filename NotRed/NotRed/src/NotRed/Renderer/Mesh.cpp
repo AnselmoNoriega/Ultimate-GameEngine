@@ -557,6 +557,9 @@ namespace NR
 
         mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
         auto mi = Material::Create(mMeshShader, "Particle-Effect");
+        mi->Set("uGalaxySpecs.StarColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        mi->Set("uGalaxySpecs.DustColor", glm::vec3(0.388f, 0.333f, 1.0f));
+        mi->Set("uGalaxySpecs.h2RegionColor", glm::vec3(0.8f, 0.071f, 0.165f));
         mMaterials.push_back(mi);
 
         Submesh& submesh = mSubmeshes.emplace_back();

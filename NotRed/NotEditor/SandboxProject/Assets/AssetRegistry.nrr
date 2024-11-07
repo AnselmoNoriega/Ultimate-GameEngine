@@ -56,6 +56,9 @@ Assets:
   - Handle: 4472115398838612294
     FilePath: Models/Source/stormtrooper/silly_dancing.fbx
     Type: MeshAsset
+  - Handle: 4775416180002498292
+    FilePath: Scenes/Galaxy.nrsc
+    Type: Scene
   - Handle: 4846994273130567862
     FilePath: Models/Source/pilot/Material.002_Metallic.png
     Type: Texture
@@ -137,6 +140,9 @@ Assets:
   - Handle: 15637941359961024561
     FilePath: Models/Source/Default/Cone.fbx
     Type: MeshAsset
+  - Handle: 15639926771555786455
+    FilePath: Scenes/Demo.nrsc
+    Type: Scene
   - Handle: 15826414915342885037
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Normal.png
     Type: Texture
@@ -158,6 +164,9 @@ Assets:
   - Handle: 16518116033380006148
     FilePath: Models/Source/Default/Capsule.fbx
     Type: MeshAsset
+  - Handle: 16709815844158458432
+    FilePath: Meshes/Demo/Sphere.nrmesh
+    Type: Mesh
   - Handle: 16812491990447046066
     FilePath: Models/Source/cerberus/cerberus.fbx
     Type: MeshAsset

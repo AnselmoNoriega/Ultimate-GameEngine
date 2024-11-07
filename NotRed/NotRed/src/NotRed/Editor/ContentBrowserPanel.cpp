@@ -32,7 +32,7 @@ namespace NR
 		mAssetIconMap[".wav"] = Texture2D::Create("Resources/Editor/wav.png");
 		mAssetIconMap[".cs"] = Texture2D::Create("Resources/Editor/csc.png");
 		mAssetIconMap[".png"] = Texture2D::Create("Resources/Editor/png.png");
-		mAssetIconMap[".nrscene"] = Texture2D::Create("Resources/Editor/notred.png");
+		mAssetIconMap[".nrsc"] = Texture2D::Create("Resources/Editor/notred.png");
 
 		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
 		mFwrdbtnTex = Texture2D::Create("Resources/Editor/btn_fwrd.png");

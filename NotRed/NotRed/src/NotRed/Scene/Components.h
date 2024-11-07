@@ -86,6 +86,11 @@ namespace NR
         Ref<Mesh> MeshObj;
 
         int ParticleCount = 80128;
+        float Velocity = 1.0f;
+
+        glm::vec3 StarColor = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec3 DustColor = glm::vec3(0.388f, 0.333f, 1.0f);
+        glm::vec3 h2RegionColor = glm::vec3(0.8f, 0.071f, 0.165f);
 
         ParticleComponent()
         {

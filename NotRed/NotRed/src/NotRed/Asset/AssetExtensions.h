@@ -8,9 +8,9 @@ namespace NR
 {
 	inline static std::unordered_map<std::string, AssetType> sAssetExtensionMap =
 	{
-		{ ".nrscene", AssetType::Scene },
+		{ ".nrsc", AssetType::Scene },
 		{ ".nrmesh", AssetType::Mesh },
-		{ ".nrsounc", AssetType::SoundConfig },
+		{ ".nrsound", AssetType::SoundConfig },
 		{ ".nrpm", AssetType::PhysicsMat },
 		{ ".fbx", AssetType::MeshAsset },
 		{ ".gltf", AssetType::MeshAsset },

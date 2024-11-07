@@ -1,0 +1,44 @@
+Scene: Demo
+Environment:
+  AssetHandle: 4840404787673925164
+  DirLight:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 4105658539968457500
+    TagComponent:
+      Tag: Sphere
+    TransformComponent:
+      Position: [0, 3.25329876, 0]
+      Rotation: [0, 0, 0]
+      Scale: [7.61606932, 7.61606836, 7.61606932]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 6322814044550389576
+  - Entity: 15800128647745287998
+    TagComponent:
+      Tag: Particles
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    ParticleComponent:
+      ParticleCount: 80128
+      Velocity: 1
+      StarColor: [1, 1, 1]
+      DustColor: [0.388000011, 0.333000004, 1]
+      h2RegionColor: [0.800000012, 0.0710000023, 0.165000007]
+PhysicsLayers:
+  []
+SceneAudio:
+  MasterReverb:
+    Pre-delay: 50
+    Room size: 0.49999994
+    Damping: 0.5
+    Width: 1
