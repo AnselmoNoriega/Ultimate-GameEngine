@@ -7,12 +7,6 @@
 
 namespace NR
 {
-	namespace Utils 
-	{
-		std::string BytesToString(uint64_t bytes);
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	}
-
 	struct GPUMemoryStats
 	{
 		uint64_t Used = 0;
@@ -36,7 +30,11 @@ namespace NR
 		T* MapMemory(VmaAllocation allocation)
 		{
 			T* mappedMemory;
-			vmaMapMemory(VKAllocator::GetVMAAllocator(), allocation, (void**)&mappedMemory);
+			VkResult result = vmaMapMemory(VKAllocator::GetVMAAllocator(), allocation, (void**)&mappedMemory); 
+			if (result != VK_SUCCESS) 
+			{
+				NR_CORE_ASSERT(false, "Upsy!");
+			}
 			return mappedMemory;
 		}
 

@@ -16,6 +16,10 @@ namespace NR
 
 		void Set(const std::string& name, uint32_t value) override;
 
+		void Set(const std::string& name, const glm::ivec2& value) override;
+		void Set(const std::string& name, const glm::ivec3& value) override;
+		void Set(const std::string& name, const glm::ivec4& value) override;
+
 		void Set(const std::string& name, bool value) override;
 		void Set(const std::string& name, int value) override;
 		void Set(const std::string& name, float value) override;
@@ -30,6 +34,7 @@ namespace NR
 		void Set(const std::string& name, const Ref<Texture2D>& texture) override;
 		void Set(const std::string& name, const Ref<TextureCube>& texture) override;
 		void Set(const std::string& name, const Ref<Image2D>& image) override;
+		void Set(const std::string& name, const Ref<Texture2D>& texture, uint32_t arrayIndex) override {}
 
 		uint32_t& GetUInt(const std::string& name) override;
 

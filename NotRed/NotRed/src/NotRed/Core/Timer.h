@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+#include "Log.h"
+
 namespace NR
 {
 	class Timer
@@ -29,6 +31,23 @@ namespace NR
 
 	private:
 		std::chrono::time_point<std::chrono::high_resolution_clock> mStart;
+	};
+
+	class ScopedTimer
+	{
+	public:
+		ScopedTimer(const std::string& name)
+			: mName(name) {}
+
+		~ScopedTimer()
+		{
+			float time = mTimer.ElapsedMillis();
+			NR_CORE_TRACE("[TIMER] {0} - {1}ms", mName, time);
+		}
+
+	private:
+		std::string mName;
+		Timer mTimer;
 	};
 
 	class PerformanceProfiler
@@ -71,4 +90,7 @@ namespace NR
 
 #define NR_SCOPE_PERF(name)\
 	ScopePerformanceTimer timer__LINE__(name, Application::Get().GetPerformanceProfiler());
+
+#define NR_SCOPE_TIMER(name)\
+	ScopedTimer timer__LINE__(name);
 }

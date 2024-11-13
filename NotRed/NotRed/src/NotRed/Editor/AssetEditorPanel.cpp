@@ -4,6 +4,8 @@
 #include "DefaultAssetEditors.h"
 #include "NotRed/Asset/AssetManager.h"
 
+#include "MeshViewerPanel.h"
+
 namespace NR
 {
 	AssetEditor::AssetEditor(const char* title)
@@ -20,7 +22,7 @@ namespace NR
 
 		bool wasOpen = mIsOpen;
 		ImGui::SetNextWindowSizeConstraints(mMinSize, mMaxSize);
-		ImGui::Begin(mTitle, &mIsOpen, mFlags);
+		ImGui::Begin(mTitle.c_str(), &mIsOpen, mFlags);
 		Render();
 		ImGui::End();
 		if (wasOpen && !mIsOpen)
@@ -43,28 +45,56 @@ namespace NR
 		if (width <= 0) width = 200;
 		if (height <= 0) height = 400;
 
-		mMinSize = ImVec2(width, height);
+		mMinSize = ImVec2((float)width, (float)height);
 	}
 
 	void AssetEditor::SetMaxSize(uint32_t width, uint32_t height)
 	{
 		if (width <= 0) width = 2000;
 		if (height <= 0) height = 2000;
-		if (width <= mMinSize.x) width = mMinSize.x * 2;
-		if (height <= mMinSize.y) height = mMinSize.y * 2;
+		if (float(width) <= mMinSize.x) width = uint32_t(mMinSize.x * 2.f);
+		if (float(height) <= mMinSize.y) height = uint32_t(mMinSize.y * 2.f);
 
-		mMaxSize = ImVec2(width, height);
+		mMaxSize = ImVec2((float)width, (float)height);
+	}
+
+	void AssetEditor::SetTitle(const std::string& newTitle)
+	{
+		mTitle = newTitle;
+	}
+
+	const std::string& AssetEditor::GetTitle() const
+	{
+		return mTitle;
 	}
 
 	void AssetEditorPanel::RegisterDefaultEditors()
 	{
 		RegisterEditor<TextureViewer>(AssetType::Texture);
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
+		RegisterEditor<AudioFileViewer>(AssetType::Audio);
+		RegisterEditor<MeshViewerPanel>(AssetType::MeshAsset);
+		RegisterEditor<SoundConfigEditor>(AssetType::SoundConfig);
 	}
 
 	void AssetEditorPanel::UnregisterAllEditors()
 	{
 		sEditors.clear();
+	}
+
+	void AssetEditorPanel::Update(float dt)
+	{
+		for (auto& kv : sEditors)
+		{
+			kv.second->Update(dt);
+		}
+	}
+	void AssetEditorPanel::OnEvent(Event& e)
+	{
+		for (auto& kv : sEditors)
+		{
+			kv.second->OnEvent(e);
+		}
 	}
 
 	void AssetEditorPanel::ImGuiRender()
@@ -77,16 +107,14 @@ namespace NR
 
 	void AssetEditorPanel::OpenEditor(const Ref<Asset>& asset)
 	{
-		if (sEditors.find(asset->Type) == sEditors.end())
+		if (sEditors.find(asset->GetAssetType()) == sEditors.end())
 		{
-			NR_CORE_WARN("No editor registered for {0} assets", asset->Extension);
 			return;
 		}
 
-		sEditors[asset->Type]->SetOpen(true);
-		sEditors[asset->Type]->SetAsset(AssetManager::GetAsset<Asset>(asset->Handle));
+		sEditors[asset->GetAssetType()]->SetOpen(true);
+		sEditors[asset->GetAssetType()]->SetAsset(AssetManager::GetAsset<Asset>(asset->Handle));
 	}
 
 	std::unordered_map<AssetType, Scope<AssetEditor>> AssetEditorPanel::sEditors;
-
 }

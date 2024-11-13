@@ -119,8 +119,9 @@ namespace NR
 
 		static void SceneDestruct(UUID sceneID);
 
-		static void LoadRuntimeAssembly(const std::string& path);
-		static void ReloadAssembly(const std::string& path);
+		static bool LoadRuntimeAssembly(const std::string& path);
+		static bool LoadAppAssembly(const std::string& path);
+		static bool ReloadAssembly(const std::string& path);
 
 		static void SetSceneContext(const Ref<Scene>& scene);
 		static const Ref<Scene>& GetCurrentSceneContext();

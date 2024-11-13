@@ -12,12 +12,15 @@ namespace NR
 
 		static void SetCurrentScene(const Ref<PhysicsScene>& scene) { sScene = scene; }
 
-		static void RuntimePlay();
-		static void RuntimeStop();
+		static void CreateScene();
+		static void DestroyScene();
 
 		static PhysicsSettings& GetSettings() { return sSettings; }
 		// Gives the current scene
 		static Ref<PhysicsScene> GetScene() { return sScene; }
+
+		static void CreateActors(Ref<Scene> scene);
+		static Ref<PhysicsActor> CreateActor(Entity entity);
 
 	private:
 		static PhysicsSettings sSettings;

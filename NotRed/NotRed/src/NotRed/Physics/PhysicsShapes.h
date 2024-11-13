@@ -3,7 +3,7 @@
 #include "CookingFactory.h"
 
 #include "PhysicsUtils.h"
-#include "NotRed/Scene/Components.h"
+#include "NotRed/Scene/Entity.h"
 
 namespace NR
 {
@@ -53,7 +53,7 @@ namespace NR
 	class BoxColliderShape : public ColliderShape
 	{
 	public:
-		BoxColliderShape(BoxColliderComponent& component, const PhysicsActor& actor);
+		BoxColliderShape(BoxColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		~BoxColliderShape() override = default;
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
@@ -74,7 +74,7 @@ namespace NR
 	class SphereColliderShape : public ColliderShape
 	{
 	public:
-		SphereColliderShape(SphereColliderComponent& component, const PhysicsActor& actor);
+		SphereColliderShape(SphereColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		~SphereColliderShape() override = default;
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
@@ -95,7 +95,7 @@ namespace NR
 	class CapsuleColliderShape : public ColliderShape
 	{
 	public:
-		CapsuleColliderShape(CapsuleColliderComponent& component, const PhysicsActor& actor);
+		CapsuleColliderShape(CapsuleColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		~CapsuleColliderShape() override = default;
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
@@ -116,7 +116,7 @@ namespace NR
 	class ConvexMeshShape : public ColliderShape
 	{
 	public:
-		ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor);
+		ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		~ConvexMeshShape() override = default;
 
 		void SetOffset(const glm::vec3& offset) override {};
@@ -141,7 +141,7 @@ namespace NR
 	class TriangleMeshShape : public ColliderShape
 	{
 	public:
-		TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor);
+		TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		~TriangleMeshShape() override = default;
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;

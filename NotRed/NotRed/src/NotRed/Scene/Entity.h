@@ -50,6 +50,17 @@ namespace NR
 			return mScene->mRegistry.all_of<T>(mEntityHandle);
 		}
 
+		template<typename...T>
+		bool HasAny()
+		{
+			return mScene->mRegistry.any_of<T...>(mEntityHandle);
+		}
+		template<typename...T>
+		bool HasAny() const
+		{
+			return mScene->mRegistry.any_of<T...>(mEntityHandle);
+		}
+
 		template<typename T>
 		void RemoveComponent()
 		{
@@ -62,7 +73,7 @@ namespace NR
 
 		operator uint32_t() const { return (uint32_t)mEntityHandle; }
 		operator entt::entity() const { return mEntityHandle; }
-		operator bool() const { return (uint32_t)mEntityHandle && mScene; }
+		operator bool() const { return (mEntityHandle != entt::null) && mScene; }
 
 		bool operator==(const Entity& other) const
 		{

@@ -16,9 +16,12 @@
 
 #include "NotRed/Scene/Scene.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
-    static MonoDomain* sMonoDomain = nullptr;
+    static MonoDomain* sCurrentMonoDomain = nullptr;
+    static MonoDomain* sNewMonoDomain = nullptr;
     static std::string sAssemblyPath;
     static Ref<Scene> sSceneContext;
 
@@ -28,6 +31,8 @@ namespace NR
     static EntityInstanceMap sEntityInstanceMap;
 
     static MonoMethod* GetMethod(MonoImage* image, const std::string& methodDesc);
+
+    static MonoMethod* sExceptionMethod = nullptr;
 
     struct EntityScriptClass
     {
@@ -128,13 +133,13 @@ namespace NR
 
     static void InitMono()
     {
-        if (!sMonoDomain)
+        if (!sCurrentMonoDomain)
         {
             mono_set_assemblies_path("mono/lib");
             auto domain = mono_jit_init("NotRed");
 
             char* name = (char*)"NotRedRuntime";
-            sMonoDomain = mono_domain_create_appdomain(name, nullptr);
+            sCurrentMonoDomain = mono_domain_create_appdomain(name, nullptr);
         }
     }
 
@@ -178,7 +183,7 @@ namespace NR
 
     static uint32_t Instantiate(EntityScriptClass& scriptClass)
     {
-        MonoObject* instance = mono_object_new(sMonoDomain, scriptClass.Class);
+        MonoObject* instance = mono_object_new(sCurrentMonoDomain, scriptClass.Class);
         if (!instance)
         {
             std::cout << "mono_object_new failed" << std::endl;
@@ -194,13 +199,13 @@ namespace NR
         MonoMethodDesc* desc = mono_method_desc_new(methodDesc.c_str(), NULL);
         if (!desc)
         {
-            std::cout << "mono_method_desc_new " << methodDesc << " failed" << std::endl;
+            NR_CORE_WARN("[ScriptEngine] mono_method_desc_new failed ({0})", methodDesc);
         }
 
         MonoMethod* method = mono_method_desc_search_in_image(desc, image);
         if (!method)
         {
-            std::cout << "mono_method_desc_search_in_image " << methodDesc << " failed" << std::endl;
+            NR_CORE_ERROR("[ScriptEngine] mono_method_desc_search_in_image failed ({0})", methodDesc);
         }
 
         return method;
@@ -208,8 +213,13 @@ namespace NR
 
     static MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params = nullptr)
     {
-        MonoObject* pException = NULL;
+        MonoObject* pException = nullptr;
         MonoObject* result = mono_runtime_invoke(method, object, params, &pException);
+        if (pException)
+        {
+            void* args[] = { pException };
+            MonoObject* result = mono_runtime_invoke(sExceptionMethod, nullptr, args, nullptr);
+        }
         return result;
     }
 
@@ -249,41 +259,71 @@ namespace NR
 
     static MonoString* GetName()
     {
-        return mono_string_new(sMonoDomain, "Hello!");
+        return mono_string_new(sCurrentMonoDomain, "Hello!");
     }
 
-    void ScriptEngine::LoadRuntimeAssembly(const std::string& path)
-    {
-        MonoDomain* domain = nullptr;
-        bool cleanup = false;
-        if (sMonoDomain)
-        {
-            domain = mono_domain_create_appdomain((char*)"NotRed Runtime", nullptr);
-            mono_domain_set(domain, false);
+    static bool sPostLoadCleanup = false;
 
-            cleanup = true;
+    bool ScriptEngine::LoadRuntimeAssembly(const std::string& path)
+    {
+        sAssemblyPath = path;
+        if (sCurrentMonoDomain)
+        {
+            sNewMonoDomain = mono_domain_create_appdomain((char*)"NotRed Runtime", nullptr);
+            mono_domain_set(sNewMonoDomain, false);
+            sPostLoadCleanup = true;
         }
 
-        sCoreAssembly = LoadAssembly("Assets/Scripts/NotRed-ScriptCore.dll");
+        sCoreAssembly = LoadAssembly(path);
+        if (!sCoreAssembly)
+        {
+            return false;
+        }
+
         sCoreAssemblyImage = GetAssemblyImage(sCoreAssembly);
+        sExceptionMethod = GetMethod(sCoreAssemblyImage, "NR.RuntimeException:Exception(object)");
+
+        return true;
+    }
+
+    bool ScriptEngine::LoadAppAssembly(const std::string& path)
+    {
+        if (sAppAssembly)
+        {
+            sAppAssembly = nullptr;
+            sAppAssemblyImage = nullptr;
+            return ReloadAssembly(path);
+        }
 
         auto appAssembly = LoadAssembly(path);
+        if (!appAssembly)
+        {
+            return false;
+        }
+
         auto appAssemblyImage = GetAssemblyImage(appAssembly);
         ScriptEngineRegistry::RegisterAll();
 
-        if (cleanup)
+        if (sPostLoadCleanup)
         {
-            mono_domain_unload(sMonoDomain);
-            sMonoDomain = domain;
+            mono_domain_unload(sCurrentMonoDomain);
+            sCurrentMonoDomain = sNewMonoDomain;
+            sNewMonoDomain = nullptr;
         }
 
         sAppAssembly = appAssembly;
         sAppAssemblyImage = appAssemblyImage;
+
+        return true;
     }
 
-    void ScriptEngine::ReloadAssembly(const std::string& path)
+    bool ScriptEngine::ReloadAssembly(const std::string& path)
     {
-        LoadRuntimeAssembly(path);
+        if (!LoadRuntimeAssembly(sAssemblyPath) || !LoadAppAssembly(path))
+        {
+            return false;
+        }
+
         if (sEntityInstanceMap.size())
         {
             Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -299,15 +339,14 @@ namespace NR
                 }
             }
         }
+
+        return true;
     }
 
     void ScriptEngine::Init(const std::string& assemblyPath)
     {
-        sAssemblyPath = assemblyPath;
-
         InitMono();
-
-        LoadRuntimeAssembly(sAssemblyPath);
+        LoadRuntimeAssembly(assemblyPath);
     }
 
     void ScriptEngine::Shutdown()
@@ -371,7 +410,10 @@ namespace NR
 
     void ScriptEngine::UpdateEntity(Entity entity, float dt)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
+        NR_PROFILE_SCOPE_DYNAMIC(entityInstance.ScriptClass->FullName.c_str());
         if (entityInstance.ScriptClass->UpdateMethod)
         {
             void* args[] = { &dt };
@@ -381,6 +423,8 @@ namespace NR
 
     void ScriptEngine::UpdatePhysicsEntity(Entity entity, float fixedDeltaTime)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->UpdatePhysics)
         {
@@ -391,6 +435,8 @@ namespace NR
 
     void ScriptEngine::Collision2DBegin(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DBeginMethod)
         {
@@ -402,6 +448,8 @@ namespace NR
 
     void ScriptEngine::Collision2DEnd(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DEndMethod)
         {
@@ -413,6 +461,8 @@ namespace NR
 
     void ScriptEngine::CollisionBegin(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionBeginMethod)
         {
@@ -424,6 +474,8 @@ namespace NR
 
     void ScriptEngine::CollisionEnd(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionEndMethod)
         {
@@ -435,6 +487,8 @@ namespace NR
 
     void ScriptEngine::TriggerBegin(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerBeginMethod)
         {
@@ -446,6 +500,8 @@ namespace NR
 
     void ScriptEngine::TriggerEnd(Entity entity)
     {
+        NR_PROFILE_FUNC();
+
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerEndMethod)
         {
@@ -535,6 +591,13 @@ namespace NR
 
     bool ScriptEngine::ModuleExists(const std::string& moduleName)
     {
+        NR_PROFILE_FUNC();
+        
+        if (!sAppAssemblyImage)
+        {
+            return false;
+        }
+
         std::string NamespaceName, ClassName;
         if (moduleName.find('.') != std::string::npos)
         {
@@ -826,7 +889,7 @@ namespace NR
         }
         else
         {
-            uint8_t* outValue;
+            uint8_t* outValue = nullptr;
             mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
             return outValue;
         }

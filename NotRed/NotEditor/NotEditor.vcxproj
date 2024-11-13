@@ -91,7 +91,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Debug\assimp-vc141-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
@@ -99,7 +99,7 @@ IF EXIST "..\NotRed\vendor\PhysX\win64\PhysX_64.dll"\ (xcopy /Q /E /Y /I "..\Not
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
-IF EXIST "..\NotRed\vendor\assimp\bin\Debug\assimp-vc141-mtd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Debug\assimp-vc141-mtd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Debug\assimp-vc141-mtd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
+IF EXIST "..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)</Command>
     </PostBuildEvent>
@@ -124,7 +124,7 @@ IF EXIST "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll"\ (xcopy /Q /E /Y /I
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
@@ -132,7 +132,7 @@ IF EXIST "..\NotRed\vendor\PhysX\win64\PhysX_64.dll"\ (xcopy /Q /E /Y /I "..\Not
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
-IF EXIST "..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mt.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
+IF EXIST "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -156,7 +156,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
@@ -164,7 +164,7 @@ IF EXIST "..\NotRed\vendor\PhysX\win64\PhysX_64.dll"\ (xcopy /Q /E /Y /I "..\Not
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
-IF EXIST "..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mtd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mtd.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc141-mtd.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
+IF EXIST "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mtd.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mtd.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mtd.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

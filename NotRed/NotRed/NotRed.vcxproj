@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -126,7 +126,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -149,12 +149,18 @@
   <ItemGroup>
     <ClInclude Include="src\NotRed.h" />
     <ClInclude Include="src\NotRed\Asset\Asset.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetExtensions.h" />
     <ClInclude Include="src\NotRed\Asset\AssetImporter.h" />
     <ClInclude Include="src\NotRed\Asset\AssetManager.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetMetadata.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetRegistry.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
+    <ClInclude Include="src\NotRed\Asset\AssetTypes.h" />
+    <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
     <ClInclude Include="src\NotRed\Audio\Audio.h" />
     <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioFileUtils.h" />
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp" />
@@ -177,6 +183,7 @@
     <ClInclude Include="src\NotRed\Core\Events\Event.h" />
     <ClInclude Include="src\NotRed\Core\Events\KeyEvent.h" />
     <ClInclude Include="src\NotRed\Core\Events\MouseEvent.h" />
+    <ClInclude Include="src\NotRed\Core\Hash.h" />
     <ClInclude Include="src\NotRed\Core\Input.h" />
     <ClInclude Include="src\NotRed\Core\KeyCodes.h" />
     <ClInclude Include="src\NotRed\Core\Layer.h" />
@@ -188,10 +195,14 @@
     <ClInclude Include="src\NotRed\Core\Timer.h" />
     <ClInclude Include="src\NotRed\Core\UUID.h" />
     <ClInclude Include="src\NotRed\Core\Window.h" />
+    <ClInclude Include="src\NotRed\Debug\Profiler.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h" />
+    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
+    <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
@@ -227,6 +238,7 @@
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h" />
@@ -242,15 +254,21 @@
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKMaterial.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKPipeline.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderPass.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKRenderer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKShader.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKStorageBufferSet.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKSwapChain.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKTexture.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Platform\Vulkan\VKUniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\VKVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Vulkan.h" />
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
+    <ClInclude Include="src\NotRed\Project\Project.h" />
+    <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
@@ -259,6 +277,8 @@
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
+    <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h" />
+    <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandQueue.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderPass.h" />
     <ClInclude Include="src\NotRed\Renderer\Renderer.h" />
@@ -271,8 +291,11 @@
     <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
+    <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
+    <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
@@ -350,10 +373,13 @@
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp" />
+    <ClCompile Include="src\NotRed\Asset\AssetRegistry.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp" />
     <ClCompile Include="src\NotRed\Audio\Audio.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioComponent.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioFileUtils.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
@@ -367,16 +393,20 @@
     <ClCompile Include="src\NotRed\Audio\SourceManager.cpp" />
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
+    <ClCompile Include="src\NotRed\Core\Hash.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />
+    <ClCompile Include="src\NotRed\Core\Ref.cpp" />
     <ClCompile Include="src\NotRed\Core\TimeFrame.cpp" />
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
     <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
+    <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
@@ -423,9 +453,11 @@
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKIndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKMaterial.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKPipeline.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderCommandBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderPass.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKRenderer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKShader.cpp" />
+    <ClCompile Include="src\NotRed\Platform\Vulkan\VKStorageBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKSwapChain.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKTexture.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKUniformBuffer.cpp" />
@@ -434,6 +466,8 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinFileSystem.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinInput.cpp" />
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
+    <ClCompile Include="src\NotRed\Project\Project.cpp" />
+    <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Image.cpp" />
@@ -442,6 +476,8 @@
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
     <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\PipelineCompute.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\RenderCommandBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderCommandQueue.cpp" />
     <ClCompile Include="src\NotRed\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Renderer.cpp" />
@@ -450,8 +486,11 @@
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\EntityFactory.cpp" />
@@ -461,6 +500,7 @@
     <ClCompile Include="src\NotRed\Script\ScriptEngine.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptEngineRegistry.cpp" />
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
+    <ClCompile Include="src\NotRed\Util\FileSystem.cpp" />
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp" />
     <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
     <ClCompile Include="src\nrpch.cpp">
@@ -573,6 +613,9 @@
     </ProjectReference>
     <ProjectReference Include="vendor\Glad\Glad.vcxproj">
       <Project>{BDD6857C-A90D-870D-52FA-6C103E10030F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\Optick\Optick.vcxproj">
+      <Project>{AFAE52C8-9B50-7D9E-840B-91F2704C04EF}</Project>
     </ProjectReference>
     <ProjectReference Include="vendor\ImGui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>

@@ -35,6 +35,7 @@ namespace NR::Script
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders);
 
     // Entity
+    uint64_t NR_Entity_CreateEntity(uint64_t entityID);
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
@@ -56,11 +57,14 @@ namespace NR::Script
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
 
+    void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
+    void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
     void NR_RigidBody2DComponent_ApplyImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
     void NR_RigidBody2DComponent_GetVelocity(uint64_t entityID, glm::vec2* outVelocity);
     void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* velocity);
 
-    RigidBodyComponent::Type NR_RigidBodyComponent_GetBodyType(uint64_t entityID);
+    void NR_RigidBodyComponent_GetBodyType(uint64_t entityID, RigidBodyComponent::Type* type);
+    void NR_RigidBodyComponent_SetBodyType(uint64_t entityID, RigidBodyComponent::Type* type);
     void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode foceMode);
     void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
     void NR_RigidBodyComponent_GetVelocity(uint64_t entityID, glm::vec3* outVelocity);
@@ -98,7 +102,7 @@ namespace NR::Script
     void NR_Mesh_Destructor(Ref<Mesh>* _this);
     Ref<Material>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
     Ref<Material>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
-    int NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
+    uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 
     void* NR_MeshFactory_CreatePlane(float width, float height);
 
@@ -108,7 +112,7 @@ namespace NR::Script
     bool NR_AudioComponent_Stop(uint64_t entityID);
     bool NR_AudioComponent_Pause(uint64_t entityID);
 
-    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<Asset>* sound);
+    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<AudioFile>* sound);
     void NR_AudioComponent_SetSoundPath(uint64_t entityID, MonoString* filepath);
     void NR_AudioComponent_SetVolumeMult(uint64_t entityID, float volumeMult);
     void NR_AudioComponent_SetPitchMult(uint64_t entityID, float pitchMult);
@@ -121,17 +125,17 @@ namespace NR::Script
     float NR_AudioComponent_GetPitchMult(uint64_t entityID);
     bool NR_AudioComponent_GetLooping(uint64_t entityID);
 
-    bool NR_Audio_PlaySound2DAsset(Ref<Asset>* sound, float volume = 1.0f, float pitch = 1.0f);
+    bool NR_Audio_PlaySound2DAsset(Ref<AudioFile>* sound, float volume = 1.0f, float pitch = 1.0f);
     bool NR_Audio_PlaySound2DAssetPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
-    bool NR_Audio_PlaySoundAtLocationAsset(Ref<Asset>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+    bool NR_Audio_PlaySoundAtLocationAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
     bool NR_Audio_PlaySoundAtLocationAssetPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
 
-    Ref<Asset>* NR_SimpleSound_Constructor(MonoString* filepath);
+    Ref<AudioFile>* NR_SimpleSound_Constructor(MonoString* filepath);
 
-    void NR_SimpleSound_Destructor(Ref<Asset>* _this);
+    void NR_SimpleSound_Destructor(Ref<AudioFile>* _this);
 
-    uint64_t NR_AudioCreateSound2DAsset(Ref<Asset>* sound, float volume = 1.0f, float pitch = 1.0f);
+    uint64_t NR_AudioCreateSound2DAsset(Ref<AudioFile>* sound, float volume = 1.0f, float pitch = 1.0f);
     uint64_t NR_AudioCreateSound2DPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
-    uint64_t NR_AudioCreateSound3DAsset(Ref<Asset>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+    uint64_t NR_AudioCreateSound3DAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
     uint64_t NR_AudioCreateSound3DPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
 }

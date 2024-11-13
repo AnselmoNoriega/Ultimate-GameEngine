@@ -31,11 +31,14 @@ namespace NR
 
 	CookingResult CookingFactory::CookConvexMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData)
 	{
-		const auto& vertices = mesh->GetVertices();
-		const auto& indices = mesh->GetIndices();
+		const auto& vertices = mesh->GetMeshAsset()->GetVertices();
+		const auto& indices = mesh->GetMeshAsset()->GetIndices();
+		const auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
 
-		for (const auto& submesh : mesh->GetSubmeshes())
+		for (auto submeshIndex : mesh->GetSubmeshes())
 		{
+			const auto& submesh = submeshes[submeshIndex];
+
 			physx::PxConvexMeshDesc convexDesc;
 			convexDesc.points.count = submesh.VertexCount;
 			convexDesc.points.stride = sizeof(Vertex);
@@ -66,10 +69,14 @@ namespace NR
 
 	CookingResult CookingFactory::CookTriangleMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData)
 	{
-		const auto& vertices = mesh->GetVertices();
-		const auto& indices = mesh->GetIndices();
-		for (const auto& submesh : mesh->GetSubmeshes())
+		const auto& vertices = mesh->GetMeshAsset()->GetVertices();
+		const auto& indices = mesh->GetMeshAsset()->GetIndices();
+		const auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
+
+		for (auto submeshIndex : mesh->GetSubmeshes())
 		{
+			const auto& submesh = submeshes[submeshIndex];
+
 			physx::PxTriangleMeshDesc triangleDesc;
 			triangleDesc.points.count = submesh.VertexCount;
 			triangleDesc.points.stride = sizeof(Vertex);

@@ -1,0 +1,74 @@
+Scene: Demo
+Environment:
+  AssetHandle: 5891183239894280007
+  DirLight:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 3341184822646445148
+    TagComponent:
+      Tag: Directional Light
+    TransformComponent:
+      Position: [0, 4.19999981, 0]
+      Rotation: [0, 3.29999995, -189.5]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    DirectionalLightComponent:
+      Radiance: [1, 1, 1]
+      CastShadows: true
+      SoftShadows: true
+      LightSize: 0.5
+  - Entity: 14391742795172839692
+    TagComponent:
+      Tag: Point Light
+    TransformComponent:
+      Position: [0, 7.55172777, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    PointLightComponent:
+      Radiance: [0.494208515, 0.269047856, 0.269047856]
+      Intensity: 7.44999981
+      CastShadows: true
+      SoftShadows: true
+      MinRadius: 1
+      Radius: 9.19999981
+      LightSize: 0.5
+      Falloff: 1
+  - Entity: 9651895283264950110
+    TagComponent:
+      Tag: TestScene
+    TransformComponent:
+      Position: [0, 1.45841134, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 10610151712161516910
+  - Entity: 13790836390258583099
+    TagComponent:
+      Tag: Cube
+    TransformComponent:
+      Position: [0, 5.89292049, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 8366434151043859381
+PhysicsLayers:
+  []
+SceneAudio:
+  MasterReverb:
+    Pre-delay: 50
+    Room size: 0.49999994
+    Damping: 0.5
+    Width: 1

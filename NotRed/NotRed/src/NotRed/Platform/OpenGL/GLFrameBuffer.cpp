@@ -171,7 +171,7 @@ namespace NR
                             Utils::CreateAndAttachColorAttachment(
                                 instance->mSpecification.Samples, 
                                 instance->mColorAttachmentFormats[i],
-                                instance->mWidth, instance->mHeight, i);
+                                instance->mWidth, instance->mHeight, (int)i);
                     }
                 }
 
@@ -184,7 +184,7 @@ namespace NR
                 {
                     NR_CORE_ASSERT(instance->mColorAttachments.size() <= 4);
                     GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-                    glDrawBuffers(instance->mColorAttachments.size(), buffers);
+                    glDrawBuffers((int)instance->mColorAttachments.size(), buffers);
                 }
                 else if (instance->mColorAttachments.empty())
                 {

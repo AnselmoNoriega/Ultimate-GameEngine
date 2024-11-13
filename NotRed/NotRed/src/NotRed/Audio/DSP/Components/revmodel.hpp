@@ -66,32 +66,32 @@ private:
 	allpass	allpassR[numallpasses];
 
 	// Buffers for the combs
-	FloatAllocatorVector bufcombL1;
-	FloatAllocatorVector bufcombR1;
-	FloatAllocatorVector bufcombL2;
-	FloatAllocatorVector bufcombR2;
-	FloatAllocatorVector bufcombL3;
-	FloatAllocatorVector bufcombR3;
-	FloatAllocatorVector bufcombL4;
-	FloatAllocatorVector bufcombR4;
-	FloatAllocatorVector bufcombL5;
-	FloatAllocatorVector bufcombR5;
-	FloatAllocatorVector bufcombL6;
-	FloatAllocatorVector bufcombR6;
-	FloatAllocatorVector bufcombL7;
-	FloatAllocatorVector bufcombR7;
-	FloatAllocatorVector bufcombL8;
-	FloatAllocatorVector bufcombR8;
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL1{ 1116 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR1{ 1116 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL2{ 1188 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR2{ 1188 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL3{ 1277 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR3{ 1277 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL4{ 1356 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR4{ 1356 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL5{ 1422 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR5{ 1422 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL6{ 1491 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR6{ 1491 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL7{ 1557 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR7{ 1557 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombL8{ 1617 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufcombR8{ 1617 + stereospread };
 
-	// Buffers for the allpasses
-	FloatAllocatorVector bufallpassL1;
-	FloatAllocatorVector bufallpassR1;
-	FloatAllocatorVector bufallpassL2;
-	FloatAllocatorVector bufallpassR2;
-	FloatAllocatorVector bufallpassL3;
-	FloatAllocatorVector bufallpassR3;
-	FloatAllocatorVector bufallpassL4;
-	FloatAllocatorVector bufallpassR4;
+	// Buffers for the allpasses															  
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassL1{ 556 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassR1{ 556 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassL2{ 441 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassR2{ 441 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassL3{ 341 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassR3{ 341 + stereospread };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassL4{ 225 };
+	std::vector<float, NR::Audio::SourceManager::Allocator<float>>	bufallpassR4{ 225 + stereospread };
 };
 #endif//_revmodel_
 //ends

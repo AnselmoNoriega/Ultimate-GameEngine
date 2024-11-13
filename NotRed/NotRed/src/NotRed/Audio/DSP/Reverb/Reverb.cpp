@@ -1,4 +1,4 @@
-#include "nrpch.h"
+#include <nrpch.h>
 #include "Reverb.h"
 
 namespace NR::Audio
@@ -11,9 +11,10 @@ namespace NR::Audio
             ma_node_base* pNodeBase = &node->base;
             ma_uint32 outBuses = ma_node_get_output_bus_count(pNodeBase);
 
-            if (ppFramesIn == nullptr) 
+            // If we don't have any input connected we need too clear the output buffer from garbage and to no do any processing
+            if (ppFramesIn == nullptr)
             {
-                for (int oBus = 0; oBus < outBuses; ++oBus)
+                for (ma_uint32 oBus = 0; oBus < outBuses; ++oBus)
                 {
                     uint32_t numChannels = ma_node_get_output_channels(pNodeBase, oBus);
                     size_t frameSize = ma_get_bytes_per_frame(ma_format_f32, numChannels);
@@ -27,9 +28,10 @@ namespace NR::Audio
             const float* pFramesIn_1 = ppFramesIn[1];   // Input bus @ index 1.
             float* pFramesOut_0 = ppFramesOut[0];       // Output bus @ index 0.
 
-            /* NOTE: This assumes the same number of channels for all inputs and outputs. */
             ma_uint32 channels;
+
             channels = ma_node_get_input_channels(pNodeBase, 0);
+            
             NR_CORE_ASSERT(channels == 2);
 
             // 1. Feed Pre-Delay
@@ -37,7 +39,6 @@ namespace NR::Audio
 
             const float* channelDataL = &pFramesIn_0[0];
             const float* channelDataR = &pFramesIn_0[1];
-
             float* outputL = &pFramesOut_0[0];
             float* outputR = &pFramesOut_0[1];
 
@@ -51,20 +52,16 @@ namespace NR::Audio
             {
                 float delayedSampleL = delay->PopSample(0);
                 float delayedSampleR = delay->PopSample(1);
-
                 float outputSampleL = (*channelDataL * dryMix + (wetMix * delayedSampleL));
                 float outputSampleR = (*channelDataR * dryMix + (wetMix * delayedSampleR));
-
                 delay->PushSample(0, *channelDataL + (delayedSampleL * feedback));
                 delay->PushSample(1, *channelDataR + (delayedSampleR * feedback));
 
                 // Assign output sample computed above to the output buffer
                 *outputL = outputSampleL;
                 *outputR = outputSampleR;
-
                 channelDataL += channels;
                 channelDataR += channels;
-
                 outputL += channels;
                 outputR += channels;
             }
@@ -80,6 +77,7 @@ namespace NR::Audio
             1, // 1 output bus.
             MA_NODE_FLAG_CONTINUOUS_PROCESSING | MA_NODE_FLAG_ALLOW_NULL_INPUT
         };
+
 
         //===========================================================================
         static ma_allocation_callbacks allocation_callbacks;
@@ -98,7 +96,7 @@ namespace NR::Audio
             uint8_t numChannels = ma_node_get_output_channels(nodeToAttachTo, 0);
 
             // Setting max pre-delay time to 1 second
-            mDelayLine = std::make_unique<DelayLine>(sampleRate + 1);
+            mDelayLine = std::make_unique<DelayLine>((int)sampleRate + 1);
             mRevModel = std::make_unique<revmodel>(sampleRate);
 
             uint32_t inputChannels[2] = { numChannels, numChannels };
@@ -111,33 +109,25 @@ namespace NR::Audio
             nodeConfig.initialState = ma_node_state_started;
 
             ma_result result;
+
             allocation_callbacks = engine->pResourceManager->config.allocationCallbacks;
+
             result = ma_node_init(&engine->nodeGraph, &nodeConfig, &allocation_callbacks, &mNode);
-
             if (result != MA_SUCCESS)
             {
-                NR_CORE_ASSERT(false, "Node Init failed");
-            }
-            result = ma_node_init(&engine->nodeGraph, &nodeConfig, &allocation_callbacks, &nodeToAttachTo);
-
-            if (result != MA_SUCCESS)
-            {
-                NR_CORE_ASSERT(false, "NodeToAttachTo Init failed");
+                NR_CORE_ASSERT(false && "Node Init failed");
             }
 
             mDelayLine->SetConfig(ma_node_get_input_channels(&mNode, 0), sampleRate);
 
-            ma_node_config endpointNodeConfig = ma_node_config_init();
-            endpointNodeConfig.pInputChannels = inputChannels;
-            endpointNodeConfig.pOutputChannels = outputChannels;
-            endpointNodeConfig.initialState = ma_node_state_started;
-
             // Set default pre-delay time to 50ms
             mDelayLine->SetDelayMs(50);
+
             mNode.delayLine = mDelayLine.get();
             mNode.reverb = mRevModel.get();
 
-            result = ma_node_attach_output_bus(&mNode, 0, &nodeToAttachTo, 0);
+            result = ma_node_attach_output_bus(&mNode, 0, nodeToAttachTo, 0);
+
             return result == MA_SUCCESS;
         }
 
@@ -150,6 +140,7 @@ namespace NR::Audio
         {
             mRevModel->mute();
         }
+
 
         void Reverb::SetParameter(EReverbParameters parameter, float value)
         {
@@ -188,15 +179,16 @@ namespace NR::Audio
             }
             case Width:
             {
-                mRevModel->setwidth(value);
+                mRevModel->setwidth(value); //! This could be incredibly useful for setting room portals and such
                 break;
             }
             }
         }
 
-        float Reverb::GetParameter(EReverbParameters parameter)
+        float Reverb::GetParameter(EReverbParameters parameter) const
         {
             float ret;
+
             switch (parameter)
             {
             case PreDelay:
@@ -238,7 +230,7 @@ namespace NR::Audio
             return ret;
         }
 
-        const char* Reverb::GetParameterName(EReverbParameters parameter)
+        const char* Reverb::GetParameterName(EReverbParameters parameter) const
         {
             switch (parameter)
             {
@@ -277,16 +269,20 @@ namespace NR::Audio
                 return "Width";
                 break;
             }
+            default:
+            {
+                return "";
+            }
             }
         }
 
-        const std::string& Reverb::GetParameterDisplay(EReverbParameters parameter)
+        std::string Reverb::GetParameterDisplay(EReverbParameters parameter) const
         {
             switch (parameter)
             {
             case PreDelay:
             {
-                std::to_string(mDelayLine->GetDelayMs()).c_str();
+                return std::to_string(mDelayLine->GetDelayMs()).c_str();
                 break;
             }
             case Mode:
@@ -326,10 +322,14 @@ namespace NR::Audio
                 return std::to_string((long)(mRevModel->getwidth() * 100));
                 break;
             }
+            default:
+            {
+                return "";
+            }
             }
         }
 
-        const char* Reverb::GetParameterLabel(EReverbParameters parameter)
+        const char* Reverb::GetParameterLabel(EReverbParameters parameter) const
         {
             switch (parameter)
             {
@@ -360,7 +360,12 @@ namespace NR::Audio
                 return "dB";
                 break;
             }
+            default:
+            {
+                return "";
+            }
             }
         }
-    }
+
+    } // namespace DSP
 }

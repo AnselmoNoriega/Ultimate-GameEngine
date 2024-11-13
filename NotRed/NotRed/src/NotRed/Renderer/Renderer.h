@@ -9,11 +9,15 @@
 #include "NotRed/Core/Application.h"
 
 #include "RendererCapabilities.h"
+#include "RenderCommandBuffer.h"
+#include "UniformBufferSet.h"
+#include "StorageBufferSet.h"
 
 #include "NotRed/Scene/Scene.h"
 
 namespace NR
 {
+    class VKComputePipeline;
     class ShaderLibrary;
 
     struct RendererConfig
@@ -68,7 +72,7 @@ namespace NR
 
             Submit([renderCmd, func]()
                 {
-                    uint32_t index = Renderer::GetCurrentFrameIndex();
+                    const uint32_t index = Renderer::GetCurrentFrameIndex();
                     auto storageBuffer = GetRenderResourceReleaseQueue(index).Allocate(renderCmd, sizeof(func));
                     new (storageBuffer) FuncT(std::forward<FuncT>((FuncT&&)func));
                 });
@@ -76,39 +80,43 @@ namespace NR
 
         static void WaitAndRender();
 
-        static void BeginRenderPass(Ref<RenderPass> renderPass, bool clear = true);
-        static void EndRenderPass();
+        static void BeginRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<RenderPass> renderPass, bool explicitClear = false);
+        static void EndRenderPass(Ref<RenderCommandBuffer> renderCommandBuffer);
 
         static void BeginFrame();
         static void EndFrame();
 
-        static void SetSceneEnvironment(Ref<Environment> environment, Ref<Image2D> shadow);
+        static void RegisterShaderDependency(Ref<Shader> shader, Ref<VKComputePipeline> computePipeline);
+
+        static void SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow, Ref<Image2D> linearDepth);
         static std::pair<Ref<TextureCube>, Ref<TextureCube>> CreateEnvironmentMap(const std::string& filepath);
-        static void GenerateParticles();
+        static void GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups);
         static Ref<TextureCube> CreatePreethamSky(float turbidity, float azimuth, float inclination);
 
-        static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
-        static void RenderParticles(Ref<Pipeline> pipeline, Ref<Mesh> mesh, const glm::mat4& transform);
-        static void RenderMesh(Ref<Pipeline> pipeline, Ref<Mesh> mesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms = Buffer());
-        static void RenderQuad(Ref<Pipeline> pipeline, Ref<Material> material, const glm::mat4& transform);
-        static void SubmitFullscreenQuad(Ref<Pipeline> pipeline, Ref<Material> material);
+        static void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms = Buffer());
+        static void RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform);
+        static void RenderQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::mat4& transform);
+        static void LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups);
 
-        static void SubmitQuad(Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
-        //static void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial = nullptr);
+        static void RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount = 0);
 
-        static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
-        static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+        static void SubmitQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Material> material, const glm::mat4& transform = glm::mat4(1.0f));
+        static void SubmitFullscreenQuad(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material);
+        static void SubmitFullscreenQuadWithOverrides(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Buffer vertexShaderOverrides, Buffer fragmentShaderOverrides);
+
+        static void DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups);
+        static void ClearImage(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Image2D> image);
 
         static Ref<Texture2D> GetWhiteTexture();
+        static Ref<Texture2D> GetBRDFLutTexture();
+        static Ref<Texture2D> GetBlackTexture();
         static Ref<TextureCube> GetBlackCubeTexture();
         static Ref<Environment> GetEmptyEnvironment();
 
-        static void SetUniformBuffer(Ref<UniformBuffer> uniformBuffer, uint32_t frame, uint32_t set);
-        static Ref<UniformBuffer> GetUniformBuffer(uint32_t frame, uint32_t binding, uint32_t set = 0);
-
         static void RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline);
         static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);
-        static void OnShaderReloaded(size_t hash);
+        static void ShaderReloaded(size_t hash);
 
         static uint32_t GetCurrentFrameIndex();
 

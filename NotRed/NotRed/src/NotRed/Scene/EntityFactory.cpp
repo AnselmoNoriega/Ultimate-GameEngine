@@ -7,7 +7,7 @@ namespace NR
 {
 	void EntityFactory::Fracture(Entity originalEntity)
 	{
-		auto& meshComponent = originalEntity.GetComponent<MeshComponent>();
+		/*auto& meshComponent = originalEntity.GetComponent<MeshComponent>();
 		Ref<Mesh> originalMesh = meshComponent.MeshObj;
 		const auto& submeshes = originalMesh->GetSubmeshes();
 		Ref<Scene> scene = Scene::GetScene(originalEntity.GetSceneID());
@@ -22,6 +22,6 @@ namespace NR
 			{
 				auto& rigidbody = newEntity.AddComponent<RigidBodyComponent>(originalEntity.GetComponent<RigidBodyComponent>());
 			}
-		}
+		}*/
 	}
 }

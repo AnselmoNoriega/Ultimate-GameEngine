@@ -33,9 +33,10 @@ namespace NR
 	}
 
 	GLTexture2D::GLTexture2D(const std::string& path, TextureProperties properties)
-		: mFilePath(path), mProperties(properties)
+		: mProperties(properties), mFilePath(path)
 	{
 		int width, height, channels;
+
 		if (stbi_is_hdr(path.c_str()))
 		{
 			NR_CORE_INFO("Loading HDR texture {0}, srgb = {1}", path, properties.StandardRGB);

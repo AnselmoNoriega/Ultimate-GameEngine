@@ -46,7 +46,7 @@ namespace NR::Audio
         ~SourceManager();
 
         void Initialize();
-        bool InitializeSource(uint32_t sourceID, const SoundConfig& sourceConfig);
+        bool InitializeSource(uint32_t sourceID, const Ref<SoundConfig>& sourceConfig);
 
         void ReleaseSource(uint32_t sourceID);
 

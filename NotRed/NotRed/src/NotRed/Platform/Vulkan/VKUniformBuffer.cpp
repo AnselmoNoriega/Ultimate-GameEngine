@@ -61,7 +61,7 @@ namespace NR
 	{
 		VKAllocator allocator("VKUniformBuffer");
 		uint8_t* pData = allocator.MapMemory<uint8_t>(mMemoryAlloc);
-		memcpy(pData, (uint8_t*)data + offset, size);
+		memcpy(pData, (const uint8_t*)data + offset, size);
 		allocator.UnmapMemory(mMemoryAlloc);
 	}
 }

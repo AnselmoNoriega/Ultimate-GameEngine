@@ -5,7 +5,9 @@
 #include <GLFW/glfw3.h>
 
 #include "imgui.h"
-#define IMGUI_IMPL_API
+#ifndef IMGUI_IMPL_API
+	#define IMGUI_IMPL_API
+#endif
 #include "backends/imgui_impl_glfw.h"
 #include "NotRed/ImGui/ImGuizmo.h"
 
@@ -90,7 +92,8 @@ namespace NR
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		Application& app = Application::Get();
-		io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
+		auto [width, height] = app.GetWindow().GetSize();
+		io.DisplaySize = ImVec2((float)width, (float)width);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

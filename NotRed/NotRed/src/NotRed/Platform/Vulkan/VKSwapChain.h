@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "NotRed/Core/Core.h"
+#include "NotRed/Renderer/RenderCommandBuffer.h"
 
 #include "Vulkan.h"
 #include "VKDevice.h"
@@ -19,7 +20,7 @@ namespace NR
 
 		void Init(VkInstance instance, const Ref<VKDevice>& device);
 		void InitSurface(GLFWwindow* windowHandle);
-		void Create(uint32_t* width, uint32_t* height, bool vsync = false);
+		void Create(uint32_t* width, uint32_t* height, bool vsync);
 
 		void Resize(uint32_t width, uint32_t height);
 
@@ -33,22 +34,25 @@ namespace NR
 
 		VkRenderPass GetRenderPass() { return mRenderPass; }
 
-		VkFramebuffer GetCurrentFramebuffer() { return GetFramebuffer(mCurrentImageIndex); }
-		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentImageIndex); }
+		VkFramebuffer GetCurrentFrameBuffer() { return GetFrameBuffer(mCurrentBufferIndex); }
+		VkCommandBuffer GetCurrentDrawCommandBuffer() { return GetDrawCommandBuffer(mCurrentBufferIndex); }
 
 		VkFormat GetColorFormat() { return mColorFormat; }
 
 		uint32_t GetCurrentBufferIndex() const { return mCurrentBufferIndex; }
-		VkFramebuffer GetFramebuffer(uint32_t index)
+		VkFramebuffer GetFrameBuffer(uint32_t index)
 		{
-			NR_CORE_ASSERT(index < mImageCount);
+			NR_CORE_ASSERT(index < mFrameBuffers.size());
 			return mFrameBuffers[index];
 		}
+
 		VkCommandBuffer GetDrawCommandBuffer(uint32_t index)
 		{
-			NR_CORE_ASSERT(index < mImageCount);
-			return mDrawCommandBuffers[index];
+			NR_CORE_ASSERT(index < mCommandBuffers.size());
+			return mCommandBuffers[index];
 		}
+
+		VkSemaphore GetRenderCompleteSemaphore() { return mSemaphores.RenderComplete; }
 
 		void Cleanup();
 
@@ -58,7 +62,6 @@ namespace NR
 
 		void CreateFrameBuffer();
 		void CreateDepthStencil();
-		void CreateDrawBuffers();
 		void FindImageFormatAndColorSpace();
 
 	private:
@@ -72,6 +75,8 @@ namespace NR
 		VkInstance mInstance;
 		Ref<VKDevice> mDevice;
 		VKAllocator mAllocator;
+
+		bool mVSync = false;
 
 		VkFormat mColorFormat;
 		VkColorSpaceKHR mColorSpace;
@@ -98,8 +103,8 @@ namespace NR
 		} mSemaphores;
 
 		std::vector<VkFramebuffer> mFrameBuffers;
-		VkCommandPool mCommandPool;
-		std::vector<VkCommandBuffer> mDrawCommandBuffers;
+		VkCommandPool mCommandPool = nullptr;
+		std::vector<VkCommandBuffer> mCommandBuffers;
 
 		VkSubmitInfo mSubmitInfo;
 

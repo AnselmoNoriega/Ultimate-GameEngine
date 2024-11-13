@@ -1,67 +1,98 @@
 #pragma once
 
+#include <glm/detail/type_quat.hpp>
+
 #include "NotRed/Renderer/Camera.h"
 #include "NotRed/Core/TimeFrame.h"
+#include "NotRed/Core/Events/KeyEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
 
 namespace NR
 {
-	class EditorCamera : public Camera
-	{
-	public:
-		EditorCamera() = default;
-		EditorCamera(const glm::mat4& projectionMatrix);
+    class EditorCamera : public Camera
+    {
+    public:
+        enum class CameraMode
+        {
+            NONE, FLYCAM, ARCBALL
+        };
 
-		void Update(float dt);
-		void OnEvent(Event& e);
-		
-		void Focus(const glm::vec3& focusPoint);
+    public:
+        EditorCamera() = default;
+        EditorCamera(const glm::mat4& projectionMatrix);
 
-		inline float GetDistance() const { return mDistance; }
-		inline void SetDistance(float distance) { mDistance = distance; }
+        void Update(float dt);
+        void OnEvent(Event& e);
 
-		inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
+        void Focus(const glm::vec3& focusPoint);
+        void SetCameraMode(const CameraMode cameraMode) { mCameraMode = cameraMode; }
 
-		glm::vec3 GetUpDirection();
-		glm::vec3 GetRightDirection();
-		glm::vec3 GetForwardDirection();
-		glm::quat GetOrientation() const;
+        bool IsActive() const { return mIsActive; }
+        void SetActive(bool active) { mIsActive = active; }
 
-		const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
-		glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
-		const glm::vec3& GetPosition() const { return mPosition; }
+        inline float GetDistance() const { return mDistance; }
+        inline void SetDistance(float distance) { mDistance = distance; }
 
-		float GetPitch() const { return mPitch; }
-		float GetYaw() const { return mYaw; }
-		
-	private:
-		void UpdateCameraView();
+        inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
 
-		bool OnMouseScroll(MouseScrolledEvent& e);
+        glm::vec3 GetUpDirection() const;
+        glm::vec3 GetRightDirection() const;
+        glm::vec3 GetForwardDirection() const;
+        glm::quat GetOrientation() const;
 
-		void MousePan(const glm::vec2& delta);
-		void MouseRotate(const glm::vec2& delta);
-		void MouseZoom(float delta);
+        const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
+        glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
+        const glm::vec3& GetPosition() const { return mPosition; }
 
-		glm::vec3 CalculatePosition();
+        float GetPitch() const { return mPitch; }
+        float GetYaw() const { return mYaw; }
+        float& GetCameraSpeed() { return mSpeed; }
+        [[nodiscard]] float GetCameraSpeed() const { return mSpeed; }
 
-		std::pair<float, float> PanSpeed() const;
-		float RotationSpeed() const;
-		float ZoomSpeed() const;
+    private:
+        void UpdateCameraView();
 
-	private:
-		glm::mat4 mViewMatrix;
-		glm::vec3 mPosition, mRotation, mFocalPoint;
+        bool OnMouseScroll(MouseScrolledEvent& e);
+        bool OnKeyPressed(KeyPressedEvent& e);
+        bool OnKeyReleased(KeyReleasedEvent& e);
 
-		bool mPanning, mRotating;
-		glm::vec2 mInitialMousePosition;
-		glm::vec3 mInitialFocalPoint, mInitialRotation;
+        void MousePan(const glm::vec2& delta);
+        void MouseRotate(const glm::vec2& delta);
+        void MouseZoom(float delta);
 
-		float mDistance;
-		float mPitch, mYaw;
+        glm::vec3 CalculatePosition() const;
 
-		float mMinFocusDistance = 100.0f;
+        std::pair<float, float> PanSpeed() const;
+        float RotationSpeed() const;
+        float ZoomSpeed() const;
 
-		uint32_t mViewportWidth = 1280, mViewportHeight = 720;
-	};
+    private:
+        glm::mat4 mViewMatrix;
+        glm::vec3 mPosition, mWorldRotation, mFocalPoint;
+
+        bool mIsActive = true;
+        bool mPanning, mRotating;
+        glm::vec2 mInitialMousePosition {};
+        glm::vec3 mInitialFocalPoint, mInitialRotation;
+
+        float mDistance;
+        float mSpeed = 0.005f;
+        float mLastSpeed = 0.f;
+        float mPitch, mYaw;
+
+        bool mIsAllowed = false;
+
+        float mPitchDelta{}, mYawDelta{};
+        glm::vec3 mPositionDelta{};
+        glm::vec3 mRightDirection {};
+
+        CameraMode mCameraMode = CameraMode::NONE;
+
+        float mMinFocusDistance = 100.0f;
+
+        uint32_t mViewportWidth = 1280, mViewportHeight = 720;
+
+    private:
+        friend class EditorLayer;
+    };
 }

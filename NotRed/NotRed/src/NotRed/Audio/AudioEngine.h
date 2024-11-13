@@ -177,9 +177,11 @@ namespace NR::Audio
         {
             std::shared_lock lock{ mMutex };
             if (mEntityIDMap.find(sceneID) != mEntityIDMap.end())
+            {
                 return mEntityIDMap.at(sceneID).size();
-            else
-                return 0;
+            }
+
+            return 0;
         }
 
     private:
@@ -196,11 +198,10 @@ namespace NR::Audio
             {
                 return &o->GetComponent<AudioComponent>();
             }
-
             else
             {
-               NR_CORE_ASSERT("Component was not found in registry");
-               return nullptr;
+                NR_CORE_ASSERT("Component was not found in registry");
+                return nullptr;
             }
         }
 
@@ -300,7 +301,7 @@ namespace NR::Audio
 
            @returns nullptr - if there is no ActiveSound associated to supplied audioComponentID
         */
-        Sound* GetSoundForAudioComponent(uint64_t audioComponentID, const SoundConfig& sourceConfig);
+        Sound* GetSoundForAudioComponent(uint64_t audioComponentID, const Ref<SoundConfig>& sourceConfig);
 
         /* This is called when there is no free source available in pool for new playback start request. */
         Sound* FreeLowestPrioritySource();
@@ -315,7 +316,7 @@ namespace NR::Audio
             @param audioComponentID - AudioComponent to associate sound with
             @param sourceConfig - configuration to initialize new sound source from
         */
-        void SubmitSoundToPlay(uint64_t audioComponentID, const SoundConfig& sourceConfig);
+        void SubmitSoundToPlay(uint64_t audioComponentID, const Ref<SoundConfig>& sourceConfig);
 
         /*  Internal version of "Play" command. Attempts to GetSoundForAudioComponent()
             and submit it for the playback. SoundConfig is taken from the AudioComponent.
@@ -383,4 +384,4 @@ namespace NR::Audio
         AllocationCallbackData mEngineCallbackData{ false, sStats };
         AllocationCallbackData mRMCallbackData{ true, sStats };
     };
-} 
+}

@@ -1,41 +1,48 @@
 #include "nrpch.h"
 #include "VKContext.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include "Vulkan.h"
+#include "VKImage.h"
 
 namespace NR
 {
 #ifdef NR_DEBUG
 	static bool sValidation = true;
 #else
-	static bool sValidation = false;
+	static bool sValidation = true;
 #endif
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL VulkanDebugReportCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object, size_t location, int32_t messageCode, const char* pLayerPrefix, const char* pMessage, void* pUserData)
 	{
 		(void)flags; (void)object; (void)location; (void)messageCode; (void)pUserData; (void)pLayerPrefix; // Unused arguments
-		//TODO: Handle when closeing Window
+		
+		// It brakes the Engine at init and destroy
 		//NR_CORE_WARN("VulkanDebugCallback:\n  Object Type: {0}\n  Message: {1}", (const char*)objectType, pMessage);
+		
+		const auto& imageRefs = VKImage2D::GetImageRefs();
+		if (strstr(pMessage, "CoreValidation-DrawState-InvalidImageLayout"))
+		{
+			NR_CORE_WARN(pMessage);
+		}
+
 		return VK_FALSE;
 	}
 
-	VKContext::VKContext(GLFWwindow* windowHandle)
-		: mWindowHandle(windowHandle)
+	VKContext::VKContext()
 	{
 	}
 
 	VKContext::~VKContext()
 	{
-		mSwapChain.Cleanup();
 		mDevice->Destroy();
 
 		vkDestroyInstance(sVKInstance, nullptr);
 		sVKInstance = nullptr;
 	}
 
-	void VKContext::Create()
+	void VKContext::Init()
 	{
 		NR_CORE_INFO("VKContext::Create");
 
@@ -57,9 +64,15 @@ namespace NR
 			instanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		}
 
+		VkValidationFeatureEnableEXT enables[] = { VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT };
+		VkValidationFeaturesEXT features = {};
+		features.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+		features.enabledValidationFeatureCount = 1;
+		features.pEnabledValidationFeatures = enables;
+
 		VkInstanceCreateInfo instanceCreateInfo = {};
 		instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		instanceCreateInfo.pNext = NULL;
+		instanceCreateInfo.pNext = nullptr;
 		instanceCreateInfo.pApplicationInfo = &appInfo;
 		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
@@ -112,35 +125,16 @@ namespace NR
 		VkPhysicalDeviceFeatures enabledFeatures;
 		memset(&enabledFeatures, 0, sizeof(VkPhysicalDeviceFeatures));
 		enabledFeatures.samplerAnisotropy = true;
-		enabledFeatures.robustBufferAccess = true;
+		enabledFeatures.wideLines = true;
+		enabledFeatures.fillModeNonSolid = true;
+		enabledFeatures.pipelineStatisticsQuery = true;
 		mDevice = Ref<VKDevice>::Create(mPhysicalDevice, enabledFeatures);
 
 		VKAllocator::Init(mDevice);
-
-		mSwapChain.Init(sVKInstance, mDevice);
-		mSwapChain.InitSurface(mWindowHandle);
-
-		uint32_t width = 1280, height = 720;
-		mSwapChain.Create(&width, &height, true);
 
 		// Pipeline Cache
 		VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
 		pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 		VK_CHECK_RESULT(vkCreatePipelineCache(mDevice->GetVulkanDevice(), &pipelineCacheCreateInfo, nullptr, &mPipelineCache));
-	}
-
-	void VKContext::Resize(uint32_t width, uint32_t height)
-	{
-		mSwapChain.Resize(width, height);
-	}
-
-	void VKContext::BeginFrame()
-	{
-		mSwapChain.BeginFrame();
-	}
-
-	void VKContext::SwapBuffers()
-	{
-		mSwapChain.Present();
 	}
 }

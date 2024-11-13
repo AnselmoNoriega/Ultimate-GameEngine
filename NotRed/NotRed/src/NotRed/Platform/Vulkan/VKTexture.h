@@ -15,6 +15,8 @@ namespace NR
 		VKTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties);
 		~VKTexture2D() override;
 
+		void Resize(uint32_t width, uint32_t height) override;
+
 		void Invalidate();
 
 		ImageFormat GetFormat() const override { return mFormat; }
@@ -30,13 +32,14 @@ namespace NR
 		void Unlock() override;
 
 		Buffer GetWriteableBuffer() override;
-		bool Loaded() const override;
+		bool Loaded() const override { return mImageData; }
 		const std::string& GetPath() const override;
 		uint32_t GetMipLevelCount() const override;
+		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const override;
 
 		void GenerateMips();
 
-		uint64_t GetHash() const override { return (uint64_t)mImage; }
+		uint64_t GetHash() const override { return (uint64_t)mImage.As<VKImage2D>()->GetDescriptor().imageView; }
 
 	private:
 		std::string mPath;
@@ -59,17 +62,20 @@ namespace NR
 		VKTextureCube(const std::string& path, TextureProperties properties);
 		~VKTextureCube() override;
 
-		const std::string& GetPath() const override { return ""; }
+#if EMPTY
+		const std::string& GetPath() const override { return std::string(); }
+#endif
 
 		void Bind(uint32_t slot = 0) const override {}
 
-		ImageFormat GetFormat() const { return mFormat; }
+		virtual ImageFormat GetFormat() const override { return mFormat; }
 
 		uint32_t GetWidth() const override { return mWidth; }
 		uint32_t GetHeight() const override { return mHeight; }
 		uint32_t GetMipLevelCount() const override;
+		std::pair<uint32_t, uint32_t> GetMipSize(uint32_t mip) const override;
 
-		uint64_t GetHash() const override { return (uint64_t)mImage; }
+		virtual uint64_t GetHash() const override { return (uint64_t)mImage; }
 
 		const VkDescriptorImageInfo& GetVulkanDescriptorInfo() const { return mDescriptorImageInfo; }
 		VkImageView CreateImageViewSingleMip(uint32_t mip);

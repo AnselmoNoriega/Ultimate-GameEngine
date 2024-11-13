@@ -7,7 +7,7 @@ namespace NR
 {
     ObjectsPanel::ObjectsPanel()
     {
-        mCubeImage = Texture2D::Create("Assets/Editor/asset.png");
+		mCubeImage = Texture2D::Create("Resources/Editor/asset.png");
     }
 
     void ObjectsPanel::DrawObject(const char* label, AssetHandle handle)
@@ -32,6 +32,7 @@ namespace NR
 
 	void ObjectsPanel::ImGuiRender()
 	{
+#if 0
 		static const AssetHandle CubeHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Cube.fbx");
 		static const AssetHandle CapsuleHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Capsule.fbx");
 		static const AssetHandle SphereHandle = AssetManager::GetAssetHandleFromFilePath("Assets/Meshes/Default/Sphere.fbx");
@@ -44,8 +45,8 @@ namespace NR
 		{
 			ImGui::BeginChild("##objects_window");
 			DrawObject("Cube", CubeHandle);
-			DrawObject("Capsule", CapsuleHandle);
 			DrawObject("Sphere", SphereHandle);
+			DrawObject("Capsule", CapsuleHandle);
 			DrawObject("Cylinder", CylinderHandle);
 			DrawObject("Torus", TorusHandle);
 			DrawObject("Plane", PlaneHandle);
@@ -53,6 +54,9 @@ namespace NR
 			ImGui::EndChild();
 		}
 
+		ImGui::End();
+#endif
+		ImGui::Begin("Objects");
 		ImGui::End();
 	}
 }

@@ -14,24 +14,22 @@ namespace NR
 		VKVertexBuffer(void* data, uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Static);
 		VKVertexBuffer(uint32_t size, VertexBufferUsage usage = VertexBufferUsage::Dynamic);
 
-		~VKVertexBuffer() override = default;
+		~VKVertexBuffer() override;
 
-		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override {}
+		void SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
+		void RT_SetData(void* buffer, uint32_t size, uint32_t offset = 0) override;
 		void Bind() const override {}
 
-		const VertexBufferLayout& GetLayout() const override { return {}; }
-		void SetLayout(const VertexBufferLayout& layout) override {}
-
 		unsigned int GetSize() const override { return mSize; }
-		RendererID GetRendererID() const override { return 0; }
+		RendererID GetRendererID() const override { return 0; } 
 
-		VkBuffer GetVulkanBuffer() { return mVulkanBuffer; }
+		VkBuffer GetVulkanBuffer() const { return mVulkanBuffer; }
 
 	private:
 		uint32_t mSize = 0;
 		Buffer mLocalData;
 
-		VkBuffer mVulkanBuffer;
-		VkDeviceMemory mDeviceMemory;
+		VkBuffer mVulkanBuffer = nullptr;
+		VmaAllocation mMemoryAllocation;
 	};
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NotRed/ImGui/ImGuiLayer.h"
+#include "NotRed/Renderer/RenderCommandBuffer.h"
 
 namespace NR
 {
@@ -17,5 +18,8 @@ namespace NR
 		void Attach() override;
 		void Detach() override;
 		void ImGuiRender() override;
+
+	private:
+		Ref<RenderCommandBuffer> mRenderCommandBuffer;
 	};
 }

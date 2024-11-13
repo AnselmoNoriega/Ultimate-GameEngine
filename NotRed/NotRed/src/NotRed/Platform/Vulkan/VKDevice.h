@@ -29,6 +29,7 @@ namespace NR
 		const QueueFamilyIndices& GetQueueFamilyIndices() const { return mQueueFamilyIndices; }
 
 		const VkPhysicalDeviceProperties& GetProperties() const { return mProperties; }
+		const VkPhysicalDeviceLimits& GetLimits() const { return mProperties.limits; }
 
 		VkFormat GetDepthFormat() const { return mDepthFormat; }
 
@@ -64,7 +65,7 @@ namespace NR
 
 		void Destroy();
 
-		VkQueue GetQueue() { return mQueue; }
+		VkQueue GetGraphicsQueue() { return mGraphicsQueue; }
 		VkQueue GetComputeQueue() { return mComputeQueue; }
 
 		VkCommandBuffer GetCommandBuffer(bool begin, bool compute = false);
@@ -85,7 +86,7 @@ namespace NR
 		VkPhysicalDeviceFeatures mEnabledFeatures;
 		VkCommandPool mCommandPool, mComputeCommandPool;
 
-		VkQueue mQueue;
+		VkQueue mGraphicsQueue;
 		VkQueue mComputeQueue;
 
 		bool mEnableDebugMarkers = false;

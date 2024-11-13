@@ -8,8 +8,7 @@
 
 namespace NR
 {
-	GLContext::GLContext(GLFWwindow* windowHandle)
-		: mWindowHandle(windowHandle)
+	GLContext::GLContext()
 	{
 	}
 
@@ -17,7 +16,7 @@ namespace NR
 	{
 	}
 
-	void GLContext::Create()
+	void GLContext::Init()
 	{
 		NR_CORE_INFO("GLContext::Create");
 
@@ -38,10 +37,5 @@ namespace NR
 
 		NR_CORE_ASSERT(versionMajor > 4 || (versionMajor == 4 && versionMinor >= 5), "NotRed requires at least OpenGL version 4.5!");
 #endif
-	}
-
-	void GLContext::SwapBuffers()
-	{
-		glfwSwapBuffers(mWindowHandle);
 	}
 }

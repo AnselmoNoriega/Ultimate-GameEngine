@@ -3,6 +3,8 @@
 
 #include "VKContext.h"
 
+#include "NotRed/Util/StringUtils.h"
+
 #if NR_LOG_RENDERER_ALLOCATIONS
     #define NR_ALLOCATOR_LOG(...) NR_CORE_TRACE(__VA_ARGS__)
 #else
@@ -11,82 +13,6 @@
 
 namespace NR
 {
-    namespace Utils {
-        std::string BytesToString(uint64_t bytes)
-        {
-            static const float gb = 1024 * 1024 * 1024;
-            static const float mb = 1024 * 1024;
-            static const float kb = 1024;
-
-            char buffer[16];
-
-            if (bytes > gb)
-            {
-                sprintf_s(buffer, "%.2f GB", bytes / gb);
-            }
-            else if (bytes > mb)
-            {
-                sprintf_s(buffer, "%.2f MB", bytes / mb);
-            }
-            else if (bytes > kb)
-            {
-                sprintf_s(buffer, "%.2f KB", bytes / kb);
-            }
-            else
-            {
-                sprintf_s(buffer, "%.2f bytes", bytes);
-            }
-            return std::string(buffer);
-        }
-
-        void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
-        {
-            Ref<VKDevice> vkDevice = VKContext::GetCurrentDevice();
-            VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
-            VkCommandPool commandPool = vkDevice->GetCommandPool();
-            VkQueue graphicsQueue = vkDevice->GetQueue();
-
-            // Allocate command buffer
-            VkCommandBufferAllocateInfo allocInfo{};
-            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-            allocInfo.commandPool = commandPool;
-            allocInfo.commandBufferCount = 1;
-
-            VkCommandBuffer commandBuffer;
-            vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-            // Begin recording commands
-            VkCommandBufferBeginInfo beginInfo{};
-            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-            vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-            // Copy command
-            VkBufferCopy copyRegion{};
-            copyRegion.srcOffset = 0;
-            copyRegion.dstOffset = 0;
-            copyRegion.size = size;
-            vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-
-            // End recording
-            vkEndCommandBuffer(commandBuffer);
-
-            // Submit the command buffer
-            VkSubmitInfo submitInfo{};
-            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-            submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &commandBuffer;
-
-            vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-            vkQueueWaitIdle(graphicsQueue);  // Wait for the copy to finish
-
-            // Clean up command buffer
-            vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-        }
-    }
-
     struct VKAllocatorData
     {
         VmaAllocator Allocator;
@@ -110,7 +36,7 @@ namespace NR
         VmaAllocation allocation;
         vmaCreateBuffer(sData->Allocator, &bufferCreateInfo, &allocCreateInfo, &outBuffer, &allocation, nullptr);
 
-        VmaAllocationInfo allocInfo;
+        VmaAllocationInfo allocInfo {};
         vmaGetAllocationInfo(sData->Allocator, allocation, &allocInfo);
         NR_ALLOCATOR_LOG("VKAllocator ({0}): allocating buffer; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
 
@@ -128,7 +54,7 @@ namespace NR
         VmaAllocation allocation;
         vmaCreateImage(sData->Allocator, &imageCreateInfo, &allocCreateInfo, &outImage, &allocation, nullptr);
 
-        VmaAllocationInfo allocInfo;
+        VmaAllocationInfo allocInfo {};
         vmaGetAllocationInfo(sData->Allocator, allocation, &allocInfo);
         NR_ALLOCATOR_LOG("VKAllocator ({0}): allocating image; size = {1}", mTag, Utils::BytesToString(allocInfo.size));
 

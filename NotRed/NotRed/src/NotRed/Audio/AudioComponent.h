@@ -19,7 +19,7 @@ namespace NR::Audio
 	{
 		UUID ParentHandle;
 
-		SoundConfig SoundConfig;
+		Ref<SoundConfig> SoundConfig;
 
 		bool PlayOnAwake = false;
 

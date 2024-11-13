@@ -10,13 +10,14 @@
 
 #include <string>
 
-#include "NotRed/ImGui/ImGuiLayer.h"
 #include "imgui/imgui_internal.h"
+
+#include "NotRed/ImGui/ImGuiLayer.h"
+#include "NotRed/Editor/EditorCamera.h"
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
 #include "NotRed/Editor/ContentBrowserPanel.h"
 #include "NotRed/Editor/ObjectsPanel.h"
-#include "NotRed/Editor/EditorCamera.h"
 
 namespace NR
 {
@@ -33,30 +34,32 @@ namespace NR
 
 	public:
 		EditorLayer();
-		virtual ~EditorLayer();
+		~EditorLayer() override;
 
 		void Attach() override;
 		void Detach() override;
 		void Update(float dt) override;
 
 		void ImGuiRender() override;
-		void OnEvent(Event& e) override;
-
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+		void OnEvent(Event& e) override;
 
-		void ShowBoundingBoxes(bool show, bool onTop = false);
+		void Render2D();
+
 		void SelectEntity(Entity entity);
 
 		void NewScene();
-		void OpenScene();
+		void OpenProject();
+		void OpenProject(const std::string& filepath);
 		void OpenScene(const std::string& filepath);
+		void OpenScene(const AssetMetadata& assetMetadata);
 		void SaveScene();
 		void SaveSceneAs();
 
 	private:
-		std::pair<float, float> GetMouseViewportSpace();
-		std::pair<glm::vec3, glm::vec3> CastRay(float mx, float my);
+		std::pair<float, float> GetMouseViewportSpace(bool primaryViewport);
+		std::pair<glm::vec3, glm::vec3> CastRay(const EditorCamera& camera, float mx, float my);
 
 		struct SelectedSubmesh
 		{
@@ -69,35 +72,46 @@ namespace NR
 		void EntityDeleted(Entity e);
 		Ray CastMouseRay();
 
-		void DeleteEntity(Entity entity);
-
 		void ScenePlay();
 		void SceneStop();
 
-		void SceneStartSimulation();
-		void SceneEndSimulation();
+		void UI_WelcomePopup();
+		void UI_AboutPopup();
+
+		void UI_CreateNewMeshPopup();
+		void UI_InvalidAssetMetadataPopup();
+		void CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset);
+		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
 
 		void UpdateWindowTitle(const std::string& sceneName);
 
 		float GetSnapValue();
+
+		void DeleteEntity(Entity entity);
+
+		void UpdateSceneRendererSettings();
 
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
 
-		Ref<Scene> mRuntimeScene, mEditorScene, mSimulationScene, mCurrentScene;
+		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
+		Ref<SceneRenderer> mViewportRenderer;
+		Ref<SceneRenderer> mSecondViewportRenderer;
+		Ref<SceneRenderer> mFocusedRenderer;
 		std::string mSceneFilePath;
 		bool mReloadScriptOnPlay = true;
 
 		EditorCamera mEditorCamera;
+		EditorCamera mSecondEditorCamera;
 
 		Ref<Shader> mBrushShader;
 		Ref<Material> mSphereBaseMaterial;
 
 		struct AlbedoInput
 		{
-			glm::vec3 Color = { 0.972f, 0.96f, 0.915f }; 
+			glm::vec3 Color = { 0.972f, 0.96f, 0.915f }; // Silver, from https://docs.unrealengine.com/en-us/Engine/Rendering/Materials/PhysicallyBased
 			Ref<Texture2D> TextureMap;
 			bool SRGB = true;
 			bool UseTexture = false;
@@ -127,47 +141,83 @@ namespace NR
 
 		enum class SceneType : uint32_t
 		{
-			Spheres, 
-			Model
+			Spheres = 0, Model = 1
 		};
 		SceneType mSceneType;
 
 		// Editor resources
-		Ref<Texture2D> mCheckerboardTex;		
+		Ref<Texture2D> mCheckerboardTex;
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
+		
+		// Icons
+		Ref<Texture2D> mPointLightIcon;
 
 		glm::vec2 mViewportBounds[2];
+		glm::vec2 mSecondViewportBounds[2];
+
+		float mLineWidth = 2.0f;
+
+		int mGizmoType = -1;
+
 		float mSnapValue = 0.5f;
 		float mRotationSnapValue = 45.0f;
 
-		int mGizmoType = -1;
-		bool mAllowViewportCameraEvents = false;
-		bool mDrawOnTopBoundingBoxes = false;
+		bool mDrawOnTopBoundingBoxes = true;
 
-		bool mUIShowBoundingBoxes = false;
-		bool mUIShowBoundingBoxesOnTop = false;
+		bool mShowBoundingBoxes = false;
+		bool mShowBoundingBoxSelectedMeshOnly = true;
+		bool mShowBoundingBoxSubmeshes = false;
+		bool mShowSelectedWireframe = false;
+		bool mShowPhysicsCollidersWireframe = false;
 
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
+		bool mAllowViewportCameraEvents = false;
+
+		bool mViewportPanel2MouseOver = false;
+		bool mViewportPanel2Focused = false;
 
 		bool mShowPhysicsSettings = false;
+		bool mShowSecondViewport = false;
 
 		bool mShowWelcomePopup = true;
+		bool mShowAboutPopup = false;
+
+		bool mShowCreateNewMeshPopup = false;
+
+		bool mAssetManagerPanelOpen = false;
+
+		struct CreateNewMeshPopupData
+		{
+			Ref<MeshAsset> MeshToCreate;
+			std::array<char, 256> CreateMeshFilenameBuffer;
+			Entity TargetEntity;
+
+			CreateNewMeshPopupData()
+			{
+				CreateMeshFilenameBuffer.fill(0);
+				MeshToCreate = nullptr;
+				TargetEntity = {};
+			}
+
+		} mCreateNewMeshPopupData;
+
+		bool mShowInvalidAssetMetadataPopup = false;
+
+		struct InvalidAssetMetadataPopupData
+		{
+			AssetMetadata Metadata;
+		} mInvalidAssetMetadataPopupData;
 
 		enum class SceneState
 		{
-			Edit,
-			Play,
-			Pause, 
-			Simulate
+			Edit = 0, Play = 1, Pause = 2
 		};
 		SceneState mSceneState = SceneState::Edit;
 
 		enum class SelectionMode
 		{
-			None, 
-			Entity,
-			SubMesh
+			None = 0, Entity = 1, SubMesh = 2
 		};
 
 		SelectionMode mSelectionMode = SelectionMode::Entity;

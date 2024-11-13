@@ -11,6 +11,8 @@
 
 #include "NotRed/Renderer/RendererAPI.h"
 
+#include "NotRed/Platform/Vulkan/VKContext.h"
+
 namespace NR
 {
     static bool sGLFWInitialized = false;
@@ -20,28 +22,27 @@ namespace NR
         NR_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
     }
 
-    Window* Window::Create(const WindowProps& props)
+    Window* Window::Create(const WindowSpecification& specification)
     {
-        return new WinWindow(props);
+        return new WinWindow(specification);
     }
 
-    WinWindow::WinWindow(const WindowProps& props)
-    {
-        Init(props);
-    }
+    WinWindow::WinWindow(const WindowSpecification& props)
+        : mSpecification(props)
+    {}
 
     WinWindow::~WinWindow()
     {
         Shutdown();
     }
 
-    void WinWindow::Init(const WindowProps& props)
+    void WinWindow::Init()
     {
-        mData.Title = props.Title;
-        mData.Width = props.Width;
-        mData.Height = props.Height;
+        mData.Title = mSpecification.Title;
+        mData.Width = mSpecification.Width;
+        mData.Height = mSpecification.Height;
 
-        NR_CORE_INFO("Creating window {0} ({1}, {2})", props.Title, props.Width, props.Height);
+        NR_CORE_INFO("Creating window {0} ({1}, {2})", mSpecification.Title, mSpecification.Width, mSpecification.Height);
 
         if (!sGLFWInitialized)
         {
@@ -60,10 +61,27 @@ namespace NR
         {
            // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         }
-        mWindow = glfwCreateWindow((int)props.Width, (int)props.Height, mData.Title.c_str(), nullptr, nullptr);
 
-        mRendererContext = RendererContext::Create(mWindow);
-        mRendererContext->Create();
+        if (mSpecification.Fullscreen)
+        {
+            GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+            const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+            mWindow = glfwCreateWindow(mode->width, mode->height, mData.Title.c_str(), primaryMonitor, nullptr);
+        }
+        else
+        {
+            mWindow = glfwCreateWindow((int)mSpecification.Width, (int)mSpecification.Height, mData.Title.c_str(), nullptr, nullptr);
+        }
+
+        mRendererContext = RendererContext::Create();
+        mRendererContext->Init();
+
+        Ref<VKContext> context = mRendererContext.As<VKContext>();
+        mSwapChain.Init(VKContext::GetInstance(), context->GetDevice());
+        mSwapChain.InitSurface(mWindow);
+
+        uint32_t width = mData.Width, height = mData.Height;
+        mSwapChain.Create(&width, &height, mSpecification.VSync);
 
         glfwSetWindowUserPointer(mWindow, &mData);
 
@@ -112,7 +130,7 @@ namespace NR
                 }
             });
 
-        glfwSetCharCallback(mWindow, [](GLFWwindow* window, unsigned int codepoint)
+        glfwSetCharCallback(mWindow, [](GLFWwindow* window, uint32_t codepoint)
             {
                 auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
 
@@ -179,7 +197,7 @@ namespace NR
     {
         int x, y;
         glfwGetWindowPos(mWindow, &x, &y);
-        return { x, y };
+        return { (float)x, (float)y };
     }
 
     void WinWindow::ProcessEvents()
@@ -189,7 +207,7 @@ namespace NR
 
     void WinWindow::SwapBuffers()
     {
-        mRendererContext->SwapBuffers();
+        mSwapChain.Present();
     }
 
     void WinWindow::SetVSync(bool enabled)
@@ -229,5 +247,10 @@ namespace NR
     {
         mData.Title = title;
         glfwSetWindowTitle(mWindow, mData.Title.c_str());
+    }
+
+    VKSwapChain& WinWindow::GetSwapChain()
+    {
+        return mSwapChain;
     }
 }

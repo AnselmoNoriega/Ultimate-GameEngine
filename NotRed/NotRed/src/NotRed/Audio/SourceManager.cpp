@@ -31,7 +31,7 @@ namespace NR::Audio
     {
     }
 
-    bool SourceManager::InitializeSource(uint32_t sourceID, const SoundConfig& sourceConfig)
+    bool SourceManager::InitializeSource(uint32_t sourceID, const Ref<SoundConfig>& sourceConfig)
     {
         if (mAudioEngine.mSoundSources.at(sourceID)->InitializeDataSource(sourceConfig, &mAudioEngine))
         {
@@ -42,7 +42,7 @@ namespace NR::Audio
             ma_node_attach_output_bus(&splitterNode, 1, reverbNode, 0);
 
             // Set send level to the Master Reverb
-            ma_node_set_output_bus_volume(&splitterNode, 1, sourceConfig.MasterReverbSend);
+            ma_node_set_output_bus_volume(&splitterNode, 1, sourceConfig->MasterReverbSend);
 
             return true;
         }
