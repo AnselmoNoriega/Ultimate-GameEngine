@@ -954,7 +954,7 @@ namespace NR
                         glm::vec3 translation, rotation, scale;
                         Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                        glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
+                        glm::vec3 deltaRotation = (rotation * (180.0f / 3.14159265f)) - entityTransform.Rotation;
                         entityTransform.Translation = translation;
                         entityTransform.Rotation += deltaRotation;
                         entityTransform.Scale = scale;
@@ -964,7 +964,7 @@ namespace NR
                         glm::vec3 translation, rotation, scale;
                         Math::DecomposeTransform(transform, translation, rotation, scale);
 
-                        glm::vec3 deltaRotation = rotation - entityTransform.Rotation;
+                        glm::vec3 deltaRotation = (rotation * (180.0f / 3.14159265f)) - entityTransform.Rotation;
                         entityTransform.Translation = translation;
                         entityTransform.Rotation += deltaRotation;
                         entityTransform.Scale = scale;
