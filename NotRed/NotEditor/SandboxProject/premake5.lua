@@ -22,7 +22,7 @@ project "Not-ScriptCore"
 	kind "SharedLib"
 	language "C#"
 
-	targetdir ("%{prj.location}/Binaries")
+	targetdir ("%{RootDirectory}NotEditor/Resources/Scripts")
 	objdir ("%{RootDirectory}NotEditor/Resources/Scripts/Intermediates")
 
 	files 
@@ -37,12 +37,12 @@ project "%{ProjectName}"
 	language "C#"
 
 	targetname "%{ProjectName}"
-	targetdir ("%{RootDirectory}NotEditor/Resources/Scripts")
+	targetdir ("%{prj.location}/Binaries")
 	objdir ("%{RootDirectory}NotEditor/Resources/Scripts/Intermediates")
 
 	files 
 	{
-		"Assets/Scripts/Source/**.cs", 
+		"Assets/Scripts/src/**.cs", 
 	}
 
 	links

@@ -13,14 +13,10 @@
     <ClInclude Include="src\EditorLayer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Shaders\Deinterleaving\Deinterleaving.vert" />
-    <None Include="Resources\Shaders\Deinterleaving\Deinterleaving.frag" />
-    <None Include="Resources\Shaders\HBAO\HBAO.comp" />
-    <None Include="Resources\Shaders\HBAOBlur\HBAOBlur.vert" />
-    <None Include="Resources\Shaders\HBAOBlur\HBAOBlur.frag" />
-    <None Include="Resources\Shaders\HBAOBlur2\HBAOBlur2.vert" />
-    <None Include="Resources\Shaders\HBAOBlur2\HBAOBlur2.frag" />
-    <None Include="Resources\Shaders\Reinterleaving\Reinterleaving.vert" />
-    <None Include="Resources\Shaders\Reinterleaving\Reinterleaving.frag" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\Chunk.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\ChunkRenderer.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\MeshData.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\Voxel.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\World.cs" />
   </ItemGroup>
 </Project>

@@ -180,6 +180,13 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <Project>{F10BEBC5-DDAD-159C-C668-29F0B2A99CEC}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\Chunk.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\ChunkRenderer.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\MeshData.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\Voxel.cs" />
+    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\World.cs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
