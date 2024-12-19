@@ -1153,7 +1153,7 @@ namespace NR
                     component.IsTrigger = meshColliderComponent["IsTrigger"].as<bool>();
 
                     component.CollisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().MeshObj : nullptr;
-                    bool overrideMesh = meshColliderComponent["OverrideMesh"].as<bool>();
+                    bool overrideMesh = meshColliderComponent["OverrideMesh"] ? meshColliderComponent["OverrideMesh"].as<bool>() : false;;
 
                     if (overrideMesh)
                     {

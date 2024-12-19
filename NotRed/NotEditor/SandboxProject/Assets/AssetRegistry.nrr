@@ -113,6 +113,9 @@ Assets:
   - Handle: 11378497880036335834
     FilePath: Models/Source/Default/Plane.fbx
     Type: MeshAsset
+  - Handle: 11392955866543840778
+    FilePath: Scenes/VaxelGame.nrsc
+    Type: Scene
   - Handle: 12046046325573209881
     FilePath: Models/m1911/m1911_roughness.png
     Type: Texture

@@ -1,0 +1,32 @@
+Scene: Demo
+Environment:
+  AssetHandle: 13745948106637564345
+  DirLight:
+    Direction: [0, 0, 0]
+    Radiance: [0, 0, 0]
+    Multiplier: 1
+Entities:
+  - Entity: 2034799111348673663
+    TagComponent:
+      Tag: Chunk
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 0
+    MeshColliderComponent:
+      IsConvex: false
+      IsTrigger: false
+      Material: 0
+PhysicsLayers:
+  []
+SceneAudio:
+  MasterReverb:
+    Pre-delay: 50
+    Room size: 0.49999994
+    Damping: 0.5
+    Width: 1

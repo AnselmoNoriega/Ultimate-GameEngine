@@ -1,5 +1,6 @@
 ﻿using NR;
 using System.Runtime.CompilerServices;
+using System.Linq;
 
 public class ChunkRenderer : Entity
 {
@@ -40,19 +41,19 @@ public class ChunkRenderer : Entity
         _mesh.Clear();
 
         _mesh.subMeshCount = 2;
-        _mesh.vertices = meshData.vertices.Concat(meshData.waterMesh.vertices).ToArray();
+        _mesh.vertices = meshData.Vertices.Concat(meshData.WaterMesh.Vertices).ToArray();
 
-        _mesh.SetTriangles(meshData.triangles.ToArray(), 0);
-        _mesh.SetTriangles(meshData.waterMesh.triangles.Select(val => val + meshData.vertices.Count).ToArray(), 1);
+        _mesh.SetTriangles(meshData.Triangles.ToArray(), 0);
+        _mesh.SetTriangles(meshData.WaterMesh.Triangles.Select(val => val + meshData.Vertices.Count).ToArray(), 1);
         
-        _mesh.uv = meshData.uv.Concat(meshData.waterMesh.uv).ToArray();
+        _mesh.uv = meshData.UVs.Concat(meshData.WaterMesh.UVs).ToArray();
         _mesh.RecalculateNormals();
 
         _meshCollider.sharedMesh = null;
         
         Mesh collisionMesh = new Mesh();
-        collisionMesh.vertices = meshData.colliderVertices.ToArray();
-        collisionMesh.triangles = meshData.colliderTriangles.ToArray();
+        collisionMesh.vertices = meshData.ColliderVertices.ToArray();
+        collisionMesh.triangles = meshData.ColliderTriangles.ToArray();
         collisionMesh.RecalculateNormals();
         _meshCollider.sharedMesh = collisionMesh;
     }
