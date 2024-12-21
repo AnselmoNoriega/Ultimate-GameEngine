@@ -46,7 +46,7 @@ public class ChunkRenderer : Entity
         _mesh.SetTriangles(meshData.Triangles.ToArray(), 0);
         _mesh.SetTriangles(meshData.WaterMesh.Triangles.Select(val => val + meshData.Vertices.Count).ToArray(), 1);
         
-        _mesh.uv = meshData.UVs.Concat(meshData.WaterMesh.UVs).ToArray();
+        _mesh.uv = meshData.TextureCoords.Concat(meshData.WaterMesh.TextureCoords).ToArray();
         _mesh.RecalculateNormals();
 
         _meshCollider.sharedMesh = null;
