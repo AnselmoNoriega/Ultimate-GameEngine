@@ -1,13 +1,4 @@
 Assets:
-  - Handle: 133486771381258107
-    FilePath: Meshes/Default/Torus.fbx
-    Type: MeshAsset
-  - Handle: 262413514796708586
-    FilePath: Models/Source/Default/Cube.fbx
-    Type: MeshAsset
-  - Handle: 409230346208159714
-    FilePath: Meshes/Default/Plane.fbx
-    Type: MeshAsset
   - Handle: 788492981695594073
     FilePath: Models/Source/Sponza/16275776544635328252.png
     Type: Texture
@@ -20,9 +11,6 @@ Assets:
   - Handle: 1180668109189713166
     FilePath: Models/Source/pilot/Material.002_Roughness.png
     Type: Texture
-  - Handle: 1382881797124834321
-    FilePath: Meshes/Default/Sphere.fbx
-    Type: MeshAsset
   - Handle: 2452864457812440606
     FilePath: Meshes/Demo/TestScene (01).nrmesh
     Type: Mesh
@@ -84,10 +72,7 @@ Assets:
     FilePath: Models/Source/Sponza/white.png
     Type: Texture
   - Handle: 7620121883529511759
-    FilePath: Meshes/Default/Cube.fbx
-    Type: MeshAsset
-  - Handle: 7782017952273710340
-    FilePath: Models/Source/Default/Cylinder.fbx
+    FilePath: Models/Source/Default/Cube.fbx
     Type: MeshAsset
   - Handle: 8519206479186164059
     FilePath: Models/m1911/m1911_color.png
@@ -134,17 +119,11 @@ Assets:
   - Handle: 13163247778782548346
     FilePath: Env/thatch_chapel_4k.hdr
     Type: EnvMap
-  - Handle: 13980122424358325905
-    FilePath: Meshes/Default/Capsule.fbx
-    Type: MeshAsset
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
   - Handle: 15241730571501316311
-    FilePath: Meshes/Default/Cylinder.fbx
-    Type: MeshAsset
-  - Handle: 15637941359961024561
-    FilePath: Models/Source/Default/Cone.fbx
+    FilePath: Models/Source/Default/Cylinder.fbx
     Type: MeshAsset
   - Handle: 15639926771555786455
     FilePath: Scenes/Demo.nrsc
@@ -192,5 +171,5 @@ Assets:
     FilePath: Env/cobblestone_street_night_4k.hdr
     Type: EnvMap
   - Handle: 18211924834184589924
-    FilePath: Meshes/Default/Cone.fbx
+    FilePath: Models/Source/Default/Cone.fbx
     Type: MeshAsset

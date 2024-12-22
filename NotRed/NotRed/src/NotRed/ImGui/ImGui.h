@@ -431,7 +431,9 @@ namespace NR::UI
 					changed = true;
 				}
 				if (is_selected)
+				{
 					ImGui::SetItemDefaultFocus();
+				}
 			}
 			ImGui::EndCombo();
 		}

@@ -22,7 +22,15 @@ namespace NR
 		static void Initialize();
 		static void Shutdown();
 
+		static CookingResult CookMesh(MeshColliderComponent& component, bool isConvex, std::vector<MeshColliderData>& outData = mDefaultOutData);
+
 		static CookingResult CookConvexMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData);
 		static CookingResult CookTriangleMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData);
+
+	private:
+		static void GenerateDebugMesh(MeshColliderComponent& component, const MeshColliderData& colliderData, bool isConvex);
+
+	private:
+		static std::vector<MeshColliderData> mDefaultOutData;
 	};
 }

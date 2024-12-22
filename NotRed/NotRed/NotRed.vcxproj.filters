@@ -576,9 +576,6 @@
     <ClInclude Include="src\NotRed\Scene\Entity.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Scene\EntityFactory.h">
-      <Filter>src\NotRed\Scene</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Scene.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
@@ -1152,9 +1149,6 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Entity.cpp">
-      <Filter>src\NotRed\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Scene\EntityFactory.cpp">
       <Filter>src\NotRed\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Scene.cpp">

@@ -18,6 +18,7 @@
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsActor.h"
 #include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Physics/CookingFactory.h"
 #include "NotRed/Renderer/MeshFactory.h"
 
 #include "NotRed/Asset/AssetManager.h"
@@ -27,8 +28,6 @@
 
 #include "NotRed/Audio/AudioEngine.h"
 #include "NotRed/Audio/AudioComponent.h"
-
-#include "NotRed/Scene/EntityFactory.h"
 
 namespace NR
 {
@@ -117,49 +116,49 @@ namespace NR
 						if (ImGui::MenuItem("Cube"))
 						{
 							auto newEntity = mContext->CreateEntity("Cube");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Cube.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Resources/Meshes/Default/Cube.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Sphere"))
 						{
 							auto newEntity = mContext->CreateEntity("Sphere");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Sphere.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Sphere.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Capsule"))
 						{
 							auto newEntity = mContext->CreateEntity("Capsule");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Capsule.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Capsule.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Cylinder"))
 						{
 							auto newEntity = mContext->CreateEntity("Cylinder");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Cylinder.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Cylinder.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Torus"))
 						{
 							auto newEntity = mContext->CreateEntity("Torus");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Torus.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Torus.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Plane"))
 						{
 							auto newEntity = mContext->CreateEntity("Plane");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Plane.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Plane.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Cone"))
 						{
 							auto newEntity = mContext->CreateEntity("Cone");
-							Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>("Meshes/Default/Cone.fbx");
+							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Cone.fbx");
 							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
 							SetSelected(newEntity);
 						}
@@ -608,6 +607,7 @@ namespace NR
 					if (mSelectionContext.HasComponent<MeshComponent>())
 					{
 						component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
+						CookingFactory::CookMesh(component, component.IsConvex);
 					}
 
 					ImGui::CloseCurrentPopup();
@@ -665,6 +665,7 @@ namespace NR
 					{
 						auto& mcc = entity.GetComponent<MeshColliderComponent>();
 						mcc.CollisionMesh = mc.MeshObj;
+						CookingFactory::CookMesh(mcc, mcc.IsConvex);
 					}
 				}
 
@@ -1081,15 +1082,15 @@ namespace NR
 			{
 				UI::BeginPropertyGrid();
 
-				if (mcc.OverrideMesh)
+				bool cookMesh = false;
+				if (mcc.OverrideMesh && UI::PropertyAssetReference("Mesh", mcc.CollisionMesh))
 				{
-					if (UI::PropertyAssetReference("Mesh", mcc.CollisionMesh))
-					{
-					}
+					cookMesh = true;
 				}
 
 				if (UI::Property("Is Convex", mcc.IsConvex))
 				{
+					cookMesh = true;
 				}
 
 				UI::Property("Is Trigger", mcc.IsTrigger);
@@ -1100,8 +1101,15 @@ namespace NR
 					if (!mcc.OverrideMesh && entity.HasComponent<MeshComponent>())
 					{
 						mcc.CollisionMesh = entity.GetComponent<MeshComponent>().MeshObj;
+						cookMesh = true;
 					}
 				}
+
+				if (cookMesh)
+				{
+					CookingFactory::CookMesh(mcc, mcc.IsConvex);
+				}
+
 				UI::EndPropertyGrid();
 			});
 

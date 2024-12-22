@@ -363,17 +363,9 @@ namespace NR
 
 	void PhysicsActor::SynchronizeTransform()
 	{
-		if (IsDynamic())
-		{
-			TransformComponent& transform = mEntity.Transform();
-			physx::PxTransform actorPose = mRigidActor->getGlobalPose();
-			transform.Translation = PhysicsUtils::FromPhysicsVector(actorPose.p);
-			transform.Rotation = glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(actorPose.q));
-		}
-		else
-		{
-			Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
-			mRigidActor->setGlobalPose(PhysicsUtils::ToPhysicsTransform(scene->GetTransformRelativeToParent(mEntity)));
-		}
+		TransformComponent& transform = mEntity.Transform();
+		physx::PxTransform actorPose = mRigidActor->getGlobalPose();
+		transform.Translation = PhysicsUtils::FromPhysicsVector(actorPose.p);
+		transform.Rotation = glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(actorPose.q));
 	}
 }

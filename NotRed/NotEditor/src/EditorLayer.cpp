@@ -18,6 +18,7 @@
 #include "NotRed/Editor/AssetEditorPanel.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/Debug/PhysicsDebugger.h"
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"
 
@@ -1236,6 +1237,35 @@ namespace NR
                 ImGui::EndMenu();
             }
 
+#ifdef NR_DEBUG
+            if (ImGui::BeginMenu("Debugging"))
+            {
+                if (ImGui::BeginMenu("PhysX"))
+                {
+                    if (PhysicsDebugger::IsDebugging())
+                    {
+                        if (ImGui::MenuItem("Stop"))
+                        {
+                            PhysicsDebugger::StopDebugging();
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui::MenuItem("Start"))
+                        {
+                            PhysicsDebugger::StartDebugging(
+                                (Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
+                                PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
+                            );
+                        }
+                    }
+                    ImGui::EndMenu();
+                }
+
+                ImGui::EndMenu();
+            }
+#endif
+
             if (ImGui::BeginMenu("Help"))
             {
                 if (ImGui::MenuItem("About"))
@@ -1625,7 +1655,10 @@ namespace NR
     {
         if (mSceneState == SceneState::Edit)
         {
-            mEditorCamera.OnEvent(e);
+            if (mViewportPanelMouseOver)
+            {
+                mEditorCamera.OnEvent(e);
+            }
 
             if (mViewportPanel2MouseOver)
             {

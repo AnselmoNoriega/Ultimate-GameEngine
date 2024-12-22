@@ -15,6 +15,7 @@
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Renderer/MeshFactory.h"
 #include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Physics/CookingFactory.h"
 
 #include "NotRed/Asset/AssetManager.h"
 
@@ -1172,6 +1173,7 @@ namespace NR
                     if (component.CollisionMesh && !component.CollisionMesh->IsFlagSet(AssetFlag::Missing))
                     {
                         component.OverrideMesh = overrideMesh;
+                        CookingFactory::CookMesh(component, component.IsConvex);
                     }
                     else
                     {

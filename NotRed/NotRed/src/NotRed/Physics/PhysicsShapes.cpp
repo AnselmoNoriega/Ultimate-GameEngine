@@ -16,23 +16,6 @@
 
 namespace NR
 {
-	namespace Utils
-	{
-		static std::filesystem::path GetCacheDirectory()
-		{
-			return Project::GetCacheDirectory();
-		}
-
-		static void CreateCacheDirectoryIfNeeded()
-		{
-			std::filesystem::path cacheDirectory = GetCacheDirectory();
-			if (!std::filesystem::exists(cacheDirectory))
-			{
-				std::filesystem::create_directories(cacheDirectory);
-			}
-		}
-	}
-
 	void ColliderShape::SetMaterial(const Ref<PhysicsMaterial>& material)
 	{
 		Ref<PhysicsMaterial> mat = material;
@@ -170,26 +153,14 @@ namespace NR
 
 		std::vector<MeshColliderData> cookedData;
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
-
-		Utils::CreateCacheDirectoryIfNeeded();
-		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
-		if (!metadata.IsValid())
-		{
-			NR_CORE_ERROR("Invalid mesh");
-		}
-
-		std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_convex.pxm");
-		if (!FileSystem::Exists(filepath))
-		{
-			CookingFactory::CookConvexMesh(component.CollisionMesh, cookedData);
-			SerializeData(filepath.string(), cookedData);
-		}
-		else
-		{
-			DeserializeCached(filepath.string(), cookedData);
-		}
+		CookingResult result = CookingFactory::CookMesh(component, true, cookedData);
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
+
+		if (result != CookingResult::Success)
+		{
+			return;
+		}
 
 		for (auto& colliderData : cookedData)
 		{
@@ -217,8 +188,6 @@ namespace NR
 		}
 
 		cookedData.clear();
-
-		CreateDebugMesh();
 	}
 
 	void ConvexMeshShape::SetTrigger(bool isTrigger)
@@ -250,114 +219,6 @@ namespace NR
 		}
 	}
 
-	void ConvexMeshShape::SerializeData(const std::string& filepath, const std::vector<MeshColliderData>& data)
-	{
-		uint32_t bufferSize = 0;
-		uint32_t offset = 0;
-
-		for (auto& colliderData : data)
-		{
-			bufferSize += sizeof(uint32_t);
-			bufferSize += colliderData.Size;
-			bufferSize += sizeof(glm::mat4);
-		}
-
-		Buffer colliderBuffer;
-		colliderBuffer.Allocate(bufferSize);
-
-		for (auto& colliderData : data)
-		{
-			colliderBuffer.Write((void*)&colliderData.Size, sizeof(uint32_t), offset);
-			offset += sizeof(uint32_t);
-			colliderBuffer.Write(colliderData.Data, colliderData.Size, offset);
-			offset += colliderData.Size;
-		}
-
-		FileSystem::WriteBytes(filepath, colliderBuffer);
-		colliderBuffer.Release();
-	}
-
-	void ConvexMeshShape::DeserializeCached(const std::string& filepath, std::vector<MeshColliderData>& outData)
-	{
-		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
-		uint32_t offset = 0;
-
-		const auto& meshAsset = mComponent.CollisionMesh->GetMeshAsset();
-		const auto& submeshes = meshAsset->GetSubmeshes();
-
-		for (auto submesh : mComponent.CollisionMesh->GetSubmeshes())
-		{
-			MeshColliderData& data = outData.emplace_back();
-
-			data.Size = colliderBuffer.Read<uint32_t>(offset);
-			offset += sizeof(uint32_t);
-			data.Data = colliderBuffer.ReadBytes(data.Size, offset);
-			offset += data.Size;
-			data.Transform = submeshes[submesh].Transform;
-		}
-
-		colliderBuffer.Release();
-	}
-
-	void ConvexMeshShape::CreateDebugMesh()
-	{
-		if (mComponent.ProcessedMeshes.size() > 0)
-		{
-			return;
-		}
-
-		for (auto shape : mShapes)
-		{
-			physx::PxGeometryHolder geometryHolder = shape->getGeometry();
-			const physx::PxConvexMeshGeometry& convexGeometry = geometryHolder.convexMesh();
-			physx::PxConvexMesh* mesh = convexGeometry.convexMesh;
-
-			// Based On: https://github.com/EpicGames/UnrealEngine/blob/release/Engine/Source/ThirdParty/Physics3/NvCloth/samples/SampleBase/renderer/ConvexRenderMesh.cpp
-			const uint32_t nbPolygons = mesh->getNbPolygons();
-			const physx::PxVec3* convexVertices = mesh->getVertices();
-			const physx::PxU8* convexIndices = mesh->getIndexBuffer();
-
-			uint32_t nbVertices = 0;
-			uint32_t nbFaces = 0;
-
-			std::vector<Vertex> collisionVertices;
-			std::vector<Index> collisionIndices;
-			uint32_t vertCounter = 0;
-			uint32_t indexCounter = 0;
-
-			for (uint32_t i = 0; i < nbPolygons; ++i)
-			{
-				physx::PxHullPolygon polygon;
-				mesh->getPolygonData(i, polygon);
-				nbVertices += polygon.mNbVerts;
-				nbFaces += (polygon.mNbVerts - 2) * 3;
-
-				uint32_t vI0 = vertCounter;
-
-				for (uint32_t vI = 0; vI < polygon.mNbVerts; ++vI)
-				{
-					Vertex v;
-					v.Position = PhysicsUtils::FromPhysicsVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]);
-					collisionVertices.push_back(v);
-					++vertCounter;
-				}
-
-				for (uint32_t vI = 1; vI < uint32_t(polygon.mNbVerts) - 1; ++vI)
-				{
-					Index index;
-					index.V1 = uint32_t(vI0);
-					index.V2 = uint32_t(vI0 + vI + 1);
-					index.V3 = uint32_t(vI0 + vI);
-					collisionIndices.push_back(index);
-					++indexCounter;
-				}
-
-				Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create(collisionVertices, collisionIndices, PhysicsUtils::FromPhysicsTransform(shape->getLocalPose()));
-				mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(meshAsset));
-			}
-		}
-	}
-	
 	TriangleMeshShape::TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::TriangleMesh), mComponent(component)
 	{
@@ -366,26 +227,14 @@ namespace NR
 		SetMaterial(mComponent.Material);
 		std::vector<MeshColliderData> cookedData;
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
-
-		Utils::CreateCacheDirectoryIfNeeded();
-		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
-		if (!metadata.IsValid())
-		{
-			NR_CORE_ERROR("Invalid mesh");
-		}
-
-		std::filesystem::path filepath = Utils::GetCacheDirectory() / std::filesystem::path(metadata.FilePath.filename().string() + "_tri.pxm");
-		if (!FileSystem::Exists(filepath))
-		{
-			CookingFactory::CookTriangleMesh(component.CollisionMesh, cookedData);
-			SerializeData(filepath.string(), cookedData);
-		}
-		else
-		{
-			DeserializeCached(filepath.string(), cookedData);
-		}
+		CookingResult result = CookingFactory::CookMesh(component, false, cookedData);
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
+
+		if (result != CookingResult::Success)
+		{
+			return;
+		}
 
 		for (auto& colliderData : cookedData)
 		{
@@ -410,7 +259,6 @@ namespace NR
 		}
 
 		cookedData.clear();
-		CreateDebugMesh();
 	}
 
 	void TriangleMeshShape::SetTrigger(bool isTrigger)
@@ -438,99 +286,5 @@ namespace NR
 			actor->detachShape(*shape);
 		}
 		mShapes.clear();
-	}
-
-	void TriangleMeshShape::SerializeData(const std::string& filepath, const std::vector<MeshColliderData>& data)
-	{
-		uint32_t bufferSize = 0;
-		uint32_t offset = 0;
-
-		for (auto& colliderData : data)
-		{
-			bufferSize += sizeof(uint32_t);
-			bufferSize += colliderData.Size;
-			bufferSize += sizeof(glm::mat4);
-		}
-
-		Buffer colliderBuffer;
-		colliderBuffer.Allocate(bufferSize);
-
-		for (auto& colliderData : data)
-		{
-			colliderBuffer.Write((void*)&colliderData.Size, sizeof(uint32_t), offset);
-			offset += sizeof(uint32_t);
-			colliderBuffer.Write(colliderData.Data, colliderData.Size, offset);
-			offset += colliderData.Size;
-		}
-
-		FileSystem::WriteBytes(filepath, colliderBuffer);
-		colliderBuffer.Release();
-	}
-
-	void TriangleMeshShape::DeserializeCached(const std::string& filepath, std::vector<MeshColliderData>& outData)
-	{
-		Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
-		uint32_t offset = 0;
-
-		const auto& meshAsset = mComponent.CollisionMesh->GetMeshAsset();
-		const auto& submeshes = meshAsset->GetSubmeshes();
-
-		for (const auto& submesh : mComponent.CollisionMesh->GetSubmeshes())
-		{
-			MeshColliderData& data = outData.emplace_back();
-			data.Size = colliderBuffer.Read<uint32_t>(offset);
-			offset += sizeof(uint32_t);
-			data.Data = colliderBuffer.ReadBytes(data.Size, offset);
-
-			offset += data.Size;
-
-			data.Transform = submeshes[submesh].Transform;
-		}
-
-		colliderBuffer.Release();
-	}
-
-	void TriangleMeshShape::CreateDebugMesh()
-	{
-		if (mComponent.ProcessedMeshes.size() > 0)
-		{
-			return;
-		}
-
-		for (auto shape : mShapes)
-		{
-			physx::PxGeometryHolder geometryHolder = shape->getGeometry();
-			const physx::PxTriangleMeshGeometry& triangleGeometry = geometryHolder.triangleMesh();
-			physx::PxTriangleMesh* mesh = triangleGeometry.triangleMesh;
-
-			const uint32_t nbVerts = mesh->getNbVertices();
-			const physx::PxVec3* triangleVertices = mesh->getVertices();
-			const uint32_t nbTriangles = mesh->getNbTriangles();
-			const physx::PxU16* tris = (const physx::PxU16*)mesh->getTriangles();
-
-			std::vector<Vertex> vertices;
-			std::vector<Index> indices;
-
-			for (uint32_t v = 0; v < nbVerts; ++v)
-			{
-				Vertex v1;
-				v1.Position = PhysicsUtils::FromPhysicsVector(triangleVertices[v]);
-				vertices.push_back(v1);
-			}
-
-			for (uint32_t tri = 0; tri < nbTriangles; ++tri)
-			{
-				Index index;
-				index.V1 = tris[3 * tri + 0];
-				index.V2 = tris[3 * tri + 1];
-				index.V3 = tris[3 * tri + 2];
-				indices.push_back(index);
-			}
-
-			glm::mat4 scale = glm::scale(glm::mat4(1.0f), PhysicsUtils::FromPhysicsVector(triangleGeometry.scale.scale));
-			glm::mat4 transform = PhysicsUtils::FromPhysicsTransform(shape->getLocalPose()) * scale;
-			Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create(vertices, indices, transform);
-			mComponent.ProcessedMeshes.push_back(Ref<Mesh>::Create(meshAsset));
-		}
 	}
 }
