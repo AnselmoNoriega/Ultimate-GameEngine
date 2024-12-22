@@ -14,14 +14,14 @@
 
 namespace NR
 {
-	RuntimeLayer::RuntimeLayer()
-		: mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f))
+	RuntimeLayer::RuntimeLayer(std::string_view projectPath)
+		: mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)) , mProjectPath(projectPath)
 	{
 	}
 
 	void RuntimeLayer::Attach()
 	{
-		OpenProject("SandboxProject/Sandbox.nrproj");
+		OpenProject();
 		
 		SceneRendererSpecification spec;
 		spec.SwapChainTarget = true;
@@ -67,12 +67,12 @@ namespace NR
 		mRuntimeScene->RenderRuntime(mSceneRenderer, dt);
 	}
 
-	void RuntimeLayer::OpenProject(const std::string& filepath)
+	void RuntimeLayer::OpenProject()
 	{
 		Ref<Project> project = Ref<Project>::Create();
 
 		ProjectSerializer serializer(project);
-		serializer.Deserialize(filepath);
+		serializer.Deserialize(mProjectPath);
 
 		Project::SetActive(project);
 		ScriptEngine::LoadAppAssembly((Project::GetScriptModuleFilePath()).string());
@@ -92,7 +92,6 @@ namespace NR
 		serializer.Deserialize(filepath);
 
 		mRuntimeScene = newScene;
-		mSceneFilePath = filepath;
 
 		std::filesystem::path path = filepath;
 		UpdateWindowTitle(path.filename().string());
