@@ -665,7 +665,7 @@ namespace NR
 
         if (ImGui::BeginPopupModal("Invalid Asset Metadata", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            ImGui::TextWrapped("You tried to use an asset with invalid metadata. This most likely happened because an asset has a reference to another non-existent asset.");
+            ImGui::TextWrapped("You tried to use an asset with invalid metadata. This can happen when an asset has a reference to another non-existent asset, or when as asset is empty.");
 
             ImGui::Separator();
 
