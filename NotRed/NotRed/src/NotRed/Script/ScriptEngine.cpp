@@ -211,15 +211,41 @@ namespace NR
         return method;
     }
 
+    static std::string GetStringProperty(const char* propertyName, MonoClass* classType, MonoObject* object)
+    {
+        MonoProperty* property = mono_class_get_property_from_name(classType, propertyName);
+        MonoMethod* getterMethod = mono_property_get_get_method(property);
+        MonoString* string = (MonoString*)mono_runtime_invoke(getterMethod, object, NULL, NULL);
+
+        return string != nullptr ? std::string(mono_string_to_utf8(string)) : "";
+    }
+
     static MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params = nullptr)
     {
         MonoObject* pException = nullptr;
         MonoObject* result = mono_runtime_invoke(method, object, params, &pException);
         if (pException)
         {
+            MonoClass* exceptionClass = mono_object_get_class(pException);
+            MonoType* exceptionType = mono_class_get_type(exceptionClass);
+
+            const char* typeName = mono_type_get_name(exceptionType);
+            
+            std::string message = GetStringProperty("Message", exceptionClass, pException);
+            std::string stackTrace = GetStringProperty("StackTrace", exceptionClass, pException);
+            
+            if (!stackTrace.empty())
+            {
+                stackTrace.erase(0, 5);
+                stackTrace.erase(stackTrace.size() - 1);
+            }
+            
+            NR_CORE_ERROR("{0}: {1}. Stack Trace: {2}", typeName, message, stackTrace);
+
             void* args[] = { pException };
             MonoObject* result = mono_runtime_invoke(sExceptionMethod, nullptr, args, nullptr);
         }
+
         return result;
     }
 

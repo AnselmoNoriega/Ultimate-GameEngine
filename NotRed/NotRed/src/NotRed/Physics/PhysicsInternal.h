@@ -12,15 +12,6 @@ namespace NR
 		void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) override;
 	};
 
-	class PhysicsAllocator : public physx::PxAllocatorCallback
-	{
-	public:
-		~PhysicsAllocator();
-
-		void* allocate(size_t size, const char* typeName, const char* filename, int line) override;
-		void deallocate(void* ptr) override;
-	};
-
 	class PhysicsInternal
 	{
 	public:
@@ -30,7 +21,7 @@ namespace NR
 		static physx::PxFoundation& GetFoundation();
 		static physx::PxPhysics& GetPhysicsSDK();
 		static physx::PxCpuDispatcher* GetCPUDispatcher();
-		static PhysicsAllocator& GetAllocator();
+		static physx::PxDefaultAllocator& GetAllocator();
 
 		static physx::PxFilterFlags FilterShader(
 			physx::PxFilterObjectAttributes attributes0, 

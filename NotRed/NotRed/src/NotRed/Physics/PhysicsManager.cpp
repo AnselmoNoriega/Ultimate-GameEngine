@@ -6,6 +6,9 @@
 #include "Debug/PhysicsDebugger.h"
 
 #include "NotRed/Scene/Scene.h"
+#include "NotRed/Project/Project.h"
+
+#include "NotRed/ImGui/ImGui.h"
 
 #include "NotRed/Debug/Profiler.h"
 
@@ -27,10 +30,13 @@ namespace NR
 		NR_PROFILE_FUNC();
 
 		sScene = Ref<PhysicsScene>::Create(sSettings);	
-		
-		if (sSettings.DebugOnPlay)
+
+		if (sSettings.DebugOnPlay && !PhysicsDebugger::IsDebugging())
 		{
-			PhysicsDebugger::StartDebugging("PhysicsDebugInfo");
+			PhysicsDebugger::StartDebugging(
+				(Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
+				PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
+			);
 		}
 	}
 
@@ -70,18 +76,19 @@ namespace NR
 					continue;
 				}
 
-				bool noRigidBodyInChain = true;
+				bool parentWithRigidBody = false;
 				Entity current = e;
 				while (Entity parent = scene->FindEntityByID(current.GetParentID()))
 				{
 					if (parent.HasComponent<RigidBodyComponent>())
 					{
-						noRigidBodyInChain = false;
+						parentWithRigidBody = true;
 						break;
 					}
 					current = parent;
 				}
-				if (!noRigidBodyInChain)
+
+				if (parentWithRigidBody)
 				{
 					continue;
 				}
@@ -109,9 +116,9 @@ namespace NR
 			Entity child = scene->FindEntityByID(childId);
 			if (child.HasComponent<RigidBodyComponent>())
 			{
-				CreateActor(child);
 				continue;
 			}
+
 			if (child.HasComponent<BoxColliderComponent>())
 			{
 				actor->AddCollider(child.GetComponent<BoxColliderComponent>(), child, child.Transform().Translation);

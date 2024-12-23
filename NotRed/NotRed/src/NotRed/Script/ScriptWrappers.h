@@ -79,6 +79,8 @@ namespace NR::Script
     uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID);
     float NR_RigidBodyComponent_GetMass(uint64_t entityID);
     void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass);
+    void NR_RigidBodyComponent_GetKinematicTarget(uint64_t entityID, glm::vec3* outTargetPosition, glm::vec3* outTargetRotation);
+    void NR_RigidBodyComponent_SetKinematicTarget(uint64_t entityID, glm::vec3* inTargetPosition, glm::vec3* inTargetRotation);
 
     // Renderer
     // Texture2D

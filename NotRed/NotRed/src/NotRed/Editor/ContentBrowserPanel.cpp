@@ -96,6 +96,11 @@ namespace NR
 
 	void ContentBrowserPanel::ChangeDirectory(Ref<DirectoryInfo>& directory)
 	{
+		if (!directory)
+		{
+			return;
+		}
+
 		mUpdateNavigationPath = true;
 		mCurrentItems.Items.clear();
 
@@ -294,13 +299,8 @@ namespace NR
 	{
 		ImGui::BeginChild("##top_bar", ImVec2(0, 30));
 		{
-			if (UI::ImageButton(mBackbtnTex->GetImage(), ImVec2(25, 25)))
+			if (UI::ImageButton(mBackbtnTex->GetImage(), ImVec2(25, 25)) && mCurrentDirectory->Handle != mBaseDirectory->Handle)
 			{
-				if (mCurrentDirectory->Handle == mBaseDirectory->Handle)
-				{
-					return;
-				}
-
 				mNextDirectory = mCurrentDirectory;
 				mPreviousDirectory = mCurrentDirectory->Parent;
 				ChangeDirectory(mPreviousDirectory);

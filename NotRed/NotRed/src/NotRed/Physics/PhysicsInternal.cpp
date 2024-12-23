@@ -13,7 +13,7 @@ namespace NR
 		physx::PxDefaultCpuDispatcher* CPUDispatcher;
 		physx::PxPhysics* PhysicsSDK;
 
-		PhysicsAllocator Allocator;
+		physx::PxDefaultAllocator Allocator;
 		PhysicsErrorCallback ErrorCallback;
 	};
 
@@ -41,40 +41,32 @@ namespace NR
 		{
 		case physx::PxErrorCode::eNO_ERROR:
 		case physx::PxErrorCode::eDEBUG_INFO:
+		{
 			NR_CORE_INFO("[PhysX]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
 			break;
+		}
 		case physx::PxErrorCode::eDEBUG_WARNING:
 		case physx::PxErrorCode::ePERF_WARNING:
+		{
 			NR_CORE_WARN("[PhysX]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
 			break;
+		}
 		case physx::PxErrorCode::eINVALID_PARAMETER:
 		case physx::PxErrorCode::eINVALID_OPERATION:
 		case physx::PxErrorCode::eOUT_OF_MEMORY:
 		case physx::PxErrorCode::eINTERNAL_ERROR:
+		{
 			NR_CORE_ERROR("[PhysX]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
 			break;
+		}
 		case physx::PxErrorCode::eABORT:
 		case physx::PxErrorCode::eMASK_ALL:
+		{
 			NR_CORE_FATAL("[PhysX]: {0}: {1} at {2} ({3})", errorMessage, message, file, line);
 			NR_CORE_ASSERT(false);
 			break;
 		}
-	}
-
-	PhysicsAllocator::~PhysicsAllocator()
-	{
-	}
-
-	void* PhysicsAllocator::allocate(size_t size, const char* typeName, const char* filename, int line)
-	{
-		void* ptr = physx::platformAlignedAlloc(size);
-		NR_CORE_ASSERT((reinterpret_cast<size_t>(ptr) & 15) == 0);
-		return ptr;
-	}
-
-	void PhysicsAllocator::deallocate(void* ptr)
-	{
-		physx::platformAlignedFree(ptr);
+		}
 	}
 
 	void PhysicsInternal::Initialize()
@@ -96,7 +88,8 @@ namespace NR
 		sPhysicsData->PhysicsSDK = PxCreatePhysics(PX_PHYSICS_VERSION, *sPhysicsData->Foundation, scale, s_TrackMemoryAllocations, PhysicsDebugger::GetDebugger());
 		NR_CORE_ASSERT(sPhysicsData->PhysicsSDK, "PxCreatePhysics failed.");
 
-		NR_CORE_ASSERT(PxInitExtensions(*sPhysicsData->PhysicsSDK, PhysicsDebugger::GetDebugger()), "Failed to initialize PhysX Extensions.");
+		bool extentionsLoaded = PxInitExtensions(*sPhysicsData->PhysicsSDK, PhysicsDebugger::GetDebugger());
+		NR_CORE_ASSERT(extentionsLoaded, "Failed to initialize Physics Extensions.");
 
 		sPhysicsData->CPUDispatcher = physx::PxDefaultCpuDispatcherCreate(1);
 
@@ -141,7 +134,7 @@ namespace NR
 		return sPhysicsData->CPUDispatcher; 
 	}
 
-	PhysicsAllocator& PhysicsInternal::GetAllocator() 
+	physx::PxDefaultAllocator& PhysicsInternal::GetAllocator()
 	{ 
 		return sPhysicsData->Allocator; 
 	}

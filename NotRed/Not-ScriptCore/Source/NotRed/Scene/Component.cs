@@ -292,6 +292,16 @@ namespace NR
             } 
         }
 
+        public void GetKinematicTarget(out Vector3 targetPosition, out Vector3 targetRotation)
+        {
+            GetKinematicTarget_Native(Entity.ID, out targetPosition, out targetRotation);
+        }
+        
+        public void SetKinematicTarget(Vector3 targetPosition, Vector3 targetRotation)
+        {
+            SetKinematicTarget_Native(Entity.ID, ref targetPosition, ref targetRotation);
+        }
+
         public void AddForce(Vector3 force, ForceMode forceMode = ForceMode.Force)
         {
             AddForce_Native(Entity.ID, ref force, forceMode);
@@ -339,7 +349,11 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetMass_Native(ulong entityID, float mass);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern Type GetBodyType_Native(ulong entityID);
+        internal static extern Type GetBodyType_Native(ulong entityID); 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetKinematicTarget_Native(ulong entityID, out Vector3 targetPosition, out Vector3 targetRotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetKinematicTarget_Native(ulong entityID, ref Vector3 targetPosition, ref Vector3 targetRotation);
     }
 
     public class AudioListenerComponent : Component

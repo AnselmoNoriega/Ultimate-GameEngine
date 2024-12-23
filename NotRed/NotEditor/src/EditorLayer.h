@@ -211,13 +211,13 @@ namespace NR
 
 		enum class SceneState
 		{
-			Edit = 0, Play = 1, Pause = 2
+			Edit, Play, Pause
 		};
 		SceneState mSceneState = SceneState::Edit;
 
 		enum class SelectionMode
 		{
-			None = 0, Entity = 1, SubMesh = 2
+			None, Entity, SubMesh
 		};
 
 		SelectionMode mSelectionMode = SelectionMode::Entity;

@@ -33,6 +33,10 @@ namespace NR
 		void SetLinearDrag(float drag) const;
 		void SetAngularDrag(float drag) const;
 
+		glm::vec3 GetKinematicTargetPosition() const;
+		glm::vec3 GetKinematicTargetRotation() const;
+		void SetKinematicTarget(const glm::vec3& targetPosition, const glm::vec3& targetRotation) const;
+
 		void SetSimulationData(uint32_t layerId);
 
 		bool IsDynamic() const { return mRigidBodyData.BodyType == RigidBodyComponent::Type::Dynamic; }

@@ -121,6 +121,8 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::GetLayer_Native", NR::Script::NR_RigidBodyComponent_GetLayer);
 		mono_add_internal_call("NR.RigidBodyComponent::GetMass_Native", NR::Script::NR_RigidBodyComponent_GetMass);
 		mono_add_internal_call("NR.RigidBodyComponent::SetMass_Native", NR::Script::NR_RigidBodyComponent_SetMass);
+		mono_add_internal_call("NR.RigidBodyComponent::GetKinematicTarget_Native", NR::Script::NR_RigidBodyComponent_GetKinematicTarget);
+		mono_add_internal_call("NR.RigidBodyComponent::SetKinematicTarget_Native", NR::Script::NR_RigidBodyComponent_SetKinematicTarget);
 
 		mono_add_internal_call("NR.RigidBodyComponent::GetBodyType_Native", NR::Script::NR_RigidBodyComponent_GetBodyType);
 		mono_add_internal_call("NR.RigidBodyComponent::SetBodyType_Native", NR::Script::NR_RigidBodyComponent_SetBodyType);

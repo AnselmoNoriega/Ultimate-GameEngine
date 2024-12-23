@@ -25,7 +25,7 @@ namespace NR
 	class RuntimeLayer : public Layer
 	{
 	public:
-		RuntimeLayer();
+		RuntimeLayer(std::string_view projectPath);
 		~RuntimeLayer() override = default;
 
 		void Attach() override;
@@ -36,7 +36,7 @@ namespace NR
 		bool OnKeyPressedEvent(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-		void OpenProject(const std::string& filepath);
+		void OpenProject();
 		void OpenScene(const std::string& filepath);
 
 	private:
@@ -48,7 +48,7 @@ namespace NR
 		Ref<Scene> mRuntimeScene;
 		Ref<SceneRenderer> mSceneRenderer;
 
-		std::string mSceneFilePath;
+		std::string mProjectPath;
 
 		bool mReloadScriptOnPlay = true;
 

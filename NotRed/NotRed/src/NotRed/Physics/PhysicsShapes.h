@@ -129,11 +129,6 @@ namespace NR
 		void DetachFromActor(physx::PxRigidActor* actor) override;
 
 	private:
-		void SerializeData(const std::string& filepath, const std::vector<MeshColliderData>& data);
-		void DeserializeCached(const std::string& filepath, std::vector<MeshColliderData>& outData);
-		void CreateDebugMesh();
-
-	private:
 		MeshColliderComponent& mComponent;
 		std::vector<physx::PxShape*> mShapes;
 	};
@@ -153,12 +148,6 @@ namespace NR
 		bool IsTrigger() const override { return mComponent.IsTrigger; }
 
 		void SetFilterData(const physx::PxFilterData& filterData) override;
-
-	private:
-		void SerializeData(const std::string& filepath, const std::vector<MeshColliderData>& data);
-		void DeserializeCached(const std::string& filepath, std::vector<MeshColliderData>& outData);
-
-		void CreateDebugMesh();
 
 	private:
 		MeshColliderComponent& mComponent;

@@ -46,8 +46,54 @@ namespace NR
 
 		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
 		NR_CORE_ASSERT(actor);
+
 		physx::PxRigidBodyExt::setMassAndUpdateInertia(*actor, mass);
 		mRigidBodyData.Mass = mass;
+	}
+
+	glm::vec3 PhysicsActor::GetKinematicTargetPosition() const
+	{
+		if (!IsKinematic())
+		{
+			NR_CORE_WARN("Trying to set kinematic target for a non-kinematic actor.");
+			return glm::vec3(0.0f, 0.0f, 0.0f);
+		}
+
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+
+		physx::PxTransform target;
+		actor->getKinematicTarget(target);
+		return PhysicsUtils::FromPhysicsVector(target.p);
+	}
+
+	glm::vec3 PhysicsActor::GetKinematicTargetRotation() const
+	{
+		if (!IsKinematic())
+		{
+			NR_CORE_WARN("Trying to get kinematic target for a non-kinematic actor.");
+			return glm::vec3(0.0f, 0.0f, 0.0f);
+		}
+
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+
+		physx::PxTransform target;
+		actor->getKinematicTarget(target);
+		return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(target.q));
+	}
+
+	void PhysicsActor::SetKinematicTarget(const glm::vec3& targetPosition, const glm::vec3& targetRotation) const
+	{
+		if (!IsKinematic())
+		{
+			NR_CORE_WARN("Trying to set kinematic target for a non-kinematic actor.");
+			return;
+		}
+
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		actor->setKinematicTarget(PhysicsUtils::ToPhysicsTransform(targetPosition, targetRotation));
 	}
 
 	void PhysicsActor::AddForce(const glm::vec3& force, ForceMode forceMode)
@@ -289,6 +335,12 @@ namespace NR
 		}
 		else
 		{
+			if (IsDynamic() && !IsKinematic())
+			{
+				NR_CORE_ERROR("Can't have a non-convex MeshColliderComponent for a non-kinematic dynamic RigidBodyComponent!");
+				return;
+			}
+
 			mColliders.push_back(Ref<TriangleMeshShape>::Create(collider, *this, entity, offset));
 		}
 	}
@@ -363,17 +415,9 @@ namespace NR
 
 	void PhysicsActor::SynchronizeTransform()
 	{
-		if (IsDynamic())
-		{
-			TransformComponent& transform = mEntity.Transform();
-			physx::PxTransform actorPose = mRigidActor->getGlobalPose();
-			transform.Translation = PhysicsUtils::FromPhysicsVector(actorPose.p);
-			transform.Rotation = glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(actorPose.q));
-		}
-		else
-		{
-			Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
-			mRigidActor->setGlobalPose(PhysicsUtils::ToPhysicsTransform(scene->GetTransformRelativeToParent(mEntity)));
-		}
+		TransformComponent& transform = mEntity.Transform();
+		physx::PxTransform actorPose = mRigidActor->getGlobalPose();
+		transform.Translation = PhysicsUtils::FromPhysicsVector(actorPose.p);
+		transform.Rotation = glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(actorPose.q));
 	}
 }

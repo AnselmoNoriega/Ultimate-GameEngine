@@ -483,7 +483,13 @@ namespace NR
 			if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
 			{
 				meshComponent.MeshObj->Update(dt);
-				glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+				Entity e = Entity(entity, this);
+				glm::mat4 transform = GetTransformRelativeToParent(e);
+
+				if (e.HasComponent<RigidBodyComponent>())
+				{
+					transform = e.Transform().GetTransform();
+				}
 
 				renderer->SubmitMesh(meshComponent, transform);
 			}

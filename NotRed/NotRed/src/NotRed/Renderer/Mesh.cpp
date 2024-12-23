@@ -96,6 +96,7 @@ namespace NR
         if (!scene || !scene->HasMeshes())
         {
             NR_CORE_ERROR("Failed to load mesh file: {0}", modelsDirectory.string());
+            return;
         }
 
         mScene = scene;
