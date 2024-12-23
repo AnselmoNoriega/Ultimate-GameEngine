@@ -1,4 +1,5 @@
-﻿public enum VoxelType
+﻿
+public enum VoxelType
 {
     Nothing, Air,
     Grass, Dirt,

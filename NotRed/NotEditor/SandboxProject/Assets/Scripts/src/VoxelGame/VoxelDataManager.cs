@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 
-public class BlockDataManager : MonoBehaviour
+public class VoxelDataManager : MonoBehaviour
 {
     public static float textureOffset = 0.001f;
     public static float tileSizeX, tileSizeY;
