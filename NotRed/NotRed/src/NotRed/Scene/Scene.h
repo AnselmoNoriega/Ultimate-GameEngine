@@ -96,7 +96,7 @@ namespace NR
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
 		void DestroyEntity(Entity entity);
 
-		void DuplicateEntity(Entity entity);
+		Entity DuplicateEntity(Entity entity);
 
 		template<typename T>
 		auto GetAllEntitiesWith()
@@ -114,7 +114,7 @@ namespace NR
 		TransformComponent GetWorldSpaceTransform(Entity entity);
 
 		void ParentEntity(Entity entity, Entity parent);
-		void UnparentEntity(Entity entity);
+		void UnparentEntity(Entity entity, bool convertToWorldSpace = true);
 
 		const EntityMap& GetEntityMap() const { return mEntityIDMap; }
 		void CopyTo(Ref<Scene>& target);

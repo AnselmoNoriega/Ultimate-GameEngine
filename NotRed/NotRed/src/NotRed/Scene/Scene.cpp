@@ -1395,7 +1395,7 @@ namespace NR
 		}
 	}
 
-	void Scene::DuplicateEntity(Entity entity)
+	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		Entity newEntity;
 		if (entity.HasComponent<TagComponent>())
@@ -1408,7 +1408,7 @@ namespace NR
 		}
 
 		CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-		CopyComponentIfExists<RelationshipComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+		//CopyComponentIfExists<RelationshipComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<ParticleComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1427,6 +1427,23 @@ namespace NR
 		CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<Audio::AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<AudioListenerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+
+		for (auto childId : entity.Children())
+		{
+			Entity childDuplicate = DuplicateEntity(FindEntityByID(childId));
+			UnparentEntity(childDuplicate, false);
+			childDuplicate.SetParentID(newEntity.GetID());
+			newEntity.Children().push_back(childDuplicate.GetID());
+		}
+
+		if (entity.HasParent())
+		{
+			Entity parent = FindEntityByID(entity.GetParentID());
+			newEntity.SetParentID(entity.GetParentID());
+			parent.Children().push_back(newEntity.GetID());
+		}
+
+		return newEntity;
 	}
 
 	Entity Scene::FindEntityByTag(const std::string& tag)
@@ -1560,7 +1577,7 @@ namespace NR
 		ConvertToLocalSpace(entity);
 	}
 
-	void Scene::UnparentEntity(Entity entity)
+	void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
 	{
 		Entity parent = FindEntityByID(entity.GetParentID());
 
@@ -1572,7 +1589,10 @@ namespace NR
 		auto& parentChildren = parent.Children();
 		parentChildren.erase(std::remove(parentChildren.begin(), parentChildren.end(), entity.GetID()), parentChildren.end());
 
-		ConvertToWorldSpace(entity);
+		if (convertToWorldSpace)
+		{
+			ConvertToWorldSpace(entity);
+		}
 
 		entity.SetParentID(0);
 	}
