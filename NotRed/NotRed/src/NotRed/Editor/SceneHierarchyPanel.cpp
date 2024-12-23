@@ -607,7 +607,7 @@ namespace NR
 					if (mSelectionContext.HasComponent<MeshComponent>())
 					{
 						component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
-						CookingFactory::CookMesh(component, component.IsConvex);
+						CookingFactory::CookMesh(component);
 					}
 
 					ImGui::CloseCurrentPopup();
@@ -665,7 +665,7 @@ namespace NR
 					{
 						auto& mcc = entity.GetComponent<MeshColliderComponent>();
 						mcc.CollisionMesh = mc.MeshObj;
-						CookingFactory::CookMesh(mcc, mcc.IsConvex);
+						CookingFactory::CookMesh(mcc, true);
 					}
 				}
 
@@ -1088,9 +1088,21 @@ namespace NR
 					cookMesh = true;
 				}
 
+				bool wasConvex = mcc.IsConvex;
 				if (UI::Property("Is Convex", mcc.IsConvex))
 				{
 					cookMesh = true;
+
+					if (wasConvex && !mcc.IsConvex && entity.HasComponent<RigidBodyComponent>())
+					{
+						auto& rb = entity.GetComponent<RigidBodyComponent>();
+						if (rb.BodyType == RigidBodyComponent::Type::Dynamic && !rb.IsKinematic)
+						{
+							mcc.IsConvex = true;
+							cookMesh = false;
+							NR_CORE_ERROR("MeshColliderComponent must be convex for non-kinematic dynamic Rigidbodies!");
+						}
+					}
 				}
 
 				UI::Property("Is Trigger", mcc.IsTrigger);
@@ -1107,7 +1119,7 @@ namespace NR
 
 				if (cookMesh)
 				{
-					CookingFactory::CookMesh(mcc, mcc.IsConvex);
+					CookingFactory::CookMesh(mcc, true);
 				}
 
 				UI::EndPropertyGrid();

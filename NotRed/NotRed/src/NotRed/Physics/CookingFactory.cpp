@@ -9,6 +9,7 @@
 #include "NotRed/Project/Project.h"
 #include "NotRed/Math/Math.h"
 #include "NotRed/Debug/Profiler.h"
+#include "NotRed/Core/Timer.h"
 
 namespace NR
 {
@@ -54,8 +55,10 @@ namespace NR
 	}
 
 	std::vector<MeshColliderData> CookingFactory::mDefaultOutData;
-	CookingResult CookingFactory::CookMesh(MeshColliderComponent& component, bool isConvex, std::vector<MeshColliderData>& outData)
+	CookingResult CookingFactory::CookMesh(MeshColliderComponent& component, bool invalidateOld, std::vector<MeshColliderData>& outData)
 	{
+		NR_CORE_INFO("Cooking Mesh: {0}, InvalidateOld: {1}", component.CollisionMesh->GetMeshAsset()->GetFilePath(), invalidateOld);
+
 		Utils::CreateCacheDirectoryIfNeeded();
 		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
 		if (!metadata.IsValid())
@@ -65,10 +68,20 @@ namespace NR
 		}
 
 		CookingResult result = CookingResult::Failure;
-		std::filesystem::path filepath = Utils::GetCacheDirectory() / (metadata.FilePath.stem().string() + (isConvex ? "_convex.pxm" : "_tri.pxm"));
+		std::filesystem::path filepath = Utils::GetCacheDirectory() / (metadata.FilePath.stem().string() + (component.IsConvex ? "_convex.pxm" : "_tri.pxm"));
+		if (invalidateOld)
+		{
+			component.ProcessedMeshes.clear();
+			bool removedCached = std::filesystem::remove(filepath);
+			if (!removedCached)
+			{
+				NR_CORE_WARN("Couldn't delete cached collider data for {0}", filepath);
+			}
+		}
+
 		if (!std::filesystem::exists(filepath))
 		{
-			result = isConvex ? CookConvexMesh(component.CollisionMesh, outData) : CookTriangleMesh(component.CollisionMesh, outData);
+			result = component.IsConvex ? CookConvexMesh(component.CollisionMesh, outData) : CookTriangleMesh(component.CollisionMesh, outData);
 
 			if (result == CookingResult::Success)
 			{
@@ -127,7 +140,7 @@ namespace NR
 		{
 			for (const auto& colliderData : outData)
 			{
-				GenerateDebugMesh(component, colliderData, isConvex);
+				GenerateDebugMesh(component, colliderData);
 			}
 		}
 
@@ -207,13 +220,13 @@ namespace NR
 		return CookingResult::Success;
 	}
 
-	void CookingFactory::GenerateDebugMesh(MeshColliderComponent& component, const MeshColliderData& colliderData, bool isConvex)
+	void CookingFactory::GenerateDebugMesh(MeshColliderComponent& component, const MeshColliderData& colliderData)
 	{
 		physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
 		std::vector<Vertex> vertices;
 		std::vector<Index> indices;
 
-		if (isConvex)
+		if (component.IsConvex)
 		{
 			physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
 

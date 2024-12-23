@@ -153,7 +153,7 @@ namespace NR
 
 		std::vector<MeshColliderData> cookedData;
 		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
-		CookingResult result = CookingFactory::CookMesh(component, true, cookedData);
+		CookingResult result = CookingFactory::CookMesh(component, false, cookedData);
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
 

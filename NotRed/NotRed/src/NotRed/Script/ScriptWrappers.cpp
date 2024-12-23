@@ -795,6 +795,39 @@ namespace NR::Script
         actor->SetMass(mass);
     }
 
+    void NR_RigidBodyComponent_GetKinematicTarget(uint64_t entityID, glm::vec3* outTargetPosition, glm::vec3* outTargetRotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        *outTargetPosition = actor->GetKinematicTargetPosition();
+        *outTargetRotation = actor->GetKinematicTargetRotation();
+    }
+
+    void NR_RigidBodyComponent_SetKinematicTarget(uint64_t entityID, glm::vec3* inTargetPosition, glm::vec3* inTargetRotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        actor->SetKinematicTarget(*inTargetPosition, *inTargetRotation);
+    }
+
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)
     {
         return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create(mono_string_to_utf8(filepath))));

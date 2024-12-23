@@ -1173,7 +1173,7 @@ namespace NR
                     if (component.CollisionMesh && !component.CollisionMesh->IsFlagSet(AssetFlag::Missing))
                     {
                         component.OverrideMesh = overrideMesh;
-                        CookingFactory::CookMesh(component, component.IsConvex);
+                        CookingFactory::CookMesh(component);
                     }
                     else
                     {

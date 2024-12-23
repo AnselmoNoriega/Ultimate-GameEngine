@@ -8,7 +8,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "imgui_internal.h"
-#include "GLFW/include/GLFW/glfw3.h"
 #include "NotRed/ImGui/ImGui.h"
 
 #include "NotRed/ImGui/ImGuizmo.h"
@@ -165,7 +164,7 @@ namespace NR
         {
         case SceneState::Edit:
         {
-            mEditorCamera.SetActive(mAllowViewportCameraEvents || glfwGetInputMode(static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()), GLFW_CURSOR) == GLFW_CURSOR_DISABLED);
+            mEditorCamera.SetActive(mAllowViewportCameraEvents || Input::GetCursorMode() == CursorMode::Locked);
             mEditorCamera.Update(dt);
             mEditorScene->RenderEditor(mViewportRenderer, dt, mEditorCamera);
 
@@ -1214,8 +1213,31 @@ namespace NR
 
             if (ImGui::BeginMenu("Edit"))
             {
-                ImGui::MenuItem("Physics Settings", nullptr, &mShowPhysicsSettings);
                 ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
+
+                if (ImGui::BeginMenu("Physics"))
+                {
+                    if (PhysicsDebugger::IsDebugging())
+                    {
+                        if (ImGui::MenuItem("Stop Debugging"))
+                        {
+                            PhysicsDebugger::StopDebugging();
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui::MenuItem("Start Debugging"))
+                        {
+                            PhysicsDebugger::StartDebugging((
+                                Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
+                                PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
+                            );
+                        }
+                    }
+
+                    ImGui::MenuItem("Settings", nullptr, &mShowPhysicsSettings);
+                    ImGui::EndMenu();
+                }
 
                 ImGui::EndMenu();
             }
@@ -1240,7 +1262,7 @@ namespace NR
 #ifdef NR_DEBUG
             if (ImGui::BeginMenu("Debugging"))
             {
-                if (ImGui::BeginMenu("PhysX"))
+                if (ImGui::BeginMenu("Physics"))
                 {
                     if (PhysicsDebugger::IsDebugging())
                     {
@@ -1807,11 +1829,11 @@ namespace NR
                 auto [origin, direction] = CastRay(camera, mouseX, mouseY);
 
                 mSelectionContext.clear();
-                mEditorScene->SetSelectedEntity({});
-                auto meshEntities = mEditorScene->GetAllEntitiesWith<MeshComponent>();
+                mCurrentScene->SetSelectedEntity({});
+                auto meshEntities = mCurrentScene->GetAllEntitiesWith<MeshComponent>();
                 for (auto e : meshEntities)
                 {
-                    Entity entity = { e, mEditorScene.Raw() };
+                    Entity entity = { e, mCurrentScene.Raw() };
                     auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
                     if (!mesh || mesh->IsFlagSet(AssetFlag::Missing))
                     {
@@ -1819,7 +1841,7 @@ namespace NR
                     }
 
                     auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
-                    float lastT = std::numeric_limits<float>::max();
+                    constexpr float lastT = std::numeric_limits<float>::max();
                     for (uint32_t i = 0; i < submeshes.size(); ++i)
                     {
                         auto& submesh = submeshes[i];
