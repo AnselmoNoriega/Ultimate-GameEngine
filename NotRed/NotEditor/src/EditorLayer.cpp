@@ -757,7 +757,6 @@ namespace NR
             UI::PropertySlider("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
             UI::PropertySlider("Camera Speed", mEditorCamera.GetCameraSpeed(), 0.0005f, 2.f);
 
-
             if (mSceneState == SceneState::Edit)
             {
                 float physics2DGravity = mEditorScene->GetPhysics2DGravity();
@@ -1215,36 +1214,13 @@ namespace NR
             {
                 ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
 
-                if (ImGui::BeginMenu("Physics"))
-                {
-                    if (PhysicsDebugger::IsDebugging())
-                    {
-                        if (ImGui::MenuItem("Stop Debugging"))
-                        {
-                            PhysicsDebugger::StopDebugging();
-                        }
-                    }
-                    else
-                    {
-                        if (ImGui::MenuItem("Start Debugging"))
-                        {
-                            PhysicsDebugger::StartDebugging((
-                                Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
-                                PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
-                            );
-                        }
-                    }
-
-                    ImGui::MenuItem("Settings", nullptr, &mShowPhysicsSettings);
-                    ImGui::EndMenu();
-                }
-
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("View"))
             {
                 ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
+                ImGui::MenuItem("Physics Settings", nullptr, &mShowPhysicsSettings);
                 ImGui::EndMenu();
             }
 
@@ -1260,30 +1236,25 @@ namespace NR
             }
 
 #ifdef NR_DEBUG
-            if (ImGui::BeginMenu("Debugging"))
+            if (ImGui::BeginMenu("Debug"))
             {
-                if (ImGui::BeginMenu("Physics"))
+                if (PhysicsDebugger::IsDebugging())
                 {
-                    if (PhysicsDebugger::IsDebugging())
+                    if (ImGui::MenuItem("Stop Physics Debugging"))
                     {
-                        if (ImGui::MenuItem("Stop"))
-                        {
-                            PhysicsDebugger::StopDebugging();
-                        }
+                        PhysicsDebugger::StopDebugging();
                     }
-                    else
-                    {
-                        if (ImGui::MenuItem("Start"))
-                        {
-                            PhysicsDebugger::StartDebugging(
-                                (Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
-                                PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
-                            );
-                        }
-                    }
-                    ImGui::EndMenu();
                 }
-
+                else
+                {
+                    if (ImGui::MenuItem("Start Physics Debugging"))
+                    {
+                        PhysicsDebugger::StartDebugging(
+                            (Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
+                            PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
+                        );
+                    }
+                }
                 ImGui::EndMenu();
             }
 #endif
@@ -1822,6 +1793,7 @@ namespace NR
         auto [mx, my] = Input::GetMousePosition();
         if (e.GetMouseButton() == NR_MOUSE_BUTTON_LEFT && (mViewportPanelMouseOver || mViewportPanel2MouseOver) && !Input::IsKeyPressed(KeyCode::LeftAlt) && !Input::IsMouseButtonPressed(MouseButton::Right) && !ImGuizmo::IsOver() && mSceneState != SceneState::Play)
         {
+            ImGui::ClearActiveID();
             auto [mouseX, mouseY] = GetMouseViewportSpace(mViewportPanelMouseOver);
             if (mouseX > -1.0f && mouseX < 1.0f && mouseY > -1.0f && mouseY < 1.0f)
             {

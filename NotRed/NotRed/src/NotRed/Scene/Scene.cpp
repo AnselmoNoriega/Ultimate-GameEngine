@@ -49,6 +49,11 @@ namespace NR
 			Entity& a = *(Entity*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
 			Entity& b = *(Entity*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
 
+			if (!Scene::GetScene(a.GetSceneID())->IsPlaying())
+			{
+				return;
+			}
+
 			if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
 			{
 				ScriptEngine::Collision2DBegin(a);
@@ -64,6 +69,11 @@ namespace NR
 		{
 			Entity& a = *(Entity*)contact->GetFixtureA()->GetBody()->GetUserData().pointer;
 			Entity& b = *(Entity*)contact->GetFixtureB()->GetBody()->GetUserData().pointer;
+
+			if (!Scene::GetScene(a.GetSceneID())->IsPlaying())
+			{
+				return;
+			}
 
 			if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
 			{
