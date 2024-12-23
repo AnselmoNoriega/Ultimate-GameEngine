@@ -65,11 +65,13 @@ namespace NR
 
 		Property("Solver Iterations", settings.SolverIterations, 1, 512);
 		Property("Solver Velocity Iterations", settings.SolverVelocityIterations, 1, 512);
-		
+
+#ifdef NR_DEBUG
 		UI::Property("Debug On Play", settings.DebugOnPlay);
 
 		static const char* debugTypeStrings[] = { "Debug To File", "Live Debug" };
 		UI::PropertyDropdown("Debug Type", debugTypeStrings, 2, (int*)&settings.DebugType);
+#endif
 	}
 
 	void PhysicsSettingsWindow::RenderLayerList()

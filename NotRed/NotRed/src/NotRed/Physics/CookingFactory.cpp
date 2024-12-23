@@ -57,6 +57,8 @@ namespace NR
 	std::vector<MeshColliderData> CookingFactory::mDefaultOutData;
 	CookingResult CookingFactory::CookMesh(MeshColliderComponent& component, bool invalidateOld, std::vector<MeshColliderData>& outData)
 	{
+		NR_SCOPE_TIMER("CookingFactory::CookMesh");
+
 		Utils::CreateCacheDirectoryIfNeeded();
 		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
 		if (!metadata.IsValid())
@@ -228,6 +230,10 @@ namespace NR
 		{
 			physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
 
+			// Magic values tada
+			vertices.reserve(100);
+			indices.reserve(50);
+
 			const uint32_t nbPolygons = convexMesh->getNbPolygons();
 			const physx::PxVec3* convexVertices = convexMesh->getVertices();
 			const physx::PxU8* convexIndices = convexMesh->getIndexBuffer();
@@ -246,20 +252,18 @@ namespace NR
 
 				for (uint32_t vI = 0; vI < polygon.mNbVerts; ++vI)
 				{
-					Vertex v;
+					Vertex& v = vertices.emplace_back();
 					v.Position = PhysicsUtils::FromPhysicsVector(convexVertices[convexIndices[polygon.mIndexBase + vI]]);
-					vertices.push_back(v);
-					vertCounter++;
+					++vertCounter;
 				}
 
 				for (uint32_t vI = 1; vI < uint32_t(polygon.mNbVerts) - 1; ++vI)
 				{
-					Index index;
+					Index& index = indices.emplace_back();
 					index.V1 = uint32_t(vI0);
 					index.V2 = uint32_t(vI0 + vI + 1);
 					index.V3 = uint32_t(vI0 + vI);
-					indices.push_back(index);
-					indexCounter++;
+					++indexCounter;
 				}
 			}
 
@@ -273,20 +277,21 @@ namespace NR
 			const uint32_t nbTriangles = trimesh->getNbTriangles();
 			const physx::PxU16* tris = (const physx::PxU16*)trimesh->getTriangles();
 
-			for (uint32_t v = 0; v < nbVerts; v++)
+			vertices.reserve(nbVerts);
+			indices.reserve(nbTriangles);
+
+			for (uint32_t v = 0; v < nbVerts; ++v)
 			{
-				Vertex v1;
+				Vertex& v1 = vertices.emplace_back();
 				v1.Position = PhysicsUtils::FromPhysicsVector(triangleVertices[v]);
-				vertices.push_back(v1);
 			}
 
 			for (uint32_t tri = 0; tri < nbTriangles; ++tri)
 			{
-				Index index;
+				Index& index = indices.emplace_back();
 				index.V1 = tris[3 * tri + 0];
 				index.V2 = tris[3 * tri + 1];
 				index.V3 = tris[3 * tri + 2];
-				indices.push_back(index);
 			}
 
 			trimesh->release();
