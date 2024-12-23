@@ -1,4 +1,5 @@
 ﻿using NR;
+using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -15,10 +16,10 @@ namespace NR
     [StructLayout(LayoutKind.Sequential)]
     public struct RaycastHit
     {
-        public ulong EntityID { get; private set; }
-        public Vector3 Position { get; private set; }
-        public Vector3 Normal { get; private set; }
-        public float Distance { get; private set; }
+        public ulong EntityID { get; internal set; }
+        public Vector3 Position { get; internal set; }
+        public Vector3 Normal { get; internal set; }
+        public float Distance { get; internal set; }
     }
 
     public static class Physics
@@ -26,6 +27,37 @@ namespace NR
         public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit)
         {
             return Raycast_Native(ref origin, ref direction, maxDistance, out hit);
+        }
+
+        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, params Type[] componentFilters)
+        {
+            RaycastHit tempHit;
+            bool success = Raycast_Native(ref origin, ref direction, maxDistance, out tempHit);
+
+            if (success)
+            {
+                Entity entity = new Entity(tempHit.EntityID);
+                foreach (Type comp in componentFilters)
+                {
+                    if (!entity.HasComponent(comp))
+                    {
+                        success = false;
+                        break;
+                    }
+                }
+            }
+
+            if (success)
+            {
+                hit = tempHit;
+            }
+            else
+            {
+                hit = new RaycastHit();
+                hit.EntityID = 0;
+            }
+
+            return success;
         }
 
         public static Collider[] OverlapBox(Vector3 origin, Vector3 halfSize)

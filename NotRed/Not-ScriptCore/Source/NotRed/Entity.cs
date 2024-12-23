@@ -82,6 +82,11 @@ namespace NR
             return HasComponent_Native(ID, typeof(T));
         }
 
+        public bool HasComponent(Type type)
+        {
+            return HasComponent_Native(ID, type);
+        }
+
         public T GetComponent<T>() where T : Component, new()
         {
             if (HasComponent<T>())
