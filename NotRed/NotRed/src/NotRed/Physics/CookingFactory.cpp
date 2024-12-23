@@ -57,8 +57,6 @@ namespace NR
 	std::vector<MeshColliderData> CookingFactory::mDefaultOutData;
 	CookingResult CookingFactory::CookMesh(MeshColliderComponent& component, bool invalidateOld, std::vector<MeshColliderData>& outData)
 	{
-		NR_CORE_INFO("Cooking Mesh: {0}, InvalidateOld: {1}", component.CollisionMesh->GetMeshAsset()->GetFilePath(), invalidateOld);
-
 		Utils::CreateCacheDirectoryIfNeeded();
 		auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
 		if (!metadata.IsValid())

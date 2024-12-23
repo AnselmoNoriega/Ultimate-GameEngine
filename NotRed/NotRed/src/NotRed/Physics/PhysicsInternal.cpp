@@ -84,8 +84,13 @@ namespace NR
 
 		PhysicsDebugger::Initialize();
 
-		static bool s_TrackMemoryAllocations = true; // Disable for release builds
-		sPhysicsData->PhysicsSDK = PxCreatePhysics(PX_PHYSICS_VERSION, *sPhysicsData->Foundation, scale, s_TrackMemoryAllocations, PhysicsDebugger::GetDebugger());
+#ifdef NR_DEBUG
+		static bool sTrackMemoryAllocations = true;
+#else
+		static bool sTrackMemoryAllocations = false;
+#endif
+
+		sPhysicsData->PhysicsSDK = PxCreatePhysics(PX_PHYSICS_VERSION, *sPhysicsData->Foundation, scale, sTrackMemoryAllocations, PhysicsDebugger::GetDebugger());
 		NR_CORE_ASSERT(sPhysicsData->PhysicsSDK, "PxCreatePhysics failed.");
 
 		bool extentionsLoaded = PxInitExtensions(*sPhysicsData->PhysicsSDK, PhysicsDebugger::GetDebugger());

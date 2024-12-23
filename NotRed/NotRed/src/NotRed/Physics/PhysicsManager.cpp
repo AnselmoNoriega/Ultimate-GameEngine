@@ -31,6 +31,7 @@ namespace NR
 
 		sScene = Ref<PhysicsScene>::Create(sSettings);	
 
+#ifdef NR_DEBUG
 		if (sSettings.DebugOnPlay && !PhysicsDebugger::IsDebugging())
 		{
 			PhysicsDebugger::StartDebugging(
@@ -38,14 +39,18 @@ namespace NR
 				PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
 			);
 		}
+#endif
 	}
 
 	void PhysicsManager::DestroyScene()
 	{
+#ifdef NR_DEBUG
 		if (sSettings.DebugOnPlay)
 		{
 			PhysicsDebugger::StopDebugging();
 		}
+#endif
+
 		sScene->Destroy();
 	}
 
