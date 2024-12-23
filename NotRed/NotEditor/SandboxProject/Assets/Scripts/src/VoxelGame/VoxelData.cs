@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections;
+﻿using NR;
+using System;
 using System.Collections.Generic;
-using NR;
 
 public class VoxelData : ScriptableObject
 {
