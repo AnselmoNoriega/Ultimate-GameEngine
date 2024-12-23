@@ -341,7 +341,7 @@ namespace NR
 
 	void ContentBrowserAsset::Renamed(const std::string& newName, bool fromCallback)
 	{
-		std::string newFilePath = fmt::format("{0}/{1}.{2}", mAssetInfo.FilePath.parent_path().string(), '.', mAssetInfo.FilePath.extension().string());
+		std::string newFilePath = fmt::format("{0}/{1}{2}", mAssetInfo.FilePath.parent_path().string(), newName, mAssetInfo.FilePath.extension().string());
 
 		if (!fromCallback)
 		{
@@ -350,7 +350,7 @@ namespace NR
 				NR_CORE_ERROR("A file with that name already exists!");
 				return;
 			}
-			FileSystem::Rename(mAssetInfo.FilePath.string(), newName);
+			FileSystem::Rename((Project::GetActive()->GetAssetDirectory() / mAssetInfo.FilePath).string(), newName);
 			AssetManager::AssetRenamed(mAssetInfo.Handle, newFilePath);
 		}
 

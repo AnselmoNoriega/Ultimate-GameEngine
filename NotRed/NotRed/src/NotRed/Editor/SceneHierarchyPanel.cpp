@@ -116,50 +116,78 @@ namespace NR
 						if (ImGui::MenuItem("Cube"))
 						{
 							auto newEntity = mContext->CreateEntity("Cube");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Resources/Meshes/Default/Cube.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cube.nrmesh");
+
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
+							bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
+							
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Sphere"))
 						{
 							auto newEntity = mContext->CreateEntity("Sphere");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Sphere.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Sphere.nrmesh");
+							
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& scc = newEntity.AddComponent<SphereColliderComponent>();
+							scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Capsule"))
 						{
 							auto newEntity = mContext->CreateEntity("Capsule");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Capsule.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Capsule.nrmesh");
+							
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
+							ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Cylinder"))
 						{
 							auto newEntity = mContext->CreateEntity("Cylinder");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Cylinder.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cylinder.nrmesh");
+
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+							CookingFactory::CookMesh(collider);
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Torus"))
 						{
 							auto newEntity = mContext->CreateEntity("Torus");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Torus.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Torus.nrmesh");
+
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+							CookingFactory::CookMesh(collider);
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Plane"))
 						{
 							auto newEntity = mContext->CreateEntity("Plane");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Plane.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Plane.nrmesh");
+
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+							CookingFactory::CookMesh(collider);
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Cone"))
 						{
 							auto newEntity = mContext->CreateEntity("Cone");
-							Ref<MeshAsset> meshAsset = Ref<MeshAsset>::Create("Resources/Meshes/Default/Cone.fbx");
-							newEntity.AddComponent<MeshComponent>(Ref<Mesh>::Create(meshAsset));
+							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cone.fbx");
+
+							newEntity.AddComponent<MeshComponent>(mesh);
+							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+							CookingFactory::CookMesh(collider);
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Particles"))
@@ -976,12 +1004,24 @@ namespace NR
 
 				UI::EndPropertyGrid();
 			});
-
-		DrawComponent<RigidBodyComponent>("Rigidbody", entity, [](RigidBodyComponent& rbc)
+		
+		DrawComponent<RigidBodyComponent>("Rigidbody", entity, [&](RigidBodyComponent& rbc)
 			{
 				UI::BeginPropertyGrid();
 				const char* rbTypeStrings[] = { "Static", "Dynamic" };
 				UI::PropertyDropdown("Type", rbTypeStrings, 2, (int*)&rbc.BodyType);
+
+				if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+				{
+					if (UI::Property("Is Kinematic", rbc.IsKinematic))
+					{
+						if (!rbc.IsKinematic && entity.HasComponent<MeshColliderComponent>())
+						{
+							auto& mcc = entity.GetComponent<MeshColliderComponent>();
+							mcc.IsConvex = true;
+						}
+					}
+				}
 
 				if (!PhysicsLayerManager::IsLayerValid(rbc.Layer))
 				{
@@ -999,8 +1039,6 @@ namespace NR
 					UI::Property("Linear Drag", rbc.LinearDrag);
 					UI::Property("Angular Drag", rbc.AngularDrag);
 					UI::Property("Disable Gravity", rbc.DisableGravity);
-					UI::Property("Is Kinematic", rbc.IsKinematic);
-
 					UI::EndPropertyGrid();
 
 					if (ImGui::TreeNode("Constraints", "Constraints"))
@@ -1035,6 +1073,8 @@ namespace NR
 				{
 					bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
 				}
+
+				UI::Property("Offset", bcc.Offset);
 				UI::Property("Is Trigger", bcc.IsTrigger);
 				UI::PropertyAssetReference("Material", bcc.Material);
 
