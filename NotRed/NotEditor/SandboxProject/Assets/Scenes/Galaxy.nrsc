@@ -1,23 +1,23 @@
 Scene: Demo
 Environment:
-  AssetHandle: 2261646200020606763
+  AssetHandle: 11650778882005779170
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 4105658539968457500
+  - Entity: 5362506673440228151
     TagComponent:
       Tag: Sphere
     TransformComponent:
-      Position: [0, 3.25329876, 0]
+      Position: [0, 2.88094544, 0]
       Rotation: [0, 0, 0]
-      Scale: [7.61606932, 7.61606836, 7.61606932]
+      Scale: [7.06679964, 7.06679964, 7.06679964]
     Parent: 0
     Children:
       []
     MeshComponent:
-      AssetID: 2802547274461987306
+      AssetID: 2856502281337498133
   - Entity: 15800128647745287998
     TagComponent:
       Tag: Particles
