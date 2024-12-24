@@ -70,16 +70,14 @@ namespace NR
 
 		if (mContext)
 		{
-			uint32_t entityCount = 0, meshCount = 0;
-			auto view = mContext->mRegistry.view<IDComponent>();
-			view.each([&](entt::entity entity, auto id)
+			for (auto entity : mContext->mRegistry.view<IDComponent, RelationshipComponent>())
+			{
+				Entity e(entity, mContext.Raw());
+				if (e.GetParentID() == 0)
 				{
-					Entity e(entity, mContext.Raw());
-					if (e.GetParentID() == 0)
-					{
-						DrawEntityNode(e);
-					}
-				});
+					DrawEntityNode({ entity, mContext.Raw() });
+				}
+			}
 
 			if (ImGui::BeginDragDropTargetCustom(windowRect, ImGui::GetCurrentWindow()->ID))
 			{

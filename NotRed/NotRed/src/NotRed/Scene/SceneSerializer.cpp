@@ -522,14 +522,10 @@ namespace NR
 
         out << YAML::Key << "Entities";
         out << YAML::Value << YAML::BeginSeq;
-        auto view = mScene->mRegistry.view<IDComponent>();
-        view.each([&](entt::entity entt, auto id)
-            {
-                Entity entity = { entt, mScene.Raw() };
-                NR_CORE_ASSERT(entity);
-
-                SerializeEntity(out, entity);
-            });
+        for (auto entity : mScene->mRegistry.view<IDComponent>())
+        {
+            SerializeEntity(out, { entity, mScene.Raw() });
+        }
         out << YAML::EndSeq;
 
         out << YAML::Key << "PhysicsLayers";
@@ -1176,6 +1172,13 @@ namespace NR
         {
             Audio::AudioEngine::Get().DeserializeSceneAudio(sceneAudio);
         }
+
+        mScene->mRegistry.sort<IDComponent>([this](const auto lhs, const auto rhs)
+            {
+                auto lhsEntity = mScene->GetEntityMap().find(lhs.ID);
+                auto rhsEntity = mScene->GetEntityMap().find(rhs.ID);
+                return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
+            });
 
         return true;
     }

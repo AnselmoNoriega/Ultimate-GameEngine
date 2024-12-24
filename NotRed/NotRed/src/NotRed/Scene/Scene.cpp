@@ -1657,6 +1657,13 @@ namespace NR
 		}
 
 		target->SetPhysics2DGravity(GetPhysics2DGravity());
+
+		target->mRegistry.sort<IDComponent>([&target](const auto lhs, const auto rhs)
+			{
+				auto lhsEntity = target->GetEntityMap().find(lhs.ID);
+				auto rhsEntity = target->GetEntityMap().find(rhs.ID);
+				return static_cast<uint32_t>(lhsEntity->second) < static_cast<uint32_t>(rhsEntity->second);
+			});
 	}
 
 	Ref<Scene> Scene::GetScene(UUID uuid)
