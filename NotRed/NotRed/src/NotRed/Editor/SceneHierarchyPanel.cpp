@@ -605,7 +605,8 @@ namespace NR
 			{
 				if (ImGui::Button("Box Collider"))
 				{
-					mSelectionContext.AddComponent<BoxColliderComponent>();
+					auto& bcc = mSelectionContext.AddComponent<BoxColliderComponent>();
+					bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -613,7 +614,8 @@ namespace NR
 			{
 				if (ImGui::Button("Sphere Collider"))
 				{
-					mSelectionContext.AddComponent<SphereColliderComponent>();
+					auto& scc = mSelectionContext.AddComponent<SphereColliderComponent>();
+					scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -621,7 +623,8 @@ namespace NR
 			{
 				if (ImGui::Button("Capsule Collider"))
 				{
-					mSelectionContext.AddComponent<CapsuleColliderComponent>();
+					auto& ccc = mSelectionContext.AddComponent<CapsuleColliderComponent>();
+					ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
 					ImGui::CloseCurrentPopup();
 				}
 			}

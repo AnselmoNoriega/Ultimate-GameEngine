@@ -63,7 +63,7 @@ namespace NR
             }
             else
             {
-                metadata.FilePath = directoryPath + "/" + filename;
+                metadata.FilePath = AssetManager::GetRelativePath(directoryPath + "/" + filename);
             }
             metadata.IsDataLoaded = true;
             metadata.Type = T::GetStaticType();
