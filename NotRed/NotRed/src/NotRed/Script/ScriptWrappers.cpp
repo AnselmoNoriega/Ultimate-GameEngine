@@ -839,26 +839,26 @@ namespace NR::Script
         delete _this;
     }
 
-    Ref<Material>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh)
+    Ref<MaterialAsset>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
-        const auto& materials = mesh->GetMaterials();
-        return new Ref<Material>(materials[0]);
+        const auto& materialTable = mesh->GetMaterials();
+        return new Ref<MaterialAsset>(materialTable->GetMaterial(0));
     }
 
-    Ref<Material>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index)
+    Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index)
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
-        const auto& materials = mesh->GetMaterials();
-
-        NR_CORE_ASSERT(index < materials.size());
-        return new Ref<Material>(materials[index]);
+        const auto& materialTable = mesh->GetMaterials();
+        
+        NR_CORE_ASSERT(index < materialTable->GetMaterialCount());
+        return new Ref<MaterialAsset>(materialTable->GetMaterial(index));
     }
 
     uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *inMesh;
-        const auto& materials = mesh->GetMaterials();
+        const auto& materials = mesh->GetMaterials()->GetMaterials();
         return (uint32_t)materials.size();
     }
 
@@ -897,50 +897,56 @@ namespace NR::Script
         instance->Unlock();
     }
 
-    void NR_Material_Destructor(Ref<Material>* _this)
+    void NR_Material_Destructor(Ref<MaterialAsset>* _this)
     {
         delete _this;
     }
 
-    void NR_Material_SetFloat(Ref<Material>* _this, MonoString* uniform, float value)
+    void NR_Material_GetAlbedoColor(Ref<MaterialAsset>* _this, glm::vec3* outAlbedoColor)
     {
-        Ref<Material>& instance = *(Ref<Material>*)_this;
-        instance->Set(mono_string_to_utf8(uniform), value);
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        *outAlbedoColor = instance->GetAlbedoColor();
     }
 
-    void NR_Material_SetTexture(Ref<Material>* _this, MonoString* uniform, Ref<Texture2D>* texture)
+    void NR_Material_SetAlbedoColor(Ref<MaterialAsset>* _this, glm::vec3* inAlbedoColor)
     {
-        Ref<Material>& instance = *(Ref<Material>*)_this;
-        instance->Set(mono_string_to_utf8(uniform), *texture);
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        instance->SetAlbedoColor(*inAlbedoColor);
     }
 
-    void NR_MaterialInstance_SetVector4(Ref<Material>* _this, MonoString* uniform, glm::vec4* value)
+    void NR_Material_GetMetalness(Ref<MaterialAsset>* _this, float* outMetalness)
     {
-        Ref<Material>& instance = *(Ref<Material>*)_this;
-        instance->Set(mono_string_to_utf8(uniform), *value);
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        *outMetalness = instance->GetMetalness();
+    }
+    void NR_Material_SetMetalness(Ref<MaterialAsset>* _this, float inMetalness)
+    {
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        instance->SetMetalness(inMetalness);
     }
 
-    void NR_MaterialInstance_Destructor(Ref<Material>* _this)
+    void NR_Material_GetRoughness(Ref<MaterialAsset>* _this, float* outRoughness)
     {
-        delete _this;
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        *outRoughness = instance->GetRoughness();
     }
 
-    void NR_MaterialInstance_SetFloat(Ref<Material>* _this, MonoString* uniform, float value)
+    void NR_Material_SetRoughness(Ref<MaterialAsset>* _this, float inRoughness)
     {
-        Ref<Material>& instance = *(Ref<Material>*)_this;
-        instance->Set(mono_string_to_utf8(uniform), value);
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        instance->SetRoughness(inRoughness);
     }
 
-    void NR_MaterialInstance_SetVector3(Ref<Material>* _this, MonoString* uniform, glm::vec3* value)
+    void NR_Material_SetFloat(Ref<MaterialAsset>* _this, MonoString* uniform, float value)
     {
-        Ref<Material>& instance = *(Ref<Material>*)_this;
-        instance->Set(mono_string_to_utf8(uniform), *value);
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        instance->GetMaterial()->Set(mono_string_to_utf8(uniform), value);
     }
 
-    void NR_MaterialInstance_SetTexture(Ref<Material>* _this, MonoString* uniform, Ref<Texture2D>* texture)
+    void NR_Material_SetTexture(Ref<MaterialAsset>* _this, MonoString* uniform, Ref<Texture2D>* texture)
     {
-        Ref<Material>& instance = *(Ref<Material>*)_this;
-        instance->Set(mono_string_to_utf8(uniform), *texture);
+        Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+        instance->GetMaterial()->Set(mono_string_to_utf8(uniform), *texture);
     }
 
     void* NR_MeshFactory_CreatePlane(float width, float height)

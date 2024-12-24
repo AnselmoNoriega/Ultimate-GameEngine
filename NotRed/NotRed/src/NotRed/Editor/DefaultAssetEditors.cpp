@@ -6,6 +6,8 @@
 #include "NotRed/Audio/AudioFileUtils.h"
 #include "NotRed/Audio/Sound.h"
 
+#include "NotRed/Renderer/Renderer.h"
+
 #include "imgui_internal.h"
 
 namespace NR
@@ -31,6 +33,368 @@ namespace NR
 		UI::Property("Dynamic friction", mAsset->DynamicFriction);
 		UI::Property("Bounciness", mAsset->Bounciness);
 		UI::EndPropertyGrid();
+	}
+
+	MaterialEditor::MaterialEditor()
+		: AssetEditor("Material Editor")
+	{
+		mCheckerboardTex = Texture2D::Create("Resources/Editor/Checkerboard.tga");
+	}
+
+	void MaterialEditor::Close()
+	{
+		mMaterialAsset = nullptr;
+	}
+
+	void MaterialEditor::Render()
+	{
+		auto material = mMaterialAsset->GetMaterial();
+		ImGui::Text("Shader: %s", material->GetShader()->GetName().c_str());
+		bool needsSerialize = false;
+
+		// Textures ------------------------------------------------------------------------------
+		{
+			// Albedo
+			if (ImGui::CollapsingHeader("Albedo", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+
+				auto& albedoColor = material->GetVector3("uMaterialUniforms.AlbedoColor");
+				Ref<Texture2D> albedoMap = material->TryGetTexture2D("uAlbedoTexture");
+				bool hasAlbedoMap = albedoMap ? !albedoMap.EqualsObject(Renderer::GetWhiteTexture()) && albedoMap->GetImage() : false;
+				Ref<Texture2D> albedoUITexture = hasAlbedoMap ? albedoMap : mCheckerboardTex;
+				ImVec2 textureCursorPos = ImGui::GetCursorPos();
+				UI::Image(albedoUITexture, ImVec2(64, 64));
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					auto data = ImGui::AcceptDragDropPayload("asset_payload");
+					if (data)
+					{
+						int count = data->DataSize / sizeof(AssetHandle);
+						for (int i = 0; i < count; ++i)
+						{
+							if (count > 1)
+							{
+								break;
+							}
+
+							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+
+							if (asset->GetAssetType() != AssetType::Texture)
+							{
+								break;
+							}
+
+							albedoMap = asset.As<Texture2D>();
+							material->Set("uAlbedoTexture", albedoMap);
+							needsSerialize = true;
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::PopStyleVar();
+
+				if (ImGui::IsItemHovered())
+				{
+					if (hasAlbedoMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(albedoMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						UI::Image(albedoUITexture, ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+
+					if (ImGui::IsItemClicked())
+					{
+					}
+				}
+
+				ImVec2 nextRowCursorPos = ImGui::GetCursorPos();
+				ImGui::SameLine();
+				ImVec2 properCursorPos = ImGui::GetCursorPos();
+
+				ImGui::SetCursorPos(textureCursorPos);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+				if (hasAlbedoMap && ImGui::Button("X", ImVec2(18, 18)))
+				{
+					mMaterialAsset->ClearAlbedoMap();
+					needsSerialize = true;
+				}
+
+				ImGui::PopStyleVar();
+				ImGui::SetCursorPos(properCursorPos);
+				ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
+				if (ImGui::IsItemDeactivated())
+				{
+					needsSerialize = true;
+				}
+
+				float& emissive = material->GetFloat("uMaterialUniforms.Emission");
+				ImGui::SameLine();
+				ImGui::SetNextItemWidth(100.0f);
+				ImGui::DragFloat("Emission", &emissive, 0.1f, 0.0f, 20.0f);
+				if (ImGui::IsItemDeactivated())
+				{
+					needsSerialize = true;
+				}
+
+				ImGui::SetCursorPos(nextRowCursorPos);
+			}
+		}
+		{
+			// Normals
+			if (ImGui::CollapsingHeader("Normals", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+
+				bool useNormalMap = material->GetFloat("uMaterialUniforms.UseNormalMap");
+				Ref<Texture2D> normalMap = material->TryGetTexture2D("uNormalTexture");
+				bool hasNormalMap = normalMap ? !normalMap.EqualsObject(Renderer::GetWhiteTexture()) && normalMap->GetImage() : false;
+				ImVec2 textureCursorPos = ImGui::GetCursorPos();
+				UI::Image(hasNormalMap ? normalMap : mCheckerboardTex, ImVec2(64, 64));
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					auto data = ImGui::AcceptDragDropPayload("asset_payload");
+					if (data)
+					{
+						int count = data->DataSize / sizeof(AssetHandle);
+						for (int i = 0; i < count; i++)
+						{
+							if (count > 1)
+							{
+								break;
+							}
+
+							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+							if (asset->GetAssetType() != AssetType::Texture)
+							{
+								break;
+							}
+
+							normalMap = asset.As<Texture2D>();
+							material->Set("uNormalTexture", normalMap);
+							material->Set("uMaterialUniforms.UseNormalMap", true);
+							needsSerialize = true;
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::PopStyleVar();
+
+				if (ImGui::IsItemHovered())
+				{
+					if (hasNormalMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(normalMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						UI::Image(normalMap, ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+					if (ImGui::IsItemClicked())
+					{
+					}
+				}
+
+				ImVec2 nextRowCursorPos = ImGui::GetCursorPos();
+				ImGui::SameLine();
+				ImVec2 properCursorPos = ImGui::GetCursorPos();
+				ImGui::SetCursorPos(textureCursorPos);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+				if (hasNormalMap && ImGui::Button("X", ImVec2(18, 18)))
+				{
+					mMaterialAsset->ClearNormalMap();
+					needsSerialize = true;
+				}
+				ImGui::PopStyleVar();
+
+				ImGui::SetCursorPos(properCursorPos);
+				if (ImGui::Checkbox("Use##NormalMap", &useNormalMap))
+				{
+					material->Set("uMaterialUniforms.UseNormalMap", useNormalMap);
+				}
+				if (ImGui::IsItemDeactivated())
+				{
+					needsSerialize = true;
+				}
+				ImGui::SetCursorPos(nextRowCursorPos);
+			}
+		}
+		{
+			// Metalness
+			if (ImGui::CollapsingHeader("Metalness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+
+				float& metalnessValue = material->GetFloat("uMaterialUniforms.Metalness");
+				Ref<Texture2D> metalnessMap = material->TryGetTexture2D("uMetalnessTexture");
+				bool hasMetalnessMap = metalnessMap ? !metalnessMap.EqualsObject(Renderer::GetWhiteTexture()) && metalnessMap->GetImage() : false;
+				ImVec2 textureCursorPos = ImGui::GetCursorPos();
+				UI::Image(hasMetalnessMap ? metalnessMap : mCheckerboardTex, ImVec2(64, 64));
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					auto data = ImGui::AcceptDragDropPayload("asset_payload");
+					if (data)
+					{
+						int count = data->DataSize / sizeof(AssetHandle);
+						for (int i = 0; i < count; i++)
+						{
+							if (count > 1)
+							{
+								break;
+							}
+
+							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+							if (asset->GetAssetType() != AssetType::Texture)
+							{
+								break;
+							}
+
+							metalnessMap = asset.As<Texture2D>();
+							material->Set("uMetalnessTexture", metalnessMap);
+							needsSerialize = true;
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::PopStyleVar();
+
+				if (ImGui::IsItemHovered())
+				{
+					if (hasMetalnessMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(metalnessMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						UI::Image(metalnessMap, ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+
+					if (ImGui::IsItemClicked())
+					{
+					}
+				}
+
+				ImVec2 nextRowCursorPos = ImGui::GetCursorPos();
+				ImGui::SameLine();
+				ImVec2 properCursorPos = ImGui::GetCursorPos();
+				ImGui::SetCursorPos(textureCursorPos);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+				if (hasMetalnessMap && ImGui::Button("X", ImVec2(18, 18)))
+				{
+					mMaterialAsset->ClearMetalnessMap();
+					needsSerialize = true;
+				}
+				ImGui::PopStyleVar();
+
+				ImGui::SetCursorPos(properCursorPos);
+				ImGui::SetNextItemWidth(200.0f);
+				ImGui::SliderFloat("Metalness Value##MetalnessInput", &metalnessValue, 0.0f, 1.0f);
+				if (ImGui::IsItemDeactivated())
+				{
+					needsSerialize = true;
+				}
+				ImGui::SetCursorPos(nextRowCursorPos);
+			}
+		}
+		{
+			// Roughness
+			if (ImGui::CollapsingHeader("Roughness", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 10));
+
+				float& roughnessValue = material->GetFloat("uMaterialUniforms.Roughness");
+				Ref<Texture2D> roughnessMap = material->TryGetTexture2D("uRoughnessTexture");
+				bool hasRoughnessMap = roughnessMap ? !roughnessMap.EqualsObject(Renderer::GetWhiteTexture()) && roughnessMap->GetImage() : false;
+				ImVec2 textureCursorPos = ImGui::GetCursorPos();
+				UI::Image(hasRoughnessMap ? roughnessMap : mCheckerboardTex, ImVec2(64, 64));
+
+				if (ImGui::BeginDragDropTarget())
+				{
+					auto data = ImGui::AcceptDragDropPayload("asset_payload");
+					if (data)
+					{
+						int count = data->DataSize / sizeof(AssetHandle);
+						for (int i = 0; i < count; i++)
+						{
+							if (count > 1)
+							{
+								break;
+							}
+
+							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
+							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+							if (asset->GetAssetType() != AssetType::Texture)
+							{
+								break;
+							}
+
+							roughnessMap = asset.As<Texture2D>();
+							material->Set("uRoughnessTexture", roughnessMap);
+							needsSerialize = true;
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+				ImGui::PopStyleVar();
+
+				if (ImGui::IsItemHovered())
+				{
+					if (hasRoughnessMap)
+					{
+						ImGui::BeginTooltip();
+						ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+						ImGui::TextUnformatted(roughnessMap->GetPath().c_str());
+						ImGui::PopTextWrapPos();
+						UI::Image(roughnessMap, ImVec2(384, 384));
+						ImGui::EndTooltip();
+					}
+
+					if (ImGui::IsItemClicked())
+					{
+
+					}
+				}
+				ImVec2 nextRowCursorPos = ImGui::GetCursorPos();
+				ImGui::SameLine();
+
+				ImVec2 properCursorPos = ImGui::GetCursorPos();
+				ImGui::SetCursorPos(textureCursorPos);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+				if (hasRoughnessMap && ImGui::Button("X", ImVec2(18, 18)))
+				{
+					mMaterialAsset->ClearRoughnessMap();
+					needsSerialize = true;
+				}
+				ImGui::PopStyleVar();
+
+				ImGui::SetCursorPos(properCursorPos);
+				ImGui::SetNextItemWidth(200.0f);
+				ImGui::SliderFloat("Roughness Value##RoughnessInput", &roughnessValue, 0.0f, 1.0f);
+				if (ImGui::IsItemDeactivated())
+				{
+					needsSerialize = true;
+				}
+				ImGui::SetCursorPos(nextRowCursorPos);
+			}
+		}
+
+		if (needsSerialize)
+		{
+			NR_CORE_WARN("Serializing...");
+			AssetImporter::Serialize(mMaterialAsset);
+		}
 	}
 
 	TextureViewer::TextureViewer()

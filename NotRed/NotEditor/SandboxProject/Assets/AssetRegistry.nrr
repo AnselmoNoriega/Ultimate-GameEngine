@@ -1,4 +1,13 @@
 Assets:
+  - Handle: 719714631069953925
+    FilePath: Models/Source/Sponza/4910669866631290573.jpg
+    Type: Texture
+  - Handle: 766020794567690957
+    FilePath: Models/Source/Sponza/4601176305987539675.jpg
+    Type: Texture
+  - Handle: 788185120461522855
+    FilePath: Models/Source/Sponza/2775690330959970771.jpg
+    Type: Texture
   - Handle: 788492981695594073
     FilePath: Models/Source/Sponza/16275776544635328252.png
     Type: Texture
@@ -8,8 +17,23 @@ Assets:
   - Handle: 940471849831676394
     FilePath: Meshes/Source/ZIS101Sport.fbx
     Type: MeshAsset
+  - Handle: 1115660580443412098
+    FilePath: Models/Source/Sponza/6593109234861095314.jpg
+    Type: Texture
   - Handle: 1180668109189713166
     FilePath: Models/Source/pilot/Material.002_Roughness.png
+    Type: Texture
+  - Handle: 1571433962063485744
+    FilePath: Models/Source/Sponza/13196865903111448057.jpg
+    Type: Texture
+  - Handle: 1611408416186189859
+    FilePath: Models/Source/Sponza/6151467286084645207.jpg
+    Type: Texture
+  - Handle: 2482100059896760119
+    FilePath: Models/Source/Sponza/10388182081421875623.jpg
+    Type: Texture
+  - Handle: 2616411042088901641
+    FilePath: Models/Source/Sponza/7056944414013900257.jpg
     Type: Texture
   - Handle: 2856077084921523787
     FilePath: Models/Source/TestScene.fbx
@@ -23,12 +47,24 @@ Assets:
   - Handle: 3169145106377838570
     FilePath: Models/Source/cerberus/Textures/Cerberus_N.png
     Type: Texture
+  - Handle: 3365831318981077969
+    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus-M13_metallic.jpg
+    Type: Texture
   - Handle: 3669032698877721658
     FilePath: Models/Source/pilot/Material.002_Mixed_AO.png
+    Type: Texture
+  - Handle: 3745528522382572366
+    FilePath: Models/Source/Sponza/13982482287905699490.jpg
+    Type: Texture
+  - Handle: 3783669882805139496
+    FilePath: Models/Source/Sponza/5823059166183034438.jpg
     Type: Texture
   - Handle: 3813279530466117779
     FilePath: Models/Source/Tests/TransformTest.fbx
     Type: MeshAsset
+  - Handle: 4080848488975083700
+    FilePath: Models/Source/Sponza/14267839433702832875.jpg
+    Type: Texture
   - Handle: 4163970111022102808
     FilePath: Models/Source/cerberus/Textures/Cerberus_R.png
     Type: Texture
@@ -44,12 +80,27 @@ Assets:
   - Handle: 4210539429630763432
     FilePath: Models/Source/pilot/Material.002_Base_Color.png
     Type: Texture
+  - Handle: 4267416741355185729
+    FilePath: Models/Source/Sponza/8747919177698443163.jpg
+    Type: Texture
+  - Handle: 4314465531874424457
+    FilePath: Models/Source/Sponza/7441062115984513793.jpg
+    Type: Texture
   - Handle: 4472115398838612294
     FilePath: Models/Source/stormtrooper/silly_dancing.fbx
     Type: MeshAsset
   - Handle: 4517023518274335626
     FilePath: Meshes/Default/Plane.nrmesh
     Type: Mesh
+  - Handle: 4550571936014914487
+    FilePath: Models/Source/Sponza/8773302468495022225.jpg
+    Type: Texture
+  - Handle: 4631908931781321097
+    FilePath: Models/Source/Sponza/17876391417123941155.jpg
+    Type: Texture
+  - Handle: 4649847813273219844
+    FilePath: Models/Source/Sponza/4975155472559461469.jpg
+    Type: Texture
   - Handle: 4775416180002498292
     FilePath: Scenes/Galaxy.nrsc
     Type: Scene
@@ -59,12 +110,27 @@ Assets:
   - Handle: 4923191638174302532
     FilePath: Meshes/Source/Default/Capsule.fbx
     Type: MeshAsset
+  - Handle: 4991865301627633221
+    FilePath: Models/Source/Sponza/9288698199695299068.jpg
+    Type: Texture
   - Handle: 5083906341107188436
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
+    Type: Texture
+  - Handle: 5098072529481501973
+    FilePath: Models/Source/Sponza/3827035219084910048.jpg
     Type: Texture
   - Handle: 5188472444224712633
     FilePath: Models/m1911/M1911Materials.fbx
     Type: MeshAsset
+  - Handle: 5282571235462531411
+    FilePath: Models/Source/Sponza/8783994986360286082.jpg
+    Type: Texture
+  - Handle: 5345621051590601992
+    FilePath: Models/Source/Sponza/3371964815757888145.jpg
+    Type: Texture
+  - Handle: 5361446404797608401
+    FilePath: Models/Source/Sponza/5792855332885324923.jpg
+    Type: Texture
   - Handle: 5380732386756511583
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Emissive.png
     Type: Texture
@@ -77,23 +143,77 @@ Assets:
   - Handle: 6249827114591471084
     FilePath: Models/Source/Sponza/5061699253647017043.png
     Type: Texture
+  - Handle: 6447245779541325488
+    FilePath: Models/Source/Sponza/14650633544276105767.jpg
+    Type: Texture
   - Handle: 6791575183051968345
     FilePath: Models/Source/Sponza/white.png
+    Type: Texture
+  - Handle: 6969697910087914694
+    FilePath: Models/Source/Sponza/1219024358953944284.jpg
+    Type: Texture
+  - Handle: 7398374036105599942
+    FilePath: Scenes/VoxelGame.nrsc
+    Type: Scene
+  - Handle: 7405524683225566902
+    FilePath: Models/Source/Sponza/755318871556304029.jpg
     Type: Texture
   - Handle: 7620121883529511759
     FilePath: Models/Source/Default/Cube.fbx
     Type: MeshAsset
+  - Handle: 7699878716145299001
+    FilePath: Models/Source/Sponza/3455394979645218238.jpg
+    Type: Texture
+  - Handle: 7762849618817926059
+    FilePath: Models/Source/Sponza/2411100444841994089.jpg
+    Type: Texture
+  - Handle: 7874242484610167424
+    FilePath: Models/Source/Sponza/6667038893015345571.jpg
+    Type: Texture
   - Handle: 8030254096555745445
     FilePath: Meshes/Default/Torus.nrmesh
     Type: Mesh
   - Handle: 8130581881994747795
     FilePath: Meshes/Default/Cube.nrmesh
     Type: Mesh
+  - Handle: 8215656201482004355
+    FilePath: Models/Source/Sponza/12501374198249454378.jpg
+    Type: Texture
+  - Handle: 8236215178905980204
+    FilePath: Models/Source/Sponza/9916269861720640319.jpg
+    Type: Texture
+  - Handle: 8414932121599723725
+    FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus-M13_roughness.jpg
+    Type: Texture
+  - Handle: 8440373069449964730
+    FilePath: Models/Source/Sponza/8750083169368950601.jpg
+    Type: Texture
   - Handle: 8446488358702990668
     FilePath: Meshes/Default/Cone.nrmesh
     Type: Mesh
+  - Handle: 8492575981071253112
+    FilePath: Models/Source/Sponza/4871783166746854860.jpg
+    Type: Texture
+  - Handle: 8494079683672087058
+    FilePath: Models/Source/Sponza/4477655471536070370.jpg
+    Type: Texture
   - Handle: 8519206479186164059
     FilePath: Models/m1911/m1911_color.png
+    Type: Texture
+  - Handle: 8564853969468246387
+    FilePath: Models/Source/Sponza/16299174074766089871.jpg
+    Type: Texture
+  - Handle: 8847470463203576936
+    FilePath: Models/Source/Sponza/14118779221266351425.jpg
+    Type: Texture
+  - Handle: 9036988128454158525
+    FilePath: Models/Source/Sponza/11490520546946913238.jpg
+    Type: Texture
+  - Handle: 9117641358602271080
+    FilePath: Models/Source/Sponza/16885566240357350108.jpg
+    Type: Texture
+  - Handle: 9142354195361859906
+    FilePath: Models/Source/Sponza/2185409758123873465.jpg
     Type: Texture
   - Handle: 9370517366295976499
     FilePath: Models/Source/Default/Torus.fbx
@@ -101,27 +221,60 @@ Assets:
   - Handle: 9560007014529606805
     FilePath: Meshes/Source/Default/Torus.fbx
     Type: MeshAsset
+  - Handle: 9622855033900602248
+    FilePath: Models/Source/Sponza/11872827283454512094.jpg
+    Type: Texture
+  - Handle: 10157384174676721827
+    FilePath: Models/Source/Sponza/6772804448157695701.jpg
+    Type: Texture
   - Handle: 10191359667784106151
     FilePath: Env/autumn_field_puresky_4k.hdr
     Type: EnvMap
+  - Handle: 10484363069851829387
+    FilePath: Models/Source/Sponza/4675343432951571524.jpg
+    Type: Texture
   - Handle: 10493809290632571562
     FilePath: Models/Source/cerberus/CerberusMaterials.fbx
     Type: MeshAsset
   - Handle: 10610151712161516910
     FilePath: Meshes/Source/Demo/TestScene.nrmesh
     Type: Mesh
+  - Handle: 10724342870320267274
+    FilePath: Models/Source/Sponza/2051777328469649772.jpg
+    Type: Texture
+  - Handle: 10768775592758119374
+    FilePath: Models/Source/Sponza/7645212358685992005.jpg
+    Type: Texture
+  - Handle: 10826103972671999086
+    FilePath: Models/Source/Sponza/15295713303328085182.jpg
+    Type: Texture
+  - Handle: 10896458388844015785
+    FilePath: Models/Source/Sponza/2969916736137545357.jpg
+    Type: Texture
+  - Handle: 10908580736139422867
+    FilePath: Models/Source/Sponza/8051790464816141987.jpg
+    Type: Texture
   - Handle: 10980127482056009670
     FilePath: Meshes/Source/TestScene.fbx
     Type: MeshAsset
+  - Handle: 11369867067491543923
+    FilePath: Models/Source/Sponza/11968150294050148237.jpg
+    Type: Texture
   - Handle: 11378497880036335834
     FilePath: Models/Source/Default/Plane.fbx
     Type: MeshAsset
-  - Handle: 11392955866543840778
-    FilePath: Scenes/VaxelGame.nrsc
-    Type: Scene
   - Handle: 11486095108012541376
     FilePath: Meshes/Default/Capsule.nrmesh
     Type: Mesh
+  - Handle: 11892832976188623719
+    FilePath: Models/Source/Sponza/15722799267630235092.jpg
+    Type: Texture
+  - Handle: 12003013722308979316
+    FilePath: Models/Source/Sponza/11474523244911310074.jpg
+    Type: Texture
+  - Handle: 12016753632694670698
+    FilePath: Models/Source/Sponza/715093869573992647.jpg
+    Type: Texture
   - Handle: 12046046325573209881
     FilePath: Models/m1911/m1911_roughness.png
     Type: Texture
@@ -137,24 +290,57 @@ Assets:
   - Handle: 12626786852730282428
     FilePath: Models/Source/pilot/Pilot_LP_Animated.fbx
     Type: MeshAsset
+  - Handle: 13003522556742733601
+    FilePath: Models/Source/Sponza/8481240838833932244.jpg
+    Type: Texture
+  - Handle: 13071173255421381503
+    FilePath: Models/Source/Sponza/2374361008830720677.jpg
+    Type: Texture
+  - Handle: 13138197014243923700
+    FilePath: Models/Source/Sponza/10381718147657362067.jpg
+    Type: Texture
   - Handle: 13140776552192957249
     FilePath: Models/Source/cerberus/Textures/Cerberus_A.png
     Type: Texture
   - Handle: 13163247778782548346
     FilePath: Env/thatch_chapel_4k.hdr
     Type: EnvMap
+  - Handle: 13261822266841402846
+    FilePath: Models/Source/Sponza/13824894030729245199.jpg
+    Type: Texture
+  - Handle: 13365087405678185919
+    FilePath: Models/Source/Sponza/17556969131407844942.jpg
+    Type: Texture
+  - Handle: 13859949389562575970
+    FilePath: Models/Source/Sponza/7815564343179553343.jpg
+    Type: Texture
+  - Handle: 14372483529436363612
+    FilePath: Models/Source/Sponza/3628158980083700836.jpg
+    Type: Texture
+  - Handle: 14376323303412918687
+    FilePath: Models/Source/Sponza/6047387724914829168.jpg
+    Type: Texture
   - Handle: 14444034214867725514
     FilePath: Meshes/Source/Default/Cone.fbx
     Type: MeshAsset
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
+  - Handle: 14718903182659248199
+    FilePath: Models/Source/Sponza/466164707995436622.jpg
+    Type: Texture
   - Handle: 15241730571501316311
     FilePath: Models/Source/Default/Cylinder.fbx
     Type: MeshAsset
+  - Handle: 15450536207396684297
+    FilePath: Models/Source/Sponza/2299742237651021498.jpg
+    Type: Texture
   - Handle: 15639926771555786455
     FilePath: Scenes/Demo.nrsc
     Type: Scene
+  - Handle: 15684959434881931482
+    FilePath: Models/Source/Sponza/332936164838540657.jpg
+    Type: Texture
   - Handle: 15826414915342885037
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_Normal.png
     Type: Texture
@@ -167,8 +353,14 @@ Assets:
   - Handle: 16122708668740826516
     FilePath: Models/Source/Sponza/8006627369776289000.png
     Type: Texture
+  - Handle: 16172901587249861938
+    FilePath: Models/Source/Sponza/7268504077753552595.jpg
+    Type: Texture
   - Handle: 16266072468258787845
     FilePath: Models/Source/stormtrooper/Stormtrooper_D.png
+    Type: Texture
+  - Handle: 16364217459705434838
+    FilePath: Models/Source/Sponza/759203620573749278.jpg
     Type: Texture
   - Handle: 16446025442881349728
     FilePath: Models/m1911/m1911.fbx
@@ -176,6 +368,9 @@ Assets:
   - Handle: 16518116033380006148
     FilePath: Models/Source/Default/Capsule.fbx
     Type: MeshAsset
+  - Handle: 16568931938534971881
+    FilePath: Models/Source/Sponza/8114461559286000061.jpg
+    Type: Texture
   - Handle: 16812491990447046066
     FilePath: Models/Source/cerberus/cerberus.fbx
     Type: MeshAsset
@@ -197,6 +392,12 @@ Assets:
   - Handle: 17514496322347391178
     FilePath: Env/cobblestone_street_night_4k.hdr
     Type: EnvMap
+  - Handle: 17746434792616329936
+    FilePath: Models/Source/Sponza/8503262930880235456.jpg
+    Type: Texture
+  - Handle: 18106756696114205909
+    FilePath: Models/Source/Sponza/14170708867020035030.jpg
+    Type: Texture
   - Handle: 18154924251906576847
     FilePath: Meshes/Source/Default/Plane.fbx
     Type: MeshAsset

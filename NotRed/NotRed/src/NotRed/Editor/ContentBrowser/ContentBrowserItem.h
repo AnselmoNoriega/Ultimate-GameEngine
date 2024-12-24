@@ -82,13 +82,13 @@ namespace NR
 		void Rename(const std::string& newName, bool fromCallback = false);
 
 	private:
-		virtual void Renamed(const std::string& newName, bool fromCallback = false) {}
+		virtual void Renamed(const std::string& newName, bool fromCallback = false) { mName = newName; }
 		virtual void RenderCustomContextItems() {}
 		virtual void UpdateDrop(CBItemActionResult& actionResult) {}
 
 		void ContextMenuOpen(CBItemActionResult& actionResult);
 
-	private:
+	protected:
 		ItemType mType;
 		AssetHandle mID;
 		std::string mName;

@@ -501,7 +501,7 @@ namespace NR
 					transform = e.Transform().GetTransform();
 				}
 
-				renderer->SubmitMesh(meshComponent, transform);
+				renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
 			}
 		}
 		auto groupParticles = mRegistry.group<ParticleComponent>(entt::get<TransformComponent>);
@@ -633,11 +633,11 @@ namespace NR
 
 				if (mSelectedEntity == entity)
 				{
-					renderer->SubmitSelectedMesh(meshComponent, transform);
+					renderer->SubmitSelectedMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
 				}
 				else
 				{
-					renderer->SubmitMesh(meshComponent, transform);
+					renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
 				}
 			}
 		}
@@ -873,11 +873,11 @@ namespace NR
 
 				if (mSelectedEntity == entity)
 				{
-					renderer->SubmitSelectedMesh(meshComponent, transform);
+					renderer->SubmitSelectedMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
 				}
 				else
 				{
-					renderer->SubmitMesh(meshComponent, transform);
+					renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
 				}
 			}
 		}

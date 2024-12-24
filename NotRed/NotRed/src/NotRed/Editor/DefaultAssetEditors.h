@@ -25,6 +25,21 @@ namespace NR
 		Ref<PhysicsMaterial> mAsset;
 	};
 
+	class MaterialEditor : public AssetEditor
+	{
+	public:
+		MaterialEditor();
+		void SetAsset(const Ref<Asset>& asset) override { mMaterialAsset = (Ref<MaterialAsset>)asset; }
+
+	private:
+		void Close() override;
+		void Render() override;
+
+	private:
+		Ref<MaterialAsset> mMaterialAsset;
+		Ref<Texture2D> mCheckerboardTex;
+	};
+
 	class TextureViewer : public AssetEditor
 	{
 	public:

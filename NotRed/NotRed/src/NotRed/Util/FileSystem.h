@@ -47,6 +47,10 @@ namespace NR
 		static void StopWatching();
 		static bool IsDirectory(const std::string& filepath);
 
+		static bool Move(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);
+		static bool Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);
+		static bool RenameFilename(const std::filesystem::path& oldFilepath, const std::string& newName);
+
 		static bool ShowFileInExplorer(const std::filesystem::path& path);
 		static bool OpenDirectoryInExplorer(const std::filesystem::path& path);
 		static bool OpenExternally(const std::filesystem::path& path);

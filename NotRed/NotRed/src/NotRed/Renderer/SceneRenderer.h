@@ -69,8 +69,8 @@ namespace NR
 		void BeginScene(const SceneRendererCamera& camera, float dt);
 		void EndScene();
 
-		void SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
-		void SubmitSelectedMesh(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
+		void SubmitMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitSelectedMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 		void SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 		void SubmitColliderMesh(const BoxColliderComponent& component, const glm::mat4& parentTransform = glm::mat4(1.0F));
 		void SubmitColliderMesh(const SphereColliderComponent& component, const glm::mat4& parentTransform = glm::mat4(1.0F));
@@ -319,9 +319,11 @@ namespace NR
 		struct DrawCommand
 		{
 			Ref<Mesh> Mesh;
-			Ref<Material> Material;
+			Ref<MaterialTable> MaterialTable;
 			glm::mat4 Transform;
+			Ref<Material> OverrideMaterial;
 		};
+
 		std::vector<DrawCommand> mDrawList;
 		std::vector<DrawCommand> mSelectedMeshDrawList;
 		std::vector<DrawCommand> mParticlesDrawList;

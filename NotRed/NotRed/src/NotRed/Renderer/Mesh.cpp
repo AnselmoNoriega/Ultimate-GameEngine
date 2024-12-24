@@ -243,13 +243,11 @@ namespace NR
             }
         }
 
+        Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
         if (scene->HasMaterials())
         {
             mTextures.resize(scene->mNumMaterials);
             mMaterials.resize(scene->mNumMaterials);
-
-            Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
-            Ref<Texture2D> blackTexture = Renderer::GetBlackTexture();
 
             for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
             {
@@ -272,7 +270,7 @@ namespace NR
                 }
 
                 mi->Set("uMaterialUniforms.AlbedoColor", albedoColor);
-                mi->Set("uMaterialUniforms.Emissive", 0.0f);
+                mi->Set("uMaterialUniforms.Emission", 0.0f);
 
                 float shininess, metalness;
                 if (aiMaterial->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS)
@@ -452,7 +450,7 @@ namespace NR
                 if (fallback)
                 {
                     NR_MESH_LOG("    No metalness map");
-                    mi->Set("uMetalnessTexture", blackTexture);
+                    mi->Set("uMetalnessTexture", whiteTexture);
                     mi->Set("uMaterialUniforms.Metalness", metalness);
                 }
             }
@@ -462,13 +460,15 @@ namespace NR
         else
         {
             auto mi = Material::Create(mMeshShader, "NotRed-Default");
-            mi->Set("uMaterialUniforms.AlbedoTexToggle", 0.0f);
-            mi->Set("uMaterialUniforms.NormalTexToggle", 0.0f);
-            mi->Set("uMaterialUniforms.MetalnessTexToggle", 0.0f);
-            mi->Set("uMaterialUniforms.RoughnessTexToggle", 0.0f);
-            mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f, 0.1f, 0.3f));
+            mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f));
             mi->Set("uMaterialUniforms.Metalness", 0.0f);
             mi->Set("uMaterialUniforms.Roughness", 0.8f);
+            mi->Set("uMaterialUniforms.UseNormalMap", false);
+
+            mi->Set("uAlbedoTexture", whiteTexture);
+            mi->Set("uMetalnessTexture", whiteTexture);
+            mi->Set("uRoughnessTexture", whiteTexture);
+
             mMaterials.push_back(mi);
         }
 
@@ -818,9 +818,11 @@ namespace NR
     {
         SetSubmeshes({});
 
-        for (const auto& material : meshAsset->GetMaterials())
+        const auto& meshMaterials = meshAsset->GetMaterials();
+        mMaterials = Ref<MaterialTable>::Create(meshMaterials.size());
+        for (size_t i = 0; i < meshMaterials.size(); ++i)
         {
-            mMaterials.push_back(material);
+            mMaterials->SetMaterial(i, Ref<MaterialAsset>::Create(meshMaterials[i]));
         }
     }
 
@@ -829,9 +831,11 @@ namespace NR
     {
         SetSubmeshes(submeshes);
 
-        for (const auto& material : meshAsset->GetMaterials())
+        const auto& meshMaterials = meshAsset->GetMaterials();
+        mMaterials = Ref<MaterialTable>::Create(meshMaterials.size());
+        for (size_t i = 0; i < meshMaterials.size(); ++i)
         {
-            mMaterials.push_back(material);
+            mMaterials->SetMaterial(i, Ref<MaterialAsset>::Create(meshMaterials[i]));
         }
     }
 

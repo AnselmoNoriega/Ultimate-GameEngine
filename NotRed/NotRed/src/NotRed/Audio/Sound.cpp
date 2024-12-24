@@ -70,7 +70,7 @@ namespace NR::Audio
 
 		auto& assetMetadata = AssetManager::GetMetadata(config->FileAsset->Handle);
 
-		std::string filepath = AssetManager::GetFileSystemPath(assetMetadata);
+		std::string filepath = AssetManager::GetFileSystemPathString(assetMetadata);
 		ma_result result;
 		result = ma_sound_init_from_file(&audioEngine->mEngine, filepath.c_str(), MA_SOUND_FLAG_DECODE, nullptr, nullptr, &mSound);
 

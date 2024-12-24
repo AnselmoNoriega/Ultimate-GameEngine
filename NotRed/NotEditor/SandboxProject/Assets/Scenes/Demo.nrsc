@@ -1,26 +1,39 @@
 Scene: Demo
 Environment:
-  AssetHandle: 5891183239894280007
+  AssetHandle: 10191359667784106151
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 3341184822646445148
+  - Entity: 13619238109608574028
     TagComponent:
-      Tag: Directional Light
+      Tag: Sky Light
     TransformComponent:
-      Position: [0, 4.19999981, 0]
-      Rotation: [0, 3.29999995, -189.5]
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Parent: 0
     Children:
       []
-    DirectionalLightComponent:
-      Radiance: [1, 1, 1]
-      CastShadows: true
-      SoftShadows: true
-      LightSize: 0.5
+    SkyLightComponent:
+      EnvironmentMap: 10191359667784106151
+      Intensity: 1
+      DynamicSky: false
+  - Entity: 9651895283264950110
+    TagComponent:
+      Tag: TestScene
+    TransformComponent:
+      Position: [0, 1.45841134, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Parent: 0
+    Children:
+      []
+    MeshComponent:
+      AssetID: 10610151712161516910
+      MaterialTable:
+        0: 0
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light
@@ -40,30 +53,21 @@ Entities:
       Radius: 9.19999981
       LightSize: 0.5
       Falloff: 1
-  - Entity: 9651895283264950110
+  - Entity: 3341184822646445148
     TagComponent:
-      Tag: TestScene
+      Tag: Directional Light
     TransformComponent:
-      Position: [0, 1.45841134, 0]
-      Rotation: [0, 0, 0]
+      Position: [0, 4.19999981, 0]
+      Rotation: [0, 3.29999995, -189.5]
       Scale: [1, 1, 1]
     Parent: 0
     Children:
       []
-    MeshComponent:
-      AssetID: 10610151712161516910
-  - Entity: 13790836390258583099
-    TagComponent:
-      Tag: Cube
-    TransformComponent:
-      Position: [0, 5.89292049, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    Parent: 0
-    Children:
-      []
-    MeshComponent:
-      AssetID: 8366434151043859381
+    DirectionalLightComponent:
+      Radiance: [1, 1, 1]
+      CastShadows: true
+      SoftShadows: true
+      LightSize: 0.5
 PhysicsLayers:
   []
 SceneAudio:

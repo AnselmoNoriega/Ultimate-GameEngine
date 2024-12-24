@@ -16,6 +16,7 @@ namespace NR
         Scene,
         MeshAsset,
         Mesh,
+        Material,
         Texture,
         EnvMap,
         Audio,
@@ -32,6 +33,7 @@ namespace NR
             if (assetType == "Scene")           return AssetType::Scene;
             if (assetType == "MeshAsset")       return AssetType::MeshAsset;
             if (assetType == "Mesh")            return AssetType::Mesh;
+            if (assetType == "Material")        return AssetType::Material;
             if (assetType == "Texture")         return AssetType::Texture;
             if (assetType == "EnvMap")          return AssetType::EnvMap;
             if (assetType == "Audio")           return AssetType::Audio;
@@ -50,6 +52,7 @@ namespace NR
             case AssetType::Scene:          return "Scene";
             case AssetType::MeshAsset:      return "MeshAsset";
             case AssetType::Mesh:           return "Mesh";
+            case AssetType::Material:       return "Material";
             case AssetType::Texture:        return "Texture";
             case AssetType::EnvMap:         return "EnvMap";
             case AssetType::Audio:          return "Audio";

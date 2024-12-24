@@ -884,16 +884,16 @@ namespace NR
         sThreadPool.clear();
     }
 
-    void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, const glm::mat4& transform, Ref<Material> overrideMaterial)
+    void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
     {
-        mDrawList.push_back({ mesh, overrideMaterial, transform });
-        mShadowPassDrawList.push_back({ mesh, overrideMaterial, transform });
+        mDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
+        mShadowPassDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
     }
 
-    void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, const glm::mat4& transform)
+    void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
     {
-        mSelectedMeshDrawList.push_back({ mesh, nullptr, transform });
-        mShadowPassDrawList.push_back({ mesh, nullptr, transform });
+        mSelectedMeshDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
+        mShadowPassDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
     }
 
     void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform)
@@ -1026,12 +1026,12 @@ namespace NR
         // Render entities
         for (auto& dc : mDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
         }
 
         for (auto& dc : mSelectedMeshDrawList)
         {
-            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
             if (mOptions.ShowSelectedInWireframe)
             {
                 Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
@@ -1057,7 +1057,7 @@ namespace NR
 
         for (auto& dc : mParticlesDrawList)
         {
-            Renderer::RenderParticles(mCommandBuffer, mParticlePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.Transform);
+            Renderer::RenderParticles(mCommandBuffer, mParticlePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
         }
 
         // Grid
@@ -1715,6 +1715,15 @@ namespace NR
             UI::Property("Bias", mOptions.HBAOBias, 0.02f, 0.0f, 0.95f);
             UI::Property("Blur Sharpness", mOptions.HBAOBlurSharpness, 0.5f, 0.0f, 100.0f);
             UI::EndPropertyGrid();
+
+            float size = ImGui::GetContentRegionAvail().x;
+            if (mResourcesCreated)
+            {
+                float size = ImGui::GetContentRegionAvail().x;
+                auto image = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(1);
+                UI::Image(image, { size, size * (1.0f / image->GetAspectRatio()) }, { 0, 1 }, { 1, 0 });
+            }
+
             UI::EndTreeNode();
         }
 

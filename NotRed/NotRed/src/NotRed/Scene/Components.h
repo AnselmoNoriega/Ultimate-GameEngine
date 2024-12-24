@@ -8,6 +8,7 @@
 #include "NotRed/Core/UUID.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Mesh.h"
+#include "NotRed/Renderer/MaterialAsset.h"
 #include "NotRed/Scene/SceneCamera.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 #include "NotRed/Asset/Asset.h"
@@ -70,6 +71,7 @@ namespace NR
     struct MeshComponent
     {
         Ref<Mesh> MeshObj;
+        Ref<MaterialTable> Materials = Ref<MaterialTable>::Create();
 
         bool IsFractured = false;
 

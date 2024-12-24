@@ -475,6 +475,94 @@ namespace NR::UI
 		return changed;
 	}
 
+	struct PropertyAssetReferenceSettings
+	{
+		bool AdvanceToNextColumn = true;
+		bool NoItemSpacing = false; // After label
+		float WidthOffset = 0.0f;
+	};
+
+	enum class PropertyAssetReferenceError
+	{
+		None, InvalidMetadata
+	};
+
+	static AssetHandle sPropertyAssetReferenceAssetHandle;
+
+	template<typename T, typename Fn>
+	static bool PropertyAssetReferenceTarget(
+		const char* label, 
+		const char* assetName, 
+		Ref<T> source, 
+		Fn&& targetFunc, 
+		const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings()
+	)
+	{
+		bool modified = false;
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		if (settings.NoItemSpacing)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 0.0f });
+		}
+
+		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
+		ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+		float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
+		UI::PushID();
+		float itemHeight = 28.0f;
+
+		if (source)
+		{
+			if (!source->IsFlagSet(AssetFlag::Missing))
+			{
+				ImGui::Button((char*)assetName, { width, itemHeight });
+			}
+			else
+			{
+				ImGui::Button("Missing", { width, itemHeight });
+			}
+		}
+		else
+		{
+			ImGui::Button("Null", { width, itemHeight });
+		}
+
+		UI::PopID();
+		ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			auto data = ImGui::AcceptDragDropPayload("asset_payload");
+			if (data)
+			{
+				AssetHandle assetHandle = *(AssetHandle*)data->Data;
+				sPropertyAssetReferenceAssetHandle = assetHandle;
+				Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+				if (asset->GetAssetType() == T::GetStaticType())
+				{
+					targetFunc(asset.As<T>());
+					modified = true;
+				}
+			}
+		}
+
+		ImGui::PopItemWidth();
+
+		if (settings.AdvanceToNextColumn)
+		{
+			ImGui::NextColumn();
+		}
+		if (settings.NoItemSpacing)
+		{
+			ImGui::PopStyleVar();
+		}
+
+		return modified;
+	}
+
 	static void EndPropertyGrid()
 	{
 		ImGui::Columns(1);
@@ -544,15 +632,13 @@ namespace NR::UI
 		sCheckboxCount = 0;
 	}
 
-	enum class PropertyAssetReferenceError
-	{
-		None, InvalidMetadata
-	};
-
-	static AssetHandle sPropertyAssetReferenceAssetHandle;
-
 	template<typename T>
-	static bool PropertyAssetReference(const char* label, Ref<T>& object, PropertyAssetReferenceError* outError = nullptr)
+	static bool PropertyAssetReference(
+		const char* label, 
+		Ref<T>& object, 
+		PropertyAssetReferenceError* outError = nullptr,
+		const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings()
+	)
 	{
 		bool modified = false;
 		if (outError)
@@ -563,23 +649,32 @@ namespace NR::UI
 		ImGui::Text(label);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
+
+		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
+		ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+		float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
+		UI::PushID();
+		float itemHeight = 28.0f;
 		
 		if (object)
 		{
 			if (!object->IsFlagSet(AssetFlag::Missing))
 			{
-				auto assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
-				ImGui::InputText("##assetRef", (char*)assetFileName.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+				std::string assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+				ImGui::Button((char*)assetFileName.c_str(), { width, itemHeight });
 			}
 			else
 			{
-				ImGui::InputText("##assetRef", (char*)"Missing", 256, ImGuiInputTextFlags_ReadOnly);
+				ImGui::Button("Missing", { width, itemHeight });
 			}
 		}
 		else
 		{
-			ImGui::InputText((const char*)"##assetRef", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+			ImGui::Button("Null", { width, itemHeight });
 		}
+
+		UI::PopID();
+		ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
 		if (ImGui::BeginDragDropTarget())
 		{
@@ -599,12 +694,21 @@ namespace NR::UI
 		}
 
 		ImGui::PopItemWidth();
-		ImGui::NextColumn();
+		if (settings.AdvanceToNextColumn)
+		{
+			ImGui::NextColumn();
+		}
 		return modified;
 	}
 
 	template<typename TAssetType, typename TConversionType, typename Fn>
-	static bool PropertyAssetReferenceWithConversion(const char* label, Ref<TAssetType>& object, Fn&& conversionFunc, PropertyAssetReferenceError* outError = nullptr)
+	static bool PropertyAssetReferenceWithConversion(
+		const char* label, 
+		Ref<TAssetType>& object,
+		Fn&& conversionFunc, 
+		PropertyAssetReferenceError* outError = nullptr, 
+		const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings()
+	)
 	{
 		bool succeeded = false;
 		if (outError)
@@ -615,23 +719,32 @@ namespace NR::UI
 		ImGui::Text(label);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
+
+		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
+		ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+		float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
+		UI::PushID();
+		float itemHeight = 28.0f;
 		
 		if (object)
 		{
 			if (!object->IsFlagSet(AssetFlag::Missing))
 			{
-				auto assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
-				ImGui::InputText("##assetRef", (char*)assetFileName.c_str(), 256, ImGuiInputTextFlags_ReadOnly);
+				std::string assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+				ImGui::Button((char*)assetFileName.c_str(), { width, itemHeight });
 			}
 			else
 			{
-				ImGui::InputText("##assetRef", (char*)"Missing", 256, ImGuiInputTextFlags_ReadOnly);
+				ImGui::Button("Missing", { width, itemHeight });
 			}
 		}
 		else
 		{
-			ImGui::InputText("##assetRef", (char*)"Null", 256, ImGuiInputTextFlags_ReadOnly);
+			ImGui::Button("Null", { width, itemHeight });
 		}
+
+		UI::PopID();
+		ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
 		if (ImGui::BeginDragDropTarget())
 		{

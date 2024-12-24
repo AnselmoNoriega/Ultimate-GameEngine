@@ -305,12 +305,15 @@ namespace NR
         return sData->SelectedDrawCall;
     }
 
-    void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
+    void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
     {
-        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform]() mutable
+        NR_CORE_VERIFY(mesh);
+        NR_CORE_VERIFY(materialTable);
+
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform, materialTable]() mutable
             {
-                NR_PROFILE_FUNC("VulkanRenderer::RenderMesh");
-                NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
+                NR_PROFILE_FUNC("VKnRenderer::RenderMesh");
+                NR_SCOPE_PERF("VKRenderer::RenderMesh");
 
                 if (sData->SelectedDrawCall != -1 && sData->DrawCallCount > sData->SelectedDrawCall)
                 {
@@ -337,10 +340,21 @@ namespace NR
 
                 std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
 
-                auto& materials = mesh->GetMaterials();
-                for (auto& material : materials)
+                auto meshMaterialTable = mesh->GetMaterials();
+                uint32_t materialCount = meshMaterialTable->GetMaterialCount();
+                std::vector<Ref<MaterialAsset>> renderMaterials(materialCount);
+                for (uint32_t i = 0; i < materialCount; i++)
                 {
-                    Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
+                    if (materialTable->HasMaterial(i))
+                    {
+                        renderMaterials[i] = materialTable->GetMaterial(i);
+                    }
+                    else
+                    {
+                        renderMaterials[i] = meshMaterialTable->GetMaterial(i);
+                    }
+
+                    Ref<VKMaterial> vulkanMaterial = renderMaterials[i]->GetMaterial().As<VKMaterial>();
                     RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
                 }
 
@@ -354,7 +368,7 @@ namespace NR
                     }
 
                     const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
-                    auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
+                    auto material = renderMaterials[submesh.MaterialIndex]->GetMaterial().As<VKMaterial>();
 
                     VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
                     VkDescriptorSet descriptorSet = material->GetDescriptorSet(frameIndex);
@@ -396,12 +410,14 @@ namespace NR
             });
     }
 
-    void VKRenderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, const glm::mat4& transform)
+    void VKRenderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
     {
-        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform]() mutable
+        NR_CORE_VERIFY(mesh);
+        NR_CORE_VERIFY(materialTable);
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform, materialTable]() mutable
             {
-                NR_PROFILE_FUNC("VulkanRenderer::RenderMesh");
-                NR_SCOPE_PERF("VulkanRenderer::RenderMesh");
+                NR_PROFILE_FUNC("VulkanRenderer::RenderParticles");
+                NR_SCOPE_PERF("VulkanRenderer::RenderParticles");
 
                 const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 const VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
@@ -423,10 +439,21 @@ namespace NR
 
                 std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
 
-                auto& materials = mesh->GetMaterials();
-                for (auto& material : materials)
+                auto meshMaterialTable = mesh->GetMaterials();
+                uint32_t materialCount = meshMaterialTable->GetMaterialCount();
+                std::vector<Ref<MaterialAsset>> renderMaterials(materialCount);
+                for (uint32_t i = 0; i < materialCount; ++i)
                 {
-                    Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
+                    if (materialTable->HasMaterial(i))
+                    {
+                        renderMaterials[i] = materialTable->GetMaterial(i);
+                    }
+                    else
+                    {
+                        renderMaterials[i] = meshMaterialTable->GetMaterial(i);
+                    }
+
+                    Ref<VKMaterial> vulkanMaterial = renderMaterials[i]->GetMaterial().As<VKMaterial>();
                     RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
                 }
 
@@ -435,7 +462,7 @@ namespace NR
                 for (uint32_t submeshIndex : submeshes)
                 {
                     const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
-                    auto material = mesh->GetMaterials()[submesh.MaterialIndex].As<VKMaterial>();
+                    auto material = mesh->GetMaterials()->GetMaterial(submesh.MaterialIndex)->GetMaterial().As<VKMaterial>();
 
                     VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
                     VkDescriptorSet descriptorSet = material->GetDescriptorSet(frameIndex);

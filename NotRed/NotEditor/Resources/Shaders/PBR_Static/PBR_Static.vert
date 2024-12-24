@@ -44,6 +44,8 @@ struct VertexOutput
 	mat3 WorldTransform;
 	vec3 Binormal;
 
+	mat3 CameraView;
+
 	vec4 ShadowMapCoords[4];
 	vec3 ViewPosition;
 };
@@ -58,6 +60,8 @@ void main()
 	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(aTangent, aBinormal, aNormal);
 	Output.WorldTransform = mat3(uRenderer.Transform);
 	Output.Binormal = aBinormal;
+
+	Output.CameraView = mat3(uViewMatrix);
 
 	Output.ShadowMapCoords[0] = uLightMatrix[0] * vec4(Output.WorldPosition, 1.0);
 	Output.ShadowMapCoords[1] = uLightMatrix[1] * vec4(Output.WorldPosition, 1.0);

@@ -15,11 +15,17 @@ namespace NR::Audio
 		glm::vec3 Velocity;
 	};
 
+	/*  ======================================================================
+		Entity Component, contains data to initialize SoundObjects
+		Playback of SoundObject controlled via association with AudioComponent
+		----------------------------------------------------------------------
+	*/
 	struct AudioComponent
 	{
 		UUID ParentHandle;
 
-		Ref<SoundConfig> SoundConfig;
+		/* Config to initialize SoundObject to for this AudioComponent */
+		Ref<SoundConfig> SoundConfig = Ref<Audio::SoundConfig>::Create();
 
 		bool PlayOnAwake = false;
 

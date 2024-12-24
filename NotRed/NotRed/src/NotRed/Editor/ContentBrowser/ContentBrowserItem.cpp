@@ -156,7 +156,6 @@ namespace NR
 	void ContentBrowserItem::Rename(const std::string& newName, bool fromCallback)
 	{
 		Renamed(newName, fromCallback);
-		mName = newName;
 	}
 
 	void ContentBrowserItem::ContextMenuOpen(CBItemActionResult& actionResult)
@@ -218,6 +217,7 @@ namespace NR
 			FileSystem::Rename(mDirectoryInfo->FilePath.string(), newName);
 		}
 		mDirectoryInfo->Name = newName;
+		mName = newName;
 		UpdateDirectoryPath(mDirectoryInfo, mDirectoryInfo->FilePath.parent_path().string());
 	}
 
@@ -341,19 +341,21 @@ namespace NR
 
 	void ContentBrowserAsset::Renamed(const std::string& newName, bool fromCallback)
 	{
-		std::string newFilePath = fmt::format("{0}/{1}{2}", mAssetInfo.FilePath.parent_path().string(), newName, mAssetInfo.FilePath.extension().string());
+		auto filepath = AssetManager::GetFileSystemPath(mAssetInfo);
+		std::filesystem::path newFilepath = fmt::format("{0}\\{1}{2}", filepath.parent_path().string(), newName, filepath.extension().string());
 
 		if (!fromCallback)
 		{
-			if (FileSystem::Exists(newFilePath))
+			if (!FileSystem::Rename(filepath, newFilepath))
 			{
 				NR_CORE_ERROR("A file with that name already exists!");
 				return;
 			}
-			FileSystem::Rename((Project::GetActive()->GetAssetDirectory() / mAssetInfo.FilePath).string(), newName);
-			AssetManager::AssetRenamed(mAssetInfo.Handle, newFilePath);
+
+			AssetManager::AssetRenamed(mAssetInfo.Handle, AssetManager::GetRelativePath(newFilepath.string()));
 		}
 
-		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilePath);
+		mName = newName;
+		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilepath.string());
 	}
 }

@@ -9,7 +9,7 @@
 #include "NotRed/Renderer/VertexBuffer.h"
 #include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/Shader.h"
-#include "NotRed/Renderer/Material.h"
+#include "NotRed/Renderer/MaterialAsset.h"
 
 #include "NotRed/Math/AABB.h"
 
@@ -245,8 +245,7 @@ namespace NR
 		void SetMeshAsset(Ref<MeshAsset> meshAsset) { mMeshAsset = meshAsset; }
 
 		Ref<Shader> GetMeshShader() { return mMeshShader; }
-		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
-		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
+		Ref<MaterialTable> GetMaterials() const { return mMaterials; }
 
 		static AssetType GetStaticType() { return AssetType::Mesh; }
 		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
@@ -260,7 +259,7 @@ namespace NR
 
 		// Materials
 		Ref<Shader> mMeshShader;
-		std::vector<Ref<Material>> mMaterials;
+		Ref<MaterialTable> mMaterials;
 
 		// Animation
 		bool mIsAnimated = false;

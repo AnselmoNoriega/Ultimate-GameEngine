@@ -22,6 +22,7 @@ namespace NR
 
 	std::string FileSystem::Rename(const std::string& filepath, const std::string& newName)
 	{
+		NR_CORE_ASSERT(false);
 		sIgnoreNextChange = true;
 
 		std::filesystem::path p = filepath;
@@ -31,6 +32,28 @@ namespace NR
 		sIgnoreNextChange = false;
 		
 		return newFilePath;
+	}
+
+	bool FileSystem::Move(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
+	{
+		if (FileSystem::Exists(newFilepath))
+		{
+			return false;
+		}
+
+		std::filesystem::rename(oldFilepath, newFilepath);
+		return true;
+	}
+
+	bool FileSystem::Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
+	{
+		return Move(oldFilepath, newFilepath);
+	}
+
+	bool FileSystem::RenameFilename(const std::filesystem::path& oldFilepath, const std::string& newName)
+	{
+		std::filesystem::path newPath = fmt::format("{0}\\{1}{2}", oldFilepath.parent_path().string(), newName, oldFilepath.extension());
+		return Rename(oldFilepath, newPath);
 	}
 
 	bool FileSystem::MoveFile(const std::string& filepath, const std::string& dest)

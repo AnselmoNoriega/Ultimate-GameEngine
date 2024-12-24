@@ -6,6 +6,7 @@
 
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/Renderer.h"
+#include "NotRed/Renderer/MaterialAsset.h"
 
 #include "NotRed/Audio/AudioFileUtils.h"
 #include "NotRed/Audio/Sound.h"
@@ -13,12 +14,13 @@
 #include "AssetManager.h"
 
 #include "yaml-cpp/yaml.h"
+#include "NotRed/Util/YAMLSerializationHelpers.h"
 
 namespace NR
 {
 	bool TextureSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		asset = Texture2D::Create(AssetManager::GetFileSystemPath(metadata));
+		asset = Texture2D::Create(AssetManager::GetFileSystemPathString(metadata));
 		asset->Handle = metadata.Handle;
 
 		bool result = asset.As<Texture2D>()->Loaded();
@@ -32,14 +34,128 @@ namespace NR
 	bool MeshAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		Ref<Asset> temp = asset;
-		asset = Ref<MeshAsset>::Create(AssetManager::GetFileSystemPath(metadata));
+		asset = Ref<MeshAsset>::Create(AssetManager::GetFileSystemPathString(metadata));
 		asset->Handle = metadata.Handle;
 		return (asset.As<MeshAsset>())->GetVertices().size() > 0;
 	}
 
+	void MaterialAssetSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
+#define NR_SERIALIZE_PROPERTY(propName, propVal) out << YAML::Key << #propName << YAML::Value << propVal
+		Ref<MaterialAsset> material = asset.As<MaterialAsset>();
+		
+		YAML::Emitter out;
+		out << YAML::BeginMap; // Material
+		out << YAML::Key << "Material" << YAML::Value;
+		{
+			out << YAML::BeginMap;
+
+			NR_SERIALIZE_PROPERTY(AlbedoColor, material->GetAlbedoColor());
+			NR_SERIALIZE_PROPERTY(Emission, material->GetEmission());
+			NR_SERIALIZE_PROPERTY(UseNormalMap, material->IsUsingNormalMap());
+			NR_SERIALIZE_PROPERTY(Metalness, material->GetMetalness());
+			NR_SERIALIZE_PROPERTY(Roughness, material->GetRoughness());
+
+			{
+				Ref<Texture2D> albedoMap = material->GetAlbedoMap();
+				bool hasAlbedoMap = albedoMap ? !albedoMap.EqualsObject(Renderer::GetWhiteTexture()) : false;
+				AssetHandle albedoMapHandle = hasAlbedoMap ? albedoMap->Handle : (AssetHandle)0;
+				NR_SERIALIZE_PROPERTY(AlbedoMap, albedoMapHandle);
+			}
+			{
+				Ref<Texture2D> normalMap = material->GetNormalMap();
+				bool hasNormalMap = normalMap ? !normalMap.EqualsObject(Renderer::GetWhiteTexture()) : false;
+				AssetHandle normalMapHandle = hasNormalMap ? normalMap->Handle : (AssetHandle)0;
+				NR_SERIALIZE_PROPERTY(NormalMap, normalMapHandle);
+			}
+			{
+				Ref<Texture2D> metalnessMap = material->GetMetalnessMap();
+				bool hasMetalnessMap = metalnessMap ? !metalnessMap.EqualsObject(Renderer::GetWhiteTexture()) : false;
+				AssetHandle metalnessMapHandle = hasMetalnessMap ? metalnessMap->Handle : (AssetHandle)0;
+				NR_SERIALIZE_PROPERTY(MetalnessMap, metalnessMapHandle);
+			}
+			{
+				Ref<Texture2D> roughnessMap = material->GetRoughnessMap();
+				bool hasRoughnessMap = roughnessMap ? !roughnessMap.EqualsObject(Renderer::GetWhiteTexture()) : false;
+				AssetHandle roughnessMapHandle = hasRoughnessMap ? roughnessMap->Handle : (AssetHandle)0;
+				NR_SERIALIZE_PROPERTY(RoughnessMap, roughnessMapHandle);
+			}
+			out << YAML::EndMap;
+		}
+		out << YAML::EndMap; // Material
+
+		std::ofstream fout(AssetManager::GetFileSystemPath(metadata));
+		fout << out.c_str();
+#undef NR_SERIALIZE_PROPERTY
+	}
+
+	bool MaterialAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		std::ifstream stream(AssetManager::GetFileSystemPath(metadata));
+		if (!stream.is_open())
+		{
+			return false;
+		}
+
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+		YAML::Node root = YAML::Load(strStream.str());
+		YAML::Node materialNode = root["Material"];
+
+		Ref<MaterialAsset> material = Ref<MaterialAsset>::Create();
+
+#define NR_DESERIALIZE_PROPERTY(propName, destination, node, defaultValue) destination = node[#propName] ? node[#propName].as<decltype(defaultValue)>() : defaultValue
+
+		NR_DESERIALIZE_PROPERTY(AlbedoColor, material->GetAlbedoColor(), materialNode, glm::vec3(0.8f));
+		NR_DESERIALIZE_PROPERTY(Emission, material->GetEmission(), materialNode, 0.0f);
+		material->SetUseNormalMap(materialNode["UseNormalMap"] ? materialNode["UseNormalMap"].as<bool>() : false);
+		NR_DESERIALIZE_PROPERTY(Metalness, material->GetMetalness(), materialNode, 0.0f);
+		NR_DESERIALIZE_PROPERTY(Roughness, material->GetRoughness(), materialNode, 0.5f);
+
+		AssetHandle albedoMap, normalMap, metalnessMap, roughnessMap;
+		NR_DESERIALIZE_PROPERTY(AlbedoMap, albedoMap, materialNode, (AssetHandle)0);
+		NR_DESERIALIZE_PROPERTY(NormalMap, normalMap, materialNode, (AssetHandle)0);
+		NR_DESERIALIZE_PROPERTY(MetalnessMap, metalnessMap, materialNode, (AssetHandle)0);
+		NR_DESERIALIZE_PROPERTY(RoughnessMap, roughnessMap, materialNode, (AssetHandle)0);
+
+		if (albedoMap)
+		{
+			if (AssetManager::IsAssetHandleValid(albedoMap))
+			{
+				material->SetAlbedoMap(AssetManager::GetAsset<Texture2D>(albedoMap));
+			}
+		}
+		if (normalMap)
+		{
+			if (AssetManager::IsAssetHandleValid(normalMap))
+			{
+				material->SetNormalMap(AssetManager::GetAsset<Texture2D>(normalMap));
+			}
+		}
+		if (metalnessMap)
+		{
+			if (AssetManager::IsAssetHandleValid(metalnessMap))
+			{
+				material->SetMetalnessMap(AssetManager::GetAsset<Texture2D>(metalnessMap));
+			}
+		}
+		if (roughnessMap)
+		{
+			if (AssetManager::IsAssetHandleValid(roughnessMap))
+			{
+				material->SetRoughnessMap(AssetManager::GetAsset<Texture2D>(roughnessMap));
+			}
+		}
+#undef NR_DESERIALIZE_PROPERTY
+
+		asset = material;
+		asset->Handle = metadata.Handle;
+		return true;
+	}
+
 	bool EnvironmentSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(AssetManager::GetFileSystemPath(metadata));
+		auto [radiance, irradiance] = Renderer::CreateEnvironmentMap(AssetManager::GetFileSystemPathString(metadata));
 
 		if (!radiance || !irradiance)
 		{

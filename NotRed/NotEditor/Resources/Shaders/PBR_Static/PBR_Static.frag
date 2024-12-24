@@ -49,6 +49,8 @@ struct VertexOutput
 	mat3 WorldTransform;
 	vec3 Binormal;
 
+	mat3 CameraView;
+
 	vec4 ShadowMapCoords[4];
 	vec3 ViewPosition;
 };
@@ -122,7 +124,7 @@ layout(push_constant) uniform Material
 	layout(offset = 64) vec3 AlbedoColor;
 	float Metalness;
 	float Roughness;
-	float Emissive;
+	float Emission;
 
 	float EnvMapRotation;
 
@@ -646,7 +648,7 @@ void main()
 	mParams.Normal = normalize(Input.Normal);
 	if (uMaterialUniforms.UseNormalMap)
 	{
-		mParams.Normal = normalize(2.0 * texture(uNormalTexture, Input.TexCoord).rgb - 1.0);
+		mParams.Normal = normalize(texture(uNormalTexture, Input.TexCoord).rgb * 2.0f - 1.0f);
 		mParams.Normal = normalize(Input.WorldNormals * mParams.Normal);
 	}
 
@@ -730,16 +732,17 @@ void main()
 
 	vec3 lightContribution = CalculateDirLights(F0) * shadowAmount;
 	lightContribution += CalculatePointLights(F0);
-	lightContribution += mParams.Albedo * uMaterialUniforms.Emissive;
+	lightContribution += mParams.Albedo * uMaterialUniforms.Emission;
 	vec3 iblContribution = IBL(F0, Lr) * uEnvironmentMapIntensity;
 
 	color = vec4(iblContribution + lightContribution, 1.0);
-
-	// View normals .. used by HBAO
-	vec2 screenSpaceCoords = gl_FragCoord.xy * uInvFullResolution;
-	vec3 P = FetchViewPos(screenSpaceCoords);
-	vec3 N = ReconstructNormal(screenSpaceCoords, P);
-	oViewNormals = vec4(N * 0.5 + 0.5, 1.0);
+	
+	// View normals for HBAO
+	vec3 hbaoNormal = Input.CameraView * normalize(Input.Normal);
+	hbaoNormal = hbaoNormal * 0.5 + 0.5;
+	hbaoNormal.x = 1.0f - hbaoNormal.x;
+	hbaoNormal.y = 1.0f - hbaoNormal.y;
+	oViewNormals = vec4(hbaoNormal, 1.0f);
 
 	oViewPosition = vec4(Input.ViewPosition, 1.0);
 	

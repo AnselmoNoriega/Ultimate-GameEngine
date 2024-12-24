@@ -705,6 +705,74 @@ namespace NR
 					}
 				}
 				UI::EndPropertyGrid();
+
+				if (mc.MeshObj)
+				{
+					if (UI::BeginTreeNode("Materials"))
+					{
+						UI::BeginPropertyGrid();
+						auto meshMaterialTable = mc.MeshObj->GetMaterials();
+						if (mc.Materials->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
+						{
+							mc.Materials->SetMaterialCount(meshMaterialTable->GetMaterialCount());
+						}
+
+						for (size_t i = 0; i < mc.Materials->GetMaterialCount(); ++i)
+						{
+							if (i == meshMaterialTable->GetMaterialCount())
+							{
+								ImGui::Separator();
+							}
+
+							bool hasLocalMaterial = mc.Materials->HasMaterial(i);
+							bool hasMeshMaterial = meshMaterialTable->HasMaterial(i);
+							Ref<MaterialAsset> meshMaterialAsset;
+							if (hasMeshMaterial)
+							{
+								meshMaterialAsset = meshMaterialTable->GetMaterial(i);
+							}
+
+							Ref<MaterialAsset> materialAsset = hasLocalMaterial ? mc.Materials->GetMaterial(i) : meshMaterialAsset;
+							std::string label = fmt::format("[Material {0}]", i);
+							UI::PropertyAssetReferenceSettings settings;
+							if (hasLocalMaterial || !hasMeshMaterial)
+							{
+								if (hasLocalMaterial)
+								{
+									settings.AdvanceToNextColumn = false;
+									settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
+								}
+								UI::PropertyAssetReference<MaterialAsset>(label.c_str(), materialAsset, nullptr, settings);
+							}
+							else
+							{
+								std::string meshMaterialName = meshMaterialAsset->GetMaterial()->GetName();
+								if (meshMaterialName.empty())
+								{
+									meshMaterialName = "Unnamed Material";
+								}
+
+								UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAsset, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
+									{
+										materialTable->SetMaterial(i, materialAsset);
+									}, settings);
+							}
+
+							if (hasLocalMaterial)
+							{
+								ImGui::SameLine();
+								float prevItemHeight = ImGui::GetItemRectSize().y;
+								if (ImGui::Button("X", { prevItemHeight, prevItemHeight }))
+								{
+									mc.Materials->ClearMaterial(i);
+								}
+								ImGui::NextColumn();
+							}
+						}
+						UI::EndPropertyGrid();
+						UI::EndTreeNode();
+					}
+				}
 			});
 
 		DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
@@ -722,17 +790,17 @@ namespace NR
 
 				if (UI::PropertyColor("Star Color", pc.StarColor))
 				{
-					pc.MeshObj->GetMaterials()[0]->Set("uGalaxySpecs.StarColor", pc.StarColor);
+					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.StarColor", pc.StarColor);
 				}
 
 				if (UI::PropertyColor("Dust Color", pc.DustColor))
 				{
-					pc.MeshObj->GetMaterials()[0]->Set("uGalaxySpecs.DustColor", pc.DustColor);
+					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.DustColor", pc.DustColor);
 				}
 
 				if (UI::PropertyColor("h2Region Color", pc.h2RegionColor))
 				{
-					pc.MeshObj->GetMaterials()[0]->Set("uGalaxySpecs.h2RegionColor", pc.h2RegionColor);
+					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.h2RegionColor", pc.h2RegionColor);
 				}
 
 				UI::EndPropertyGrid();

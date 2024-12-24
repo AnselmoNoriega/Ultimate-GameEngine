@@ -11,6 +11,7 @@ namespace NR
 		sSerializers[AssetType::Texture] = CreateScope<TextureSerializer>();
 		sSerializers[AssetType::MeshAsset] = CreateScope<MeshAssetSerializer>();
 		sSerializers[AssetType::Mesh] = CreateScope<MeshSerializer>();
+		sSerializers[AssetType::Material] = CreateScope<MaterialAssetSerializer>();
 		sSerializers[AssetType::EnvMap] = CreateScope<EnvironmentSerializer>();
 		sSerializers[AssetType::PhysicsMat] = CreateScope<PhysicsMaterialSerializer>();
 		sSerializers[AssetType::Audio] = CreateScope<AudioFileSourceSerializer>();

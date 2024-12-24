@@ -310,9 +310,13 @@ namespace NR
     bool AssetManager::ReloadData(AssetHandle assetHandle)
     {
         auto& metadata = GetMetadata(assetHandle);
-        if (!metadata.IsDataLoaded) // Data 
+        if (!metadata.IsDataLoaded)
         {
             NR_CORE_WARN("Trying to reload asset that was never loaded");
+
+            Ref<Asset> asset;
+            metadata.IsDataLoaded = AssetImporter::TryLoadData(metadata, asset);
+            return metadata.IsDataLoaded;
         }
 
         NR_CORE_ASSERT(sLoadedAssets.find(assetHandle) != sLoadedAssets.end());

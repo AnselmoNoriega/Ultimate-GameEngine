@@ -72,6 +72,11 @@ namespace NR::UI
 		{
 			Ref<VKTexture2D> VkTexture = texture.As<VKTexture2D>();
 			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVulkanDescriptorInfo();
+			if (!imageInfo.imageView)
+			{
+				return;
+			}
+
 			const auto textureID = ImGui_ImplVulkan_AddTexture(imageInfo.sampler, imageInfo.imageView, imageInfo.imageLayout);
 			ImGui::Image(textureID, size, uv0, uv1, tint_col, border_col);
 		}

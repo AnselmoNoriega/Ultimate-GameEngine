@@ -89,21 +89,22 @@ namespace NR::Script
     void NR_Texture2D_SetData(Ref<Texture2D>* _this, MonoArray* inData, int32_t count);
 
     // Material
-    void NR_Material_Destructor(Ref<Material>* _this);
-    void NR_Material_SetFloat(Ref<Material>* _this, MonoString* uniform, float value);
-    void NR_Material_SetTexture(Ref<Material>* _this, MonoString* uniform, Ref<Texture2D>* texture);
+    void NR_Material_Destructor(Ref<MaterialAsset>* _this);
+    void NR_Material_GetAlbedoColor(Ref<MaterialAsset>* _this, glm::vec3* outAlbedoColor);
+    void NR_Material_SetAlbedoColor(Ref<MaterialAsset>* _this, glm::vec3* inAlbedoColor);
 
-    void NR_MaterialInstance_Destructor(Ref<Material>* _this);
-    void NR_MaterialInstance_SetFloat(Ref<Material>* _this, MonoString* uniform, float value);
-    void NR_MaterialInstance_SetVector3(Ref<Material>* _this, MonoString* uniform, glm::vec3* value);
-    void NR_MaterialInstance_SetVector4(Ref<Material>* _this, MonoString* uniform, glm::vec4* value);
-    void NR_MaterialInstance_SetTexture(Ref<Material>* _this, MonoString* uniform, Ref<Texture2D>* texture);
+    void NR_Material_GetMetalness(Ref<MaterialAsset>* _this, float* outMetalness);
+    void NR_Material_SetMetalness(Ref<MaterialAsset>* _this, float inMetalness);
+    void NR_Material_GetRoughness(Ref<MaterialAsset>* _this, float* outRoughness);
+    void NR_Material_SetRoughness(Ref<MaterialAsset>* _this, float inRoughness);
+    void NR_Material_SetFloat(Ref<MaterialAsset>* _this, MonoString* uniform, float value);
+    void NR_Material_SetTexture(Ref<MaterialAsset>* _this, MonoString* uniform, Ref<Texture2D>* texture);
 
     // Mesh
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath);
     void NR_Mesh_Destructor(Ref<Mesh>* _this);
-    Ref<Material>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
-    Ref<Material>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
+    Ref<MaterialAsset>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
+    Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
     uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 
     void* NR_MeshFactory_CreatePlane(float width, float height);

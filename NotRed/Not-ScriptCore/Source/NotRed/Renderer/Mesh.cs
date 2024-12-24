@@ -28,9 +28,9 @@ namespace NR
             }
         }
 
-        public MaterialInstance GetMaterial(int index)
+        public Material GetMaterial(int index)
         {
-            return new MaterialInstance(GetMaterialByIndex_Native(_unmanagedInstance, index));
+            return new Material(GetMaterialByIndex_Native(_unmanagedInstance, index));
         }
 
         public int GetMaterialCount()

@@ -10,7 +10,8 @@ namespace NR
     {
     public:
         VKMaterial(const Ref<Shader>& shader, const std::string& name = "");
-        virtual ~VKMaterial();
+        VKMaterial(Ref<Material> material, const std::string& name = "");
+        ~VKMaterial() override;
 
         void Invalidate() override;
 

@@ -1282,11 +1282,11 @@ namespace NR
                 Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().MeshObj;
                 if (mesh && mesh->GetAssetType() == AssetType::Mesh)
                 {
-                    auto& materials = mesh->GetMaterials();
+                    auto& materials = mesh->GetMaterials()->GetMaterials();
                     static uint32_t selectedMaterialIndex = 0;
                     for (uint32_t i = 0; i < materials.size(); ++i)
                     {
-                        auto& material = materials[i];
+                        auto material = materials[i]->GetMaterial();
                         std::string materialName = material->GetName();
                         if (materialName.empty())
                         {
@@ -1310,7 +1310,7 @@ namespace NR
                     // Selected material
                     if (selectedMaterialIndex < materials.size())
                     {
-                        auto& material = materials[selectedMaterialIndex];
+                        auto material = materials[selectedMaterialIndex]->GetMaterial();
                         ImGui::Text("Shader: %s", material->GetShader()->GetName().c_str());
                         // Textures ------------------------------------------------------------------------------
                         {
@@ -1386,8 +1386,8 @@ namespace NR
                                 ImGui::EndGroup();
                                 ImGui::SameLine();
                                 ImGui::ColorEdit3("Color##Albedo", glm::value_ptr(albedoColor), ImGuiColorEditFlags_NoInputs);
-                                float& emissive = material->GetFloat("uMaterialUniforms.Emissive");
-                                ImGui::DragFloat("Emissive", &emissive);
+                                float& emission = material->GetFloat("uMaterialUniforms.Emission");
+                                ImGui::DragFloat("Emission", &emission);
                             }
                         }
                         {

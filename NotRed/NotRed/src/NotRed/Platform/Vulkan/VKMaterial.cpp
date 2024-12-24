@@ -21,6 +21,29 @@ namespace NR
         Init();
         Renderer::RegisterShaderDependency(shader, this);
     }
+
+    VKMaterial::VKMaterial(Ref<Material> material, const std::string& name)
+        : mShader(material->GetShader()), mName(name),
+        mWriteDescriptors(Renderer::GetConfig().FramesInFlight),
+        mDirtyDescriptorSets(Renderer::GetConfig().FramesInFlight, true)
+    {
+        if (name.empty())
+        {
+            mName = material->GetName();
+        }
+
+        Renderer::RegisterShaderDependency(mShader, this);
+        auto vulkanMaterial = material.As<VKMaterial>();
+
+        mUniformStorageBuffer = Buffer::Copy(vulkanMaterial->mUniformStorageBuffer.Data, vulkanMaterial->mUniformStorageBuffer.Size);
+        mResidentDescriptors = vulkanMaterial->mResidentDescriptors;
+        mResidentDescriptorArrays = vulkanMaterial->mResidentDescriptorArrays;
+        mPendingDescriptors = vulkanMaterial->mPendingDescriptors;
+        mTextures = vulkanMaterial->mTextures;
+        mTextureArrays = vulkanMaterial->mTextureArrays;
+        mImages = vulkanMaterial->mImages;
+        mImageHashes = vulkanMaterial->mImageHashes;
+    }
      
     VKMaterial::~VKMaterial()
     {

@@ -45,7 +45,8 @@ namespace NR
         static AssetHandle ImportAsset(const std::string& filepath);
         static bool ReloadData(AssetHandle assetHandle);
 
-        static std::string GetFileSystemPath(const AssetMetadata& metadata) { return (Project::GetAssetDirectory() / metadata.FilePath).string(); }
+        static std::filesystem::path GetFileSystemPath(const AssetMetadata& metadata) { return Project::GetAssetDirectory() / metadata.FilePath; }
+        static std::string GetFileSystemPathString(const AssetMetadata& metadata) { return GetFileSystemPath(metadata).string(); }
 
         template<typename T, typename... Args>
         static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directory, Args&&... args)
@@ -60,7 +61,14 @@ namespace NR
 
             AssetMetadata metadata;
             metadata.Handle = AssetHandle();
-            metadata.FilePath = directoryPath + "/" + filename;
+            if (directoryPath.empty() || directoryPath == ".")
+            {
+                metadata.FilePath = filename;
+            }
+            else
+            {
+                metadata.FilePath = directoryPath + "/" + filename;
+            }
             metadata.IsDataLoaded = true;
             metadata.Type = T::GetStaticType();
 

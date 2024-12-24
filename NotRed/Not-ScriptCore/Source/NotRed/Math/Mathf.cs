@@ -4,8 +4,20 @@ namespace NR
 {
     public static class Mathf
     {
-        public const float Deg2Rad = ((float)Math.PI * 2.0F) / 360.0F;
-        public const float Rad2Deg = 360.0F / ((float)Math.PI * 2.0F);
+        public const float PI = (float)Math.PI;
+
+        public const float Deg2Rad = PI / 180.0f;
+        public const float Rad2Deg = 180.0f / PI;
+
+        public static float Sin(float value)
+        {
+            return (float)Math.Sin(value);
+        }
+
+        public static float Cos(float value)
+        {
+            return (float)Math.Cos(value);
+        }
 
         public static float Clamp(float value, float min, float max)
         {

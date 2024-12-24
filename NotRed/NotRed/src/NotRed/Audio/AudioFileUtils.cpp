@@ -76,7 +76,7 @@ namespace NR::AudioFileUtils
 
 	std::optional<AudioFileInfo> GetFileInfo(const AssetMetadata& metadata)
 	{
-		std::string filepath = AssetManager::GetFileSystemPath(metadata);
+		std::string filepath = AssetManager::GetFileSystemPathString(metadata);
 		if (Utils::String::EqualsIgnoreCase(metadata.FilePath.extension().string(), ".wav"))
 		{
 			return GetFileInfoWav(filepath.c_str());

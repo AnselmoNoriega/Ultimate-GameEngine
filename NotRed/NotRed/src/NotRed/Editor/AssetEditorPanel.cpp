@@ -70,6 +70,7 @@ namespace NR
 
 	void AssetEditorPanel::RegisterDefaultEditors()
 	{
+		RegisterEditor<MaterialEditor>(AssetType::Material);
 		RegisterEditor<TextureViewer>(AssetType::Texture);
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
 		RegisterEditor<AudioFileViewer>(AssetType::Audio);

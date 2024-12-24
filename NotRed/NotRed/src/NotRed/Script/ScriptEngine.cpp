@@ -196,6 +196,8 @@ namespace NR
 
     static MonoMethod* GetMethod(MonoImage* image, const std::string& methodDesc)
     {
+        NR_CORE_VERIFY(image);
+
         MonoMethodDesc* desc = mono_method_desc_new(methodDesc.c_str(), NULL);
         if (!desc)
         {

@@ -9,7 +9,9 @@
 #include "NotRed/Project/Project.h"
 #include "NotRed/Core/Application.h"
 #include "NotRed/Core/Input.h"
+
 #include "AssetEditorPanel.h"
+#include "NotRed/Renderer/MaterialAsset.h"
 
 #include "NotRed/Audio/Sound.h"
 
@@ -32,6 +34,7 @@ namespace NR
 		mAssetIconMap[".wav"] = Texture2D::Create("Resources/Editor/wav.png");
 		mAssetIconMap[".cs"] = Texture2D::Create("Resources/Editor/csc.png");
 		mAssetIconMap[".png"] = Texture2D::Create("Resources/Editor/png.png");
+		mAssetIconMap[".nrmaterial"] = Texture2D::Create("Resources/Editor/MaterialAssetIcon.png");
 		mAssetIconMap[".nrsc"] = Texture2D::Create("Resources/Editor/notred.png");
 
 		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
@@ -178,9 +181,14 @@ namespace NR
 								FileSystem::CreateDirectory((mCurrentDirectory->FilePath / "New Folder").string());
 							}
 
+							if (ImGui::MenuItem("Material"))
+							{
+								CreateAsset<MaterialAsset>("New Material.nrmaterial");
+							}
+
 							if (ImGui::MenuItem("Physics Material"))
 							{
-								CreateAsset<PhysicsMaterial>("New Physics Material.hpm", 0.6f, 0.6f, 0.0f);
+								CreateAsset<PhysicsMaterial>("New Physics Material.nrpm", 0.6f, 0.6f, 0.0f);
 							}
 
 							if (ImGui::MenuItem("Sound Config"))

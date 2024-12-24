@@ -97,14 +97,14 @@ namespace NR
 		mono_add_internal_call("NR.Texture2D::SetData_Native", NR::Script::NR_Texture2D_SetData);
 
 		mono_add_internal_call("NR.Material::Destructor_Native", NR::Script::NR_Material_Destructor);
+		mono_add_internal_call("NR.Material::GetAlbedoColor_Native", NR::Script::NR_Material_GetAlbedoColor);
+		mono_add_internal_call("NR.Material::SetAlbedoColor_Native", NR::Script::NR_Material_SetAlbedoColor);
+		mono_add_internal_call("NR.Material::GetMetalness_Native", NR::Script::NR_Material_GetMetalness);
+		mono_add_internal_call("NR.Material::SetMetalness_Native", NR::Script::NR_Material_SetMetalness);
+		mono_add_internal_call("NR.Material::GetRoughness_Native", NR::Script::NR_Material_GetRoughness);
+		mono_add_internal_call("NR.Material::SetRoughness_Native", NR::Script::NR_Material_SetRoughness);
 		mono_add_internal_call("NR.Material::SetFloat_Native", NR::Script::NR_Material_SetFloat);
 		mono_add_internal_call("NR.Material::SetTexture_Native", NR::Script::NR_Material_SetTexture);
-
-		mono_add_internal_call("NR.MaterialInstance::Destructor_Native", NR::Script::NR_MaterialInstance_Destructor);
-		mono_add_internal_call("NR.MaterialInstance::SetFloat_Native", NR::Script::NR_MaterialInstance_SetFloat);
-		mono_add_internal_call("NR.MaterialInstance::SetVector3_Native", NR::Script::NR_MaterialInstance_SetVector3);
-		mono_add_internal_call("NR.MaterialInstance::SetVector4_Native", NR::Script::NR_MaterialInstance_SetVector4);
-		mono_add_internal_call("NR.MaterialInstance::SetTexture_Native", NR::Script::NR_MaterialInstance_SetTexture);
 
 		mono_add_internal_call("NR.Mesh::Constructor_Native", NR::Script::NR_Mesh_Constructor);
 		mono_add_internal_call("NR.Mesh::Destructor_Native", NR::Script::NR_Mesh_Destructor);

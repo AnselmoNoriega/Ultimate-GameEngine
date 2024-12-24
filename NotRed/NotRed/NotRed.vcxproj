@@ -274,6 +274,7 @@
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
     <ClInclude Include="src\NotRed\Renderer\IndexBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Material.h" />
+    <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
@@ -307,6 +308,7 @@
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
     <ClInclude Include="src\NotRed\Util\FileSystem.h" />
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />
+    <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h" />
     <ClInclude Include="src\nrpch.h" />
     <ClInclude Include="vendor\VulkanMemoryAllocator\vk_mem_alloc.h" />
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\anchor.h" />
@@ -472,6 +474,7 @@
     <ClCompile Include="src\NotRed\Renderer\Image.cpp" />
     <ClCompile Include="src\NotRed\Renderer\IndexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Material.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\MaterialAsset.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp" />
     <ClCompile Include="src\NotRed\Renderer\MeshFactory.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Pipeline.cpp" />
