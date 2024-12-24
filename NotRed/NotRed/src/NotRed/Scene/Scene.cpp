@@ -1643,7 +1643,8 @@ namespace NR
 		for (auto entity : idComponents)
 		{
 			auto uuid = mRegistry.get<IDComponent>(entity).ID;
-			Entity e = target->CreateEntityWithID(uuid, "", true);
+			auto name = mRegistry.get<TagComponent>(entity).Tag;
+			Entity e = target->CreateEntityWithID(uuid, name, true);
 			enttMap[uuid] = e.mEntityHandle;
 		}
 

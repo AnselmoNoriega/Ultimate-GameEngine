@@ -9,9 +9,14 @@
 
 #include <mono/jit/jit.h>
 
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+
 #include <box2d/box2d.h>
 
 #include <PxPhysicsAPI.h>
+
+#include "NotRed/Core/Application.h"
 
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Physics/PhysicsManager.h"
@@ -53,7 +58,18 @@ namespace NR::Script
 
     bool NR_Input_IsMouseButtonPressed(MouseButton button)
     {
-        return Input::IsMouseButtonPressed(button);
+        bool wasPressed = Input::IsMouseButtonPressed(button);
+        bool enableImGui = Application::Get().GetSpecification().EnableImGui;
+        if (wasPressed && enableImGui && GImGui->HoveredWindow != nullptr)
+        {
+            // Make sure we're in the viewport panel
+            ImGuiWindow* viewportWindow = ImGui::FindWindowByName("Viewport");
+            if (viewportWindow != nullptr)
+            {
+                wasPressed = GImGui->HoveredWindow->ID == viewportWindow->ID;
+            }
+        }
+        return wasPressed;
     }
 
     ////////////////////////////////////////////////////////////////

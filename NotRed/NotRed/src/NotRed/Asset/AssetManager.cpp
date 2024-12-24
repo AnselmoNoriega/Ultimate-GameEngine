@@ -101,7 +101,7 @@ namespace NR
         return sNullMetadata;
     }
 
-    AssetMetadata& AssetManager::GetMetadata(const std::string& filepath)
+    AssetMetadata& AssetManager::GetMetadata(const std::filesystem::path& filepath)
     {
         if (sAssetRegistry.Contains(filepath))
         {
@@ -111,30 +111,23 @@ namespace NR
         return sNullMetadata;
     }
 
-    AssetHandle AssetManager::GetAssetHandleFromFilePath(const std::string& filePath)
+    AssetHandle AssetManager::GetAssetHandleFromFilePath(const std::filesystem::path& filepath)
     {
-        std::filesystem::path path = filePath;
-        if (sAssetRegistry.Contains(path))
-        {
-            return sAssetRegistry.Get(path).Handle;
-        }
-
-        return 0;
+        return sAssetRegistry.Contains(filepath) ? sAssetRegistry[filepath].Handle : AssetHandle(0);
     }
 
-    std::string AssetManager::GetRelativePath(const std::string& filePath)
+    std::filesystem::path AssetManager::GetRelativePath(const std::filesystem::path& filepath)
     {
-        std::string result = filePath;
-        if (filePath.find(Project::GetActive()->GetAssetDirectory().string()) != std::string::npos)
+        std::string temp = filepath.string();
+        if (temp.find(Project::GetActive()->GetAssetDirectory().string()) != std::string::npos)
         {
-            result = std::filesystem::relative(result, Project::GetActive()->GetAssetDirectory()).string();
+            return std::filesystem::relative(filepath, Project::GetActive()->GetAssetDirectory());
         }
 
-        std::replace(result.begin(), result.end(), '\\', '/');
-        return result;
+        return filepath;
     }
 
-    void AssetManager::AssetRenamed(AssetHandle assetHandle, const std::string& newFilePath)
+    void AssetManager::AssetRenamed(AssetHandle assetHandle, const std::filesystem::path& newFilePath)
     {
         AssetMetadata metadata = GetMetadata(assetHandle);
 
@@ -145,7 +138,7 @@ namespace NR
         WriteRegistryToFile();
     }
 
-    void AssetManager::AssetMoved(AssetHandle assetHandle, const std::string& destinationPath)
+    void AssetManager::AssetMoved(AssetHandle assetHandle, const std::filesystem::path& destinationPath)
     {
         AssetMetadata assetInfo = GetMetadata(assetHandle);
 
@@ -282,14 +275,14 @@ namespace NR
         }
     }
 
-    AssetHandle AssetManager::ImportAsset(const std::string& filepath)
+    AssetHandle AssetManager::ImportAsset(const std::filesystem::path& filepath)
     {
         std::filesystem::path path = std::filesystem::relative(filepath, Project::GetAssetDirectory());
 
         // Already in the registry
         if (sAssetRegistry.Contains(path))
         {
-            return 0;
+            return sAssetRegistry[path].Handle;
         }
 
         AssetType type = GetAssetTypeFromPath(path);
@@ -325,17 +318,17 @@ namespace NR
         return metadata.IsDataLoaded;
     }
 
-    void AssetManager::ProcessDirectory(const std::string& directoryPath)
+    void AssetManager::ProcessDirectory(const std::filesystem::path& directoryPath)
     {
         for (auto entry : std::filesystem::directory_iterator(directoryPath))
         {
             if (entry.is_directory())
             {
-                ProcessDirectory(entry.path().string());
+                ProcessDirectory(entry.path());
             }
             else
             {
-                ImportAsset(entry.path().string());
+                ImportAsset(entry.path());
             }
         }
     }
@@ -359,6 +352,11 @@ namespace NR
 
         for (auto& [filepath, metadata] : sAssetRegistry)
         {
+            if (!FileSystem::Exists(GetFileSystemPath(metadata)))
+            {
+                continue;
+            }
+
             std::string pathToSerialize = metadata.FilePath.string();
 
             std::replace(pathToSerialize.begin(), pathToSerialize.end(), '\\', '/');

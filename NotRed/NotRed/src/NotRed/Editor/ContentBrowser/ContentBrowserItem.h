@@ -60,7 +60,7 @@ namespace NR
 		virtual ~ContentBrowserItem() = default;
 
 		void RenderBegin();
-		CBItemActionResult Render();
+		CBItemActionResult Render(float thumbnailSize);
 		void RenderEnd();
 
 		virtual void Delete() {}
@@ -107,7 +107,6 @@ namespace NR
 		AssetHandle Handle;
 		Ref<DirectoryInfo> Parent;
 
-		std::string Name;
 		std::filesystem::path FilePath;
 
 		std::vector<AssetHandle> Assets;
@@ -130,7 +129,7 @@ namespace NR
 		void Renamed(const std::string& newName, bool fromCallback) override;
 		void UpdateDrop(CBItemActionResult& actionResult) override;
 
-		void UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath);
+		void UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath, const std::filesystem::path& newName);
 
 	private:
 		Ref<DirectoryInfo> mDirectoryInfo;

@@ -498,7 +498,6 @@
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Scene\ddddddddddddddddddddddddd.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
     <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp" />

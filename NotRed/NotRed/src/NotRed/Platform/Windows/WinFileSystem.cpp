@@ -20,7 +20,7 @@ namespace NR
 		sCallback = callback;
 	}
 
-	std::string FileSystem::Rename(const std::string& filepath, const std::string& newName)
+	/*std::string FileSystem::Rename(const std::string& filepath, const std::string& newName)
 	{
 		NR_CORE_ASSERT(false);
 		sIgnoreNextChange = true;
@@ -32,41 +32,6 @@ namespace NR
 		sIgnoreNextChange = false;
 		
 		return newFilePath;
-	}
-
-	bool FileSystem::Move(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
-	{
-		if (FileSystem::Exists(newFilepath))
-		{
-			return false;
-		}
-
-		std::filesystem::rename(oldFilepath, newFilepath);
-		return true;
-	}
-
-	bool FileSystem::Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
-	{
-		return Move(oldFilepath, newFilepath);
-	}
-
-	bool FileSystem::RenameFilename(const std::filesystem::path& oldFilepath, const std::string& newName)
-	{
-		std::filesystem::path newPath = fmt::format("{0}\\{1}{2}", oldFilepath.parent_path().string(), newName, oldFilepath.extension());
-		return Rename(oldFilepath, newPath);
-	}
-
-	bool FileSystem::MoveFile(const std::string& filepath, const std::string& dest)
-	{
-		sIgnoreNextChange = true;
-		
-		std::filesystem::path p = filepath;
-		std::string destFilePath = dest + "/" + p.filename().string();
-		
-		BOOL result = MoveFileA(filepath.c_str(), destFilePath.c_str()) != 0;
-		sIgnoreNextChange = false;
-		
-		return result;
 	}
 
 	bool FileSystem::DeleteFile(const std::string& filepath)
@@ -90,7 +55,7 @@ namespace NR
 		sIgnoreNextChange = false;
 		
 		return result == 0;
-	}
+	}*/
 
 	void FileSystem::StartWatching()
 	{
@@ -113,7 +78,7 @@ namespace NR
 		CloseHandle(sWatcherThread);
 	}
 
-	bool FileSystem::IsDirectory(const std::string& filepath)
+	/*bool FileSystem::IsDirectory(const std::string& filepath)
 	{
 		bool result = std::filesystem::is_directory(filepath);
 
@@ -123,7 +88,7 @@ namespace NR
 		}
 
 		return result;
-	}
+	}*/
 
 	static std::string wchar_to_string(wchar_t* input)
 	{

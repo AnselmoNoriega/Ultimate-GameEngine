@@ -38,14 +38,13 @@ namespace NR
 		static bool Exists(const std::filesystem::path& filepath);
 
 		static bool Exists(const std::string& filePath);
-		static std::string Rename(const std::string& filepath, const std::string& newName);
-		static bool DeleteFile(const std::string& filepath);
-		static bool MoveFile(const std::string& filepath, const std::string& dest);
+		static bool DeleteFile(const std::filesystem::path& filepath);
+		static bool MoveFile(const std::filesystem::path& filepath, const std::filesystem::path& dest);
+		static bool IsDirectory(const std::filesystem::path& filepath);
 
 		static void SetChangeCallback(const FileSystemChangedCallbackFn& callback);
 		static void StartWatching();
 		static void StopWatching();
-		static bool IsDirectory(const std::string& filepath);
 
 		static bool Move(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);
 		static bool Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);

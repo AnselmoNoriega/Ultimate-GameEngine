@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "FileSystem.h"
 
+#include "StringUtils.h"
+
 namespace NR
 {
 	bool FileSystem::CreateDirectory(const std::filesystem::path& directory)
@@ -13,6 +15,33 @@ namespace NR
 		return CreateDirectory(std::filesystem::path(directory));
 	}
 
+	bool FileSystem::Move(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
+	{
+		if (FileSystem::Exists(newFilepath))
+		{
+			return false;
+		}
+
+		std::filesystem::rename(oldFilepath, newFilepath);
+		return true;
+	}
+
+	bool FileSystem::MoveFile(const std::filesystem::path& filepath, const std::filesystem::path& dest)
+	{
+		return Move(filepath, dest / filepath.filename());
+	}
+
+	bool FileSystem::Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
+	{
+		return Move(oldFilepath, newFilepath);
+	}
+
+	bool FileSystem::RenameFilename(const std::filesystem::path& oldFilepath, const std::string& newName)
+	{
+		std::filesystem::path newPath = fmt::format("{0}\\{1}{2}", oldFilepath.parent_path().string(), newName, oldFilepath.extension());
+		return Rename(oldFilepath, newPath);
+	}
+
 	bool FileSystem::Exists(const std::filesystem::path& filepath)
 	{
 		return std::filesystem::exists(filepath);
@@ -21,6 +50,26 @@ namespace NR
 	bool FileSystem::Exists(const std::string& filepath)
 	{
 		return std::filesystem::exists(std::filesystem::path(filepath));
+	}
+
+	bool FileSystem::DeleteFile(const std::filesystem::path& filepath)
+	{
+		if (!FileSystem::Exists(filepath))
+		{
+			return false;
+		}
+
+		if (std::filesystem::is_directory(filepath))
+		{
+			return std::filesystem::remove_all(filepath) > 0;
+		}
+
+		return std::filesystem::remove(filepath);
+	}
+
+	bool FileSystem::IsDirectory(const std::filesystem::path& filepath)
+	{
+		return std::filesystem::is_directory(filepath) || Utils::GetExtension(filepath.string()).empty();
 	}
 
 	bool FileSystem::ShowFileInExplorer(const std::filesystem::path& path)

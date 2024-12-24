@@ -33,31 +33,27 @@ namespace NR
         static void SetAssetChangeCallback(const AssetsChangeEventFn& callback);
 
         static AssetMetadata& GetMetadata(AssetHandle handle);
-        static AssetMetadata& GetMetadata(const std::string& filepath);
+        static AssetMetadata& GetMetadata(const std::filesystem::path& filepath);
 
-        static AssetHandle GetAssetHandleFromFilePath(const std::string& filepath);
+        static AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& filepath);
         static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
 
         static AssetType GetAssetTypeFromExtension(const std::string& extension);
         static AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
-        static std::string GetRelativePath(const std::string& filepath);
+        static std::filesystem::path GetRelativePath(const std::filesystem::path& filepath);
 
-        static AssetHandle ImportAsset(const std::string& filepath);
+        static AssetHandle ImportAsset(const std::filesystem::path& filepath);
         static bool ReloadData(AssetHandle assetHandle);
 
         static std::filesystem::path GetFileSystemPath(const AssetMetadata& metadata) { return Project::GetAssetDirectory() / metadata.FilePath; }
         static std::string GetFileSystemPathString(const AssetMetadata& metadata) { return GetFileSystemPath(metadata).string(); }
 
         template<typename T, typename... Args>
-        static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directory, Args&&... args)
+		static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
         {
             static_assert(std::is_base_of<Asset, T>::value, "CreateNewAsset only works for types derived from Asset");
 
-            std::filesystem::path relativePath = std::filesystem::relative(std::filesystem::path(directory), Project::GetAssetDirectory());
-            std::string directoryPath = relativePath.string();
-            std::replace(directoryPath.begin(), directoryPath.end(), '\\', '/');
-
-            FileSystem::SkipNextFileSystemChange();
+            //FileSystem::SkipNextFileSystemChange();
 
             AssetMetadata metadata;
             metadata.Handle = AssetHandle();
@@ -78,7 +74,7 @@ namespace NR
                 int current = 1;
                 while (!foundAvailableFileName)
                 {
-                    std::string nextFilePath = (relativePath / metadata.FilePath.stem()).string();
+                    std::string nextFilePath = directoryPath + "/" + metadata.FilePath.stem().string();
                     if (current < 10)
                     {
                         nextFilePath += " (0" + std::to_string(current) + ")";
@@ -156,14 +152,14 @@ namespace NR
 
     private:
         static void LoadAssetRegistry();
-        static void ProcessDirectory(const std::string& directoryPath);
+        static void ProcessDirectory(const std::filesystem::path& directoryPath);
         static void ReloadAssets();
         static void WriteRegistryToFile();
 
         static void FileSystemChanged(FileSystemChangedEvent e);
 
-        static void AssetRenamed(AssetHandle assetHandle, const std::string& newFilePath);
-        static void AssetMoved(AssetHandle assetHandle, const std::string& destinationPath);
+        static void AssetRenamed(AssetHandle assetHandle, const std::filesystem::path& newFilePath);
+        static void AssetMoved(AssetHandle assetHandle, const std::filesystem::path& destinationPath);
         static void AssetDeleted(AssetHandle assetHandle);
 
     private:
@@ -174,5 +170,6 @@ namespace NR
     private:
         friend class ContentBrowserPanel;
         friend class ContentBrowserAsset;
+        friend class ContentBrowserDirectory;
     };
 }

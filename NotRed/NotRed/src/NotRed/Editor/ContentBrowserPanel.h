@@ -150,7 +150,7 @@ namespace NR
         void ClearSelections();
 
         void RenderDeleteDialogue();
-        void RemoveDirectory(Ref<DirectoryInfo>& directory);
+        void RemoveDirectory(Ref<DirectoryInfo>& directory, bool removeFromParent = true);
 
         void UpdateDropArea(const Ref<DirectoryInfo>& target);
         void SortItemList();
@@ -169,7 +169,7 @@ namespace NR
         void AssetDeleted(AssetMetadata metadata, Ref<DirectoryInfo> directory);
         void AssetRenamed(FileSystemChangedEvent event);
 
-        void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath);
+        void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath, const std::string& newName);
 
     private:
         template<typename T, typename... Args>

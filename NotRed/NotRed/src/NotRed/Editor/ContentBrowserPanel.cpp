@@ -51,10 +51,7 @@ namespace NR
 
 	AssetHandle ContentBrowserPanel::ProcessDirectory(const std::filesystem::path& directoryPath, const Ref<DirectoryInfo>& parent)
 	{
-		std::string fixedFilePath = directoryPath.string();
-		std::replace(fixedFilePath.begin(), fixedFilePath.end(), '\\', '/');
-
-		const auto& directory = GetDirectory(fixedFilePath);
+		const auto& directory = GetDirectory(directoryPath);
 		if (directory)
 		{
 			return directory->Handle;
@@ -63,19 +60,25 @@ namespace NR
 		Ref<DirectoryInfo> directoryInfo = Ref<DirectoryInfo>::Create();
 		directoryInfo->Handle = AssetHandle();
 		directoryInfo->Parent = parent;
-		directoryInfo->FilePath = fixedFilePath;
-		directoryInfo->Name = directoryInfo->FilePath.filename().string();
+		if (directoryPath == mProject->GetAssetDirectory())
+		{
+			directoryInfo->FilePath = "";
+		}
+		else
+		{
+			directoryInfo->FilePath = std::filesystem::relative(directoryPath, mProject->GetAssetDirectory());
+		}
 
 		for (auto entry : std::filesystem::directory_iterator(directoryPath))
 		{
 			if (entry.is_directory())
 			{
-				AssetHandle subdirHandle = ProcessDirectory(entry.path().string(), directoryInfo);
+				AssetHandle subdirHandle = ProcessDirectory(entry.path(), directoryInfo);
 				directoryInfo->SubDirectories[subdirHandle] = mDirectories[subdirHandle];
 				continue;
 			}
 
-			auto& metadata = AssetManager::GetMetadata(entry.path().string());
+			auto& metadata = AssetManager::GetMetadata(std::filesystem::relative(entry.path(), mProject->GetAssetDirectory()));
 			if (!metadata.IsValid())
 			{
 				AssetType type = AssetManager::GetAssetTypeFromPath(entry.path());
@@ -83,7 +86,7 @@ namespace NR
 				{
 					continue;
 				}
-				metadata.Handle = AssetManager::ImportAsset(entry.path().string());
+				metadata.Handle = AssetManager::ImportAsset(entry.path());
 			}
 
 			if (!metadata.IsValid())
@@ -135,12 +138,17 @@ namespace NR
 
 		mPreviousDirectory = directory;
 		mCurrentDirectory = directory;
+
+		ClearSelections();
 	}
+
+	static float sPadding = 4.0f;
+	static float sThumbnailSize = 128.0f;
 
 	void ContentBrowserPanel::ImGuiRender()
 	{
 		ImGui::Begin("Content Browser", NULL, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
-		
+
 		mIsContentBrowserHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
 
 		{
@@ -178,7 +186,17 @@ namespace NR
 						{
 							if (ImGui::MenuItem("Folder"))
 							{
-								FileSystem::CreateDirectory((mCurrentDirectory->FilePath / "New Folder").string());
+								bool created = FileSystem::CreateDirectory(mCurrentDirectory->FilePath / "New Folder");
+								if (created)
+								{
+									Refresh();
+									const auto& directoryInfo = GetDirectory(mCurrentDirectory->FilePath / "New Folder");
+									size_t index = mCurrentItems.FindItem(directoryInfo->Handle);
+									if (index != ContentBrowserItemList::InvalidItem)
+									{
+										mCurrentItems[index]->StartRenaming();
+									}
+								}
 							}
 
 							if (ImGui::MenuItem("Material"))
@@ -204,7 +222,7 @@ namespace NR
 							std::string filepath = Application::Get().OpenFile();
 							if (!filepath.empty())
 							{
-								FileSystem::MoveFile(filepath, mCurrentDirectory->FilePath.string());
+								FileSystem::MoveFile(filepath, mCurrentDirectory->FilePath);
 							}
 						}
 
@@ -222,8 +240,15 @@ namespace NR
 						ImGui::EndPopup();
 					}
 
-					ImGui::Columns(sColumnCount, nullptr, false);
-					
+					float cellSize = sThumbnailSize + sPadding;
+					float panelWidth = ImGui::GetContentRegionAvail().x;
+					int columnCount = (int)(panelWidth / cellSize);
+					if (columnCount < 1)
+					{
+						columnCount = 1;
+					}
+					ImGui::Columns(columnCount, 0, false);
+
 					RenderItems();
 
 					if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
@@ -231,8 +256,8 @@ namespace NR
 						UpdateInput();
 					}
 
-					ImGui::PopStyleColor(2);					
-					
+					ImGui::PopStyleColor(2);
+
 					RenderDeleteDialogue();
 				}
 				ImGui::EndChild();
@@ -248,6 +273,11 @@ namespace NR
 
 	Ref<DirectoryInfo> ContentBrowserPanel::GetDirectory(const std::filesystem::path& filepath) const
 	{
+		if (filepath.string() == "" || filepath.string() == ".")
+		{
+			return mBaseDirectory;
+		}
+
 		for (const auto& [handle, directory] : mDirectories)
 		{
 			if (directory->FilePath == filepath)
@@ -275,9 +305,10 @@ namespace NR
 
 	void ContentBrowserPanel::RenderDirectoryHeirarchy(Ref<DirectoryInfo>& directory)
 	{
-		std::string id = directory->Name + "_TreeNode";
+		std::string name = directory->FilePath.filename().string();
+		std::string id = name + "_TreeNode";
 		bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
-		bool open = UI::TreeNode(id, directory->Name, ImGuiTreeNodeFlags_SpanAvailWidth);
+		bool open = UI::TreeNode(id, name, ImGuiTreeNodeFlags_SpanAvailWidth);
 
 		if (open)
 		{
@@ -355,7 +386,7 @@ namespace NR
 				mBreadCrumbData.clear();
 
 				Ref<DirectoryInfo> current = mCurrentDirectory;
-				while (current && current->Handle != 0)
+				while (current && current->Parent != nullptr)
 				{
 					mBreadCrumbData.push_back(current);
 					current = current->Parent;
@@ -366,17 +397,24 @@ namespace NR
 				mUpdateNavigationPath = false;
 			}
 
+			const std::string& assetsDirectoryName = mProject->GetConfig().AssetDirectory;
+			ImVec2 textSize = ImGui::CalcTextSize(assetsDirectoryName.c_str());
+			if (ImGui::Selectable(assetsDirectoryName.c_str(), false, 0, ImVec2(textSize.x, 22)))
+			{
+				ChangeDirectory(mBaseDirectory);
+			}
+			UpdateDropArea(mBaseDirectory);
+			ImGui::SameLine();
+
 			for (auto& directory : mBreadCrumbData)
 			{
-				if (directory->Name != Project::GetActive()->GetConfig().AssetDirectory)
-				{
-					ImGui::Text("/");
-				}
+				ImGui::Text("/");
 
 				ImGui::SameLine();
 
-				ImVec2 textSize = ImGui::CalcTextSize(directory->Name.c_str());
-				if (ImGui::Selectable(directory->Name.c_str(), false, 0, ImVec2(textSize.x, 22)))
+				std::string directoryName = directory->FilePath.filename().string();
+				ImVec2 textSize = ImGui::CalcTextSize(directoryName.c_str());
+				if (ImGui::Selectable(directoryName.c_str(), false, 0, ImVec2(textSize.x, 22)))
 				{
 					ChangeDirectory(directory);
 				}
@@ -402,7 +440,7 @@ namespace NR
 		for (auto& item : mCurrentItems)
 		{
 			item->RenderBegin();
-			CBItemActionResult result = item->Render();
+			CBItemActionResult result = item->Render(sThumbnailSize);
 
 			if (result.IsSet(ContentBrowserAction::ClearSelections))
 			{
@@ -522,7 +560,7 @@ namespace NR
 				}
 				else if (mDirectories.find(mSelectionStack[0]) != mDirectories.end())
 				{
-					filepath = std::filesystem::relative(mDirectories[mSelectionStack[0]]->FilePath, Project::GetAssetDirectory()).string();
+					filepath = mDirectories[mSelectionStack[0]]->FilePath.string();
 					std::replace(filepath.begin(), filepath.end(), '\\', '/');
 				}
 
@@ -537,7 +575,7 @@ namespace NR
 			ImGui::NextColumn();
 			ImGui::NextColumn();
 			ImGui::SetNextItemWidth(ImGui::GetColumnWidth());
-			ImGui::SliderInt("##column_count", &sColumnCount, 2, 15);
+			ImGui::SliderFloat("##thumbnail_size", &sThumbnailSize, 96.0f, 512.0f);
 		}
 
 		ImGui::EndChild();
@@ -549,22 +587,19 @@ namespace NR
 		{
 			if (!entry.is_directory())
 			{
-				const auto& assetInfo = AssetManager::GetMetadata(entry.path().string());
+				const auto& assetInfo = AssetManager::GetMetadata(std::filesystem::relative(entry.path(), Project::GetActive()->GetAssetDirectory()));
 				if (!assetInfo.IsValid())
 				{
-					AssetHandle handle = AssetManager::ImportAsset(entry.path().string());
+					AssetHandle handle = AssetManager::ImportAsset(entry.path());
 					mCurrentDirectory->Assets.push_back(handle);
 				}
 			}
 			else
 			{
-				std::string fixedFilePath = entry.path().string();
-				std::replace(fixedFilePath.begin(), fixedFilePath.end(), '\\', '/');
-
-				const auto& directory = GetDirectory(fixedFilePath);
+				const auto& directory = GetDirectory(std::filesystem::relative(entry.path(), Project::GetActive()->GetAssetDirectory()));
 				if (!directory)
 				{
-					AssetHandle directoryHandle = ProcessDirectory(entry.path().string(), mCurrentDirectory);
+					AssetHandle directoryHandle = ProcessDirectory(entry.path(), mCurrentDirectory);
 					mCurrentDirectory->SubDirectories[directoryHandle] = mDirectories[directoryHandle];
 				}
 			}
@@ -666,9 +701,9 @@ namespace NR
 		}
 	}
 
-	void ContentBrowserPanel::RemoveDirectory(Ref<DirectoryInfo>& directory)
+	void ContentBrowserPanel::RemoveDirectory(Ref<DirectoryInfo>& directory, bool removeFromParent)
 	{
-		if (directory->Parent != 0)
+		if (directory->Parent && removeFromParent)
 		{
 			auto& childList = directory->Parent->SubDirectories;
 			childList.erase(childList.find(directory->Handle));
@@ -676,7 +711,7 @@ namespace NR
 
 		for (auto& [handle, subdir] : directory->SubDirectories)
 		{
-			RemoveDirectory(subdir);
+			RemoveDirectory(subdir, false);
 		}
 
 		directory->SubDirectories.clear();
@@ -731,7 +766,8 @@ namespace NR
 
 		for (auto& [handle, subdir] : directoryInfo->SubDirectories)
 		{
-			if (subdir->Name.find(queryLowerCase) != std::string::npos)
+			std::string subdirName = subdir->FilePath.filename().string();
+			if (subdirName.find(queryLowerCase) != std::string::npos)
 			{
 				results.Items.push_back(Ref<ContentBrowserDirectory>::Create(subdir, mFolderIcon));
 			}
@@ -979,16 +1015,15 @@ namespace NR
 		}
 		else
 		{
-			directory->Name = event.NewName;
-			UpdateDirectoryPath(directory, event.FilePath.parent_path().string());
+			UpdateDirectoryPath(directory, event.FilePath.parent_path(), event.NewName);
 		}
 
 		ChangeDirectory(mCurrentDirectory);
 	}
 
-	void ContentBrowserPanel::UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath)
+	void ContentBrowserPanel::UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath, const std::string& newName)
 	{
-		directoryInfo->FilePath = newParentPath / directoryInfo->Name;
+		directoryInfo->FilePath = newParentPath / newName;
 
 		for (auto& assetHandle : directoryInfo->Assets)
 		{
@@ -998,7 +1033,7 @@ namespace NR
 
 		for (auto& [handle, subdirectory] : directoryInfo->SubDirectories)
 		{
-			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath);
+			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath, subdirectory->FilePath.filename().string());
 		}
 	}
 

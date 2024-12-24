@@ -24,7 +24,7 @@ namespace NR
 		ImGui::BeginGroup();
 	}
 
-	CBItemActionResult ContentBrowserItem::Render()
+	CBItemActionResult ContentBrowserItem::Render(float thumbnailSize)
 	{
 		CBItemActionResult result;
 
@@ -33,8 +33,7 @@ namespace NR
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 0.75f));
 		}
 
-		float buttonWidth = ImGui::GetColumnWidth() - 15.0f;
-		UI::ImageButton(mName.c_str(), mIcon, { buttonWidth, buttonWidth });
+		UI::ImageButton(mName.c_str(), mIcon, { thumbnailSize, thumbnailSize });
 		if (mIsSelected)
 		{
 			ImGui::PopStyleColor();
@@ -196,7 +195,7 @@ namespace NR
 	}
 
 	ContentBrowserDirectory::ContentBrowserDirectory(const Ref<DirectoryInfo>& directoryInfo, const Ref<Texture2D>& icon)
-		: ContentBrowserItem(ContentBrowserItem::ItemType::Directory, directoryInfo->Handle, directoryInfo->Name, icon), mDirectoryInfo(directoryInfo)
+		: ContentBrowserItem(ContentBrowserItem::ItemType::Directory, directoryInfo->Handle, directoryInfo->FilePath.filename().string(), icon), mDirectoryInfo(directoryInfo)
 	{
 	}
 
@@ -209,16 +208,16 @@ namespace NR
 	{
 		if (!fromCallback)
 		{
-			if (FileSystem::Exists((mDirectoryInfo->FilePath / newName).string()))
+			if (FileSystem::Exists(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath.parent_path() / newName))
 			{
 				NR_CORE_ERROR("A directory with that name already exists!");
 				return;
 			}
-			FileSystem::Rename(mDirectoryInfo->FilePath.string(), newName);
+
+			FileSystem::Rename(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath, Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath.parent_path() / newName);
 		}
-		mDirectoryInfo->Name = newName;
 		mName = newName;
-		UpdateDirectoryPath(mDirectoryInfo, mDirectoryInfo->FilePath.parent_path().string());
+		UpdateDirectoryPath(mDirectoryInfo, mDirectoryInfo->FilePath.parent_path(), newName);
 	}
 
 	void ContentBrowserDirectory::UpdateDrop(CBItemActionResult& actionResult)
@@ -255,18 +254,28 @@ namespace NR
 
 	void ContentBrowserDirectory::Delete()
 	{
-		FileSystem::DeleteFile(mDirectoryInfo->FilePath.string());
+		bool deleted = FileSystem::DeleteFile(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath);
+		if (!deleted)
+		{
+			NR_CORE_ERROR("Failed to delete folder {0}", mDirectoryInfo->FilePath);
+			return;
+		}
+
+		for (auto asset : mDirectoryInfo->Assets)
+		{
+			AssetManager::AssetDeleted(asset);
+		}
 	}
 
 	bool ContentBrowserDirectory::Move(const std::filesystem::path& destination)
 	{
-		bool wasMoved = FileSystem::MoveFile(mDirectoryInfo->FilePath.string(), destination.string());
+		bool wasMoved = FileSystem::MoveFile(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath, Project::GetActive()->GetAssetDirectory() / destination);
 		if (!wasMoved)
 		{
 			return false;
 		}
 
-		UpdateDirectoryPath(mDirectoryInfo, destination);
+		UpdateDirectoryPath(mDirectoryInfo, destination, mDirectoryInfo->FilePath.filename());
 
 		auto& parentSubdirs = mDirectoryInfo->Parent->SubDirectories;
 		parentSubdirs.erase(parentSubdirs.find(mDirectoryInfo->Handle));
@@ -278,18 +287,18 @@ namespace NR
 		return true;
 	}
 
-	void ContentBrowserDirectory::UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath)
+	void ContentBrowserDirectory::UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath, const std::filesystem::path& newName)
 	{
-		directoryInfo->FilePath = newParentPath / directoryInfo->Name;
+		directoryInfo->FilePath = newParentPath / newName;
 		for (auto assetHandle : directoryInfo->Assets)
 		{
-			auto metadata = AssetManager::GetMetadata(assetHandle);
+			auto& metadata = AssetManager::GetMetadata(assetHandle);
 			metadata.FilePath = directoryInfo->FilePath / metadata.FilePath.filename();
 		}
 
 		for (auto [handle, subdirectory] : directoryInfo->SubDirectories)
 		{
-			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath);
+			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath, subdirectory->FilePath.filename());
 		}
 	}
 
@@ -300,13 +309,15 @@ namespace NR
 
 	void ContentBrowserAsset::Delete()
 	{
-		bool deleted = FileSystem::DeleteFile(mAssetInfo.FilePath.string());
+		auto filepath = AssetManager::GetFileSystemPath(mAssetInfo);
+		bool deleted = FileSystem::DeleteFile(filepath);
 		if (!deleted)
 		{
 			NR_CORE_ERROR("Couldn't delete {0}", mAssetInfo.FilePath.string());
 			return;
 		}
-		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path().string());
+
+		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path());
 		currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), mAssetInfo.Handle), currentDirectory->Assets.end());
 		
 		AssetManager::AssetDeleted(mAssetInfo.Handle);
@@ -314,16 +325,20 @@ namespace NR
 
 	bool ContentBrowserAsset::Move(const std::filesystem::path& destination)
 	{
-		bool wasMoved = FileSystem::MoveFile(mAssetInfo.FilePath.string(), destination.string());
+		auto filepath = AssetManager::GetFileSystemPath(mAssetInfo);
+		bool wasMoved = FileSystem::MoveFile(filepath, Project::GetActive()->GetAssetDirectory() / destination);
 		if (!wasMoved)
 		{
 			NR_CORE_ERROR("Couldn't move {0} to {1}", mAssetInfo.FilePath.string(), destination.string());
 			return false;
 		}
-		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path().string());
+
+		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path());
 		currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), mAssetInfo.Handle), currentDirectory->Assets.end());
 
-		AssetManager::AssetMoved(mAssetInfo.Handle, destination.string());
+		auto destinationDirectory = ContentBrowserPanel::Get().GetDirectory(destination);
+		destinationDirectory->Assets.push_back(mAssetInfo.Handle);
+		AssetManager::AssetMoved(mAssetInfo.Handle, destination);
 
 		return true;
 	}
@@ -352,10 +367,10 @@ namespace NR
 				return;
 			}
 
-			AssetManager::AssetRenamed(mAssetInfo.Handle, AssetManager::GetRelativePath(newFilepath.string()));
+			AssetManager::AssetRenamed(mAssetInfo.Handle, AssetManager::GetRelativePath(newFilepath));
 		}
 
 		mName = newName;
-		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilepath.string());
+		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilepath);
 	}
 }

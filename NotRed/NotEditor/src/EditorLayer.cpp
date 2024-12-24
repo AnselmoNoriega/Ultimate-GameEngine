@@ -943,7 +943,7 @@ namespace NR
         mViewportHasCapturedMouse = (capturedRightClick || capturedLeftClick || capturedScrollWheelClick) && mViewportPanelMouseOver;
 
         // Gizmos
-        if (mGizmoType != -1 && mSelectionContext.size())
+        if (mGizmoType != -1 && mSelectionContext.size() && Input::GetCursorMode() == CursorMode::Normal)
         {
             auto& selection = mSelectionContext[0];
 
