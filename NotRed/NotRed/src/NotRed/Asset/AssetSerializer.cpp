@@ -179,7 +179,7 @@ namespace NR
 		out << YAML::Key << "Bounciness" << material->Bounciness;
 		out << YAML::EndMap;
 
-		std::ofstream fout(metadata.FilePath);
+		std::ofstream fout(AssetManager::GetFileSystemPath(metadata));
 		fout << out.c_str();
 	}
 

@@ -336,8 +336,7 @@ namespace NR
             };
             pipelineSpecification.BackfaceCulling = false;
 
-            constexpr char* shaderNames[2] = { (char*)"HBAOBlur", (char*)"HBAOBlur2" };
-            constexpr ImageFormat formats[2] = { ImageFormat::RG16F, ImageFormat::RGBA16F };
+            auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur");
 
             //HBAO first blur pass
             {
@@ -351,7 +350,6 @@ namespace NR
                 renderPassSpec.DebugName = hbaoBlurFrameBufferSpec.DebugName;
                 pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 
-                auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur");
                 pipelineSpecification.Shader = shader;
                 pipelineSpecification.DebugName = "HBAOBlur";
 
@@ -374,7 +372,6 @@ namespace NR
                 renderPassSpec.DebugName = hbaoBlurFrameBufferSpec.DebugName;
                 pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 
-                auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur2");
                 pipelineSpecification.Shader = shader;
                 pipelineSpecification.DebugName = "HBAOBlur2";
 
@@ -621,6 +618,9 @@ namespace NR
         Renderer::Submit([instance]() mutable
             {
                 instance->mResourcesCreated = true;
+
+                instance->mHBAOBlurMaterials[0]->Set("uInputTex", instance->mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+                instance->mHBAOBlurMaterials[1]->Set("uInputTex", instance->mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
             });
     }
 
@@ -697,9 +697,9 @@ namespace NR
             mNeedsResize = false;
 
             mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-
-            const uint32_t quarterWidth = mViewportWidth / 4;
-            const uint32_t quarterHeight = mViewportHeight / 4;
+            
+			const uint32_t quarterWidth = (uint32_t)glm::ceil((float)mViewportWidth / 4.0f);
+			const uint32_t quarterHeight = (uint32_t)glm::ceil((float)mViewportHeight / 4.0f);
 
             mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
             mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
@@ -1141,7 +1141,7 @@ namespace NR
 
             mHBAOBlurMaterials[0]->Set("uInfo.InvResDirection", glm::vec2{ mInvViewportWidth, 0.0f });
             mHBAOBlurMaterials[0]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
-            mHBAOBlurMaterials[0]->Set("uInputTex", mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+            mHBAOBlurMaterials[1]->Set("uInfo.FirstPass", 1);
 
             Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOBlurPipelines[0], nullptr, nullptr, mHBAOBlurMaterials[0]);
             Renderer::EndRenderPass(mCommandBuffer);
@@ -1152,7 +1152,7 @@ namespace NR
 
             mHBAOBlurMaterials[1]->Set("uInfo.InvResDirection", glm::vec2{ 0.0f, mInvViewportHeight });
             mHBAOBlurMaterials[1]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
-            mHBAOBlurMaterials[1]->Set("uInputTex", mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+            mHBAOBlurMaterials[1]->Set("uInfo.FirstPass", 0);
 
             Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOBlurPipelines[1], nullptr, nullptr, mHBAOBlurMaterials[1]);
             Renderer::EndRenderPass(mCommandBuffer);

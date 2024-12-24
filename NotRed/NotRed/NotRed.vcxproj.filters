@@ -40,6 +40,9 @@
     <Filter Include="src\NotRed\Editor\ContentBrowser">
       <UniqueIdentifier>{CC88540F-B8D9-3F51-E13D-2E13CDEDD2BA}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Editor\EditorConsole">
+      <UniqueIdentifier>{27588158-933B-9098-9C3E-BED408A156E9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
     </Filter>
@@ -285,6 +288,15 @@
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h">
+      <Filter>src\NotRed\Editor\EditorConsole</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h">
+      <Filter>src\NotRed\Editor\EditorConsole</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -501,6 +513,9 @@
     <ClInclude Include="src\NotRed\Renderer\Material.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Mesh.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -598,6 +613,9 @@
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Util\StringUtils.h">
+      <Filter>src\NotRed\Util</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
     <ClInclude Include="src\nrpch.h">
@@ -783,11 +801,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h" />
-    <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h" />
-    <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
-    <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h" />
-    <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -893,6 +906,9 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\EditorConsolePanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp">
@@ -1096,6 +1112,9 @@
     <ClCompile Include="src\NotRed\Renderer\Material.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\MaterialAsset.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Mesh.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1285,7 +1304,6 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\MaterialAsset.cpp" />
-    <ClCompile Include="src\NotRed\Editor\EditorConsolePanel.cpp" />
+    <ClCompile Include="src\NotRed\Scene\ddddddddddddddddddddddddd.cpp" />
   </ItemGroup>
 </Project>

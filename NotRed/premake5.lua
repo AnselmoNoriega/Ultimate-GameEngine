@@ -62,6 +62,7 @@ project "NotRed"
 	{
 		"%{prj.name}/src",
 		"%{prj.name}/vendor",
+		"%{prj.name}/..",
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.Box2D}",
 		"%{IncludeDir.GLFW}",

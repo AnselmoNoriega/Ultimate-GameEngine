@@ -169,7 +169,7 @@ namespace NR
         {
         case SceneState::Edit:
         {
-            mEditorCamera.SetActive(mAllowViewportCameraEvents || Input::GetCursorMode() == CursorMode::Locked);
+            mEditorCamera.SetActive(mViewportHasCapturedMouse || Input::GetCursorMode() == CursorMode::Locked);
             mEditorCamera.Update(dt);
             mEditorScene->RenderEditor(mViewportRenderer, dt, mEditorCamera);
 
@@ -778,7 +778,7 @@ namespace NR
             UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, (float)Utils::CalculateMipCount(rendererConfig.EnvironmentMapResolution, rendererConfig.EnvironmentMapResolution));
             UI::PropertySlider("Exposure", mEditorCamera.GetExposure(), 0.0f, 5.0f);
             UI::PropertySlider("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
-            UI::PropertySlider("Camera Speed", mEditorCamera.GetCameraSpeed(), 0.0005f, 2.f);
+            UI::PropertySlider("Camera Speed", mEditorCamera.mNormalSpeed, 0.0005f, 2.f);
 
             if (mSceneState == SceneState::Edit)
             {
@@ -935,7 +935,12 @@ namespace NR
         ImVec2 maxBound = { minBound.x + windowSize.x, minBound.y + windowSize.y };
         mViewportBounds[0] = { minBound.x, minBound.y };
         mViewportBounds[1] = { maxBound.x, maxBound.y };
-        mAllowViewportCameraEvents = ImGui::IsMouseHoveringRect(minBound, maxBound);
+
+        bool capturedLeftClick = minBound < io.MouseClickedPos[0] && io.MouseClickedPos[0] < maxBound;
+        bool capturedRightClick = minBound < io.MouseClickedPos[1] && io.MouseClickedPos[1] < maxBound;
+        bool capturedScrollWheelClick = minBound < io.MouseClickedPos[2] && io.MouseClickedPos[2] < maxBound;
+        
+        mViewportHasCapturedMouse = (capturedRightClick || capturedLeftClick || capturedScrollWheelClick) && mViewportPanelMouseOver;
 
         // Gizmos
         if (mGizmoType != -1 && mSelectionContext.size())

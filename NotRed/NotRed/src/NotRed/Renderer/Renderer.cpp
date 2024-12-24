@@ -152,7 +152,6 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Reinterleaving");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur2");
 		
 		// Renderer2D Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");

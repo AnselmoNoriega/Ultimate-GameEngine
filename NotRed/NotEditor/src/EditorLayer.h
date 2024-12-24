@@ -175,7 +175,7 @@ namespace NR
 
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
-		bool mAllowViewportCameraEvents = false;
+		bool mViewportHasCapturedMouse = false;
 
 		bool mShowConsolePanel = true;
 

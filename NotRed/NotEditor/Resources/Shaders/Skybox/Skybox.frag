@@ -1,6 +1,8 @@
 #version 450 core
 
-layout(location = 0) out vec4 finalColor;
+layout(location = 0) out vec4 oColor;
+layout(location = 1) out vec4 unused;
+layout(location = 2) out vec4 unused2;
 
 layout (binding = 1) uniform samplerCube uTexture;
 
@@ -33,5 +35,7 @@ float Convert_sRGB_FromLinear(float theLinearValue)
 
 void main()
 {
-	finalColor = textureLod(uTexture, vPosition, uUniforms.TextureLod) * uUniforms.Intensity;
+    oColor = textureLod(uTexture, vPosition, uUniforms.TextureLod) * uUniforms.Intensity;
+    unused = vec4(0);
+    unused2 = vec4(0);
 }

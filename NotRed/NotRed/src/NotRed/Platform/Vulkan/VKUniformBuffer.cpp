@@ -39,7 +39,7 @@ namespace NR
 
 		// Create a new buffer
 		VKAllocator allocator("UniformBuffer");
-		mMemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_ONLY, mBuffer);
+		mMemoryAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, mBuffer);
 
 		// Store information in the uniform's descriptor that is used by the descriptor set
 		mDescriptorInfo.buffer = mBuffer;

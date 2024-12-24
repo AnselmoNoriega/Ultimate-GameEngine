@@ -8,6 +8,7 @@ layout(push_constant) uniform Info
 {
     vec2 InvResDirection;
     float Sharpness;
+    bool FirstPass;
 } uInfo;
 
 
@@ -53,6 +54,13 @@ void main()
         vec2 uv = vs_TexCoords - uInfo.InvResDirection * r;
         cTotal += BlurFunction(uv, r, centerC, centerD, wTotal);
     }
-
-    outColor = vec4(cTotal / wTotal, centerD, 0, 1.0);
+    
+    if (uInfo.FirstPass)
+    {
+        outColor = vec4(cTotal / wTotal, centerD, 0, 1.0);
+    }
+    else
+    {
+        outColor = vec4(cTotal / wTotal);
+    }
 }

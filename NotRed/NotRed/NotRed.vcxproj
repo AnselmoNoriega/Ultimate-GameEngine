@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -126,7 +126,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -202,9 +202,9 @@
     <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
-    <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h" />
+    <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
@@ -498,6 +498,7 @@
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
+    <ClCompile Include="src\NotRed\Scene\ddddddddddddddddddddddddd.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
     <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp" />
