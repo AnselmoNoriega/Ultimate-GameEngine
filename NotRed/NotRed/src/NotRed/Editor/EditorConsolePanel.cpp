@@ -201,17 +201,7 @@ namespace NR
 
 		if (mDisplayMessageInspector && mSelectedMessage != nullptr)
 		{
-			static bool sIsMessageInspectorDocked = false;
-			if (sIsMessageInspectorDocked)
-			{
-				ImGuiWindowClass window_class;
-				window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
-				ImGui::SetNextWindowClass(&window_class);
-			}
-
-			ImGui::Begin("##MessageInspector");
-
-			sIsMessageInspectorDocked = ImGui::IsWindowDocked();
+			ImGui::Begin("Message Inspector");
 			mIsMessageInspectorHovered = ImGui::IsWindowHovered();
 
 			ImGui::PushTextWrapPos();
