@@ -12,7 +12,7 @@ namespace NR
 	static ImVec4 sInfoButtonTint = ImVec4(0.0f, 0.431372549f, 1.0f, 1.0f);
 	static ImVec4 sWarningButtonTint = ImVec4(1.0f, 0.890196078f, 0.0588235294f, 1.0f);
 	static ImVec4 sErrorButtonTint = ImVec4(1.0f, 0.309803922f, 0.309803922f, 1.0f);
-	static ImVec4 sNoTint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+	static ImVec4 sNoTint = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 
 	EditorConsolePanel::EditorConsolePanel()
 	{
@@ -54,8 +54,8 @@ namespace NR
 	void EditorConsolePanel::RenderMenu()
 	{
 		ImVec4 infoButtonTint = (mMessageFilters & (int16_t)ConsoleMessage::Category::Info) ? sInfoButtonTint : sNoTint;
-		ImVec4 warningButtonTint = (mMessageFilters & (int16_t)ConsoleMessage::Category::Info) ? sWarningButtonTint : sNoTint;
-		ImVec4 errorButtonTint = (mMessageFilters & (int16_t)ConsoleMessage::Category::Info) ? sErrorButtonTint : sNoTint;
+		ImVec4 warningButtonTint = (mMessageFilters & (int16_t)ConsoleMessage::Category::Warning) ? sWarningButtonTint : sNoTint;
+		ImVec4 errorButtonTint = (mMessageFilters & (int16_t)ConsoleMessage::Category::Error) ? sErrorButtonTint : sNoTint;
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 5));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(5, 3));
@@ -201,7 +201,6 @@ namespace NR
 
 		if (mDisplayMessageInspector && mSelectedMessage != nullptr)
 		{
-			// TOOD(Peter): Ensure that this panel is always docked to the bottom of the Log panel
 			static bool sIsMessageInspectorDocked = false;
 			if (sIsMessageInspectorDocked)
 			{
