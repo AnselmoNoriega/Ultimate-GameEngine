@@ -55,6 +55,7 @@ namespace NR
 		void OpenProject(const std::string& filepath);
 		void OpenScene(const std::string& filepath);
 		void OpenScene(const AssetMetadata& assetMetadata);
+		void CloseProject();
 		void SaveScene();
 		void SaveSceneAs();
 

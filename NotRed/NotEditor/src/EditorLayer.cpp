@@ -24,6 +24,8 @@
 #include "NotRed/Project/Project.h"
 #include "NotRed/Project/ProjectSerializer.h"
 
+#include "NotRed/Audio/AudioEngine.h"
+
 #include "NotRed/Renderer/RendererAPI.h"
 
 namespace NR
@@ -391,6 +393,68 @@ namespace NR
         Renderer2D::EndScene();
     }
 
+    void EditorLayer::OpenProject()
+    {
+        auto& app = Application::Get();
+        std::string filepath = app.OpenFile("NotRed Project (*.nrproj)\0*.nrproj\0");
+        if (!filepath.empty())
+        {
+            OpenProject(filepath);
+        }
+    }
+
+    void EditorLayer::OpenProject(const std::string& filepath)
+    {
+        if (Project::GetActive())
+        {
+            CloseProject();
+        }
+
+        Ref<Project> project = Ref<Project>::Create();
+        ProjectSerializer serializer(project);
+
+        serializer.Deserialize(filepath);
+
+        Project::SetActive(project);
+        ScriptEngine::LoadAppAssembly((Project::GetScriptModuleFilePath()).string());
+
+        if (!project->GetConfig().StartScene.empty())
+        {
+            OpenScene((Project::GetProjectDirectory() / project->GetConfig().StartScene).string());
+        }
+        if (mEditorScene)
+        {
+            mEditorScene->SetSelectedEntity({});
+        }
+
+        mSelectionContext.clear();
+        mContentBrowserPanel = CreateScope<ContentBrowserPanel>(project);
+
+        FileSystem::StartWatching();
+        
+        // Reset cameras
+        mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+    }
+
+    void EditorLayer::CloseProject()
+    {
+        FileSystem::StopWatching();
+        
+        mSceneHierarchyPanel->SetContext(nullptr);
+        ScriptEngine::SetSceneContext(nullptr);
+        Audio::AudioEngine::SetSceneContext(nullptr);
+        mViewportRenderer->SetScene(nullptr);
+        mSecondViewportRenderer->SetScene(nullptr);
+
+        mRuntimeScene = nullptr;
+        mCurrentScene = nullptr;
+
+        NR_CORE_ASSERT(mEditorScene->GetRefCount() == 1, "Scene will not be destroyed after project is closed - something is still holding scene refs!");
+        mEditorScene = nullptr;
+        Project::SetActive(nullptr);
+    }
+
     void EditorLayer::NewScene()
     {
         mSelectionContext = {};
@@ -428,50 +492,6 @@ namespace NR
     {
         std::filesystem::path workingDirPath = Project::GetAssetDirectory() / assetMetadata.FilePath;
         OpenScene(workingDirPath.string());
-    }
-
-    void EditorLayer::OpenProject()
-    {
-        auto& app = Application::Get();
-        std::string filepath = app.OpenFile("NotRed Project (*.nrproj)\0*.nrproj\0");
-        if (!filepath.empty())
-        {
-            OpenProject(filepath);
-        }
-    }
-
-    void EditorLayer::OpenProject(const std::string& filepath)
-    {
-        if (Project::GetActive())
-        {
-            FileSystem::StopWatching();
-        }
-
-        Ref<Project> project = Ref<Project>::Create();
-        ProjectSerializer serializer(project);
-
-        serializer.Deserialize(filepath);
-
-        Project::SetActive(project);
-        ScriptEngine::LoadAppAssembly((Project::GetScriptModuleFilePath()).string());
-
-        if (mEditorScene)
-        {
-            mEditorScene->SetSelectedEntity({});
-        }
-
-        mSelectionContext.clear();
-        mContentBrowserPanel = CreateScope<ContentBrowserPanel>(project);
-
-        FileSystem::StartWatching();
-
-        mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
-        mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
-
-        if (!project->GetConfig().StartScene.empty())
-        {
-            OpenScene((Project::GetProjectDirectory() / project->GetConfig().StartScene).string());
-        }
     }
 
     void EditorLayer::SaveScene()

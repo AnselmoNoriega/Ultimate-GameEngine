@@ -23,7 +23,7 @@ namespace NR
 {
     static MonoDomain* sCurrentMonoDomain = nullptr;
     static MonoDomain* sNewMonoDomain = nullptr;
-    static std::string sAssemblyPath;
+    static std::string sCoreAssemblyPath;
     static Ref<Scene> sSceneContext;
 
     MonoImage* sAppAssemblyImage = nullptr;
@@ -134,14 +134,9 @@ namespace NR
 
     static void InitMono()
     {
-        if (!sCurrentMonoDomain)
-        {
-            mono_set_assemblies_path("mono/lib");
-            auto domain = mono_jit_init("NotRed");
-
-            char* name = (char*)"NotRedRuntime";
-            sCurrentMonoDomain = mono_domain_create_appdomain(name, nullptr);
-        }
+        NR_CORE_ASSERT(!sCurrentMonoDomain, "Mono has already been initialised!");
+        mono_set_assemblies_path("mono/lib");
+        mono_jit_init("NotRed");
     }
 
     static MonoAssembly* LoadAssembly(const std::string& path)
@@ -289,15 +284,21 @@ namespace NR
 
     bool ScriptEngine::LoadRuntimeAssembly(const std::string& path)
     {
-        sAssemblyPath = path;
+        sCoreAssemblyPath = path;
         if (sCurrentMonoDomain)
         {
             sNewMonoDomain = mono_domain_create_appdomain((char*)"NotRed Runtime", nullptr);
             mono_domain_set(sNewMonoDomain, false);
             sPostLoadCleanup = true;
         }
+        else
+        {
+            sCurrentMonoDomain = mono_domain_create_appdomain((char*)"NotRed Runtime", nullptr);
+            mono_domain_set(sCurrentMonoDomain, false);
+            sPostLoadCleanup = false;
+        }
 
-        sCoreAssembly = LoadAssembly(path);
+        sCoreAssembly = LoadAssembly(sCoreAssemblyPath);
         if (!sCoreAssembly)
         {
             return false;
@@ -342,7 +343,7 @@ namespace NR
 
     bool ScriptEngine::ReloadAssembly(const std::string& path)
     {
-        if (!LoadRuntimeAssembly(sAssemblyPath) || !LoadAppAssembly(path))
+        if (!LoadRuntimeAssembly(sCoreAssemblyPath))
         {
             return false;
         }
@@ -351,12 +352,11 @@ namespace NR
         {
             Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
             NR_CORE_ASSERT(scene, "No active scene!");
-            if (sEntityInstanceMap.find(scene->GetID()) != sEntityInstanceMap.end())
+            if (const auto& entityInstanceMap = sEntityInstanceMap.find(scene->GetID()); entityInstanceMap != sEntityInstanceMap.end())
             {
-                auto& entityMap = sEntityInstanceMap.at(scene->GetID());
-                for (auto& [entityID, entityInstanceData] : entityMap)
+                const auto& entityMap = scene->GetEntityMap();
+                for (auto& [entityID, entityInstanceData] : entityInstanceMap->second)
                 {
-                    const auto& entityMap = scene->GetEntityMap();
                     NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
                     InitScriptEntity(entityMap.at(entityID));
                 }
@@ -972,7 +972,7 @@ namespace NR
                 Ref<Scene> scene = Scene::GetScene(sceneID);
                 for (auto& [entityID, entityInstanceData] : entityMap)
                 {
-                    Entity entity = scene->GetScene(sceneID)->GetEntityMap().at(entityID);
+                    Entity entity = scene->GetEntityMap().at(entityID);
                     std::string entityName = entity.GetComponent<TagComponent>().Tag;
 
                     opened = ImGui::TreeNode((void*)(uint64_t)entityID, "%s (%llx)", entityName.c_str(), entityID);

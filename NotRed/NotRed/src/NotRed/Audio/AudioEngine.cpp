@@ -603,22 +603,23 @@ namespace NR::Audio
         audioEngine.StopAll();
 
         audioEngine.mSceneContext = scene;
-        auto* newScene = audioEngine.mSceneContext.Raw();
-        const auto newSceneID = newScene->GetID();
-        audioEngine.mCurrentSceneID = newSceneID;
 
+        if (scene) 
         {
-            std::scoped_lock lock{ sStats.mutex };
-            sStats.NumAudioComps = sInstance->mAudioComponentRegistry.Count(newSceneID);
-        }
-
-        auto view = newScene->GetAllEntitiesWith<Audio::AudioComponent>();
-        for (auto entity : view)
-        {
-            Entity e = { entity, newScene };
-            auto& audioComp = e.GetComponent<Audio::AudioComponent>();
-
-            sInstance->RegisterAudioComponent(e);
+            auto* newScene = audioEngine.mSceneContext.Raw();
+            const auto newSceneID = newScene->GetID();
+            audioEngine.mCurrentSceneID = newSceneID;
+            {
+                std::scoped_lock lock{ sStats.mutex };
+                sStats.NumAudioComps = sInstance->mAudioComponentRegistry.Count(newSceneID);
+            }
+            auto view = newScene->GetAllEntitiesWith<Audio::AudioComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, newScene };
+                auto& audioComp = e.GetComponent<Audio::AudioComponent>();
+                sInstance->RegisterAudioComponent(e);
+            }
         }
     }
 
