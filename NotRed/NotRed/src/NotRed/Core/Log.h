@@ -19,9 +19,12 @@ namespace NR
 
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return sCoreLogger; }
 		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return sClientLogger; }
+		inline static std::shared_ptr<spdlog::logger>& GetEditorConsoleLogger() { return sEditorConsoleLogger; }
+
 	private:
 		static std::shared_ptr<spdlog::logger> sCoreLogger;
 		static std::shared_ptr<spdlog::logger> sClientLogger;
+		static std::shared_ptr<spdlog::logger> sEditorConsoleLogger;
 	};
 
 }
@@ -61,3 +64,10 @@ struct fmt::formatter<std::filesystem::path> : fmt::formatter<std::string>
 #define NR_WARN(...)	NR::Log::GetClientLogger()->warn(__VA_ARGS__)
 #define NR_ERROR(...)	NR::Log::GetClientLogger()->error(__VA_ARGS__)
 #define NR_FATAL(...)	NR::Log::GetClientLogger()->critical(__VA_ARGS__)
+
+// Editor Console Logging Macros
+#define NR_CONSOLE_LOG_TRACE(...)	NR::Log::GetEditorConsoleLogger()->trace(__VA_ARGS__)
+#define NR_CONSOLE_LOG_INFO(...)	NR::Log::GetEditorConsoleLogger()->info(__VA_ARGS__)
+#define NR_CONSOLE_LOG_WARN(...)	NR::Log::GetEditorConsoleLogger()->warn(__VA_ARGS__)
+#define NR_CONSOLE_LOG_ERROR(...)	NR::Log::GetEditorConsoleLogger()->error(__VA_ARGS__)
+#define NR_CONSOLE_LOG_FATAL(...)	NR::Log::GetEditorConsoleLogger()->critical(__VA_ARGS__)

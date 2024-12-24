@@ -18,6 +18,7 @@
 #include "NotRed/Editor/SceneHierarchyPanel.h"
 #include "NotRed/Editor/ContentBrowserPanel.h"
 #include "NotRed/Editor/ObjectsPanel.h"
+#include "NotRed/Editor/EditorConsolePanel.h"
 
 namespace NR
 {
@@ -95,6 +96,7 @@ namespace NR
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
+		Scope<EditorConsolePanel> mConsolePanel;
 
 		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
 		Ref<SceneRenderer> mViewportRenderer;
@@ -173,6 +175,8 @@ namespace NR
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
 		bool mAllowViewportCameraEvents = false;
+
+		bool mShowConsolePanel = true;
 
 		bool mViewportPanel2MouseOver = false;
 		bool mViewportPanel2Focused = false;

@@ -65,6 +65,7 @@ namespace NR
         OpenProject("SandboxProject/Sandbox.nrproj");
 
         mObjectsPanel = CreateScope<ObjectsPanel>();
+        mConsolePanel = CreateScope<EditorConsolePanel>();
 
         mViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
         mSecondViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
@@ -89,6 +90,8 @@ namespace NR
         mSceneState = SceneState::Play;
         UI::SetMouseEnabled(true);
         Input::SetCursorMode(CursorMode::Normal);
+
+        mConsolePanel->ScenePlay();
 
         if (mReloadScriptOnPlay)
         {
@@ -836,6 +839,7 @@ namespace NR
 
         mContentBrowserPanel->ImGuiRender();
         mObjectsPanel->ImGuiRender();
+        mConsolePanel->ImGuiRender(&mShowConsolePanel);
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));

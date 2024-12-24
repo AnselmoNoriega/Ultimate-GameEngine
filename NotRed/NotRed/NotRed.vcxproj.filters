@@ -785,6 +785,9 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h" />
     <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h" />
+    <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
+    <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h" />
+    <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1283,5 +1286,6 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\MaterialAsset.cpp" />
+    <ClCompile Include="src\NotRed\Editor\EditorConsolePanel.cpp" />
   </ItemGroup>
 </Project>

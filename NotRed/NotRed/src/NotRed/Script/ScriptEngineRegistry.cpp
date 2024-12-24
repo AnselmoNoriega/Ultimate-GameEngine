@@ -55,6 +55,7 @@ namespace NR
 
 		mono_add_internal_call("NR.Noise::PerlinNoise_Native", NR::Script::NR_Noise_PerlinNoise);
 
+		mono_add_internal_call("NR.Physics::RaycastWithStruct_Native", NR::Script::NR_Physics_RaycastWithStruct);
 		mono_add_internal_call("NR.Physics::Raycast_Native", NR::Script::NR_Physics_Raycast);
 		mono_add_internal_call("NR.Physics::OverlapBox_Native", NR::Script::NR_Physics_OverlapBox);
 		mono_add_internal_call("NR.Physics::OverlapSphere_Native", NR::Script::NR_Physics_OverlapSphere);
@@ -167,5 +168,7 @@ namespace NR
 		mono_add_internal_call("NR.Audio::CreateSound2DAssetPath_Native", Script::NR_AudioCreateSound2DPath);
 		mono_add_internal_call("NR.Audio::CreateSoundAtLocationAsset_Native", Script::NR_AudioCreateSound3DAsset);
 		mono_add_internal_call("NR.Audio::CreateSoundAtLocationAssetPath_Native", Script::NR_AudioCreateSound3DPath);
+		
+		mono_add_internal_call("NR.Log::LogMessage_Native", NR::Script::NR_Log_LogMessage);
 	}
 }

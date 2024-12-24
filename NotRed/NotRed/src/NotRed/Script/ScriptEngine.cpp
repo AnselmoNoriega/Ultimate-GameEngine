@@ -5,6 +5,7 @@
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/attrdefs.h>
+#include <mono/metadata/mono-gc.h>
 
 #include <iostream>
 #include <chrono>
@@ -236,13 +237,7 @@ namespace NR
             std::string message = GetStringProperty("Message", exceptionClass, pException);
             std::string stackTrace = GetStringProperty("StackTrace", exceptionClass, pException);
             
-            if (!stackTrace.empty())
-            {
-                stackTrace.erase(0, 5);
-                stackTrace.erase(stackTrace.size() - 1);
-            }
-            
-            NR_CORE_ERROR("{0}: {1}. Stack Trace: {2}", typeName, message, stackTrace);
+            NR_CONSOLE_LOG_ERROR("{0}: {1}. Stack Trace: {2}", typeName, message, stackTrace);
 
             void* args[] = { pException };
             MonoObject* result = mono_runtime_invoke(sExceptionMethod, nullptr, args, nullptr);
@@ -964,6 +959,11 @@ namespace NR
     void ScriptEngine::ImGuiRender()
     {
         ImGui::Begin("Script Engine Debug");
+        
+        float gcHeapSize = (float)mono_gc_get_heap_size();
+        float gcUsageSize = (float)mono_gc_get_used_size();
+        ImGui::Text("GC Heap Info(Used/Available): %.2fKB / %.2fKB", gcUsageSize / 1024.0f, gcHeapSize / 1024.0f);
+
         for (auto& [sceneID, entityMap] : sEntityInstanceMap)
         {
             bool opened = ImGui::TreeNode((void*)(uint64_t)sceneID, "Scene (%llx)", sceneID);

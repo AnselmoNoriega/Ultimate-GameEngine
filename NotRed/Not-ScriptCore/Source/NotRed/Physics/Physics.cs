@@ -22,43 +22,20 @@ namespace NR
         public float Distance { get; internal set; }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RaycastData
+    {
+        public Vector3 Origin;
+        public Vector3 Direction;
+        public float MaxDistance;
+        public Type[] RequiredComponents;
+    }
+
     public static class Physics
     {
-        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit)
-        {
-            return Raycast_Native(ref origin, ref direction, maxDistance, out hit);
-        }
-
-        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, params Type[] componentFilters)
-        {
-            RaycastHit tempHit;
-            bool success = Raycast_Native(ref origin, ref direction, maxDistance, out tempHit);
-
-            if (success)
-            {
-                Entity entity = new Entity(tempHit.EntityID);
-                foreach (Type comp in componentFilters)
-                {
-                    if (!entity.HasComponent(comp))
-                    {
-                        success = false;
-                        break;
-                    }
-                }
-            }
-
-            if (success)
-            {
-                hit = tempHit;
-            }
-            else
-            {
-                hit = new RaycastHit();
-                hit.EntityID = 0;
-            }
-
-            return success;
-        }
+        public static bool Raycast(RaycastData raycastData, out RaycastHit hit) => RaycastWithStruct_Native(ref raycastData, out hit);
+        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit) => Raycast_Native(ref origin, ref direction, maxDistance, null, out hit);
+        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, params Type[] componentFilters) => Raycast_Native(ref origin, ref direction, maxDistance, componentFilters, out hit);
 
         public static Collider[] OverlapBox(Vector3 origin, Vector3 halfSize)
         {
@@ -91,7 +68,9 @@ namespace NR
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool Raycast_Native(ref Vector3 origin, ref Vector3 direction, float maxDistance, out RaycastHit hit);
+        internal static extern bool RaycastWithStruct_Native(ref RaycastData raycastData, out RaycastHit hit);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Raycast_Native(ref Vector3 origin, ref Vector3 direction, float maxDistance, Type[] requiredComponents, out RaycastHit hit);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Collider[] OverlapBox_Native(ref Vector3 origin, ref Vector3 halfSize);
         [MethodImpl(MethodImplOptions.InternalCall)]

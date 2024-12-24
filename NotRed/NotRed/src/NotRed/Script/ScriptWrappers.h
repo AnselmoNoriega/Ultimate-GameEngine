@@ -25,8 +25,17 @@ namespace NR::Script
     void NR_Input_SetCursorMode(CursorMode mode);
     CursorMode NR_Input_GetCursorMode();
 
+    struct RaycastData
+    {
+        glm::vec3 Origin;
+        glm::vec3 Direction;
+        float MaxDistance;
+        MonoArray* RequiredComponentTypes;
+    };
+
     // Physics
-    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit);
+    bool NR_Physics_RaycastWithStruct(RaycastData* inData, RaycastHit* hit);
+    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, MonoArray* requiredComponentTypes, RaycastHit* hit);
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize);
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius);
     MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight);
@@ -141,4 +150,15 @@ namespace NR::Script
     uint64_t NR_AudioCreateSound2DPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
     uint64_t NR_AudioCreateSound3DAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
     uint64_t NR_AudioCreateSound3DPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+
+    enum class LogLevel : int32_t
+    {
+        Trace       = 1 << 0,
+        Debug       = 1 << 1,
+        Info        = 1 << 2,
+        Warn        = 1 << 3,
+        Error       = 1 << 4,
+        Critical    = 1 << 5
+    };
+    void NR_Log_LogMessage(LogLevel level, MonoString* message);
 }

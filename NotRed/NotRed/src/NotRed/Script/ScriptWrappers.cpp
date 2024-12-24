@@ -265,10 +265,75 @@ namespace NR::Script
         return Input::GetCursorMode();
     }
 
-    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, RaycastHit* hit)
+    bool NR_Physics_RaycastWithStruct(RaycastData* inData, RaycastHit* hit)
     {
+        return NR_Physics_Raycast(&inData->Origin, &inData->Direction, inData->MaxDistance, inData->RequiredComponentTypes, hit);
+    }
+
+    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, MonoArray* requiredComponentTypes, RaycastHit* hit)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
         NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
-        return PhysicsManager::GetScene()->Raycast(*origin, *direction, maxDistance, hit);
+
+        RaycastHit temp;
+        bool success = PhysicsManager::GetScene()->Raycast(*origin, *direction, maxDistance, &temp);
+        if (success && requiredComponentTypes != nullptr)
+        {
+            Entity entity = scene->FindEntityByID(temp.HitEntity);
+            size_t length = mono_array_length(requiredComponentTypes);
+            for (size_t i = 0; i < length; ++i)
+            {
+                void* rawType = mono_array_get(requiredComponentTypes, void*, i);
+                if (rawType == nullptr)
+                {
+                    NR_CONSOLE_LOG_ERROR("Why did you feel the need to pass a \"null\" System.Type to Physics.Raycast?");
+                    success = false;
+                    break;
+                }
+                MonoType* type = mono_reflection_type_get_type((MonoReflectionType*)rawType);
+
+#ifdef NR_DEBUG
+                MonoClass* typeClass = mono_type_get_class(type);
+                MonoClass* parentClass = mono_class_get_parent(typeClass);
+                bool validComponentFilter = true;
+                if (parentClass == nullptr)
+                {
+                    validComponentFilter = false;
+                }
+                else
+                {
+                    const char* parentClassName = mono_class_get_name(parentClass);
+                    const char* parentNamespace = mono_class_get_namespace(parentClass);
+                    if (strstr(parentClassName, "Component") == nullptr || strstr(parentNamespace, "NR") == nullptr)
+                        validComponentFilter = false;
+                }
+                if (!validComponentFilter)
+                {
+                    NR_CONSOLE_LOG_ERROR("{0} does not inherit from NR.Component!", mono_class_get_name(typeClass));
+                    success = false;
+                    break;
+                }
+#endif
+
+                if (!sHasComponentFuncs[type](entity))
+                {
+                    success = false;
+                    break;
+                }
+            }
+        }
+
+        if (!success)
+        {
+            temp.HitEntity = 0;
+            temp.Distance = 0.0f;
+            temp.Normal = glm::vec3(0.0f);
+            temp.Position = glm::vec3(0.0f);
+        }
+
+        *hit = temp;
+        return success;
     }
 
     static void AddCollidersToArray(MonoArray* array, const std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
@@ -1162,5 +1227,19 @@ namespace NR::Script
         audioComponent.SourcePosition = *location;
 
         return entity.GetID();
+    }
+
+    void NR_Log_LogMessage(LogLevel level, MonoString* message)
+    {
+        char* msg = mono_string_to_utf8(message);
+        switch (level)
+        {
+        case LogLevel::Trace:         NR_CONSOLE_LOG_TRACE(msg); break;
+        case LogLevel::Debug:         NR_CONSOLE_LOG_INFO(msg); break;
+        case LogLevel::Info:          NR_CONSOLE_LOG_INFO(msg); break;
+        case LogLevel::Warn:          NR_CONSOLE_LOG_WARN(msg); break;
+        case LogLevel::Error:         NR_CONSOLE_LOG_ERROR(msg); break;
+        case LogLevel::Critical:      NR_CONSOLE_LOG_FATAL(msg); break;
+        }
     }
 }
