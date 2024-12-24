@@ -276,12 +276,6 @@
     <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h">
-      <Filter>src\NotRed\Editor\ContentBrowser</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h">
-      <Filter>src\NotRed\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -301,9 +295,6 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h">
-      <Filter>src\NotRed\Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h">
@@ -896,12 +887,6 @@
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp">
-      <Filter>src\NotRed\Editor\ContentBrowser</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp">
-      <Filter>src\NotRed\Editor</Filter>
-    </ClCompile>
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
@@ -915,9 +900,6 @@
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp">
-      <Filter>src\NotRed\Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp">

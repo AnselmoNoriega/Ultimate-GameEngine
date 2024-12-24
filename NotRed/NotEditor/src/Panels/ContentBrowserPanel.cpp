@@ -10,7 +10,7 @@
 #include "NotRed/Core/Application.h"
 #include "NotRed/Core/Input.h"
 
-#include "AssetEditorPanel.h"
+#include "NotRed/Editor/AssetEditorPanel.h"
 #include "NotRed/Renderer/MaterialAsset.h"
 
 #include "NotRed/Audio/Sound.h"
@@ -142,7 +142,7 @@ namespace NR
 		ClearSelections();
 	}
 
-	static float sPadding = 4.0f;
+	static float sPadding = 2.0f;
 	static float sThumbnailSize = 128.0f;
 
 	void ContentBrowserPanel::ImGuiRender()
@@ -491,7 +491,7 @@ namespace NR
 			{
 				if (item->GetType() == ContentBrowserItem::ItemType::Directory)
 				{
-					FileSystem::ShowFileInExplorer(mCurrentDirectory->FilePath / item->GetName());
+					FileSystem::OpenExternally(mProject->GetAssetDirectory() / mCurrentDirectory->FilePath / item->GetName());
 				}
 				else
 				{
@@ -522,7 +522,7 @@ namespace NR
 				break;
 			}
 
-			if (result.IsSet(ContentBrowserAction::NavigateToThis) && item->GetType() == ContentBrowserItem::ItemType::Directory)
+			if (result.IsSet(ContentBrowserAction::NavigateToThis))
 			{
 				ChangeDirectory(item.As<ContentBrowserDirectory>()->GetDirectoryInfo());
 				break;

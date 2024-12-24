@@ -169,11 +169,17 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Panels\ContentBrowserPanel.h" />
+    <ClInclude Include="src\Panels\ContentBrowser\ContentBrowserItem.h" />
     <ClInclude Include="src\EditorLayer.h" />
+    <ClInclude Include="src\Panels\PhysicsSettingsWindow.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="src\Panels\ContentBrowser\ContentBrowserItem.cpp" />
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\NotEditor.cpp" />
+    <ClCompile Include="src\Panels\PhysicsSettingsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NotRed\NotRed.vcxproj">

@@ -4,8 +4,6 @@
 #include <imgui.h>
 #include <imgui/imgui_internal.h>
 
-#include <assimp/scene.h>
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -31,8 +29,6 @@
 
 namespace NR
 {
-	glm::mat4 AssimpMat4ToMat4(const aiMatrix4x4& matrix);
-
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 		: mContext(context)
 	{

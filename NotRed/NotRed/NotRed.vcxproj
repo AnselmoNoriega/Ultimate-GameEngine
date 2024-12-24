@@ -198,8 +198,6 @@
     <ClInclude Include="src\NotRed\Debug\Profiler.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
     <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h" />
-    <ClInclude Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.h" />
-    <ClInclude Include="src\NotRed\Editor\ContentBrowserPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
@@ -207,7 +205,6 @@
     <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\PhysicsSettingsWindow.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
@@ -406,14 +403,11 @@
     <ClCompile Include="src\NotRed\Core\UUID.cpp" />
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ContentBrowser\ContentBrowserItem.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ContentBrowserPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorConsolePanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
-    <ClCompile Include="src\NotRed\Editor\PhysicsSettingsWindow.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />

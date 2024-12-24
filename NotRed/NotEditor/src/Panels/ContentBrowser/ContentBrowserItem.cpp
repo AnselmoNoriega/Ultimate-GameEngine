@@ -1,12 +1,13 @@
 #include "nrpch.h"
 #include "ContentBrowserItem.h"
 
+#include "Panels/ContentBrowserPanel.h"
+
 #include "imgui_internal.h"
 
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Util/FileSystem.h"
 #include "NotRed/ImGui/ImGui.h"
-#include "NotRed/Editor/ContentBrowserPanel.h"
 #include "NotRed/Editor/AssetEditorPanel.h"
 
 namespace NR

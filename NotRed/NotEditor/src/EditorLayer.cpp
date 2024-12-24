@@ -13,7 +13,6 @@
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
-#include "NotRed/Editor/PhysicsSettingsWindow.h"
 #include "NotRed/Editor/AssetEditorPanel.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
@@ -429,6 +428,7 @@ namespace NR
 
         mSelectionContext.clear();
         mContentBrowserPanel = CreateScope<ContentBrowserPanel>(project);
+        mPhysicsSettingsPanel = CreateScope<PhysicsSettingsWindow>();
 
         FileSystem::StartWatching();
         
@@ -858,6 +858,7 @@ namespace NR
         ImGui::End();
 
         mContentBrowserPanel->ImGuiRender();
+        mPhysicsSettingsPanel->ImGuiRender(mShowPhysicsSettings);
         mObjectsPanel->ImGuiRender();
         mConsolePanel->ImGuiRender(&mShowConsolePanel);
 
@@ -1639,7 +1640,6 @@ namespace NR
         }
 
         mFocusedRenderer->ImGuiRender();
-        PhysicsSettingsWindow::ImGuiRender(mShowPhysicsSettings);
 
         // Project panel
         {

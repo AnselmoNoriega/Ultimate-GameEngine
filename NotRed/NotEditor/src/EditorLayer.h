@@ -16,7 +16,8 @@
 #include "NotRed/Editor/EditorCamera.h"
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
-#include "NotRed/Editor/ContentBrowserPanel.h"
+#include "Panels/ContentBrowserPanel.h"
+#include "Panels/PhysicsSettingsWindow.h"
 #include "NotRed/Editor/ObjectsPanel.h"
 #include "NotRed/Editor/EditorConsolePanel.h"
 
@@ -96,6 +97,7 @@ namespace NR
 	private:
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
+		Scope<PhysicsSettingsWindow> mPhysicsSettingsPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
 		Scope<EditorConsolePanel> mConsolePanel;
 

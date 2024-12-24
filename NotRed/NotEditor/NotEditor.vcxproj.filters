@@ -8,15 +8,14 @@
   <ItemGroup>
     <ClCompile Include="src\EditorLayer.cpp" />
     <ClCompile Include="src\NotEditor.cpp" />
+    <ClCompile Include="src\Panels\ContentBrowser\ContentBrowserItem.cpp" />
+    <ClCompile Include="src\Panels\ContentBrowserPanel.cpp" />
+    <ClCompile Include="src\Panels\PhysicsSettingsWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\EditorLayer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\Chunk.cs" />
-    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\ChunkRenderer.cs" />
-    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\MeshData.cs" />
-    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\Voxel.cs" />
-    <None Include="SandboxProject\Assets\Scripts\src\VoxelGame\World.cs" />
+    <ClInclude Include="src\Panels\ContentBrowser\ContentBrowserItem.h" />
+    <ClInclude Include="src\Panels\ContentBrowserPanel.h" />
+    <ClInclude Include="src\Panels\PhysicsSettingsWindow.h" />
   </ItemGroup>
 </Project>
