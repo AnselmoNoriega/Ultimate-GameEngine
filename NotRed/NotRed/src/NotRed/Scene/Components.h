@@ -335,4 +335,16 @@ namespace NR
         AudioListenerComponent() = default;
         AudioListenerComponent(const AudioListenerComponent& other) = default;
     };
+
+    template<typename... Component>
+    struct ComponentGroup {};
+
+    using AllComponents =
+        ComponentGroup<IDComponent, TagComponent, TransformComponent, RelationshipComponent, 
+        MeshComponent, ParticleComponent, 
+        PointLightComponent, SkyLightComponent, 
+        ScriptComponent, CameraComponent, SpriteRendererComponent, 
+        RigidBody2DComponent, BoxCollider2DComponent, CircleCollider2DComponent, RigidBodyComponent, 
+        BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent, 
+        AudioListenerComponent>;
 }

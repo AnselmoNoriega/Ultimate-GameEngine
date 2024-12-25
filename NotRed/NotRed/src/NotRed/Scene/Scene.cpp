@@ -1427,9 +1427,6 @@ namespace NR
 		//CopyComponentIfExists<RelationshipComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<ParticleComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-		CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-		CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-		CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1441,22 +1438,55 @@ namespace NR
 		CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<MeshColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-		CopyComponentIfExists<Audio::AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+		CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+		CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+		CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<AudioListenerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+		CopyComponentIfExists<Audio::AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 
-		for (auto childId : entity.Children())
+#if _DEBUG
+		//// Check that nothing has been forgotten...
+		//bool foundAll = true;
+
+		//mRegistry.view<entt::get<ComponentA, ComponentB, ComponentC>>().each([&](auto entityHandle) {
+		//	bool foundOne = false;
+
+		//	// Check if the same component exists in newEntity
+		//	mRegistry.view<entt::get<ComponentA, ComponentB, ComponentC>>().each([&](auto newEntityHandle) {
+		//		// Compare the components in both entities
+		//		if (entityHandle == newEntityHandle) {
+		//			foundOne = true;
+		//		}
+		//		});
+
+		//	foundAll = foundAll && foundOne;
+		//	});
+
+		//NR_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
+#endif
+
+		auto childIDs = entity.Children(); // need to take a copy of children here, becuase the collection is mutated below
+		for (auto childID : childIDs)
 		{
-			Entity childDuplicate = DuplicateEntity(FindEntityByID(childId));
+			Entity childEntity = FindEntityByID(childID);
+			NR_CORE_ASSERT(childEntity, "Failed to find child entity");
 
-			UnparentEntity(childDuplicate, false);
+			if (childEntity)
+			{
+				Entity childDuplicate = DuplicateEntity(FindEntityByID(childID));
 
-			childDuplicate.SetParentID(newEntity.GetID());
-			newEntity.Children().push_back(childDuplicate.GetID());
+				// At this point childDuplicate is a child of entity, we need to remove it from that entity
+				UnparentEntity(childDuplicate, false);
+
+				childDuplicate.SetParentID(newEntity.GetID());
+				newEntity.Children().push_back(childDuplicate.GetID());
+			}
 		}
 
 		if (entity.HasParent())
 		{
 			Entity parent = FindEntityByID(entity.GetParentID());
+			NR_CORE_ASSERT(parent, "Failed to find parent entity");
 			newEntity.SetParentID(entity.GetParentID());
 			parent.Children().push_back(newEntity.GetID());
 		}
