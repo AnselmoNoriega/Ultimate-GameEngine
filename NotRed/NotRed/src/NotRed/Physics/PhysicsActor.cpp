@@ -136,7 +136,7 @@ namespace NR
 		actor->addTorque(PhysicsUtils::ToPhysicsVector(torque), (physx::PxForceMode::Enum)forceMode);
 	}
 
-	const glm::vec3& PhysicsActor::GetVelocity() const
+	glm::vec3 PhysicsActor::GetVelocity() const
 	{
 		if (!IsDynamic())
 		{
@@ -162,7 +162,7 @@ namespace NR
 		actor->setLinearVelocity(PhysicsUtils::ToPhysicsVector(velocity));
 	}
 
-	const glm::vec3& PhysicsActor::GetAngularVelocity() const
+	glm::vec3 PhysicsActor::GetAngularVelocity() const
 	{
 		if (!IsDynamic())
 		{

@@ -47,8 +47,8 @@ namespace NR
 		}
 
 		glm::mat4 FromPhysicsMatrix(const physx::PxMat44& matrix) { return *(glm::mat4*)&matrix; }
-		const glm::vec3& FromPhysicsVector(const physx::PxVec3& vector) { return *(glm::vec3*)&vector; }
-		const glm::vec4& FromPhysicsVector(const physx::PxVec4& vector) { return *(glm::vec4*)&vector; }
+		glm::vec3 FromPhysicsVector(const physx::PxVec3& vector) { return *(glm::vec3*)&vector; }
+		glm::vec4 FromPhysicsVector(const physx::PxVec4& vector) { return *(glm::vec4*)&vector; }
 		glm::quat FromPhysicsQuat(const physx::PxQuat& quat) { return *(glm::quat*)&quat; }
 
 		CookingResult FromPhysicsCookingResult(physx::PxConvexMeshCookingResult::Enum cookingResult)

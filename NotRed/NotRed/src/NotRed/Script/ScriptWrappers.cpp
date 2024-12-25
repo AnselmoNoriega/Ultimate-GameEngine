@@ -741,9 +741,6 @@ namespace NR::Script
 		NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 		auto& component = entity.GetComponent<RigidBodyComponent>();
 		component.BodyType = type;
-
-		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-		//actor->SetBodyType(type);
 	}
 
 	void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode forceMode)

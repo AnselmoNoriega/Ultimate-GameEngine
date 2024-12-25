@@ -20,9 +20,9 @@ namespace NR
 		void AddForce(const glm::vec3& force, ForceMode forceMode);
 		void AddTorque(const glm::vec3& torque, ForceMode forceMode);
 
-		const glm::vec3& GetVelocity() const;
+		glm::vec3 GetVelocity() const;
 		void SetVelocity(const glm::vec3& velocity);
-		const glm::vec3& GetAngularVelocity() const;
+		glm::vec3 GetAngularVelocity() const;
 		void SetAngularVelocity(const glm::vec3& velocity);
 
 		float GetMaxVelocity() const;
@@ -62,10 +62,10 @@ namespace NR
 
 		physx::PxRigidActor& GetPhysicsActor() const { return *mRigidActor; }
 
-		const glm::vec3& GetPosition() const { return PhysicsUtils::FromPhysicsVector(mRigidActor->getGlobalPose().p); }
+		glm::vec3 GetPosition() const { return PhysicsUtils::FromPhysicsVector(mRigidActor->getGlobalPose().p); }
 		void SetPosition(const glm::vec3& position);
 
-		const glm::vec3& GetRotation() const { return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(mRigidActor->getGlobalPose().q)); }
+		glm::vec3 GetRotation() const { return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(mRigidActor->getGlobalPose().q)); }
 		void SetRotation(const glm::vec3& rotation);
 
 	private:
