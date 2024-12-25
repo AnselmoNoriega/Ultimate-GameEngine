@@ -66,6 +66,7 @@ namespace NR
 		void SetPosition(const glm::vec3& position);
 
 		const glm::vec3& GetRotation() const { return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(mRigidActor->getGlobalPose().q)); }
+		void SetRotation(const glm::vec3& rotation);
 
 	private:
 		void CreateRigidActor();

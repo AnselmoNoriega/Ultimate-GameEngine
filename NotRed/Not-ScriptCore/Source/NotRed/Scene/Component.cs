@@ -241,6 +241,19 @@ namespace NR
             }
         }
 
+        public Vector3 Rotation
+        {
+            get
+            {
+                GetRotation_Native(Entity.ID, out Vector3 rotation);
+                return rotation;
+            }
+            set
+            {
+                SetRotation_Native(Entity.ID, ref value);
+            }
+        }
+
         public float Mass
         {
             get { return GetMass_Native(Entity.ID); }
@@ -334,6 +347,10 @@ namespace NR
         internal static extern void GetPosition_Native(ulong entityID, out Vector3 position);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetPosition_Native(ulong entityID, ref Vector3 position);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRotation_Native(ulong entityID, out Vector3 rotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRotation_Native(ulong entityID, ref Vector3 rotation);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void AddForce_Native(ulong entityID, ref Vector3 force, ForceMode forceMode);
@@ -367,7 +384,9 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetMass_Native(ulong entityID, float mass);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern Type GetBodyType_Native(ulong entityID); 
+        internal static extern Type GetBodyType_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetBodyType_Native(ulong entityID, Type type);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetKinematicTarget_Native(ulong entityID, out Vector3 targetPosition, out Vector3 targetRotation);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -377,6 +396,7 @@ namespace NR
     public class AudioListenerComponent : Component
     {
     }
+
     public class AudioComponent : Component
     {
         public bool IsPlaying()

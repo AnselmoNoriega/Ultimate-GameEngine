@@ -29,6 +29,13 @@ namespace NR
 		mRigidActor->setGlobalPose(transform);
 	}
 
+	void PhysicsActor::SetRotation(const glm::vec3& rotation)
+	{
+		physx::PxTransform transform = mRigidActor->getGlobalPose();
+		transform.q = PhysicsUtils::ToPhysicsQuat(glm::quat(rotation));
+		mRigidActor->setGlobalPose(transform);
+	}
+
 	void PhysicsActor::Rotate(const glm::vec3& rotation)
 	{
 		physx::PxTransform transform = mRigidActor->getGlobalPose();

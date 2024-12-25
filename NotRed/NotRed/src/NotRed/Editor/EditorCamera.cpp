@@ -89,8 +89,8 @@ namespace NR
                 }
 
                 constexpr float maxRate{ 0.12f };
-                mYawDelta += glm::clamp(yawSign * delta.x, -maxRate, maxRate);
-                mPitchDelta += glm::clamp(delta.y, -maxRate, maxRate);
+                mYawDelta += glm::clamp(yawSign * delta.x * RotationSpeed(), -maxRate, maxRate);
+                mPitchDelta += glm::clamp(delta.y * RotationSpeed(), -maxRate, maxRate);
 
                 mRightDirection = glm::cross(mRotation, glm::vec3{ 0.f, yawSign, 0.f });
 
@@ -140,10 +140,6 @@ namespace NR
         if (mCameraMode == CameraMode::ARCBALL)
         {
             mPosition = CalculatePosition();
-        }
-        else
-        {
-
         }
         UpdateCameraView();
     }

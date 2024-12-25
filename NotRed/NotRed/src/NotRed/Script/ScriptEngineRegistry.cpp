@@ -118,7 +118,6 @@ namespace NR
 		mono_add_internal_call("NR.RigidBody2DComponent::ApplyImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyImpulse);
 		mono_add_internal_call("NR.RigidBody2DComponent::GetVelocity_Native", NR::Script::NR_RigidBody2DComponent_GetVelocity);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetVelocity_Native", NR::Script::NR_RigidBody2DComponent_SetVelocity);
-		mono_add_internal_call("NR.RigidBodyComponent::Rotate_Native", NR::Script::NR_RigidBodyComponent_Rotate);
 		mono_add_internal_call("NR.RigidBodyComponent::GetLayer_Native", NR::Script::NR_RigidBodyComponent_GetLayer);
 		mono_add_internal_call("NR.RigidBodyComponent::GetMass_Native", NR::Script::NR_RigidBodyComponent_GetMass);
 		mono_add_internal_call("NR.RigidBodyComponent::SetMass_Native", NR::Script::NR_RigidBodyComponent_SetMass);
@@ -129,6 +128,9 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetBodyType_Native", NR::Script::NR_RigidBodyComponent_SetBodyType);
 		mono_add_internal_call("NR.RigidBodyComponent::GetPosition_Native", NR::Script::NR_RigidBodyComponent_GetPosition);
 		mono_add_internal_call("NR.RigidBodyComponent::SetPosition_Native", NR::Script::NR_RigidBodyComponent_SetPosition);
+		mono_add_internal_call("NR.RigidBodyComponent::GetRotation_Native", NR::Script::NR_RigidBodyComponent_GetRotation);
+		mono_add_internal_call("NR.RigidBodyComponent::SetRotation_Native", NR::Script::NR_RigidBodyComponent_SetRotation);
+		mono_add_internal_call("NR.RigidBodyComponent::Rotate_Native", NR::Script::NR_RigidBodyComponent_Rotate);
 		mono_add_internal_call("NR.RigidBodyComponent::AddForce_Native", NR::Script::NR_RigidBodyComponent_AddForce);
 		mono_add_internal_call("NR.RigidBodyComponent::AddTorque_Native", NR::Script::NR_RigidBodyComponent_AddTorque);
 		mono_add_internal_call("NR.RigidBodyComponent::GetVelocity_Native", NR::Script::NR_RigidBodyComponent_GetVelocity);
