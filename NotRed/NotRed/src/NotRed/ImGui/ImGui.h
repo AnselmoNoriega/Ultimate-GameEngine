@@ -120,6 +120,24 @@ namespace NR::UI
 		ImGui::NextColumn();
 	}
 
+	static bool Property(const char* label, char* value, size_t length)
+	{
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		
+		sIDBuffer[0] = '#';
+		sIDBuffer[1] = '#';
+		
+		memset(sIDBuffer + 2, 0, 14);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+		bool changed = ImGui::InputText(sIDBuffer, value, length, sNextItemReadOnly ? ImGuiInputTextFlags_ReadOnly : 0);
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		return changed;
+	}
+
 	static bool Property(const char* label, bool& value)
 	{
 		bool modified = false;

@@ -113,6 +113,11 @@ namespace NR
                         out << field.GetStoredValue<uint32_t>();
                         break;
                     }
+                    case FieldType::String:
+                    {
+                        out << field.GetStoredValue<const std::string&>();
+                        break;
+                    }
                     case FieldType::Float:
                     {
                         out << field.GetStoredValue<float>();
@@ -679,7 +684,8 @@ namespace NR
                                 }
                                 case FieldType::String:
                                 {
-                                    NR_CORE_ASSERT(false, "Unimplemented");
+                                    std::string value = dataNode.as<std::string>();
+                                    publicFields.at(name).SetStoredValue<const std::string&>(value);
                                     break;
                                 }
                                 case FieldType::Vec2:

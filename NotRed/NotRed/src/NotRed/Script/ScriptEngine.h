@@ -63,24 +63,50 @@ namespace NR
 			return value;
 		}
 
+		template<>
+		const std::string& GetStoredValue() const
+		{
+			return *(std::string*)mStoredValueBuffer;
+		}
+
 		template<typename T>
-		void SetStoredValue(T value) const
+		void SetStoredValue(T value)
 		{
 			SetStoredValue_Internal(&value);
 		}
 
+		template<>
+		void SetStoredValue(const std::string& value)
+		{
+			(*(std::string*)mStoredValueBuffer).assign(value);
+		}
+
 		template<typename T>
-		T GetValue() const
+		T GetValue()
 		{
 			T value;
 			GetRuntimeValue_Internal(&value);
 			return value;
 		}
 
+		template<>
+		std::string GetValue()
+		{
+			std::string value;
+			GetRuntimeValue_Internal((void*)&value);
+			return value;
+		}
+
 		template<typename T>
-		void SetValue(T value) const
+		void SetValue(T value)
 		{
 			SetRuntimeValue_Internal(&value);
+		}
+
+		template<>
+		void SetValue(const std::string& value)
+		{
+			SetRuntimeValue_Internal((void*)&value);
 		}
 
 		void SetStoredValueRaw(void* src);
@@ -93,8 +119,10 @@ namespace NR
 		uint8_t* AllocateBuffer(FieldType type);
 		void SetStoredValue_Internal(void* value) const;
 		void GetStoredValue_Internal(void* outValue) const;
-		void SetRuntimeValue_Internal(void* value) const;
-		void GetRuntimeValue_Internal(void* outValue) const;
+		void SetRuntimeValue_Internal(void* value);
+		void SetRuntimeValue_Internal(const std::string& value);
+		void GetRuntimeValue_Internal(void* outValue);
+		void GetRuntimeValue_Internal(std::string& outValue);
 
 	private:
 		EntityInstance* mEntityInstance = nullptr;
@@ -163,5 +191,11 @@ namespace NR
 		static EntityInstanceData& GetEntityInstanceData(UUID sceneID, UUID entityID);
 
 		static void ImGuiRender();
+
+	private:
+		static std::unordered_map<std::string, std::string> sPublicFieldStringValue;
+
+	private:
+		friend PublicField;
 	};
 }

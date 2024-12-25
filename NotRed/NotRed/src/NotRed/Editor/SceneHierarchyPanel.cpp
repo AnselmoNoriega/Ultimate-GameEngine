@@ -971,6 +971,25 @@ namespace NR
 								}
 								break;
 							}
+							case FieldType::String:
+							{
+								const std::string& value = isRuntime ? field.GetValue<std::string>() : field.GetStoredValue<const std::string&>();
+								char buffer[256];
+								memset(buffer, 0, 256);
+								memcpy(buffer, value.c_str(), value.length());
+								if (UI::Property(field.Name.c_str(), buffer, 256))
+								{
+									if (isRuntime)
+									{
+										field.SetValue<const std::string&>(buffer);
+									}
+									else
+									{
+										field.SetStoredValue<const std::string&>(buffer);
+									}
+								}
+								break;
+							}
 							case FieldType::Float:
 							{
 								float value = isRuntime ? field.GetValue<float>() : field.GetStoredValue<float>();
