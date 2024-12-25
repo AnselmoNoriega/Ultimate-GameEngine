@@ -11,6 +11,7 @@
 extern "C" {
 	typedef struct _MonoObject MonoObject;
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoProperty MonoProperty;
 	typedef struct _MonoClass MonoClass;
 }
 
@@ -43,8 +44,9 @@ namespace NR
 		std::string Name;
 		std::string TypeName;
 		FieldType Type;
+		bool IsReadOnly;
 
-		PublicField(const std::string& name, const std::string& typeName, FieldType type);
+		PublicField(const std::string& name, const std::string& typeName, FieldType type, bool isReadOnly = false);
 		PublicField(const PublicField&) = delete;
 		PublicField(PublicField&& other);
 		~PublicField();
@@ -95,8 +97,9 @@ namespace NR
 		void GetRuntimeValue_Internal(void* outValue) const;
 
 	private:
-		EntityInstance* mEntityInstance;
-		MonoClassField* mMonoClassField;
+		EntityInstance* mEntityInstance = nullptr;
+		MonoClassField* mMonoClassField = nullptr;
+		MonoProperty* mMonoProperty = nullptr;
 		uint8_t* mStoredValueBuffer = nullptr;
 
 		friend class ScriptEngine;

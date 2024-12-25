@@ -64,7 +64,7 @@ namespace NR
 			case spdlog::level::err:
 			case spdlog::level::critical:
 			{
-				return ConsoleMessage::Category::Info;
+				return ConsoleMessage::Category::Error;
 			}
 			default:
 			{

@@ -115,14 +115,14 @@ namespace NR
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
 							bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
-							
+
 							SetSelected(newEntity);
 						}
 						if (ImGui::MenuItem("Sphere"))
 						{
 							auto newEntity = mContext->CreateEntity("Sphere");
 							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Sphere.nrmesh");
-							
+
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& scc = newEntity.AddComponent<SphereColliderComponent>();
 							scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
@@ -133,7 +133,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Capsule");
 							Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Capsule.nrmesh");
-							
+
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
 							ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
@@ -907,7 +907,7 @@ namespace NR
 		DrawComponent<ScriptComponent>("Script", entity, [=](ScriptComponent& sc) mutable
 			{
 				UI::BeginPropertyGrid();
-				
+
 				bool isError = !ScriptEngine::ModuleExists(sc.ModuleName);
 				std::string name = ScriptEngine::StripNamespace(Project::GetActive()->GetConfig().DefaultNamespace, sc.ModuleName);
 
@@ -952,6 +952,7 @@ namespace NR
 						for (auto& [name, field] : publicFields)
 						{
 							bool isRuntime = mContext->mIsPlaying && field.IsRuntimeAvailable();
+							UI::SetNextPropertyReadOnly(field.IsReadOnly);
 							switch (field.Type)
 							{
 							case FieldType::Int:
@@ -1046,7 +1047,7 @@ namespace NR
 					ScriptEngine::OnCreateEntity(entity);
 				}
 #endif
-							});
+		});
 
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
 			{
@@ -1089,7 +1090,7 @@ namespace NR
 
 				UI::EndPropertyGrid();
 			});
-		
+
 		DrawComponent<RigidBodyComponent>("Rigidbody", entity, [&](RigidBodyComponent& rbc)
 			{
 				UI::BeginPropertyGrid();
@@ -1300,18 +1301,18 @@ namespace NR
 		DrawComponent<Audio::AudioComponent>("Audio", entity, [&](Audio::AudioComponent& ac)
 			{
 				auto propertyGridSpacing = []
-				{
-					ImGui::Spacing();
-					ImGui::NextColumn();
-					ImGui::NextColumn();
-				};
+					{
+						ImGui::Spacing();
+						ImGui::NextColumn();
+						ImGui::NextColumn();
+					};
 
 				auto singleColumnSeparator = []
-				{
-					ImDrawList* draw_list = ImGui::GetWindowDrawList();
-					ImVec2 p = ImGui::GetCursorScreenPos();
-					draw_list->AddLine(ImVec2(p.x - 9999, p.y), ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
-				};
+					{
+						ImDrawList* draw_list = ImGui::GetWindowDrawList();
+						ImVec2 p = ImGui::GetCursorScreenPos();
+						draw_list->AddLine(ImVec2(p.x - 9999, p.y), ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
+					};
 
 				auto& colors = ImGui::GetStyle().Colors;
 				auto oldSCol = colors[ImGuiCol_Separator];
@@ -1357,14 +1358,14 @@ namespace NR
 				propertyGridSpacing();
 
 				auto logFrequencyToNormScale = [](float frequencyN)
-				{
-					return (log2(frequencyN) + 8.0f) / 8.0f;
-				};
+					{
+						return (log2(frequencyN) + 8.0f) / 8.0f;
+					};
 
 				auto sliderScaleToLogFreq = [](float sliderValue)
-				{
-					return pow(2.0f, 8.0f * sliderValue - 8.0f);
-				};
+					{
+						return pow(2.0f, 8.0f * sliderValue - 8.0f);
+					};
 
 				float lpfFreq = 1.0f - soundConfig->LPFilterValue;
 				if (UI::Property("Low-Pass Filter", lpfFreq, 0.0f, 0.0f, 1.0f))
@@ -1438,15 +1439,15 @@ namespace NR
 					using AttModel = Audio::AttenuationModel;
 					auto& spatialConfig = soundConfig->Spatialization;
 					auto getTextForModel = [&](AttModel model)
-					{
-						switch (model)
 						{
-						case AttModel::None:             return "None";
-						case AttModel::Inverse:          return "Inverse";
-						case AttModel::Linear:           return "Linear";
-						case AttModel::Exponential:      return "Exponential";
-						}
-					};
+							switch (model)
+							{
+							case AttModel::None:             return "None";
+							case AttModel::Inverse:          return "Inverse";
+							case AttModel::Linear:           return "Linear";
+							case AttModel::Exponential:      return "Exponential";
+							}
+						};
 
 					const auto& attenModStr = std::vector<std::string>{ getTextForModel(AttModel::None),
 																		getTextForModel(AttModel::Inverse),
@@ -1508,5 +1509,5 @@ namespace NR
 
 				colors[ImGuiCol_Separator] = oldSCol;
 			});
-						}
-					}
+	}
+}

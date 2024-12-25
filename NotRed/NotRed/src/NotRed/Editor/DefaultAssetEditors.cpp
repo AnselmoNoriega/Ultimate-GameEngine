@@ -423,9 +423,12 @@ namespace NR
 
 		ImGui::SetCursorPosX(20);
 
-		UI::BeginPropertyGrid();		
-		UI::Property("Width", textureWidth, 0.1f, 0.0f, 0.0f, true);
-		UI::Property("Height", textureHeight, 0.1f, 0.0f, 0.0f, true);
+		UI::BeginPropertyGrid();
+		UI::SetNextPropertyReadOnly();
+		UI::Property("Width", textureWidth);
+
+		UI::SetNextPropertyReadOnly();
+		UI::Property("Height", textureHeight);
 		UI::EndPropertyGrid();
 	}
 

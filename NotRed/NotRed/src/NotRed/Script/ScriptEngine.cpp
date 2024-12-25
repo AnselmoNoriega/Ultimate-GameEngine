@@ -782,6 +782,69 @@ namespace NR
             }
         }
 
+        {
+            MonoProperty* iter;
+            void* ptr = 0;
+            while ((iter = mono_class_get_properties(scriptClass.Class, &ptr)) != NULL)
+            {
+                const char* propertyName = mono_property_get_name(iter);
+                if (oldFields.find(propertyName) != oldFields.end())
+                {
+                    fieldMap.emplace(propertyName, std::move(oldFields.at(propertyName)));
+                    continue;
+                }
+
+                MonoMethod* propertySetter = mono_property_get_set_method(iter);
+                MonoMethod* propertyGetter = mono_property_get_get_method(iter);
+
+                uint32_t setterFlags = 0;
+                uint32_t getterFlags = 0;
+                bool isReadOnly = false;
+                MonoType* monoType = nullptr;
+
+                if (propertySetter)
+                {
+                    void* i = nullptr;
+                    MonoMethodSignature* sig = mono_method_signature(propertySetter);
+                    setterFlags = mono_method_get_flags(propertySetter, nullptr);
+                    isReadOnly = (setterFlags & MONO_METHOD_ATTR_PRIVATE) != 0;
+                    monoType = mono_signature_get_params(sig, &i);
+                }
+
+                if (propertyGetter)
+                {
+                    MonoMethodSignature* sig = mono_method_signature(propertyGetter);
+                    getterFlags = mono_method_get_flags(propertyGetter, nullptr);
+                    if (monoType != nullptr)
+                    {
+                        monoType = mono_signature_get_return_type(sig);
+                    }
+                    if ((getterFlags & MONO_METHOD_ATTR_PRIVATE) != 0)
+                    {
+                        continue;
+                    }
+                }
+
+                if ((setterFlags & MONO_METHOD_ATTR_STATIC) != 0)
+                {
+                    continue;
+                }
+
+                FieldType type = GetFieldType(monoType);
+                if (type == FieldType::ClassReference)
+                {
+                    continue;
+                }
+
+                char* typeName = mono_type_get_name(monoType);
+                PublicField field = { propertyName, typeName, type, isReadOnly };
+                field.mEntityInstance = &entityInstance;
+                field.mMonoProperty = iter;
+                field.CopyStoredValueFromRuntime();
+                fieldMap.emplace(propertyName, std::move(field));
+            }
+        }
+
         Destroy(entityInstance.Handle);
     }
 
@@ -845,15 +908,14 @@ namespace NR
             // case FieldType::String:   return 8; // TODO
         case FieldType::Vec2:        return 4 * 2;
         case FieldType::Vec3:        return 4 * 3;
-        case FieldType::Vec4:        return 4 * 4;
-        case FieldType::ClassReference: return 4;
+        case FieldType::Vec4:        return 4 * 4;\
         }
         NR_CORE_ASSERT(false, "Unknown field type!");
         return 0;
     }
 
-    PublicField::PublicField(const std::string& name, const std::string& typeName, FieldType type)
-        : Name(name), TypeName(typeName), Type(type)
+    PublicField::PublicField(const std::string& name, const std::string& typeName, FieldType type, bool isReadOnly)
+        : Name(name), TypeName(typeName), Type(type), IsReadOnly(isReadOnly)
     {
         mStoredValueBuffer = AllocateBuffer(type);
     }
@@ -863,12 +925,16 @@ namespace NR
         Name = std::move(other.Name);
         TypeName = std::move(other.TypeName);
         Type = other.Type;
+        IsReadOnly = other.IsReadOnly;
+
         mEntityInstance = other.mEntityInstance;
         mMonoClassField = other.mMonoClassField;
+        mMonoProperty = other.mMonoProperty;
         mStoredValueBuffer = other.mStoredValueBuffer;
 
         other.mEntityInstance = nullptr;
         other.mMonoClassField = nullptr;
+        other.mMonoProperty = nullptr;
         other.mStoredValueBuffer = nullptr;
     }
 
@@ -881,24 +947,30 @@ namespace NR
     {
         NR_CORE_ASSERT(mEntityInstance->GetInstance());
 
-        if (Type == FieldType::ClassReference)
+        if (mMonoProperty == nullptr)
         {
-            void* params[] = {
-                &mStoredValueBuffer
-            };
-            MonoObject* obj = ScriptEngine::Construct(TypeName + ":.ctor(intptr)", true, params);
-            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, obj);
+            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
         }
         else
         {
-            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
+            void* data[] = { mStoredValueBuffer };
+            mono_property_set_value(mMonoProperty, mEntityInstance->GetInstance(), data, NULL);
         }
     }
 
     void PublicField::CopyStoredValueFromRuntime()
     {
-        NR_CORE_ASSERT(mEntityInstance->GetInstance());
-        mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
+        NR_CORE_ASSERT(mEntityInstance->GetInstance());		
+        
+        if (mMonoProperty == nullptr)
+        {
+            mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
+        }
+        else
+        {
+            MonoObject* result = mono_property_get_value(mMonoProperty, mEntityInstance->GetInstance(), NULL, NULL);
+            memcpy(mStoredValueBuffer, mono_object_unbox(result), GetFieldSize(Type));
+        }
     }
 
     bool PublicField::IsRuntimeAvailable() const
@@ -908,48 +980,41 @@ namespace NR
 
     void PublicField::SetStoredValueRaw(void* src)
     {
-        if (Type == FieldType::ClassReference)
+        if (IsReadOnly)
         {
-            mStoredValueBuffer = (uint8_t*)src;
+            return;
         }
-        else
-        {
-            uint32_t size = GetFieldSize(Type);
-            memcpy(mStoredValueBuffer, src, size);
-        }
+
+        uint32_t size = GetFieldSize(Type);
+        memcpy(mStoredValueBuffer, src, size);
     }
 
     void PublicField::SetRuntimeValueRaw(void* src)
     {
         NR_CORE_ASSERT(mEntityInstance->GetInstance());
-        mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, src);
+
+        if (IsReadOnly)
+        {
+            return;
+        }
+
+        if (mMonoProperty == nullptr)
+        {
+            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, src);
+        }
+        else
+        {
+            void* data[] = { src };
+            mono_property_set_value(mMonoProperty, mEntityInstance->GetInstance(), data, NULL);
+        }
     }
 
     void* PublicField::GetRuntimeValueRaw()
     {
         NR_CORE_ASSERT(mEntityInstance->GetInstance());
-
-        if (Type == FieldType::ClassReference)
-        {
-            MonoObject* instance;
-            mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, &instance);
-
-            if (!instance)
-            {
-                return nullptr;
-            }
-
-            MonoClassField* field = mono_class_get_field_from_name(mono_object_get_class(instance), "_unmanagedInstance");
-            int* value;
-            mono_field_get_value(instance, field, &value);
-            return value;
-        }
-        else
-        {
-            uint8_t* outValue = nullptr;
-            mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
-            return outValue;
-        }
+        uint8_t* outValue = nullptr;
+        mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
+        return outValue;
     }
 
     uint8_t* PublicField::AllocateBuffer(FieldType type)
@@ -962,14 +1027,13 @@ namespace NR
 
     void PublicField::SetStoredValue_Internal(void* value) const
     {
-        if (Type == FieldType::ClassReference)
+        if (IsReadOnly)
         {
+            return;
         }
-        else
-        {
-            uint32_t size = GetFieldSize(Type);
-            memcpy(mStoredValueBuffer, value, size);
-        }
+
+        uint32_t size = GetFieldSize(Type);
+        memcpy(mStoredValueBuffer, value, size);
     }
 
     void PublicField::GetStoredValue_Internal(void* outValue) const
@@ -980,14 +1044,36 @@ namespace NR
 
     void PublicField::SetRuntimeValue_Internal(void* value) const
     {
+        if (IsReadOnly)
+        {
+            return;
+        }
         NR_CORE_ASSERT(mEntityInstance->GetInstance());
-        mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, value);
+        
+        if (mMonoProperty == nullptr)
+        {
+            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, value);
+        }
+        else
+        {
+            void* data[] = { value };
+            mono_property_set_value(mMonoProperty, mEntityInstance->GetInstance(), data, NULL);
+        }
     }
 
     void PublicField::GetRuntimeValue_Internal(void* outValue) const
     {
         NR_CORE_ASSERT(mEntityInstance->GetInstance());
-        mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
+
+        if (mMonoProperty == nullptr)
+        {
+            mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, outValue);
+        }
+        else
+        {
+            MonoObject* result = mono_property_get_value(mMonoProperty, mEntityInstance->GetInstance(), NULL, NULL);
+            memcpy(outValue, mono_object_unbox(result), GetFieldSize(Type));
+        }
     }
 
     void ScriptEngine::ImGuiRender()
