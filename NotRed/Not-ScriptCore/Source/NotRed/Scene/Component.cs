@@ -228,6 +228,19 @@ namespace NR
             }
         }
 
+        public Vector3 Position
+        {
+            get
+            {
+                GetPosition_Native(Entity.ID, out Vector3 position);
+                return position;
+            }
+            set
+            {
+                SetPosition_Native(Entity.ID, ref value);
+            }
+        }
+
         public float Mass
         {
             get { return GetMass_Native(Entity.ID); }
@@ -316,6 +329,11 @@ namespace NR
         {
             Rotate_Native(Entity.ID, ref rotation);
         }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetPosition_Native(ulong entityID, out Vector3 position);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetPosition_Native(ulong entityID, ref Vector3 position);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void AddForce_Native(ulong entityID, ref Vector3 force, ForceMode forceMode);

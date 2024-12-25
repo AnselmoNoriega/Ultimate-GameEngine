@@ -127,6 +127,8 @@ namespace NR
 
 		mono_add_internal_call("NR.RigidBodyComponent::GetBodyType_Native", NR::Script::NR_RigidBodyComponent_GetBodyType);
 		mono_add_internal_call("NR.RigidBodyComponent::SetBodyType_Native", NR::Script::NR_RigidBodyComponent_SetBodyType);
+		mono_add_internal_call("NR.RigidBodyComponent::GetPosition_Native", NR::Script::NR_RigidBodyComponent_GetPosition);
+		mono_add_internal_call("NR.RigidBodyComponent::SetPosition_Native", NR::Script::NR_RigidBodyComponent_SetPosition);
 		mono_add_internal_call("NR.RigidBodyComponent::AddForce_Native", NR::Script::NR_RigidBodyComponent_AddForce);
 		mono_add_internal_call("NR.RigidBodyComponent::AddTorque_Native", NR::Script::NR_RigidBodyComponent_AddTorque);
 		mono_add_internal_call("NR.RigidBodyComponent::GetVelocity_Native", NR::Script::NR_RigidBodyComponent_GetVelocity);

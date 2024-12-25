@@ -63,6 +63,8 @@ namespace NR
 		physx::PxRigidActor& GetPhysicsActor() const { return *mRigidActor; }
 
 		const glm::vec3& GetPosition() const { return PhysicsUtils::FromPhysicsVector(mRigidActor->getGlobalPose().p); }
+		void SetPosition(const glm::vec3& position);
+
 		const glm::vec3& GetRotation() const { return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(mRigidActor->getGlobalPose().q)); }
 
 	private:

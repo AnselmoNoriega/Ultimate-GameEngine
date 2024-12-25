@@ -22,6 +22,13 @@ namespace NR
 		mColliders.clear();
 	}
 
+	void PhysicsActor::SetPosition(const glm::vec3& position)
+	{
+		physx::PxTransform transform = mRigidActor->getGlobalPose();
+		transform.p = PhysicsUtils::ToPhysicsVector(position);
+		mRigidActor->setGlobalPose(transform);
+	}
+
 	void PhysicsActor::Rotate(const glm::vec3& rotation)
 	{
 		physx::PxTransform transform = mRigidActor->getGlobalPose();

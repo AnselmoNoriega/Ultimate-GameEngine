@@ -586,15 +586,47 @@ namespace NR::Script
         component.BodyType = *type;
     }
 
+    void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* position)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        *position = actor->GetPosition();
+    }
+
+    void NR_RigidBodyComponent_SetPosition(uint64_t entityID, glm::vec3* position)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        actor->SetPosition(*position);
+    }
+
     void NR_RigidBody2DComponent_ApplyImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
         body->ApplyLinearImpulse(*(const b2Vec2*)impulse, body->GetWorldCenter() + *(const b2Vec2*)offset, wake);
