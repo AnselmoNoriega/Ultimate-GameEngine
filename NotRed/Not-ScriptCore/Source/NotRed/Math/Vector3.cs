@@ -6,11 +6,18 @@ namespace NR
     [StructLayout(LayoutKind.Sequential)]
     public struct Vector3
     {
-        public static Vector3 zero = new Vector3(0, 0, 0);
+        public static Vector3 Zero = new Vector3(0, 0, 0);
 
-        internal static Vector3 Forward = new Vector3(0, 0, -1);
-        internal static Vector3 Right = new Vector3(1, 0, 0);
-        internal static Vector3 Up = new Vector3(0, 1, 0);
+        public static readonly Vector3 Up = new Vector3(0, 1, 0);
+        public static readonly Vector3 Down = new Vector3(0, -1, 0);
+        public static readonly Vector3 Right = new Vector3(1, 0, 0);
+        public static readonly Vector3 Left = new Vector3(-1, 0, 0);
+        public static readonly Vector3 Forward = new Vector3(0, 0, 1);
+        public static readonly Vector3 Back = new Vector3(0, 0, -1);
+
+        internal static Vector3 forward = new Vector3(0, 0, -1);
+        internal static Vector3 right = new Vector3(1, 0, 0);
+        internal static Vector3 up = new Vector3(0, 1, 0);
 
         public float x;
         public float y;

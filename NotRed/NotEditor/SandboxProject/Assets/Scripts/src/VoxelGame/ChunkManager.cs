@@ -1,29 +1,29 @@
-﻿using System;
-using NR;
+﻿using NR;
+using System;
 
 public static class ChunkManager
 {
-    public static void LoopThroughTheVoxels(Chunk Chunk, Action<float, float, float> actionToPerform)
+    public static void LoopThroughTheVoxels(Chunk chunkData, Action<float, float, float> actionToPerform)
     {
-        for (int index = 0; index < Chunk.Voxels.Length; index++)
+        for (int index = 0; index < chunkData.Voxels.Length; index++)
         {
-            var position = GetPostitionFromIndex(Chunk, index);
+            var position = GetPostitionFromIndex(chunkData, index);
             actionToPerform(position.x, position.y, position.z);
         }
     }
 
-    private static Vector3 GetPostitionFromIndex(Chunk Chunk, int index)
+    private static Vector3 GetPostitionFromIndex(Chunk chunkData, int index)
     {
-        int x = index % Chunk.Size;
-        int y = (index / Chunk.Size) % Chunk.Height;
-        int z = index / (Chunk.Size * Chunk.Height);
+        int x = index % chunkData.Size;
+        int y = (index / chunkData.Size) % chunkData.Height;
+        int z = index / (chunkData.Size * chunkData.Height);
         return new Vector3(x, y, z);
     }
 
     //in chunk coordinate system
-    private static bool InRange(Chunk Chunk, float axisCoordinate)
+    private static bool InRange(Chunk chunkData, float axisCoordinate)
     {
-        if (axisCoordinate < 0 || axisCoordinate >= Chunk.Size)
+        if (axisCoordinate < 0 || axisCoordinate >= chunkData.Size)
         {
             return false;
         }
@@ -32,9 +32,9 @@ public static class ChunkManager
     }
 
     //in chunk coordinate system
-    private static bool InRangeHeight(Chunk Chunk, float ycoordinate)
+    private static bool InRangeHeight(Chunk chunkData, float ycoordinate)
     {
-        if (ycoordinate < 0 || ycoordinate >= Chunk.Height)
+        if (ycoordinate < 0 || ycoordinate >= chunkData.Height)
         {
             return false;
         }
@@ -42,27 +42,28 @@ public static class ChunkManager
         return true;
     }
 
-    public static VoxelType GetBlockFromChunkCoordinates(Chunk Chunk, Vector3 chunkCoordinates)
+    public static VoxelType GetBlockFromChunkCoordinates(Chunk chunkData, Vector3 chunkCoordinates)
     {
-        return GetBlockFromChunkCoordinates(Chunk, chunkCoordinates.x, chunkCoordinates.y, chunkCoordinates.z);
+        return GetBlockFromChunkCoordinates(chunkData, chunkCoordinates.x, chunkCoordinates.y, chunkCoordinates.z);
     }
 
-    public static VoxelType GetBlockFromChunkCoordinates(Chunk Chunk, float x, float y, float z)
+    public static VoxelType GetBlockFromChunkCoordinates(Chunk chunkData, float x, float y, float z)
     {
-        if (InRange(Chunk, x) && InRangeHeight(Chunk, y) && InRange(Chunk, z))
+        if (InRange(chunkData, x) && InRangeHeight(chunkData, y) && InRange(chunkData, z))
         {
-            float index = GetIndexFromPosition(Chunk, x, y, z);
-            return Chunk.Voxels[(int)index];
+            float index = GetIndexFromPosition(chunkData, x, y, z);
+            return chunkData.Voxels[(int)index];
         }
-        throw new Exception("Need to ask World for appropiate chunk");
+
+        return chunkData.WorldRef.GetBlockFromChunkCoordinates(chunkData, chunkData.WorldPosition.x + x, chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
     }
 
-    public static void SetBlock(Chunk Chunk, Vector3 localPosition, VoxelType block)
+    public static void SetBlock(Chunk chunkData, Vector3 localPosition, VoxelType block)
     {
-        if (InRange(Chunk, localPosition.x) && InRangeHeight(Chunk, localPosition.y) && InRange(Chunk, localPosition.z))
+        if (InRange(chunkData, localPosition.x) && InRangeHeight(chunkData, localPosition.y) && InRange(chunkData, localPosition.z))
         {
-            float index = GetIndexFromPosition(Chunk, localPosition.x, localPosition.y, localPosition.z);
-            Chunk.Voxels[(int)index] = block;
+            float index = GetIndexFromPosition(chunkData, localPosition.x, localPosition.y, localPosition.z);
+            chunkData.Voxels[(int)index] = block;
         }
         else
         {
@@ -75,19 +76,33 @@ public static class ChunkManager
         return x + Chunk.Size * y + Chunk.Size * Chunk.Height * z;
     }
 
-    public static Vector3 GetBlockInChunkCoordinates(Chunk Chunk, Vector3 pos)
+    public static Vector3 GetBlockInChunkCoordinates(Chunk chunkData, Vector3 pos)
     {
         return new Vector3
         {
-            x = pos.x - Chunk.WorldPosition.x,
-            y = pos.y - Chunk.WorldPosition.y,
-            z = pos.z - Chunk.WorldPosition.z
+            x = pos.x - chunkData.WorldPosition.x,
+            y = pos.y - chunkData.WorldPosition.y,
+            z = pos.z - chunkData.WorldPosition.z
         };
     }
 
-    public static MeshData GetChunkMeshData(Chunk Chunk)
+    public static MeshData GetChunkMeshData(Chunk chunkData)
     {
         MeshData meshData = new MeshData(true);
+
+        LoopThroughTheBlocks(chunkData, (x, y, z) => meshData = BlockHelper.GetMeshData(chunkData, x, y, z, meshData, chunkData.blocks[GetIndexFromPosition(chunkData, x, y, z)]));
+
         return meshData;
+    }
+
+    internal static Vector3 ChunkPositionFromBlockCoords(World world, float x, float y, float z)
+    {
+        Vector3 pos = new Vector3
+        {
+            x = (float)Mathf.FloorToInt(x / (float)world.chunkSize) * world.chunkSize,
+            y = (float)Mathf.FloorToInt(y / (float)world.chunkHeight) * world.chunkHeight,
+            z = (float)Mathf.FloorToInt(z / (float)world.chunkSize) * world.chunkSize
+        };
+        return pos;
     }
 }
