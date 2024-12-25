@@ -190,6 +190,11 @@ namespace NR
         return handle;
     }
 
+    static void Destroy(uint32_t handle)
+    {
+        mono_gchandle_free(handle);
+    }
+
     static MonoMethod* GetMethod(MonoImage* image, const std::string& methodDesc)
     {
         NR_CORE_VERIFY(image);
@@ -636,6 +641,19 @@ namespace NR
         return monoClass != nullptr;
     }
 
+    std::string ScriptEngine::StripNamespace(const std::string& nameSpace, const std::string& moduleName)
+    {
+        std::string name = moduleName;
+        size_t pos = name.find(nameSpace + ".");
+        if (pos == 0)
+        {
+            {
+                name.erase(pos, nameSpace.length() + 1);
+            }
+        }
+        return name;
+    }
+
     static FieldType GetFieldType(MonoType* monoType)
     {
         int type = mono_type_get_type(monoType);
@@ -717,6 +735,12 @@ namespace NR
         }
         fieldMap.clear();
 
+        // Default construct an instance of the script class
+        // We then use this to set initial values for the public fields
+        entityInstance.Handle = Instantiate(*entityInstance.ScriptClass);
+        void* param[] = { &id };
+        CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->Constructor, param);
+
         {
             MonoClassField* iter;
             void* ptr = 0;
@@ -741,7 +765,8 @@ namespace NR
 
                 char* typeName = mono_type_get_name(fieldType);
 
-                if (oldFields.find(name) != oldFields.end())
+                auto old = oldFields.find(name);
+                if ((old != oldFields.end()) && (old->second.TypeName == typeName))
                 {
                     fieldMap.emplace(name, std::move(oldFields.at(name)));
                 }
@@ -751,10 +776,13 @@ namespace NR
                     field.mEntityInstance = &entityInstance;
                     field.mMonoClassField = iter;
 
+                    field.CopyStoredValueFromRuntime();
                     fieldMap.emplace(name, std::move(field));
                 }
             }
         }
+
+        Destroy(entityInstance.Handle);
     }
 
     void ScriptEngine::ShutdownScriptEntity(Entity entity, const std::string& moduleName)
@@ -865,6 +893,12 @@ namespace NR
         {
             mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
         }
+    }
+
+    void PublicField::CopyStoredValueFromRuntime()
+    {
+        NR_CORE_ASSERT(mEntityInstance->GetInstance());
+        mono_field_get_value(mEntityInstance->GetInstance(), mMonoClassField, mStoredValueBuffer);
     }
 
     bool PublicField::IsRuntimeAvailable() const

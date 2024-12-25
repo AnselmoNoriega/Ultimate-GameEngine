@@ -15,6 +15,10 @@ namespace NR
 		bool Deserialize(const std::string& filepath);
 		bool DeserializeRuntime(const std::string& filepath);
 
+	public:
+		inline static std::string_view FileFilter = "NotRed Scene (*.nrscene)\0*.nrscene\0";
+		inline static std::string_view DefaultExtension = ".nrscene";
+
 	private:
 		Ref<Scene> mScene;
 	};

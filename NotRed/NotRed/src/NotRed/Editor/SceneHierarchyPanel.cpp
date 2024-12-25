@@ -907,22 +907,42 @@ namespace NR
 		DrawComponent<ScriptComponent>("Script", entity, [=](ScriptComponent& sc) mutable
 			{
 				UI::BeginPropertyGrid();
-				std::string oldName = sc.ModuleName;
-				if (UI::Property("Module Name", sc.ModuleName, !ScriptEngine::ModuleExists(sc.ModuleName)))
+				
+				bool isError = !ScriptEngine::ModuleExists(sc.ModuleName);
+				std::string name = ScriptEngine::StripNamespace(Project::GetActive()->GetConfig().DefaultNamespace, sc.ModuleName);
+
+				if (UI::Property("Module Name", name, isError))
 				{
-					if (ScriptEngine::ModuleExists(oldName))
+					// Shutdown old script
+					if (!isError)
 					{
-						ScriptEngine::ShutdownScriptEntity(entity, oldName);
+						ScriptEngine::ShutdownScriptEntity(entity, sc.ModuleName);
 					}
 
-					if (ScriptEngine::ModuleExists(sc.ModuleName))
+					if (ScriptEngine::ModuleExists(name))
+					{
+						sc.ModuleName = name;
+						isError = false;
+					}
+					else if (ScriptEngine::ModuleExists(Project::GetActive()->GetConfig().DefaultNamespace + "." + name))
+					{
+						sc.ModuleName = Project::GetActive()->GetConfig().DefaultNamespace + "." + name;
+						isError = false;
+					}
+					else
+					{
+						sc.ModuleName = name;
+						isError = true;
+					}
+
+					if (!isError)
 					{
 						ScriptEngine::InitScriptEntity(entity);
 					}
 				}
 
 				// Public Fields
-				if (ScriptEngine::ModuleExists(sc.ModuleName))
+				if (!isError)
 				{
 					EntityInstanceData& entityInstanceData = ScriptEngine::GetEntityInstanceData(entity.GetSceneID(), id);
 					auto& moduleFieldMap = entityInstanceData.ModuleFieldMap;

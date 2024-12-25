@@ -45,6 +45,15 @@ namespace NR
 		config.MeshSourcePath = rootNode["MeshSourcePath"].as<std::string>();
 		config.ScriptModulePath = rootNode["ScriptModulePath"].as<std::string>();
 
+		if (rootNode["DefaultNamespace"])
+		{
+			config.DefaultNamespace = rootNode["DefaultNamespace"].as<std::string>();
+		}
+		else
+		{
+			config.DefaultNamespace = config.Name;
+		}
+
 		config.StartScene = rootNode["StartScene"].as<std::string>();
 		std::filesystem::path projectPath = filepath;
 		config.ProjectDirectory = projectPath.parent_path().string();

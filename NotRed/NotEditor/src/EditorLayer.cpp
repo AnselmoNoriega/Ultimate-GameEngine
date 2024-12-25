@@ -392,6 +392,14 @@ namespace NR
         Renderer2D::EndScene();
     }
 
+    void EditorLayer::CreateProject()
+    {
+        // TODO:
+        // 1) prompt user for project name
+        // 2) Create a folder with that project name
+        // 3) In the folder, place the .nrproj, together with Assets folder containing the assets for a working "empty" project (including C# assembly)
+    }
+
     void EditorLayer::OpenProject()
     {
         auto& app = Application::Get();
@@ -469,6 +477,16 @@ namespace NR
         mCurrentScene = mEditorScene;
     }
 
+    void EditorLayer::OpenScene()
+    {
+        auto& app = Application::Get();
+        std::string filepath = app.OpenFile(SceneSerializer::FileFilter.data());
+        if (!filepath.empty())
+        {
+            OpenScene(filepath);
+        }
+    }
+
     void EditorLayer::OpenScene(const std::string& filepath)
     {
         Ref<Scene> newScene = Ref<Scene>::Create("New Scene", true);
@@ -510,15 +528,20 @@ namespace NR
     void EditorLayer::SaveSceneAs()
     {
         auto& app = Application::Get();
-        std::string filepath = app.SaveFile("NotRed Scene (*.nrsc)\0*.nrsc\0");
+        std::filesystem::path filepath = app.SaveFile(SceneSerializer::FileFilter.data());
         if (!filepath.empty())
         {
+            if (!filepath.has_extension())
+            {
+                filepath += SceneSerializer::DefaultExtension;
+            }
+
             SceneSerializer serializer(mEditorScene);
-            serializer.Serialize(filepath);
+            serializer.Serialize(filepath.string());
 
             std::filesystem::path path = filepath;
             UpdateWindowTitle(path.filename().string());
-            mSceneFilePath = filepath;
+            mSceneFilePath = filepath.string();
         }
     }
 
@@ -1199,13 +1222,24 @@ namespace NR
         {
             if (ImGui::BeginMenu("File"))
             {
+                if (ImGui::MenuItem("Create Project..."))
+                {
+                    CreateProject();
+                }
+                if (ImGui::MenuItem("Open Project..."))
+                {
+                    OpenProject();
+                }
+                
+                ImGui::Separator();
+
                 if (ImGui::MenuItem("New Scene", "Ctrl+N"))
                 {
                     NewScene();
                 }
-                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+                if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
                 {
-                    OpenProject();
+                    OpenScene();
                 }
 
                 ImGui::Separator();
@@ -1793,7 +1827,7 @@ namespace NR
             }
             case KeyCode::O:
             {
-                OpenProject();
+                OpenScene();
                 break;
             }
             case KeyCode::S:

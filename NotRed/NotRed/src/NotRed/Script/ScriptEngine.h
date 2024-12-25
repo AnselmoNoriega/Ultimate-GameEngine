@@ -50,6 +50,7 @@ namespace NR
 		~PublicField();
 
 		void CopyStoredValueToRuntime();
+		void CopyStoredValueFromRuntime();
 		bool IsRuntimeAvailable() const;
 
 		template<typename T>
@@ -147,6 +148,8 @@ namespace NR
 		static bool IsEntityModuleValid(Entity entity);
 
 		static void ScriptComponentDestroyed(UUID sceneID, UUID entityID);
+
+		static std::string StripNamespace(const std::string& nameSpace, const std::string& moduleName);
 
 		static bool ModuleExists(const std::string& moduleName);
 		static void InitScriptEntity(Entity entity);

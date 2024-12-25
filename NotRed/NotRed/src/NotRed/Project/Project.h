@@ -9,11 +9,16 @@ namespace NR
 	struct ProjectConfig
 	{
 		std::string Name;
+
 		std::string AssetDirectory;
 		std::string AssetRegistryPath;
+
 		std::string MeshPath;
 		std::string MeshSourcePath;
+
 		std::string ScriptModulePath;
+		std::string DefaultNamespace;
+
 		std::string StartScene;
 
 		std::string ProjectDirectory;
