@@ -3,7 +3,7 @@
 //
 #version 450
 
-layout(std140, binding = 18) uniform HBAOData
+layout(std140, binding = 17) uniform HBAOData
 {
 	vec4	uPerspectiveInfo;   // R = (x) * (R - L)/N ||| G = (y) * (T - B)/N ||| B =  L/N ||| A =  B/N
 	vec2    uInvQuarterResolution;

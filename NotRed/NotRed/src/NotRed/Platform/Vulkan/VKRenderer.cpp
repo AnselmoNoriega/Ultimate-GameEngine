@@ -335,8 +335,7 @@ namespace NR
                 vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
                 Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
-                VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
-                vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+                vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->GetVulkanPipeline());
 
                 std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
 

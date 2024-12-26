@@ -22,6 +22,30 @@
 
 namespace NR
 {
+	enum Binding : uint32_t
+	{
+		CameraData,
+		ShadowData,
+		BoneTransforms,
+		RendererData,
+		SceneData,
+		PointLightData,
+		AlbedoTexture,
+		NormalTexture,
+		MetalnessTexture,
+		RoughnessTexture,
+		EnvRadianceTex,
+		EnvIrradianceTex,
+		BRDFLUTTexture,
+		ShadowMapTexture,
+		VisibleLightIndicesBuffer,
+		LinearDepthTex,
+		ScreenData,
+		HBAOData,
+		StarsData,
+		StarsEnvironmentData
+	};
+
 	static std::vector<std::thread> sThreadPool;
 
 	SceneRenderer::SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification)
@@ -46,15 +70,15 @@ namespace NR
 
 		uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
 		mUniformBufferSet = UniformBufferSet::Create(framesInFlight);
-		mUniformBufferSet->Create(sizeof(UBCamera), 0);
-		mUniformBufferSet->Create(sizeof(UBShadow), 1);
-		mUniformBufferSet->Create(sizeof(UBScene), 2);
-		mUniformBufferSet->Create(sizeof(UBRendererData), 3);
-		mUniformBufferSet->Create(sizeof(UBPointLights), 4);
-		mUniformBufferSet->Create(sizeof(UBScreenData), 17);
-		mUniformBufferSet->Create(sizeof(UBHBAOData), 18);
-		mUniformBufferSet->Create(sizeof(UBStarParams), 19);
-		mUniformBufferSet->Create(sizeof(UBEnvironmentParams), 20);
+		mUniformBufferSet->Create(sizeof(UBCamera), Binding::CameraData);
+		mUniformBufferSet->Create(sizeof(UBShadow), Binding::ShadowData);
+		mUniformBufferSet->Create(sizeof(UBRendererData), Binding::RendererData);
+		mUniformBufferSet->Create(sizeof(UBScene), Binding::SceneData);
+		mUniformBufferSet->Create(sizeof(UBPointLights), Binding::PointLightData);
+		mUniformBufferSet->Create(sizeof(UBScreenData), Binding::ScreenData);
+		mUniformBufferSet->Create(sizeof(UBHBAOData), Binding::HBAOData);
+		mUniformBufferSet->Create(sizeof(UBStarParams), Binding::StarsData);
+		mUniformBufferSet->Create(sizeof(UBEnvironmentParams), Binding::StarsEnvironmentData);
 
 		mCompositeShader = Renderer::GetShaderLibrary()->Get("SceneComposite");
 		CompositeMaterial = Material::Create(mCompositeShader);
@@ -825,9 +849,9 @@ namespace NR
 		Renderer::Submit([instance, cameraData, starParamsData, environmentParamsData]() mutable
 			{
 				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(0, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
-				instance->mUniformBufferSet->Get(19, 0, bufferIndex)->RT_SetData(&starParamsData, sizeof(starParamsData));
-				instance->mUniformBufferSet->Get(20, 0, bufferIndex)->RT_SetData(&environmentParamsData, sizeof(environmentParamsData));
+				instance->mUniformBufferSet->Get(Binding::CameraData, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
+				instance->mUniformBufferSet->Get(Binding::StarsData, 0, bufferIndex)->RT_SetData(&starParamsData, sizeof(starParamsData));
+				instance->mUniformBufferSet->Get(Binding::StarsEnvironmentData, 0, bufferIndex)->RT_SetData(&environmentParamsData, sizeof(environmentParamsData));
 			});
 
 		const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
@@ -836,7 +860,7 @@ namespace NR
 		Renderer::Submit([instance, &pointLightData]() mutable
 			{
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				Ref<UniformBuffer> bufferSet = instance->mUniformBufferSet->Get(4, 0, bufferIndex);
+				Ref<UniformBuffer> bufferSet = instance->mUniformBufferSet->Get(Binding::PointLightData, 0, bufferIndex);
 				bufferSet->RT_SetData(&pointLightData, 16ull + sizeof PointLight * pointLightData.Count);
 			});
 
@@ -849,7 +873,7 @@ namespace NR
 		Renderer::Submit([instance, sceneData]() mutable
 			{
 				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(2, 0, bufferIndex)->RT_SetData(&sceneData, sizeof(sceneData));
+				instance->mUniformBufferSet->Get(Binding::SceneData, 0, bufferIndex)->RT_SetData(&sceneData, sizeof(sceneData));
 			});
 
 		UpdateHBAOData();
@@ -857,7 +881,7 @@ namespace NR
 		Renderer::Submit([instance, hbaoData]() mutable
 			{
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(18, 0, bufferIndex)->RT_SetData(&hbaoData, sizeof(hbaoData));
+				instance->mUniformBufferSet->Get(Binding::HBAOData, 0, bufferIndex)->RT_SetData(&hbaoData, sizeof(hbaoData));
 			});
 
 		screenData.FullResolution = { mViewportWidth, mViewportHeight };
@@ -865,7 +889,7 @@ namespace NR
 		Renderer::Submit([instance, screenData]() mutable
 			{
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(17, 0, bufferIndex)->RT_SetData(&screenData, sizeof(screenData));
+				instance->mUniformBufferSet->Get(Binding::ScreenData, 0, bufferIndex)->RT_SetData(&screenData, sizeof(screenData));
 			});
 
 		CascadeData cascades[4];
@@ -879,14 +903,14 @@ namespace NR
 		Renderer::Submit([instance, shadowData]() mutable
 			{
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(1, 0, bufferIndex)->RT_SetData(&shadowData, sizeof(shadowData));
+				instance->mUniformBufferSet->Get(Binding::ShadowData, 0, bufferIndex)->RT_SetData(&shadowData, sizeof(shadowData));
 			});
 
 		rendererData.CascadeSplits = CascadeSplits;
 		Renderer::Submit([instance, rendererData]() mutable
 			{
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(3, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
+				instance->mUniformBufferSet->Get(Binding::RendererData, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
 			});
 
 		Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),

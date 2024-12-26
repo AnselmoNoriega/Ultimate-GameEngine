@@ -42,7 +42,7 @@ layout(std430, binding = 16) readonly buffer Particles
 
 //---------------------------------------------------
 
-layout(std140, binding = 20) uniform Params
+layout(std140, binding = 19) uniform Params
 {
 	float u_time;
 

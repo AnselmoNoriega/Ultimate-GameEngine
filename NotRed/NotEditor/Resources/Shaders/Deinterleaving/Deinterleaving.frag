@@ -2,7 +2,7 @@
 
 layout(binding = 0) uniform sampler2D uLinearDepthTex;
 
-layout(std140, binding = 17) uniform ScreenData
+layout(std140, binding = 16) uniform ScreenData
 {
     vec2 uInvFullResolution;
     vec2 uFullResolution;

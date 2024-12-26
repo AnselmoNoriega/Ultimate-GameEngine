@@ -26,7 +26,7 @@ struct PointLight {
 	float LightSize;
 	bool CastsShadows;
 };
-layout(std140, binding = 4) uniform PointLightData
+layout(std140, binding = 5) uniform PointLightData
 {
 	uint uPointLightsCount;
 	PointLight uPointLights[1024];

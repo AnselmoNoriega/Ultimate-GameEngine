@@ -61,51 +61,48 @@ layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 oViewNormals;
 layout(location = 2) out vec4 oViewPosition;
 
-layout(std140, binding = 2) uniform SceneData
+layout(std140, binding = 4) uniform SceneData
 {
 	DirectionalLight uDirectionalLights;
 	vec3 uCameraPosition; // Offset = 32
 	float uEnvironmentMapIntensity;
 };
 
-
-layout(std140, binding = 4) uniform PointLightData
+layout(std140, binding = 5) uniform PointLightData
 {
 	uint uPointLightsCount;
 	PointLight upointLights[1024];
 };
 
+// PBR texture inputs
+layout(set = 0, binding = 6) uniform sampler2D uAlbedoTexture;
+layout(set = 0, binding = 7) uniform sampler2D uNormalTexture;
+layout(set = 0, binding = 8) uniform sampler2D uMetalnessTexture;
+layout(set = 0, binding = 9) uniform sampler2D uRoughnessTexture;
 
+// Environment maps
+layout(set = 1, binding = 10) uniform samplerCube uEnvRadianceTex;
+layout(set = 1, binding = 11) uniform samplerCube uEnvIrradianceTex;
+
+// BRDF LUT
+layout(set = 1, binding = 12) uniform sampler2D uBRDFLUTTexture;
+
+// Shadow maps
+layout(set = 1, binding = 13) uniform sampler2DArray uShadowMapTexture;
 layout(std430, binding = 14) readonly buffer VisibleLightIndicesBuffer {
 	int indices[];
 } visibleLightIndicesBuffer;
 
-// PBR texture inputs
-layout(set = 0, binding = 5) uniform sampler2D uAlbedoTexture;
-layout(set = 0, binding = 6) uniform sampler2D uNormalTexture;
-layout(set = 0, binding = 7) uniform sampler2D uMetalnessTexture;
-layout(set = 0, binding = 8) uniform sampler2D uRoughnessTexture;
-
-// Environment maps
-layout(set = 1, binding = 9) uniform samplerCube uEnvRadianceTex;
-layout(set = 1, binding = 10) uniform samplerCube uEnvIrradianceTex;
-
-// BRDF LUT
-layout(set = 1, binding = 11) uniform sampler2D uBRDFLUTTexture;
-
-// Shadow maps
-layout(set = 1, binding = 12) uniform sampler2DArray uShadowMapTexture;
-
 //HBAO Linear Depth
-layout(set = 1, binding = 16) uniform sampler2D uLinearDepthTex;
+layout(set = 1, binding = 15) uniform sampler2D uLinearDepthTex;
 
-layout(std140, binding = 17) uniform ScreenData
+layout(std140, binding = 16) uniform ScreenData
 {
 	vec2 uInvFullResolution;
 	vec2 uFullResolution;
 };
 
-layout(std140, binding = 18) uniform HBAOData
+layout(std140, binding = 17) uniform HBAOData
 {
 	vec4	uPerspectiveInfo;   // R = (x) * (R - L)/N \\\\\\ G = (y) * (T - B)/N \\\\\\ B =  L/N \\\\\\ A =  B/N
 	vec2    uInvQuarterResolution;

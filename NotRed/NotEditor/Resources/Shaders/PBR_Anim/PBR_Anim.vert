@@ -51,14 +51,12 @@ void main()
 //	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[2]] * aBoneWeights[2];
 //	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[3]] * aBoneWeights[3];
 //
-//	vec4 localPosition = boneTransform * vec4(aPosition, 1.0);
-
-	Output.WorldPosition = vec3(uRenderer.Transform * vec4(aPosition, 1.0));
-	Output.Normal = mat3(uRenderer.Transform) * aNormal;
+	Output.WorldPosition = vec3(uRenderer.Transform /** boneTransform */ * vec4(aPosition, 1.0));
+	Output.Normal = mat3(uRenderer.Transform) /** mat3(boneTransform)*/ * aNormal;
 	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
 	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(aTangent, aBinormal, aNormal);
 	Output.WorldTransform = mat3(uRenderer.Transform);
-	Output.Binormal = aBinormal;
+	Output.Binormal = mat3(uRenderer.Transform) * aBinormal;
 
 	//Output.WorldPosition = vec3(uRenderer.Transform * boneTransform * vec4(aPosition, 1.0));
 	//Output.Normal = mat3(uRenderer.Transform) * mat3(boneTransform) * aNormal;
