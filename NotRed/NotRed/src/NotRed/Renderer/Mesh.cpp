@@ -103,7 +103,6 @@ namespace NR
         mScene = scene;
 
         mIsAnimated = scene->mAnimations != nullptr;
-        mMeshShader = mIsAnimated ? Renderer::GetShaderLibrary()->Get("PBR_Anim") : Renderer::GetShaderLibrary()->Get("PBR_Static");
         mInverseTransform = glm::inverse(AssimpMat4ToMat4(scene->mRootNode->mTransformation));
 
         uint32_t vertexCount = 0;
@@ -131,50 +130,39 @@ namespace NR
             NR_CORE_ASSERT(mesh->HasPositions(), "Meshes require positions.");
             NR_CORE_ASSERT(mesh->HasNormals(), "Meshes require normals.");
 
-            if (mIsAnimated)
+            auto& aabb = submesh.BoundingBox;
+            aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
+            aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
+            for (size_t i = 0; i < mesh->mNumVertices; i++)
             {
-                for (size_t i = 0; i < mesh->mNumVertices; ++i)
+                Vertex vertex;
+                vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
+                vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
+                aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
+                aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
+                aabb.Min.z = glm::min(vertex.Position.z, aabb.Min.z);
+                aabb.Max.x = glm::max(vertex.Position.x, aabb.Max.x);
+                aabb.Max.y = glm::max(vertex.Position.y, aabb.Max.y);
+                aabb.Max.z = glm::max(vertex.Position.z, aabb.Max.z);
+
+                if (mesh->HasTangentsAndBitangents())
                 {
-                    AnimatedVertex vertex;
-                    vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
-                    vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-                    if (mesh->HasTangentsAndBitangents())
-                    {
-                        vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-                        vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-                    }
-                    if (mesh->HasTextureCoords(0))
-                    {
-                        vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
-                    }
-                    mAnimatedVertices.push_back(vertex);
+                    vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
+                    vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
                 }
-            }
-            else
-            {
-                auto& aabb = submesh.BoundingBox;
-                aabb.Min = { FLT_MAX, FLT_MAX, FLT_MAX };
-                aabb.Max = { -FLT_MAX, -FLT_MAX, -FLT_MAX };
-                for (size_t i = 0; i < mesh->mNumVertices; ++i)
+
+                if (mesh->HasTextureCoords(0))
                 {
-                    Vertex vertex;
-                    vertex.Position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z };
-                    vertex.Normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z };
-                    aabb.Min.x = glm::min(vertex.Position.x, aabb.Min.x);
-                    aabb.Min.y = glm::min(vertex.Position.y, aabb.Min.y);
-                    aabb.Min.z = glm::min(vertex.Position.z, aabb.Min.z);
-                    aabb.Max.x = glm::max(vertex.Position.x, aabb.Max.x);
-                    aabb.Max.y = glm::max(vertex.Position.y, aabb.Max.y);
-                    aabb.Max.z = glm::max(vertex.Position.z, aabb.Max.z);
-                    if (mesh->HasTangentsAndBitangents())
-                    {
-                        vertex.Tangent = { mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z };
-                        vertex.Binormal = { mesh->mBitangents[i].x, mesh->mBitangents[i].y, mesh->mBitangents[i].z };
-                    }
-                    if (mesh->HasTextureCoords(0))
-                    {
-                        vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
-                    }
+                    vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+                }
+
+                if (mIsAnimated)
+                {
+                    mStaticVertices.push_back(vertex);   
+                    mAnimatedVertices.push_back(vertex); 
+                }
+                else
+                {
                     mStaticVertices.push_back(vertex);
                 }
             }
@@ -185,10 +173,7 @@ namespace NR
                 Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
                 mIndices.push_back(index);
 
-                if (!mIsAnimated)
-                {
-                    mTriangleCache[m].emplace_back(mStaticVertices[index.V1 + submesh.BaseVertex], mStaticVertices[index.V2 + submesh.BaseVertex], mStaticVertices[index.V3 + submesh.BaseVertex]);
-                }
+                mTriangleCache[m].emplace_back(mStaticVertices[index.V1 + submesh.BaseVertex], mStaticVertices[index.V2 + submesh.BaseVertex], mStaticVertices[index.V3 + submesh.BaseVertex]);
             }
         }
 
@@ -247,7 +232,6 @@ namespace NR
         Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
         if (scene->HasMaterials())
         {
-            mTextures.resize(scene->mNumMaterials);
             mMaterials.resize(scene->mNumMaterials);
 
             for (uint32_t i = 0; i < scene->mNumMaterials; ++i)
@@ -255,7 +239,7 @@ namespace NR
                 auto aiMaterial = scene->mMaterials[i];
                 auto aiMaterialName = aiMaterial->GetName();
 
-                Ref<Material> mi = Material::Create(mMeshShader, aiMaterialName.data);
+                auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), aiMaterialName.data);
                 mMaterials[i] = mi;
 
                 NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
@@ -304,7 +288,6 @@ namespace NR
                     auto texture = Texture2D::Create(texturePath, props);
                     if (texture->Loaded())
                     {
-                        mTextures[i] = texture;
                         mi->Set("uAlbedoTexture", texture);
                         mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(1.0f));
                     }
@@ -335,7 +318,6 @@ namespace NR
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
-                        mTextures.push_back(texture);
                         mi->Set("uNormalTexture", texture);
                         mi->Set("uMaterialUniforms.UseNormalMap", true);
                     }
@@ -367,7 +349,6 @@ namespace NR
                     auto texture = Texture2D::Create(texturePath);
                     if (texture->Loaded())
                     {
-                        mTextures.push_back(texture);
                         mi->Set("uRoughnessTexture", texture);
                         mi->Set("uMaterialUniforms.Roughness", 1.0f);
                     }
@@ -434,7 +415,6 @@ namespace NR
                             if (texture->Loaded())
                             {
                                 metalnessTextureFound = true;
-                                mTextures.push_back(texture);
                                 mi->Set("uMetalnessTexture", texture);
                                 mi->Set("uMaterialUniforms.Metalness", 1.0f);
                             }
@@ -460,7 +440,7 @@ namespace NR
         }
         else
         {
-            auto mi = Material::Create(mMeshShader, "NotRed-Default");
+            auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), "NotRed-Default");
             mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f));
             mi->Set("uMaterialUniforms.Metalness", 0.0f);
             mi->Set("uMaterialUniforms.Roughness", 0.8f);
@@ -476,26 +456,10 @@ namespace NR
         if (mIsAnimated)
         {
             mVertexBuffer = VertexBuffer::Create(mAnimatedVertices.data(), (uint32_t)(mAnimatedVertices.size() * sizeof(AnimatedVertex)));
-            mVertexBufferLayout = {
-                { ShaderDataType::Float3, "aPosition" },
-                { ShaderDataType::Float3, "aNormal" },
-                { ShaderDataType::Float3, "aTangent" },
-                { ShaderDataType::Float3, "aBinormal" },
-                { ShaderDataType::Float2, "aTexCoord" },
-                { ShaderDataType::Int4,   "aBoneIDs" },
-                { ShaderDataType::Float4, "aBoneWeights" },
-            };
         }
         else
         {
             mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
-            mVertexBufferLayout = {
-                { ShaderDataType::Float3, "aPosition" },
-                { ShaderDataType::Float3, "aNormal" },
-                { ShaderDataType::Float3, "aTangent" },
-                { ShaderDataType::Float3, "aBinormal" },
-                { ShaderDataType::Float2, "aTexCoord" },
-            };
         }
 
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
@@ -513,14 +477,6 @@ namespace NR
 
         mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
-        mVertexBufferLayout = {
-            { ShaderDataType::Float3, "aPosition" },
-            { ShaderDataType::Float3, "aNormal" },
-            { ShaderDataType::Float3, "aTangent" },
-            { ShaderDataType::Float3, "aBinormal" },
-            { ShaderDataType::Float2, "aTexCoord" },
-        };
-
     }
 
     MeshAsset::MeshAsset(int particleCount)
@@ -557,8 +513,7 @@ namespace NR
             }
         }       
 
-        mMeshShader = Renderer::GetShaderLibrary()->Get("Particle");
-        auto mi = Material::Create(mMeshShader, "Particle-Effect");
+        auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("Particle"), "Particle-Effect");
         mi->Set("uGalaxySpecs.StarColor", glm::vec3(1.0f, 1.0f, 1.0f));
         mi->Set("uGalaxySpecs.DustColor", glm::vec3(0.388f, 0.333f, 1.0f));
         mi->Set("uGalaxySpecs.h2RegionColor", glm::vec3(0.8f, 0.071f, 0.165f));
@@ -575,10 +530,6 @@ namespace NR
 
         mVertexBuffer = VertexBuffer::Create(mParticleVertices.data(), mParticleVertices.size() * sizeof(ParticleVertex));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
-        mVertexBufferLayout = {
-            { ShaderDataType::Float3, "aPosition" },
-            { ShaderDataType::Float, "aIndex" }
-        };
     }
 
     uint32_t MeshAsset::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)

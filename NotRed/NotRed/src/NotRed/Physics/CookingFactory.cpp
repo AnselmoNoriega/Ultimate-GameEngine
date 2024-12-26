@@ -149,7 +149,7 @@ namespace NR
 
 	CookingResult CookingFactory::CookConvexMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData)
 	{
-		const auto& vertices = mesh->GetMeshAsset()->GetVertices();
+		const auto& vertices = mesh->GetMeshAsset()->GetStaticVertices();
 		const auto& indices = mesh->GetMeshAsset()->GetIndices();
 		const auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
 
@@ -187,7 +187,7 @@ namespace NR
 
 	CookingResult CookingFactory::CookTriangleMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData)
 	{
-		const auto& vertices = mesh->GetMeshAsset()->GetVertices();
+		const auto& vertices = mesh->GetMeshAsset()->GetStaticVertices();
 		const auto& indices = mesh->GetMeshAsset()->GetIndices();
 		const auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
 

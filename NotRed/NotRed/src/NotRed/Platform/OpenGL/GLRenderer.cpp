@@ -440,8 +440,4 @@ namespace NR
                 glDrawElements(GL_TRIANGLES, sData->mFullscreenQuadIndexBuffer->GetCount(), GL_UNSIGNED_INT, nullptr);
             });
     }
-
-    void GLRenderer::LightCulling(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, const glm::ivec2& screenSize, const glm::ivec3& workGroups)
-    {
-    }
 }

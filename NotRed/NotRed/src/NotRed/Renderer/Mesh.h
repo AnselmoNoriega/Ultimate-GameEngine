@@ -40,16 +40,12 @@ namespace NR
 		glm::vec2 Texcoord;
 	};
 
-	struct AnimatedVertex
+	struct AnimatedVertex : public Vertex
 	{
-		glm::vec3 Position;
-		glm::vec3 Normal;
-		glm::vec3 Tangent;
-		glm::vec3 Binormal;
-		glm::vec2 Texcoord;
-
 		uint32_t IDs[4] = { 0, 0,0, 0 };
 		float Weights[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
+
+		AnimatedVertex(const Vertex& vertex) : Vertex(vertex) {}
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
@@ -143,20 +139,19 @@ namespace NR
 		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
-		const std::vector<Vertex>& GetVertices() const { return mStaticVertices; }
+		bool IsAnimated() const { return mIsAnimated; }
+		const std::vector<Vertex>& GetStaticVertices() const { return mStaticVertices; }
+		const std::vector<AnimatedVertex>& GetAnimatedVertices() const { return mAnimatedVertices; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
 
-		Ref<Shader> GetMeshShader() { return mMeshShader; }
 		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
 		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
-		const std::vector<Ref<Texture2D>>& GetTextures() const { return mTextures; }
 		const std::string& GetFilePath() const { return mFilePath; }
 
 		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }
 
 		Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
-		const VertexBufferLayout& GetVertexBufferLayout() const { return mVertexBufferLayout; }
 
 		static AssetType GetStaticType() { return AssetType::MeshAsset; }
 		virtual AssetType GetAssetType() const override { return AssetType::MeshAsset; }
@@ -189,7 +184,6 @@ namespace NR
 
 		Ref<VertexBuffer> mVertexBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
-		VertexBufferLayout mVertexBufferLayout;
 
 		std::vector<Vertex> mStaticVertices;
 		std::vector<AnimatedVertex> mAnimatedVertices;
@@ -204,9 +198,6 @@ namespace NR
 		const aiScene* mScene;
 
 		// Materials
-		Ref<Shader> mMeshShader;
-		std::vector<Ref<Texture2D>> mTextures;
-		std::vector<Ref<Texture2D>> mNormalMaps;
 		std::vector<Ref<Material>> mMaterials;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> mTriangleCache;
@@ -236,6 +227,7 @@ namespace NR
 
 		void Update(float dt);
 
+		bool IsAnimated() { return mMeshAsset && mMeshAsset->IsAnimated(); }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
@@ -244,7 +236,6 @@ namespace NR
 		Ref<MeshAsset> GetMeshAsset() const { return mMeshAsset; }
 		void SetMeshAsset(Ref<MeshAsset> meshAsset) { mMeshAsset = meshAsset; }
 
-		Ref<Shader> GetMeshShader() { return mMeshShader; }
 		Ref<MaterialTable> GetMaterials() const { return mMaterials; }
 
 		static AssetType GetStaticType() { return AssetType::Mesh; }
@@ -258,11 +249,9 @@ namespace NR
 		std::vector<BoneInfo> mBoneInfo;
 
 		// Materials
-		Ref<Shader> mMeshShader;
 		Ref<MaterialTable> mMaterials;
 
 		// Animation
-		bool mIsAnimated = false;
 		float mAnimationTime = 0.0f;
 		float mWorldTime = 0.0f;
 		float mTimeMultiplier = 1.0f;

@@ -9,9 +9,6 @@ layout(location = 4) in vec2 aTexCoord;
 layout (std140, binding = 0) uniform Camera
 {
 	mat4 uViewProjectionMatrix;
-	mat4 uInverseViewProjectionMatrix;
-	mat4 uProjectionMatrix;
-	mat4 uViewMatrix;
 };
 
 layout (push_constant) uniform Transform
@@ -19,11 +16,7 @@ layout (push_constant) uniform Transform
 	mat4 Transform;
 } uRenderer;
 
-layout(location = 0) out float LinearDepth;
-
 void main()
 {
-	vec4 worldPosition = uRenderer.Transform * vec4(aPosition, 1.0);
-	LinearDepth = -(uViewMatrix * worldPosition).z;
-	gl_Position = uViewProjectionMatrix * worldPosition;
+	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
 }

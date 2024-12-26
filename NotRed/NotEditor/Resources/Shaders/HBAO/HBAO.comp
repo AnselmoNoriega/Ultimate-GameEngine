@@ -20,7 +20,7 @@ layout(std140, binding = 18) uniform HBAOData
 layout(binding = 0) uniform sampler2DArray uLinearDepthTexArray;
 layout(binding = 1) uniform sampler2D uViewNormalsTex;
 layout(binding = 2) uniform sampler2D uViewPositionTex;
-layout(binding = 19, rg16f) restrict writeonly uniform image2DArray outColor;
+layout(binding = 19, rg16f) restrict writeonly uniform image2DArray oColor;
 
 // The pragma below is critical for optimal performance
 // in this fragment shader to let the shader compiler
@@ -155,6 +155,6 @@ void main()
 	float AO = ComputeCoarseAO(uv, radiusPixels, rand, viewPosition, viewNormal);
 
 	//out_Color = vec4(pow(AO, uPowExponent), ViewPosition.z, 0, 1);
-	imageStore(outColor, ivec3(gl_GlobalInvocationID), vec4(pow(AO, uPowExponent), viewPosition.z, 0.0, 1.0));
+	imageStore(oColor, ivec3(gl_GlobalInvocationID), vec4(pow(AO, uPowExponent), viewPosition.z, 0.0, 1.0));
 }
 

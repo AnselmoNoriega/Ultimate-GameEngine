@@ -123,28 +123,30 @@ namespace NR
         sData->mShaderLibrary = Ref<ShaderLibrary>::Create();
 
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PBR_Static", true);
-        // Renderer::GetShaderLibrary()->LoadResources/Shaders("Resources/Shaders/PBR_Anim");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PBR_Anim");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Grid");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Wireframe");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Wireframe_Anim");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Skybox");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ShadowMap_Anim");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle");
 
         // Environment compute shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/EnvironmentMipFilter");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/EquirectangularToCubeMap");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/EnvironmentIrradiance");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreethamSky");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen");
 
         // Post-processing
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PostProcessing/Bloom");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PostProcessing/DOF");
-        Renderer::GetShaderLibrary()->Load("Resources/Shaders/HDR", true);
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/SceneComposite", true);
         
         // Light-culling
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth");
-        //Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/PreDepth_Anim");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/LightCulling");
         
 		//HBAO
@@ -165,6 +167,7 @@ namespace NR
 
         // Misc
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry_Anim");
 
         // Compile shaders
         Renderer::WaitAndRender();

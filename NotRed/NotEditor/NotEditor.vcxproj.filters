@@ -18,4 +18,10 @@
     <ClInclude Include="src\Panels\ContentBrowserPanel.h" />
     <ClInclude Include="src\Panels\PhysicsSettingsWindow.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Shaders\SelectedGeometry_Anim\SelectedGeometry_Anim.vert" />
+    <None Include="Resources\Shaders\SelectedGeometry_Anim\SelectedGeometry_Anim.frag" />
+    <None Include="Resources\Shaders\Wireframe_Anim\Wireframe_Anim.vert" />
+    <None Include="Resources\Shaders\Wireframe_Anim\Wireframe_Anim.frag" />
+  </ItemGroup>
 </Project>

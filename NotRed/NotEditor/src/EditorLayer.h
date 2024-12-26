@@ -176,6 +176,7 @@ namespace NR
 		bool mShowBoundingBoxSubmeshes = false;
 		bool mShowSelectedWireframe = false;
 		bool mShowPhysicsCollidersWireframe = true;
+		bool mShowPhysicsCollidersWireframeOnTop = false;
 
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;

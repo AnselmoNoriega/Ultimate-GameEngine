@@ -136,7 +136,13 @@ namespace NR
         {
             SceneRendererOptions& options = renderer->GetOptions();
             options.ShowSelectedInWireframe = mShowSelectedWireframe;
-            options.ShowCollidersWireframe = mShowPhysicsCollidersWireframe;
+
+            SceneRendererOptions::PhysicsColliderView colliderView = SceneRendererOptions::PhysicsColliderView::None;
+            if (mShowPhysicsCollidersWireframe)
+            {
+                colliderView = mShowPhysicsCollidersWireframeOnTop ? SceneRendererOptions::PhysicsColliderView::OnTop : SceneRendererOptions::PhysicsColliderView::Normal;
+            }
+            options.ShowPhysicsColliders = colliderView;
         }
     }
 
@@ -842,6 +848,13 @@ namespace NR
                 if (UI::Property("Show Physics Colliders", mShowPhysicsCollidersWireframe))
                 {
                     UpdateSceneRendererSettings();
+                }
+                if (mShowPhysicsCollidersWireframe)
+                {
+                    if (UI::Property("-- On Top", mShowPhysicsCollidersWireframeOnTop))
+                    {
+                        UpdateSceneRendererSettings();
+                    }
                 }
             }
             UI::EndPropertyGrid();

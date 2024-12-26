@@ -641,11 +641,7 @@ namespace NR
 				Entity e = { entity, this };
 				glm::mat4 transform = GetTransformRelativeToParent(e);
 				auto& collider = e.GetComponent<BoxColliderComponent>();
-
-				if (mSelectedEntity == entity)
-				{
-					renderer->SubmitColliderMesh(collider, transform);
-				}
+				renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, glm::translate(transform, collider.Offset));
 			}
 		}
 
@@ -656,11 +652,7 @@ namespace NR
 				Entity e = { entity, this };
 				glm::mat4 transform = GetTransformRelativeToParent(e);
 				auto& collider = e.GetComponent<SphereColliderComponent>();
-
-				if (mSelectedEntity == entity)
-				{
-					renderer->SubmitColliderMesh(collider, transform);
-				}
+				renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
 			}
 		}
 
@@ -671,11 +663,7 @@ namespace NR
 				Entity e = { entity, this };
 				glm::mat4 transform = GetTransformRelativeToParent(e);
 				auto& collider = e.GetComponent<CapsuleColliderComponent>();
-
-				if (mSelectedEntity == entity)
-				{
-					renderer->SubmitColliderMesh(collider, transform);
-				}
+				renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
 			}
 		}
 
@@ -686,10 +674,9 @@ namespace NR
 				Entity e = { entity, this };
 				glm::mat4 transform = GetTransformRelativeToParent(e);
 				auto& collider = e.GetComponent<MeshColliderComponent>();
-
-				if (mSelectedEntity == entity)
+				for (const auto& debugMesh : collider.ProcessedMeshes)
 				{
-					renderer->SubmitColliderMesh(collider, transform);
+					renderer->SubmitPhysicsDebugMesh(debugMesh, transform);
 				}
 			}
 		}
@@ -906,10 +893,7 @@ namespace NR
 				}
 
 				auto& collider = e.GetComponent<BoxColliderComponent>();
-				if (mSelectedEntity == entity)
-				{
-					renderer->SubmitColliderMesh(collider, transform);
-				}
+				renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, glm::translate(transform, collider.Offset));
 			}
 		}
 
@@ -925,10 +909,7 @@ namespace NR
 				}
 
 				auto& collider = e.GetComponent<SphereColliderComponent>();
-				if (mSelectedEntity == entity)
-				{
-					renderer->SubmitColliderMesh(collider, transform);
-				}
+				renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
 			}
 		}
 
@@ -944,10 +925,7 @@ namespace NR
 				}
 
 				auto& collider = e.GetComponent<CapsuleColliderComponent>();
-				if (mSelectedEntity == entity)
-				{
-					renderer->SubmitColliderMesh(collider, transform);
-				}
+				renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
 			}
 		}
 
@@ -963,9 +941,9 @@ namespace NR
 				}
 
 				auto& collider = e.GetComponent<MeshColliderComponent>();
-				if (mSelectedEntity == entity)
+				for (const auto& debugMesh : collider.ProcessedMeshes)
 				{
-					renderer->SubmitColliderMesh(collider, transform);
+					renderer->SubmitPhysicsDebugMesh(debugMesh, transform);
 				}
 			}
 		}
