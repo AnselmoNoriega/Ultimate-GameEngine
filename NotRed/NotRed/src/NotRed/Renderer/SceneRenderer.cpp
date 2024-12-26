@@ -72,6 +72,7 @@ namespace NR
 		mUniformBufferSet = UniformBufferSet::Create(framesInFlight);
 		mUniformBufferSet->Create(sizeof(UBCamera), Binding::CameraData);
 		mUniformBufferSet->Create(sizeof(UBShadow), Binding::ShadowData);
+		mUniformBufferSet->Create(100 * sizeof(glm::mat4), Binding::BoneTransforms);
 		mUniformBufferSet->Create(sizeof(UBRendererData), Binding::RendererData);
 		mUniformBufferSet->Create(sizeof(UBScene), Binding::SceneData);
 		mUniformBufferSet->Create(sizeof(UBPointLights), Binding::PointLightData);
@@ -170,7 +171,8 @@ namespace NR
 				pipelineSpecAnim.RenderPass = renderpass;
 				mShadowPassPipelinesAnim[i] = Pipeline::Create(pipelineSpecAnim);
 			}
-			mShadowPassMaterial = Material::Create(shadowPassShader, "ShadowPass");
+			mShadowPassMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+			mShadowPassMaterialAnim = Material::Create(pipelineSpecAnim.Shader, pipelineSpecAnim.DebugName);
 		}
 
 		// PreDepth
@@ -191,12 +193,13 @@ namespace NR
 			pipelineSpec.Layout = staticVertexLayout;
 			pipelineSpec.RenderPass = RenderPass::Create(preDepthRenderPassSpec);
 			mPreDepthPipeline = Pipeline::Create(pipelineSpec);
+			mPreDepthMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 
-			mPreDepthMaterial = Material::Create(pipelineSpec.Shader, "PreDepth");
-
+			pipelineSpec.DebugName = "PreDepth_Anim";
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth_Anim");
 			pipelineSpec.Layout = animatedVertexLayout;
 			mPreDepthPipelineAnim = Pipeline::Create(pipelineSpec);
+			mPreDepthMaterialAnim = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 		}
 
 		// Geometry
@@ -247,13 +250,13 @@ namespace NR
 			pipelineSpecification.Layout = staticVertexLayout;
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 			mSelectedGeometryPipeline = Pipeline::Create(pipelineSpecification);
-
-			mSelectedGeometryMaterial = Material::Create(pipelineSpecification.Shader);
+			mSelectedGeometryMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 
 			pipelineSpecification.DebugName = "SelectedGeometry-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry_Anim");
 			pipelineSpecification.Layout = animatedVertexLayout;
 			mSelectedGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mSelectedGeometryPipeline
+			mSelectedGeometryMaterialAnim = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 		}
 
 		// Bloom Compute

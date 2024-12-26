@@ -238,8 +238,15 @@ namespace NR
             {
                 auto aiMaterial = scene->mMaterials[i];
                 auto aiMaterialName = aiMaterial->GetName();
-
-                auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), aiMaterialName.data);
+                Ref<Material> mi;
+                if (mIsAnimated)
+                {
+                    mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Anim"), aiMaterialName.data);
+                }
+                else
+                {
+                    mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), aiMaterialName.data);
+                }
                 mMaterials[i] = mi;
 
                 NR_MESH_LOG("Material Name = {0}; Index = {1}", aiMaterialName.data, i);
@@ -532,7 +539,20 @@ namespace NR
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
     }
 
-    uint32_t MeshAsset::FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
+    const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
+    {
+        for (uint32_t i = 0; i < animation->mNumChannels; ++i)
+        {
+            const aiNodeAnim* nodeAnim = animation->mChannels[i];
+            if (std::string(nodeAnim->mNodeName.data) == nodeName)
+            {
+                return nodeAnim;
+            }
+        }
+        return nullptr;
+    }
+
+    uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
     {
         for (uint32_t i = 0; i < pNodeAnim->mNumPositionKeys - 1; ++i)
         {
@@ -545,8 +565,7 @@ namespace NR
         return 0;
     }
 
-
-    uint32_t MeshAsset::FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
+    uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
     {
         NR_CORE_ASSERT(pNodeAnim->mNumRotationKeys > 0);
 
@@ -561,8 +580,7 @@ namespace NR
         return 0;
     }
 
-
-    uint32_t MeshAsset::FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim)
+    uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim)
     {
         NR_CORE_ASSERT(pNodeAnim->mNumScalingKeys > 0);
 
@@ -596,7 +614,7 @@ namespace NR
         }
     }
 
-    glm::vec3 MeshAsset::InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim)
+    glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim)
     {
         if (nodeAnim->mNumPositionKeys == 1)
         {
@@ -621,7 +639,7 @@ namespace NR
     }
 
 
-    glm::quat MeshAsset::InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim)
+    glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim)
     {
         if (nodeAnim->mNumRotationKeys == 1)
         {
@@ -646,7 +664,7 @@ namespace NR
         return glm::quat(q.w, q.x, q.y, q.z);
     }
 
-    glm::vec3 MeshAsset::InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim)
+    glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim)
     {
         if (nodeAnim->mNumScalingKeys == 1)
         {
@@ -705,29 +723,6 @@ namespace NR
         }
     }
 
-    const aiNodeAnim* MeshAsset::FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
-    {
-        for (uint32_t i = 0; i < animation->mNumChannels; ++i)
-        {
-            const aiNodeAnim* nodeAnim = animation->mChannels[i];
-            if (std::string(nodeAnim->mNodeName.data) == nodeName)
-            {
-                return nodeAnim;
-            }
-        }
-        return nullptr;
-    }
-
-    void MeshAsset::BoneTransform(float time)
-    {
-        ReadNodeHierarchy(time, mScene->mRootNode, glm::mat4(1.0f));
-        mBoneTransforms.resize(mBoneCount);
-        for (size_t i = 0; i < mBoneCount; ++i)
-        {
-            mBoneTransforms[i] = mBoneInfo[i].FinalTransformation;
-        }
-    }
-
     void MeshAsset::DumpVertexBuffer()
     {
         NR_MESH_LOG("------------------------------------------------------");
@@ -735,7 +730,7 @@ namespace NR
         NR_MESH_LOG("Mesh: {0}", mFilePath);
         if (mIsAnimated)
         {
-            for (size_t i = 0; i < mAnimatedVertices.size(); ++i)
+            for (size_t i = 0; i < mAnimatedVertices.size(); i++)
             {
                 auto& vertex = mAnimatedVertices[i];
                 NR_MESH_LOG("Vertex: {0}", i);
@@ -749,7 +744,7 @@ namespace NR
         }
         else
         {
-            for (size_t i = 0; i < mStaticVertices.size(); ++i)
+            for (size_t i = 0; i < mStaticVertices.size(); i++)
             {
                 auto& vertex = mStaticVertices[i];
                 NR_MESH_LOG("Vertex: {0}", i);
@@ -799,6 +794,19 @@ namespace NR
 
     void Mesh::Update(float dt)
     {
+        if (IsAnimated())
+        {
+            if (mAnimationPlaying)
+            {
+                mWorldTime += dt;
+
+                float ticksPerSecond = (float)(mMeshAsset->mScene->mAnimations[0]->mTicksPerSecond != 0 ? mMeshAsset->mScene->mAnimations[0]->mTicksPerSecond : 25.0f) * mTimeMultiplier;
+                mAnimationTime += dt * ticksPerSecond;
+                mAnimationTime = fmod(mAnimationTime, (float)mMeshAsset->mScene->mAnimations[0]->mDuration);
+            }
+
+            BoneTransform(mAnimationTime);
+        }
     }
 
     void Mesh::SetSubmeshes(const std::vector<uint32_t>& submeshes)
@@ -815,6 +823,16 @@ namespace NR
             {
                 mSubmeshes[i] = i;
             }
+        }
+    }
+
+    void Mesh::BoneTransform(float time)
+    {
+        mMeshAsset->ReadNodeHierarchy(time, mMeshAsset->mScene->mRootNode, glm::mat4(1.0f));
+        mBoneTransforms.resize(mMeshAsset->mBoneCount);
+        for (size_t i = 0; i < mMeshAsset->mBoneCount; ++i)
+        {
+            mBoneTransforms[i] = mMeshAsset->mBoneInfo[i].FinalTransformation;
         }
     }
 }

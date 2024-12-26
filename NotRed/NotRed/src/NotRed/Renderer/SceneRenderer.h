@@ -307,16 +307,19 @@ namespace NR
 		Ref<Pipeline> mGeometryWireframeOnTopPipeline;
 		Ref<Pipeline> mGeometryWireframeOnTopPipelineAnim;
 		Ref<Material> mWireframeMaterial;
+		Ref<Material> mWireframeMaterialAnim;
 
 		Ref<Pipeline> mPreDepthPipeline;
 		Ref<Pipeline> mPreDepthPipelineAnim;
 		Ref<Material> mPreDepthMaterial;
+		Ref<Material> mPreDepthMaterialAnim;
 
 		Ref<Pipeline> mCompositePipeline;
 
 		Ref<Pipeline> mShadowPassPipelines[4];
 		Ref<Pipeline> mShadowPassPipelinesAnim[4];
 		Ref<Material> mShadowPassMaterial;
+		Ref<Material> mShadowPassMaterialAnim;
 
 
 		Ref<Pipeline> mSkyboxPipeline;
@@ -347,6 +350,7 @@ namespace NR
 		Ref<Material> mBloomComputeMaterial;
 
 		Ref<Material> mSelectedGeometryMaterial;
+		Ref<Material> mSelectedGeometryMaterialAnim;
 
 		std::vector<Ref<FrameBuffer>> mTempFrameBuffers;
 
@@ -368,8 +372,8 @@ namespace NR
 		// Grid
 		Ref<Pipeline> mGridPipeline;
 		Ref<Material> mGridMaterial;
-		Ref<Material> mOutlineMaterial, OutlineAnimMaterial;
 		Ref<Material> mColliderMaterial;
+		Ref<Material> mColliderMaterialAnim;
 
 		SceneRendererOptions mOptions;
 

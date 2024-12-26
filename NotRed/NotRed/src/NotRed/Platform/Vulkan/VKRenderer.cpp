@@ -339,6 +339,11 @@ namespace NR
 
                 std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
 
+                if (mesh->IsAnimated())
+                {
+                    uniformBufferSet->Get(2, 0, frameIndex)->RT_SetData(mesh->GetBoneTransforms().data(), mesh->GetBoneTransforms().size() * sizeof(glm::mat4));
+                }
+
                 auto meshMaterialTable = mesh->GetMaterials();
                 uint32_t materialCount = meshMaterialTable->GetMaterialCount();
                 std::vector<Ref<MaterialAsset>> renderMaterials(materialCount);

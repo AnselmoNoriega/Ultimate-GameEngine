@@ -128,6 +128,9 @@ namespace NR
 
 	class MeshAsset : public Asset
 	{
+	private:		
+		friend class Mesh;
+
 	public:
 		MeshAsset(const std::string& filename);
 		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
@@ -159,18 +162,8 @@ namespace NR
 		const AABB& GetBoundingBox() const { return mBoundingBox; }
 
 	private:
-		void BoneTransform(float time);
-		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
 		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
-
-		const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName);
-		uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
-		uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim);
-
-		glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim);
-		glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim);
-		glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim);
+		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
 
 	private:
 		std::vector<Submesh> mSubmeshes;
@@ -178,9 +171,6 @@ namespace NR
 		std::unique_ptr<Assimp::Importer> mImporter;
 
 		glm::mat4 mInverseTransform;
-
-		uint32_t mBoneCount = 0;
-		std::vector<BoneInfo> mBoneInfo;
 
 		Ref<VertexBuffer> mVertexBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
@@ -192,10 +182,12 @@ namespace NR
 		AABB mBoundingBox;
 
 		std::vector<Index> mIndices;
-		std::unordered_map<std::string, uint32_t> mBoneMapping;
 		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
-		std::vector<glm::mat4> mBoneTransforms;
 		const aiScene* mScene;
+
+		uint32_t mBoneCount = 0;
+		std::unordered_map<std::string, uint32_t> mBoneMapping;
+		std::vector<BoneInfo> mBoneInfo;
 
 		// Materials
 		std::vector<Ref<Material>> mMaterials;
@@ -228,6 +220,7 @@ namespace NR
 		void Update(float dt);
 
 		bool IsAnimated() { return mMeshAsset && mMeshAsset->IsAnimated(); }
+		const std::vector<glm::mat4>& GetBoneTransforms() const { return mBoneTransforms; }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
@@ -242,11 +235,11 @@ namespace NR
 		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
 
 	private:
+		void BoneTransform(float time);
+
+	private:
 		Ref<MeshAsset> mMeshAsset;
 		std::vector<uint32_t> mSubmeshes;
-
-		uint32_t mBoneCount = 0;
-		std::vector<BoneInfo> mBoneInfo;
 
 		// Materials
 		Ref<MaterialTable> mMaterials;
@@ -256,6 +249,7 @@ namespace NR
 		float mWorldTime = 0.0f;
 		float mTimeMultiplier = 1.0f;
 		bool mAnimationPlaying = true;
+		std::vector<glm::mat4> mBoneTransforms;
 
 	private:
 		friend class Renderer;
