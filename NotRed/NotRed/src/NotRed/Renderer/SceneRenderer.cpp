@@ -72,7 +72,7 @@ namespace NR
 		mUniformBufferSet = UniformBufferSet::Create(framesInFlight);
 		mUniformBufferSet->Create(sizeof(UBCamera), Binding::CameraData);
 		mUniformBufferSet->Create(sizeof(UBShadow), Binding::ShadowData);
-		mUniformBufferSet->Create(100 * sizeof(glm::mat4), Binding::BoneTransforms);
+		//mUniformBufferSet->Create(100 * sizeof(glm::mat4), Binding::BoneTransforms);
 		mUniformBufferSet->Create(sizeof(UBRendererData), Binding::RendererData);
 		mUniformBufferSet->Create(sizeof(UBScene), Binding::SceneData);
 		mUniformBufferSet->Create(sizeof(UBPointLights), Binding::PointLightData);
@@ -172,7 +172,6 @@ namespace NR
 				mShadowPassPipelinesAnim[i] = Pipeline::Create(pipelineSpecAnim);
 			}
 			mShadowPassMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
-			mShadowPassMaterialAnim = Material::Create(pipelineSpecAnim.Shader, pipelineSpecAnim.DebugName);
 		}
 
 		// PreDepth
@@ -199,7 +198,6 @@ namespace NR
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth_Anim");
 			pipelineSpec.Layout = animatedVertexLayout;
 			mPreDepthPipelineAnim = Pipeline::Create(pipelineSpec);
-			mPreDepthMaterialAnim = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 		}
 
 		// Geometry
@@ -256,7 +254,6 @@ namespace NR
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry_Anim");
 			pipelineSpecification.Layout = animatedVertexLayout;
 			mSelectedGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mSelectedGeometryPipeline
-			mSelectedGeometryMaterialAnim = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 		}
 
 		// Bloom Compute
@@ -661,12 +658,9 @@ namespace NR
 
 		mWireframeMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"), "Wireframe");
 		mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 1.0f, 0.5f, 0.0f, 1.0f });
-		mWireframeMaterialAnim = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe_Anim"), "Wireframe-Anim");
-		mWireframeMaterialAnim->Set("uMaterialUniforms.Color", glm::vec4{ 1.0f, 0.5f, 0.0f, 1.0f });
+
 		mColliderMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"), "Collider");
 		mColliderMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f });
-		mColliderMaterialAnim = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe_Anim"), "Collider-Anim");
-		mColliderMaterialAnim->Set("uMaterialUniforms.Color", glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f });
 
 		// Skybox
 		{
@@ -1003,7 +997,7 @@ namespace NR
 			{
 				if (dc.Mesh->IsAnimated())
 				{
-					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterialAnim, cascade);
+					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
 				}
 				else
 				{
@@ -1025,7 +1019,7 @@ namespace NR
 		{
 			if (dc.Mesh->IsAnimated())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterialAnim);
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
 			}
 			else
 			{
@@ -1036,7 +1030,7 @@ namespace NR
 		{
 			if (dc.Mesh->IsAnimated())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterialAnim);
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
 			}
 			else
 			{
@@ -1068,7 +1062,7 @@ namespace NR
 		{
 			if (dc.Mesh->IsAnimated())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterialAnim);
+				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
 			}
 			else
 			{
@@ -1099,7 +1093,7 @@ namespace NR
 			{
 				if (dc.Mesh->IsAnimated())
 				{
-					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterialAnim);
+					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
 				}
 				else
 				{
@@ -1497,7 +1491,7 @@ namespace NR
 			{
 				if (dc.Mesh->IsAnimated())
 				{
-					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterialAnim);
+					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
 				}
 				else
 				{

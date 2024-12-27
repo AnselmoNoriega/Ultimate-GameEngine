@@ -14,7 +14,8 @@ layout (std140, binding = 0) uniform Camera
 };
 
 const int MAX_BONES = 100;
-layout (std140, binding = 2) uniform BoneTransforms
+
+layout (std140, set = 1, binding = 0) uniform BoneTransforms
 {
 	mat4 BoneTransforms[MAX_BONES];
 } uBoneTransforms;

@@ -23,7 +23,7 @@ layout(std140, binding = 1) uniform ShadowData
 
 const int MAX_BONES = 100;
 
-layout (std140, binding = 2) uniform BoneTransforms
+layout (std140, set = 2, binding = 0) uniform BoneTransforms
 {
 	mat4 BoneTransforms[MAX_BONES];
 } uBoneTransforms;

@@ -337,11 +337,25 @@ namespace NR
                 Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->GetVulkanPipeline());
 
-                std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
+                VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
 
                 if (mesh->IsAnimated())
                 {
-                    uniformBufferSet->Get(2, 0, frameIndex)->RT_SetData(mesh->GetBoneTransforms().data(), mesh->GetBoneTransforms().size() * sizeof(glm::mat4));
+                    auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(2); // Hard coding 2 = animation data
+
+                    VkWriteDescriptorSet writeDescriptorSet;
+                    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    writeDescriptorSet.pNext = nullptr;
+                    writeDescriptorSet.dstSet = temp.DescriptorSets[0];
+                    writeDescriptorSet.dstBinding = 0;
+                    writeDescriptorSet.dstArrayElement = 0;
+                    writeDescriptorSet.descriptorCount = 1;
+                    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    writeDescriptorSet.pImageInfo = nullptr;
+                    writeDescriptorSet.pBufferInfo = &mesh->GetBoneTransformUB(frameIndex).As<VKUniformBuffer>()->GetDescriptorBufferInfo();
+                    writeDescriptorSet.pTexelBufferView = nullptr;
+                    vkUpdateDescriptorSets(VKContext::GetCurrentDevice()->GetVulkanDevice(), 1, &writeDescriptorSet, 0, nullptr);
+                    animationDataDS = temp.DescriptorSets[0];
                 }
 
                 auto meshMaterialTable = mesh->GetMaterials();
@@ -377,11 +391,16 @@ namespace NR
                     VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
                     VkDescriptorSet descriptorSet = material->GetDescriptorSet(frameIndex);
 
-                    // Bind descriptor sets describing shader binding points
-                    std::array<VkDescriptorSet, 2> descriptorSets = {
+                    // NOTE: Descriptor Set 0 is the material, Descriptor Set 1 is renderer data, Descriptor Set 2 (if present) is the animation data
+                    std::vector<VkDescriptorSet> descriptorSets = {
                         descriptorSet,
                         sData->ActiveRendererDescriptorSet
                     };
+
+                    if (animationDataDS)
+                    {
+                        descriptorSets.emplace_back(animationDataDS);
+                    }
                     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
 
                     glm::mat4 worldTransform = transform * submesh.Transform;
@@ -528,6 +547,27 @@ namespace NR
 
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+                VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
+                if (mesh->IsAnimated())
+                {
+                    auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(1); // Hard coding 1 = animation data
+
+                    VkWriteDescriptorSet writeDescriptorSet;
+                    writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    writeDescriptorSet.pNext = nullptr;
+                    writeDescriptorSet.dstSet = temp.DescriptorSets[0];
+                    writeDescriptorSet.dstBinding = 0;
+                    writeDescriptorSet.dstArrayElement = 0;
+                    writeDescriptorSet.descriptorCount = 1;
+                    writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                    writeDescriptorSet.pImageInfo = nullptr;
+                    writeDescriptorSet.pBufferInfo = &mesh->GetBoneTransformUB(frameIndex).As<VKUniformBuffer>()->GetDescriptorBufferInfo();
+                    writeDescriptorSet.pTexelBufferView = nullptr;
+
+                    vkUpdateDescriptorSets(VKContext::GetCurrentDevice()->GetVulkanDevice(), 1, &writeDescriptorSet, 0, nullptr);
+                    animationDataDS = temp.DescriptorSets[0];
+                }
+
                 float lineWidth = vulkanPipeline->GetSpecification().LineWidth;
                 if (lineWidth != 1.0f)
                 {
@@ -535,11 +575,19 @@ namespace NR
                 }
 
                 // Bind descriptor sets describing shader binding points
+			    // NOTE: Descriptor Set 0 is the material, Descriptor Set 1 (if present) is the animation data
+                std::vector<VkDescriptorSet> descriptorSets;
                 VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
                 if (descriptorSet)
                 {
-                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
+                    descriptorSets.emplace_back(descriptorSet);
                 }
+                if (animationDataDS)
+                {
+                    descriptorSets.emplace_back(animationDataDS);
+                }
+
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, static_cast<uint32_t>(descriptorSets.size()), descriptorSets.data(), 0, nullptr);
 
                 Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
                 if (uniformStorageBuffer)

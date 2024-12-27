@@ -10,6 +10,7 @@
 #include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/Shader.h"
 #include "NotRed/Renderer/MaterialAsset.h"
+#include "NotRed/Renderer/UniformBuffer.h"
 
 #include "NotRed/Math/AABB.h"
 
@@ -220,6 +221,7 @@ namespace NR
 		void Update(float dt);
 
 		bool IsAnimated() { return mMeshAsset && mMeshAsset->IsAnimated(); }
+		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
 		const std::vector<glm::mat4>& GetBoneTransforms() const { return mBoneTransforms; }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
@@ -250,6 +252,7 @@ namespace NR
 		float mTimeMultiplier = 1.0f;
 		bool mAnimationPlaying = true;
 		std::vector<glm::mat4> mBoneTransforms;
+		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
 	private:
 		friend class Renderer;
