@@ -393,6 +393,197 @@ namespace NR
         internal static extern void SetKinematicTarget_Native(ulong entityID, ref Vector3 targetPosition, ref Vector3 targetRotation);
     }
 
+    public class BoxColliderComponent : Component
+    {
+
+        public Vector3 Size
+        {
+            get
+            {
+                GetSize_Native(Entity.ID, out Vector3 size);
+                return size;
+            }
+
+            //set { SetSize_Native(Entity.ID, ref value); }
+        }
+
+        public Vector3 Offset
+        {
+            get
+            {
+                GetOffset_Native(Entity.ID, out Vector3 offset);
+                return offset;
+            }
+
+            //set { SetOffset_Native(Entity.ID, ref value); }
+        }
+
+        public bool IsTrigger
+        {
+            get => IsTrigger_Native(Entity.ID);
+            //set => SetTrigger_Native(Entity.ID, value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetSize_Native(ulong entityID, out Vector3 size);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetSize_Native(ulong entityID, ref Vector3 size);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetOffset_Native(ulong entityID, out Vector3 offset);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetOffset_Native(ulong entityID, ref Vector3 offset);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsTrigger_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetTrigger_Native(ulong entityID, bool isTrigger);
+    }
+
+    public class SphereColliderComponent : Component
+    {
+
+        public float Radius
+        {
+            get => GetRadius_Native(Entity.ID);
+            //set => SetRadius_Native(Entity.ID, value);
+        }
+
+        public Vector3 Offset
+        {
+            get
+            {
+                GetOffset_Native(Entity.ID, out Vector3 offset);
+                return offset;
+            }
+
+            //set { SetOffset_Native(Entity.ID, ref value); }
+        }
+
+        public bool IsTrigger
+        {
+            get => IsTrigger_Native(Entity.ID);
+            //set => SetIsTrigger_Native(Entity.ID, value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetRadius_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRadius_Native(ulong entityID, float radius);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetOffset_Native(ulong entityID, out Vector3 offset);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetOffset_Native(ulong entityID, ref Vector3 offset);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsTrigger_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetTrigger_Native(ulong entityID, bool isTrigger);
+    }
+
+    public class CapsuleColliderComponent : Component
+    {
+
+        public float Radius
+        {
+            get => GetRadius_Native(Entity.ID);
+            //set => SetRadius_Native(Entity.ID, value);
+        }
+
+        public float Height
+        {
+            get => GetHeight_Native(Entity.ID);
+            //set => SetHeight_Native(Entity.ID, value);
+        }
+
+        public Vector3 Offset
+        {
+            get
+            {
+                GetOffset_Native(Entity.ID, out Vector3 offset);
+                return offset;
+            }
+
+            //set { SetOffset_Native(Entity.ID, ref value); }
+        }
+
+        public bool IsTrigger
+        {
+            get => IsTrigger_Native(Entity.ID);
+            //set => SetIsTrigger_Native(Entity.ID, value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetRadius_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRadius_Native(ulong entityID, float radius);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetHeight_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetHeight_Native(ulong entityID, float height);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetOffset_Native(ulong entityID, out Vector3 offset);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetOffset_Native(ulong entityID, ref Vector3 offset);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsTrigger_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetTrigger_Native(ulong entityID, bool isTrigger);
+    }
+
+    public class MeshColliderComponent : Component
+    {
+        public Mesh ColliderMesh
+        {
+            get
+            {
+                Mesh result = new Mesh(GetColliderMesh_Native(Entity.ID));
+                return result;
+            }
+            /*set
+			{
+				IntPtr ptr = value == null ? IntPtr.Zero : value.m_UnmanagedInstance;
+				SetColliderMesh_Native(Entity.ID, ptr);
+			}*/
+        }
+
+        public bool IsConvex
+        {
+            get => IsConvex_Native(Entity.ID);
+            //set => SetConvex_Native(Entity.ID, value);
+        }
+
+        public bool IsTrigger
+        {
+            get => IsTrigger_Native(Entity.ID);
+            //set => SetIsTrigger_Native(Entity.ID, value);
+        }
+
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern IntPtr GetColliderMesh_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetColliderMesh_Native(ulong entityID, IntPtr mesh);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsConvex_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetConvex_Native(ulong entityID, bool isConvex);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsTrigger_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetTrigger_Native(ulong entityID, bool isTrigger);
+
+    }
+
     public class AudioListenerComponent : Component
     {
     }

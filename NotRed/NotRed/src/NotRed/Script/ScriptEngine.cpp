@@ -393,8 +393,11 @@ namespace NR
         }
     }
 
+    static std::unordered_map<std::string, MonoClass*> sClasses;
+
     void ScriptEngine::SetSceneContext(const Ref<Scene>& scene)
     {
+        sClasses.clear();
         sSceneContext = scene;
     }
 
@@ -570,8 +573,6 @@ namespace NR
 
         return obj;
     }
-
-    static std::unordered_map<std::string, MonoClass*> sClasses;
 
     MonoClass* ScriptEngine::GetCoreClass(const std::string& fullName)
     {

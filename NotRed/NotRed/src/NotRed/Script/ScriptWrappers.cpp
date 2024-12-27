@@ -318,6 +318,26 @@ namespace NR::Script
 		return Input::GetCursorMode();
 	}
 
+	MonoArray* NR_Scene_GetEntities()
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		MonoArray* result = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Entity"), entityMap.size());
+		uint32_t index = 0;
+
+		for (auto& [id, entity] : entityMap)
+		{
+			UUID uuid = id;
+			void* data[] = { &uuid };
+			MonoObject* obj = ScriptEngine::Construct("NR.Entity:.ctor(ulong)", true, data);
+			mono_array_set(result, MonoObject*, index++, obj);
+		}
+
+		return result;
+	}
+
 	bool NR_Physics_RaycastWithStruct(RaycastData* inData, RaycastHit* hit)
 	{
 		return NR_Physics_Raycast(&inData->Origin, &inData->Direction, inData->MaxDistance, inData->RequiredComponentTypes, hit);
@@ -1015,6 +1035,221 @@ namespace NR::Script
 		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
 		actor->SetKinematicTarget(*inTargetPosition, *inTargetRotation);
 	}
+	
+	void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<BoxColliderComponent>());
+
+		auto& component = entity.GetComponent<BoxColliderComponent>();
+		*outSize = component.Size;
+	}
+
+	void NR_BoxColliderComponent_SetSize(uint64_t entityID, glm::vec3* inSize) {}
+
+	void NR_BoxColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<BoxColliderComponent>());
+
+		auto& component = entity.GetComponent<BoxColliderComponent>();
+		*outOffset = component.Offset;
+	}
+
+	void NR_BoxColliderComponent_SetOffset(uint64_t entityID, glm::vec3* inOffset) {}
+
+	bool NR_BoxColliderComponent_IsTrigger(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<BoxColliderComponent>());
+
+		auto& component = entity.GetComponent<BoxColliderComponent>();
+		return component.IsTrigger;
+	}
+	void NR_BoxColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger) {}
+
+	float NR_SphereColliderComponent_GetRadius(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<SphereColliderComponent>());
+
+		auto& component = entity.GetComponent<SphereColliderComponent>();
+		return component.Radius;
+	}
+	void NR_SphereColliderComponent_SetRadius(uint64_t entityID, float inRadius) {}
+
+	void NR_SphereColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<SphereColliderComponent>());
+
+		auto& component = entity.GetComponent<SphereColliderComponent>();
+		*outOffset = component.Offset;
+	}
+	void NR_SphereColliderComponent_SetOffset(uint64_t entityID, glm::vec3* inOffset) {}
+
+	bool NR_SphereColliderComponent_IsTrigger(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<SphereColliderComponent>());
+
+		auto& component = entity.GetComponent<SphereColliderComponent>();
+		return component.IsTrigger;
+	}
+	void NR_SphereColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger) {}
+
+	float NR_CapsuleColliderComponent_GetRadius(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<CapsuleColliderComponent>());
+
+		auto& component = entity.GetComponent<CapsuleColliderComponent>();
+		return component.Radius;
+	}
+	void NR_CapsuleColliderComponent_SetRadius(uint64_t entityID, float inRadius) {}
+
+	float NR_CapsuleColliderComponent_GetHeight(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<CapsuleColliderComponent>());
+
+		auto& component = entity.GetComponent<CapsuleColliderComponent>();
+		return component.Height;
+	}
+	void NR_CapsuleColliderComponent_SetHeight(uint64_t entityID, float inHeight) {}
+
+	void NR_CapsuleColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<CapsuleColliderComponent>());
+
+		auto& component = entity.GetComponent<CapsuleColliderComponent>();
+		*outOffset = component.Offset;
+	}
+
+	void NR_CapsuleColliderComponent_SetOffset(uint64_t entityID, glm::vec3* inOffset) {}
+
+	bool NR_CapsuleColliderComponent_IsTrigger(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<CapsuleColliderComponent>());
+
+		auto& component = entity.GetComponent<CapsuleColliderComponent>();
+		return component.IsTrigger;
+	}
+
+	void NR_CapsuleColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger) {}
+
+	Ref<Mesh>* NR_MeshColliderComponent_GetColliderMesh(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<MeshColliderComponent>());
+
+		auto& component = entity.GetComponent<MeshColliderComponent>();
+		return new Ref<Mesh>(new Mesh(component.CollisionMesh->GetMeshAsset()));
+	}
+
+	void NR_MeshColliderComponent_SetColliderMesh(uint64_t entityID, Ref<Mesh>* inMesh) {}
+
+	bool NR_MeshColliderComponent_IsConvex(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<MeshColliderComponent>());
+
+		auto& component = entity.GetComponent<MeshColliderComponent>();
+		return component.IsConvex;
+	}
+
+	void NR_MeshColliderComponent_SetConvex(uint64_t entityID, bool convex) {}
+
+	bool NR_MeshColliderComponent_IsTrigger(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<MeshColliderComponent>());
+
+		auto& component = entity.GetComponent<MeshColliderComponent>();
+		return component.IsTrigger;
+	}
+
+	void NR_MeshColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger) {}
 
 	Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath)
 	{

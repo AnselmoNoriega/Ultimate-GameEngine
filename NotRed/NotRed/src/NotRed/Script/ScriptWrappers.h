@@ -25,6 +25,9 @@ namespace NR::Script
     void NR_Input_SetCursorMode(CursorMode mode);
     CursorMode NR_Input_GetCursorMode();
 
+    // Scene
+    MonoArray* NR_Scene_GetEntities();
+
     struct RaycastData
     {
         glm::vec3 Origin;
@@ -97,7 +100,36 @@ namespace NR::Script
     void NR_RigidBodyComponent_GetKinematicTarget(uint64_t entityID, glm::vec3* outTargetPosition, glm::vec3* outTargetRotation);
     void NR_RigidBodyComponent_SetKinematicTarget(uint64_t entityID, glm::vec3* inTargetPosition, glm::vec3* inTargetRotation);
 
-    // Renderer
+    void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize);
+    void NR_BoxColliderComponent_SetSize(uint64_t entityID, glm::vec3* inSize);
+    void NR_BoxColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset);
+    void NR_BoxColliderComponent_SetOffset(uint64_t entityID, glm::vec3* inOffset);
+    bool NR_BoxColliderComponent_IsTrigger(uint64_t entityID);
+    void NR_BoxColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);
+
+    float NR_SphereColliderComponent_GetRadius(uint64_t entityID);
+    void NR_SphereColliderComponent_SetRadius(uint64_t entityID, float inRadius);
+    void NR_SphereColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset);
+    void NR_SphereColliderComponent_SetOffset(uint64_t entityID, glm::vec3* inOffset);
+    bool NR_SphereColliderComponent_IsTrigger(uint64_t entityID);
+    void NR_SphereColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);
+
+    float NR_CapsuleColliderComponent_GetRadius(uint64_t entityID);
+    void NR_CapsuleColliderComponent_SetRadius(uint64_t entityID, float inRadius);
+    float NR_CapsuleColliderComponent_GetHeight(uint64_t entityID);
+    void NR_CapsuleColliderComponent_SetHeight(uint64_t entityID, float inHeight);
+    void NR_CapsuleColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset);
+    void NR_CapsuleColliderComponent_SetOffset(uint64_t entityID, glm::vec3* inOffset);
+    bool NR_CapsuleColliderComponent_IsTrigger(uint64_t entityID);
+    void NR_CapsuleColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);
+
+    Ref<Mesh>* NR_MeshColliderComponent_GetColliderMesh(uint64_t entityID);
+    void NR_MeshColliderComponent_SetColliderMesh(uint64_t entityID, Ref<Mesh>* inMesh);
+    bool NR_MeshColliderComponent_IsConvex(uint64_t entityID);
+    void NR_MeshColliderComponent_SetConvex(uint64_t entityID, bool convex);
+    bool NR_MeshColliderComponent_IsTrigger(uint64_t entityID);
+    void NR_MeshColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);
+
     // Texture2D
     void* NR_Texture2D_Constructor(uint32_t width, uint32_t height);
     void NR_Texture2D_Destructor(Ref<Texture2D>* _this);

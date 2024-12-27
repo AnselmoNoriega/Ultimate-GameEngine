@@ -45,6 +45,8 @@ namespace NR
 		Component_RegisterType(RigidBodyComponent);
 		Component_RegisterType(BoxColliderComponent);
 		Component_RegisterType(SphereColliderComponent);
+		Component_RegisterType(CapsuleColliderComponent);
+		Component_RegisterType(MeshColliderComponent);
 		Component_RegisterType(AudioListenerComponent);
 		Component_RegisterType(Audio::AudioComponent);
 	}
@@ -55,6 +57,7 @@ namespace NR
 
 		mono_add_internal_call("NR.Noise::PerlinNoise_Native", NR::Script::NR_Noise_PerlinNoise);
 
+		mono_add_internal_call("NR.Scene::GetEntities", NR::Script::NR_Scene_GetEntities);
 		mono_add_internal_call("NR.Physics::RaycastWithStruct_Native", NR::Script::NR_Physics_RaycastWithStruct);
 		mono_add_internal_call("NR.Physics::Raycast_Native", NR::Script::NR_Physics_Raycast);
 		mono_add_internal_call("NR.Physics::OverlapBox_Native", NR::Script::NR_Physics_OverlapBox);
@@ -125,6 +128,33 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetMass_Native", NR::Script::NR_RigidBodyComponent_SetMass);
 		mono_add_internal_call("NR.RigidBodyComponent::GetKinematicTarget_Native", NR::Script::NR_RigidBodyComponent_GetKinematicTarget);
 		mono_add_internal_call("NR.RigidBodyComponent::SetKinematicTarget_Native", NR::Script::NR_RigidBodyComponent_SetKinematicTarget);
+
+		mono_add_internal_call("NR.BoxColliderComponent::GetSize_Native", NR::Script::NR_BoxColliderComponent_GetSize);
+		mono_add_internal_call("NR.BoxColliderComponent::SetSize_Native", NR::Script::NR_BoxColliderComponent_SetSize);
+		mono_add_internal_call("NR.BoxColliderComponent::GetOffset_Native", NR::Script::NR_BoxColliderComponent_GetOffset);
+		mono_add_internal_call("NR.BoxColliderComponent::SetOffset_Native", NR::Script::NR_BoxColliderComponent_SetOffset);
+		mono_add_internal_call("NR.BoxColliderComponent::IsTrigger_Native", NR::Script::NR_BoxColliderComponent_IsTrigger);
+		mono_add_internal_call("NR.BoxColliderComponent::SetTrigger_Native", NR::Script::NR_BoxColliderComponent_SetTrigger);
+		mono_add_internal_call("NR.SphereColliderComponent::GetRadius_Native", NR::Script::NR_SphereColliderComponent_GetRadius);
+		mono_add_internal_call("NR.SphereColliderComponent::SetRadius_Native", NR::Script::NR_SphereColliderComponent_SetRadius);
+		mono_add_internal_call("NR.SphereColliderComponent::GetOffset_Native", NR::Script::NR_SphereColliderComponent_GetOffset);
+		mono_add_internal_call("NR.SphereColliderComponent::SetOffset_Native", NR::Script::NR_SphereColliderComponent_SetOffset);
+		mono_add_internal_call("NR.SphereColliderComponent::IsTrigger_Native", NR::Script::NR_SphereColliderComponent_IsTrigger);
+		mono_add_internal_call("NR.SphereColliderComponent::SetTrigger_Native", NR::Script::NR_SphereColliderComponent_SetTrigger);
+		mono_add_internal_call("NR.CapsuleColliderComponent::GetRadius_Native", NR::Script::NR_CapsuleColliderComponent_GetRadius);
+		mono_add_internal_call("NR.CapsuleColliderComponent::SetRadius_Native", NR::Script::NR_CapsuleColliderComponent_SetRadius);
+		mono_add_internal_call("NR.CapsuleColliderComponent::GetHeight_Native", NR::Script::NR_CapsuleColliderComponent_GetHeight);
+		mono_add_internal_call("NR.CapsuleColliderComponent::SetHeight_Native", NR::Script::NR_CapsuleColliderComponent_SetHeight);
+		mono_add_internal_call("NR.CapsuleColliderComponent::GetOffset_Native", NR::Script::NR_CapsuleColliderComponent_GetOffset);
+		mono_add_internal_call("NR.CapsuleColliderComponent::SetOffset_Native", NR::Script::NR_CapsuleColliderComponent_SetOffset);
+		mono_add_internal_call("NR.CapsuleColliderComponent::IsTrigger_Native", NR::Script::NR_CapsuleColliderComponent_IsTrigger);
+		mono_add_internal_call("NR.CapsuleColliderComponent::SetTrigger_Native", NR::Script::NR_CapsuleColliderComponent_SetTrigger);
+		mono_add_internal_call("NR.MeshColliderComponent::GetColliderMesh_Native", NR::Script::NR_MeshColliderComponent_GetColliderMesh);
+		mono_add_internal_call("NR.MeshColliderComponent::SetColliderMesh_Native", NR::Script::NR_MeshColliderComponent_SetColliderMesh);
+		mono_add_internal_call("NR.MeshColliderComponent::IsConvex_Native", NR::Script::NR_MeshColliderComponent_IsConvex);
+		mono_add_internal_call("NR.MeshColliderComponent::SetConvex_Native", NR::Script::NR_MeshColliderComponent_SetConvex);
+		mono_add_internal_call("NR.MeshColliderComponent::IsTrigger_Native", NR::Script::NR_MeshColliderComponent_IsTrigger);
+		mono_add_internal_call("NR.MeshColliderComponent::SetTrigger_Native", NR::Script::NR_MeshColliderComponent_SetTrigger);
 
 		mono_add_internal_call("NR.RigidBodyComponent::GetBodyType_Native", NR::Script::NR_RigidBodyComponent_GetBodyType);
 		mono_add_internal_call("NR.RigidBodyComponent::SetBodyType_Native", NR::Script::NR_RigidBodyComponent_SetBodyType);
