@@ -5,9 +5,8 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aTangent;
 layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
-
-//layout(location = 5) in ivec4 aBoneIndices;
-//layout(location = 6) in vec4 aBoneWeights;
+layout(location = 5) in ivec4 aBoneIndices;
+layout(location = 6) in vec4 aBoneWeights;
 
 layout (std140, binding = 0) uniform Camera
 {
@@ -21,6 +20,13 @@ layout(std140, binding = 1) uniform ShadowData
 {
 	mat4 uLightMatrix[4];
 };
+
+const int MAX_BONES = 100;
+
+layout (std140, binding = 2) uniform BoneTransforms
+{
+	mat4 BoneTransforms[MAX_BONES];
+} uBoneTransforms;
 
 layout(push_constant) uniform Transform
 {
@@ -46,23 +52,17 @@ layout(location = 0) out VertexOutput Output;
 
 void main()
 {
-//	mat4 boneTransform = uBoneTransforms.BoneTransforms[aBoneIndices[0]] * aBoneWeights[0];
-//	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[1]] * aBoneWeights[1];
-//	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[2]] * aBoneWeights[2];
-//	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[3]] * aBoneWeights[3];
-//
-	Output.WorldPosition = vec3(uRenderer.Transform /** boneTransform */ * vec4(aPosition, 1.0));
-	Output.Normal = mat3(uRenderer.Transform) /** mat3(boneTransform)*/ * aNormal;
-	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(aTangent, aBinormal, aNormal);
-	Output.WorldTransform = mat3(uRenderer.Transform);
-	Output.Binormal = mat3(uRenderer.Transform) * aBinormal;
+	mat4 boneTransform = uBoneTransforms.BoneTransforms[aBoneIndices[0]] * aBoneWeights[0];
+	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[1]] * aBoneWeights[1];
+	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[2]] * aBoneWeights[2];
+	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[3]] * aBoneWeights[3];
 
-	//Output.WorldPosition = vec3(uRenderer.Transform * boneTransform * vec4(aPosition, 1.0));
-	//Output.Normal = mat3(uRenderer.Transform) * mat3(boneTransform) * aNormal;
-	//Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	//Output.WorldNormals = mat3(uRenderer.Transform) * mat3(aTangent, aBinormal, aNormal);
-	//Output.Binormal = mat3(boneTransform) * aBinormal;
+	Output.WorldPosition = vec3(uRenderer.Transform * boneTransform * vec4(aPosition, 1.0));
+	Output.Normal = mat3(uRenderer.Transform) * mat3(boneTransform) * aNormal;
+	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
+	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(boneTransform) * mat3(aTangent, aBinormal, aNormal);
+	Output.WorldTransform = mat3(uRenderer.Transform) * mat3(boneTransform);
+	Output.Binormal = mat3(uRenderer.Transform) * mat3(boneTransform) * aBinormal;
 
 	Output.CameraView = mat3(uViewMatrix);
 
@@ -71,6 +71,6 @@ void main()
 	Output.ShadowMapCoords[2] = uLightMatrix[2] * vec4(Output.WorldPosition, 1.0);
 	Output.ShadowMapCoords[3] = uLightMatrix[3] * vec4(Output.WorldPosition, 1.0);
 	Output.ViewPosition = vec3(uViewMatrix * vec4(Output.WorldPosition, 1.0));
-
-	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
+	
+	gl_Position = uViewProjectionMatrix * vec4(Output.WorldPosition, 1.0);
 }

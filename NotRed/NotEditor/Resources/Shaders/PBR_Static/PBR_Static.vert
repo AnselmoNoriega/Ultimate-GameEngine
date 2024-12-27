@@ -68,6 +68,6 @@ void main()
 	Output.ShadowMapCoords[2] = uLightMatrix[2] * vec4(Output.WorldPosition, 1.0);
 	Output.ShadowMapCoords[3] = uLightMatrix[3] * vec4(Output.WorldPosition, 1.0);
 	Output.ViewPosition = vec3(uViewMatrix * vec4(Output.WorldPosition, 1.0));
-
-	gl_Position = uViewProjectionMatrix * uRenderer.Transform * vec4(aPosition, 1.0);
+	
+	gl_Position = uViewProjectionMatrix * vec4(Output.WorldPosition, 1.0);
 }

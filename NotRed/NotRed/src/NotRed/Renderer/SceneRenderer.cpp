@@ -319,7 +319,7 @@ namespace NR
 
 				mDeinterleavingPipelines[rp] = Pipeline::Create(pipelineSpec);
 			}
-			mDeinterleavingMaterial = Material::Create(shader, "Deinterleaving");
+			mDeinterleavingMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 		}
 
 		//HBAO
@@ -372,7 +372,7 @@ namespace NR
 			pipelineSpecification.DepthWrite = false;
 			mReinterleavingPipeline = Pipeline::Create(pipelineSpecification);
 
-			mReinterleavingMaterial = Material::Create(shader, "Reinterleaving");
+			mReinterleavingMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 		}
 
 		//HBAO Blur
@@ -402,7 +402,7 @@ namespace NR
 				pipelineSpecification.Shader = shader;
 				pipelineSpecification.DebugName = "HBAOBlur";
 				mHBAOBlurPipelines[0] = Pipeline::Create(pipelineSpecification);
-				mHBAOBlurMaterials[0] = Material::Create(shader, "HBAOBlur");
+				mHBAOBlurMaterials[0] = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
 
 			//HBAO second blur pass
@@ -422,8 +422,8 @@ namespace NR
 
 				pipelineSpecification.Shader = shader;
 				pipelineSpecification.DebugName = "HBAOBlur2";
-				mHBAOBlurPipelines[1] = Pipeline::Create(pipelineSpecification);
-				mHBAOBlurMaterials[1] = Material::Create(shader, "HBAOBlur2");
+				mHBAOBlurPipelines[1] = Pipeline::Create(pipelineSpecification);				
+				mHBAOBlurMaterials[1] = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
 		}
 
@@ -494,7 +494,7 @@ namespace NR
 			pipelineSpecification.DebugName = compFrameBufferSpec.DebugName;
 			pipelineSpecification.DepthWrite = false;
 			mDOFPipeline = Pipeline::Create(pipelineSpecification);
-			mDOFMaterial = Material::Create(pipelineSpecification.Shader, "POST-DepthOfField");
+			mDOFMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 		}
 
 		// External compositing
@@ -559,24 +559,20 @@ namespace NR
 
 		// Jump Flood (outline)
 		{
+			RenderPassSpecification renderPassSpec;
+			renderPassSpec.DebugName = "JumpFlood-Init";
+			renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[0];
+
 			PipelineSpecification pipelineSpecification;
+			pipelineSpecification.DebugName = renderPassSpec.DebugName;
 			pipelineSpecification.Layout = {
 				{ ShaderDataType::Float3, "aPosition" },
 				{ ShaderDataType::Float2, "aTexCoord" }
 			};
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Init");
-			mJumpFloodInitMaterial = Material::Create(pipelineSpecification.Shader, "JumpFlood-Init");
-
-			RenderPassSpecification renderPassSpec;
-			renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[0];
-			renderPassSpec.DebugName = "JumpFlood-Init";
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
-			pipelineSpecification.DebugName = "JumpFlood-Init";
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Init");
 			mJumpFloodInitPipeline = Pipeline::Create(pipelineSpecification);
-
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Pass");
-			mJumpFloodPassMaterial[0] = Material::Create(pipelineSpecification.Shader, "JumpFloodPass-0");
-			mJumpFloodPassMaterial[1] = Material::Create(pipelineSpecification.Shader, "JumpFloodPass-1");
+			mJumpFloodInitMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 
 			const char* passName[2] = { "EvenPass", "OddPass" };
 			for (uint32_t i = 0; i < 2; ++i)
@@ -584,21 +580,22 @@ namespace NR
 				renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[(i + 1) % 2];
 				renderPassSpec.DebugName = fmt::format("JumpFlood-{0}", passName[i]);
 
-				pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 				pipelineSpecification.DebugName = renderPassSpec.DebugName;
+				pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
+				pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Pass");
 
-				mJumpFloodPassPipeline[i] = Pipeline::Create(pipelineSpecification);
+				mJumpFloodPassPipeline[i] = Pipeline::Create(pipelineSpecification);				
+				mJumpFloodPassMaterial[i] = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
 
 			// Outline compositing
 			{
 				pipelineSpecification.RenderPass = mCompositePipeline->GetSpecification().RenderPass;
-				pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Composite");
 				pipelineSpecification.DebugName = "JumpFlood-Composite";
+				pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Composite");
 				pipelineSpecification.DepthTest = false;
 				mJumpFloodCompositePipeline = Pipeline::Create(pipelineSpecification);
-
-				mJumpFloodCompositeMaterial = Material::Create(pipelineSpecification.Shader, "JumpFlood-Composite");
+				mJumpFloodCompositeMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
 		}
 
@@ -657,15 +654,19 @@ namespace NR
 
 			const float gridScale = 16.025f;
 			const float gridSize = 0.025f;
-			mGridMaterial = Material::Create(pipelineSpec.Shader);
+			mGridMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 			mGridMaterial->Set("uSettings.Scale", gridScale);
 			mGridMaterial->Set("uSettings.Size", gridSize);
 		}
 
-		mWireframeMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"));
+		mWireframeMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"), "Wireframe");
 		mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 1.0f, 0.5f, 0.0f, 1.0f });
-		mColliderMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"));
+		mWireframeMaterialAnim = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe_Anim"), "Wireframe-Anim");
+		mWireframeMaterialAnim->Set("uMaterialUniforms.Color", glm::vec4{ 1.0f, 0.5f, 0.0f, 1.0f });
+		mColliderMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"), "Collider");
 		mColliderMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f });
+		mColliderMaterialAnim = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe_Anim"), "Collider-Anim");
+		mColliderMaterialAnim->Set("uMaterialUniforms.Color", glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f });
 
 		// Skybox
 		{
@@ -680,8 +681,7 @@ namespace NR
 			};
 			pipelineSpec.RenderPass = mGeometryPipeline->GetSpecification().RenderPass;
 			mSkyboxPipeline = Pipeline::Create(pipelineSpec);
-
-			mSkyboxMaterial = Material::Create(skyboxShader);
+			mSkyboxMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
 			mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
 		}
 
@@ -1003,7 +1003,7 @@ namespace NR
 			{
 				if (dc.Mesh->IsAnimated())
 				{
-					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
+					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterialAnim, cascade);
 				}
 				else
 				{
@@ -1023,11 +1023,25 @@ namespace NR
 		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
 		for (auto& dc : mDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mPreDepthPipelineAnim : mPreDepthPipeline), mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+			if (dc.Mesh->IsAnimated())
+			{
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterialAnim);
+			}
+			else
+			{
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+			}
 		}
 		for (auto& dc : mSelectedMeshDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mPreDepthPipelineAnim : mPreDepthPipeline), mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+			if (dc.Mesh->IsAnimated())
+			{
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterialAnim);
+			}
+			else
+			{
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.DepthPrePassQuery);
@@ -1052,7 +1066,14 @@ namespace NR
 		Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
 		for (auto& dc : mSelectedMeshDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mSelectedGeometryPipelineAnim : mSelectedGeometryPipeline), mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
+			if (dc.Mesh->IsAnimated())
+			{
+				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterialAnim);
+			}
+			else
+			{
+				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
+			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
 
@@ -1076,7 +1097,14 @@ namespace NR
 			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
 			if (mOptions.ShowSelectedInWireframe)
 			{
-				Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mGeometryWireframePipelineAnim : mGeometryWireframePipeline), mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
+				if (dc.Mesh->IsAnimated())
+				{
+					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterialAnim);
+				}
+				else
+				{
+					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
+				}
 			}
 		}
 
@@ -1467,7 +1495,14 @@ namespace NR
 			auto pipelineAnim = mOptions.ShowPhysicsColliders == SceneRendererOptions::PhysicsColliderView::Normal ? mGeometryWireframePipelineAnim : mGeometryWireframeOnTopPipelineAnim;
 			for (DrawCommand& dc : mColliderDrawList)
 			{
-				Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? pipelineAnim : pipeline), mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
+				if (dc.Mesh->IsAnimated())
+				{
+					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterialAnim);
+				}
+				else
+				{
+					Renderer::RenderMesh(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
+				}
 			}
 			Renderer::EndRenderPass(mCommandBuffer);
 		}
