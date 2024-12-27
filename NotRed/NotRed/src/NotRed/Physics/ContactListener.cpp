@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "ContactListener.h"
 
+#include "PhysicsActor.h"
+
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -17,8 +19,9 @@ namespace NR
 	{
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			physx::PxActor& actor = *actors[i]; Entity& entity = *(Entity*)actor.userData;
-			NR_CORE_INFO("Physics Actor waking up: ID: {0}, Name: {1}", (uint64_t)entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+			physx::PxActor& physxActor = *actors[i];
+			Ref<PhysicsActor> actor = (PhysicsActor*)physxActor.userData;
+			NR_CORE_INFO("PhysX Actor waking up: ID: {0}, Name: {1}", actor->GetEntity().GetID(), actor->GetEntity().GetComponent<TagComponent>().Tag);
 		}
 	}
 
@@ -26,53 +29,53 @@ namespace NR
 	{
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			physx::PxActor& actor = *actors[i]; 
-			Entity& entity = *(Entity*)actor.userData; 
-			NR_CORE_INFO("Physics Actor going to sleep: ID: {0}, Name: {1}", (uint64_t)entity.GetID(), entity.GetComponent<TagComponent>().Tag);
+			physx::PxActor& physxActor = *actors[i];
+			Ref<PhysicsActor> actor = (PhysicsActor*)physxActor.userData;
+			NR_CORE_INFO("PhysX Actor going to sleep: ID: {0}, Name: {1}", actor->GetEntity().GetID(), actor->GetEntity().GetComponent<TagComponent>().Tag);
 		}
 	}
 
 	void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
 	{
-		Entity& a = *(Entity*)pairHeader.actors[0]->userData;
-		Entity& b = *(Entity*)pairHeader.actors[1]->userData;
+		Ref<PhysicsActor> actorA = (PhysicsActor*)(pairHeader.actors[0]->userData);
+		Ref<PhysicsActor> actorB = (PhysicsActor*)(pairHeader.actors[1]->userData);
 
-		if (!Scene::GetScene(a.GetSceneID())->IsPlaying())
+		if (!Scene::GetScene(actorA->GetEntity().GetSceneID())->IsPlaying())
 		{
 			return;
 		}
 
 		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
 		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionBegin(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionBegin(b);
+			if (ScriptEngine::IsEntityModuleValid(actorA->GetEntity()))		ScriptEngine::CollisionBegin(actorA->GetEntity());
+			if (ScriptEngine::IsEntityModuleValid(actorB->GetEntity()))		ScriptEngine::CollisionBegin(actorB->GetEntity());
 		}
 		else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
 		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::CollisionEnd(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::CollisionEnd(b);
+			if (ScriptEngine::IsEntityModuleValid(actorA->GetEntity()))		ScriptEngine::CollisionEnd(actorA->GetEntity());
+			if (ScriptEngine::IsEntityModuleValid(actorB->GetEntity()))		ScriptEngine::CollisionEnd(actorB->GetEntity());
 		}
 	}
 
 	void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
 	{
-		Entity& a = *(Entity*)pairs->triggerActor->userData;
-		Entity& b = *(Entity*)pairs->otherActor->userData;
+		Ref<PhysicsActor> actorA = (PhysicsActor*)pairs->triggerActor->userData;
+		Ref<PhysicsActor> actorB = (PhysicsActor*)pairs->otherActor->userData;
 
-		if (!Scene::GetScene(a.GetSceneID())->IsPlaying())
+		if (!Scene::GetScene(actorA->GetEntity().GetSceneID())->IsPlaying())
 		{
 			return;
 		}
 
 		if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
 		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerBegin(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerBegin(b);
+			if (ScriptEngine::IsEntityModuleValid(actorA->GetEntity()))		 ScriptEngine::TriggerBegin(actorA->GetEntity());
+			if (ScriptEngine::IsEntityModuleValid(actorB->GetEntity()))		 ScriptEngine::TriggerBegin(actorB->GetEntity());
 		}
 		else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
 		{
-			if (ScriptEngine::IsEntityModuleValid(a)) ScriptEngine::TriggerEnd(a);
-			if (ScriptEngine::IsEntityModuleValid(b)) ScriptEngine::TriggerEnd(b);
+			if (ScriptEngine::IsEntityModuleValid(actorA->GetEntity()))		 ScriptEngine::TriggerEnd(actorA->GetEntity());
+			if (ScriptEngine::IsEntityModuleValid(actorB->GetEntity()))		 ScriptEngine::TriggerEnd(actorB->GetEntity());
 		}
 	}
 

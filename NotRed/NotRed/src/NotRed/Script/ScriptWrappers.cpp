@@ -76,6 +76,43 @@ namespace NR::Script
 	// Entity //////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////
 
+
+	uint64_t NR_Entity_GetParent(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+		
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		return entityMap.at(entityID).GetParentID();
+	}
+
+	MonoArray* NR_Entity_GetChildren(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+	
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+		
+		Entity entity = entityMap.at(entityID);
+		const auto& children = entity.Children();
+		MonoArray* result = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Entity"), children.size());
+		uint32_t index = 0;
+		
+		for (auto child : children)
+		{
+			void* data[] = {
+				&child
+			};
+			MonoObject* obj = ScriptEngine::Construct("NR.Entity:.ctor(ulong)", true, data);
+			mono_array_set(result, MonoObject*, index++, obj);
+		}
+		
+		return result;
+	}
+
 	uint64_t NR_Entity_CreateEntity(uint64_t entityID)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

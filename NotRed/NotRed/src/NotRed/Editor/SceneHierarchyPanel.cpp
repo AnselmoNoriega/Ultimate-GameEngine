@@ -703,7 +703,7 @@ namespace NR
 				}
 				UI::EndPropertyGrid();
 
-				if (mc.MeshObj)
+				if (mc.MeshObj && !mc.MeshObj->IsFlagSet(AssetFlag::Invalid))
 				{
 					if (UI::BeginTreeNode("Materials"))
 					{

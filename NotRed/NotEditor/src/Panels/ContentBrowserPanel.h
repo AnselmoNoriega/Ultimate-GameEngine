@@ -220,6 +220,7 @@ namespace NR
         bool mUpdateNavigationPath = false;
 
         bool mIsContentBrowserHovered = false;
+        bool mIsContentBrowserFocused = false;
 
     private:
         static ContentBrowserPanel* sInstance;

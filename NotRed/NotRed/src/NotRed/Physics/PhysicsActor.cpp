@@ -419,7 +419,7 @@ namespace NR
 			AddCollider(mEntity.GetComponent<MeshColliderComponent>(), mEntity);
 		}
 
-		mRigidActor->userData = &mEntity;
+		mRigidActor->userData = this;
 
 #ifdef NR_DEBUG
 		auto& name = mEntity.GetComponent<TagComponent>().Tag;

@@ -962,18 +962,6 @@ namespace NR
 		ScriptEngine::SetSceneContext(this);
 		Audio::AudioEngine::SetSceneContext(this);
 
-		{
-			auto view = mRegistry.view<ScriptComponent>();
-			for (auto entity : view)
-			{
-				Entity e = { entity, this };
-				if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
-				{
-					ScriptEngine::InstantiateEntityClass(e);
-				}
-			}
-		}
-
 		// Box2D physics
 		auto sceneView = mRegistry.view<Box2DWorldComponent>();
 		auto& world = mRegistry.get<Box2DWorldComponent>(sceneView.front()).World;
@@ -1068,6 +1056,18 @@ namespace NR
 
 		PhysicsManager::CreateScene();
 		PhysicsManager::CreateActors(this);
+
+		{
+			auto view = mRegistry.view<ScriptComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, this };
+				if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+				{
+					ScriptEngine::InstantiateEntityClass(e);
+				}
+			}
+		}
 
 		{	//--- Make sure we have an audio listener ---
 			//===========================================

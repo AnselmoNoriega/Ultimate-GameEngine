@@ -175,7 +175,7 @@ namespace NR
 			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(convexGeometry, *mMaterial, true);
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(entity.Transform().GetTransform() * colliderData.Transform));
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(colliderData.Transform));
 
 			actor.GetPhysicsActor().attachShape(*shape);
 
@@ -248,7 +248,7 @@ namespace NR
 
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(entity.Transform().GetTransform() * colliderData.Transform));
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(colliderData.Transform));
 
 			actor.GetPhysicsActor().attachShape(*shape);
 			mShapes.push_back(shape);

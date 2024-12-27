@@ -5,6 +5,7 @@
 #include <filesystem>
 
 #include "NotRed/Core/Core.h"
+#include "NotRed/Core/UUID.h"
 
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
@@ -48,6 +49,16 @@ struct fmt::formatter<std::filesystem::path> : fmt::formatter<std::string>
 	auto format(const std::filesystem::path& path, FormatContext& ctx)
 	{
 		return fmt::formatter<std::string>::format(path.string(), ctx);
+	}
+}; 
+
+template <>
+struct fmt::formatter<NR::UUID> : fmt::formatter<uint64_t>
+{
+	template <typename FormatContext>
+	auto format(const NR::UUID& uuid, FormatContext& ctx)
+	{
+		return fmt::formatter<uint64_t>::format(static_cast<uint64_t>(uuid), ctx);
 	}
 };
 

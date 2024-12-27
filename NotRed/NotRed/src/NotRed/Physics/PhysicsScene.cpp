@@ -16,7 +16,7 @@ namespace NR
 		: mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
-		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
 		sceneDesc.gravity = PhysicsUtils::ToPhysicsVector(settings.Gravity);
 		sceneDesc.broadPhaseType = PhysicsInternal::ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
 		sceneDesc.cpuDispatcher = PhysicsInternal::GetCPUDispatcher();
@@ -49,8 +49,11 @@ namespace NR
 
 		if (advanced)
 		{
-			for (auto& actor : mActors)
+			uint32_t nbActiveActors;
+			physx::PxActor** activeActors = mPhysicsScene->getActiveActors(nbActiveActors);
+			for (uint32_t i = 0; i < nbActiveActors; ++i)
 			{
+				Ref<PhysicsActor> actor = (PhysicsActor*)(activeActors[i]->userData);
 				actor->SynchronizeTransform();
 			}
 		}
@@ -119,8 +122,8 @@ namespace NR
 		bool result = mPhysicsScene->raycast(PhysicsUtils::ToPhysicsVector(origin), PhysicsUtils::ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
 		if (result)
 		{
-			Entity& entity = *(Entity*)hitInfo.block.actor->userData;
-			outHit->HitEntity = entity.GetID();
+			Ref<PhysicsActor> actor = (PhysicsActor*)hitInfo.block.actor->userData;
+			outHit->HitEntity = actor->GetEntity().GetID();
 			outHit->Position = PhysicsUtils::FromPhysicsVector(hitInfo.block.position);
 			outHit->Normal = PhysicsUtils::FromPhysicsVector(hitInfo.block.normal);
 			outHit->Distance = hitInfo.block.distance;

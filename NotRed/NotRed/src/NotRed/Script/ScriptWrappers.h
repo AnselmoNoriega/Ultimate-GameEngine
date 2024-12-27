@@ -44,6 +44,8 @@ namespace NR::Script
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders);
 
     // Entity
+    uint64_t NR_Entity_GetParent(uint64_t entityID);
+    MonoArray* NR_Entity_GetChildren(uint64_t entityID);
     uint64_t NR_Entity_CreateEntity(uint64_t entityID);
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);

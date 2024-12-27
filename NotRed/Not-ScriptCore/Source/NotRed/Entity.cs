@@ -69,6 +69,16 @@ namespace NR
             }
         }
 
+        public Entity Parent
+        {
+            get => new Entity(GetParent_Native(ID));
+        }
+
+        public Entity[] Children
+        {
+            get => GetChildren_Native(ID);
+        }
+
         public T CreateComponent<T>() where T : Component, new()
         {
             CreateComponent_Native(ID, typeof(T));
@@ -193,6 +203,10 @@ namespace NR
             }
         }
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern ulong GetParent_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern Entity[] GetChildren_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void CreateComponent_Native(ulong entityID, Type type);
         [MethodImpl(MethodImplOptions.InternalCall)]
