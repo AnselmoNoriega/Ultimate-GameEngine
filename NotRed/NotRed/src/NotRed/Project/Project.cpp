@@ -15,8 +15,13 @@ namespace NR
 
 	void Project::SetActive(Ref<Project> project)
 	{
+		if (sActiveProject)
+		{
+			AssetManager::Shutdown();
+		}
+
 		sActiveProject = project;
-		if (sActiveProject) 
+		if (sActiveProject)
 		{
 			AssetManager::Init();
 		}

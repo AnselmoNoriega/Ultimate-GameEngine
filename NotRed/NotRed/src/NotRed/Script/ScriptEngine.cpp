@@ -664,7 +664,14 @@ namespace NR
         case MONO_TYPE_R4:			return FieldType::Float;
         case MONO_TYPE_U4:			return FieldType::UnsignedInt;
         case MONO_TYPE_STRING:		return FieldType::String;
-        case MONO_TYPE_CLASS:       return FieldType::ClassReference;
+        case MONO_TYPE_CLASS:
+        {
+            char* name = mono_type_get_name(monoType);
+            if (strcmp(name, "Hazel.Prefab") == 0) return FieldType::Asset;
+            {
+                return FieldType::ClassReference;
+            }
+        }
         case MONO_TYPE_VALUETYPE:
         {
             char* name = mono_type_get_name(monoType);
@@ -876,7 +883,9 @@ namespace NR
         {
             auto& publicFields = moduleFieldMap.at(moduleName);
             for (auto& [name, field] : publicFields)
+            {
                 field.CopyStoredValueToRuntime();
+            }
         }
 
         // Call Create function (if exists)
@@ -900,13 +909,15 @@ namespace NR
     {
         switch (type)
         {
-        case FieldType::Float:       return 4;
-        case FieldType::Int:         return 4;
-        case FieldType::UnsignedInt: return 4;
-        case FieldType::String:		 return 8;
-        case FieldType::Vec2:        return 4 * 2;
-        case FieldType::Vec3:        return 4 * 3;
-        case FieldType::Vec4:        return 4 * 4;
+        case FieldType::Float:              return 4;
+        case FieldType::Int:                return 4;
+        case FieldType::UnsignedInt:        return 4;
+        case FieldType::String:		        return 8;
+        case FieldType::Vec2:               return 4 * 2;
+        case FieldType::Vec3:               return 4 * 3;
+        case FieldType::Vec4:               return 4 * 4;
+        case FieldType::ClassReference:     return 4;
+        case FieldType::Asset:              return 8;
         }
         NR_CORE_ASSERT(false, "Unknown field type!");
         return 0;
@@ -958,6 +969,22 @@ namespace NR
         if (Type == FieldType::String)
         {
             SetRuntimeValue_Internal((void*)mStoredValueBuffer);
+        }
+        else if (Type == FieldType::ClassReference)
+        {
+            // Create Managed Object
+            void* params[] = {
+                &mStoredValueBuffer
+            };
+            MonoObject* obj = ScriptEngine::Construct(TypeName + ":.ctor(intptr)", true, params);
+            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, obj);
+        }
+        else if (Type == FieldType::Asset)
+        {
+            // Create Managed Object
+            void* params[] = { mStoredValueBuffer };
+            MonoObject* obj = ScriptEngine::Construct(TypeName + ":.ctor(ulong)", true, params);
+            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, obj);
         }
         else
         {

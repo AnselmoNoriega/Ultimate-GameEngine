@@ -97,7 +97,7 @@ namespace NR
 		void UpdateSceneRendererSettings();
 
 	private:
-		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
+		Scope<SceneHierarchyPanel> mSceneHierarchyPanel, mPrefabHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<PhysicsSettingsWindow> mPhysicsSettingsPanel;
 		Scope<ObjectsPanel> mObjectsPanel;

@@ -138,7 +138,7 @@ namespace NR
         AssetHandle ProcessDirectory(const std::filesystem::path& directoryPath, const Ref<DirectoryInfo>& parent);
 
         void ChangeDirectory(Ref<DirectoryInfo>& directory);
-        void RenderDirectoryHeirarchy(Ref<DirectoryInfo>& directory);
+        void RenderDirectoryHierarchy(Ref<DirectoryInfo>& directory);
         void RenderTopBar();
         void RenderItems();
         void RenderBottomBar();

@@ -16,6 +16,7 @@
 namespace NR
 {
 	class SceneRenderer;
+	class Prefab;
 
 	struct DirLight
 	{
@@ -62,7 +63,7 @@ namespace NR
 	class Scene : public Asset
 	{
 	public:
-		Scene(const std::string& debugName = "Scene", bool isEditorScene = false);
+		Scene(const std::string& debugName = "Scene", bool isEditorScene = false, bool construct = true);
 		~Scene();
 
 		void Init();
@@ -97,6 +98,8 @@ namespace NR
 		void DestroyEntity(Entity entity);
 
 		Entity DuplicateEntity(Entity entity);
+		Entity CreatePrefabEntity(Entity entity);
+		Entity Instantiate(Ref<Prefab> prefab);
 
 		template<typename T>
 		auto GetAllEntitiesWith()
@@ -138,6 +141,9 @@ namespace NR
 
 		const std::string& GetName() const { return mName; }
 		void SetName(const std::string& name) { mName = name; }
+	
+	public:
+		static Ref<Scene> CreateEmpty();
 
 	private:
 		UUID mSceneID;
@@ -171,8 +177,10 @@ namespace NR
 
 	private:
 		friend class Entity;
+		friend class Prefab;
 		friend class SceneRenderer;
 		friend class SceneSerializer;
+		friend class PrefabSerializer;
 		friend class SceneHierarchyPanel;
 
 		friend void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);

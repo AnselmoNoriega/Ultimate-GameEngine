@@ -10,6 +10,9 @@
 #include "NotRed/Core/Application.h"
 #include "NotRed/Core/Input.h"
 
+#include "NotRed/Scene/Entity.h"
+#include "NotRed/Scene/Prefab.h"
+
 #include "NotRed/Editor/AssetEditorPanel.h"
 #include "NotRed/Renderer/MaterialAsset.h"
 
@@ -36,6 +39,7 @@ namespace NR
 		mAssetIconMap[".png"] = Texture2D::Create("Resources/Editor/png.png");
 		mAssetIconMap[".nrmaterial"] = Texture2D::Create("Resources/Editor/MaterialAssetIcon.png");
 		mAssetIconMap[".nrsc"] = Texture2D::Create("Resources/Editor/notred.png");
+		mAssetIconMap[".nrprefab"] = Texture2D::Create("Resources/Editor/Icons/ContentBrowser/PrefabIcon.png");
 
 		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
 		mFwrdbtnTex = Texture2D::Create("Resources/Editor/btn_fwrd.png");
@@ -162,7 +166,7 @@ namespace NR
 				{
 					for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
 					{
-						RenderDirectoryHeirarchy(directory);
+						RenderDirectoryHierarchy(directory);
 					}
 				}
 			}
@@ -235,7 +239,7 @@ namespace NR
 						ImGui::Separator();
 						if (ImGui::MenuItem("Show in Explorer"))
 						{
-							FileSystem::OpenDirectoryInExplorer(mCurrentDirectory->FilePath);
+							FileSystem::OpenDirectoryInExplorer(Project::GetAssetDirectory() / mCurrentDirectory->FilePath);
 						}
 
 						ImGui::EndPopup();
@@ -264,6 +268,17 @@ namespace NR
 				ImGui::EndChild();
 			}
 			ImGui::EndChild();
+
+			if (ImGui::BeginDragDropTarget())
+			{
+				auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
+				if (data)
+				{
+					Entity& e = *(Entity*)data->Data;
+					CreateAsset<Prefab>("New Prefab.nrprefab", e);
+				}
+				ImGui::EndDragDropTarget();
+			}
 
 			RenderBottomBar();
 
@@ -304,7 +319,7 @@ namespace NR
 		}
 	}
 
-	void ContentBrowserPanel::RenderDirectoryHeirarchy(Ref<DirectoryInfo>& directory)
+	void ContentBrowserPanel::RenderDirectoryHierarchy(Ref<DirectoryInfo>& directory)
 	{
 		std::string name = directory->FilePath.filename().string();
 		std::string id = name + "_TreeNode";
@@ -315,7 +330,7 @@ namespace NR
 		{
 			for (auto& [handle, child] : directory->SubDirectories)
 			{
-				RenderDirectoryHeirarchy(child);
+				RenderDirectoryHierarchy(child);
 			}
 		}
 
@@ -584,7 +599,7 @@ namespace NR
 
 	void ContentBrowserPanel::Refresh()
 	{
-		for (auto entry : std::filesystem::directory_iterator(mCurrentDirectory->FilePath))
+		for (auto entry : std::filesystem::directory_iterator(Project::GetAssetDirectory() / mCurrentDirectory->FilePath))
 		{
 			if (!entry.is_directory())
 			{

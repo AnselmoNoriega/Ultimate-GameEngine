@@ -14,6 +14,7 @@ namespace NR
     {
         None,
         Scene,
+        Prefab,
         MeshAsset,
         Mesh,
         Material,
@@ -31,6 +32,7 @@ namespace NR
         {
             if (assetType == "None")            return AssetType::None;
             if (assetType == "Scene")           return AssetType::Scene;
+            if (assetType == "Prefab")          return AssetType::Prefab;
             if (assetType == "MeshAsset")       return AssetType::MeshAsset;
             if (assetType == "Mesh")            return AssetType::Mesh;
             if (assetType == "Material")        return AssetType::Material;
@@ -50,6 +52,7 @@ namespace NR
             {
             case AssetType::None:           return "None";
             case AssetType::Scene:          return "Scene";
+            case AssetType::Prefab:         return "Prefab";
             case AssetType::MeshAsset:      return "MeshAsset";
             case AssetType::Mesh:           return "Mesh";
             case AssetType::Material:       return "Material";

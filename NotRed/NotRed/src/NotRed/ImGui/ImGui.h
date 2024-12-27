@@ -575,7 +575,16 @@ namespace NR::UI
 		{
 			if (!source->IsFlagSet(AssetFlag::Missing))
 			{
-				ImGui::Button((char*)assetName, { width, itemHeight });
+				if (assetName)
+				{
+					ImGui::Button((char*)assetName, { width, itemHeight });
+				}
+				else
+				{
+					std::string assetFileName = AssetManager::GetMetadata(source->Handle).FilePath.stem().string();
+					assetName = assetFileName.c_str();
+					ImGui::Button((char*)assetName, { width, itemHeight });
+				}
 			}
 			else
 			{

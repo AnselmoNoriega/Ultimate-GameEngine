@@ -253,6 +253,8 @@ namespace NR
 
     void VKRenderer::RT_UpdateMaterialForRendering(Ref<VKMaterial> material, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet)
     {
+        NR_PROFILE_FUNC();
+
         if (uniformBufferSet)
         {
             auto writeDescriptors = RT_RetrieveOrCreateUniformBufferWriteDescriptors(uniformBufferSet, material);

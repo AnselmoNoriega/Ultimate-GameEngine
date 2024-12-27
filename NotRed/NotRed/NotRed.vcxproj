@@ -300,6 +300,7 @@
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
     <ClInclude Include="src\NotRed\Scene\Components.h" />
     <ClInclude Include="src\NotRed\Scene\Entity.h" />
+    <ClInclude Include="src\NotRed\Scene\Prefab.h" />
     <ClInclude Include="src\NotRed\Scene\Scene.h" />
     <ClInclude Include="src\NotRed\Scene\SceneCamera.h" />
     <ClInclude Include="src\NotRed\Scene\SceneSerializer.h" />
@@ -493,6 +494,7 @@
     <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Scene\Entity.cpp" />
+    <ClCompile Include="src\NotRed\Scene\Prefab.cpp" />
     <ClCompile Include="src\NotRed\Scene\Scene.cpp" />
     <ClCompile Include="src\NotRed\Scene\SceneCamera.cpp" />
     <ClCompile Include="src\NotRed\Scene\SceneSerializer.cpp" />

@@ -9,6 +9,7 @@ namespace NR
 	class SceneHierarchyPanel
 	{
 	public:
+		SceneHierarchyPanel() = default;
 		SceneHierarchyPanel(const Ref<Scene>& scene);
 
 		void SetContext(const Ref<Scene>& scene);
@@ -19,7 +20,7 @@ namespace NR
 		void SetMeshAssetConvertCallback(const std::function<void(Entity, Ref<MeshAsset>)>& func) { mMeshAssetConvertCallback = func; }
 		void SetInvalidMetadataCallback(const std::function<void(Entity, AssetHandle)>& func) { mInvalidMetadataCallback = func; }
 
-		void ImGuiRender();
+		void ImGuiRender(bool window = true);
 
 	private:
 		void DrawEntityNode(Entity entity);

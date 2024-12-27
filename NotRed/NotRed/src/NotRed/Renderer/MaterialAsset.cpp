@@ -155,11 +155,12 @@ namespace NR
 	}
 
 	MaterialTable::MaterialTable(Ref<MaterialTable> other)
+		: mMaterialCount(other->mMaterialCount)
 	{
 		const auto& meshMaterials = other->GetMaterials();
 		for (auto [index, materialAsset] : meshMaterials)
 		{
-			SetMaterial(index, Ref<MaterialAsset>::Create(materialAsset->GetMaterial()));
+			SetMaterial(index, materialAsset);
 		}
 	}
 

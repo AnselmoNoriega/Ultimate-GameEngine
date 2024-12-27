@@ -33,6 +33,14 @@ namespace NR
         operator const std::string& () const { return Tag; }
     };
 
+    struct PrefabComponent
+    {
+        UUID PrefabID = 0;
+        UUID EntityID = 0;
+        PrefabComponent() = default;
+        PrefabComponent(const PrefabComponent& other) = default;
+    };
+
     struct TransformComponent
     {
         glm::vec3 Translation = { 0.0f, 0.0f, 0.0f };
@@ -76,7 +84,8 @@ namespace NR
         bool IsFractured = false;
 
         MeshComponent() = default;
-        MeshComponent(const MeshComponent& other) = default;
+        MeshComponent(const MeshComponent& other)
+            : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.MeshObj->GetMaterials())), IsFractured(other.IsFractured) { }
         MeshComponent(const Ref<Mesh>& mesh)
             : MeshObj(mesh) {}
 

@@ -10,6 +10,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "NotRed/Core/Application.h"
+#include "NotRed/Scene/Prefab.h"
 #include "NotRed/Math/Math.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -59,9 +60,13 @@ namespace NR
 		}
 	}
 
-	void SceneHierarchyPanel::ImGuiRender()
+	void SceneHierarchyPanel::ImGuiRender(bool window)
 	{
-		ImGui::Begin("Scene Hierarchy");
+		if (window)
+		{
+			ImGui::Begin("Scene Hierarchy");
+		}
+
 		ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
 
 		if (mContext)
@@ -81,10 +86,8 @@ namespace NR
 
 				if (payload)
 				{
-					UUID droppedHandle = *((UUID*)payload->Data);
-					Entity e = mContext->FindEntityByID(droppedHandle);
-
-					mContext->UnparentEntity(e);
+					Entity& entity = *(Entity*)payload->Data;
+					mContext->UnparentEntity(entity);
 				}
 
 				ImGui::EndDragDropTarget();
@@ -192,7 +195,9 @@ namespace NR
 						}
 						ImGui::EndMenu();
 					}
+
 					ImGui::Separator();
+
 					if (ImGui::MenuItem("Directional Light"))
 					{
 						auto newEntity = mContext->CreateEntity("Directional Light");
@@ -228,7 +233,10 @@ namespace NR
 			}
 		}
 
-		ImGui::End();
+		if (window)
+		{
+			ImGui::End();
+		}
 	}
 
 	void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -250,7 +258,19 @@ namespace NR
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
 		}
 
+		bool isPrefab = entity.HasComponent<PrefabComponent>();
+		if (isPrefab)
+		{
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.32f, 0.7f, 0.87f, 1.0f));
+		}
+
 		const bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, name);
+
+		if (isPrefab)
+		{
+			ImGui::PopStyleColor();
+		}
+
 		if (ImGui::IsItemClicked())
 		{
 			mSelectionContext = entity;
@@ -278,9 +298,8 @@ namespace NR
 
 		if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 		{
-			UUID entityId = entity.GetID();
 			ImGui::Text(entity.GetComponent<TagComponent>().Tag.c_str());
-			ImGui::SetDragDropPayload("scene_entity_hierarchy", &entityId, sizeof(UUID));
+			ImGui::SetDragDropPayload("scene_entity_hierarchy", &entity, sizeof(Entity));
 			ImGui::EndDragDropSource();
 		}
 
@@ -290,10 +309,8 @@ namespace NR
 
 			if (payload)
 			{
-				UUID droppedHandle = *((UUID*)payload->Data);
-				Entity e = mContext->FindEntityByID(droppedHandle);
-
-				mContext->ParentEntity(e, entity);
+				Entity& droppedEntity = *(Entity*)payload->Data;
+				mContext->ParentEntity(droppedEntity, entity);
 			}
 
 			ImGui::EndDragDropTarget();
@@ -703,7 +720,7 @@ namespace NR
 				}
 				UI::EndPropertyGrid();
 
-				if (mc.MeshObj && !mc.MeshObj->IsFlagSet(AssetFlag::Invalid))
+				if (mc.MeshObj && mc.MeshObj->IsValid())
 				{
 					if (UI::BeginTreeNode("Materials"))
 					{
@@ -739,7 +756,11 @@ namespace NR
 									settings.AdvanceToNextColumn = false;
 									settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
 								}
-								UI::PropertyAssetReference<MaterialAsset>(label.c_str(), materialAsset, nullptr, settings);
+
+								UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAsset, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
+									{
+										materialTable->SetMaterial(i, materialAsset);
+									}, settings);
 							}
 							else
 							{
@@ -1050,6 +1071,23 @@ namespace NR
 									else
 									{
 										field.SetStoredValue(value);
+									}
+								}
+								break;
+							}
+							case FieldType::Asset:
+							{
+								UUID uuid = isRuntime ? field.GetValue<UUID>() : field.GetStoredValue<UUID>();
+								Ref<Prefab> prefab = AssetManager::IsAssetHandleValid(uuid) ? AssetManager::GetAsset<Prefab>(uuid) : nullptr;
+								if (UI::PropertyAssetReference(field.Name.c_str(), prefab))
+								{
+									if (isRuntime)
+									{
+										field.SetValue(prefab->Handle);
+									}
+									else
+									{
+										field.SetStoredValue(prefab->Handle);
 									}
 								}
 								break;

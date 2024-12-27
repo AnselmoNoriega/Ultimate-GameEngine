@@ -10,6 +10,7 @@ namespace NR
 	{
 		{ ".nrsc", AssetType::Scene },
 		{ ".nrmaterial", AssetType::Material },
+		{ ".nrprefab", AssetType::Prefab },
 		{ ".nrmesh", AssetType::Mesh },
 		{ ".nrsound", AssetType::SoundConfig },
 		{ ".nrpm", AssetType::PhysicsMat },

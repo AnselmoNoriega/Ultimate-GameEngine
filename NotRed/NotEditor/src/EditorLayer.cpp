@@ -10,6 +10,8 @@
 #include "imgui_internal.h"
 #include "NotRed/ImGui/ImGui.h"
 
+#include "NotRed/Scene/Prefab.h"
+
 #include "NotRed/ImGui/ImGuizmo.h"
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
@@ -60,6 +62,8 @@ namespace NR
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
         mSceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
         mSceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+        mPrefabHierarchyPanel = CreateScope<SceneHierarchyPanel>();
 
         Renderer2D::SetLineWidth(mLineWidth);
 
@@ -1085,6 +1089,11 @@ namespace NR
                             Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
                             entity.AddComponent<MeshComponent>(asset.As<Mesh>());
                             SelectEntity(entity);
+                        }
+                        else if (asset->GetAssetType() == AssetType::Prefab)
+                        {
+                            Ref<Prefab> prefab = asset.As<Prefab>();
+                            mEditorScene->Instantiate(prefab);
                         }
                     }
                     else

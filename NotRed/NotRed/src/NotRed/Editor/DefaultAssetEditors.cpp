@@ -764,4 +764,18 @@ namespace NR
 		ImGui::EndChild(); // SoundConfigPanel
 		ImGui::PopStyleColor(3); // ImGuiCol_ChildBg, ImGuiCol_FrameBg, ImGuiCol_Border
 	}
+
+	PrefabEditor::PrefabEditor()
+		: AssetEditor("Prefab Editor")
+	{
+	}
+
+	void PrefabEditor::Close()
+	{
+	}
+
+	void PrefabEditor::Render()
+	{
+		mSceneHierarchyPanel.ImGuiRender(false);
+	}
 }

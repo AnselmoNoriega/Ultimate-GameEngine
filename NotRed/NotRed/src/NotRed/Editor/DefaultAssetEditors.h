@@ -3,6 +3,9 @@
 #include "AssetEditorPanel.h"
 #include "NotRed/Renderer/Mesh.h"
 
+#include "NotRed/Scene/Prefab.h"
+#include "NotRed/Editor/SceneHierarchyPanel.h"
+
 namespace NR
 {
 	namespace Audio
@@ -38,6 +41,21 @@ namespace NR
 	private:
 		Ref<MaterialAsset> mMaterialAsset;
 		Ref<Texture2D> mCheckerboardTex;
+	};
+
+	class PrefabEditor : public AssetEditor
+	{
+	public:
+		PrefabEditor();
+		void SetAsset(const Ref<Asset>& asset) override { mPrefab = (Ref<Prefab>)asset; mSceneHierarchyPanel.SetContext(mPrefab->mScene); }
+
+	private:
+		void Close() override;
+		void Render() override;
+
+	private:
+		Ref<Prefab> mPrefab;
+		SceneHierarchyPanel mSceneHierarchyPanel;
 	};
 
 	class TextureViewer : public AssetEditor

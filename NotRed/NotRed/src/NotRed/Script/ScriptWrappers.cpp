@@ -26,6 +26,7 @@
 
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
+#include "NotRed/Scene/Prefab.h"
 
 #include "NotRed/Audio/AudioComponent.h"
 #include "NotRed/Audio/AudioPlayback.h"
@@ -133,6 +134,24 @@ namespace NR::Script
 		const auto& entityMap = scene->GetEntityMap();
 		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 		Entity result = scene->CreateEntity("Unnamed from C#");
+		return result.GetID();
+	}
+
+	uint64_t NR_Entity_Instantiate(uint64_t entityID, uint64_t prefabID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		if (!AssetManager::IsAssetHandleValid(prefabID))
+		{
+			return 0;
+		}
+
+		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
+		Entity result = scene->Instantiate(prefab);
 		return result.GetID();
 	}
 

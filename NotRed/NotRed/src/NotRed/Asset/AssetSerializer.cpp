@@ -7,6 +7,9 @@
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/MaterialAsset.h"
+#include "NotRed/Scene/SceneSerializer.h"
+
+#include "NotRed/Scene/Prefab.h"
 
 #include "NotRed/Audio/AudioFileUtils.h"
 #include "NotRed/Audio/Sound.h"
@@ -332,6 +335,55 @@ namespace NR
 #undef NR_DESERIALIZE_PROPERTY
 
 		asset = soundConfig;
+		asset->Handle = metadata.Handle;
+
+		return true;
+	}
+
+	void PrefabSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
+		Ref<Prefab> prefab = asset.As<Prefab>();
+
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "Prefab";
+		out << YAML::Value << YAML::BeginSeq;
+		prefab->mScene->mRegistry.view<IDComponent>().each([&](auto entityID, auto& idComponent)
+			{
+				Entity entity = { entityID, prefab->mScene.Raw() };
+				if (!entity)
+				{
+					return;
+				}
+				SceneSerializer::SerializeEntity(out, entity);
+			});
+
+		out << YAML::EndSeq;
+		out << YAML::EndMap;
+		std::ofstream fout(AssetManager::GetFileSystemPath(metadata));
+		fout << out.c_str();
+	}
+
+	bool PrefabSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		std::ifstream stream(AssetManager::GetFileSystemPath(metadata));
+		if (!stream.is_open())
+		{
+			return false;
+		}
+
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+		YAML::Node data = YAML::Load(strStream.str());
+		if (!data["Prefab"])
+		{
+			return false;
+		}
+
+		YAML::Node prefabNode = data["Prefab"];
+		Ref<Prefab> prefab = Ref<Prefab>::Create();
+		SceneSerializer::DeserializeEntities(prefabNode, prefab->mScene);
+		asset = prefab;
 		asset->Handle = metadata.Handle;
 
 		return true;

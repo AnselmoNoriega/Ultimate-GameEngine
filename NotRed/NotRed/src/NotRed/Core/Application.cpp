@@ -85,9 +85,9 @@ namespace NR
 
 		FrameBufferPool::GetGlobal()->GetAll().clear();
 
+		Project::SetActive(nullptr);
 		PhysicsManager::Shutdown();
 		ScriptEngine::Shutdown();
-		AssetManager::Shutdown();
 		Audio::AudioEngine::Shutdown();
 
 		Renderer::WaitAndRender();
@@ -97,8 +97,6 @@ namespace NR
 			queue.Execute();
 		}
 		Renderer::Shutdown();
-
-		Project::SetActive(nullptr);
 
 		delete mProfiler;
 		mProfiler = nullptr;

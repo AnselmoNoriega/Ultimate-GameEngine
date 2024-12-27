@@ -140,6 +140,7 @@ namespace NR
 		entt::entity mEntityHandle{ entt::null };
 		Scene* mScene = nullptr;
 
+		friend class Prefab;
 		friend class Scene;
 		friend class SceneSerializer;
 		friend class ScriptEngine;

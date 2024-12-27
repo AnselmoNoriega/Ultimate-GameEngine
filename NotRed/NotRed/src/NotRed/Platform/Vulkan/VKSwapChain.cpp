@@ -3,6 +3,8 @@
 
 #include <GLFW/glfw3.h>
 
+#include "NotRed/Debug/Profiler.h"
+
 // Macro to get a procedure address based on a vulkan instance
 #define GET_INSTANCE_PROC_ADDR(inst, entrypoint)														 \
 {																										 \
@@ -529,6 +531,7 @@ namespace NR
 
 	void VKSwapChain::Present()
 	{
+		NR_PROFILE_FUNC();
 		NR_SCOPE_PERF("VulkanSwapChain::Present");
 
 		const uint64_t DEFAULT_FENCE_TIMEOUT = 100000000000;
@@ -588,6 +591,8 @@ namespace NR
 
 	VkResult VKSwapChain::QueuePresent(VkQueue queue, uint32_t imageIndex, VkSemaphore waitSemaphore)
 	{
+		NR_PROFILE_FUNC();
+
 		VkPresentInfoKHR presentInfo = {};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.pNext = NULL;

@@ -102,7 +102,7 @@ namespace NR
 			}
 			else
 			{
-				NR_CORE_ERROR("Validation layer VK_LAYER_LUNARG_standard_validation not present, validation is disabled");
+				NR_CORE_ERROR("Validation layer VK_LAYER_KHRONOS_validation  not present, validation is disabled");
 			}
 		}
 

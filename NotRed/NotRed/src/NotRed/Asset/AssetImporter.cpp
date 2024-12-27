@@ -8,6 +8,7 @@ namespace NR
 {
 	void AssetImporter::Init()
 	{
+		sSerializers[AssetType::Prefab] = CreateScope<PrefabSerializer>();
 		sSerializers[AssetType::Texture] = CreateScope<TextureSerializer>();
 		sSerializers[AssetType::MeshAsset] = CreateScope<MeshAssetSerializer>();
 		sSerializers[AssetType::Mesh] = CreateScope<MeshSerializer>();

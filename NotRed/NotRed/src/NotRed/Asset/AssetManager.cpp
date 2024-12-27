@@ -180,6 +180,7 @@ namespace NR
         const std::string& assetRegistryPath = Project::GetAssetRegistryPath().string();
         if (!FileSystem::Exists(assetRegistryPath))
         {
+            NR_CORE_VERIFY(false);
             return;
         }
 
@@ -193,6 +194,7 @@ namespace NR
         if (!handles)
         {
             NR_CORE_ERROR("AssetRegistry appears to be corrupted!");
+            NR_CORE_VERIFY(false);
             return;
         }
 
@@ -212,9 +214,10 @@ namespace NR
 
             if (!FileSystem::Exists(AssetManager::GetFileSystemPath(metadata)))
             {
+                NR_CORE_VERIFY(false);
                 NR_CORE_WARN("Missing asset '{0}' detected in registry file, trying to locate...", metadata.FilePath.string());
-                
-                std::string mostLikelyCandiate;
+
+                std::string mostLikelyCandidate;
                 uint32_t bestScore = 0;
 
                 for (auto& pathEntry : std::filesystem::recursive_directory_iterator(Project::GetAssetDirectory()))
@@ -227,7 +230,7 @@ namespace NR
 
                     if (bestScore > 0)
                     {
-                        NR_CORE_WARN("Multiple candiates found...");
+                        NR_CORE_WARN("Multiple candidates found...");
                     }
 
                     std::vector<std::string> candiateParts = Utils::SplitString(path.string(), "/\\");
@@ -251,17 +254,17 @@ namespace NR
                     }
 
                     bestScore = score;
-                    mostLikelyCandiate = path.string();
+                    mostLikelyCandidate = path.string();
                 }
 
-                if (mostLikelyCandiate.empty() && bestScore == 0)
+                if (mostLikelyCandidate.empty() && bestScore == 0)
                 {
                     NR_CORE_ERROR("Failed to locate a potential match for '{0}'", metadata.FilePath.string());
                     continue;
                 }
 
-                std::replace(mostLikelyCandiate.begin(), mostLikelyCandiate.end(), '\\', '/');
-                metadata.FilePath = std::filesystem::relative(mostLikelyCandiate, Project::GetActive()->GetAssetDirectory());
+                std::replace(mostLikelyCandidate.begin(), mostLikelyCandidate.end(), '\\', '/');
+                metadata.FilePath = std::filesystem::relative(mostLikelyCandidate, Project::GetActive()->GetAssetDirectory());
                 NR_CORE_WARN("Found most likely match '{0}'", metadata.FilePath.string());
             }
 
@@ -361,8 +364,9 @@ namespace NR
 
             std::replace(pathToSerialize.begin(), pathToSerialize.end(), '\\', '/');
             sortedMap[metadata.Handle] = { pathToSerialize, metadata.Type };
-            NR_CORE_ASSERT(pathToSerialize.find("Sandbox") == std::string::npos);
         }
+
+        NR_CORE_INFO("[AssetManager] serializing asset registry with {0} entries", sortedMap.size());
 
         YAML::Emitter out;
         out << YAML::BeginMap;

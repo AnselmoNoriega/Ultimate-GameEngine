@@ -609,6 +609,7 @@ void main()
 {
 	// Standard PBR inputs
 	m_Params.Albedo = texture(uAlbedoTexture, Input.TexCoord).rgb * uMaterialUniforms.AlbedoColor;
+	float alpha = texture(uAlbedoTexture, Input.TexCoord).a;
 	m_Params.Metalness = texture(uMetalnessTexture, Input.TexCoord).r * uMaterialUniforms.Metalness;
 	m_Params.Roughness = texture(uRoughnessTexture, Input.TexCoord).r * uMaterialUniforms.Roughness;
 	m_Params.Roughness = max(m_Params.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
@@ -721,6 +722,8 @@ void main()
 		float value = float(pointLightCount);
 		color.rgb = (color.rgb * 0.2) + GetGradient(value);
 	}
+
+	color.a = alpha;
 
 	// (shading-only)
 	// color.rgb = vec3(1.0) * shadowAmount + 0.2f;

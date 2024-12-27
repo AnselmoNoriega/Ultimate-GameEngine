@@ -75,6 +75,7 @@ namespace NR
 		RegisterEditor<PhysicsMaterialEditor>(AssetType::PhysicsMat);
 		RegisterEditor<AudioFileViewer>(AssetType::Audio);
 		RegisterEditor<MeshViewerPanel>(AssetType::MeshAsset);
+		RegisterEditor<PrefabEditor>(AssetType::Prefab);
 		RegisterEditor<SoundConfigEditor>(AssetType::SoundConfig);
 	}
 

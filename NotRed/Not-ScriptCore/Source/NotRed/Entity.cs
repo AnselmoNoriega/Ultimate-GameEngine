@@ -38,6 +38,17 @@ namespace NR
             return new Entity(CreateEntity_Native(ID));
         }
 
+        public Entity Instantiate(Prefab prefab)
+        {
+            ulong entityID = Instantiate_Native(ID, prefab.ID);
+            if (entityID == 0)
+            {
+                return null;
+            }
+
+            return new Entity(entityID);
+        }
+
         public Vector3 Translation
         {
             get
@@ -225,6 +236,8 @@ namespace NR
         private static extern ulong InstantiateEntity_Native();
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong CreateEntity_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ulong Instantiate_Native(ulong entityID, ulong prefabID);
 
     }
 }

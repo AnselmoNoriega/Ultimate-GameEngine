@@ -1704,20 +1704,24 @@ namespace NR
 
 		ImGui::Begin("Scene Renderer");
 
-		if (ImGui::TreeNode("Shaders"))
+		if (UI::BeginTreeNode("Shaders", false))
 		{
 			auto& shaders = Shader::sAllShaders;
 			for (auto& shader : shaders)
 			{
-				if (ImGui::TreeNode(shader->GetName().c_str()))
+				ImGui::Columns(2);
+				ImGui::Text(shader->GetName().c_str());
+				ImGui::NextColumn();
+			
+				std::string buttonName = "Reload##" + shader->GetName();
+				if (ImGui::Button(buttonName.c_str()))
 				{
-					std::string buttonName = "Reload##" + shader->GetName();
-					if (ImGui::Button(buttonName.c_str()))
-						shader->Reload(true);
-					ImGui::TreePop();
+					shader->Reload(true);
 				}
+				ImGui::Columns(1);
 			}
-			ImGui::TreePop();
+
+			UI::EndTreeNode();
 		}
 
 		if (UI::BeginTreeNode("Visualization"))
@@ -1729,36 +1733,6 @@ namespace NR
 			UI::PropertySlider("Selected Draw", VKRenderer::GetSelectedDrawCall(), -1, maxDrawCall);
 			UI::Property("Max Draw Call", maxDrawCall);
 			UI::EndPropertyGrid();
-			UI::EndTreeNode();
-		}
-
-		if (UI::BeginTreeNode("Render Statistics"))
-		{
-			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-			ImGui::Text("GPU time: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex));
-
-			ImGui::Text("Shadow Map Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.ShadowMapPassQuery));
-			ImGui::Text("Depth Pre-Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.DepthPrePassQuery));
-			ImGui::Text("Light Culling Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.LightCullingPassQuery));
-			ImGui::Text("Geometry Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.GeometryPassQuery));
-			ImGui::Text("HBAO Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.HBAOPassQuery));
-			ImGui::Text("Bloom Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.BloomComputePassQuery));
-			ImGui::Text("Jump Flood Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.JumpFloodPassQuery));
-			ImGui::Text("Composite Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.CompositePassQuery));
-
-			if (UI::BeginTreeNode("Pipeline Statistics"))
-			{
-				const PipelineStatistics& pipelineStats = mCommandBuffer->GetPipelineStatistics(frameIndex);
-				ImGui::Text("Input Assembly Vertices: %llu", pipelineStats.InputAssemblyVertices);
-				ImGui::Text("Input Assembly Primitives: %llu", pipelineStats.InputAssemblyPrimitives);
-				ImGui::Text("Vertex Shader Invocations: %llu", pipelineStats.VertexShaderInvocations);
-				ImGui::Text("Clipping Invocations: %llu", pipelineStats.ClippingInvocations);
-				ImGui::Text("Clipping Primitives: %llu", pipelineStats.ClippingPrimitives);
-				ImGui::Text("Fragment Shader Invocations: %llu", pipelineStats.FragmentShaderInvocations);
-				ImGui::Text("Compute Shader Invocations: %llu", pipelineStats.ComputeShaderInvocations);
-				UI::EndTreeNode();
-			}
-
 			UI::EndTreeNode();
 		}
 
@@ -1796,15 +1770,6 @@ namespace NR
 			UI::Property("Bias", mOptions.HBAOBias, 0.02f, 0.0f, 0.95f);
 			UI::Property("Blur Sharpness", mOptions.HBAOBlurSharpness, 0.5f, 0.0f, 100.f);
 			UI::EndPropertyGrid();
-
-			float size = ImGui::GetContentRegionAvail().x;
-			if (mResourcesCreated)
-			{
-				float size = ImGui::GetContentRegionAvail().x;
-				auto image = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(1);
-				UI::Image(image, { size, size * (1.0f / image->GetAspectRatio()) }, { 0, 1 }, { 1, 0 });
-			}
-
 			UI::EndTreeNode();
 		}
 
@@ -1847,6 +1812,36 @@ namespace NR
 			UI::EndTreeNode();
 		}
 
+		if (UI::BeginTreeNode("Render Statistics", false))
+		{
+			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+
+			ImGui::Text("GPU time: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex));
+			ImGui::Text("Shadow Map Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.ShadowMapPassQuery));
+			ImGui::Text("Depth Pre-Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.DepthPrePassQuery));
+			ImGui::Text("Light Culling Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.LightCullingPassQuery));
+			ImGui::Text("Geometry Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.GeometryPassQuery));
+			ImGui::Text("HBAO Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.HBAOPassQuery));
+			ImGui::Text("Bloom Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.BloomComputePassQuery));
+			ImGui::Text("Jump Flood Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.JumpFloodPassQuery));
+			ImGui::Text("Composite Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.CompositePassQuery));
+
+			if (UI::BeginTreeNode("Pipeline Statistics"))
+			{
+				const PipelineStatistics& pipelineStats = mCommandBuffer->GetPipelineStatistics(frameIndex);
+				ImGui::Text("Input Assembly Vertices: %llu", pipelineStats.InputAssemblyVertices);
+				ImGui::Text("Input Assembly Primitives: %llu", pipelineStats.InputAssemblyPrimitives);
+				ImGui::Text("Vertex Shader Invocations: %llu", pipelineStats.VertexShaderInvocations);
+				ImGui::Text("Clipping Invocations: %llu", pipelineStats.ClippingInvocations);
+				ImGui::Text("Clipping Primitives: %llu", pipelineStats.ClippingPrimitives);
+				ImGui::Text("Fragment Shader Invocations: %llu", pipelineStats.FragmentShaderInvocations);
+				ImGui::Text("Compute Shader Invocations: %llu", pipelineStats.ComputeShaderInvocations);
+				UI::EndTreeNode();
+			}
+
+			UI::EndTreeNode();
+		}
+#if 0
 		if (UI::BeginTreeNode("Compute Bloom"))
 		{
 			float size = ImGui::GetContentRegionAvail().x;
@@ -1862,6 +1857,7 @@ namespace NR
 			}
 			UI::EndTreeNode();
 		}
+#endif
 
 		ImGui::End();
 	}

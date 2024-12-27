@@ -113,6 +113,9 @@ Assets:
   - Handle: 4991865301627633221
     FilePath: Models/Source/Sponza/9288698199695299068.jpg
     Type: Texture
+  - Handle: 5032977131896921176
+    FilePath: Meshes/Demo/TestScene.nrmesh
+    Type: Mesh
   - Handle: 5083906341107188436
     FilePath: Models/sci-fi-rifle-m13-gaus/textures/Gaus_M13_low_Gaus-M13_BaseColor.png
     Type: Texture

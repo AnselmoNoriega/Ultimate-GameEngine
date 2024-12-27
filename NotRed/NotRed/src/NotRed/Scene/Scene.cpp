@@ -9,6 +9,7 @@
 #include <box2d/box2d.h>
 
 #include "Entity.h"
+#include "Prefab.h"
 #include "Components.h"
 
 #include "NotRed/Renderer/SceneRenderer.h"
@@ -32,7 +33,7 @@ namespace NR
 {
 	static const std::string DefaultEntityName = "Entity";
 
-	std::unordered_map<UUID, Scene*> s_ActiveScenes;
+	std::unordered_map<UUID, Scene*> sActiveScenes;
 
 	struct SceneComponent
 	{
@@ -114,7 +115,7 @@ namespace NR
 		auto sceneView = registry.view<SceneComponent>();
 		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
 
-		Scene* scene = s_ActiveScenes[sceneID];
+		Scene* scene = sActiveScenes[sceneID];
 
 		auto entityID = registry.get<IDComponent>(entity).ID;
 		NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
@@ -126,7 +127,7 @@ namespace NR
 		auto sceneView = registry.view<SceneComponent>();
 		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
 
-		Scene* scene = s_ActiveScenes[sceneID];
+		Scene* scene = sActiveScenes[sceneID];
 
 		if (registry.try_get<IDComponent>(entity))
 		{
@@ -140,7 +141,7 @@ namespace NR
 		auto sceneView = registry.view<SceneComponent>();
 		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
 
-		Scene* scene = s_ActiveScenes[sceneID];
+		Scene* scene = sActiveScenes[sceneID];
 
 		auto entityID = registry.get<IDComponent>(entity).ID;
 		NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
@@ -154,30 +155,32 @@ namespace NR
 		auto sceneView = registry.view<SceneComponent>();
 		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
 
-		Scene* scene = s_ActiveScenes[sceneID];
+		Scene* scene = sActiveScenes[sceneID];
 
 		auto entityID = registry.get<IDComponent>(entity).ID;
 		NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
 		Audio::AudioEngine::Get().UnregisterAudioComponent(sceneID, scene->mEntityIDMap.at(entityID).GetID());
 	}
 
-	Scene::Scene(const std::string& debugName, bool isEditorScene)
+	Scene::Scene(const std::string& debugName, bool isEditorScene, bool construct)
 		: mDebugName(debugName), mIsEditorScene(isEditorScene)
 	{
-		mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
-		mRegistry.on_destroy<ScriptComponent>().connect<&ScriptComponentDestroy>();
+		if (construct)
+		{
+			mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
+			mRegistry.on_destroy<ScriptComponent>().connect<&ScriptComponentDestroy>();
 
-		mRegistry.on_construct<Audio::AudioComponent>().connect<&AudioComponentConstruct>();
+			mRegistry.on_construct<Audio::AudioComponent>().connect<&AudioComponentConstruct>();
+			mSceneEntity = mRegistry.create();
+			mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
-		mSceneEntity = mRegistry.create();
-		mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
+			Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
+			b2dWorld.World->SetContactListener(&sBox2DContactListener);
 
-		Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
-		b2dWorld.World->SetContactListener(&sBox2DContactListener);
+			sActiveScenes[mSceneID] = this;
 
-		s_ActiveScenes[mSceneID] = this;
-
-		Init();
+			Init();
+		}
 	}
 
 	Scene::~Scene()
@@ -186,7 +189,7 @@ namespace NR
 		////mRegistry.on_destroy<Audio::AudioComponent>().disconnect();
 
 		mRegistry.clear();
-		s_ActiveScenes.erase(mSceneID);
+		sActiveScenes.erase(mSceneID);
 		ScriptEngine::SceneDestruct(mSceneID);
 		Audio::AudioEngine::SceneDestruct(mSceneID);
 	}
@@ -1389,6 +1392,16 @@ namespace NR
 		}
 	}
 
+	template<typename T>
+	static void CopyComponentIfExists(entt::entity dst, entt::registry& dstRegistry, entt::entity src, entt::registry& srcRegistry)
+	{
+		if (srcRegistry.try_get<T>(src))
+		{
+			auto& srcComponent = srcRegistry.get<T>(src);
+			dstRegistry.emplace_or_replace<T>(dst, srcComponent);
+		}
+	}
+
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		Entity newEntity;
@@ -1422,25 +1435,25 @@ namespace NR
 		CopyComponentIfExists<AudioListenerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<Audio::AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 
-#if _DEBUG
-		//// Check that nothing has been forgotten...
-		//bool foundAll = true;
+#if _DEBUG && 0
+		// Check that nothing has been forgotten...
+		bool foundAll = true;
 
-		//mRegistry.view<entt::get<ComponentA, ComponentB, ComponentC>>().each([&](auto entityHandle) {
-		//	bool foundOne = false;
+		mRegistry.view<entt::get<ComponentA, ComponentB, ComponentC>>().each([&](auto entityHandle) {
+			bool foundOne = false;
 
-		//	// Check if the same component exists in newEntity
-		//	mRegistry.view<entt::get<ComponentA, ComponentB, ComponentC>>().each([&](auto newEntityHandle) {
-		//		// Compare the components in both entities
-		//		if (entityHandle == newEntityHandle) {
-		//			foundOne = true;
-		//		}
-		//		});
+			// Check if the same component exists in newEntity
+			mRegistry.view<entt::get<ComponentA, ComponentB, ComponentC>>().each([&](auto newEntityHandle) {
+				// Compare the components in both entities
+				if (entityHandle == newEntityHandle) {
+					foundOne = true;
+				}
+				});
 
-		//	foundAll = foundAll && foundOne;
-		//	});
+			foundAll = foundAll && foundOne;
+			});
 
-		//NR_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
+		NR_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
 #endif
 
 		auto childIDs = entity.Children(); // need to take a copy of children here, becuase the collection is mutated below
@@ -1470,6 +1483,77 @@ namespace NR
 		}
 
 		return newEntity;
+	}
+
+	Entity Scene::CreatePrefabEntity(Entity entity)
+	{
+		NR_CORE_VERIFY(entity.HasComponent<PrefabComponent>());
+		Entity newEntity = CreateEntity();
+
+		CopyComponentIfExists<TagComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<PrefabComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<TransformComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<MeshComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<DirectionalLightComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<PointLightComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<SkyLightComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<ScriptComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<CameraComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<SpriteRendererComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<RigidBody2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<BoxCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<CircleCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<RigidBodyComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<BoxColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<SphereColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<CapsuleColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<MeshColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<Audio::AudioComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<AudioListenerComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+
+#if _DEBUG && 0
+		// Check that nothing has been forgotten...
+		bool foundAll = true;
+		mRegistry.visit(entity, [&](entt::id_type type) {
+			bool foundOne = false;
+			mRegistry.visit(newEntity, [type, &foundOne](entt::id_type newType) {if (newType == type) foundOne = true; });
+			foundAll = foundAll && foundOne;
+			});
+		HZ_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
+#endif
+		for (auto childId : entity.Children())
+		{
+			Entity childDuplicate = CreatePrefabEntity(entity.mScene->FindEntityByID(childId));
+			childDuplicate.SetParentID(newEntity.GetID());
+			newEntity.Children().push_back(childDuplicate.GetID());
+		}
+
+		if (!mIsEditorScene)
+		{
+			if (newEntity.HasComponent<RigidBodyComponent>())
+			{
+				PhysicsManager::CreateActor(newEntity);
+			}
+		}
+
+		return newEntity;
+	}
+	Entity Scene::Instantiate(Ref<Prefab> prefab)
+	{
+		Entity result;
+
+		auto entities = prefab->mScene->GetAllEntitiesWith<RelationshipComponent>();
+		for (auto e : entities)
+		{
+			Entity entity = { e, prefab->mScene.Raw() };
+			if (!entity.HasParent())
+			{
+				result = CreatePrefabEntity(entity);
+				break;
+			}
+		}
+
+		return result;
 	}
 
 	Entity Scene::FindEntityByTag(const std::string& tag)
@@ -1656,6 +1740,7 @@ namespace NR
 			enttMap[uuid] = e.mEntityHandle;
 		}
 
+		CopyComponent<PrefabComponent>(target->mRegistry, mRegistry, enttMap);
 		CopyComponent<TagComponent>(target->mRegistry, mRegistry, enttMap);
 		CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
 		CopyComponent<RelationshipComponent>(target->mRegistry, mRegistry, enttMap);
@@ -1699,9 +1784,9 @@ namespace NR
 
 	Ref<Scene> Scene::GetScene(UUID uuid)
 	{
-		if (s_ActiveScenes.find(uuid) != s_ActiveScenes.end())
+		if (sActiveScenes.find(uuid) != sActiveScenes.end())
 		{
-			return s_ActiveScenes.at(uuid);
+			return sActiveScenes.at(uuid);
 		}
 
 		return {};
@@ -1715,5 +1800,10 @@ namespace NR
 	void Scene::SetPhysics2DGravity(float gravity)
 	{
 		mRegistry.get<Box2DWorldComponent>(mSceneEntity).World->SetGravity({ 0.0f, gravity });
+	}
+
+	Ref<Scene> Scene::CreateEmpty()
+	{
+		return new Scene("Empty", false, false);
 	}
 }
