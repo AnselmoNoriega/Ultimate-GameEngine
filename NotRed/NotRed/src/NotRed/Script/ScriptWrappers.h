@@ -37,14 +37,15 @@ namespace NR::Script
     };
 
     // Physics
-    bool NR_Physics_RaycastWithStruct(RaycastData* inData, RaycastHit* hit);
-    bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, MonoArray* requiredComponentTypes, RaycastHit* hit);
+    bool NR_Physics_Raycast(RaycastData* inData, RaycastHit* hit);
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize);
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius);
     MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight);
     int32_t NR_Physics_OverlapBoxNonAlloc(glm::vec3* origin, glm::vec3* halfSize, MonoArray* outColliders);
     int32_t NR_Physics_OverlapCapsuleNonAlloc(glm::vec3* origin, float radius, float halfHeight, MonoArray* outColliders);
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders);
+    void NR_Physics_GetGravity(glm::vec3* outGravity);
+    void NR_Physics_SetGravity(glm::vec3* inGravity);
 
     // Entity
     void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID);
