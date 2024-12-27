@@ -30,7 +30,13 @@ namespace NR
 
         public Material GetMaterial(int index)
         {
-            return new Material(GetMaterialByIndex_Native(_unmanagedInstance, index));
+            IntPtr result = GetMaterialByIndex_Native(_unmanagedInstance, index);
+            if (result == null)
+            {
+                return null;
+            }
+
+            return new Material(result);
         }
 
         public int GetMaterialCount()

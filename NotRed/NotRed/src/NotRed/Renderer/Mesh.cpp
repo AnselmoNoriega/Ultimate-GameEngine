@@ -248,14 +248,20 @@ namespace NR
 				NR_MESH_LOG("  TextureCount = {0}", textureCount);
 
 				glm::vec3 albedoColor(0.8f);
-				aiColor3D aiColor;
+				float emission = 0.0f;
+				aiColor3D aiColor, aiEmission;
 				if (aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, aiColor) == AI_SUCCESS)
 				{
 					albedoColor = { aiColor.r, aiColor.g, aiColor.b };
 				}
 
+				if (aiMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, aiEmission) == AI_SUCCESS)
+				{
+					emission = aiEmission.r;
+				}
+
 				mi->Set("uMaterialUniforms.AlbedoColor", albedoColor);
-				mi->Set("uMaterialUniforms.Emission", 0.0f);
+				mi->Set("uMaterialUniforms.Emission", emission);
 
 				float shininess, metalness;
 				if (aiMaterial->Get(AI_MATKEY_SHININESS, shininess) != aiReturn_SUCCESS)
@@ -442,6 +448,7 @@ namespace NR
 		{
 			auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), "NotRed-Default");
 			mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f));
+			mi->Set("uMaterialUniforms.Emission", 0.0f);
 			mi->Set("uMaterialUniforms.Metalness", 0.0f);
 			mi->Set("uMaterialUniforms.Roughness", 0.8f);
 			mi->Set("uMaterialUniforms.UseNormalMap", false);

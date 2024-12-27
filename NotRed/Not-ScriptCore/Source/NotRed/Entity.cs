@@ -28,6 +28,11 @@ namespace NR
 
         }
 
+        public ulong GetID()
+        {
+            return ID;
+        }
+
         public Entity Create()
         {
             return new Entity(CreateEntity_Native(ID));
@@ -72,6 +77,7 @@ namespace NR
         public Entity Parent
         {
             get => new Entity(GetParent_Native(ID));
+            set => SetParent_Native(ID, value.ID);
         }
 
         public Entity[] Children
@@ -205,6 +211,8 @@ namespace NR
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern ulong GetParent_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern ulong SetParent_Native(ulong entityID, ulong parentID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Entity[] GetChildren_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]

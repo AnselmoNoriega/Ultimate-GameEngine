@@ -44,6 +44,19 @@ namespace NR
             }
         }
 
+        public float Emission
+        {
+            get
+            {
+                GetEmission_Native(_unmanagedInstance, out float result);
+                return result;
+            }
+            set
+            {
+                SetEmission_Native(_unmanagedInstance, value);
+            }
+        }
+
         public void Set(string uniform, float value)
         {
             SetFloat_Native(_unmanagedInstance, uniform, value);
@@ -95,6 +108,10 @@ namespace NR
         internal static extern void GetRoughness_Native(IntPtr unmanagedInstance, out float outRoughness);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetRoughness_Native(IntPtr unmanagedInstance, float inRoughness);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetEmission_Native(IntPtr unmanagedInstance, out float outEmission);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetEmission_Native(IntPtr unmanagedInstance, float inEmission);
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]

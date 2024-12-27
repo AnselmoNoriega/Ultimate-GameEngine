@@ -67,6 +67,7 @@ namespace NR
 		mono_add_internal_call("NR.Physics::OverlapCapsuleNonAlloc_Native", NR::Script::NR_Physics_OverlapCapsuleNonAlloc);
 		mono_add_internal_call("NR.Physics::OverlapSphereNonAlloc_Native", NR::Script::NR_Physics_OverlapSphereNonAlloc);
 		mono_add_internal_call("NR.Entity::GetParent_Native", NR::Script::NR_Entity_GetParent);
+		mono_add_internal_call("NR.Entity::SetParent_Native", NR::Script::NR_Entity_SetParent);
 		mono_add_internal_call("NR.Entity::GetChildren_Native", NR::Script::NR_Entity_GetChildren);
 		mono_add_internal_call("NR.TransformComponent::GetTranslation_Native", NR::Script::NR_TransformComponent_GetTranslation);
 		mono_add_internal_call("NR.TransformComponent::SetTranslation_Native", NR::Script::NR_TransformComponent_SetTranslation);
@@ -91,6 +92,8 @@ namespace NR
 
 		mono_add_internal_call("NR.MeshComponent::GetMesh_Native", NR::Script::NR_MeshComponent_GetMesh);
 		mono_add_internal_call("NR.MeshComponent::SetMesh_Native", NR::Script::NR_MeshComponent_SetMesh);
+		mono_add_internal_call("NR.MeshComponent::HasMaterial_Native", NR::Script::NR_MeshComponent_HasMaterial);
+		mono_add_internal_call("NR.MeshComponent::GetMaterial_Native", NR::Script::NR_MeshComponent_GetMaterial);
 
 		mono_add_internal_call("NR.Input::IsKeyPressed_Native", NR::Script::NR_Input_IsKeyPressed);
 		mono_add_internal_call("NR.Input::IsMouseButtonPressed_Native", NR::Script::NR_Input_IsMouseButtonPressed);
@@ -109,6 +112,8 @@ namespace NR
 		mono_add_internal_call("NR.Material::SetMetalness_Native", NR::Script::NR_Material_SetMetalness);
 		mono_add_internal_call("NR.Material::GetRoughness_Native", NR::Script::NR_Material_GetRoughness);
 		mono_add_internal_call("NR.Material::SetRoughness_Native", NR::Script::NR_Material_SetRoughness);
+		mono_add_internal_call("NR.Material::GetEmission_Native", NR::Script::NR_Material_GetEmission);
+		mono_add_internal_call("NR.Material::SetEmission_Native", NR::Script::NR_Material_SetEmission);
 		mono_add_internal_call("NR.Material::SetFloat_Native", NR::Script::NR_Material_SetFloat);
 		mono_add_internal_call("NR.Material::SetTexture_Native", NR::Script::NR_Material_SetTexture);
 

@@ -159,7 +159,8 @@ namespace NR
 
     void EditorLayer::DeleteEntity(Entity entity)
     {
-        for (auto childId : entity.Children())
+        auto children = entity.Children();
+        for (auto childId : children)
         {
             DeleteEntity(mEditorScene->FindEntityByID(childId));
         }

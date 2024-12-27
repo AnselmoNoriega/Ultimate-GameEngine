@@ -88,6 +88,18 @@ namespace NR::Script
 		return entityMap.at(entityID).GetParentID();
 	}
 
+	void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+		
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+		
+		Entity entity = entityMap.at(entityID);
+		entity.SetParentID(parentID);
+	}
+
 	MonoArray* NR_Entity_GetChildren(uint64_t entityID)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -218,6 +230,12 @@ namespace NR::Script
 
 		Entity entity = entityMap.at(entityID);
 		entity.GetComponent<TransformComponent>().Translation = *inTranslation;
+
+		if (entity.HasComponent<RigidBodyComponent>())
+		{
+			auto actor = PhysicsManager::GetScene()->GetActor(entity);
+			actor->SetPosition(*inTranslation);
+		}
 	}
 
 	void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation)
@@ -240,6 +258,12 @@ namespace NR::Script
 
 		Entity entity = entityMap.at(entityID);
 		entity.GetComponent<TransformComponent>().Rotation = *inRotation;
+		
+		if (entity.HasComponent<RigidBodyComponent>())
+		{
+			auto actor = PhysicsManager::GetScene()->GetActor(entity);
+			actor->SetRotation(*inRotation);
+		}
 	}
 
 	void NR_TransformComponent_GetScale(uint64_t entityID, glm::vec3* outScale)
@@ -611,6 +635,36 @@ namespace NR::Script
 		Entity entity = entityMap.at(entityID);
 		auto& meshComponent = entity.GetComponent<MeshComponent>();
 		meshComponent.MeshObj = inMesh ? *inMesh : nullptr;
+	}
+
+	bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		auto& meshComponent = entity.GetComponent<MeshComponent>();
+		const auto& materialTable = meshComponent.Materials;
+
+		return materialTable->HasMaterial(index);
+	}
+
+	Ref<MaterialAsset>* NR_MeshComponent_GetMaterial(uint64_t entityID, int index)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		auto& meshComponent = entity.GetComponent<MeshComponent>();
+		const auto& materialTable = meshComponent.Materials;
+
+		return new Ref<MaterialAsset>(materialTable->GetMaterial(index));
 	}
 
 	void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* outType)
@@ -1364,6 +1418,18 @@ namespace NR::Script
 	{
 		Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
 		instance->SetRoughness(inRoughness);
+	}
+
+	void NR_Material_GetEmission(Ref<MaterialAsset>* _this, float* outEmission)
+	{
+		Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+		*outEmission = instance->GetEmission();
+	}
+
+	void NR_Material_SetEmission(Ref<MaterialAsset>* _this, float inEmission)
+	{
+		Ref<MaterialAsset>& instance = *(Ref<MaterialAsset>*)_this;
+		instance->SetEmission(inEmission);
 	}
 
 	void NR_Material_SetFloat(Ref<MaterialAsset>* _this, MonoString* uniform, float value)

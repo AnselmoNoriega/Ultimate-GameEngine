@@ -128,11 +128,30 @@ namespace NR
             }
         }
 
+        public bool HasMaterial(int index)
+        {
+            return HasMaterial_Native(Entity.ID, index);
+        }
+
+        public Material GetMaterial(int index)
+        {
+            if (!HasMaterial(index))
+            {
+                return null;
+            }
+
+            return new Material(GetMaterial_Native(Entity.ID, index));
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern IntPtr GetMesh_Native(ulong entityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetMesh_Native(ulong entityID, IntPtr unmanagedInstance);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool HasMaterial_Native(ulong entityID, int index);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern IntPtr GetMaterial_Native(ulong entityID, int index);
 
     }
 

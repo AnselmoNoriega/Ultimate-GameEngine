@@ -47,6 +47,7 @@ namespace NR::Script
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders);
 
     // Entity
+    void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID);
     uint64_t NR_Entity_GetParent(uint64_t entityID);
     MonoArray* NR_Entity_GetChildren(uint64_t entityID);
     uint64_t NR_Entity_CreateEntity(uint64_t entityID);
@@ -70,6 +71,8 @@ namespace NR::Script
 
     void* NR_MeshComponent_GetMesh(uint64_t entityID);
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
+    bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index);
+    Ref<MaterialAsset>* NR_MeshComponent_GetMaterial(uint64_t entityID, int index);
 
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
     void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
@@ -144,6 +147,8 @@ namespace NR::Script
     void NR_Material_SetMetalness(Ref<MaterialAsset>* _this, float inMetalness);
     void NR_Material_GetRoughness(Ref<MaterialAsset>* _this, float* outRoughness);
     void NR_Material_SetRoughness(Ref<MaterialAsset>* _this, float inRoughness);
+    void NR_Material_GetEmission(Ref<MaterialAsset>* _this, float* outEmission);
+    void NR_Material_SetEmission(Ref<MaterialAsset>* _this, float inEmission);
     void NR_Material_SetFloat(Ref<MaterialAsset>* _this, MonoString* uniform, float value);
     void NR_Material_SetTexture(Ref<MaterialAsset>* _this, MonoString* uniform, Ref<Texture2D>* texture);
 
