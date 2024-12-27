@@ -58,7 +58,6 @@ namespace NR
 		mono_add_internal_call("NR.Noise::PerlinNoise_Native", NR::Script::NR_Noise_PerlinNoise);
 
 		mono_add_internal_call("NR.Scene::GetEntities", NR::Script::NR_Scene_GetEntities);
-		mono_add_internal_call("NR.Physics::RaycastWithStruct_Native", NR::Script::NR_Physics_RaycastWithStruct);
 		mono_add_internal_call("NR.Physics::Raycast_Native", NR::Script::NR_Physics_Raycast);
 		mono_add_internal_call("NR.Physics::OverlapBox_Native", NR::Script::NR_Physics_OverlapBox);
 		mono_add_internal_call("NR.Physics::OverlapSphere_Native", NR::Script::NR_Physics_OverlapSphere);
@@ -66,6 +65,8 @@ namespace NR
 		mono_add_internal_call("NR.Physics::OverlapBoxNonAlloc_Native", NR::Script::NR_Physics_OverlapBoxNonAlloc);
 		mono_add_internal_call("NR.Physics::OverlapCapsuleNonAlloc_Native", NR::Script::NR_Physics_OverlapCapsuleNonAlloc);
 		mono_add_internal_call("NR.Physics::OverlapSphereNonAlloc_Native", NR::Script::NR_Physics_OverlapSphereNonAlloc);
+		mono_add_internal_call("NR.Physics::GetGravity_Native", NR::Script::NR_Physics_GetGravity);
+		mono_add_internal_call("NR.Physics::SetGravity_Native", NR::Script::NR_Physics_SetGravity);
 		mono_add_internal_call("NR.Entity::GetParent_Native", NR::Script::NR_Entity_GetParent);
 		mono_add_internal_call("NR.Entity::SetParent_Native", NR::Script::NR_Entity_SetParent);
 		mono_add_internal_call("NR.Entity::GetChildren_Native", NR::Script::NR_Entity_GetChildren);

@@ -95,9 +95,10 @@ namespace NR::Script
 		
 		const auto& entityMap = scene->GetEntityMap();
 		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-		
-		Entity entity = entityMap.at(entityID);
-		entity.SetParentID(parentID);
+
+		Entity parent = entityMap.at(parentID);
+		Entity child = entityMap.at(entityID);
+		child.SetParent(parent);
 	}
 
 	MonoArray* NR_Entity_GetChildren(uint64_t entityID)
@@ -362,26 +363,21 @@ namespace NR::Script
 		return result;
 	}
 
-	bool NR_Physics_RaycastWithStruct(RaycastData* inData, RaycastHit* hit)
-	{
-		return NR_Physics_Raycast(&inData->Origin, &inData->Direction, inData->MaxDistance, inData->RequiredComponentTypes, hit);
-	}
-
-	bool NR_Physics_Raycast(glm::vec3* origin, glm::vec3* direction, float maxDistance, MonoArray* requiredComponentTypes, RaycastHit* hit)
+	bool NR_Physics_Raycast(RaycastData* inData, RaycastHit* hit)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
 		NR_CORE_ASSERT(scene, "No active scene!");
 		NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
 
 		RaycastHit temp;
-		bool success = PhysicsManager::GetScene()->Raycast(*origin, *direction, maxDistance, &temp);
-		if (success && requiredComponentTypes != nullptr)
+		bool success = PhysicsManager::GetScene()->Raycast(inData->Origin, inData->Direction, inData->MaxDistance, &temp);
+		if (success && inData->RequiredComponentTypes != nullptr)
 		{
 			Entity entity = scene->FindEntityByID(temp.HitEntity);
-			size_t length = mono_array_length(requiredComponentTypes);
+			size_t length = mono_array_length(inData->RequiredComponentTypes);
 			for (size_t i = 0; i < length; ++i)
 			{
-				void* rawType = mono_array_get(requiredComponentTypes, void*, i);
+				void* rawType = mono_array_get(inData->RequiredComponentTypes, void*, i);
 				if (rawType == nullptr)
 				{
 					NR_CONSOLE_LOG_ERROR("Why did you feel the need to pass a \"null\" System.Type to Physics.Raycast?");
@@ -601,6 +597,20 @@ namespace NR::Script
 		}
 
 		return count;
+	}
+
+	void NR_Physics_GetGravity(glm::vec3* outGravity)
+	{
+		Ref<PhysicsScene> scene = PhysicsManager::GetScene();
+		NR_CORE_ASSERT(scene && scene->IsValid(), "No active Phyiscs Scene!");
+		*outGravity = scene->GetGravity();
+	}
+
+	void NR_Physics_SetGravity(glm::vec3* inGravity)
+	{
+		Ref<PhysicsScene> scene = PhysicsManager::GetScene();
+		NR_CORE_ASSERT(scene && scene->IsValid(), "No active Phyiscs Scene!");
+		scene->SetGravity(*inGravity);
 	}
 
 	MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius)

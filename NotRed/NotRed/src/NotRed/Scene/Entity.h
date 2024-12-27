@@ -85,6 +85,12 @@ namespace NR
 			return !(*this == other);
 		}
 
+		void SetParent(Entity parent)
+		{
+			SetParentID(parent.GetID());
+			parent.Children().emplace_back(GetID());
+		}
+
 		UUID& GetID() { return GetComponent<IDComponent>().ID; }
 		UUID GetSceneID() { return mScene->GetID(); }
 

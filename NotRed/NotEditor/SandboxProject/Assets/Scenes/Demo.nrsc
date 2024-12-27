@@ -1,6 +1,6 @@
 Scene: Demo
 Environment:
-  AssetHandle: 10191359667784106151
+  AssetHandle: 13163247778782548346
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
@@ -17,7 +17,7 @@ Entities:
     Children:
       []
     SkyLightComponent:
-      EnvironmentMap: 10191359667784106151
+      EnvironmentMap: 13163247778782548346
       Intensity: 1
       DynamicSky: false
   - Entity: 9651895283264950110
@@ -34,6 +34,10 @@ Entities:
       AssetID: 10610151712161516910
       MaterialTable:
         0: 0
+        1: 0
+        2: 0
+        3: 0
+        4: 0
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light

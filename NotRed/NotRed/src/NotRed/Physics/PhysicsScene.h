@@ -31,6 +31,9 @@ namespace NR
 		Ref<PhysicsActor> CreateActor(Entity entity);
 		void RemoveActor(Ref<PhysicsActor> actor);
 
+		glm::vec3 GetGravity() const { return PhysicsUtils::FromPhysicsVector(mPhysicsScene->getGravity()); }
+		void SetGravity(const glm::vec3& gravity) { mPhysicsScene->setGravity(PhysicsUtils::ToPhysicsVector(gravity)); }
+
 		bool Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* outHit);
 		bool OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
 		bool OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);

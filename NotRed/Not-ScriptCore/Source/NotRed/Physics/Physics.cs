@@ -33,9 +33,26 @@ namespace NR
 
     public static class Physics
     {
-        public static bool Raycast(RaycastData raycastData, out RaycastHit hit) => RaycastWithStruct_Native(ref raycastData, out hit);
-        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit) => Raycast_Native(ref origin, ref direction, maxDistance, null, out hit);
-        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, params Type[] componentFilters) => Raycast_Native(ref origin, ref direction, maxDistance, componentFilters, out hit);
+        public static Vector3 Gravity
+        {
+            get
+            {
+                GetGravity_Native(out Vector3 gravity);
+                return gravity;
+            }
+
+            set => SetGravity_Native(ref value);
+        }
+        public static bool Raycast(RaycastData raycastData, out RaycastHit hit) => Raycast_Native(ref raycastData, out hit);
+
+        public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, params Type[] componentFilters)
+        {
+            sRaycastData.Origin = origin;
+            sRaycastData.Direction = direction;
+            sRaycastData.MaxDistance = maxDistance;
+            sRaycastData.RequiredComponents = componentFilters;
+            return Raycast_Native(ref sRaycastData, out hit);
+        }
 
         public static Collider[] OverlapBox(Vector3 origin, Vector3 halfSize)
         {
@@ -67,10 +84,10 @@ namespace NR
             return OverlapSphereNonAlloc_Native(ref origin, radius, colliders);
         }
 
+        private static RaycastData sRaycastData = new RaycastData();
+
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool RaycastWithStruct_Native(ref RaycastData raycastData, out RaycastHit hit);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool Raycast_Native(ref Vector3 origin, ref Vector3 direction, float maxDistance, Type[] requiredComponents, out RaycastHit hit);
+        internal static extern bool Raycast_Native(ref RaycastData raycastData, out RaycastHit hit);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Collider[] OverlapBox_Native(ref Vector3 origin, ref Vector3 halfSize);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -83,5 +100,9 @@ namespace NR
         internal static extern int OverlapCapsuleNonAlloc_Native(ref Vector3 origin, float radius, float halfHeight, Collider[] colliders);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern int OverlapSphereNonAlloc_Native(ref Vector3 origin, float radius, Collider[] colliders);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetGravity_Native(out Vector3 gravity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetGravity_Native(ref Vector3 gravity);
     }
 }
