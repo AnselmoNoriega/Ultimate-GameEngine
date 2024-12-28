@@ -13,6 +13,8 @@
 #include "NotRed/Renderer/SceneEnvironment.h"
 #include "NotRed/Asset/Asset.h"
 
+#include "NotRed/Script/ScriptModuleField.h"
+
 namespace NR
 {
     struct IDComponent
@@ -155,6 +157,7 @@ namespace NR
     struct ScriptComponent
     {
         std::string ModuleName;
+        ScriptModuleFieldMap ModuleFieldMap;
 
         ScriptComponent() = default;
         ScriptComponent(const ScriptComponent& other) = default;

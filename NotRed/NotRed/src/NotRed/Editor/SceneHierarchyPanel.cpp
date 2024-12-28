@@ -966,24 +966,24 @@ namespace NR
 				if (!isError)
 				{
 					EntityInstanceData& entityInstanceData = ScriptEngine::GetEntityInstanceData(entity.GetSceneID(), id);
-					auto& moduleFieldMap = entityInstanceData.ModuleFieldMap;
+					ScriptModuleFieldMap& moduleFieldMap = sc.ModuleFieldMap;
 					if (moduleFieldMap.find(sc.ModuleName) != moduleFieldMap.end())
 					{
 						auto& publicFields = moduleFieldMap.at(sc.ModuleName);
 						for (auto& [name, field] : publicFields)
 						{
-							bool isRuntime = mContext->mIsPlaying && field.IsRuntimeAvailable();
+							bool isRuntime = mContext->mIsPlaying && entityInstanceData.Instance.IsRuntimeAvailable();
 							UI::SetNextPropertyReadOnly(field.IsReadOnly);
 							switch (field.Type)
 							{
 							case FieldType::Int:
 							{
-								int value = isRuntime ? field.GetValue<int>() : field.GetStoredValue<int>();
+								int value = isRuntime ? field.GetValue<int>(entityInstanceData.Instance) : field.GetStoredValue<int>();
 								if (UI::Property(field.Name.c_str(), value))
 								{
 									if (isRuntime)
 									{
-										field.SetValue(value);
+										field.SeteValue(entityInstanceData.Instance, value);
 									}
 									else
 									{
@@ -994,7 +994,7 @@ namespace NR
 							}
 							case FieldType::String:
 							{
-								const std::string& value = isRuntime ? field.GetValue<std::string>() : field.GetStoredValue<const std::string&>();
+								const std::string& value = isRuntime ? field.GetValue<std::string>(entityInstanceData.Instance) : field.GetStoredValue<const std::string&>();
 								char buffer[256];
 								memset(buffer, 0, 256);
 								memcpy(buffer, value.c_str(), value.length());
@@ -1002,7 +1002,7 @@ namespace NR
 								{
 									if (isRuntime)
 									{
-										field.SetValue<const std::string&>(buffer);
+										field.SetValue<const std::string&>(entityInstanceData.Instance, buffer);
 									}
 									else
 									{
@@ -1013,12 +1013,12 @@ namespace NR
 							}
 							case FieldType::Float:
 							{
-								float value = isRuntime ? field.GetValue<float>() : field.GetStoredValue<float>();
+								float value = isRuntime ? field.GetValue<float>(entityInstanceData.Instance) : field.GetStoredValue<float>();
 								if (UI::Property(field.Name.c_str(), value, 0.2f))
 								{
 									if (isRuntime)
 									{
-										field.SetValue(value);
+										field.SetValue(entityInstanceData.Instance, value);
 									}
 									else
 									{
@@ -1029,12 +1029,12 @@ namespace NR
 							}
 							case FieldType::Vec2:
 							{
-								glm::vec2 value = isRuntime ? field.GetValue<glm::vec2>() : field.GetStoredValue<glm::vec2>();
+								glm::vec2 value = isRuntime ? field.GetValue<glm::vec2>(entityInstanceData.Instance) : field.GetStoredValue<glm::vec2>();
 								if (UI::Property(field.Name.c_str(), value, 0.2f))
 								{
 									if (isRuntime)
 									{
-										field.SetValue(value);
+										field.SetValue(entityInstanceData.Instance, value);
 									}
 									else
 									{
@@ -1045,12 +1045,12 @@ namespace NR
 							}
 							case FieldType::Vec3:
 							{
-								glm::vec3 value = isRuntime ? field.GetValue<glm::vec3>() : field.GetStoredValue<glm::vec3>();
+								glm::vec3 value = isRuntime ? field.GetValue<glm::vec3>(entityInstanceData.Instance) : field.GetStoredValue<glm::vec3>();
 								if (UI::Property(field.Name.c_str(), value, 0.2f))
 								{
 									if (isRuntime)
 									{
-										field.SetValue(value);
+										field.SetValue(entityInstanceData.Instance, value);
 									}
 									else
 									{
@@ -1061,12 +1061,12 @@ namespace NR
 							}
 							case FieldType::Vec4:
 							{
-								glm::vec4 value = isRuntime ? field.GetValue<glm::vec4>() : field.GetStoredValue<glm::vec4>();
+								glm::vec4 value = isRuntime ? field.GetValue<glm::vec4>(entityInstanceData.Instance) : field.GetStoredValue<glm::vec4>();
 								if (UI::Property(field.Name.c_str(), value, 0.2f))
 								{
 									if (isRuntime)
 									{
-										field.SetValue(value);
+										field.SetValue(entityInstanceData.Instance, value);
 									}
 									else
 									{
@@ -1077,13 +1077,13 @@ namespace NR
 							}
 							case FieldType::Asset:
 							{
-								UUID uuid = isRuntime ? field.GetValue<UUID>() : field.GetStoredValue<UUID>();
+								UUID uuid = isRuntime ? field.GetValue<UUID>(entityInstanceData.Instance) : field.GetStoredValue<UUID>();
 								Ref<Prefab> prefab = AssetManager::IsAssetHandleValid(uuid) ? AssetManager::GetAsset<Prefab>(uuid) : nullptr;
 								if (UI::PropertyAssetReference(field.Name.c_str(), prefab))
 								{
 									if (isRuntime)
 									{
-										field.SetValue(prefab->Handle);
+										field.SetValue(entityInstanceData.Instance, prefab->Handle);
 									}
 									else
 									{

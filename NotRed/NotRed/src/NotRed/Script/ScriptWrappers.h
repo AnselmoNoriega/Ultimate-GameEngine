@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 
-#include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Core/Input.h"
 #include "NotRed/Physics/PhysicsManager.h"
 

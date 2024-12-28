@@ -30,6 +30,7 @@
 
 #include "NotRed/Audio/AudioComponent.h"
 #include "NotRed/Audio/AudioPlayback.h"
+#include "NotRed/Script/ScriptEngine.h"
 
 namespace NR
 {

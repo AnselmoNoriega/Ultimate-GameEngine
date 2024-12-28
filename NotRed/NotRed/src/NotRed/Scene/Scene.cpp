@@ -232,24 +232,29 @@ namespace NR
 			}
 		}
 
-		if (mIsPlaying && mShouldSimulate)
+		if (mShouldSimulate)
 		{
-			NR_PROFILE_FUNC("Scene::OnUpdate - C# OnUpdate");
-			auto view = mRegistry.view<ScriptComponent>();
-			for (auto entity : view)
+			if (mIsPlaying)
 			{
-				Entity e = { entity, this };
-				if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+				NR_PROFILE_FUNC("Scene::Update - C# OnUpdate");
+				auto view = mRegistry.view<ScriptComponent>();
+				for (auto entity : view)
 				{
-					ScriptEngine::UpdateEntity(e, dt);
+					Entity e = { entity, this };
+					if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+					{
+						ScriptEngine::UpdateEntity(e, dt);
+					}
 				}
+
+				for (auto&& fn : mPostUpdateQueue)
+				{
+					fn();
+				}
+				mPostUpdateQueue.clear();
 			}
 
-			for (auto&& fn : mPostUpdateQueue)
-			{
-				fn();
-			}
-			mPostUpdateQueue.clear();
+			PhysicsManager::GetScene()->Simulate(dt, mIsPlaying);
 		}
 
 		{
@@ -373,11 +378,6 @@ namespace NR
 			{
 				DestroyEntity(deadEntities[i]);
 			}
-		}
-
-		if (mShouldSimulate)
-		{
-			PhysicsManager::GetScene()->Simulate(dt, mIsPlaying);
 		}
 	}
 
@@ -960,7 +960,7 @@ namespace NR
 		}
 
 		renderer->EndScene();
-	}
+		}
 
 	void Scene::OnEvent(Event& e)
 	{
@@ -1379,9 +1379,12 @@ namespace NR
 			Audio::AudioEngine::Get().UnregisterAudioComponent(mSceneID, entity.GetID());
 		}
 
-		if (entity.HasComponent<RigidBodyComponent>())
+		if (!mIsEditorScene)
 		{
-			PhysicsManager::GetScene()->RemoveActor(PhysicsManager::GetScene()->GetActor(entity));
+			if (entity.HasComponent<RigidBodyComponent>())
+			{
+				PhysicsManager::GetScene()->RemoveActor(PhysicsManager::GetScene()->GetActor(entity));
+			}
 		}
 
 		mRegistry.destroy(entity.mEntityHandle);
@@ -1544,7 +1547,7 @@ namespace NR
 			Entity childDuplicate = CreatePrefabEntity(entity.mScene->FindEntityByID(childId));
 			childDuplicate.SetParentID(newEntity.GetID());
 			newEntity.Children().push_back(childDuplicate.GetID());
-		}
+	}
 
 		if (!mIsEditorScene)
 		{
@@ -1552,10 +1555,18 @@ namespace NR
 			{
 				PhysicsManager::CreateActor(newEntity);
 			}
+
+			if (newEntity.HasComponent<ScriptComponent>())
+			{
+				if (ScriptEngine::ModuleExists(newEntity.GetComponent<ScriptComponent>().ModuleName))
+				{
+					ScriptEngine::InstantiateEntityClass(newEntity);
+				}
+			}
 		}
 
 		return newEntity;
-	}
+		}
 	Entity Scene::Instantiate(Ref<Prefab> prefab)
 	{
 		Entity result;
@@ -1824,4 +1835,4 @@ namespace NR
 	{
 		return new Scene("Empty", false, false);
 	}
-}
+	}
