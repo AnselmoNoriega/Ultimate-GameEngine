@@ -306,7 +306,7 @@ namespace NR
 
             auto& pushConstantRange = mPushConstantRanges.emplace_back();
             pushConstantRange.ShaderStage = shaderStage;
-            pushConstantRange.Size = bufferSize;
+            pushConstantRange.Size = bufferSize - bufferOffset;
             pushConstantRange.Offset = bufferOffset;
 
             // Skip empty push constant buffers - these are for the renderer only

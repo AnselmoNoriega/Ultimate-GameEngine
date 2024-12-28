@@ -8,6 +8,7 @@
 #include "NotRed/ImGui/ImGui.h"
 
 #include "ContentBrowser/ContentBrowserItem.h"
+#include "NotRed/Core/Events/KeyEvent.h"
 
 #define MAX_INPUT_BUFFER_LENGTH 128
 
@@ -54,6 +55,11 @@ namespace NR
             }
 
             return false;
+        }
+
+        void CopyFrom(const SelectionStack& other)
+        {
+            mSelections.assign(other.begin(), other.end());
         }
 
         void Clear()
@@ -128,6 +134,7 @@ namespace NR
         ContentBrowserPanel(Ref<Project> project);
 
         void ImGuiRender();
+        void OnEvent(Event& e);
 
         const SelectionStack& GetSelectionStack() const { return mSelectionStack; }
         ContentBrowserItemList& GetCurrentItems() { return mCurrentItems; }
@@ -146,6 +153,9 @@ namespace NR
         void Refresh();
 
         void UpdateInput();
+
+        bool OnKeyPressedEvent(KeyPressedEvent& e);
+        void PasteCopiedAssets();
 
         void ClearSelections();
 
@@ -210,7 +220,7 @@ namespace NR
 
         bool mIsAnyItemHovered = false;
 
-        SelectionStack mSelectionStack;
+        SelectionStack mSelectionStack, mCopiedAssets;
 
         std::unordered_map<AssetHandle, Ref<DirectoryInfo>> mDirectories;
 

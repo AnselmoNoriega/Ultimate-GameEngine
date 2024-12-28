@@ -54,6 +54,10 @@ namespace NR
         mPlayButtonTex = Texture2D::Create("Resources/Editor/PlayButton.png");
         mPauseButtonTex = Texture2D::Create("Resources/Editor/PauseButton.png");
         mStopButtonTex = Texture2D::Create("Resources/Editor/StopButton.png");
+        mSelectToolTex = Texture2D::Create("Resources/Editor/SelectTool.png");
+        mMoveToolTex = Texture2D::Create("Resources/Editor/MoveTool.png");
+        mRotateToolTex = Texture2D::Create("Resources/Editor/RotateTool.png");
+        mScaleToolTex = Texture2D::Create("Resources/Editor/ScaleTool.png");
 
         mPointLightIcon = Texture2D::Create("Resources/Editor/Icons/PointLight.png");
 
@@ -968,6 +972,52 @@ namespace NR
         // Render viewport image
         UI::Image(mViewportRenderer->GetFinalPassImage(), viewportSize, { 0, 1 }, { 1, 0 });
 
+        // Gizmo Toolbar
+        {
+            auto viewportStart = ImGui::GetItemRectMin();
+
+            ImGui::SetNextWindowPos(ImVec2(viewportStart.x + 10, viewportStart.y + 5));
+            ImGui::SetNextWindowSize(ImVec2(128, 28));
+
+            ImGui::SetNextWindowBgAlpha(0.75f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 7.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 4));
+            ImGui::Begin("##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking);
+
+            const ImVec4 cSelectedGizmoButtonColor = ImVec4(0.925490196f, 0.619607843f, 0.141176471f, 1.0f);
+            const ImVec4 cUnselectedGizmoButtonColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+            if (UI::ImageButton(mSelectToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == -1 ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
+            {
+                mGizmoType = -1;
+            }
+            ImGui::SameLine();
+
+            if (UI::ImageButton(mMoveToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == ImGuizmo::OPERATION::TRANSLATE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
+            {
+                mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+            }
+            ImGui::SameLine();
+
+            if (UI::ImageButton(mRotateToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == ImGuizmo::OPERATION::ROTATE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
+            {
+                mGizmoType = ImGuizmo::OPERATION::ROTATE;
+            }
+            ImGui::SameLine();
+
+            if (UI::ImageButton(mScaleToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == ImGuizmo::OPERATION::SCALE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
+            {
+                mGizmoType = ImGuizmo::OPERATION::SCALE;
+            }
+
+            ImGui::PopStyleColor(3);
+            ImGui::End();
+            ImGui::PopStyleVar(2);
+        }
+
         static int counter = 0;
         auto windowSize = ImGui::GetWindowSize();
         ImVec2 minBound = ImGui::GetWindowPos();
@@ -1756,13 +1806,14 @@ namespace NR
         dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& event) { return OnMouseButtonPressed(event); });
 
         AssetEditorPanel::OnEvent(e);
+        mContentBrowserPanel->OnEvent(e);
     }
 
     bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
     {
         if (GImGui->ActiveId == 0)
         {
-            if (mViewportPanelMouseOver || mViewportPanel2MouseOver)
+            if ((mViewportPanelMouseOver || mViewportPanel2MouseOver) && !Input::IsMouseButtonPressed(MouseButton::Right))
             {
                 switch (e.GetKeyCode())
                 {

@@ -155,6 +155,7 @@ namespace NR
 		// Editor resources
 		Ref<Texture2D> mCheckerboardTex;
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
+		Ref<Texture2D> mSelectToolTex, mMoveToolTex, mRotateToolTex, mScaleToolTex;
 		
 		// Icons
 		Ref<Texture2D> mPointLightIcon;

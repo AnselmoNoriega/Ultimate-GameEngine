@@ -287,6 +287,74 @@ namespace NR
 		ImGui::End();
 	}
 
+	void ContentBrowserPanel::OnEvent(Event& e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) { return OnKeyPressedEvent(event); });
+	}
+	bool ContentBrowserPanel::OnKeyPressedEvent(KeyPressedEvent& e)
+	{
+		if (!mIsContentBrowserFocused)
+		{
+			return false;
+		}
+
+		bool handled = false;
+		if (Input::IsKeyPressed(KeyCode::LeftControl) && mSelectionStack.SelectionCount() > 0)
+		{
+			switch (e.GetKeyCode())
+			{
+			case KeyCode::C:
+			{
+				mCopiedAssets.CopyFrom(mSelectionStack);
+				handled = true;
+				break;
+			}
+			case KeyCode::V:
+			{
+				PasteCopiedAssets();
+				handled = true;
+				break;
+			}
+			case KeyCode::D:
+			{
+				mCopiedAssets.CopyFrom(mSelectionStack);
+				PasteCopiedAssets();
+				handled = true;
+				break;
+			}
+			}
+		}
+		return handled;
+	}
+
+	void ContentBrowserPanel::PasteCopiedAssets()
+	{
+		if (mCopiedAssets.SelectionCount() == 0)
+		{
+			return;
+		}
+
+		for (AssetHandle copiedAsset : mCopiedAssets)
+		{
+			const auto& item = mCurrentItems[mCurrentItems.FindItem(copiedAsset)];
+			std::string filename;
+			bool isDirectory;
+			if (item->GetType() == ContentBrowserItem::ItemType::Asset)
+			{
+				filename = item.As<ContentBrowserAsset>()->GetAssetInfo().FilePath.stem().string();
+				isDirectory = false;
+			}
+			else
+			{
+				filename = item.As<ContentBrowserDirectory>()->GetDirectoryInfo()->FilePath.string();
+				isDirectory = true;
+			}
+			
+			NR_CONSOLE_LOG_INFO("Pasting Item: {0}, Is Directory: {1}", filename, isDirectory);
+		}
+	}
+
 	Ref<DirectoryInfo> ContentBrowserPanel::GetDirectory(const std::filesystem::path& filepath) const
 	{
 		if (filepath.string() == "" || filepath.string() == ".")
