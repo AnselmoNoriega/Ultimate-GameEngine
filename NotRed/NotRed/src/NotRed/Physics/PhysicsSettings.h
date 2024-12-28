@@ -26,7 +26,7 @@ namespace NR
 
 	struct PhysicsSettings
 	{
-		float FixedDeltaTime = 1.0f / 50.0f;
+		float FixedDeltaTime = 1.0f / 100.0f;
 		
 		glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
 		

@@ -45,7 +45,7 @@ namespace NR
 		void CreateRegions();
 
 		bool Advance(float dt);
-		void SubstepStrategy(float dt, uint32_t& substepCount, float& substepSize);
+		void SubstepStrategy(float dt);
 
 		void Destroy();
 

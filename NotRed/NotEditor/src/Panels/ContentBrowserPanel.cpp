@@ -191,7 +191,7 @@ namespace NR
 						{
 							if (ImGui::MenuItem("Folder"))
 							{
-								bool created = FileSystem::CreateDirectory(mCurrentDirectory->FilePath / "New Folder");
+								bool created = FileSystem::CreateDirectory(Project::GetAssetDirectory() / mCurrentDirectory->FilePath / "New Folder");
 								if (created)
 								{
 									Refresh();

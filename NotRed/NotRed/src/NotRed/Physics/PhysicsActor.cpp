@@ -22,27 +22,43 @@ namespace NR
 		mColliders.clear();
 	}
 
-	void PhysicsActor::SetPosition(const glm::vec3& position)
+	void PhysicsActor::SetPosition(const glm::vec3& translation, bool autowake)
 	{
 		physx::PxTransform transform = mRigidActor->getGlobalPose();
-		transform.p = PhysicsUtils::ToPhysicsVector(position);
-		mRigidActor->setGlobalPose(transform);
+		transform.p = PhysicsUtils::ToPhysicsVector(translation);
+		mRigidActor->setGlobalPose(transform, autowake);
 	}
 
-	void PhysicsActor::SetRotation(const glm::vec3& rotation)
+	void PhysicsActor::SetRotation(const glm::vec3& rotation, bool autowake)
 	{
 		physx::PxTransform transform = mRigidActor->getGlobalPose();
 		transform.q = PhysicsUtils::ToPhysicsQuat(glm::quat(rotation));
-		mRigidActor->setGlobalPose(transform);
+		mRigidActor->setGlobalPose(transform, autowake);
 	}
 
-	void PhysicsActor::Rotate(const glm::vec3& rotation)
+	void PhysicsActor::Rotate(const glm::vec3& rotation, bool autowake)
 	{
 		physx::PxTransform transform = mRigidActor->getGlobalPose();
 		transform.q *= (physx::PxQuat(glm::radians(rotation.x), { 1.0f, 0.0f, 0.0f })
 			* physx::PxQuat(glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f })
 			* physx::PxQuat(glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }));
-		mRigidActor->setGlobalPose(transform);
+		mRigidActor->setGlobalPose(transform, autowake);
+	}
+
+	void PhysicsActor::WakeUp()
+	{
+		if (IsDynamic())
+		{
+			mRigidActor->is<physx::PxRigidDynamic>()->wakeUp();
+		}
+	}
+
+	void PhysicsActor::Sleep()
+	{
+		if (IsDynamic())
+		{
+			mRigidActor->is<physx::PxRigidDynamic>()->putToSleep();
+		}
 	}
 
 	float PhysicsActor::GetMass() const

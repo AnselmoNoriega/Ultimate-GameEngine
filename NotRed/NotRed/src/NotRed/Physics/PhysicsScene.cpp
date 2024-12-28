@@ -16,7 +16,11 @@ namespace NR
 		: mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
+#if ENABLE_ACTIVE_ACTORS
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
+#else
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
+#endif
 		sceneDesc.gravity = PhysicsUtils::ToPhysicsVector(settings.Gravity);
 		sceneDesc.broadPhaseType = PhysicsInternal::ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
 		sceneDesc.cpuDispatcher = PhysicsInternal::GetCPUDispatcher();
@@ -49,6 +53,7 @@ namespace NR
 
 		if (advanced)
 		{
+#if ENABLE_ACTIVE_ACTORS
 			uint32_t nbActiveActors;
 			physx::PxActor** activeActors = mPhysicsScene->getActiveActors(nbActiveActors);
 			for (uint32_t i = 0; i < nbActiveActors; ++i)
@@ -56,6 +61,12 @@ namespace NR
 				Ref<PhysicsActor> actor = (PhysicsActor*)(activeActors[i]->userData);
 				actor->SynchronizeTransform();
 			}
+#else
+			for (auto& actor : mActors)
+			{
+				actor->SynchronizeTransform();
+			}
+#endif
 		}
 	}
 
@@ -180,12 +191,14 @@ namespace NR
 
 	bool PhysicsScene::Advance(float dt)
 	{
-		SubstepStrategy(dt, mNumSubSteps, mSubStepSize);
+		SubstepStrategy(dt);
 
 		if (mNumSubSteps == 0)
 		{
 			return false;
 		}
+
+		NR_CORE_INFO("[Physics]: Sub Steps: {0}, Sub Step Size: {1}", mNumSubSteps, mSubStepSize);
 
 		for (uint32_t i = 0; i < mNumSubSteps; ++i)
 		{
@@ -196,7 +209,7 @@ namespace NR
 		return true;
 	}
 
-	void PhysicsScene::SubstepStrategy(float dt, uint32_t& substepCount, float& substepSize)
+	void PhysicsScene::SubstepStrategy(float dt)
 	{
 		if (mAccumulator > mSubStepSize)
 		{
@@ -206,14 +219,12 @@ namespace NR
 		mAccumulator += dt;
 		if (mAccumulator < mSubStepSize)
 		{
-			substepCount = 0;
+			mNumSubSteps = 0;
 			return;
 		}
 
-		substepSize = mSubStepSize;
-		substepCount = glm::min(static_cast<uint32_t>(mAccumulator / mSubStepSize), MAX_SUB_STEPS);
-
-		mAccumulator -= (float)substepCount * substepSize;
+		mNumSubSteps = glm::min(static_cast<uint32_t>(mAccumulator / mSubStepSize), MAX_SUB_STEPS);
+		mAccumulator -= (float)mNumSubSteps * mSubStepSize;
 	}
 
 	void PhysicsScene::Destroy()

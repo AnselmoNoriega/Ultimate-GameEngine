@@ -12,8 +12,6 @@ namespace NR
 		PhysicsActor(Entity entity);
 		~PhysicsActor();
 
-		void Rotate(const glm::vec3& rotation);
-
 		float GetMass() const;
 		void SetMass(float mass);
 
@@ -63,10 +61,14 @@ namespace NR
 		physx::PxRigidActor& GetPhysicsActor() const { return *mRigidActor; }
 
 		glm::vec3 GetPosition() const { return PhysicsUtils::FromPhysicsVector(mRigidActor->getGlobalPose().p); }
-		void SetPosition(const glm::vec3& position);
+		void SetPosition(const glm::vec3& translation, bool autowake = true);
 
 		glm::vec3 GetRotation() const { return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(mRigidActor->getGlobalPose().q)); }
-		void SetRotation(const glm::vec3& rotation);
+		void SetRotation(const glm::vec3& rotation, bool autowake = true);
+		void Rotate(const glm::vec3& rotation, bool autowake = true);
+
+		void WakeUp();
+		void Sleep();
 
 	private:
 		void CreateRigidActor();
