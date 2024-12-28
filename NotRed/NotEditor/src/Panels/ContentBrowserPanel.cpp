@@ -607,7 +607,10 @@ namespace NR
 				if (!assetInfo.IsValid())
 				{
 					AssetHandle handle = AssetManager::ImportAsset(entry.path());
-					mCurrentDirectory->Assets.push_back(handle);
+					if (handle != 0)
+					{
+						mCurrentDirectory->Assets.push_back(handle);
+					}
 				}
 			}
 			else

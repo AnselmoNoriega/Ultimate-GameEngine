@@ -14,6 +14,7 @@ namespace NR
 
 		const AssetMetadata& Get(const std::filesystem::path& path) const;
 
+		size_t Count() const { return mAssetRegistry.size(); }
 		bool Contains(const std::filesystem::path& path) const;
 		size_t Remove(const std::filesystem::path& path);
 

@@ -1843,6 +1843,18 @@ namespace NR
                 mViewportRenderer->GetOptions().ShowGrid = !mViewportRenderer->GetOptions().ShowGrid;
                 break;
             }
+            case KeyCode::P:
+            {
+                if (mViewportRenderer->GetOptions().ShowPhysicsColliders != SceneRendererOptions::PhysicsColliderView::None)
+                {
+                    mViewportRenderer->GetOptions().ShowPhysicsColliders = SceneRendererOptions::PhysicsColliderView::None;
+                }
+                else
+                {
+                    mViewportRenderer->GetOptions().ShowPhysicsColliders = SceneRendererOptions::PhysicsColliderView::Normal;
+                }
+                break;
+            }
             case KeyCode::N:
             {
                 NewScene();

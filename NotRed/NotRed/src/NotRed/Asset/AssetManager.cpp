@@ -177,7 +177,9 @@ namespace NR
 
     void AssetManager::LoadAssetRegistry()
     {
-        const std::string& assetRegistryPath = Project::GetAssetRegistryPath().string();
+        NR_CORE_INFO("[AssetManager] Loading Asset Registry");
+        const auto& assetRegistryPath = Project::GetAssetRegistryPath();
+
         if (!FileSystem::Exists(assetRegistryPath))
         {
             NR_CORE_VERIFY(false);
@@ -193,7 +195,7 @@ namespace NR
         auto handles = data["Assets"];
         if (!handles)
         {
-            NR_CORE_ERROR("AssetRegistry appears to be corrupted!");
+            NR_CORE_ERROR("[AssetManager] Asset Registry appears to be corrupted!");
             NR_CORE_VERIFY(false);
             return;
         }
@@ -215,7 +217,7 @@ namespace NR
             if (!FileSystem::Exists(AssetManager::GetFileSystemPath(metadata)))
             {
                 NR_CORE_VERIFY(false);
-                NR_CORE_WARN("Missing asset '{0}' detected in registry file, trying to locate...", metadata.FilePath.string());
+                NR_CORE_WARN("[AssetManager] Missing asset '{0}' detected in registry file, trying to locate...", metadata.FilePath.string());
 
                 std::string mostLikelyCandidate;
                 uint32_t bestScore = 0;
@@ -230,7 +232,7 @@ namespace NR
 
                     if (bestScore > 0)
                     {
-                        NR_CORE_WARN("Multiple candidates found...");
+                        NR_CORE_WARN("[AssetManager] Multiple candidates found...");
                     }
 
                     std::vector<std::string> candiateParts = Utils::SplitString(path.string(), "/\\");
@@ -259,28 +261,30 @@ namespace NR
 
                 if (mostLikelyCandidate.empty() && bestScore == 0)
                 {
-                    NR_CORE_ERROR("Failed to locate a potential match for '{0}'", metadata.FilePath.string());
+                    NR_CORE_ERROR("[AssetManager] Failed to locate a potential match for '{0}'", metadata.FilePath.string());
                     continue;
                 }
 
                 std::replace(mostLikelyCandidate.begin(), mostLikelyCandidate.end(), '\\', '/');
                 metadata.FilePath = std::filesystem::relative(mostLikelyCandidate, Project::GetActive()->GetAssetDirectory());
-                NR_CORE_WARN("Found most likely match '{0}'", metadata.FilePath.string());
+                NR_CORE_WARN("[AssetManager] Found most likely match '{0}'", metadata.FilePath.string());
             }
 
             if (metadata.Handle == 0)
             {
-                NR_CORE_WARN("AssetHandle for {0} is 0, this shouldn't happen.", metadata.FilePath.string());
+                NR_CORE_WARN("[AssetManager] AssetHandle for {0} is 0, this shouldn't happen.", metadata.FilePath.string());
                 continue;
             }
 
-            sAssetRegistry[metadata.FilePath.string()] = metadata;
+            sAssetRegistry[metadata.FilePath] = metadata;
         }
+        
+        NR_CORE_INFO("[AssetManager] Loaded {0} asset entries", sAssetRegistry.Count());
     }
 
     AssetHandle AssetManager::ImportAsset(const std::filesystem::path& filepath)
     {
-        std::filesystem::path path = std::filesystem::relative(filepath, Project::GetAssetDirectory());
+        std::filesystem::path path = GetRelativePath(filepath);
 
         // Already in the registry
         if (sAssetRegistry.Contains(path))

@@ -742,7 +742,10 @@ namespace NR
 				{
 					const AssetMetadata& metadata = AssetManager::GetMetadata(assetHandle);
 					if (metadata.Type == AssetType::Mesh)
+					{
 						component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+					}
+
 					else if (metadata.Type == AssetType::MeshAsset)
 					{
 						// Create new mesh
@@ -780,7 +783,9 @@ namespace NR
 						uint32_t index = materialEntry.first.as<uint32_t>();
 						AssetHandle materialAsset = materialEntry.second.as<AssetHandle>();
 						if (materialAsset && AssetManager::IsAssetHandleValid(materialAsset))
+						{
 							component.Materials->SetMaterial(index, AssetManager::GetAsset<MaterialAsset>(materialAsset));
+						}
 					}
 				}
 			}
