@@ -101,47 +101,63 @@ namespace NR
 			auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 			out << YAML::Key << "ModuleName" << YAML::Value << moduleName;
 
-			EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(entity.GetSceneID(), uuid);
-			const auto& moduleFieldMap = data.ModuleFieldMap;
-			if (moduleFieldMap.find(moduleName) != moduleFieldMap.end())
+			if (!moduleName.empty())
 			{
-				const auto& fields = moduleFieldMap.at(moduleName);
-				out << YAML::Key << "StoredFields" << YAML::Value;
-				out << YAML::BeginSeq;
-				for (const auto& [name, field] : fields)
+				EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(entity.GetSceneID(), uuid);
+				const auto& moduleFieldMap = data.ModuleFieldMap;
+				if (moduleFieldMap.find(moduleName) != moduleFieldMap.end())
 				{
-					out << YAML::BeginMap; // Field
-					out << YAML::Key << "Name" << YAML::Value << name;
-					out << YAML::Key << "Type" << YAML::Value << (uint32_t)field.Type;
-					out << YAML::Key << "Data" << YAML::Value;
-
-					switch (field.Type)
+					const auto& fields = moduleFieldMap.at(moduleName);
+					out << YAML::Key << "StoredFields" << YAML::Value;
+					out << YAML::BeginSeq;
+					for (const auto& [name, field] : fields)
 					{
-					case FieldType::Int:
-						out << field.GetStoredValue<int>();
-						break;
-					case FieldType::UnsignedInt:
-						out << field.GetStoredValue<uint32_t>();
-						break;
-					case FieldType::Float:
-						out << field.GetStoredValue<float>();
-						break;
-					case FieldType::Vec2:
-						out << field.GetStoredValue<glm::vec2>();
-						break;
-					case FieldType::Vec3:
-						out << field.GetStoredValue<glm::vec3>();
-						break;
-					case FieldType::Vec4:
-						out << field.GetStoredValue<glm::vec4>();
-						break;
-					case FieldType::Asset:
-						out << field.GetStoredValue<UUID>();
-						break;
+						out << YAML::BeginMap; // Field
+						out << YAML::Key << "Name" << YAML::Value << name;
+						out << YAML::Key << "Type" << YAML::Value << (uint32_t)field.Type;
+						out << YAML::Key << "Data" << YAML::Value;
+						switch (field.Type)
+						{
+						case FieldType::Int:
+						{
+							out << field.GetStoredValue<int>();
+							break;
+						}
+						case FieldType::UnsignedInt:
+						{
+							out << field.GetStoredValue<uint32_t>();
+							break;
+						}
+						case FieldType::Float:
+						{
+							out << field.GetStoredValue<float>();
+							break;
+						}
+						case FieldType::Vec2:
+						{
+							out << field.GetStoredValue<glm::vec2>();
+							break;
+						}
+						case FieldType::Vec3:
+						{
+							out << field.GetStoredValue<glm::vec3>();
+							break;
+						}
+						case FieldType::Vec4:
+						{
+							out << field.GetStoredValue<glm::vec4>();
+							break;
+						}
+						case FieldType::Asset:
+						{
+							out << field.GetStoredValue<UUID>();
+							break;
+						}
+						}
+						out << YAML::EndMap; // Field
 					}
-					out << YAML::EndMap; // Field
+					out << YAML::EndSeq;
 				}
-				out << YAML::EndSeq;
 			}
 
 			out << YAML::EndMap; // ScriptComponent
@@ -166,7 +182,6 @@ namespace NR
 				for (uint32_t i = 0; i < materialTable->GetMaterialCount(); ++i)
 				{
 					AssetHandle handle = (materialTable->HasMaterial(i) ? materialTable->GetMaterial(i)->Handle : (AssetHandle)0);
-					NR_CORE_ASSERT(AssetManager::IsAssetHandleValid(handle));
 					out << YAML::Key << i << YAML::Value << handle;
 				}
 

@@ -821,7 +821,8 @@ namespace NR
             if (mSceneState == SceneState::Edit)
             {
                 float physics2DGravity = mEditorScene->GetPhysics2DGravity();
-                if (UI::Property("Gravity", physics2DGravity, -10000.0f, 10000.0f))
+                float physics2DGravityDelta = physics2DGravity / 1000;
+                if (UI::Property("Gravity", physics2DGravity, physics2DGravityDelta, -10000.0f, 10000.0f))
                 {
                     mEditorScene->SetPhysics2DGravity(physics2DGravity);
                 }
@@ -829,7 +830,8 @@ namespace NR
             else if (mSceneState == SceneState::Play)
             {
                 float physics2DGravity = mRuntimeScene->GetPhysics2DGravity();
-                if (UI::Property("Gravity", physics2DGravity, -10000.0f, 10000.0f))
+                float physics2DGravityDelta = physics2DGravity / 1000;
+                if (UI::Property("Gravity", physics2DGravity, physics2DGravityDelta, -10000.0f, 10000.0f))
                 {
                     mRuntimeScene->SetPhysics2DGravity(physics2DGravity);
                 }

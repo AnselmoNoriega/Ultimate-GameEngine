@@ -614,10 +614,12 @@ namespace NR
 
     void ScriptEngine::ScriptComponentDestroyed(UUID sceneID, UUID entityID)
     {
-        NR_CORE_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end());
-        auto& entityMap = sEntityInstanceMap.at(sceneID);
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end());
-        entityMap.erase(entityID);
+        if (sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end())
+        {
+            auto& entityMap = sEntityInstanceMap.at(sceneID);
+            NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end());
+            entityMap.erase(entityID);
+        }
     }
 
     bool ScriptEngine::ModuleExists(const std::string& moduleName)

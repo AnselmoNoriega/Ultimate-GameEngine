@@ -988,26 +988,6 @@ namespace NR
 			return;
 		}
 
-		Renderer::Submit([cb = mCommandBuffer, image = mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetSpecification().ExistingImage.As<VKImage2D>()]()
-			{
-				VkImageMemoryBarrier imageMemoryBarrier = {};
-				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				imageMemoryBarrier.image = image->GetImageInfo().Image;
-				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, image->GetSpecification().Mips, 0, 1 };
-				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-				imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-				vkCmdPipelineBarrier(
-					cb.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex()),
-					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-					0,
-					0, nullptr,
-					0, nullptr,
-					1, &imageMemoryBarrier);
-			});
-
 		for (int i = 0; i < 4; ++i)
 		{
 			Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass);
@@ -1028,26 +1008,6 @@ namespace NR
 
 			Renderer::EndRenderPass(mCommandBuffer);
 		}
-
-		Renderer::Submit([cb = mCommandBuffer, image = mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetSpecification().ExistingImage.As<VKImage2D>()]()
-			{
-				VkImageMemoryBarrier imageMemoryBarrier = {};
-				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-				imageMemoryBarrier.image = image->GetImageInfo().Image;
-				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, image->GetSpecification().Mips, 0, 1 };
-				imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-				vkCmdPipelineBarrier(
-					cb.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex()),
-					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-					0,
-					0, nullptr,
-					0, nullptr,
-					1, &imageMemoryBarrier);
-			});
 
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.ShadowMapPassQuery);
 	}
