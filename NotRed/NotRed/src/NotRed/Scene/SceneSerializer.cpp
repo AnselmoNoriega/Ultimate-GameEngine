@@ -686,8 +686,7 @@ namespace NR
 							auto& publicFields = moduleFieldMap[moduleName];
 							if (publicFields.find(name) == publicFields.end())
 							{
-								PublicField pf = { name, typeName, type };
-								publicFields.emplace(name, std::move(pf));
+								continue;
 							}
 							auto dataNode = field["Data"];
 							switch (type)

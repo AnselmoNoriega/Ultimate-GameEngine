@@ -240,8 +240,16 @@ namespace NR
 			{
 				Entity e = { entity, this };
 				if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+				{
 					ScriptEngine::UpdateEntity(e, dt);
+				}
 			}
+
+			for (auto&& fn : mPostUpdateQueue)
+			{
+				fn();
+			}
+			mPostUpdateQueue.clear();
 		}
 
 		{
@@ -1352,6 +1360,11 @@ namespace NR
 		return entity;
 	}
 
+	void Scene::SubmitToDestroyEntity(Entity entity)
+	{
+		SubmitPostUpdateFunc([entity]() { entity.mScene->DestroyEntity(entity); });
+	}
+
 	void Scene::DestroyEntity(Entity entity)
 	{
 		NR_PROFILE_FUNC();
@@ -1364,6 +1377,11 @@ namespace NR
 		if (entity.HasComponent<Audio::AudioComponent>())
 		{
 			Audio::AudioEngine::Get().UnregisterAudioComponent(mSceneID, entity.GetID());
+		}
+
+		if (entity.HasComponent<RigidBodyComponent>())
+		{
+			PhysicsManager::GetScene()->RemoveActor(PhysicsManager::GetScene()->GetActor(entity));
 		}
 
 		mRegistry.destroy(entity.mEntityHandle);

@@ -95,6 +95,7 @@ namespace NR
 
 		Entity CreateEntity(const std::string& name = "Entity");
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
+		void SubmitToDestroyEntity(Entity entity);
 		void DestroyEntity(Entity entity);
 
 		Entity DuplicateEntity(Entity entity);
@@ -146,6 +147,13 @@ namespace NR
 		static Ref<Scene> CreateEmpty();
 
 	private:
+		template<typename Fn>
+		void SubmitPostUpdateFunc(Fn&& func)
+		{
+			mPostUpdateQueue.emplace_back(func);
+		}
+
+	private:
 		UUID mSceneID;
 		entt::entity mSceneEntity;
 		entt::registry mRegistry;
@@ -169,6 +177,8 @@ namespace NR
 		entt::entity mSelectedEntity;
 
 		Entity* mPhysics2DBodyEntityBuffer = nullptr;
+
+		std::vector<std::function<void()>> mPostUpdateQueue;
 
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;

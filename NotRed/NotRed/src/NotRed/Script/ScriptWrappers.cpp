@@ -155,6 +155,18 @@ namespace NR::Script
 		return result.GetID();
 	}
 
+	void NR_Entity_DestroyEntity(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		scene->SubmitToDestroyEntity(entity);
+	}
+
 	void NR_Entity_CreateComponent(uint64_t entityID, void* type)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

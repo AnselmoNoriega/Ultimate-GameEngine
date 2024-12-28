@@ -49,6 +49,16 @@ namespace NR
             return new Entity(entityID);
         }
 
+        public void Destroy()
+        {
+            DestroyEntity_Native(ID);
+        }
+
+        public void Destroy(Entity entity)
+        {
+            DestroyEntity_Native(entity.ID);
+        }
+
         public Vector3 Translation
         {
             get
@@ -238,6 +248,8 @@ namespace NR
         private static extern ulong CreateEntity_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong Instantiate_Native(ulong entityID, ulong prefabID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ulong DestroyEntity_Native(ulong entityID);
 
     }
 }
