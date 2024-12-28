@@ -748,6 +748,20 @@ namespace NR
                 pipeline->Begin(renderCommandBuffer);
                 pipeline->SetPushConstants(glm::value_ptr(screenSize), sizeof(glm::ivec2));
                 pipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
+
+                VkMemoryBarrier barrier = {};
+                barrier.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER;
+                barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+                vkCmdPipelineBarrier(renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex),
+                    VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    0,
+                    1, &barrier,
+                    0, nullptr,
+                    0, nullptr);
+
                 pipeline->End();
             });
     }

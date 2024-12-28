@@ -118,6 +118,8 @@ namespace NR
         sData = new RendererData();
         sCommandQueue = new RenderCommandQueue();
 
+        Renderer::GetConfig().FramesInFlight = glm::min<uint32_t>(Renderer::GetConfig().FramesInFlight, Application::Get().GetWindow().GetSwapChain().GetImageCount());
+
         sRendererAPI = InitRendererAPI();
 
         sData->mShaderLibrary = Ref<ShaderLibrary>::Create();

@@ -67,6 +67,7 @@ namespace NR
         TextureFilter SamplerFilter = TextureFilter::Linear;
         bool GenerateMips = true;
         bool StandardRGB = false;
+        bool Storage = false;
     };
 
     class Image : public RefCounted

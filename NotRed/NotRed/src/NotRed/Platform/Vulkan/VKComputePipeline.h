@@ -22,6 +22,7 @@ namespace NR
 		void CreatePipeline();
 
 		Ref<Shader> GetShader() override { return mShader; }
+		VkCommandBuffer GetActiveCommandBuffer() { return mActiveComputeCommandBuffer; }
 
 		void SetPushConstants(const void* data, uint32_t size);
 

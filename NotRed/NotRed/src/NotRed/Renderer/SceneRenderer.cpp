@@ -262,6 +262,7 @@ namespace NR
 			mBloomComputePipeline = PipelineCompute::Create(shader);
 			TextureProperties props;
 			props.SamplerWrap = TextureWrap::Clamp;
+			props.Storage = true;
 			mBloomComputeTextures[0] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
 			mBloomComputeTextures[1] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
 			mBloomComputeTextures[2] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
@@ -987,6 +988,26 @@ namespace NR
 			return;
 		}
 
+		Renderer::Submit([cb = mCommandBuffer, image = mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetSpecification().ExistingImage.As<VKImage2D>()]()
+			{
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				imageMemoryBarrier.image = image->GetImageInfo().Image;
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, image->GetSpecification().Mips, 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				vkCmdPipelineBarrier(
+					cb.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex()),
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+			});
+
 		for (int i = 0; i < 4; ++i)
 		{
 			Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass);
@@ -1007,6 +1028,26 @@ namespace NR
 
 			Renderer::EndRenderPass(mCommandBuffer);
 		}
+
+		Renderer::Submit([cb = mCommandBuffer, image = mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetSpecification().ExistingImage.As<VKImage2D>()]()
+			{
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				imageMemoryBarrier.image = image->GetImageInfo().Image;
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, image->GetSpecification().Mips, 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				vkCmdPipelineBarrier(
+					cb.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex()),
+					VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+					VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+			});
 
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.ShadowMapPassQuery);
 	}
@@ -1038,6 +1079,27 @@ namespace NR
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
+
+		Renderer::Submit([cb = mCommandBuffer, image = mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage().As<VKImage2D>()]()
+			{
+				VkImageMemoryBarrier imageMemoryBarrier = {};
+				imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+				imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+				imageMemoryBarrier.image = image->GetImageInfo().Image;
+				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, image->GetSpecification().Mips, 0, 1 };
+				imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+				vkCmdPipelineBarrier(
+					cb.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex()),
+					VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+					VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+					0,
+					0, nullptr,
+					0, nullptr,
+					1, &imageMemoryBarrier);
+			});
+
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.DepthPrePassQuery);
 	}
 
@@ -1267,6 +1329,8 @@ namespace NR
 
 		Renderer::Submit([bloomComputePushConstants, inputTexture, workGroupSize = mBloomComputeWorkgroupSize, commandBuffer = mCommandBuffer, bloomTextures = mBloomComputeTextures, pipeline]() mutable
 			{
+				constexpr bool useComputeQueue = false;
+
 				VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
 				Ref<VKImage2D> images[3] =
@@ -1290,7 +1354,26 @@ namespace NR
 				allocInfo.descriptorSetCount = 1;
 				allocInfo.pSetLayouts = &descriptorSetLayout;
 
-				pipeline->Begin(commandBuffer);
+				pipeline->Begin(useComputeQueue ? nullptr : commandBuffer);
+				if (false)
+				{
+					VkImageMemoryBarrier imageMemoryBarrier = {};
+					imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+					imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+					imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+					imageMemoryBarrier.image = inputTexture->GetImageInfo().Image;
+					imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, inputTexture->GetSpecification().Mips, 0, 1 };
+					imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+					imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					vkCmdPipelineBarrier(
+						pipeline->GetActiveCommandBuffer(),
+						VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						0,
+						0, nullptr,
+						0, nullptr,
+						1, &imageMemoryBarrier);
+				}
 
 				// Output image
 				VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
@@ -1314,6 +1397,25 @@ namespace NR
 
 				pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
 				pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+
+				{
+					VkImageMemoryBarrier imageMemoryBarrier = {};
+					imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+					imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+					imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+					imageMemoryBarrier.image = images[0]->GetImageInfo().Image;
+					imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, images[0]->GetSpecification().Mips, 0, 1 };
+					imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+					imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					vkCmdPipelineBarrier(
+						pipeline->GetActiveCommandBuffer(),
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						0,
+						0, nullptr,
+						0, nullptr,
+						1, &imageMemoryBarrier);
+				}
 
 				bloomComputePushConstants.Mode = 1;
 
@@ -1353,6 +1455,24 @@ namespace NR
 						pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
 					}
 					{
+						VkImageMemoryBarrier imageMemoryBarrier = {};
+						imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+						imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageMemoryBarrier.image = images[1]->GetImageInfo().Image;
+						imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, images[1]->GetSpecification().Mips, 0, 1 };
+						imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+						imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+						vkCmdPipelineBarrier(
+							pipeline->GetActiveCommandBuffer(),
+							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+							0,
+							0, nullptr,
+							0, nullptr,
+							1, &imageMemoryBarrier);
+					}
+					{
 						descriptorImageInfo.imageView = images[0]->RT_GetMipImageView(i);
 
 						// Output image
@@ -1377,6 +1497,24 @@ namespace NR
 						bloomComputePushConstants.LOD = i;
 						pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
 						pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+					}
+					{
+						VkImageMemoryBarrier imageMemoryBarrier = {};
+						imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+						imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageMemoryBarrier.image = images[0]->GetImageInfo().Image;
+						imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, images[0]->GetSpecification().Mips, 0, 1 };
+						imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+						imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+						vkCmdPipelineBarrier(
+							pipeline->GetActiveCommandBuffer(),
+							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+							0,
+							0, nullptr,
+							0, nullptr,
+							1, &imageMemoryBarrier);
 					}
 				}
 
@@ -1411,6 +1549,25 @@ namespace NR
 				workGroupsY = (uint32_t)glm::ceil((float)mipHeight / (float)workGroupSize);
 				pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
 
+				{
+					VkImageMemoryBarrier imageMemoryBarrier = {};
+					imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+					imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+					imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+					imageMemoryBarrier.image = images[2]->GetImageInfo().Image;
+					imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, images[2]->GetSpecification().Mips, 0, 1 };
+					imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+					imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+					vkCmdPipelineBarrier(
+						pipeline->GetActiveCommandBuffer(),
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+						0,
+						0, nullptr,
+						0, nullptr,
+						1, &imageMemoryBarrier);
+				}
+
 				bloomComputePushConstants.Mode = 3;
 
 				// Upsample
@@ -1441,6 +1598,25 @@ namespace NR
 					bloomComputePushConstants.LOD = mip;
 					pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
 					pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+
+					{
+						VkImageMemoryBarrier imageMemoryBarrier = {};
+						imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+						imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
+						imageMemoryBarrier.image = images[2]->GetImageInfo().Image;
+						imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, images[2]->GetSpecification().Mips, 0, 1 };
+						imageMemoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+						imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+						vkCmdPipelineBarrier(
+							pipeline->GetActiveCommandBuffer(),
+							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+							VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+							0,
+							0, nullptr,
+							0, nullptr,
+							1, &imageMemoryBarrier);
+					}
 				}
 
 				pipeline->End();

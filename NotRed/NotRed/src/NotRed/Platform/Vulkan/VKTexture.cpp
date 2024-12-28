@@ -83,6 +83,10 @@ namespace NR
         imageSpec.Width = mWidth;
         imageSpec.Height = mHeight;
         imageSpec.Mips = GetMipLevelCount();
+        if (properties.Storage)
+        {
+            imageSpec.Usage = ImageUsage::Storage;
+        }
         mImage = Image2D::Create(imageSpec);
 
         NR_CORE_ASSERT(mFormat != ImageFormat::None);
@@ -293,22 +297,25 @@ namespace NR
         sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
         VK_CHECK_RESULT(vkCreateSampler(vulkanDevice, &sampler, nullptr, &info.Sampler));
 
-        VkImageViewCreateInfo view{};
-        view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        view.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        view.format = Utils::VulkanImageFormat(mFormat);
-        view.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
-        // The subresource range describes the set of mip levels (and array layers) that can be accessed through this image view
-        // It's possible to create multiple image views for a single image referring to different (and/or overlapping) ranges of the image
-        view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        view.subresourceRange.baseMipLevel = 0;
-        view.subresourceRange.baseArrayLayer = 0;
-        view.subresourceRange.layerCount = 1;
-        view.subresourceRange.levelCount = mipCount;
-        view.image = info.Image;
-        VK_CHECK_RESULT(vkCreateImageView(vulkanDevice, &view, nullptr, &info.ImageView));
+        if (!mProperties.Storage)
+        {
+            VkImageViewCreateInfo view{};
+            view.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            view.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            view.format = Utils::VulkanImageFormat(mFormat);
+            view.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
 
-        image->UpdateDescriptor();
+            // The subresource range describes the set of mip levels (and array layers) that can be accessed through this image view
+            // It's possible to create multiple image views for a single image referring to different (and/or overlapping) ranges of the image
+            view.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            view.subresourceRange.baseMipLevel = 0;
+            view.subresourceRange.baseArrayLayer = 0;
+            view.subresourceRange.layerCount = 1;
+            view.subresourceRange.levelCount = mipCount;
+            view.image = info.Image;
+            VK_CHECK_RESULT(vkCreateImageView(vulkanDevice, &view, nullptr, &info.ImageView));
+            image->UpdateDescriptor();
+        }
 
         if (mImageData)
         {
