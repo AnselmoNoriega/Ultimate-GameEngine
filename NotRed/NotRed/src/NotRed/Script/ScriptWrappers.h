@@ -88,8 +88,8 @@ namespace NR::Script
     void NR_RigidBodyComponent_SetRotation(uint64_t entityID, glm::vec3* rotation);
     void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation);
     void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode foceMode);	
-    void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* position);
-    void NR_RigidBodyComponent_SetPosition(uint64_t entityID, glm::vec3* position);
+    void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* outTranslation);
+    void NR_RigidBodyComponent_SetPosition(uint64_t entityID, glm::vec3* inTranslation);
     void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
     void NR_RigidBodyComponent_GetVelocity(uint64_t entityID, glm::vec3* outVelocity);
     void NR_RigidBodyComponent_SetVelocity(uint64_t entityID, glm::vec3* velocity);

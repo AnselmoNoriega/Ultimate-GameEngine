@@ -52,6 +52,8 @@ namespace NR
 
 		static VkSampler GetClampSampler();
 		static int32_t& GetSelectedDrawCall();
+
+		static uint32_t GetDescriptorAllocationCount(uint32_t frameIndex = 0);
 	};
 
 	namespace Utils 

@@ -34,6 +34,7 @@ namespace NR
     static MonoMethod* GetMethod(MonoImage* image, const std::string& methodDesc);
 
     static MonoMethod* sExceptionMethod = nullptr;
+    static MonoClass* sEntityClass = nullptr;
 
     struct EntityScriptClass
     {
@@ -311,6 +312,7 @@ namespace NR
 
         sCoreAssemblyImage = GetAssemblyImage(sCoreAssembly);
         sExceptionMethod = GetMethod(sCoreAssemblyImage, "NR.RuntimeException:Exception(object)");
+        sEntityClass = mono_class_from_name(sCoreAssemblyImage, "NR", "Entity");
 
         return true;
     }
@@ -639,7 +641,13 @@ namespace NR
         }
 
         MonoClass* monoClass = mono_class_from_name(sAppAssemblyImage, NamespaceName.c_str(), ClassName.c_str());
-        return monoClass != nullptr;
+        if (!monoClass)
+        {
+            return false;
+        }
+
+        auto isEntitySubclass = mono_class_is_subclass_of(monoClass, sEntityClass, 0);
+        return isEntitySubclass;
     }
 
     std::string ScriptEngine::StripNamespace(const std::string& nameSpace, const std::string& moduleName)
@@ -667,7 +675,7 @@ namespace NR
         case MONO_TYPE_CLASS:
         {
             char* name = mono_type_get_name(monoType);
-            if (strcmp(name, "Hazel.Prefab") == 0) return FieldType::Asset;
+            if (strcmp(name, "NR.Prefab") == 0) return FieldType::Asset;
             {
                 return FieldType::ClassReference;
             }
@@ -896,7 +904,10 @@ namespace NR
     {
         NR_CORE_ASSERT(sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end(), "Invalid scene ID!");
         auto& entityIDMap = sEntityInstanceMap.at(sceneID);
-        NR_CORE_ASSERT(entityIDMap.find(entityID) != entityIDMap.end(), "Invalid entity ID!");
+        if (entityIDMap.find(entityID) == entityIDMap.end())
+        {
+            ScriptEngine::InitScriptEntity(sSceneContext->GetEntityMap().at(entityID));
+        }
         return entityIDMap.at(entityID);
     }
 

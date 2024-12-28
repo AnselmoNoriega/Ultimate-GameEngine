@@ -107,6 +107,21 @@ namespace NR
             return new Vector3(left.x + right, left.y + right, left.z + right);
         }
 
+        public static Vector3 Lerp(Vector3 p1, Vector3 p2, float maxDistanceDelta)
+        {
+            if (maxDistanceDelta < 0.0f)
+            {
+                return p1;
+            }
+
+            if (maxDistanceDelta > 1.0f)
+            {
+                return p2;
+            }
+
+            return p1 + ((p2 - p1) * maxDistanceDelta);
+        }
+
         public static Vector3 operator *(Vector3 left, float scalar)
         {
             return new Vector3(left.x * scalar, left.y * scalar, left.z * scalar);

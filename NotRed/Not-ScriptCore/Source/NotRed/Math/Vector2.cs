@@ -55,5 +55,10 @@ namespace NR
         {
             return "(" + x + ", " + y + ")";
         }
+
+        public float Length()
+        {
+            return (float)Math.Sqrt(x * x + y * y);
+        }
     }
 }

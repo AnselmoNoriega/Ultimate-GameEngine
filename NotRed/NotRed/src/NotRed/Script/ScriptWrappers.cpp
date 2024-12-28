@@ -726,7 +726,7 @@ namespace NR::Script
 		component.BodyType = *type;
 	}
 
-	void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* position)
+	void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* outTranslation)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
 		NR_CORE_ASSERT(scene, "No active scene!");
@@ -738,10 +738,10 @@ namespace NR::Script
 		NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
 		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-		*position = actor->GetPosition();
+		*outTranslation = actor->GetPosition();
 	}
 
-	void NR_RigidBodyComponent_SetPosition(uint64_t entityID, glm::vec3* position)
+	void NR_RigidBodyComponent_SetPosition(uint64_t entityID, glm::vec3* inTranslation)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
 		NR_CORE_ASSERT(scene, "No active scene!");
@@ -751,9 +751,11 @@ namespace NR::Script
 
 		Entity entity = entityMap.at(entityID);
 		NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+		auto& component = entity.GetComponent<RigidBodyComponent>();
 
 		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-		actor->SetPosition(*position);
+		NR_CORE_ASSERT(actor);
+		actor->SetPosition(*inTranslation);
 	}
 
 	void NR_RigidBodyComponent_GetRotation(uint64_t entityID, glm::vec3* rotation)
@@ -901,6 +903,7 @@ namespace NR::Script
 		}
 
 		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+		NR_CORE_ASSERT(actor);
 		actor->AddForce(*force, forceMode);
 	}
 
@@ -1361,6 +1364,10 @@ namespace NR::Script
 	Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index)
 	{
 		Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
+		if (!mesh->IsValid())
+		{
+			return nullptr;
+		}
 		const auto& materialTable = mesh->GetMaterials();
 
 		NR_CORE_ASSERT(index < materialTable->GetMaterialCount());

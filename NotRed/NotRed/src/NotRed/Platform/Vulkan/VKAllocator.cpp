@@ -90,28 +90,34 @@ namespace NR
 
     void VKAllocator::DumpStats()
     {
-        VmaBudget budgets[VK_MAX_MEMORY_HEAPS] = {};
-        vmaGetHeapBudgets(sData->Allocator, budgets);
+        const auto& memoryProps = VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetMemoryProperties();
+        std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
+        vmaGetHeapBudgets(sData->Allocator, budgets.data());
 
-        uint64_t usedMemory = budgets[0].usage;
-        uint64_t freeMemory = budgets[0].budget - budgets[0].usage;
+        NR_CORE_WARN("-----------------------------------");
+        for (VmaBudget& b : budgets)
+        {
+            NR_CORE_WARN("VmaBudget.allocationBytes = {0}", Utils::BytesToString(b.statistics.allocationBytes));
+            NR_CORE_WARN("VmaBudget.blockBytes = {0}", Utils::BytesToString(b.statistics.blockBytes));
+            NR_CORE_WARN("VmaBudget.usage = {0}", Utils::BytesToString(b.usage));
+            NR_CORE_WARN("VmaBudget.budget = {0}", Utils::BytesToString(b.budget));
+        }
+        NR_CORE_WARN("-----------------------------------");
     }
 
     GPUMemoryStats VKAllocator::GetStats()
     {
-        VmaBudget budgets[VK_MAX_MEMORY_HEAPS] = {};
-        vmaGetHeapBudgets(sData->Allocator, budgets);
-
-        uint64_t totalUsedMemory = 0;
-        uint64_t totalFreeMemory = 0;
-
-        for (uint32_t i = 0; i < VK_MAX_MEMORY_HEAPS; ++i) 
+        const auto& memoryProps = VKContext::GetCurrentDevice()->GetPhysicalDevice()->GetMemoryProperties();
+        std::vector<VmaBudget> budgets(memoryProps.memoryHeapCount);
+        vmaGetHeapBudgets(sData->Allocator, budgets.data());
+        uint64_t usage = 0;
+        uint64_t budget = 0;
+        for (VmaBudget& b : budgets)
         {
-            totalUsedMemory += budgets[i].usage;
-            totalFreeMemory += (budgets[i].budget - budgets[i].usage);
+            usage += b.usage;
+            budget += b.budget;
         }
-
-        return { totalUsedMemory, totalFreeMemory };
+        return { usage, budget };
     }
 
     void VKAllocator::Init(Ref<VKDevice> device)

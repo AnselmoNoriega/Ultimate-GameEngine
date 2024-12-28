@@ -29,7 +29,8 @@ namespace NR
 		const QueueFamilyIndices& GetQueueFamilyIndices() const { return mQueueFamilyIndices; }
 
 		const VkPhysicalDeviceProperties& GetProperties() const { return mProperties; }
-		const VkPhysicalDeviceLimits& GetLimits() const { return mProperties.limits; }
+		const VkPhysicalDeviceLimits& GetLimits() const { return mProperties.limits; }		
+		const VkPhysicalDeviceMemoryProperties& GetMemoryProperties() const { return mMemoryProperties; }
 
 		VkFormat GetDepthFormat() const { return mDepthFormat; }
 

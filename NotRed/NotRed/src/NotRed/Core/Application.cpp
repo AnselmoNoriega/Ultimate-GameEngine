@@ -124,6 +124,7 @@ namespace NR
 				std::string free = Utils::BytesToString(memoryStats.Free);
 				ImGui::Text("Used VRAM: %s", used.c_str());
 				ImGui::Text("Free VRAM: %s", free.c_str());
+				ImGui::Text("Descriptor Allocs: %d", VKRenderer::GetDescriptorAllocationCount(Renderer::GetCurrentFrameIndex()));
 			}
 		}
 
