@@ -39,7 +39,8 @@ namespace NR
 		aiProcess_GenNormals |              // Make sure we have normals
 		aiProcess_GenUVCoords |             // Convert UVs if required 
 		aiProcess_OptimizeMeshes |          // Batch draws where possible
-		aiProcess_JoinIdenticalVertices |
+		aiProcess_JoinIdenticalVertices |   // Remove vertices that are identical
+		aiProcess_LimitBoneWeights |        // If more than 4 bone weights, discard least influencing ones and renormalize sum to 1
 		aiProcess_ValidateDataStructure;    // Validation
 
 	struct LogStream : public Assimp::LogStream
