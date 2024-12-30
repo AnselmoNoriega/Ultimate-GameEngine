@@ -85,6 +85,16 @@ namespace NR
 			return !(*this == other);
 		}
 
+		Entity GetParent()
+		{
+			if (!HasParent())
+			{
+				return {};
+			}
+
+			return mScene->FindEntityByID(GetParentID());
+		}
+
 		void SetParent(Entity parent)
 		{
 			SetParentID(parent.GetID());
@@ -97,6 +107,20 @@ namespace NR
 		void SetParentID(UUID parent) { GetComponent<RelationshipComponent>().ParentHandle = parent; }
 		UUID GetParentID() const { return GetComponent<RelationshipComponent>().ParentHandle; }
 		std::vector<UUID>& Children() { return GetComponent<RelationshipComponent>().Children; }
+
+		bool RemoveChild(Entity child)
+		{
+			UUID childId = child.GetID();
+			std::vector<UUID>& children = Children();
+			auto it = std::find(children.begin(), children.end(), childId);
+			if (it != children.end())
+			{
+				children.erase(it);
+				return true;
+			}
+
+			return false;
+		}
 
 		bool HasParent() { return mScene->FindEntityByID(GetParentID()); }
 

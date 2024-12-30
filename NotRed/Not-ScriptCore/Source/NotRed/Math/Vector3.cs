@@ -102,7 +102,12 @@ namespace NR
                                     Math.Pow(p2.z - p1.z, 2));
         }
 
-        public static Vector3 operator +(Vector3 left, float right)
+        public static Vector3 operator*(Vector3 left, Vector3 right)
+        {
+            return new Vector3(left.x * right.x, left.y * right.y, left.z * right.z);
+        }
+
+        public static Vector3 operator+(Vector3 left, float right)
         {
             return new Vector3(left.x + right, left.y + right, left.z + right);
         }
@@ -122,39 +127,49 @@ namespace NR
             return p1 + ((p2 - p1) * maxDistanceDelta);
         }
 
-        public static Vector3 operator *(Vector3 left, float scalar)
+        public static Vector3 operator*(Vector3 left, float scalar)
         {
             return new Vector3(left.x * scalar, left.y * scalar, left.z * scalar);
         }
 
-        public static Vector3 operator *(float scalar, Vector3 right)
+        public static Vector3 operator*(float scalar, Vector3 right)
         {
             return new Vector3(scalar * right.x, scalar * right.y, scalar * right.z);
         }
 
-        public static Vector3 operator +(Vector3 left, Vector3 right)
+        public static Vector3 operator+(Vector3 left, Vector3 right)
         {
             return new Vector3(left.x + right.x, left.y + right.y, left.z + right.z);
         }
 
-        public static Vector3 operator -(Vector3 left, Vector3 right)
+        public static Vector3 operator-(Vector3 left, Vector3 right)
         {
             return new Vector3(left.x - right.x, left.y - right.y, left.z - right.z);
         }
 
-        public static Vector3 operator /(Vector3 left, Vector3 right)
+        public static Vector3 operator/(Vector3 left, Vector3 right)
         {
             return new Vector3(left.x / right.x, left.y / right.y, left.z / right.z);
         }
 
-        public static Vector3 operator /(Vector3 left, float scalar)
+        public static Vector3 operator/(Vector3 left, float scalar)
         {
             return new Vector3(left.x / scalar, left.y / scalar, left.z / scalar);
         }
 
-        public static Vector3 operator -(Vector3 vector)
+        public static Vector3 operator-(Vector3 vector)
         {
             return new Vector3(-vector.x, -vector.y, -vector.z);
+        }
+
+        public static bool operator ==(Vector3 left, Vector3 right)
+        {
+            return (left.x == right.x && left.y == right.y && left.z == right.z);
+        }
+
+        public static bool operator !=(Vector3 left, Vector3 right)
+        {
+            return !(left == right);
         }
 
         public static Vector3 Cos(Vector3 vector)

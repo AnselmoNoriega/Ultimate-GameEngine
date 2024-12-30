@@ -55,12 +55,12 @@ namespace NR
 
 			if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
 			{
-				ScriptEngine::Collision2DBegin(a);
+				ScriptEngine::Collision2DBegin(a, b);
 			}
 
 			if (b.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(b.GetComponent<ScriptComponent>().ModuleName))
 			{
-				ScriptEngine::Collision2DBegin(b);
+				ScriptEngine::Collision2DBegin(b, a);
 			}
 		}
 
@@ -77,12 +77,12 @@ namespace NR
 			// TODO: improve these if checks
 			if (a.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(a.GetComponent<ScriptComponent>().ModuleName))
 			{
-				ScriptEngine::Collision2DEnd(a);
+				ScriptEngine::Collision2DEnd(a, b);
 			}
 
 			if (b.HasComponent<ScriptComponent>() && ScriptEngine::ModuleExists(b.GetComponent<ScriptComponent>().ModuleName))
 			{
-				ScriptEngine::Collision2DEnd(b);
+				ScriptEngine::Collision2DEnd(b, a);
 			}
 		}
 
@@ -1392,6 +1392,11 @@ namespace NR
 			PhysicsManager::GetScene()->RemoveActor(PhysicsManager::GetScene()->GetActor(entity));
 		}
 
+		if (Entity parent = entity.GetParent())
+		{
+			parent.RemoveChild(entity);
+		}
+
 		mRegistry.destroy(entity.mEntityHandle);
 	}
 
@@ -1511,7 +1516,7 @@ namespace NR
 		return newEntity;
 	}
 
-	Entity Scene::CreatePrefabEntity(Entity entity)
+	Entity Scene::CreatePrefabEntity(Entity entity, const glm::vec3* translation)
 	{
 		NR_CORE_VERIFY(entity.HasComponent<PrefabComponent>());
 		Entity newEntity = CreateEntity();
@@ -1536,6 +1541,11 @@ namespace NR
 		CopyComponentIfExists<MeshColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<Audio::AudioComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<AudioListenerComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+
+		if (translation)
+		{
+			newEntity.Transform().Translation = *translation;
+		}
 
 #if _DEBUG && 0
 		// Check that nothing has been forgotten...
@@ -1564,7 +1574,7 @@ namespace NR
 
 		return newEntity;
 	}
-	Entity Scene::Instantiate(Ref<Prefab> prefab)
+	Entity Scene::Instantiate(Ref<Prefab> prefab, const glm::vec3* translation)	
 	{
 		Entity result;
 
@@ -1574,7 +1584,7 @@ namespace NR
 			Entity entity = { e, prefab->mScene.Raw() };
 			if (!entity.HasParent())
 			{
-				result = CreatePrefabEntity(entity);
+				result = CreatePrefabEntity(entity, translation);
 				break;
 			}
 		}

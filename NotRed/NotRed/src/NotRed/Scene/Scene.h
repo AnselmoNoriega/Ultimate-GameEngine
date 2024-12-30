@@ -99,8 +99,8 @@ namespace NR
 		void DestroyEntity(Entity entity);
 
 		Entity DuplicateEntity(Entity entity);
-		Entity CreatePrefabEntity(Entity entity);
-		Entity Instantiate(Ref<Prefab> prefab);
+		Entity CreatePrefabEntity(Entity entity, const glm::vec3* translation = nullptr);
+		Entity Instantiate(Ref<Prefab> prefab, const glm::vec3* translation = nullptr);
 
 		template<typename T>
 		auto GetAllEntitiesWith()

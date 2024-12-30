@@ -53,6 +53,7 @@ namespace NR::Script
     MonoArray* NR_Entity_GetChildren(uint64_t entityID);
     uint64_t NR_Entity_CreateEntity(uint64_t entityID);
     uint64_t NR_Entity_Instantiate(uint64_t entityID, uint64_t prefabID);
+    uint64_t NR_Entity_InstantiateWithTranslation(uint64_t entityID, uint64_t prefabID, glm::vec3* tranlation);
     void NR_Entity_DestroyEntity(uint64_t entityID);
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);

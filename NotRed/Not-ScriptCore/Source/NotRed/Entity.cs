@@ -7,14 +7,14 @@ namespace NR
     {
         public ulong ID { get; private set; }
 
-        private Action<float> _collision2DBeginCallbacks;
-        private Action<float> _collision2DEndCallbacks;
+        private Action<Entity> _collision2DBeginCallbacks;
+        private Action<Entity> _collision2DEndCallbacks;
 
-        private Action<float> _collisionBeginCallbacks;
-        private Action<float> _collisionEndCallbacks;
+        private Action<Entity> _collisionBeginCallbacks;
+        private Action<Entity> _collisionEndCallbacks;
 
-        private Action<float> _triggerBeginCallbacks;
-        private Action<float> _triggerEndCallbacks;
+        private Action<Entity> _triggerBeginCallbacks;
+        private Action<Entity> _triggerEndCallbacks;
 
         protected Entity() { ID = 0; }
 
@@ -41,6 +41,17 @@ namespace NR
         public Entity Instantiate(Prefab prefab)
         {
             ulong entityID = Instantiate_Native(ID, prefab.ID);
+            if (entityID == 0)
+            {
+                return null;
+            }
+
+            return new Entity(entityID);
+        }
+
+        public Entity Instantiate(Prefab prefab, Vector3 translation)
+        {
+            ulong entityID = InstantiateWithTranslation_Native(ID, prefab.ID, ref translation);
             if (entityID == 0)
             {
                 return null;
@@ -158,75 +169,75 @@ namespace NR
             return new Entity(entityID);
         }
 
-        public void AddCollision2DBeginCallback(Action<float> callback)
+        public void AddCollision2DBeginCallback(Action<Entity> callback)
         {
             _collision2DBeginCallbacks += callback;
         }
 
-        public void AddCollision2DEndCallback(Action<float> callback)
+        public void AddCollision2DEndCallback(Action<Entity> callback)
         {
             _collision2DEndCallbacks += callback;
         }
 
-        public void AddCollisionBeginCallback(Action<float> callback)
+        public void AddCollisionBeginCallback(Action<Entity> callback)
         {
             _collisionBeginCallbacks += callback;
         }
 
-        public void AddCollisionEndCallback(Action<float> callback)
+        public void AddCollisionEndCallback(Action<Entity> callback)
         {
             _collisionEndCallbacks += callback;
         }
 
-        public void AddTriggerBeginCallback(Action<float> callback)
+        public void AddTriggerBeginCallback(Action<Entity> callback)
         {
             _triggerBeginCallbacks += callback;
         }
 
-        public void AddTriggerEndCallback(Action<float> callback)
+        public void AddTriggerEndCallback(Action<Entity> callback)
         {
             _triggerEndCallbacks += callback;
         }
 
-        private void CollisionBegin(float data)
+        private void CollisionBegin(ulong id)
         {
             if (_collisionBeginCallbacks != null)
             {
-                _collisionBeginCallbacks.Invoke(data);
+                _collisionBeginCallbacks.Invoke(new Entity(id));
             }
         }
 
-        private void CollisionEnd(float data)
+        private void CollisionEnd(ulong id)
         {
             if (_collisionEndCallbacks != null)
             {
-                _collisionEndCallbacks.Invoke(data);
+                _collisionEndCallbacks.Invoke(new Entity(id));
             }
         }
 
-        private void Collision2DBegin(float data)
+        private void Collision2DBegin(ulong id)
         {
-            _collision2DBeginCallbacks?.Invoke(data);
+            _collision2DBeginCallbacks?.Invoke(new Entity(id));
         }
 
-        private void Collision2DEnd(float data)
+        private void Collision2DEnd(ulong id)
         {
-            _collision2DEndCallbacks?.Invoke(data);
+            _collision2DEndCallbacks?.Invoke(new Entity(id));
         }
 
-        private void TriggerBegin(float data)
+        private void TriggerBegin(ulong id)
         {
             if (_triggerBeginCallbacks != null)
             { 
-                _triggerBeginCallbacks.Invoke(data); 
+                _triggerBeginCallbacks.Invoke(new Entity(id)); 
             }
         }
 
-        private void TriggerEnd(float data)
+        private void TriggerEnd(ulong id)
         {
             if (_triggerEndCallbacks != null)
             {
-                _triggerEndCallbacks.Invoke(data);
+                _triggerEndCallbacks.Invoke(new Entity(id));
             }
         }
 
@@ -248,6 +259,8 @@ namespace NR
         private static extern ulong CreateEntity_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong Instantiate_Native(ulong entityID, ulong prefabID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern ulong InstantiateWithTranslation_Native(ulong entityID, ulong prefabID, ref Vector3 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong DestroyEntity_Native(ulong entityID);
 

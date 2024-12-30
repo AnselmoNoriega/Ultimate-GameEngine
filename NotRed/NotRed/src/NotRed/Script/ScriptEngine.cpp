@@ -63,12 +63,12 @@ namespace NR
             UpdateMethod = GetMethod(image, ClassName + ":Update(single)");
             UpdatePhysics = GetMethod(image, FullName + ":UpdatePhysics(single)");
 
-            Collision2DBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DBegin(single)");
-            Collision2DEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DEnd(single)");
-            CollisionBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionBegin(single)");
-            CollisionEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionEnd(single)");
-            TriggerBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:OnTriggerBegin(single)");
-            TriggerEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:OnTriggerEnd(single)");
+            Collision2DBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DBegin(ulong)");
+            Collision2DEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DEnd(ulong)");
+            CollisionBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionBegin(ulong)");
+            CollisionEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionEnd(ulong)");
+            TriggerBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:OnTriggerBegin(ulong)");
+            TriggerEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:OnTriggerEnd(ulong)");
         }
     };
 
@@ -466,80 +466,80 @@ namespace NR
         }
     }
 
-    void ScriptEngine::Collision2DBegin(Entity entity)
+    void ScriptEngine::Collision2DBegin(Entity entity, Entity other)
     {
         NR_PROFILE_FUNC();
 
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DBeginMethod)
         {
-            float value = 5.0f;
-            void* args[] = { &value };
+            UUID id = other.GetID();
+            void* args[] = { &id };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->Collision2DBeginMethod, args);
         }
     }
 
-    void ScriptEngine::Collision2DEnd(Entity entity)
+    void ScriptEngine::Collision2DEnd(Entity entity, Entity other)
     {
         NR_PROFILE_FUNC();
 
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->Collision2DEndMethod)
         {
-            float value = 5.0f;
-            void* args[] = { &value };
+            UUID id = other.GetID();
+            void* args[] = { &id };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->Collision2DEndMethod, args);
         }
     }
 
-    void ScriptEngine::CollisionBegin(Entity entity)
+    void ScriptEngine::CollisionBegin(Entity entity, Entity other)
     {
         NR_PROFILE_FUNC();
 
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionBeginMethod)
         {
-            float value = 5.0f;
-            void* args[] = { &value };
+            UUID id = other.GetID();
+            void* args[] = { &id };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->CollisionBeginMethod, args);
         }
     }
 
-    void ScriptEngine::CollisionEnd(Entity entity)
+    void ScriptEngine::CollisionEnd(Entity entity, Entity other)
     {
         NR_PROFILE_FUNC();
 
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->CollisionEndMethod)
         {
-            float value = 5.0f;
-            void* args[] = { &value };
+            UUID id = other.GetID();
+            void* args[] = { &id };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->CollisionEndMethod, args);
         }
     }
 
-    void ScriptEngine::TriggerBegin(Entity entity)
+    void ScriptEngine::TriggerBegin(Entity entity, Entity other)
     {
         NR_PROFILE_FUNC();
 
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerBeginMethod)
         {
-            float value = 5.0f;
-            void* args[] = { &value };
+            UUID id = other.GetID();
+            void* args[] = { &id };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->TriggerBeginMethod, args);
         }
     }
 
-    void ScriptEngine::TriggerEnd(Entity entity)
+    void ScriptEngine::TriggerEnd(Entity entity, Entity other)
     {
         NR_PROFILE_FUNC();
 
         EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
         if (entityInstance.ScriptClass->TriggerEndMethod)
         {
-            float value = 5.0f;
-            void* args[] = { &value };
+            UUID id = other.GetID();
+            void* args[] = { &id };
             CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->TriggerEndMethod, args);
         }
     }

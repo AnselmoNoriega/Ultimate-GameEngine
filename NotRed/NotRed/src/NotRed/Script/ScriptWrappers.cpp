@@ -155,6 +155,24 @@ namespace NR::Script
 		return result.GetID();
 	}
 
+	uint64_t NR_Entity_InstantiateWithTranslation(uint64_t entityID, uint64_t prefabID, glm::vec3* inTranslation)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+		
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+		
+		if (!AssetManager::IsAssetHandleValid(prefabID))
+		{
+			return 0;
+		}
+
+		Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
+		Entity result = scene->Instantiate(prefab, inTranslation);
+		return result.GetID();
+	}
+
 	void NR_Entity_DestroyEntity(uint64_t entityID)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

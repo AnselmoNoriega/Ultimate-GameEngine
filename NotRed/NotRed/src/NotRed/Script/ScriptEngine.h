@@ -164,14 +164,14 @@ namespace NR
 		static void UpdateEntity(Entity entity, float ts);
 		static void UpdatePhysicsEntity(Entity entity, float fixedDeltaTime);
 
-		static void Collision2DBegin(Entity entity);
-		static void Collision2DEnd(Entity entity);
+		static void Collision2DBegin(Entity entity, Entity other);
+		static void Collision2DEnd(Entity entity, Entity other);
 
-		static void CollisionBegin(Entity entity);
-		static void CollisionEnd(Entity entity);
+		static void CollisionBegin(Entity entity, Entity other);
+		static void CollisionEnd(Entity entity, Entity other);
 
-		static void TriggerBegin(Entity entity);
-		static void TriggerEnd(Entity entity);
+		static void TriggerBegin(Entity entity, Entity other);
+		static void TriggerEnd(Entity entity, Entity other);
 
 		static MonoObject* Construct(const std::string& fullName, bool callConstructor = true, void** parameters = nullptr);
 		static MonoClass* GetCoreClass(const std::string& fullName);
