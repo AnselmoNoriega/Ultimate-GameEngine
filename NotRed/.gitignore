@@ -4,8 +4,11 @@
 !NotRed/vendor/mono/bin
 bin-int/
 Intermediates/
+Binaries
 obj/
 **/cache/**
+NotEditor/Resources/Scripts/Not-ScriptCore.dll
+NotEditor/Resources/Scripts/Not-ScriptCore.pdb
 
 # NotRed files
 *.log
