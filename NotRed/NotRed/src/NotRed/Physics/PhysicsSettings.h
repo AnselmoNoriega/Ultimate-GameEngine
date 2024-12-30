@@ -38,9 +38,9 @@ namespace NR
 		uint32_t WorldBoundsSubdivisions = 2;
 		
 		FrictionType FrictionModel = FrictionType::Patch;
-		
-		uint32_t SolverIterations = 6;
-		uint32_t SolverVelocityIterations = 1;
+
+		uint32_t SolverIterations = 8;
+		uint32_t SolverVelocityIterations = 2;
 
 		bool DebugOnPlay = true;
 		DebugType DebugType = DebugType::LiveDebug;

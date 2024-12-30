@@ -610,7 +610,8 @@ namespace NR
 			{
 				if (ImGui::Button("Rigidbody"))
 				{
-					mSelectionContext.AddComponent<RigidBodyComponent>();
+					auto& rigidbody = mSelectionContext.AddComponent<RigidBodyComponent>();
+					rigidbody.BodyType = RigidBodyComponent::Type::Dynamic;
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -1161,18 +1162,12 @@ namespace NR
 		DrawComponent<RigidBodyComponent>("Rigidbody", entity, [&](RigidBodyComponent& rbc)
 			{
 				UI::BeginPropertyGrid();
-				const char* rbTypeStrings[] = { "Static", "Dynamic" };
-				UI::PropertyDropdown("Type", rbTypeStrings, 2, (int*)&rbc.BodyType);
-
-				if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+				if (UI::Property("Is Kinematic", rbc.IsKinematic))
 				{
-					if (UI::Property("Is Kinematic", rbc.IsKinematic))
+					if (!rbc.IsKinematic && entity.HasComponent<MeshColliderComponent>())
 					{
-						if (!rbc.IsKinematic && entity.HasComponent<MeshColliderComponent>())
-						{
-							auto& mcc = entity.GetComponent<MeshColliderComponent>();
-							mcc.IsConvex = true;
-						}
+						auto& mcc = entity.GetComponent<MeshColliderComponent>();
+						mcc.IsConvex = true;
 					}
 				}
 
@@ -1185,34 +1180,29 @@ namespace NR
 				const auto& layerNames = PhysicsLayerManager::GetLayerNames();
 				UI::PropertyDropdown("Layer", layerNames, layerCount, (int*)&rbc.Layer);
 
-				if (rbc.BodyType == RigidBodyComponent::Type::Dynamic)
+				UI::BeginPropertyGrid();
+				UI::Property("Mass", rbc.Mass);
+				UI::Property("Linear Drag", rbc.LinearDrag);
+				UI::Property("Angular Drag", rbc.AngularDrag);
+				UI::Property("Disable Gravity", rbc.DisableGravity);
+				UI::EndPropertyGrid();
+
+				if (UI::BeginTreeNode("Constraints", false))
 				{
 					UI::BeginPropertyGrid();
-					UI::Property("Mass", rbc.Mass);
-					UI::Property("Linear Drag", rbc.LinearDrag);
-					UI::Property("Angular Drag", rbc.AngularDrag);
-					UI::Property("Disable Gravity", rbc.DisableGravity);
+					UI::BeginCheckboxGroup("Freeze Position");
+					UI::PropertyCheckboxGroup("X", rbc.LockPositionX);
+					UI::PropertyCheckboxGroup("Y", rbc.LockPositionY);
+					UI::PropertyCheckboxGroup("Z", rbc.LockPositionZ);
+					UI::EndCheckboxGroup();
+
+					UI::BeginCheckboxGroup("Freeze Rotation");
+					UI::PropertyCheckboxGroup("X", rbc.LockRotationX);
+					UI::PropertyCheckboxGroup("Y", rbc.LockRotationY);
+					UI::PropertyCheckboxGroup("Z", rbc.LockRotationZ);
+					UI::EndCheckboxGroup();
 					UI::EndPropertyGrid();
-
-					if (ImGui::TreeNode("Constraints", "Constraints"))
-					{
-						UI::BeginPropertyGrid();
-
-						UI::BeginCheckboxGroup("Freeze Position");
-						UI::PropertyCheckboxGroup("X", rbc.LockPositionX);
-						UI::PropertyCheckboxGroup("Y", rbc.LockPositionY);
-						UI::PropertyCheckboxGroup("Z", rbc.LockPositionZ);
-						UI::EndCheckboxGroup();
-
-						UI::BeginCheckboxGroup("Freeze Rotation");
-						UI::PropertyCheckboxGroup("X", rbc.LockRotationX);
-						UI::PropertyCheckboxGroup("Y", rbc.LockRotationY);
-						UI::PropertyCheckboxGroup("Z", rbc.LockRotationZ);
-						UI::EndCheckboxGroup();
-
-						UI::EndPropertyGrid();
-						ImGui::TreePop();
-					}
+					UI::EndTreeNode();
 				}
 
 				UI::EndPropertyGrid();

@@ -232,7 +232,7 @@ namespace NR
 
         Type BodyType;
         float Mass = 1.0f;
-        float LinearDrag = 0.0f;
+        float LinearDrag = 0.01f;
         float AngularDrag = 0.05f;
         bool DisableGravity = false;
         bool IsKinematic = false;

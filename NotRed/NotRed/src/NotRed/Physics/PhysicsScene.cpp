@@ -12,14 +12,17 @@ namespace NR
 {
 	static ContactListener sContactListener;
 
+#define ENABLE_ACTIVE_ACTORS 0
+
 	PhysicsScene::PhysicsScene(const PhysicsSettings& settings)
 		: mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_PCM;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ENHANCED_DETERMINISM;
+
 #if ENABLE_ACTIVE_ACTORS
-		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
-#else
-		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD;
+		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
 #endif
 		sceneDesc.gravity = PhysicsUtils::ToPhysicsVector(settings.Gravity);
 		sceneDesc.broadPhaseType = PhysicsInternal::ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
@@ -176,7 +179,7 @@ namespace NR
 
 		if (settings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
 		{
-			physx::PxBounds3* regionBounds = new physx::PxBounds3[(size_t)settings.WorldBoundsSubdivisions * settings.WorldBoundsSubdivisions];
+			physx::PxBounds3* regionBounds = new physx::PxBounds3[settings.WorldBoundsSubdivisions * settings.WorldBoundsSubdivisions];
 			physx::PxBounds3 globalBounds(PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMin), PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMax));
 			uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, settings.WorldBoundsSubdivisions);
 
@@ -193,11 +196,6 @@ namespace NR
 	{
 		SubstepStrategy(dt);
 
-		if (mNumSubSteps == 0)
-		{
-			return false;
-		}
-
 		NR_CORE_INFO("[Physics]: Sub Steps: {0}, Sub Step Size: {1}", mNumSubSteps, mSubStepSize);
 
 		for (uint32_t i = 0; i < mNumSubSteps; ++i)
@@ -206,7 +204,7 @@ namespace NR
 			mPhysicsScene->fetchResults(true);
 		}
 
-		return true;
+		return mNumSubSteps != 0;
 	}
 
 	void PhysicsScene::SubstepStrategy(float dt)

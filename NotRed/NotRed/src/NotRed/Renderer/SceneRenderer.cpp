@@ -661,7 +661,7 @@ namespace NR
 		mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 1.0f, 0.5f, 0.0f, 1.0f });
 
 		mColliderMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"), "Collider");
-		mColliderMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f });
+		mColliderMaterial->Set("uMaterialUniforms.Color", mOptions.PhysicsCollidersColor);
 
 		// Skybox
 		{
@@ -1623,6 +1623,7 @@ namespace NR
 			Renderer::BeginRenderPass(mCommandBuffer, mExternalCompositeRenderPass);
 			auto pipeline = mOptions.ShowPhysicsColliders == SceneRendererOptions::PhysicsColliderView::Normal ? mGeometryWireframePipeline : mGeometryWireframeOnTopPipeline;
 			auto pipelineAnim = mOptions.ShowPhysicsColliders == SceneRendererOptions::PhysicsColliderView::Normal ? mGeometryWireframePipelineAnim : mGeometryWireframeOnTopPipelineAnim;
+			mColliderMaterial->Set("uMaterialUniforms.Color", mOptions.PhysicsCollidersColor);
 			for (DrawCommand& dc : mColliderDrawList)
 			{
 				if (dc.Mesh->IsAnimated())

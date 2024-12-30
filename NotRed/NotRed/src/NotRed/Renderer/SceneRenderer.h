@@ -27,6 +27,7 @@ namespace NR
 			OnTop
 		};
 		PhysicsColliderView ShowPhysicsColliders = PhysicsColliderView::None;
+		glm::vec4 PhysicsCollidersColor = glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f };
 
 		//HBAO
 		bool EnableHBAO = true;
