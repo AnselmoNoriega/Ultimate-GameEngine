@@ -47,10 +47,10 @@ namespace NR
 	struct BloomSettings
 	{
 		bool Enabled = true;
-		float Threshold = 1.0f;
+		float Threshold = 4.4f;
 		float Knee = 0.1f;
 		float UpsampleScale = 1.0f;
-		float Intensity = 1.0f;
+		float Intensity = 0.15f;
 		float DirtIntensity = 1.0f;
 	};
 

@@ -9,45 +9,46 @@ Entities:
   - Entity: 13619238109608574028
     TagComponent:
       Tag: Sky Light
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    Parent: 0
-    Children:
-      []
     SkyLightComponent:
       EnvironmentMap: 13163247778782548346
       Intensity: 1
+      Lod: 1
       DynamicSky: false
   - Entity: 9651895283264950110
     TagComponent:
       Tag: TestScene
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 1.45841134, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    Parent: 0
-    Children:
-      []
     MeshComponent:
       AssetID: 10610151712161516910
       MaterialTable:
-        0: 0
-        1: 0
-        2: 0
-        3: 0
-        4: 0
+        0: 18133955109151145421
+        1: 8356403540750050452
+        2: 12868661515328754004
+        3: 17966276695558752783
+        4: 8082621755077031720
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 7.55172777, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    Parent: 0
-    Children:
-      []
     PointLightComponent:
       Radiance: [0.494208515, 0.269047856, 0.269047856]
       Intensity: 7.44999981
@@ -60,13 +61,13 @@ Entities:
   - Entity: 3341184822646445148
     TagComponent:
       Tag: Directional Light
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 4.19999981, 0]
       Rotation: [0, 3.29999995, -189.5]
       Scale: [1, 1, 1]
-    Parent: 0
-    Children:
-      []
     DirectionalLightComponent:
       Radiance: [1, 1, 1]
       CastShadows: true
