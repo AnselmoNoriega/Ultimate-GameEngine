@@ -1,0 +1,339 @@
+#version 430 core
+
+layout(binding = 21, rgba32f) restrict writeonly uniform image2D outColor;
+
+layout(binding = 5) uniform sampler2D uInputColor;
+layout(binding = 7) uniform sampler2D uNormal;
+layout(binding = 8) uniform sampler2D uMetalnessRoughness;
+layout(binding = 9) uniform sampler2D uHiZBuffer;
+layout(binding = 10) uniform sampler2D uVisibilityBuffer;
+layout(binding = 11) uniform sampler2D uViewPosition;
+
+
+layout(push_constant) uniform SSRInfo
+{
+	float DepthTolerance;
+	float FadeIn;
+	float DistanceFade;
+	float MirrorReflections;
+	int MaxSteps;
+	uint NumDepthMips;
+	bool EnableConeTracing;
+} uSSRInfo;
+
+layout(binding = 0) uniform Camera
+{
+	mat4 uViewProjectionMatrix;
+	mat4 uInverseViewProjectionMatrix;
+	mat4 uProjectionMatrix;
+	mat4 uInverseProjectionMatrix;
+	mat4 uViewMatrix;
+	mat4 uInverseViewMatrix;
+	mat4 uFlippedViewProjectionMatrix;
+};
+
+layout(std140, binding = 17) uniform ScreenData
+{
+	vec2 uInvFullResolution;
+	vec2 uFullResolution;
+};
+
+const float HIZ_START_LEVEL = 0.0f;
+const float HIZ_STOP_LEVEL = 0.0f;
+float HIZ_MAX_LEVEL = (uSSRInfo.NumDepthMips);
+#define HIZ_CROSS_EPSILON uInvFullResolution * exp2(level - 1) * 0.5; 
+uint MAX_ITERATIONS = uSSRInfo.MaxSteps;
+const float M_PI = 3.14159265359f;
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Hi-Z ray tracing methods
+///////////////////////////////////////////////////////////////////////////////////////
+
+vec2 Cell(vec2 ray, vec2 cellCount) 
+{
+	return floor(ray.xy * cellCount);
+}
+
+vec2 CellCount(float level) 
+{
+	return floor(uFullResolution.xy / vec2(exp2(level)));
+}
+
+vec3 IntersectDepthPlane(vec3 o, vec3 d, float t)
+{
+	return o + d * t;
+}
+
+vec3 IntersectCellBoundary(vec3 pos, vec3 dir, vec2 cellID, vec2 cellCount, vec2 crossStep, vec2 crossOffset) 
+{
+	vec2 index = cellID + crossStep;
+	index /= cellCount;
+	index += crossOffset;
+
+	vec2 delta = (index - pos.xy) / dir.xy;
+
+	float t = min(delta.x, delta.y);
+	vec3 intersctionPos = IntersectDepthPlane(pos, dir, t);
+	intersctionPos.xy += (delta.x < delta.y) ? vec2(crossOffset.x, 0.0) : vec2(0.0, crossOffset.y);
+
+	return intersctionPos;
+}
+
+bool CrossedCellBoundary(vec2 cellIdOne, vec2 cellIdTwo) 
+{
+	return int(cellIdOne.x) != int(cellIdTwo.x) || int(cellIdOne.y) != int(cellIdTwo.y);
+}
+
+float DepthPlane(vec2 ray, float level, vec2 cellCount) 
+{
+	return texelFetch(uHiZBuffer, ivec2(cellCount * ray), int(level)).r;
+}
+
+
+float ViewSpaceDepth(float depth)
+{
+	float z = 2.0f * depth - 1.0f;
+	float zFar = 0.1;
+	float zNear = 1000.0;
+	return zNear * zFar / (zFar + z * (zNear - zFar));
+}
+
+vec3 hiZTrace(vec3 pos, vec3 dir, out uint iterations, out bool intersected) 
+{
+	iterations = 0;
+	float level = HIZ_START_LEVEL;
+
+	vec2 crossStep = vec2(dir.x >= 0.0 ? 1.0 : -1.0, dir.y >= 0.0 ? 1.0f : -1.0);
+	vec2 crossOffset = crossStep * HIZ_CROSS_EPSILON;
+	crossStep = clamp(crossStep, 0.0, 1.0);
+
+	const vec2 baseCellCount = uFullResolution / exp2(HIZ_START_LEVEL);
+	const vec2 baseCellIndex = Cell(pos.xy, baseCellCount);
+	vec3 ray = IntersectCellBoundary(pos, dir, baseCellIndex, baseCellCount, crossStep, crossOffset);
+	float depthPlane;
+	float lastDepth;
+
+	intersected = false;
+	while(level >= HIZ_STOP_LEVEL && iterations < MAX_ITERATIONS) 
+	{
+		// get the cell index of the current ray
+		vec2 cellCount = CellCount(level);
+		vec2 oldCellID = Cell(ray.xy, cellCount);
+
+		depthPlane = DepthPlane(ray.xy, level, cellCount);
+
+		float depthDiff = ray.z - depthPlane;
+		if(depthDiff > 0.0)  // Ray is going along the camera
+		{
+			ray = IntersectDepthPlane(ray, dir / abs(dir.z), depthDiff);
+			lastDepth = -ray.z;
+			vec2 newCellID = Cell(ray.xy, cellCount);
+			if(CrossedCellBoundary(oldCellID, newCellID))
+			{
+				ray = IntersectCellBoundary(ray, dir, oldCellID, cellCount, crossStep, crossOffset);
+				level = min(HIZ_MAX_LEVEL, level + 2.0f);
+			}
+
+		}
+		//else if(depthPlane < ray.z) // Ray is going towards the camera
+		//{
+		//	lastDepth = -ray.z;
+		//	ray = IntersectCellBoundary(ray, dir, oldCellID, cellCount, crossStep, crossOffset);
+		//	level = min(HIZ_MAX_LEVEL, level + 2.0f);
+		//}
+
+		//very expensive and doesn't look that great
+		//if(level == HIZ_START_LEVEL && abs(depthDiff) > 0.0001) 
+		//{
+		//	ray = IntersectCellBoundary(ray, dir, oldCellID, cellCount, crossStep, crossOffset);
+		//	level = min(HIZ_MAX_LEVEL, level + 1.0f);
+		//}
+
+
+		--level;
+		++iterations;
+	}
+
+	float linearZ = ViewSpaceDepth(ray.z);
+	float linearZPlane = ViewSpaceDepth(depthPlane);
+
+	//if((linearZ + dot((-ray.Pos), (dir)) * 0.0015 < linearZPlane || (linearZ + dot((ray.Pos), (dir)) * 0.0015 < linearZPlane)) && linearZ + 0.001 > linearZPlane)
+	//	ray.Intersected = true;
+	//if(linearZ - 0.00001 < linearZPlane && linearZ + 0.001 > linearZPlane)
+	//if(ray.z + lastDepth + 0.0001 > 0 && ray.z + depthPlane > 0 && ray.z - depthPlane + 0.0001 > 0)
+	if(depthPlane - ray.z < 0.0001 && (iterations < MAX_ITERATIONS && depthPlane > 0.0 && ray.z + lastDepth < 0.0001))
+		intersected = true;
+	else 
+		ray = pos;
+
+	return ray;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Hi-Z cone tracing methods
+///////////////////////////////////////////////////////////////////////////////////////
+
+float IsoscelesTriangleOpposite(float adjacentLength, float coneTheta)
+{
+	// simple trig and algebra - soh, cah, toa - tan(theta) = opp/adj, opp = tan(theta) * adj, then multiply * 2.0f for isosceles triangle base
+	return 2.0 * tan(coneTheta) * adjacentLength;
+}
+
+float IsoscelesTriangleInRadius(float a, float h)
+{
+	float h4 = h * 4.0;
+	return (a * (sqrt(a * a + h4 * h) - a)) / max(h4, 0.00001);
+}
+
+vec4 ConeSampleWeightedColor(vec2 samplePos, float mipChannel)
+{
+	/* Sample color buffer with pre-integrated visibility */
+	vec3 color = textureLod(uInputColor, samplePos, mipChannel).rgb;
+	float visibility = textureLod(uVisibilityBuffer, samplePos, mipChannel).r;
+	return vec4(color * visibility, visibility);
+}
+
+float IsoscelesTriangleNextAdjacent(float adjacentLength, float incircleRadius)
+{
+	// subtract the diameter of the incircle to get the adjacent side of the next level on the cone
+	return adjacentLength - (incircleRadius * 2.0f);
+}
+
+vec3 FresnelSchlickRoughness(vec3 F0, float cosTheta, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec4 ConeTracing(float roughness, vec2 rayOrigin, vec2 rayResult)
+{
+	// convert to cone angle (maximum extent of the specular lobe aperture
+	float coneTheta = mix(0.0, M_PI / 32, roughness);
+
+
+	// P1 = resultRaySS.Pos, P2 = raySS, adjacent length = ||P2 - P1||
+	
+	// need to check if this is correct calculation or not
+	vec2 deltaPSS = rayResult - rayOrigin;
+	float adjacentLength = length(deltaPSS);
+	
+	// need to check if this is correct calculation or not
+	vec2 adjacentUnit = normalize(deltaPSS);
+
+	float gloss = 1.0 - roughness;
+	float glossMult = gloss;
+
+	adjacentLength += IsoscelesTriangleOpposite(adjacentLength, coneTheta);
+
+	vec4 totalColor = vec4(0.0);
+	// cone-tracing using an isosceles triangle to approximate a cone in screen space
+	for(int i = 0; i < 7; ++i)
+	{
+		// intersection length is the adjacent side, get the opposite side using trig
+		float oppositeLength = IsoscelesTriangleOpposite(adjacentLength, coneTheta);
+
+		// calculate in-radius of the isosceles triangle
+		float incircleSize = IsoscelesTriangleInRadius(oppositeLength, adjacentLength);
+
+		// get the sample position in screen space
+		vec2 samplePos = rayOrigin + adjacentUnit * (adjacentLength - incircleSize);
+
+		// convert the in-radius into screen size then check what power N to raise 2 to reach it - that power N becomes mip level to sample from
+		float mipChannel = clamp(log2(incircleSize * max(uFullResolution.x, uFullResolution.y)), 0.0, HIZ_MAX_LEVEL); // try this with min intead of max
+
+		/*
+		 * Read color and accumulate it using trilinear filtering and weight it.
+		 * Uses pre-convolved image (color buffer), pre-integrated transparency (visibility buffer),
+		 * and hi-z buffer (hiZBuffer).
+		 * Checks if cone sphere is below, between, or above the hi-z minimum and maximum and weights
+		 * it together with transparency (visibility).
+		 * Visibility is accumulated in the alpha channel.  Break if visibility is 100% or greater (>= 1.0f).
+		 */
+		totalColor += ConeSampleWeightedColor(samplePos, mipChannel);
+		
+		if(totalColor.a >= 1.0f)
+			break;
+
+		adjacentLength = IsoscelesTriangleNextAdjacent(adjacentLength, incircleSize);
+		glossMult *= gloss;
+	}
+
+	totalColor /= totalColor.a;
+
+	return totalColor;
+}
+
+
+
+layout(local_size_x = 16, local_size_y = 16) in;
+void main()
+{
+	const ivec2 base = ivec2(gl_GlobalInvocationID);
+	const vec2 uv = uInvFullResolution * base;
+
+	if (any(greaterThanEqual(base, uFullResolution))) //too large, do nothing
+		return;
+	imageStore(outColor, base, vec4(0.0));
+
+
+	const vec3 normalVS = texelFetch(uNormal, base, 0).rgb;
+	if(dot(normalVS, vec3(1.0)) == 0.0) // Early out when there is no geometry to begin with.
+		return;
+
+	const float depth = texelFetch(uHiZBuffer, base, 0).r;
+	const vec4 positionVS = texelFetch(uViewPosition, base, 0); 
+	const vec2 metalnessRoughness = texelFetch(uMetalnessRoughness, base, int(HIZ_START_LEVEL)).rg;
+
+	const vec3 positionSS = vec3(uv, depth);
+	const vec3 toPositionVS = normalize(positionVS.xyz);
+	const vec3 reflectVS = reflect(toPositionVS, normalVS);
+
+
+	vec4 positionPrimeSS4 = uFlippedViewProjectionMatrix * uInverseViewMatrix * vec4(positionVS.xyz + reflectVS, 1.0f);
+	vec3 positionPrimeSS = (positionPrimeSS4.xyz / positionPrimeSS4.w);
+	positionPrimeSS.xy = positionPrimeSS.xy * 0.5f + 0.5f;
+
+	vec3 reflectSS = vec3(positionPrimeSS - positionSS);
+	
+	uint stepsTaken;
+	bool intersected;
+	vec3 resultRaySS = hiZTrace(positionSS, reflectSS, stepsTaken, intersected);
+
+	vec4 totalColor = vec4(0.0f);
+	if(uSSRInfo.EnableConeTracing && metalnessRoughness.g > 0.001 && intersected)
+		totalColor = ConeTracing(metalnessRoughness.g, uv, resultRaySS.xy);
+	else
+		totalColor = textureLod(uInputColor, resultRaySS.xy, 0.0);
+
+	vec4 albedo = texelFetch(uInputColor, base, int(HIZ_START_LEVEL));
+	vec3 F0 = mix(vec3(0.04), albedo.rgb, metalnessRoughness.r);
+	vec3 fresnel = FresnelSchlickRoughness(F0, max(dot(normalize(normalVS), normalize(-toPositionVS)), 0.0), metalnessRoughness.g);
+
+	// fade pointing towards camera
+	float fadeOnMirror = min(uSSRInfo.MirrorReflections + dot(toPositionVS, reflectVS), 1.0);
+	
+	float traveled = distance(resultRaySS.xy, positionSS.xy);
+	float grad = traveled / uSSRInfo.DistanceFade;
+	float initialFade = uSSRInfo.FadeIn == 0.0 ? 1.0 : pow(clamp(grad, 0.0, 1.0), uSSRInfo.FadeIn);
+	float fadeOnTravel = 1.0f - clamp((traveled) / (uSSRInfo.DistanceFade) * initialFade, 0.0, 1.0);
+
+	float totalFade = fadeOnMirror * fadeOnTravel;
+
+	vec4 finalColor = mix(albedo, totalColor, clamp(max(metalnessRoughness.r, 1.0 - metalnessRoughness.g) * totalFade, 0.0, 1.0));
+	
+	//imageStore(outColor, ivec2(gl_GlobalInvocationID), mix(albedo, finalColor * vec4(fresnel, 1.0), max(metalnessRoughness.r, 1 - metalnessRoughness.g)));
+	//imageStore(outColor, ivec2(gl_GlobalInvocationID), mix(vec4(0.0), finalColor * vec4(fresnel, 1.0), max(metalnessRoughness.r, 1 - metalnessRoughness.g)));
+	imageStore(outColor, ivec2(gl_GlobalInvocationID), vec4(finalColor * vec4(fresnel * 0.5 + 0.5, 1.0)));
+	//imageStore(outColor, ivec2(gl_GlobalInvocationID), vec4(, 1.0));
+	//imageStore(outColor, ivec2(gl_GlobalInvocationID), vec4(trarvelFade));
+
+
+	//imageStore(outColor, base, vec4(finalColor));
+	//imageStore(outColor, base, vec4(totalColor * vec4(fresnel, 1)));
+	//imageStore(outColor, base, vec4(finalPos, 0 , 0));
+	//imageStore(outColor, base, vec4(texture(uInputColor, finalPos.xy)));
+	//imageStore(outColor, base, vec4(texture(uInputColor, uv)));
+	//imageStore(outColor, base, vec4(texture(uInputColor, resultRaySS.xy) * fadeOnTravel));
+}
+

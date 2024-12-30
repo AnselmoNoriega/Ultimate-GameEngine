@@ -137,14 +137,17 @@ float ComputeCoarseAO(vec2 fullResUV, float radiusPixels, vec4 rand, vec3 viewPo
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 void main()
 {
-
 	vec2 base = gl_GlobalInvocationID.xy * 4 + gFloat2Offset;
 	vec2 uv = base * uInvQuarterResolution / 4;
 
 	vec3 viewPosition = texelFetch(uViewPositionTex, ivec2(base), 0).xyz;
-	viewPosition.z = -viewPosition.z;
-	vec3 normalAndAO = texelFetch(uViewNormalsTex, ivec2(base), 0).xyz;
-	vec3 viewNormal = -(normalAndAO.xyz * 2.0 - 1.0);
+    viewPosition.z = -viewPosition.z;
+
+    vec3 hbaoNormal = texelFetch(uViewNormalsTex, ivec2(base), 0).xyz * 0.5 + 0.5;
+    hbaoNormal.x = 1.0f - hbaoNormal.x;
+    hbaoNormal.y = 1.0f - hbaoNormal.y;
+
+    vec3 viewNormal = -(hbaoNormal.xyz * 2.0 - 1.0);
 
 	// Compute projection of disk of radius control.R into screen space
 	float radiusPixels = uRadiusToScreen / (uIsOrtho ? 1.0 : viewPosition.z);

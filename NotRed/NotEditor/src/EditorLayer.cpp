@@ -967,6 +967,7 @@ namespace NR
         }
 
         mEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
+        mEditorCamera.SetFlippedProjectionMatrix(Math::MakeInfReversedZProjRH(glm::radians(45.0f), viewportSize.x / viewportSize.y, 0.1f));
         mEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
         // Render viewport image
@@ -1173,7 +1174,8 @@ namespace NR
             if (viewportSize.x > 1 && viewportSize.y > 1)
             {
                 mSecondViewportRenderer->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-                mSecondEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
+                mSecondEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f)); 
+                mSecondEditorCamera.SetFlippedProjectionMatrix(Math::MakeInfReversedZProjRH(glm::radians(45.0f), viewportSize.x / viewportSize.y, 0.1f));
                 mSecondEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
                 // Render viewport image

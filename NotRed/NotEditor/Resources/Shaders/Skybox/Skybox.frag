@@ -2,7 +2,8 @@
 
 layout(location = 0) out vec4 oColor;
 layout(location = 1) out vec4 unused;
-layout(location = 2) out vec4 unused2;
+layout(location = 2) out vec4 unused1;
+layout(location = 3) out vec4 unused2;
 
 layout (binding = 1) uniform samplerCube uTexture;
 
@@ -37,5 +38,6 @@ void main()
 {
     oColor = textureLod(uTexture, vPosition, uUniforms.TextureLod) * uUniforms.Intensity;
     unused = vec4(0);
+    unused1 = vec4(0);
     unused2 = vec4(0);
 }

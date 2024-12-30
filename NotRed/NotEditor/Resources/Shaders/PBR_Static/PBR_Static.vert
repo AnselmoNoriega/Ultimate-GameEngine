@@ -17,12 +17,15 @@ layout(location = 2) in vec3 aTangent;
 layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
 
-layout (std140, binding = 0) uniform Camera
+layout(binding = 0) uniform Camera
 {
-	mat4 uViewProjectionMatrix;
-	mat4 uInverseViewProjectionMatrix;
-	mat4 uProjectionMatrix;
-	mat4 uViewMatrix;
+    mat4 uViewProjectionMatrix;
+    mat4 uInverseViewProjectionMatrix;
+    mat4 uProjectionMatrix;
+    mat4 uInverseProjectionMatrix;
+    mat4 uViewMatrix;
+    mat4 uInverseViewMatrix;
+    mat4 uFlippedViewProjectionMatrix;
 };
 
 layout (std140, binding = 1) uniform ShadowData

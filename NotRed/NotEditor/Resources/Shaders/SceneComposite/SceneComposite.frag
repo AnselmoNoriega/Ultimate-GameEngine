@@ -79,5 +79,5 @@ void main()
 
 	color = ACESTonemap(color);
 	color = GammaCorrect(color.rgb, gamma);
-	oColor = vec4(color, 1.0);
+	oColor = vec4(texture(uTexture, Input.TexCoord).rgb, 1.0);
 }

@@ -19,6 +19,17 @@ struct PointLight {
 	bool CastsShadows;
 };
 
+layout(binding = 0) uniform Camera
+{
+    mat4 uViewProjectionMatrix;
+    mat4 uInverseViewProjectionMatrix;
+    mat4 uProjectionMatrix;
+    mat4 uInverseProjectionMatrix;
+    mat4 uViewMatrix;
+    mat4 uInverseViewMatrix;
+    mat4 uFlippedViewProjectionMatrix;
+};
+
 layout(std140, binding = 3) uniform RendererData
 {
 	uniform vec4 uCascadeSplits;
@@ -52,7 +63,7 @@ struct VertexOutput
 	mat3 CameraView;
 
 	vec4 ShadowMapCoords[4];
-	vec3 ViewPosition;
+	vec4 ViewPosition;
 };
 
 layout(location = 0) in VertexOutput Input;
@@ -60,6 +71,7 @@ layout(location = 0) in VertexOutput Input;
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 oViewNormals;
 layout(location = 2) out vec4 oViewPosition;
+layout(location = 3) out vec4 oMetalnessRoughness;
 
 layout(std140, binding = 4) uniform SceneData
 {
@@ -92,9 +104,6 @@ layout(set = 1, binding = 13) uniform sampler2DArray uShadowMapTexture;
 layout(std430, binding = 14) readonly buffer VisibleLightIndicesBuffer {
 	int indices[];
 } visibleLightIndicesBuffer;
-
-//HBAO Linear Depth
-layout(set = 1, binding = 15) uniform sampler2D uLinearDepthTex;
 
 layout(std140, binding = 16) uniform ScreenData
 {
@@ -640,6 +649,7 @@ void main()
 	float alpha = texture(uAlbedoTexture, Input.TexCoord).a;
 	mParams.Metalness = texture(uMetalnessTexture, Input.TexCoord).r * uMaterialUniforms.Metalness;
 	mParams.Roughness = texture(uRoughnessTexture, Input.TexCoord).r * uMaterialUniforms.Roughness;
+	oMetalnessRoughness = vec4(mParams.Metalness, mParams.Roughness, 0.f, 1.f);
 	mParams.Roughness = max(mParams.Roughness, 0.05); // Minimum roughness of 0.05 to keep specular highlight
 
 	// Normals (either from vertex or map)
@@ -649,6 +659,9 @@ void main()
 		mParams.Normal = normalize(texture(uNormalTexture, Input.TexCoord).rgb * 2.0f - 1.0f);
 		mParams.Normal = normalize(Input.WorldNormals * mParams.Normal);
 	}
+	
+    oViewNormals = vec4(Input.CameraView * normalize(Input.Normal), 1.0f);
+    oViewPosition = Input.ViewPosition;
 
 	mParams.View = normalize(uCameraPosition - Input.WorldPosition);
 	mParams.NdotV = max(dot(mParams.Normal, mParams.View), 0.0);

@@ -23,5 +23,8 @@
     <None Include="Resources\Shaders\SelectedGeometry_Anim\SelectedGeometry_Anim.frag" />
     <None Include="Resources\Shaders\Wireframe_Anim\Wireframe_Anim.vert" />
     <None Include="Resources\Shaders\Wireframe_Anim\Wireframe_Anim.frag" />
+    <None Include="Resources\Shaders\HZB\HZB.comp" />
+    <None Include="Resources\Shaders\SSR\SSR.comp" />
+    <None Include="Resources\Shaders\Pre-Convolution\Pre-Convolution.comp" />
   </ItemGroup>
 </Project>

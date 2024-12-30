@@ -3,12 +3,15 @@
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec2 aTexCoord;
 
-layout (std140, binding = 0) uniform Camera
+layout(binding = 0) uniform Camera
 {
-	mat4 uViewProjectionMatrix;
-	mat4 uInverseViewProjection;
-	mat4 uProjectionMatrix;
-	mat4 uViewMatrix;
+    mat4 uViewProjectionMatrix;
+    mat4 uInverseViewProjectionMatrix;
+    mat4 uProjectionMatrix;
+    mat4 uInverseProjectionMatrix;
+    mat4 uViewMatrix;
+    mat4 uInverseViewMatrix;
+    mat4 uFlippedViewProjectionMatrix;
 };
 
 #ifdef OPENGL

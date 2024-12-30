@@ -8,12 +8,15 @@ layout(location = 4) in vec2 aTexCoord;
 layout(location = 5) in ivec4 aBoneIndices;
 layout(location = 6) in vec4 aBoneWeights;
 
-layout (std140, binding = 0) uniform Camera
+layout(binding = 0) uniform Camera
 {
-	mat4 uViewProjectionMatrix;
-	mat4 uInverseViewProjectionMatrix;
-	mat4 uProjectionMatrix;
-	mat4 uViewMatrix;
+    mat4 uViewProjectionMatrix;
+    mat4 uInverseViewProjectionMatrix;
+    mat4 uProjectionMatrix;
+    mat4 uInverseProjectionMatrix;
+    mat4 uViewMatrix;
+    mat4 uInverseViewMatrix;
+    mat4 uFlippedViewProjectionMatrix;
 };
 
 layout(std140, binding = 1) uniform ShadowData

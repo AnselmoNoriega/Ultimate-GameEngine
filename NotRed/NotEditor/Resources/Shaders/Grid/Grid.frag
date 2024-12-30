@@ -3,6 +3,7 @@
 layout(location = 0) out vec4 color;
 layout(location = 1) out vec4 unused0;
 layout(location = 2) out vec4 unused1;
+layout(location = 3) out vec4 unused2;
 
 #ifdef OPENGL
 
@@ -39,4 +40,5 @@ void main()
 	}
 	unused0 = vec4(0.0);
 	unused1 = vec4(0.0);
+    unused2 = vec4(0.0);
 }

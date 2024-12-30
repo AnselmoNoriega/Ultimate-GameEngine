@@ -1,0 +1,49 @@
+#version 430 core
+
+layout(binding = 0, rg32f) restrict uniform writeonly image2D oImage;
+layout(binding = 1) uniform sampler2D uInput;
+
+layout(push_constant) uniform Info
+{
+    int Lod;
+    int ViewportX;
+    int ViewportY;
+    int OffsetX;
+    int OffsetY;
+} uInfo;
+
+layout(local_size_x = 4, local_size_y = 4) in;
+
+void main()
+{
+    ivec2 base = ivec2(gl_GlobalInvocationID);
+    // Lod of input depth .. the first one is from original depth map.
+    // It would be better to just blit instead of adding this branch.
+    if(uInfo.Lod == -1)
+    {
+        imageStore(oImage, base, vec4(vec2(texelFetch(uInput, base, 0).r), 0, 0));
+    }
+    else
+    {
+	    ivec2 UV[4];
+	    
+	    // min(..., InputViewportMaxBound) because we don't want to sample outside of the viewport
+	    // when the view size has odd dimensions on X/Y axis.
+	    UV[0] = min(2 * base + ivec2(0, 0), ivec2(uInfo.ViewportX, uInfo.ViewportY));
+	    UV[1] = min(2 * base + ivec2(uInfo.OffsetX, 0), ivec2(uInfo.ViewportX, uInfo.ViewportY));
+	    UV[2] = min(2 * base + ivec2(0, uInfo.OffsetY), ivec2(uInfo.ViewportX, uInfo.ViewportY));
+	    UV[3] = min(2 * base + ivec2(uInfo.OffsetX, uInfo.OffsetY), ivec2(uInfo.ViewportX, uInfo.ViewportY));
+    
+        vec4 depth[2];
+        depth[0].rg = texelFetch(uInput, UV[0], uInfo.Lod).rg;
+        depth[0].ba = texelFetch(uInput, UV[1], uInfo.Lod).rg;
+        depth[1].rg = texelFetch(uInput, UV[2], uInfo.Lod).rg;
+        depth[1].ba = texelFetch(uInput, UV[3], uInfo.Lod).rg;
+        
+        float maxZ = max(max(max(depth[0].r, depth[0].b), depth[1].r), depth[1].b);
+        float minZ = min(min(min(depth[0].g, depth[0].a), depth[1].g), depth[1].a);
+        
+        imageStore(oImage, base, vec4(maxZ, minZ, 0.0, 0.0));
+        
+    }
+}

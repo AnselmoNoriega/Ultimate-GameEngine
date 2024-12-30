@@ -6,15 +6,18 @@ layout(location = 2) in vec3 aTangent;
 layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
 
-layout(std140, binding = 0) uniform Camera
+layout(binding = 0) uniform Camera
 {
-	mat4 uViewProjectionMatrix;
-	mat4 uInverseViewProjectionMatrix;
-	mat4 uProjectionMatrix;
-	mat4 uViewMatrix;
+    mat4 uViewProjectionMatrix;
+    mat4 uInverseViewProjectionMatrix;
+    mat4 uProjectionMatrix;
+    mat4 uInverseProjectionMatrix;
+    mat4 uViewMatrix;
+    mat4 uInverseViewMatrix;
+    mat4 uFlippedViewProjectionMatrix;
 };
 
-layout (push_constant) uniform Transform
+layout (pushconstant) uniform Transform
 {
 	mat4 Transform;
 } uRenderer;
@@ -23,7 +26,11 @@ layout(location = 0) out float LinearDepth;
 
 void main()
 {
-	vec4 worldPosition = uRenderer.Transform * vec4(aPosition, 1.0);
-	LinearDepth = -(uViewMatrix * worldPosition).z;
-	gl_Position = uViewProjectionMatrix * worldPosition;
+    vec4 worldPosition = uRenderer.Transform * vec4(aPosition, 1.0);
+    vec4 viewPosition = uViewMatrix * worldPosition;
+    // Linear depth is not flipped.
+    LinearDepth = -viewPosition.z;
+    
+    //Near and far are flipped for better precision.
+    gl_Position = uFlippedViewProjectionMatrix * worldPosition;
 }
