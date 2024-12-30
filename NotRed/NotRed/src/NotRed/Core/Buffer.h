@@ -12,13 +12,11 @@ namespace NR
 
 		Buffer()
 			: Data(nullptr), Size(0)
-		{
-		}
+		{}
 
 		Buffer(void* data, uint32_t size)
 			: Data(data), Size(size)
-		{
-		}
+		{}
 
 		static Buffer Copy(const void* data, uint32_t size)
 		{
@@ -32,12 +30,10 @@ namespace NR
 		{
 			delete[] Data;
 			Data = nullptr;
-
 			if (size == 0)
 			{
 				return;
 			}
-
 			Data = new byte[size];
 			Size = size;
 		}
@@ -97,7 +93,6 @@ namespace NR
 		{
 			return (T*)Data;
 		}
-
 		inline uint32_t GetSize() const { return Size; }
 	};
 }

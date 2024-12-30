@@ -3,6 +3,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "NotRed/Math/Math.h"
+
 namespace NR
 {
     void SceneCamera::SetPerspective(float verticalFOV, float nearClip, float farClip)
@@ -28,6 +30,7 @@ namespace NR
         case ProjectionType::Perspective:
         {
             mProjectionMatrix = glm::perspectiveFov(mPerspectiveFOV, (float)width, (float)height, mPerspectiveNear, mPerspectiveFar);
+            mFlippedProjectionMatrix = Math::MakeInfReversedZProjRH(glm::radians(45.0f), (float)width / (float)height, 0.1f);
             break;
         }
         case ProjectionType::Orthographic:
@@ -36,6 +39,7 @@ namespace NR
             float width = mOrthographicSize * aspect;
             float height = mOrthographicSize;
             mProjectionMatrix = glm::ortho(-width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f);
+            mFlippedProjectionMatrix = glm::ortho(-width * 0.5f, width * 0.5f, -height * 0.5f, height * 0.5f);
             break;
         }
         }

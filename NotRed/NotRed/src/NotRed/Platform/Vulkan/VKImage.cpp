@@ -122,6 +122,8 @@ namespace NR
 	{
 		NR_CORE_VERIFY(mSpecification.Width > 0 && mSpecification.Height > 0);
 
+		Release();
+
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 		VKAllocator allocator("Image2D");
 		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT;

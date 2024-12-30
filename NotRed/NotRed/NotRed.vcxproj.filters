@@ -793,6 +793,7 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Prefab.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptModuleField.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

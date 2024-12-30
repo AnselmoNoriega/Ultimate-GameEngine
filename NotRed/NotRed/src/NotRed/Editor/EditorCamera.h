@@ -37,6 +37,7 @@ namespace NR
 
         const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
         glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
+        glm::mat4 GetFlippedViewProjection() const { return mFlippedProjectionMatrix * mViewMatrix; }
 
         glm::vec3 GetUpDirection() const;
         glm::vec3 GetRightDirection() const;

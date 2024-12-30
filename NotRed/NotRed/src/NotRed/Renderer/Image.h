@@ -8,6 +8,7 @@ namespace NR
     enum class ImageFormat
     {
         None,
+        RED8UNormalized,
         RED32F,
         RGB,
         RGBA,
@@ -63,6 +64,7 @@ namespace NR
 
     struct TextureProperties
     {
+        std::string DebugName;
         TextureWrap SamplerWrap = TextureWrap::Repeat;
         TextureFilter SamplerFilter = TextureFilter::Linear;
         bool GenerateMips = true;
@@ -73,7 +75,7 @@ namespace NR
     class Image : public RefCounted
     {
     public:
-        virtual ~Image() {}
+        virtual ~Image() = default;
 
         virtual void Invalidate() = 0;
         virtual void Release() = 0;
@@ -106,12 +108,13 @@ namespace NR
         {
             switch (format)
             {
+            case ImageFormat::RED8UNormalized:      return 1;
             case ImageFormat::RGB:
-            case ImageFormat::SRGB:    return 3;
+            case ImageFormat::SRGB:                 return 3;
             case ImageFormat::RED32F:
-            case ImageFormat::RGBA:    return 4;
-            case ImageFormat::RGBA16F: return 2 * 4;
-            case ImageFormat::RGBA32F: return 4 * 4;
+            case ImageFormat::RGBA:                 return 4;
+            case ImageFormat::RGBA16F:              return 2 * 4;
+            case ImageFormat::RGBA32F:              return 4 * 4;
             default:
             {
                 NR_CORE_ASSERT(false);

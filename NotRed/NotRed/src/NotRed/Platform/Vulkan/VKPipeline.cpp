@@ -27,6 +27,21 @@ namespace NR
 				return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
 			}
 		}
+
+		static VkCompareOp GetVulkanCompareOperator(const DepthCompareOperator compareOp)
+		{
+			switch (compareOp)
+			{
+			case DepthCompareOperator::Less:			return VK_COMPARE_OP_LESS;
+			case DepthCompareOperator::LessOrEqual:		return VK_COMPARE_OP_LESS_OR_EQUAL;
+			case DepthCompareOperator::Greater:			return VK_COMPARE_OP_GREATER;
+			case DepthCompareOperator::GreaterOrEqual:		return VK_COMPARE_OP_GREATER_OR_EQUAL;
+			case DepthCompareOperator::Always:		return VK_COMPARE_OP_ALWAYS;
+			default:
+				NR_CORE_ASSERT(false, "Unknown toplogy");
+				return VK_COMPARE_OP_MAX_ENUM;
+			}
+		}
 	}
 
 	static VkFormat ShaderDataTypeToVulkanFormat(ShaderDataType type)
@@ -223,7 +238,7 @@ namespace NR
 				depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 				depthStencilState.depthTestEnable = instance->mSpecification.DepthTest ? VK_TRUE : VK_FALSE;
 				depthStencilState.depthWriteEnable = instance->mSpecification.DepthWrite ? VK_TRUE : VK_FALSE;
-				depthStencilState.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+				depthStencilState.depthCompareOp = Utils::GetVulkanCompareOperator(instance->mSpecification.DepthOperator);
 				depthStencilState.depthBoundsTestEnable = VK_FALSE;
 				depthStencilState.back.failOp = VK_STENCIL_OP_KEEP;
 				depthStencilState.back.passOp = VK_STENCIL_OP_KEEP;

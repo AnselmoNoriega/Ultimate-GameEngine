@@ -264,6 +264,7 @@ namespace NR
 				{
 					sceneData->mSceneRenderer->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 					sceneData->mCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
+					sceneData->mCamera.SetFlippedProjectionMatrix(Math::MakeInfReversedZProjRH(glm::radians(45.0f), viewportSize.x / viewportSize.y, 0.1f));
 					sceneData->mCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 					if (sceneData->mSceneRenderer->GetFinalPassImage())
 					{

@@ -306,6 +306,7 @@
     <ClInclude Include="src\NotRed\Scene\SceneSerializer.h" />
     <ClInclude Include="src\NotRed\Script\ScriptEngine.h" />
     <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h" />
+    <ClInclude Include="src\NotRed\Script\ScriptModuleField.h" />
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
     <ClInclude Include="src\NotRed\Util\FileSystem.h" />
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />

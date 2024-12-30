@@ -19,6 +19,7 @@
 #include "NotRed/Platform/Vulkan/VKRenderer.h"
 #include "NotRed/Platform/Vulkan/VKContext.h"
 #include "NotRed/Platform/Vulkan/VKImage.h"
+#include "NotRed/Platform/Vulkan/VKTexture.h"
 
 namespace NR
 {
@@ -127,6 +128,7 @@ namespace NR
 			spec.Width = 4096;
 			spec.Height = 4096;
 			spec.Layers = 4; // 4 cascades
+			spec.DebugName = "ShadowCascades";
 			Ref<Image2D> cascadedDepthImage = Image2D::Create(spec);
 			cascadedDepthImage->Invalidate();
 			cascadedDepthImage->CreatePerLayerImageViews();
@@ -180,6 +182,7 @@ namespace NR
 			preDepthFrameBufferSpec.DebugName = "PreDepth";
 			preDepthFrameBufferSpec.Attachments = { ImageFormat::RED32F, ImageFormat::DEPTH32F };
 			preDepthFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
+			preDepthFrameBufferSpec.DepthClearValue = 0.0f;
 
 			RenderPassSpecification preDepthRenderPassSpec;
 			preDepthRenderPassSpec.DebugName = preDepthFrameBufferSpec.DebugName;
@@ -189,6 +192,7 @@ namespace NR
 			pipelineSpec.DebugName = "PreDepth";
 
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth");
+			pipelineSpec.DepthOperator = DepthCompareOperator::GreaterOrEqual;
 			pipelineSpec.Layout = staticVertexLayout;
 			pipelineSpec.RenderPass = RenderPass::Create(preDepthRenderPassSpec);
 			mPreDepthPipeline = Pipeline::Create(pipelineSpec);
@@ -200,10 +204,35 @@ namespace NR
 			mPreDepthPipelineAnim = Pipeline::Create(pipelineSpec);
 		}
 
+		// Hierarchical Z buffer
+		{
+			TextureProperties properties;
+			properties.SamplerWrap = TextureWrap::Clamp;
+			properties.SamplerFilter = TextureFilter::Nearest;
+			properties.DebugName = "HierarchicalZ";
+
+			mHierarchicalDepthTexture = Texture2D::Create(ImageFormat::RG32F, 1, 1, nullptr, properties);
+			Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("NRB");
+			mHierarchicalDepthPipeline = PipelineCompute::Create(shader);
+			mHierarchicalDepthMaterial = Material::Create(shader, "NRB");
+		}
+
+		// Pre-Integration
+		{
+			TextureProperties properties;
+			properties.SamplerWrap = TextureWrap::Clamp;
+			properties.DebugName = "Pre-Integration";
+
+			mVisibilityTexture = Texture2D::Create(ImageFormat::RED8UNormalized, 1, 1, nullptr, properties);
+			Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("Pre-Integration");
+			mPreIntegrationPipeline = PipelineCompute::Create(shader);
+			mPreIntegrationMaterial = Material::Create(shader, "Pre-Integration");
+		}
+
 		// Geometry
 		{
 			FrameBufferSpecification geoFrameBufferSpec;
-			geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
+			geoFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::RGBA, ImageFormat::Depth };
 			geoFrameBufferSpec.Samples = 1;
 			geoFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
 			geoFrameBufferSpec.DebugName = "Geometry";
@@ -256,13 +285,29 @@ namespace NR
 			mSelectedGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mSelectedGeometryPipeline
 		}
 
+		// Pre-convolution Compute
+		{
+			auto shader = Renderer::GetShaderLibrary()->Get("Pre-Convolution");
+			mGaussianBlurPipeline = PipelineCompute::Create(shader);
+
+			TextureProperties props;
+			props.SamplerWrap = TextureWrap::Clamp;
+			props.DebugName = "Pre-Convoluted";
+
+			mPreConvolutedTexture = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+			mGaussianBlurMaterial = Material::Create(shader);
+		}
+
 		// Bloom Compute
 		{
 			auto shader = Renderer::GetShaderLibrary()->Get("Bloom");
 			mBloomComputePipeline = PipelineCompute::Create(shader);
+			
 			TextureProperties props;
 			props.SamplerWrap = TextureWrap::Clamp;
+			props.DebugName = "BloomTextures";
 			props.Storage = true;
+
 			mBloomComputeTextures[0] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
 			mBloomComputeTextures[1] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
 			mBloomComputeTextures[2] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
@@ -278,6 +323,8 @@ namespace NR
 			imageSpec.Layers = 16;
 			imageSpec.Usage = ImageUsage::Attachment;
 			imageSpec.Deinterleaved = true;
+			imageSpec.DebugName = "Deinterleaved";
+
 			Ref<Image2D> image = Image2D::Create(imageSpec);
 			image->Invalidate();
 			image->CreatePerLayerImageViews();
@@ -326,6 +373,7 @@ namespace NR
 			imageSpec.Format = ImageFormat::RG16F;
 			imageSpec.Usage = ImageUsage::Storage;
 			imageSpec.Layers = 16;
+			imageSpec.DebugName = "HBAO";
 			Ref<Image2D> image = Image2D::Create(imageSpec);
 			image->Invalidate();
 			image->CreatePerLayerImageViews();
@@ -423,6 +471,22 @@ namespace NR
 				mHBAOBlurPipelines[1] = Pipeline::Create(pipelineSpecification);				
 				mHBAOBlurMaterials[1] = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
+		}
+
+		//SSR
+		{
+			ImageSpecification imageSpec;
+			imageSpec.Format = ImageFormat::RGBA32F;
+			imageSpec.Usage = ImageUsage::Storage;
+			imageSpec.DebugName = "SSR";
+
+			Ref<Image2D> image = Image2D::Create(imageSpec);
+			image->Invalidate();
+			mSSROutputImage = image;
+
+			Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("SSR");
+			mSSRPipeline = Ref<VKComputePipeline>::Create(shader);
+			mSSRMaterial = Material::Create(shader, "SSR");
 		}
 
 		// Composite
@@ -548,6 +612,7 @@ namespace NR
 			frameBufferSpec.Samples = 1;
 			frameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
 			frameBufferSpec.BlendMode = FrameBufferBlendMode::OneZero;
+			frameBufferSpec.DebugName = "Temporaries";
 
 			for (uint32_t i = 0; i < 2; ++i)
 			{
@@ -718,7 +783,7 @@ namespace NR
 		const float R = opts.HBAORadius * meters2viewSpace;
 		const float R2 = R * R;
 		hbaoData.NegInvR2 = -1.0f / R2;
-		hbaoData.InvQuarterResolution = 1.f / glm::vec2{ (float)mViewportWidth / 4, (float)mViewportHeight / 4 };
+		hbaoData.InvQuarterResolution = 1.0f / glm::vec2{ (float)mViewportWidth / 4, (float)mViewportHeight / 4 };
 		hbaoData.RadiusToScreen = R * 0.5f * (float)mViewportHeight / (tanf(glm::radians(mSceneData.SceneCamera.FOV) * 0.5f) * 2.0f); //FOV is hard coded
 
 		const float* P = glm::value_ptr(mSceneData.SceneCamera.RenderCamera.GetProjectionMatrix());
@@ -762,22 +827,43 @@ namespace NR
 
 			mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
-			const uint32_t quarterWidth = (uint32_t)glm::ceil((float)mViewportWidth / 4.0f);
-			const uint32_t quarterHeight = (uint32_t)glm::ceil((float)mViewportHeight / 4.0f);
+			mPreConvolutedTexture->Resize(mViewportWidth, mViewportHeight);
+			mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
+			// Quarter-size hbao textures
+			{
+				uint32_t quarterWidth = mViewportWidth / 4;
+				uint32_t quarterHeight = mViewportHeight / 4;
 
-			mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
-			mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
+				mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
+				mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
 
-			mHBAOWorkGroups.x = (uint32_t)glm::ceil((float)quarterWidth / 16.0f);
-			mHBAOWorkGroups.y = (uint32_t)glm::ceil((float)quarterHeight / 16.0f);
-			mHBAOWorkGroups.z = 16;
+				mHBAOWorkGroups.x = (quarterWidth + (16 - (quarterWidth % 16))) / 16;
+				mHBAOWorkGroups.y = (quarterHeight + (16 - (quarterHeight % 16))) / 16;
+				mHBAOWorkGroups.z = 16;
 
-			auto& spec = mHBAOOutputImage->GetSpecification();
-			spec.Width = quarterWidth;
-			spec.Height = quarterHeight;
+				auto& hbaoImageSpec = mHBAOOutputImage->GetSpecification();
+				hbaoImageSpec.Width = quarterWidth;
+				hbaoImageSpec.Height = quarterHeight;
 
-			mHBAOOutputImage->Invalidate();
-			mHBAOOutputImage->CreatePerLayerImageViews();
+				mHBAOOutputImage->Invalidate();
+				mHBAOOutputImage->CreatePerLayerImageViews();
+			}
+
+			auto& ssrSpec = mSSROutputImage->GetSpecification();
+			ssrSpec.Width = mViewportWidth;
+			ssrSpec.Height = mViewportHeight;
+
+			mSSROutputImage->Invalidate();
+
+			mSSRWorkGroups.x = (mViewportWidth + (16 - (mViewportWidth % 16))) / 16;
+			mSSRWorkGroups.y = (mViewportHeight + (16 - (mViewportHeight % 16))) / 16;
+			mSSRWorkGroups.z = 1;
+
+			mHierarchicalDepthTexture->Resize(mViewportWidth, mViewportHeight);
+			mVisibilityTexture->Resize(mViewportWidth, mViewportHeight);
+
+			ScreenDataUB.FullResolution = { mViewportWidth, mViewportHeight };
+			ScreenDataUB.InvFullResolution = { mInvViewportWidth,  mInvViewportHeight };
 
 			mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
@@ -836,13 +922,17 @@ namespace NR
 
 		auto& sceneCamera = mSceneData.SceneCamera;
 		const auto viewProjection = sceneCamera.RenderCamera.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+		const auto flippedViewProjection = sceneCamera.RenderCamera.GetFlippedProjectionMatrix() * sceneCamera.ViewMatrix;
 		const glm::vec3 cameraPosition = glm::inverse(sceneCamera.ViewMatrix)[3];
 
-		const auto inverseVP = glm::inverse(viewProjection);
-		cameraData.ViewProjection = viewProjection;
-		cameraData.InverseViewProjection = inverseVP;
+		cameraData.ViewProjection = viewProjection;	
+		cameraData.FlippedViewProjection = flippedViewProjection;
 		cameraData.Projection = sceneCamera.RenderCamera.GetProjectionMatrix();
+		cameraData.InverseProjection = glm::inverse(cameraData.Projection);
 		cameraData.View = sceneCamera.ViewMatrix;
+		cameraData.InverseView = glm::inverse(sceneCamera.ViewMatrix);
+		cameraData.InverseViewProjection = cameraData.InverseProjection * cameraData.InverseView;
+
 		Ref<SceneRenderer> instance = this;
 		Renderer::Submit([instance, cameraData, starParamsData, environmentParamsData]() mutable
 			{
@@ -882,8 +972,6 @@ namespace NR
 				instance->mUniformBufferSet->Get(Binding::HBAOData, 0, bufferIndex)->RT_SetData(&hbaoData, sizeof(hbaoData));
 			});
 
-		screenData.FullResolution = { mViewportWidth, mViewportHeight };
-		screenData.InvFullResolution = { mInvViewportWidth, mInvViewportHeight };
 		Renderer::Submit([instance, screenData]() mutable
 			{
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
@@ -911,8 +999,7 @@ namespace NR
 				instance->mUniformBufferSet->Get(Binding::RendererData, 0, bufferIndex)->RT_SetData(&rendererData, sizeof(rendererData));
 			});
 
-		Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(),
-			mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+		Renderer::SetSceneEnvironment(this, mSceneData.SceneEnvironment, mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
 	}
 
 	void SceneRenderer::EndScene()
@@ -1014,6 +1101,8 @@ namespace NR
 
 	void SceneRenderer::PreDepthPass()
 	{
+		NR_PROFILE_FUNC();
+
 		mGPUTimeQueries.DepthPrePassQuery = mCommandBuffer->BeginTimestampQuery();
 		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
 		for (auto& dc : mDrawList)
@@ -1063,12 +1152,172 @@ namespace NR
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.DepthPrePassQuery);
 	}
 
+	void SceneRenderer::HierarchicalDepthCompute()
+	{
+		NR_PROFILE_FUNC();
+
+		Ref<VKComputePipeline> pipeline = mHierarchicalDepthPipeline.As<VKComputePipeline>();
+
+		auto depthImage = mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage().As<VKImage2D>();
+		mGPUTimeQueries.HierarchicalDepthQuery = mCommandBuffer->BeginTimestampQuery();
+
+		Renderer::Submit([depthImage, commandBuffer = mCommandBuffer, hierarchicalZTex = mHierarchicalDepthTexture, material = mHierarchicalDepthMaterial.As<VKMaterial>(), pipeline]() mutable
+			{
+				const VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				Ref<VKImage2D> hierarchicalZImage = hierarchicalZTex->GetImage().As<VKImage2D>();
+				struct HierarchicalZComputePushConstants
+				{
+					int LOD = -1;
+					int ViewportX = -1;
+					int ViewportY = -1;
+					int OffsetX = 0;
+					int OffsetY = 0;
+				} hierarchicalZComputePushConstants;
+
+				auto shader = material->GetShader().As<VKShader>();
+				std::array<VkWriteDescriptorSet, 2> writeDescriptors{};
+				VkDescriptorSetLayout descriptorSetLayout = shader->GetDescriptorSetLayout(0);
+
+				VkDescriptorSetAllocateInfo allocInfo = {};
+				allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+				allocInfo.descriptorSetCount = 1;
+				allocInfo.pSetLayouts = &descriptorSetLayout;
+
+				pipeline->Begin(commandBuffer);
+				auto descriptorImageInfo = hierarchicalZImage->GetDescriptor();
+				descriptorImageInfo.imageView = hierarchicalZImage->RT_GetMipImageView(0);
+
+				// 0th mip in hierarchical z buffer
+				VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+				writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+				writeDescriptors[0].dstSet = descriptorSet; // Should this be set inside the shader?
+				writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+				// Original depth map
+				writeDescriptors[1] = *shader->GetDescriptorSet("uInput");
+				writeDescriptors[1].dstSet = descriptorSet; // Should this be set inside the shader?
+				writeDescriptors[1].pImageInfo = &depthImage->GetDescriptor();
+
+				vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+
+				uint32_t width = hierarchicalZImage->GetWidth();
+				uint32_t height = hierarchicalZImage->GetHeight();
+				uint32_t workGroupsX = (width + (4 - (width % 4))) / 4;
+				uint32_t workGroupsY = (height + (4 - (height % 4))) / 4;
+
+				hierarchicalZComputePushConstants.ViewportX = width;
+				hierarchicalZComputePushConstants.ViewportY = height;
+
+				pipeline->SetPushConstants(&hierarchicalZComputePushConstants, sizeof(hierarchicalZComputePushConstants));
+				pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+
+				for (uint32_t i = 1; i < hierarchicalZTex->GetMipLevelCount(); ++i)
+				{
+					auto [mipWidth, mipHeight] = hierarchicalZTex->GetMipSize(i);
+					workGroupsX = (mipWidth + (4 - (mipWidth % 4))) / 4;
+					workGroupsY = (mipHeight + (4 - (mipHeight % 4))) / 4;
+
+					// Output higher mipmap
+					descriptorImageInfo.imageView = hierarchicalZImage->RT_GetMipImageView(i);
+					descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+					writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+					writeDescriptors[0].dstSet = descriptorSet; // Should this be set inside the shader?
+					writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+					// Input lower level
+					writeDescriptors[1] = *shader->GetDescriptorSet("uInput");
+					writeDescriptors[1].dstSet = descriptorSet; // Should this be set inside the shader?
+					writeDescriptors[1].pImageInfo = &hierarchicalZImage->GetDescriptor();
+
+					vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+
+					hierarchicalZComputePushConstants.LOD = i - 1;
+					hierarchicalZComputePushConstants.OffsetX = mipWidth % 2 == 0 ? 2 : 1;
+					hierarchicalZComputePushConstants.OffsetY = mipHeight % 2 == 0 ? 2 : 1;
+
+					pipeline->SetPushConstants(&hierarchicalZComputePushConstants, sizeof(hierarchicalZComputePushConstants));
+					pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+				}
+				pipeline->End();
+			});
+
+		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.HierarchicalDepthQuery);
+	}
+
+	void SceneRenderer::PreIntegration()
+	{
+		NR_PROFILE_FUNC();
+
+		Ref<VKComputePipeline> pipeline = mPreIntegrationPipeline.As<VKComputePipeline>();
+
+		Renderer::Submit([depthImage = mHierarchicalDepthTexture->GetImage().As<VKImage2D>(), commandBuffer = mCommandBuffer.As<VKRenderCommandBuffer>(),
+			visibilityTexture = mVisibilityTexture, material = mPreIntegrationMaterial.As<VKMaterial>(), pipeline]() mutable
+			{
+				const VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				Ref<VKImage2D> visibilityImage = visibilityTexture->GetImage().As<VKImage2D>();
+				struct PreIntegrationComputePushConstants
+				{
+					int LOD = 1;
+				} preIntegrationComputePushConstants;
+
+				VkClearColorValue clearColor{ { 1.f } };
+				VkImageSubresourceRange subresourceRange{};
+				subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+				subresourceRange.layerCount = 1;
+				subresourceRange.levelCount = 1;
+				
+				vkCmdClearColorImage(commandBuffer->GetCommandBuffer(Renderer::GetCurrentFrameIndex()), visibilityImage->GetImageInfo().Image, VK_IMAGE_LAYOUT_GENERAL, &clearColor, 1, &subresourceRange);
+				std::array<VkWriteDescriptorSet, 3> writeDescriptors{};
+				auto shader = material->GetShader().As<VKShader>();
+
+				VkDescriptorSetLayout descriptorSetLayout = shader->GetDescriptorSetLayout(0);
+				VkDescriptorSetAllocateInfo allocInfo = {};
+				allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+				allocInfo.descriptorSetCount = 1;
+				allocInfo.pSetLayouts = &descriptorSetLayout;
+				pipeline->Begin(commandBuffer);
+				auto descriptorImageInfo = visibilityImage->GetDescriptor();
+
+				for (uint32_t i = 1; i < visibilityTexture->GetMipLevelCount(); ++i)
+				{
+					auto [mipWidth, mipHeight] = visibilityTexture->GetMipSize(i);
+					const uint32_t workGroupsX = (uint32_t)glm::ceil((float)mipWidth / 8.0f);
+					const uint32_t workGroupsY = (uint32_t)glm::ceil((float)mipHeight / 8.0f);
+
+					// Output visibilityImage
+					descriptorImageInfo.imageView = visibilityImage->RT_GetMipImageView(i);
+					const VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+					writeDescriptors[0] = *shader->GetDescriptorSet("oVisibilityImage");
+					writeDescriptors[0].dstSet = descriptorSet;
+					writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+					// Input visibilityImage
+					writeDescriptors[1] = *shader->GetDescriptorSet("uDepthMap");
+					writeDescriptors[1].dstSet = descriptorSet;
+					writeDescriptors[1].pImageInfo = &depthImage->GetDescriptor();
+
+					// Input visibilityImage
+					writeDescriptors[2] = *shader->GetDescriptorSet("uVisibilityImage");
+					writeDescriptors[2].dstSet = descriptorSet;
+					writeDescriptors[2].pImageInfo = &visibilityImage->GetDescriptor();
+
+					vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+
+					preIntegrationComputePushConstants.LOD = i - 1;
+					pipeline->SetPushConstants(&preIntegrationComputePushConstants, sizeof(preIntegrationComputePushConstants));
+					pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+				}
+				pipeline->End();
+			});
+	}
+
 	void SceneRenderer::LightCullingPass()
 	{
-		mLightCullingMaterial->Set("uPreDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
+		mLightCullingMaterial->Set("uLinearDepthMap", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
 		mLightCullingMaterial->Set("uScreenData.uScreenSize", glm::ivec2{ mViewportWidth, mViewportHeight });
 
 		mGPUTimeQueries.LightCullingPassQuery = mCommandBuffer->BeginTimestampQuery();
+
 		Renderer::LightCulling(mCommandBuffer, mLightCullingPipeline, mUniformBufferSet, mStorageBufferSet, mLightCullingMaterial, glm::ivec2{ mViewportWidth, mViewportHeight }, mLightCullingWorkGroups);
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.LightCullingPassQuery);
 	}
@@ -1149,6 +1398,78 @@ namespace NR
 
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.GeometryPassQuery);
 	}
+	void SceneRenderer::PreConvolutionCompute()
+	{
+		NR_PROFILE_FUNC();
+		Ref<VKComputePipeline> pipeline = mGaussianBlurPipeline.As<VKComputePipeline>();
+		struct PreConvolutionComputePushConstants
+		{
+			int LOD = -1;
+		} preConvolutionComputePushConstants;
+		//mGPUTimeQueries.PreConvolutionQuery = mCommandBuffer->BeginTimestampQuery();
+		Renderer::Submit([preConvolutionComputePushConstants, inputColorImage = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage().As<VKImage2D>(),
+			preConvolutedTexture = mPreConvolutedTexture.As<VKTexture2D>(), commandBuffer = mCommandBuffer.As<VKRenderCommandBuffer>(),
+			material = mGaussianBlurMaterial.As<VKMaterial>(), pipeline]() mutable
+			{
+				const VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
+				Ref<VKImage2D> preConvolutedImage = preConvolutedTexture->GetImage().As<VKImage2D>();
+				auto shader = material->GetShader().As<VKShader>();
+				VkDescriptorSetLayout descriptorSetLayout = shader->GetDescriptorSetLayout(0);
+				VkDescriptorSetAllocateInfo allocInfo = {};
+				allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+				allocInfo.descriptorSetCount = 1;
+				allocInfo.pSetLayouts = &descriptorSetLayout;
+				std::array<VkWriteDescriptorSet, 2> writeDescriptors{};
+				const VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+				auto descriptorImageInfo = preConvolutedImage->GetDescriptor();
+				descriptorImageInfo.imageView = preConvolutedImage->RT_GetMipImageView(0);
+
+				// Output Pre-convoluted image
+				writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+				writeDescriptors[0].dstSet = descriptorSet;
+				writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+				// Input original colors
+				writeDescriptors[1] = *shader->GetDescriptorSet("uInput");
+				writeDescriptors[1].dstSet = descriptorSet;
+				writeDescriptors[1].pImageInfo = &inputColorImage->GetDescriptor();
+
+				uint32_t workGroupsX = (uint32_t)glm::ceil((float)inputColorImage->GetWidth() / 4.0f);
+				uint32_t workGroupsY = (uint32_t)glm::ceil((float)inputColorImage->GetHeight() / 4.0f);
+				pipeline->Begin(commandBuffer);
+
+				vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+
+				pipeline->SetPushConstants(&preConvolutionComputePushConstants, sizeof preConvolutionComputePushConstants);
+				pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+
+				for (uint32_t i = 1; i < preConvolutedTexture->GetMipLevelCount(); ++i)
+				{
+					auto [mipWidth, mipHeight] = preConvolutedTexture->GetMipSize(i);
+					workGroupsX = (uint32_t)glm::ceil((float)mipWidth / 4.0f);
+					workGroupsY = (uint32_t)glm::ceil((float)mipHeight / 4.0f);
+
+					// Output image
+					descriptorImageInfo.imageView = preConvolutedImage->RT_GetMipImageView(i);
+					const VkDescriptorSet descriptorSet = VKRenderer::RT_AllocateDescriptorSet(allocInfo);
+					writeDescriptors[0] = *shader->GetDescriptorSet("oImage");
+					writeDescriptors[0].dstSet = descriptorSet;
+					writeDescriptors[0].pImageInfo = &descriptorImageInfo;
+
+					// Lower LOD of same image
+					writeDescriptors[1] = *shader->GetDescriptorSet("uInput");
+					writeDescriptors[1].dstSet = descriptorSet;
+					writeDescriptors[1].pImageInfo = &preConvolutedImage->GetDescriptor();
+
+					vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
+
+					preConvolutionComputePushConstants.LOD = i - 1;
+					pipeline->SetPushConstants(&preConvolutionComputePushConstants, sizeof(preConvolutionComputePushConstants));
+					pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
+				}
+				pipeline->End();
+			});
+	}
 
 	void SceneRenderer::DeinterleavingPass()
 	{
@@ -1174,7 +1495,7 @@ namespace NR
 		}
 	}
 
-	void SceneRenderer::HBAOPass()
+	void SceneRenderer::HBAOCompute()
 	{
 		if (!mOptions.EnableHBAO)
 		{
@@ -1585,6 +1906,32 @@ namespace NR
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.BloomComputePassQuery);
 	}
 
+	void SceneRenderer::SSRPass()
+	{
+		NR_PROFILE_FUNC();
+
+		mGPUTimeQueries.SSRQuery = mCommandBuffer->BeginTimestampQuery();
+
+		if (!mOptions.EnableSSR)
+		{
+			Renderer::ClearImage(mCommandBuffer, mSSROutputImage);
+			return;
+		}
+
+		mSSRMaterial->Set("uInputColor", mPreConvolutedTexture->GetImage());
+		mSSRMaterial->Set("uHiZBuffer", mHierarchicalDepthTexture);
+		mSSRMaterial->Set("uVisibilityBuffer", mVisibilityTexture);
+		mSSRMaterial->Set("uViewPosition", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(2));
+		mSSRMaterial->Set("uNormal", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(1));
+		mSSRMaterial->Set("uMetalnessRoughness", mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage(3));
+		mSSRMaterial->Set("outColor", mSSROutputImage);
+		mSSROptions.NumDepthMips = mHierarchicalDepthTexture->GetMipLevelCount();
+
+		const Buffer pushConstantsBuffer(&mSSROptions, sizeof mSSROptions);
+		Renderer::DispatchComputeShader(mCommandBuffer, mSSRPipeline, mUniformBufferSet, nullptr, mSSRMaterial, mSSRWorkGroups, pushConstantsBuffer);
+		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.SSRQuery);
+	}
+
 	void SceneRenderer::CompositePass()
 	{
 		NR_PROFILE_FUNC();
@@ -1608,7 +1955,7 @@ namespace NR
 			CompositeMaterial->Set("uUniforms.BloomDirtIntensity", 0.0f);
 		}
 
-		CompositeMaterial->Set("uTexture", frameBuffer->GetImage());
+		CompositeMaterial->Set("uTexture", mSSROutputImage);
 		CompositeMaterial->Set("uBloomTexture", mBloomComputeTextures[2]);
 		CompositeMaterial->Set("uBloomDirtTexture", mBloomDirtTexture);
 
@@ -1647,13 +1994,16 @@ namespace NR
 			// Main render passes
 			ShadowMapPass();
 			PreDepthPass();
+			HierarchicalDepthCompute();
+			PreIntegration();
 			LightCullingPass();
 			GeometryPass();
+			PreConvolutionCompute();
 
 			// HBAO
 			mGPUTimeQueries.HBAOPassQuery = mCommandBuffer->BeginTimestampQuery();
 			DeinterleavingPass();
-			HBAOPass();
+			HBAOCompute();
 			ReinterleavingPass();
 			HBAOBlurPass();
 			mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.HBAOPassQuery);
@@ -1661,6 +2011,7 @@ namespace NR
 			// Post-processing
 			JumpFloodPass();
 			BloomCompute();
+			SSRPass();
 			CompositePass();
 
 			mCommandBuffer->End();
@@ -1825,7 +2176,7 @@ namespace NR
 	}
 
 
-	void SceneRenderer::SetLineWidth(float width)
+	void SceneRenderer::SetLineWidth(const float width)
 	{
 		mLineWidth = width;
 		if (mGeometryWireframePipeline)
@@ -1857,6 +2208,23 @@ namespace NR
 				ImGui::Columns(1);
 			}
 
+			UI::EndTreeNode();
+		}
+
+		if (UI::BeginTreeNode("SSR"))
+		{
+			UI::BeginPropertyGrid();
+			UI::Property("Enable SSR", mOptions.EnableSSR);
+			UI::Property("Depth Tolerance", mSSROptions.SSRDepthTolerance, 0.00001f, 0.0f, 100.0f);
+			UI::Property("Fade In", mSSROptions.SSRFadeIn, 0.005f, 0.0f, 10.0f);
+			UI::Property("Fading Distance", mSSROptions.SSRFadeDistance, 0.005f, 0.0f, 10.0f);
+			UI::Property("Mirror Reflection Fading", mSSROptions.MirrorReflectionFade, 0.001f, 0.0f, 2.0f);
+			UI::PropertySlider("Maximum Steps", mSSROptions.SSRMaxSteps, 1, 150);
+			UI::Property("Enable Cone Tracing", mSSROptions.EnableConeTracing);
+			UI::EndPropertyGrid();
+
+			const float size = ImGui::GetContentRegionAvail().x;
+			UI::Image(mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage(), { size, size * (0.9f / 1.6f) }, { 0, 1 }, { 1, 0 });
 			UI::EndTreeNode();
 		}
 
@@ -1955,10 +2323,12 @@ namespace NR
 			ImGui::Text("GPU time: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex));
 			ImGui::Text("Shadow Map Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.ShadowMapPassQuery));
 			ImGui::Text("Depth Pre-Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.DepthPrePassQuery));
+			ImGui::Text("Hierarchical Depth: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.HierarchicalDepthQuery));
 			ImGui::Text("Light Culling Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.LightCullingPassQuery));
 			ImGui::Text("Geometry Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.GeometryPassQuery));
 			ImGui::Text("HBAO Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.HBAOPassQuery));
 			ImGui::Text("Bloom Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.BloomComputePassQuery));
+			ImGui::Text("SSR Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.SSRQuery));
 			ImGui::Text("Jump Flood Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.JumpFloodPassQuery));
 			ImGui::Text("Composite Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.CompositePassQuery));
 

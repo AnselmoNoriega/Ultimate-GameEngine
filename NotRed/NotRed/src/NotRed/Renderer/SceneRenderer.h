@@ -34,6 +34,22 @@ namespace NR
 		float HBAORadius = 1.0f;
 		float HBAOBias = 0.35f;
 		float HBAOBlurSharpness = 1.0f;
+
+		//SSR
+		bool EnableSSR = true;
+	};
+
+	struct SSROptions
+	{
+		//SSR
+		float SSRDepthTolerance = 0.1f;
+		float SSRFadeIn = 0.5f;
+		float SSRFadeDistance = 0.65f;
+		float MirrorReflectionFade = 0.8f;
+		int SSRMaxSteps = 70;
+		uint32_t NumDepthMips;
+		bool EnableConeTracing = true;
+		char Padding[3]{ 0, 0, 0 };
 	};
 
 	struct SceneRendererCamera
@@ -105,21 +121,24 @@ namespace NR
 		void FlushDrawList();
 
 		void ClearPass();
+		void ClearPass(Ref<RenderPass> renderPass, bool explicitClear = false);
 		void DeinterleavingPass();
-		void HBAOPass();
+		void HBAOCompute();
 		void ReinterleavingPass();
 		void HBAOBlurPass();
 		void ShadowMapPass();
 		void PreDepthPass();
+		void HierarchicalDepthCompute();
+		void PreIntegration();
 		void LightCullingPass();
 		void GeometryPass();
+		void PreConvolutionCompute();	
 		void JumpFloodPass();
 
 		// Post-processing
 		void BloomCompute();
+		void SSRPass();
 		void CompositePass();
-
-		void ClearPass(Ref<RenderPass> renderPass, bool explicitClear = false);
 
 		struct CascadeData
 		{
@@ -156,7 +175,10 @@ namespace NR
 			glm::mat4 ViewProjection;
 			glm::mat4 InverseViewProjection;
 			glm::mat4 Projection;
+			glm::mat4 InverseProjection;
 			glm::mat4 View;
+			glm::mat4 InverseView;
+			glm::mat4 FlippedViewProjection;
 		} CameraDataUB;
 
 		struct UBHBAOData
@@ -265,6 +287,7 @@ namespace NR
 		} RendererDataUB;
 
 		glm::ivec3 mHBAOWorkGroups{ 32.f, 32.f, 16.f };
+
 		//HBAO
 		Ref<Material> mDeinterleavingMaterial;
 		Ref<Material> mReinterleavingMaterial;
@@ -288,6 +311,25 @@ namespace NR
 		glm::vec4 CascadeSplits;
 		float CascadeFarPlaneOffset = 50.0f, CascadeNearPlaneOffset = -50.0f;
 
+		//SSR
+		Ref<Material> mSSRMaterial;
+		Ref<PipelineCompute> mSSRPipeline;
+		Ref<Image2D> mSSROutputImage;
+
+		glm::ivec3 mSSRWorkGroups{ 1 };
+
+		Ref<PipelineCompute> mHierarchicalDepthPipeline;
+		Ref<PipelineCompute> mGaussianBlurPipeline;
+
+		Ref<Texture2D> mHierarchicalDepthTexture;
+		Ref<Texture2D> mVisibilityTexture;
+
+		Ref<PipelineCompute> mPreIntegrationPipeline;
+
+		Ref<Material> mGaussianBlurMaterial;
+		Ref<Material> mHierarchicalDepthMaterial;
+		Ref<Material> mPreIntegrationMaterial;
+
 		bool EnableBloom = false;
 		float BloomThreshold = 1.5f;
 
@@ -296,6 +338,7 @@ namespace NR
 		Ref<Material> CompositeMaterial;
 		Ref<Material> mLightCullingMaterial;
 
+		Ref<Texture2D> mPreConvolutedTexture;
 		Ref<Pipeline> mGeometryPipeline;
 		Ref<Pipeline> mGeometryPipelineAnim;
 
@@ -371,6 +414,7 @@ namespace NR
 		Ref<Material> mColliderMaterial;
 
 		SceneRendererOptions mOptions;
+		SSROptions mSSROptions;
 
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 		float mInvViewportWidth = 0.f, mInvViewportHeight = 0.f;
@@ -387,9 +431,11 @@ namespace NR
 		{
 			uint32_t ShadowMapPassQuery = 0;
 			uint32_t DepthPrePassQuery = 0;
+			uint32_t HierarchicalDepthQuery = 0;
 			uint32_t LightCullingPassQuery = 0;
 			uint32_t GeometryPassQuery = 0;
 			uint32_t HBAOPassQuery = 0;
+			uint32_t SSRQuery = 0;
 			uint32_t BloomComputePassQuery = 0;
 			uint32_t JumpFloodPassQuery = 0;
 			uint32_t CompositePassQuery = 0;

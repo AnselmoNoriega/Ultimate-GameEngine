@@ -58,6 +58,7 @@ namespace NR
 		uint32_t Width = 0;
 		uint32_t Height = 0;
 		glm::vec4 ClearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+		float DepthClearValue = 1.0f;
 		bool ClearOnLoad = true;
 		FrameBufferAttachmentSpecification Attachments;
 		uint32_t Samples = 1;

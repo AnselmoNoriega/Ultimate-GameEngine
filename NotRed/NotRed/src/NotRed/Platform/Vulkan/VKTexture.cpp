@@ -38,8 +38,11 @@ namespace NR
         {
             switch (format)
             {
-            case ImageFormat::RGBA: return width * height * 4;
-            case ImageFormat::RGBA32F: return width * height * 4 * sizeof(float);
+            case ImageFormat::RG32F:                    return width * height * 2 * sizeof(float);
+            case ImageFormat::RED32F:                   return width * height * sizeof(float);
+            case ImageFormat::RED8UNormalized:          return width * height * sizeof(std::byte);
+            case ImageFormat::RGBA:                     return width * height * 4;
+            case ImageFormat::RGBA32F:                  return width * height * 4 * sizeof(float);
             default:
                 NR_CORE_ASSERT(false);
                 return 0;

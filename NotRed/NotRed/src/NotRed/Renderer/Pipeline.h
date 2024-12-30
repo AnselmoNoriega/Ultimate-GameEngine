@@ -20,6 +20,16 @@ namespace NR
 		TriangleFan
 	};
 
+	enum class DepthCompareOperator
+	{
+		None,
+		Less,
+		LessOrEqual,
+		Greater,
+		GreaterOrEqual,
+		Always,
+	};
+
 	struct PipelineSpecification
 	{
 		Ref<NR::Shader> Shader;
@@ -27,6 +37,7 @@ namespace NR
 		Ref<RenderPass> RenderPass;
 
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;
+		DepthCompareOperator DepthOperator = DepthCompareOperator::LessOrEqual;
 
 		bool BackfaceCulling = true;
 		bool DepthTest = true;

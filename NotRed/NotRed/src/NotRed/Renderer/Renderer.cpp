@@ -156,6 +156,12 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Reinterleaving");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAO");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/HBAOBlur");
+
+        //SSR
+        Renderer::GetShaderLibrary()->Load("Resources/shaders/SSR", true);
+        Renderer::GetShaderLibrary()->Load("Resources/shaders/HZB", true);
+        Renderer::GetShaderLibrary()->Load("Resources/shaders/Pre-Integration", true);
+        Renderer::GetShaderLibrary()->Load("Resources/shaders/Pre-Convolution", true);
 		
 		// Renderer2D Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
@@ -245,9 +251,9 @@ namespace NR
         sRendererAPI->EndFrame();
     }
 
-    void Renderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow, Ref<Image2D> linearDepth)
+    void Renderer::SetSceneEnvironment(Ref<SceneRenderer> sceneRenderer, Ref<Environment> environment, Ref<Image2D> shadow)
     {
-        sRendererAPI->SetSceneEnvironment(sceneRenderer, environment, shadow, linearDepth);
+        sRendererAPI->SetSceneEnvironment(sceneRenderer, environment, shadow);
     }
 
     std::pair<Ref<TextureCube>, Ref<TextureCube>> Renderer::CreateEnvironmentMap(const std::string& filepath)
@@ -260,9 +266,9 @@ namespace NR
         sRendererAPI->GenerateParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, workGroups);
     }
 
-    void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
+    void Renderer::DispatchComputeShader(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<VKComputePipeline> computePipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups, const Buffer additionalUniforms)
     {
-        sRendererAPI->DispatchComputeShader(renderCommandBuffer, computePipeline, uniformBufferSet, storageBufferSet, material, workGroups);
+        sRendererAPI->DispatchComputeShader(renderCommandBuffer, computePipeline, uniformBufferSet, storageBufferSet, material, workGroups, additionalUniforms);
     }
 
     void Renderer::ClearImage(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Image2D> image)
@@ -307,7 +313,7 @@ namespace NR
 
     void Renderer::SubmitFullscreenQuadWithOverrides(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<Material> material, Buffer vertexShaderOverrides, Buffer fragmentShaderOverrides)
     {
-        sRendererAPI->SubmitFullscreenQuadWithOverrides(renderCommandBuffer, pipeline, uniformBufferSet, nullptr, material, vertexShaderOverrides, fragmentShaderOverrides);
+        sRendererAPI->SubmitFullscreenQuadWithOverrides(renderCommandBuffer, pipeline, uniformBufferSet, material, vertexShaderOverrides, fragmentShaderOverrides);
     }
 
     void Renderer::RenderGeometry(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, Ref<VertexBuffer> vertexBuffer, Ref<IndexBuffer> indexBuffer, const glm::mat4& transform, uint32_t indexCount)
