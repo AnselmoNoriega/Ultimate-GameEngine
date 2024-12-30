@@ -14,15 +14,15 @@
 #include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Renderer/Texture.h"
- 
+
 #include "imgui/imgui.h"
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
-	#define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include "imgui_internal.h"
 
-namespace NR::UI 
+namespace NR::UI
 {
 	static int sUIContextID = 0;
 	static uint32_t sCounter = 0;
@@ -142,10 +142,10 @@ namespace NR::UI
 		ImGui::Text(label);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
-		
+
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
-		
+
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		bool changed = ImGui::InputText(sIDBuffer, value, length, sNextItemReadOnly ? ImGuiInputTextFlags_ReadOnly : 0);
@@ -231,7 +231,7 @@ namespace NR::UI
 
 		return modified;
 	}
-	
+
 	static bool PropertySlider(const char* label, float& value, float min, float max)
 	{
 		bool modified = false;
@@ -448,7 +448,7 @@ namespace NR::UI
 		sIDBuffer[0] = '#';
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
-		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);		
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 		if (sNextItemReadOnly)
 		{
 			ImGui::InputFloat4(sIDBuffer, glm::value_ptr(value), "%.3f", ImGuiInputTextFlags_ReadOnly);
@@ -565,10 +565,10 @@ namespace NR::UI
 
 	template<typename T, typename Fn>
 	static bool PropertyAssetReferenceTarget(
-		const char* label, 
-		const char* assetName, 
-		Ref<T> source, 
-		Fn&& targetFunc, 
+		const char* label,
+		const char* assetName,
+		Ref<T> source,
+		Fn&& targetFunc,
 		const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings()
 	)
 	{
@@ -717,8 +717,8 @@ namespace NR::UI
 
 	template<typename T>
 	static bool PropertyAssetReference(
-		const char* label, 
-		Ref<T>& object, 
+		const char* label,
+		Ref<T>& object,
 		PropertyAssetReferenceError* outError = nullptr,
 		const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings()
 	)
@@ -733,13 +733,12 @@ namespace NR::UI
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
-		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign; 
+		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
 		{
 			ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
 			float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
 			float itemHeight = 28.0f;
 			std::string buttonText = "Null";
-		
 			if (object)
 			{
 				if (!object->IsFlagSet(AssetFlag::Missing))
@@ -752,8 +751,9 @@ namespace NR::UI
 				}
 			}
 
-			ImGui::Button(fmt::format("{}##{}", buttonText, sCounter).c_str(), { width, itemHeight });
+			ImGui::Button(fmt::format("{}##{}", buttonText, sCounter++).c_str(), { width, itemHeight });
 		}
+
 		ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
 		if (ImGui::BeginDragDropTarget())
@@ -783,10 +783,10 @@ namespace NR::UI
 
 	template<typename TAssetType, typename TConversionType, typename Fn>
 	static bool PropertyAssetReferenceWithConversion(
-		const char* label, 
+		const char* label,
 		Ref<TAssetType>& object,
-		Fn&& conversionFunc, 
-		PropertyAssetReferenceError* outError = nullptr, 
+		Fn&& conversionFunc,
+		PropertyAssetReferenceError* outError = nullptr,
 		const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings()
 	)
 	{
@@ -805,7 +805,7 @@ namespace NR::UI
 		float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
 		UI::PushID();
 		float itemHeight = 28.0f;
-		
+
 		if (object)
 		{
 			if (!object->IsFlagSet(AssetFlag::Missing))
@@ -861,7 +861,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		
+
 		return succeeded;
 	}
 
