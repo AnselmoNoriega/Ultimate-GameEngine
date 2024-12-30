@@ -13,6 +13,8 @@ namespace NR
 		Prefab();
 		Prefab(Entity e);
 
+		~Prefab();
+
 		static AssetType GetStaticType() { return AssetType::Prefab; }
 		AssetType GetAssetType() const override { return GetStaticType(); }
 

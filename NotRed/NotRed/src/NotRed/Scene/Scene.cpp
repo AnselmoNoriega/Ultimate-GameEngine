@@ -110,56 +110,37 @@ namespace NR
 		std::unique_ptr<b2World> World;
 	};
 
-	static void ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
+	void Scene::ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
 	{
-		auto sceneView = registry.view<SceneComponent>();
-		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-
-		Scene* scene = sActiveScenes[sceneID];
-
 		auto entityID = registry.get<IDComponent>(entity).ID;
-		NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
-		ScriptEngine::InitScriptEntity(scene->mEntityIDMap.at(entityID));
+		NR_CORE_ASSERT(mEntityIDMap.find(entityID) != mEntityIDMap.end());
+		ScriptEngine::InitScriptEntity(mEntityIDMap.at(entityID));
 	}
 
-	static void ScriptComponentDestroy(entt::registry& registry, entt::entity entity)
+	void Scene::ScriptComponentDestroy(entt::registry& registry, entt::entity entity)
 	{
-		auto sceneView = registry.view<SceneComponent>();
-		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-
-		Scene* scene = sActiveScenes[sceneID];
-
 		if (registry.try_get<IDComponent>(entity))
 		{
 			auto entityID = registry.get<IDComponent>(entity).ID;
-			ScriptEngine::ScriptComponentDestroyed(sceneID, entityID);
+			ScriptEngine::ScriptComponentDestroyed(GetID(), entityID);
 		}
 	}
 
-	static void AudioComponentConstruct(entt::registry& registry, entt::entity entity)
+	void Scene::AudioComponentConstruct(entt::registry& registry, entt::entity entity)
 	{
-		auto sceneView = registry.view<SceneComponent>();
-		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-
-		Scene* scene = sActiveScenes[sceneID];
-
 		auto entityID = registry.get<IDComponent>(entity).ID;
-		NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
+		NR_CORE_ASSERT(mEntityIDMap.find(entityID) != mEntityIDMap.end());
+
 		registry.get<Audio::AudioComponent>(entity).ParentHandle = entityID;
-		Audio::AudioEngine::Get().RegisterAudioComponent(scene->mEntityIDMap.at(entityID));
+		Audio::AudioEngine::Get().RegisterAudioComponent(mEntityIDMap.at(entityID));
 	}
 
-	//? This just throws that entity does not exist when looking for IDComponent, so it can't be use reliably
-	static void AudioComponentDestroy(entt::registry& registry, entt::entity entity)
+	void Scene::AudioComponentDestroy(entt::registry& registry, entt::entity entity)
 	{
-		auto sceneView = registry.view<SceneComponent>();
-		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
-
-		Scene* scene = sActiveScenes[sceneID];
-
 		auto entityID = registry.get<IDComponent>(entity).ID;
-		NR_CORE_ASSERT(scene->mEntityIDMap.find(entityID) != scene->mEntityIDMap.end());
-		Audio::AudioEngine::Get().UnregisterAudioComponent(sceneID, scene->mEntityIDMap.at(entityID).GetID());
+		NR_CORE_ASSERT(mEntityIDMap.find(entityID) != mEntityIDMap.end());
+		
+		Audio::AudioEngine::Get().UnregisterAudioComponent(GetID(), mEntityIDMap.at(entityID).GetID());
 	}
 
 	Scene::Scene(const std::string& debugName, bool isEditorScene, bool construct)
@@ -167,10 +148,10 @@ namespace NR
 	{
 		if (construct)
 		{
-			mRegistry.on_construct<ScriptComponent>().connect<&ScriptComponentConstruct>();
-			mRegistry.on_destroy<ScriptComponent>().connect<&ScriptComponentDestroy>();
+			mRegistry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentConstruct>(this);
+			mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(this);
 
-			mRegistry.on_construct<Audio::AudioComponent>().connect<&AudioComponentConstruct>();
+			mRegistry.on_construct<Audio::AudioComponent>().connect<&Scene::AudioComponentConstruct>(this);
 			mSceneEntity = mRegistry.create();
 			mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
@@ -185,7 +166,9 @@ namespace NR
 
 	Scene::~Scene()
 	{
-		mRegistry.on_destroy<ScriptComponent>().disconnect();
+		mRegistry.on_construct<ScriptComponent>().disconnect(this);
+		mRegistry.on_destroy<ScriptComponent>().disconnect(this);
+		mRegistry.on_construct<Audio::AudioComponent>().disconnect(this);
 		////mRegistry.on_destroy<Audio::AudioComponent>().disconnect();
 
 		mRegistry.clear();

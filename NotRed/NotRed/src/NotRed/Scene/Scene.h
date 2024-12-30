@@ -146,6 +146,11 @@ namespace NR
 	public:
 		static Ref<Scene> CreateEmpty();
 
+		void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
+		void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
+		void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
+		void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
+
 	private:
 		template<typename Fn>
 		void SubmitPostUpdateFunc(Fn&& func)
@@ -155,7 +160,7 @@ namespace NR
 
 	private:
 		UUID mSceneID;
-		entt::entity mSceneEntity;
+		entt::entity mSceneEntity = entt::null;
 		entt::registry mRegistry;
 
 		std::string mName = "UntitledScene";
@@ -192,11 +197,5 @@ namespace NR
 		friend class SceneSerializer;
 		friend class PrefabSerializer;
 		friend class SceneHierarchyPanel;
-
-		friend void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
-		friend void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
-		friend void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
-		friend void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
 	};
-
 }

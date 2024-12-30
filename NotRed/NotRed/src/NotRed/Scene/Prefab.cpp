@@ -60,11 +60,20 @@ namespace NR
 	Prefab::Prefab()
 	{
 		mScene = Scene::CreateEmpty();
+
+		mScene->mRegistry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentConstruct>(mScene);
+		mScene->mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(mScene);
 	}
 
 	Prefab::Prefab(Entity e)
 	{
 		mScene = Scene::CreateEmpty();
 		mEntity = CreatePrefabFromEntity(e);
+	}
+
+	Prefab::~Prefab()
+	{
+		mScene->mRegistry.on_construct<ScriptComponent>().disconnect(this);
+		mScene->mRegistry.on_destroy<ScriptComponent>().disconnect(this);
 	}
 }
