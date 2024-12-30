@@ -27,7 +27,6 @@ namespace NR::UI
 	static int sUIContextID = 0;
 	static uint32_t sCounter = 0;
 	static char sIDBuffer[16];
-	static bool sNextItemReadOnly = false;
 
 	static bool IsMouseEnabled()
 	{
@@ -69,18 +68,13 @@ namespace NR::UI
 		ImGui::Separator();
 	}
 
-	static void SetNextPropertyReadOnly(bool isReadOnly = true)
-	{
-		sNextItemReadOnly = isReadOnly;
-	}
-
-	static void BeginDisabled()
+	static void PushItemDisabled()
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
 		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
-	static void EndDisabled()
+	static void PopItemDisabled()
 	{
 		ImGui::PopItemFlag();
 		ImGui::PopStyleVar();
@@ -148,7 +142,7 @@ namespace NR::UI
 
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
-		bool changed = ImGui::InputText(sIDBuffer, value, length, sNextItemReadOnly ? ImGuiInputTextFlags_ReadOnly : 0);
+		bool changed = ImGui::InputText(sIDBuffer, value, length);
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -190,22 +184,15 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
-		if (sNextItemReadOnly)
+
+		if (ImGui::DragInt(sIDBuffer, &value))
 		{
-			ImGui::InputInt(sIDBuffer, &value, 0, 0, ImGuiInputTextFlags_ReadOnly);
-		}
-		else
-		{
-			if (ImGui::DragInt(sIDBuffer, &value))
-			{
-				modified = true;
-			}
+			modified = true;
 		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		sNextItemReadOnly = false;
 		return modified;
 	}
 
@@ -333,22 +320,14 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
-		if (sNextItemReadOnly)
+		if (ImGui::DragFloat(sIDBuffer, &value, delta, min, max))
 		{
-			ImGui::InputFloat(sIDBuffer, &value, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_ReadOnly);
-		}
-		else
-		{
-			if (ImGui::DragFloat(sIDBuffer, &value, delta, min, max))
-			{
-				modified = true;
-			}
+			modified = true;
 		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		sNextItemReadOnly = false;
 		return modified;
 	}
 
@@ -364,22 +343,15 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
-		if (sNextItemReadOnly)
+		
+		if (ImGui::DragFloat2(sIDBuffer, glm::value_ptr(value), delta))
 		{
-			ImGui::InputFloat2(sIDBuffer, glm::value_ptr(value), "%.3f", ImGuiInputTextFlags_ReadOnly);
-		}
-		else
-		{
-			if (ImGui::DragFloat2(sIDBuffer, glm::value_ptr(value), delta))
-			{
-				modified = true;
-			}
+			modified = true;
 		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		sNextItemReadOnly = false;
 		return modified;
 	}
 
@@ -418,22 +390,15 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
-		if (sNextItemReadOnly)
+
+		if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
 		{
-			ImGui::InputFloat3(sIDBuffer, glm::value_ptr(value), "%.3f", ImGuiInputTextFlags_ReadOnly);
-		}
-		else
-		{
-			if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
-			{
-				modified = true;
-			}
+			modified = true;
 		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		sNextItemReadOnly = false;
 		return modified;
 	}
 
@@ -449,22 +414,15 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
-		if (sNextItemReadOnly)
+
+		if (ImGui::DragFloat4(sIDBuffer, glm::value_ptr(value), delta))
 		{
-			ImGui::InputFloat4(sIDBuffer, glm::value_ptr(value), "%.3f", ImGuiInputTextFlags_ReadOnly);
-		}
-		else
-		{
-			if (ImGui::DragFloat4(sIDBuffer, glm::value_ptr(value), delta))
-			{
-				modified = true;
-			}
+			modified = true;
 		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
-		sNextItemReadOnly = false;
 		return modified;
 	}
 

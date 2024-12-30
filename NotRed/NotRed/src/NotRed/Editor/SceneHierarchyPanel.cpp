@@ -916,9 +916,9 @@ namespace NR
 				}
 				else
 				{
-					UI::BeginDisabled();
+					UI::PushItemDisabled();
 					UI::PropertySlider("Lod", slc.Lod, 0, 10);
-					UI::EndDisabled();
+					UI::PopItemDisabled();
 				}
 				ImGui::Separator();
 				UI::Property("Dynamic Sky", slc.DynamicSky);
@@ -984,7 +984,11 @@ namespace NR
 						for (auto& [name, field] : publicFields)
 						{
 							bool isRuntime = mContext->mIsPlaying && field.IsRuntimeAvailable();
-							UI::SetNextPropertyReadOnly(field.IsReadOnly);
+							if (field.IsReadOnly)
+							{
+								UI::PushItemDisabled();
+							}
+
 							switch (field.Type)
 							{
 							case FieldType::Int:
@@ -1103,6 +1107,10 @@ namespace NR
 								}
 								break;
 							}
+							}
+							if (field.IsReadOnly)
+							{
+								UI::PopItemDisabled();
 							}
 						}
 					}
