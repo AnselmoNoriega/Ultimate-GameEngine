@@ -463,6 +463,8 @@ namespace NR
 				}
 				mEnvironment = skyLightComponent.SceneEnvironment;
 				mEnvironmentIntensity = skyLightComponent.Intensity;
+				mSkyboxLod = skyLightComponent.Lod;
+
 				if (mEnvironment)
 				{
 					SetSkybox(mEnvironment->RadianceMap);
@@ -602,8 +604,12 @@ namespace NR
 				}
 				mEnvironment = skyLightComponent.SceneEnvironment;
 				mEnvironmentIntensity = skyLightComponent.Intensity;
+				mSkyboxLod = skyLightComponent.Lod;
+				
 				if (mEnvironment)
+				{
 					SetSkybox(mEnvironment->RadianceMap);
+				}
 			}
 		}
 
@@ -841,6 +847,8 @@ namespace NR
 
 				mEnvironment = skyLightComponent.SceneEnvironment;
 				mEnvironmentIntensity = skyLightComponent.Intensity;
+				mSkyboxLod = skyLightComponent.Lod;
+
 				if (mEnvironment)
 				{
 					SetSkybox(mEnvironment->RadianceMap);

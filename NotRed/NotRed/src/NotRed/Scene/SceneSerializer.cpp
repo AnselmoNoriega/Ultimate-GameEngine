@@ -272,7 +272,8 @@ namespace NR
 			{
 				out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
 			}
-			out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;
+			out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;			
+			out << YAML::Key << "Lod" << YAML::Value << skyLightComponent.Lod;
 			out << YAML::Key << "DynamicSky" << YAML::Value << skyLightComponent.DynamicSky;
 			if (skyLightComponent.DynamicSky)
 			{
@@ -925,6 +926,15 @@ namespace NR
 				}
 
 				component.Intensity = skyLightComponent["Intensity"].as<float>();
+				auto lod = skyLightComponent["Lod"];
+				if (lod)
+				{
+					component.Lod = lod.as<int>();
+				}
+				else
+				{
+					component.Lod = 1;
+				}
 				if (skyLightComponent["DynamicSky"])
 				{
 					component.DynamicSky = skyLightComponent["DynamicSky"].as<bool>();

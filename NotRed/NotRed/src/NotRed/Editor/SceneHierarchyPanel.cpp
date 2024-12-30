@@ -909,6 +909,16 @@ namespace NR
 				UI::BeginPropertyGrid();
 				UI::PropertyAssetReference("Environment Map", slc.SceneEnvironment);
 				UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
+				if (slc.SceneEnvironment->RadianceMap)
+				{
+					UI::PropertySlider("Lod", slc.Lod, 0, slc.SceneEnvironment->RadianceMap->GetMipLevelCount());
+				}
+				else
+				{
+					UI::BeginDisabled();
+					UI::PropertySlider("Lod", slc.Lod, 0, 10);
+					UI::EndDisabled();
+				}
 				ImGui::Separator();
 				UI::Property("Dynamic Sky", slc.DynamicSky);
 				if (slc.DynamicSky)

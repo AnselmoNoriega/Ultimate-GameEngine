@@ -17,6 +17,11 @@
  
 #include "imgui/imgui.h"
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+	#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui_internal.h"
+
 namespace NR::UI 
 {
 	static int sUIContextID = 0;
@@ -67,6 +72,18 @@ namespace NR::UI
 	static void SetNextPropertyReadOnly(bool isReadOnly = true)
 	{
 		sNextItemReadOnly = isReadOnly;
+	}
+
+	static void BeginDisabled()
+	{
+		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	static void EndDisabled()
+	{
+		ImGui::PopItemFlag();
+		ImGui::PopStyleVar();
 	}
 
 	static bool Property(const char* label, std::string& value, bool error = false)
