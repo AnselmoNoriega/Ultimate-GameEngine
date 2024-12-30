@@ -716,30 +716,27 @@ namespace NR::UI
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 
-		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
-		ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
-		float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
-		UI::PushID();
-		float itemHeight = 28.0f;
+		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign; 
+		{
+			ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+			float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
+			float itemHeight = 28.0f;
+			std::string buttonText = "Null";
 		
-		if (object)
-		{
-			if (!object->IsFlagSet(AssetFlag::Missing))
+			if (object)
 			{
-				std::string assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
-				ImGui::Button((char*)assetFileName.c_str(), { width, itemHeight });
+				if (!object->IsFlagSet(AssetFlag::Missing))
+				{
+					buttonText = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+				}
+				else
+				{
+					buttonText = "Missing";
+				}
 			}
-			else
-			{
-				ImGui::Button("Missing", { width, itemHeight });
-			}
-		}
-		else
-		{
-			ImGui::Button("Null", { width, itemHeight });
-		}
 
-		UI::PopID();
+			ImGui::Button(fmt::format("{}##{}", buttonText, sCounter).c_str(), { width, itemHeight });
+		}
 		ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
 		if (ImGui::BeginDragDropTarget())

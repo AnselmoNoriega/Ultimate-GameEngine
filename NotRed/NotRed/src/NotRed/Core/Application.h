@@ -34,7 +34,7 @@ namespace NR
 
         virtual void Init() {}
         virtual void Update(float dt) {}
-        virtual void Shutdown() {}
+        virtual void Shutdown();
         
         void RenderImGui();
 

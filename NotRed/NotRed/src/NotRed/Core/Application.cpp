@@ -245,6 +245,11 @@ namespace NR
 		mRunning = false;
 	}
 
+	void Application::Shutdown()
+	{
+		gApplicationRunning = false;
+	}
+
 	void Application::OnEvent(Event& event)
 	{
 		EventDispatcher dispatcher(event);
@@ -278,8 +283,7 @@ namespace NR
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)
 	{
-		mRunning = false;
-		gApplicationRunning = false;
+		Close();
 		return true;
 	}
 

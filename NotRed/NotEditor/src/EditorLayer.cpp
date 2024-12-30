@@ -761,8 +761,6 @@ namespace NR
 
     void EditorLayer::ImGuiRender()
     {
-        static bool p_open = true;
-
         static bool opt_fullscreen_persistant = true;
         static ImGuiDockNodeFlags opt_flags = ImGuiDockNodeFlags_None;
         bool opt_fullscreen = opt_fullscreen_persistant;
@@ -786,7 +784,7 @@ namespace NR
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &p_open, window_flags);
+        ImGui::Begin("DockSpace Demo", nullptr, window_flags);
         ImGui::PopStyleVar();
 
         if (opt_fullscreen)
@@ -1341,9 +1339,9 @@ namespace NR
 
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Exit"))
+                if (ImGui::MenuItem("Exit", "Alt + F4"))
                 {
-                    p_open = false;
+                    Application::Get().Close();
                 }
 
                 ImGui::EndMenu();
