@@ -58,11 +58,11 @@ namespace NR
 
 		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
 		{
-			if (!removedActorA && !removedActorB && ScriptEngine::IsEntityModuleValid(actorA->GetEntity())) ScriptEngine::CollisionBegin(actorA->GetEntity(), actorB->GetEntity());
-			if (!removedActorB && !removedActorA && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionBegin(actorB->GetEntity(), actorA->GetEntity());
+			if (!removedActorA && !removedActorB && ScriptEngine::IsEntityModuleValid(actorA->GetEntity()) && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionBegin(actorA->GetEntity(), actorB->GetEntity());
+			if (!removedActorB && !removedActorA && ScriptEngine::IsEntityModuleValid(actorB->GetEntity()) && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionBegin(actorB->GetEntity(), actorA->GetEntity());
 		}
 		else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
-		{	
+		{
 			if (!removedActorA && !removedActorB && ScriptEngine::IsEntityModuleValid(actorA->GetEntity())) ScriptEngine::CollisionEnd(actorA->GetEntity(), actorB->GetEntity());
 			if (!removedActorB && !removedActorA && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionEnd(actorB->GetEntity(), actorA->GetEntity());
 		}
