@@ -217,7 +217,6 @@ namespace NR
 
 		if (mIsPlaying && mShouldSimulate)
 		{
-			NR_PROFILE_FUNC("Scene::OnUpdate - C# OnUpdate");
 			auto view = mRegistry.view<ScriptComponent>();
 			for (auto entity : view)
 			{
@@ -1399,6 +1398,8 @@ namespace NR
 	template<typename T>
 	static void CopyComponentIfExists(entt::entity dst, entt::entity src, entt::registry& registry)
 	{
+		NR_PROFILE_FUNC();
+
 		if (registry.try_get<T>(src))
 		{
 			auto& srcComponent = registry.get<T>(src);
@@ -1409,6 +1410,8 @@ namespace NR
 	template<typename T>
 	static void CopyComponentIfExists(entt::entity dst, entt::registry& dstRegistry, entt::entity src, entt::registry& srcRegistry)
 	{
+		NR_PROFILE_FUNC();
+
 		if (srcRegistry.try_get<T>(src))
 		{
 			auto& srcComponent = srcRegistry.get<T>(src);
@@ -1418,6 +1421,8 @@ namespace NR
 
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+	
 		Entity newEntity;
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -1501,6 +1506,8 @@ namespace NR
 
 	Entity Scene::CreatePrefabEntity(Entity entity, const glm::vec3* translation)
 	{
+		NR_PROFILE_FUNC();
+
 		NR_CORE_VERIFY(entity.HasComponent<PrefabComponent>());
 		Entity newEntity = CreateEntity();
 
@@ -1559,6 +1566,8 @@ namespace NR
 	}
 	Entity Scene::Instantiate(Ref<Prefab> prefab, const glm::vec3* translation)	
 	{
+		NR_PROFILE_FUNC();
+
 		Entity result;
 
 		auto entities = prefab->mScene->GetAllEntitiesWith<RelationshipComponent>();
@@ -1577,6 +1586,8 @@ namespace NR
 
 	Entity Scene::FindEntityByTag(const std::string& tag)
 	{
+		NR_PROFILE_FUNC();
+
 		auto view = mRegistry.view<TagComponent>();
 		for (auto entity : view)
 		{
@@ -1592,6 +1603,8 @@ namespace NR
 
 	Entity Scene::FindEntityByID(UUID id)
 	{
+		NR_PROFILE_FUNC();
+
 		auto view = mRegistry.view<IDComponent>();
 		for (auto entity : view)
 		{
@@ -1607,6 +1620,8 @@ namespace NR
 
 	void Scene::ConvertToLocalSpace(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		Entity parent = FindEntityByID(entity.GetParentID());
 
 		if (!parent)
@@ -1623,6 +1638,8 @@ namespace NR
 
 	void Scene::ConvertToWorldSpace(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		Entity parent = FindEntityByID(entity.GetParentID());
 
 		if (!parent)
@@ -1637,6 +1654,8 @@ namespace NR
 
 	glm::mat4 Scene::GetTransformRelativeToParent(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		glm::mat4 transform(1.0f);
 
 		Entity parent = FindEntityByID(entity.GetParentID());
@@ -1650,6 +1669,8 @@ namespace NR
 
 	glm::vec3 Scene::GetTranslationRelativeToParent(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		glm::vec3 translation(1.0f);
 
 		Entity parent = FindEntityByID(entity.GetParentID());
@@ -1664,6 +1685,8 @@ namespace NR
 
 	glm::mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		glm::mat4 transform = entity.Transform().GetTransform();
 
 		while (Entity parent = FindEntityByID(entity.GetParentID()))
@@ -1677,6 +1700,8 @@ namespace NR
 
 	TransformComponent Scene::GetWorldSpaceTransform(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		glm::mat4 transform = GetWorldSpaceTransformMatrix(entity);
 		TransformComponent transformComponent;
 
@@ -1692,6 +1717,8 @@ namespace NR
 
 	void Scene::ParentEntity(Entity entity, Entity parent)
 	{
+		NR_PROFILE_FUNC();
+
 		if (parent.IsDescendantOf(entity))
 		{
 			UnparentEntity(parent);
@@ -1721,6 +1748,8 @@ namespace NR
 
 	void Scene::UnparentEntity(Entity entity, bool convertToWorldSpace)
 	{
+		NR_PROFILE_FUNC();
+
 		Entity parent = FindEntityByID(entity.GetParentID());
 		if (!parent)
 		{
@@ -1740,6 +1769,8 @@ namespace NR
 
 	void Scene::CopyTo(Ref<Scene>& target)
 	{
+		NR_PROFILE_FUNC();
+
 		// Environment
 		target->mLight = mLight;
 		target->mLightMultiplier = mLightMultiplier;

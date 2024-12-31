@@ -112,6 +112,12 @@ namespace NR
 					out << YAML::BeginSeq;
 					for (const auto& [name, field] : fields)
 					{
+						if (field.Type == FieldType::None)
+						{
+							NR_CORE_WARN("C# field {0} not serialized, unknown type", field.Name);
+							continue;
+						}
+
 						out << YAML::BeginMap; // Field
 						out << YAML::Key << "Name" << YAML::Value << name;
 						out << YAML::Key << "Type" << YAML::Value << (uint32_t)field.Type;
@@ -133,6 +139,11 @@ namespace NR
 							out << field.GetStoredValue<float>();
 							break;
 						}
+						case FieldType::String:
+						{
+							out << field.GetStoredValue<const std::string&>();
+							break;
+						}
 						case FieldType::Vec2:
 						{
 							out << field.GetStoredValue<glm::vec2>();
@@ -151,6 +162,11 @@ namespace NR
 						case FieldType::Asset:
 						{
 							out << field.GetStoredValue<UUID>();
+							break;
+						}
+						default:
+						{
+							NR_CORE_ASSERT(false);
 							break;
 						}
 						}
@@ -687,7 +703,8 @@ namespace NR
 							auto& publicFields = moduleFieldMap[moduleName];
 							if (publicFields.find(name) == publicFields.end())
 							{
-								continue;
+								PublicField moveValue = { name, typeName, type };
+								publicFields.emplace(name, moveValue);
 							}
 							auto dataNode = field["Data"];
 							switch (type)

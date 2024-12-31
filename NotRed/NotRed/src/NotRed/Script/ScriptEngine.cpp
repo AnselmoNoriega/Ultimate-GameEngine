@@ -562,6 +562,7 @@ namespace NR
         }
 
         MonoClass* monoClass = mono_class_from_name(sCoreAssemblyImage, namespaceName.c_str(), className.c_str());
+        NR_CORE_ASSERT(monoClass, "Could not find class!");
         MonoObject* obj = mono_object_new(mono_domain_get(), monoClass);
 
         if (callConstructor)
@@ -952,6 +953,9 @@ namespace NR
         Type = other.Type;
         IsReadOnly = other.IsReadOnly;
 
+        mStoredValueBuffer = AllocateBuffer(Type);
+        memcpy(mStoredValueBuffer, other.mStoredValueBuffer, GetFieldSize(Type));
+
         mEntityInstance = other.mEntityInstance;
         mMonoClassField = other.mMonoClassField;
         mMonoProperty = other.mMonoProperty;
@@ -979,12 +983,10 @@ namespace NR
         }
         NR_CORE_ASSERT(mEntityInstance->GetInstance());
 
-        if (Type == FieldType::String)
+        if (Type == FieldType::ClassReference)
         {
-            SetRuntimeValue_Internal((void*)mStoredValueBuffer);
-        }
-        else if (Type == FieldType::ClassReference)
-        {
+            NR_CORE_VERIFY(!TypeName.empty());
+
             // Create Managed Object
             void* params[] = {
                 &mStoredValueBuffer
@@ -994,10 +996,24 @@ namespace NR
         }
         else if (Type == FieldType::Asset)
         {
+            NR_CORE_VERIFY(!TypeName.empty());
+
             // Create Managed Object
             void* params[] = { mStoredValueBuffer };
             MonoObject* obj = ScriptEngine::Construct(TypeName + ":.ctor(ulong)", true, params);
-            mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, obj);
+            if (mMonoProperty)
+            {
+                void* data[] = { obj };
+                mono_property_set_value(mMonoProperty, mEntityInstance->GetInstance(), data, nullptr);
+            }
+            else
+            {
+                mono_field_set_value(mEntityInstance->GetInstance(), mMonoClassField, obj);
+            }
+        }
+        else if (Type == FieldType::String)
+        {
+            SetRuntimeValue_Internal((void*)mStoredValueBuffer);
         }
         else
         {

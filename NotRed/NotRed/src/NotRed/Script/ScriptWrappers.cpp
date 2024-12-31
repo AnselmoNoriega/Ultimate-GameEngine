@@ -31,6 +31,8 @@
 #include "NotRed/Audio/AudioComponent.h"
 #include "NotRed/Audio/AudioPlayback.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
 	extern std::unordered_map<MonoType*, std::function<bool(Entity&)>> sHasComponentFuncs;
@@ -1727,6 +1729,8 @@ namespace NR::Script
 
 	void NR_Log_LogMessage(LogLevel level, MonoString* message)
 	{
+		NR_PROFILE_FUNC();
+
 		char* msg = mono_string_to_utf8(message);
 		switch (level)
 		{

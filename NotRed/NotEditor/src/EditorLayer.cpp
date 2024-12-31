@@ -381,14 +381,16 @@ namespace NR
 #endif
         }
 
-        auto entities = mCurrentScene->GetAllEntitiesWith<PointLightComponent>();
-        for (auto e : entities)
+        if (mShowIcons)
         {
-            Entity entity = { e, mCurrentScene.Raw() };
-            auto& tc = entity.GetComponent<TransformComponent>();
-            auto& plc = entity.GetComponent<PointLightComponent>();
-            Renderer2D::DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
-
+            auto entities = mCurrentScene->GetAllEntitiesWith<PointLightComponent>();
+            for (auto e : entities)
+            {
+                Entity entity = { e, mCurrentScene.Raw() };
+                auto& tc = entity.GetComponent<TransformComponent>();
+                auto& plc = entity.GetComponent<PointLightComponent>();
+                Renderer2D::DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
+            }
         }
 
         if (mSelectionContext.size())
@@ -840,6 +842,7 @@ namespace NR
                 Renderer2D::SetLineWidth(mLineWidth);
             }
 
+            UI::Property("Show Icons", mShowIcons);
             UI::Property("Show Bounding Boxes", mShowBoundingBoxes);
             {
                 if (mShowBoundingBoxes)
@@ -1981,7 +1984,6 @@ namespace NR
                             {
                                 if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
                                 {
-                                    NR_WARN("INTERSECTION: {0}, t={1}", submesh.NodeName, t);
                                     mSelectionContext.push_back({ entity, &submesh, t });
                                     break;
                                 }

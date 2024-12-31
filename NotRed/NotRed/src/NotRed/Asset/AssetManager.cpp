@@ -216,7 +216,6 @@ namespace NR
 
             if (!FileSystem::Exists(AssetManager::GetFileSystemPath(metadata)))
             {
-                NR_CORE_VERIFY(false);
                 NR_CORE_WARN("[AssetManager] Missing asset '{0}' detected in registry file, trying to locate...", metadata.FilePath.string());
 
                 std::string mostLikelyCandidate;

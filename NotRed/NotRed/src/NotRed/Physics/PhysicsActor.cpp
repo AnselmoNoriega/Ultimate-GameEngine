@@ -7,6 +7,8 @@
 #include "PhysicsInternal.h"
 #include "PhysicsLayer.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 #include "NotRed/Script/ScriptEngine.h"
 
 namespace NR
@@ -128,6 +130,8 @@ namespace NR
 
 	void PhysicsActor::AddForce(const glm::vec3& force, ForceMode forceMode)
 	{
+		NR_PROFILE_FUNC();
+
 		if (!IsDynamic())
 		{
 			NR_CORE_WARN("Trying to add force to non-dynamic PhysicsActor.");

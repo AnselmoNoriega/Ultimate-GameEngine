@@ -179,6 +179,8 @@ namespace NR
 		bool mShowPhysicsCollidersWireframe = true;
 		bool mShowPhysicsCollidersWireframeOnTop = false;
 
+		bool mShowIcons = true;
+
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
 		bool mViewportHasCapturedMouse = false;
