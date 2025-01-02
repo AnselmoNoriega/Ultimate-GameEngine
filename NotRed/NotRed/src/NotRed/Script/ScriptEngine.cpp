@@ -691,7 +691,7 @@ namespace NR
 	{
 		Scene* scene = entity.mScene;
 		UUID id = entity.GetComponent<IDComponent>().ID;
-		NR_CORE_TRACE("InitScriptEntity {0} ({1})", id, entity.mEntityHandle);
+		NR_CORE_TRACE("InitScriptEntity {0} ({1})", id, (uint64_t)entity.mEntityHandle);
 		auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
 		if (moduleName.empty())
 		{
@@ -877,7 +877,7 @@ namespace NR
 	{
 		Scene* scene = entity.mScene;
 		UUID id = entity.GetComponent<IDComponent>().ID;
-		NR_CORE_TRACE("InstantiateEntityClass {0} ({1})", id, entity.mEntityHandle);
+		NR_CORE_TRACE("InstantiateEntityClass {0} ({1})", id, (uint64_t)entity.mEntityHandle);
 		ScriptComponent& scriptComponent = entity.GetComponent<ScriptComponent>();
 		auto& moduleName = scriptComponent.ModuleName;
 

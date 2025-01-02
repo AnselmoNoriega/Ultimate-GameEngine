@@ -343,7 +343,8 @@ namespace NR
 		{
 			return;
 		}
-		ScriptEngine::UpdatePhysicsEntity(mEntity, fixedDeltaTime);
+
+		ScriptEngine::PhysicsUpdateEntity(mEntity, fixedDeltaTime);
 	}
 
 	void PhysicsActor::AddCollider(BoxColliderComponent& collider, Entity entity, const glm::vec3& offset)
