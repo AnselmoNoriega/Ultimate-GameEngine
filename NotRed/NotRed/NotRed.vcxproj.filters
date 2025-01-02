@@ -793,6 +793,7 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Prefab.h" />
+    <ClInclude Include="src\NotRed\Renderer\ShaderCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1288,5 +1289,6 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Prefab.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\ShaderCache.cpp" />
   </ItemGroup>
 </Project>

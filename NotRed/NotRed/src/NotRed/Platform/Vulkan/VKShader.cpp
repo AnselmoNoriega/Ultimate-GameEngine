@@ -8,7 +8,7 @@
 #include <spirv-tools/libspirv.h>
 
 #include "NotRed/Renderer/Renderer.h"
-#include "NotRed/Core/Hash.h"
+#include "NotRed/Renderer/ShaderCache.h"
 
 #include "VKContext.h"
 #include "VKRenderer.h"
@@ -130,18 +130,18 @@ namespace NR
                     std::string vert = "";
                     instance->ParseFile(path, vert);
                     instance->mShaderSource.insert({ VK_SHADER_STAGE_VERTEX_BIT, vert });
-                    uint32_t hashV = Hash::GenerateFNVHash(vert.c_str());
+                    ShaderCache::HasChanged(path, vert);
 
                     path = instance->mAssetPath + "/" + instance->mName + ".frag";
                     std::string frag = "";
                     instance->ParseFile(path, frag);
                     instance->mShaderSource.insert({ VK_SHADER_STAGE_FRAGMENT_BIT, frag });
-                    uint32_t hashI = Hash::GenerateFNVHash(frag.c_str());
+                    ShaderCache::HasChanged(path, frag);
                 }
                 else
                 {
                     instance->mShaderSource.insert({ VK_SHADER_STAGE_COMPUTE_BIT, compute });
-                    uint32_t hash = Hash::GenerateFNVHash(compute.c_str());
+                    ShaderCache::HasChanged(path, compute);
                 }
 
                 std::unordered_map<VkShaderStageFlagBits, std::vector<uint32_t>> shaderData;

@@ -291,6 +291,7 @@
     <ClInclude Include="src\NotRed\Renderer\SceneEnvironment.h" />
     <ClInclude Include="src\NotRed\Renderer\SceneRenderer.h" />
     <ClInclude Include="src\NotRed\Renderer\Shader.h" />
+    <ClInclude Include="src\NotRed\Renderer\ShaderCache.h" />
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h" />
     <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h" />
@@ -487,6 +488,7 @@
     <ClCompile Include="src\NotRed\Renderer\SceneEnvironment.cpp" />
     <ClCompile Include="src\NotRed\Renderer\SceneRenderer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\ShaderCache.cpp" />
     <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
