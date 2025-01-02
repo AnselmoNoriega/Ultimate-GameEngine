@@ -19,6 +19,8 @@
 
 #include "imgui/imgui.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 
@@ -855,17 +857,24 @@ namespace NR
 
 	void Mesh::BoneTransform(float time)
 	{
-		mMeshAsset->ReadNodeHierarchy(time, mMeshAsset->mScene->mRootNode, glm::mat4(1.0f));
-		mBoneTransforms.resize(mMeshAsset->mBoneCount);
-		for (size_t i = 0; i < mMeshAsset->mBoneCount; ++i)
+		NR_PROFILE_FUNC();
 		{
-			mBoneTransforms[i] = mMeshAsset->mBoneInfo[i].FinalTransformation;
+			NR_PROFILE_SCOPE_DYNAMIC("Sample animation");
+			mMeshAsset->ReadNodeHierarchy(time, mMeshAsset->mScene->mRootNode, glm::mat4(1.0f));
+			mBoneTransforms.resize(mMeshAsset->mBoneCount);
+			for (size_t i = 0; i < mMeshAsset->mBoneCount; ++i)
+			{
+				mBoneTransforms[i] = mMeshAsset->mBoneInfo[i].FinalTransformation;
+			}
 		}
 
-		// upload to GPU
-		Ref<Mesh> instance = this;
-		Renderer::Submit([instance]() mutable {
-			instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransforms.data(), static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(glm::mat4)));
-			});
+		{
+			NR_PROFILE_SCOPE_DYNAMIC("Upload bone transform UB");
+			// upload to GPU
+			Ref<Mesh> instance = this;
+			Renderer::Submit([instance]() mutable {
+				instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransforms.data(), static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(glm::mat4)));
+				});
+		}
 	}
 }
