@@ -196,8 +196,6 @@ namespace NR
 	{
 		SubstepStrategy(dt);
 
-		NR_CORE_INFO("[Physics]: Sub Steps: {0}, Sub Step Size: {1}", mNumSubSteps, mSubStepSize);
-
 		for (uint32_t i = 0; i < mNumSubSteps; ++i)
 		{
 			mPhysicsScene->simulate(mSubStepSize);

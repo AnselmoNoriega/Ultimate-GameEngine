@@ -49,7 +49,7 @@ namespace NR
 		{
 			actorB = (PhysicsActor*)pairHeader.actors[1]->userData;
 		}
-			
+
 		Ref<PhysicsActor> validActor = actorA ? actorA : actorB;
 		if (!validActor || !Scene::GetScene(validActor->GetEntity().GetSceneID())->IsPlaying())
 		{

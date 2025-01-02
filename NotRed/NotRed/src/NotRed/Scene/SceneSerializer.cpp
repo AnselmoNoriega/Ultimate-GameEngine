@@ -98,13 +98,13 @@ namespace NR
 			out << YAML::Key << "ScriptComponent";
 			out << YAML::BeginMap; // ScriptComponent
 
-			auto& moduleName = entity.GetComponent<ScriptComponent>().ModuleName;
+			ScriptComponent& scriptCoponent = entity.GetComponent<ScriptComponent>();
+			auto& moduleName = scriptCoponent.ModuleName;
 			out << YAML::Key << "ModuleName" << YAML::Value << moduleName;
 
 			if (!moduleName.empty())
 			{
-				EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(entity.GetSceneID(), uuid);
-				const auto& moduleFieldMap = data.ModuleFieldMap;
+				const auto& moduleFieldMap = scriptCoponent.ModuleFieldMap;
 				if (moduleFieldMap.find(moduleName) != moduleFieldMap.end())
 				{
 					const auto& fields = moduleFieldMap.at(moduleName);
@@ -684,7 +684,7 @@ namespace NR
 			if (scriptComponent)
 			{
 				std::string moduleName = scriptComponent["ModuleName"].as<std::string>();
-				deserializedEntity.AddComponent<ScriptComponent>(moduleName);
+				ScriptComponent& sc = deserializedEntity.AddComponent<ScriptComponent>(moduleName);
 
 				NR_CORE_INFO("  Script Module: {0}", moduleName);
 
@@ -698,8 +698,7 @@ namespace NR
 							std::string name = field["Name"].as<std::string>();
 							std::string typeName = field["TypeName"] ? field["TypeName"].as<std::string>() : "";
 							FieldType type = (FieldType)field["Type"].as<uint32_t>();
-							EntityInstanceData& data = ScriptEngine::GetEntityInstanceData(scene->GetID(), uuid);
-							auto& moduleFieldMap = data.ModuleFieldMap;
+							auto& moduleFieldMap = sc.ModuleFieldMap;
 							auto& publicFields = moduleFieldMap[moduleName];
 							if (publicFields.find(name) == publicFields.end())
 							{

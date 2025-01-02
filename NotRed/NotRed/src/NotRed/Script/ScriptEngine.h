@@ -8,6 +8,8 @@
 #include "NotRed/Scene/Components.h"
 #include "NotRed/Scene/Entity.h"
 
+#include "ScriptModuleField.h"
+
 extern "C" {
 	typedef struct _MonoObject MonoObject;
 	typedef struct _MonoClassField MonoClassField;
