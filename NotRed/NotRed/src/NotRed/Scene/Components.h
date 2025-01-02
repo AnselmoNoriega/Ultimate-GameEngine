@@ -87,7 +87,7 @@ namespace NR
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent& other)
-            : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.MeshObj->GetMaterials())), IsFractured(other.IsFractured) { }
+            : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.Materials)), IsFractured(other.IsFractured) { }
         MeshComponent(const Ref<Mesh>& mesh)
             : MeshObj(mesh) {}
 
