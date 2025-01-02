@@ -37,9 +37,6 @@
     <Filter Include="src\NotRed\Editor">
       <UniqueIdentifier>{5EC5110F-CADB-0FA5-1353-9BC67FA8E02C}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\NotRed\Editor\ContentBrowser">
-      <UniqueIdentifier>{CC88540F-B8D9-3F51-E13D-2E13CDEDD2BA}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\NotRed\Editor\EditorConsole">
       <UniqueIdentifier>{27588158-933B-9098-9C3E-BED408A156E9}</UniqueIdentifier>
     </Filter>
@@ -555,6 +552,9 @@
     <ClInclude Include="src\NotRed\Renderer\Shader.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\ShaderCache.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\ShaderUniform.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -582,6 +582,9 @@
     <ClInclude Include="src\NotRed\Scene\Entity.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Scene\Prefab.h">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Scene\Scene.h">
       <Filter>src\NotRed\Scene</Filter>
     </ClInclude>
@@ -595,6 +598,9 @@
       <Filter>src\NotRed\Script</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h">
+      <Filter>src\NotRed\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Script\ScriptModuleField.h">
       <Filter>src\NotRed\Script</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h">
@@ -792,8 +798,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Scene\Prefab.h" />
-    <ClInclude Include="src\NotRed\Renderer\ShaderCache.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1138,6 +1142,9 @@
     <ClCompile Include="src\NotRed\Renderer\Shader.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\ShaderCache.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1157,6 +1164,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Entity.cpp">
+      <Filter>src\NotRed\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Scene\Prefab.cpp">
       <Filter>src\NotRed\Scene</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Scene\Scene.cpp">
@@ -1288,7 +1298,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Scene\Prefab.cpp" />
-    <ClCompile Include="src\NotRed\Renderer\ShaderCache.cpp" />
   </ItemGroup>
 </Project>

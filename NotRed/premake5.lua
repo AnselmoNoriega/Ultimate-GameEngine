@@ -26,6 +26,7 @@ include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
 include "NotRed/vendor/Box2D"
 include "NotRed/vendor/Optick"
+include "NotRed/vendor/ozz-animation"
 group ""
 
 group "Core"
@@ -74,6 +75,7 @@ project "NotRed"
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.Optick}",
+		"%{IncludeDir.Ozz}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
 		"%{IncludeDir.Vulkan}",
@@ -89,6 +91,9 @@ project "NotRed"
 		"Optick",
 		"ImGui",
 		"opengl32.lib",
+		"ozz_base",
+		"ozz_animation",
+		"ozz_geometry",
 		"%{Library.Vulkan}",
 		"%{Library.Mono}",
 		"%{Library.PhysX}",
@@ -182,7 +187,9 @@ project "NotEditor"
 
 	links 
 	{ 
-		"NotRed"
+		"NotRed",
+		"ozz_animation_offline",
+		"ozz_animation_fbx"
 	}
 	
 	files 
@@ -203,7 +210,8 @@ project "NotEditor"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.MiniAudio}"
+		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.Ozz}"
 	}
 
 	postbuildcommands 
@@ -229,7 +237,8 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib"
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib",
+			"%{Library.FBX_Debug}"
 		}
 
 		postbuildcommands 
@@ -249,7 +258,8 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib",
+			"%{Library.FBX_Release}"
 		}
 
 		postbuildcommands 
@@ -264,7 +274,8 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib",
+			"%{Library.FBX_Release}"
 		}
 
 		postbuildcommands 

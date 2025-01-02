@@ -1,10 +1,13 @@
 -- NotRed Dependencies
 
+FBX_SDK = os.getenv("FBX_SDK")
+
 IncludeDir = {}
 IncludeDir["Assimp"] = "%{wks.location}/NotRed/vendor/assimp/include"
 IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/box2D/include"
 IncludeDir["Entt"] = "%{wks.location}/NotRed/vendor/Entt/include"
 IncludeDir["FastNoise"] = "%{wks.location}/NotRed/vendor/FastNoise"
+IncludeDir["FBX"] = "%{FBX_SDK}/include"
 IncludeDir["Glad"] = "%{wks.location}/NotRed/vendor/glad/include"
 IncludeDir["GLFW"] = "%{wks.location}/NotRed/vendor/GLFW/include"
 IncludeDir["Glm"] = "%{wks.location}/NotRed/vendor/glm"
@@ -17,11 +20,13 @@ IncludeDir["Vulkan"] = "%{wks.location}/NotRed/vendor/Vulkan/Include"
 IncludeDir["NsightAftermath"] = "%{wks.location}/NotRed/vendor/NsightAftermath/include"
 IncludeDir["MiniAudio"] = "%{wks.location}/NotRed/vendor/MiniAudio/include"
 IncludeDir["Optick"] = "%{wks.location}/NotRed/vendor/Optick/src"
+IncludeDir["Ozz"] = "%{wks.location}/NotRed/vendor/ozz-animation/include"
 
 LibraryDir = {}
 LibraryDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/lib/%{cfg.buildcfg}"
 LibraryDir["Vulkan"] = "%{wks.location}/NotRed/vendor/Vulkan/lib"
 LibraryDir["NsightAftermath"] = "%{wks.location}/NotRed/vendor/NsightAftermath/lib"
+LibraryDir["FBX"] = "%{FBX_SDK}/lib"
 
 Library = {}
 Library["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
@@ -46,3 +51,6 @@ Library["SPIRV_Cross_Release"] = "%{LibraryDir.Vulkan}/spirv-cross-core.lib"
 Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.Vulkan}/spirv-cross-glsl.lib"
 
 Library["NsightAftermath"] = "%{LibraryDir.NsightAftermath}/GFSDK_Aftermath_Lib.x64.lib"
+
+Library["FBX_Release"] = "%{LibraryDir.FBX}/vs2019/x64/release/libfbxsdk-md.lib"
+Library["FBXDebug"] = "%{LibraryDir.FBX}/vs2019/x64/debug/libfbxsdk-md.lib"
