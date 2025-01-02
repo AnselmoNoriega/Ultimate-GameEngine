@@ -139,7 +139,7 @@ namespace NR
 	{
 		auto entityID = registry.get<IDComponent>(entity).ID;
 		NR_CORE_ASSERT(mEntityIDMap.find(entityID) != mEntityIDMap.end());
-		
+
 		Audio::AudioEngine::Get().UnregisterAudioComponent(GetID(), mEntityIDMap.at(entityID).GetID());
 	}
 
@@ -588,7 +588,7 @@ namespace NR
 				mEnvironment = skyLightComponent.SceneEnvironment;
 				mEnvironmentIntensity = skyLightComponent.Intensity;
 				mSkyboxLod = skyLightComponent.Lod;
-				
+
 				if (mEnvironment)
 				{
 					SetSkybox(mEnvironment->RadianceMap);
@@ -951,7 +951,7 @@ namespace NR
 		}
 
 		renderer->EndScene();
-		}
+	}
 
 	void Scene::OnEvent(Event& e)
 	{
@@ -1426,7 +1426,7 @@ namespace NR
 	Entity Scene::DuplicateEntity(Entity entity)
 	{
 		NR_PROFILE_FUNC();
-	
+
 		Entity newEntity;
 		if (entity.HasComponent<TagComponent>())
 		{
@@ -1508,12 +1508,16 @@ namespace NR
 		return newEntity;
 	}
 
-	Entity Scene::CreatePrefabEntity(Entity entity, const glm::vec3* translation)
+	Entity Scene::CreatePrefabEntity(Entity entity, Entity parent, const glm::vec3* translation)
 	{
 		NR_PROFILE_FUNC();
 
 		NR_CORE_VERIFY(entity.HasComponent<PrefabComponent>());
 		Entity newEntity = CreateEntity();
+		if (parent)
+		{
+			newEntity.SetParent(parent);
+		}
 
 		CopyComponentIfExists<TagComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<PrefabComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
@@ -1548,15 +1552,13 @@ namespace NR
 			bool foundOne = false;
 			mRegistry.visit(newEntity, [type, &foundOne](entt::id_type newType) {if (newType == type) foundOne = true; });
 			foundAll = foundAll && foundOne;
-			});
-		HZ_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
+	});
+		NR_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
 #endif
 		for (auto childId : entity.Children())
 		{
-			Entity childDuplicate = CreatePrefabEntity(entity.mScene->FindEntityByID(childId));
-			childDuplicate.SetParentID(newEntity.GetID());
-			newEntity.Children().push_back(childDuplicate.GetID());
-	}
+			CreatePrefabEntity(entity.mScene->FindEntityByID(childId), newEntity);
+		}
 
 		if (!mIsEditorScene)
 		{
@@ -1575,9 +1577,9 @@ namespace NR
 		}
 
 		return newEntity;
-	}
-	
-	Entity Scene::Instantiate(Ref<Prefab> prefab, const glm::vec3* translation)	
+}
+
+	Entity Scene::Instantiate(Ref<Prefab> prefab, const glm::vec3* translation)
 	{
 		NR_PROFILE_FUNC();
 
@@ -1589,7 +1591,7 @@ namespace NR
 			Entity entity = { e, prefab->mScene.Raw() };
 			if (!entity.HasParent())
 			{
-				result = CreatePrefabEntity(entity, translation);
+				result = CreatePrefabEntity(entity, {}, translation);
 				break;
 			}
 		}
