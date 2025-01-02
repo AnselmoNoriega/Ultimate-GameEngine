@@ -6,6 +6,7 @@
 extern "C" 
 {
 	typedef struct _MonoClassField MonoClassField;
+	typedef struct _MonoProperty MonoProperty;
 }
 
 namespace NR
@@ -35,23 +36,25 @@ namespace NR
 	}
 
 	struct EntityInstance;
-	
+
 	struct PublicField
 	{
 		std::string Name;
 		std::string TypeName;
 		FieldType Type;
+		bool IsReadOnly;
+
 		PublicField() = default;
-		PublicField(const std::string& name, const std::string& typeName, FieldType type);
+		PublicField(const std::string& name, const std::string& typeName, FieldType type, bool isReadOnly = false);
 		PublicField(const PublicField& other);
 		PublicField(PublicField&& other);
 		~PublicField();
 
 		PublicField& operator=(const PublicField& other);
-		
+
 		void CopyStoredValueToRuntime(EntityInstance& entityInstance);
-		bool IsRuntimeAvailable() const;
-		
+		void CopyStoredValueFromRuntime(EntityInstance& entityInstance);
+
 		template<typename T>
 		T GetStoredValue() const
 		{
@@ -60,10 +63,22 @@ namespace NR
 			return value;
 		}
 
+		template<>
+		const std::string& GetStoredValue() const
+		{
+			return *(std::string*)mStoredValueBuffer;
+		}
+
 		template<typename T>
-		void SetStoredValue(T value) const
+		void SetStoredValue(T value)
 		{
 			SetStoredValue_Internal(&value);
+		}
+
+		template<>
+		void SetStoredValue(const std::string& value)
+		{
+			(*(std::string*)mStoredValueBuffer).assign(value);
 		}
 
 		template<typename T>
@@ -74,31 +89,49 @@ namespace NR
 			return value;
 		}
 
+		template<>
+		std::string GetRuntimeValue(EntityInstance& entityInstance) const
+		{
+			std::string value;
+			GetRuntimeValue_Internal(entityInstance, value);
+			return value;
+		}
+
 		template<typename T>
-		void SetRuntimeValue(EntityInstance& entityInstance, T value) const
+		void SetRuntimeValue(EntityInstance& entityInstance, T value)
 		{
 			SetRuntimeValue_Internal(entityInstance, &value);
 		}
 
+		template<>
+		void SetRuntimeValue(EntityInstance& entityInstance, const std::string& value)
+		{
+			SetRuntimeValue_Internal(entityInstance, value);
+		}
+
 		void SetStoredValueRaw(void* src);
 		void* GetStoredValueRaw() { return mStoredValueBuffer; }
+
 		void SetRuntimeValueRaw(EntityInstance& entityInstance, void* src);
 		void* GetRuntimeValueRaw(EntityInstance& entityInstance);
 
 	private:
-		uint8_t* AllocateBuffer(FieldType type);
-		void SetStoredValue_Internal(void* value) const;
-		void GetStoredValue_Internal(void* outValue) const;
-		void SetRuntimeValue_Internal(EntityInstance& entityInstance, void* value) const;
-		void GetRuntimeValue_Internal(EntityInstance& entityInstance, void* outValue) const;
-
-	private:
-		MonoClassField* mMonoClassField;
+		MonoClassField* mMonoClassField = nullptr;
+		MonoProperty* mMonoProperty = nullptr;
 		uint8_t* mStoredValueBuffer = nullptr;
+
+		uint8_t* AllocateBuffer(FieldType type);
+		void SetStoredValue_Internal(void* value);
+		void GetStoredValue_Internal(void* outValue) const;
+		void SetRuntimeValue_Internal(EntityInstance& entityInstance, void* value);
+		void SetRuntimeValue_Internal(EntityInstance& entityInstance, const std::string& value);
+		void GetRuntimeValue_Internal(EntityInstance& entityInstance, void* outValue) const;
+		void GetRuntimeValue_Internal(EntityInstance& entityInstance, std::string& outValue) const;
 
 	private:
 		friend class ScriptEngine;
 	};
 
 	using ScriptModuleFieldMap = std::unordered_map<std::string, std::unordered_map<std::string, PublicField>>;
+
 }
