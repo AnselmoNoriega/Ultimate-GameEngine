@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -91,7 +91,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ozz_animation_fbx.lib;..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.lib;.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.lib;\lib\vs2019\x64\debug\libfbxsdk-md.lib;\lib\vs2019\x64\debug\libxml2-md.lib;\lib\vs2019\x64\debug\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
@@ -109,7 +109,7 @@ IF EXIST "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll"\ (xcopy /Q /E /Y /I
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -124,7 +124,7 @@ IF EXIST "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll"\ (xcopy /Q /E /Y /I
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ozz_animation_fbx.lib;..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;\lib\vs2019\x64\release\libfbxsdk-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;\lib\vs2019\x64\release\libfbxsdk-md.lib;\lib\vs2019\x64\release\libxml2-md.lib;\lib\vs2019\x64\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
@@ -141,7 +141,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\Entt\include;..\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -156,7 +156,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>ozz_animation_fbx.lib;..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;\lib\vs2019\x64\release\libfbxsdk-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;\lib\vs2019\x64\release\libfbxsdk-md.lib;\lib\vs2019\x64\release\libxml2-md.lib;\lib\vs2019\x64\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
@@ -187,6 +187,9 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
     </ProjectReference>
     <ProjectReference Include="..\NotRed\vendor\ozz-animation\ozz_animation_offline.vcxproj">
       <Project>{694CCA4B-D5B8-8546-9EAC-1DA40AD8A7AE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\NotRed\vendor\ozz-animation\ozz_animation_fbx.vcxproj">
+      <Project>{06278A17-723D-88AD-BBB4-13CF270A5935}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
