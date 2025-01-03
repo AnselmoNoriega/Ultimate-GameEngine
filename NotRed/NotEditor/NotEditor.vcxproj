@@ -91,7 +91,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.lib;\lib\vs2019\x64\debug\libfbxsdk-md.lib;\lib\vs2019\x64\debug\libxml2-md.lib;\lib\vs2019\x64\debug\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Debug\assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Debug-windows-x86_64\NotEditor" &gt; nul)
@@ -124,7 +124,7 @@ IF EXIST "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll"\ (xcopy /Q /E /Y /I
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;\lib\vs2019\x64\release\libfbxsdk-md.lib;\lib\vs2019\x64\release\libxml2-md.lib;\lib\vs2019\x64\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
@@ -156,7 +156,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;\lib\vs2019\x64\release\libfbxsdk-md.lib;\lib\vs2019\x64\release\libxml2-md.lib;\lib\vs2019\x64\release\zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.dll" "..\bin\Dist-windows-x86_64\NotEditor" &gt; nul)
