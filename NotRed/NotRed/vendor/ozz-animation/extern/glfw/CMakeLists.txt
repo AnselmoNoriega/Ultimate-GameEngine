@@ -1,3 +1,4 @@
+set(OpenGL_GL_PREFERENCE LEGACY)
 find_package(OpenGL REQUIRED)
 
 # Buils Win32 specific files and options
@@ -56,8 +57,6 @@ if(UNIX AND APPLE)
     lib/cocoa/cocoa_joystick.m
     lib/cocoa/cocoa_time.m
     lib/cocoa/cocoa_window.m)
-  # Treats .m files as C files.
-  set_source_files_properties(${specific_objc_file_list} PROPERTIES LANGUAGE C)
 
   # Disables warnings in glfw.
   set_source_files_properties(${specific_objc_file_list} PROPERTIES COMPILE_FLAGS

@@ -25,27 +25,22 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/ik_two_bone_job.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/simd_quaternion.h"
-#include "ozz/base/maths/soa_transform.h"
-
-#include "ozz/base/memory/allocator.h"
-
-#include "ozz/options/options.h"
+#include <algorithm>
 
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
-
-#include <algorithm>
+#include "ozz/animation/runtime/ik_two_bone_job.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/simd_quaternion.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/allocator.h"
+#include "ozz/options/options.h"
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -146,12 +141,12 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Reset locals to skeleton bind pose if option is true.
+    // Reset locals to skeleton rest pose if option is true.
     // This allows to always start IK from a fix position (required to test
     // weighting), or do IK from the latest computed pose
     if (fix_initial_transform_) {
       for (size_t i = 0; i < locals_.size(); ++i) {
-        locals_[i] = skeleton_.joint_bind_poses()[i];
+        locals_[i] = skeleton_.joint_rest_poses()[i];
       }
     }
 
@@ -258,9 +253,9 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       return false;
     }
 
-    // Initialize locals from skeleton bind pose
+    // Initialize locals from skeleton rest pose
     for (size_t i = 0; i < locals_.size(); ++i) {
-      locals_[i] = skeleton_.joint_bind_poses()[i];
+      locals_[i] = skeleton_.joint_rest_poses()[i];
     }
 
     return true;
@@ -269,7 +264,7 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
-    char txt[32];
+    char label[32];
 
     // IK parameters
     _im_gui->DoCheckBox("Fix initial transform", &fix_initial_transform_);
@@ -278,25 +273,25 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       static bool opened = true;
       ozz::sample::ImGui::OpenClose oc(_im_gui, "IK parameters", &opened);
       if (opened) {
-        sprintf(txt, "Soften: %.2g", soften_);
-        _im_gui->DoSlider(txt, 0.f, 1.f, &soften_, 2.f);
-        sprintf(txt, "Twist angle: %.0f",
+        snprintf(label, sizeof(label), "Soften: %.2g", soften_);
+        _im_gui->DoSlider(label, 0.f, 1.f, &soften_, 2.f);
+        snprintf(label, sizeof(label), "Twist angle: %.0f",
                 twist_angle_ * ozz::math::kRadianToDegree);
-        _im_gui->DoSlider(txt, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
-        sprintf(txt, "Weight: %.2g", weight_);
-        _im_gui->DoSlider(txt, 0.f, 1.f, &weight_);
+        _im_gui->DoSlider(label, -ozz::math::kPi, ozz::math::kPi, &twist_angle_);
+        snprintf(label, sizeof(label), "Weight: %.2g", weight_);
+        _im_gui->DoSlider(label, 0.f, 1.f, &weight_);
         {
           // Pole vector
           static bool pole_opened = true;
           ozz::sample::ImGui::OpenClose oc_pole(_im_gui, "Pole vector",
                                                 &pole_opened);
           if (pole_opened) {
-            sprintf(txt, "x %.2g", pole_vector.x);
-            _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.x);
-            sprintf(txt, "y %.2g", pole_vector.y);
-            _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.y);
-            sprintf(txt, "z %.2g", pole_vector.z);
-            _im_gui->DoSlider(txt, -1.f, 1.f, &pole_vector.z);
+            snprintf(label, sizeof(label), "x %.2g", pole_vector.x);
+            _im_gui->DoSlider(label, -1.f, 1.f, &pole_vector.x);
+            snprintf(label, sizeof(label), "y %.2g", pole_vector.y);
+            _im_gui->DoSlider(label, -1.f, 1.f, &pole_vector.y);
+            snprintf(label, sizeof(label), "z %.2g", pole_vector.z);
+            _im_gui->DoSlider(label, -1.f, 1.f, &pole_vector.z);
           }
         }
       }
@@ -306,17 +301,17 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Target position", &opened);
       if (opened) {
         _im_gui->DoLabel("Target animation extent");
-        sprintf(txt, "%.2g", target_extent_);
-        _im_gui->DoSlider(txt, 0.f, 1.f, &target_extent_);
+        snprintf(label, sizeof(label), "%.2g", target_extent_);
+        _im_gui->DoSlider(label, 0.f, 1.f, &target_extent_);
 
         _im_gui->DoLabel("Target Offset");
         const float kOffsetRange = 1.f;
-        sprintf(txt, "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.x);
-        sprintf(txt, "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.y);
-        sprintf(txt, "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &target_offset_.z);
+        snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.x);
+        snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.y);
+        snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &target_offset_.z);
       }
     }
     {  // Root
@@ -325,28 +320,28 @@ class TwoBoneIKSampleApplication : public ozz::sample::Application {
       if (opened) {
         // Translation
         _im_gui->DoLabel("Translation");
-        sprintf(txt, "x %.2g", root_translation_.x);
-        _im_gui->DoSlider(txt, -1.f, 1.f, &root_translation_.x);
-        sprintf(txt, "y %.2g", root_translation_.y);
-        _im_gui->DoSlider(txt, -1.f, 1.f, &root_translation_.y);
-        sprintf(txt, "z %.2g", root_translation_.z);
-        _im_gui->DoSlider(txt, -1.f, 1.f, &root_translation_.z);
+        snprintf(label, sizeof(label), "x %.2g", root_translation_.x);
+        _im_gui->DoSlider(label, -1.f, 1.f, &root_translation_.x);
+        snprintf(label, sizeof(label), "y %.2g", root_translation_.y);
+        _im_gui->DoSlider(label, -1.f, 1.f, &root_translation_.y);
+        snprintf(label, sizeof(label), "z %.2g", root_translation_.z);
+        _im_gui->DoSlider(label, -1.f, 1.f, &root_translation_.z);
 
         // Rotation (in euler form)
         _im_gui->DoLabel("Rotation");
         ozz::math::Float3 euler = root_euler_ * ozz::math::kRadianToDegree;
-        sprintf(txt, "yaw %.3g", euler.x);
-        _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
-        sprintf(txt, "pitch %.3g", euler.y);
-        _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
-        sprintf(txt, "roll %.3g", euler.z);
-        _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
+        snprintf(label, sizeof(label), "yaw %.3g", euler.x);
+        _im_gui->DoSlider(label, -180.f, 180.f, &euler.x);
+        snprintf(label, sizeof(label), "pitch %.3g", euler.y);
+        _im_gui->DoSlider(label, -180.f, 180.f, &euler.y);
+        snprintf(label, sizeof(label), "roll %.3g", euler.z);
+        _im_gui->DoSlider(label, -180.f, 180.f, &euler.z);
         root_euler_ = euler * ozz::math::kDegreeToRadian;
 
         // Scale (must be uniform and not 0)
         _im_gui->DoLabel("Scale");
-        sprintf(txt, "%.2g", root_scale_);
-        _im_gui->DoSlider(txt, -1.f, 1.f, &root_scale_);
+        snprintf(label, sizeof(label), "%.2g", root_scale_);
+        _im_gui->DoSlider(label, -1.f, 1.f, &root_scale_);
       }
     }
     {  // Display options

@@ -20,6 +20,7 @@ add_executable(sample_playback
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 target_link_libraries(sample_playback
   sample_framework)
+target_copy_shared_libraries(sample_playback)
 
 set_target_properties(sample_playback
   PROPERTIES FOLDER "samples")
@@ -27,7 +28,7 @@ set_target_properties(sample_playback
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_playback
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_playback.html

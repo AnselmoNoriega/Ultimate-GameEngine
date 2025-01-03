@@ -30,25 +30,22 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/raw_animation.h"
-#include "ozz/animation/offline/raw_skeleton.h"
-#include "ozz/animation/offline/skeleton_builder.h"
-
-#include "ozz/base/maths/quaternion.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
+#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
+#include "ozz/animation/offline/skeleton_builder.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/maths/quaternion.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
 
 using ozz::animation::offline::RawAnimation;
 using ozz::animation::offline::RawSkeleton;
@@ -126,7 +123,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Samples animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = animation_.get();
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -155,7 +152,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     // Rebuilds all if the number of joints has changed.
     int joints = skeleton_->num_joints();
     char label[64];
-    std::sprintf(label, "Joints count: %d", joints);
+    std::snprintf(label, sizeof(label), "Joints count: %d", joints);
 
     // Uses an exponential scale in the slider to maintain enough precision in
     // the lowest values.
@@ -208,8 +205,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     locals_.resize(num_soa_joints);
     models_.resize(num_joints);
 
-    // Allocates a cache that matches new animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches new animation requirements.
+    context_.Resize(num_joints);
 
     return true;
   }
@@ -222,17 +219,17 @@ class MillipedeSampleApplication : public ozz::sample::Application {
     root->transform.rotation = Quaternion::identity();
     root->transform.scale = Float3::one();
 
-    char buf[16];
+    char number[16];
     for (int i = 0; i < slice_count_; ++i) {
       // Format joint number.
-      std::sprintf(buf, "%d", i);
+      std::snprintf(number, sizeof(number), "%d", i);
 
       root->children.resize(3);
 
       // Left leg.
       RawSkeleton::Joint& lu = root->children[0];
       lu.name = "lu";
-      lu.name += buf;
+      lu.name += number;
       lu.transform.translation = kTransUp;
       lu.transform.rotation = kRotLeftUp;
       lu.transform.scale = Float3::one();
@@ -240,7 +237,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       lu.children.resize(1);
       RawSkeleton::Joint& ld = lu.children[0];
       ld.name = "ld";
-      ld.name += buf;
+      ld.name += number;
       ld.transform.translation = kTransDown;
       ld.transform.rotation = kRotLeftDown;
       ld.transform.scale = Float3::one();
@@ -248,7 +245,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       ld.children.resize(1);
       RawSkeleton::Joint& lf = ld.children[0];
       lf.name = "lf";
-      lf.name += buf;
+      lf.name += number;
       lf.transform.translation = Float3::x_axis();
       lf.transform.rotation = Quaternion::identity();
       lf.transform.scale = Float3::one();
@@ -256,7 +253,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       // Right leg.
       RawSkeleton::Joint& ru = root->children[1];
       ru.name = "ru";
-      ru.name += buf;
+      ru.name += number;
       ru.transform.translation = kTransUp;
       ru.transform.rotation = kRotRightUp;
       ru.transform.scale = Float3::one();
@@ -264,7 +261,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       ru.children.resize(1);
       RawSkeleton::Joint& rd = ru.children[0];
       rd.name = "rd";
-      rd.name += buf;
+      rd.name += number;
       rd.transform.translation = kTransDown;
       rd.transform.rotation = kRotRightDown;
       rd.transform.scale = Float3::one();
@@ -272,7 +269,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       rd.children.resize(1);
       RawSkeleton::Joint& rf = rd.children[0];
       rf.name = "rf";
-      rf.name += buf;
+      rf.name += number;
       rf.transform.translation = Float3::x_axis();
       rf.transform.rotation = Quaternion::identity();
       rf.transform.scale = Float3::one();
@@ -280,7 +277,7 @@ class MillipedeSampleApplication : public ozz::sample::Application {
       // Spine.
       RawSkeleton::Joint& sp = root->children[2];
       sp.name = "sp";
-      sp.name += buf;
+      sp.name += number;
       sp.transform.translation = Float3(0.f, 0.f, kSpinLength);
       sp.transform.rotation = Quaternion::identity();
       sp.transform.scale = Float3::one();
@@ -423,8 +420,8 @@ class MillipedeSampleApplication : public ozz::sample::Application {
   // The millipede procedural walk animation.
   ozz::unique_ptr<ozz::animation::Animation> animation_;
 
-  // Sampling cache, as used by SamplingJob.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context, as used by SamplingJob.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   // These are shared between sampling output and local-to-model input.

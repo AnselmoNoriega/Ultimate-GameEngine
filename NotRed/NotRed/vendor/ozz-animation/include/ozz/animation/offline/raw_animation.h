@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/containers/string.h"
 #include "ozz/base/containers/vector.h"
 #include "ozz/base/io/archive_traits.h"
@@ -55,7 +56,7 @@ namespace offline {
 //  3. Keyframes' time are all within [0,animation duration] range.
 // Animations that would fail this validation will fail to be converted by the
 // AnimationBuilder.
-struct RawAnimation {
+struct OZZ_ANIMOFFLINE_DLL RawAnimation {
   // Constructs a valid RawAnimation with a 1s default duration.
   RawAnimation();
 
@@ -78,8 +79,6 @@ struct RawAnimation {
     typedef math::Float3 Value;
     Value value;
 
-    TranslationKey(float time_ = {}, Value value_ = {}) : time(time_), value(value_) {}
-
     // Provides identity transformation for a translation key.
     static math::Float3 identity() { return math::Float3::zero(); }
   };
@@ -93,8 +92,6 @@ struct RawAnimation {
     typedef math::Quaternion Value;
     math::Quaternion value;
 
-    RotationKey(float time_ = {}, Value value_ = {}) : time(time_), value(value_) {}
-
     // Provides identity transformation for a rotation key.
     static math::Quaternion identity() { return math::Quaternion::identity(); }
   };
@@ -107,8 +104,6 @@ struct RawAnimation {
     // Key frame value.
     typedef math::Float3 Value;
     math::Float3 value;
-
-    ScaleKey(float time_ = {}, Value value_ = {}) : time(time_), value(value_) {}
 
     // Provides identity transformation for a scale key.
     static math::Float3 identity() { return math::Float3::one(); }
@@ -152,7 +147,7 @@ OZZ_IO_TYPE_TAG("ozz-raw_animation", animation::offline::RawAnimation)
 
 // Should not be called directly but through io::Archive << and >> operators.
 template <>
-struct Extern<animation::offline::RawAnimation> {
+struct OZZ_ANIMOFFLINE_DLL Extern<animation::offline::RawAnimation> {
   static void Save(OArchive& _archive,
                    const animation::offline::RawAnimation* _animations,
                    size_t _count);

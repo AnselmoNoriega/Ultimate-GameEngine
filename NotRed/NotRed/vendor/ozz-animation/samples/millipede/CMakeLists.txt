@@ -7,17 +7,17 @@ add_custom_command(
 add_executable(sample_millipede
   sample_millipede.cc
   ${CMAKE_CURRENT_BINARY_DIR}/README.md)
-
 target_link_libraries(sample_millipede
   ozz_animation_offline
   sample_framework)
+target_copy_shared_libraries(sample_millipede)
 
 set_target_properties(sample_millipede
   PROPERTIES FOLDER "samples")
 
 if(EMSCRIPTEN)
   set_target_properties(sample_millipede
-    PROPERTIES LINK_FLAGS "--embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file README.md")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_millipede.html

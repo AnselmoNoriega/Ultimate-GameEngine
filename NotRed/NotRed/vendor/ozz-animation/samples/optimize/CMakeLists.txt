@@ -17,10 +17,10 @@ add_executable(sample_optimize
   "${CMAKE_CURRENT_BINARY_DIR}/README.md"
   "${CMAKE_CURRENT_BINARY_DIR}/media/skeleton.ozz"
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation_raw.ozz")
-
 target_link_libraries(sample_optimize
   ozz_animation_offline
   sample_framework)
+target_copy_shared_libraries(sample_optimize)
 
 set_target_properties(sample_optimize
   PROPERTIES FOLDER "samples")
@@ -28,7 +28,7 @@ set_target_properties(sample_optimize
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten.
   set_target_properties(sample_optimize
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_optimize.html

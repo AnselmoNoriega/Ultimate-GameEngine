@@ -28,8 +28,9 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_RAW_ANIMATION_UTILS_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/animation/offline/raw_animation.h"
-
+#include "ozz/base/containers/vector.h"
 #include "ozz/base/maths/transform.h"
 #include "ozz/base/span.h"
 
@@ -38,38 +39,47 @@ namespace animation {
 namespace offline {
 
 // Translation interpolation method.
-math::Float3 LerpTranslation(const math::Float3& _a, const math::Float3& _b,
-                             float _alpha);
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpTranslation(const math::Float3& _a,
+                                                 const math::Float3& _b,
+                                                 float _alpha);
 
 // Rotation interpolation method.
-math::Quaternion LerpRotation(const math::Quaternion& _a,
-                              const math::Quaternion& _b, float _alpha);
+OZZ_ANIMOFFLINE_DLL math::Quaternion LerpRotation(const math::Quaternion& _a,
+                                                  const math::Quaternion& _b,
+                                                  float _alpha);
 
 // Scale interpolation method.
-math::Float3 LerpScale(const math::Float3& _a, const math::Float3& _b,
-                       float _alpha);
+OZZ_ANIMOFFLINE_DLL math::Float3 LerpScale(const math::Float3& _a,
+                                           const math::Float3& _b,
+                                           float _alpha);
 
 // Samples a RawAnimation track. This function shall be used for offline
 // purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
 // runtime purpose.
 // Returns false if track is invalid.
-bool SampleTrack(const RawAnimation::JointTrack& _track, float _time,
-                 ozz::math::Transform* _transform);
+OZZ_ANIMOFFLINE_DLL bool SampleTrack(const RawAnimation::JointTrack& _track,
+                                     float _time,
+                                     ozz::math::Transform* _transform);
 
 // Samples a RawAnimation. This function shall be used for offline
 // purpose. Use ozz::animation::Animation and ozz::animation::SamplingJob for
 // runtime purpose.
 // _animation must be valid.
 // Returns false output range is too small or animation is invalid.
-bool SampleAnimation(const RawAnimation& _animation, float _time,
-                     const span<ozz::math::Transform>& _transforms);
+OZZ_ANIMOFFLINE_DLL bool SampleAnimation(
+    const RawAnimation& _animation, float _time,
+    const span<ozz::math::Transform>& _transforms);
+
+// Get the union of all keyframe times from a valid RawAnimation.
+OZZ_ANIMOFFLINE_DLL ozz::vector<float> ExtractTimePoints(
+    const RawAnimation& _animation);
 
 // Implement fixed rate keyframe time iteration. This utility purpose is to
 // ensure that sampling goes strictly from 0 to duration, and that period
 // between consecutive time samples have a fixed period.
 // This sounds trivial, but floating point error could occur if keyframe time
 // was accumulated for a long duration.
-class FixedRateSamplingTime {
+class OZZ_ANIMOFFLINE_DLL FixedRateSamplingTime {
  public:
   FixedRateSamplingTime(float _duration, float _frequency);
 

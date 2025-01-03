@@ -10,3 +10,11 @@ The following authors have all licensed their contributions to ozz-animation und
 - Andreas Streichardt <andreas.streichardt@gmail.com>
 - Chen Junjie <kitchen.gz.020@gmail.com>
 - James W. Walker <jw@jwwalker.com>
+- James W. Fleming <jaemz@alum.mit.edu>
+- Kota Iguchi <developer@infosia.co.jp>
+- Mikołaj Siedlarek <mikolaj@siedlarek.net>
+- Paul Gruenbacher <pgruenbacher@gmail.com>
+- Christophe Meyer <christophe.meyer.pro@gmail.com>
+- Lukas Friembichler <lukas.friembichler@gmail.com>
+- Blaž Tomažič <blaz.tomazic@gmail.com>
+- Jan Krassnigg <jan@krassnigg.de>

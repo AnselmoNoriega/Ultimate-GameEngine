@@ -42,11 +42,11 @@ namespace internal {
 
 #ifdef EMSCRIPTEN
 // WebGL requires to specify floating point precision
-static const char* kPlatformSpecivicVSHeader = "precision mediump float;\n";
-static const char* kPlatformSpecivicFSHeader = "precision mediump float;\n";
+static const char* kPlatformSpecivicVSHeader = "#version 300 es\n precision mediump float;\n";
+static const char* kPlatformSpecivicFSHeader = "#version 300 es\n precision mediump float;\n";
 #else   // EMSCRIPTEN
-static const char* kPlatformSpecivicVSHeader = "";
-static const char* kPlatformSpecivicFSHeader = "";
+static const char* kPlatformSpecivicVSHeader = "#version 330\n";
+static const char* kPlatformSpecivicFSHeader = "#version 330\n";
 #endif  // EMSCRIPTEN
 
 Shader::Shader() : program_(0), vertex_(0), fragment_(0) {}
@@ -177,18 +177,19 @@ ozz::unique_ptr<ImmediatePCShader> ImmediatePCShader::Build() {
 
   const char* kSimplePCVS =
       "uniform mat4 u_mvp;\n"
-      "attribute vec3 a_position;\n"
-      "attribute vec4 a_color;\n"
-      "varying vec4 v_vertex_color;\n"
+      "in vec3 a_position;\n"
+      "in vec4 a_color;\n"
+      "out vec4 v_vertex_color;\n"
       "void main() {\n"
       "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
       "  gl_Position = u_mvp * vertex;\n"
       "  v_vertex_color = a_color;\n"
       "}\n";
   const char* kSimplePCPS =
-      "varying vec4 v_vertex_color;\n"
+      "in vec4 v_vertex_color;\n"
+      "out vec4 o_color;\n"
       "void main() {\n"
-      "  gl_FragColor = v_vertex_color;\n"
+      "  o_color = v_vertex_color;\n"
       "}\n";
 
   const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
@@ -244,11 +245,11 @@ ozz::unique_ptr<ImmediatePTCShader> ImmediatePTCShader::Build() {
 
   const char* kSimplePCVS =
       "uniform mat4 u_mvp;\n"
-      "attribute vec3 a_position;\n"
-      "attribute vec2 a_tex_coord;\n"
-      "attribute vec4 a_color;\n"
-      "varying vec4 v_vertex_color;\n"
-      "varying vec2 v_texture_coord;\n"
+      "in vec3 a_position;\n"
+      "in vec2 a_tex_coord;\n"
+      "in vec4 a_color;\n"
+      "out vec4 v_vertex_color;\n"
+      "out vec2 v_texture_coord;\n"
       "void main() {\n"
       "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
       "  gl_Position = u_mvp * vertex;\n"
@@ -257,12 +258,13 @@ ozz::unique_ptr<ImmediatePTCShader> ImmediatePTCShader::Build() {
       "}\n";
   const char* kSimplePCPS =
       "uniform sampler2D u_texture;\n"
-      "varying vec4 v_vertex_color;\n"
-      "varying vec2 v_texture_coord;\n"
+      "in vec4 v_vertex_color;\n"
+      "in vec2 v_texture_coord;\n"
+      "out vec4 o_color;\n"
       "void main() {\n"
-      "  vec4 tex_color = texture2D(u_texture, v_texture_coord);\n"
-      "  gl_FragColor = v_vertex_color * tex_color;\n"
-      "  if(gl_FragColor.a < .01) discard;\n"  // Implements alpha testing.
+      "  vec4 tex_color = texture(u_texture, v_texture_coord);\n"
+      "  o_color = v_vertex_color * tex_color;\n"
+      "  if(o_color.a < .01) discard;\n"  // Implements alpha testing.
       "}\n";
 
   const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePCVS};
@@ -326,10 +328,97 @@ void ImmediatePTCShader::Bind(const math::Float4x4& _model,
   GL(Uniform1i(texture, 0));
 }
 
+ozz::unique_ptr<PointsShader> PointsShader::Build() {
+  bool success = true;
+
+  const char* kSimplePointsVS =
+      "uniform mat4 u_mvp;\n"
+      "in vec3 a_position;\n"
+      "in vec4 a_color;\n"
+      "in float a_size;\n"
+      "in float a_screen_space;\n"
+      "out vec4 v_vertex_color;\n"
+      "void main() {\n"
+      "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
+      "  gl_Position = u_mvp * vertex;\n"
+      "  gl_PointSize = a_screen_space == 0. ? a_size / gl_Position.w : "
+      "a_size;\n"
+      "  v_vertex_color = a_color;\n"
+      "}\n";
+  const char* kSimplePointsPS =
+      "in vec4 v_vertex_color;\n"
+      "out vec4 o_color;\n"
+      "void main() {\n"
+      "  o_color = v_vertex_color;\n"
+      "}\n";
+
+  const char* vs[] = {kPlatformSpecivicVSHeader, kSimplePointsVS};
+  const char* fs[] = {kPlatformSpecivicFSHeader, kSimplePointsPS};
+
+  ozz::unique_ptr<PointsShader> shader = make_unique<PointsShader>();
+  success &=
+      shader->BuildFromSource(OZZ_ARRAY_SIZE(vs), vs, OZZ_ARRAY_SIZE(fs), fs);
+
+  // Binds default attributes
+  success &= shader->FindAttrib("a_position");
+  success &= shader->FindAttrib("a_color");
+  success &= shader->FindAttrib("a_size");
+  success &= shader->FindAttrib("a_screen_space");
+
+  // Binds default uniforms
+  success &= shader->BindUniform("u_mvp");
+
+  if (!success) {
+    shader.reset();
+  }
+
+  return shader;
+}
+
+PointsShader::GenericAttrib PointsShader::Bind(
+    const math::Float4x4& _model, const math::Float4x4& _view_proj,
+    GLsizei _pos_stride, GLsizei _pos_offset, GLsizei _color_stride,
+    GLsizei _color_offset, GLsizei _size_stride, GLsizei _size_offset,
+    bool _screen_space) {
+  GL(UseProgram(program()));
+
+  const GLint position_attrib = attrib(0);
+  GL(EnableVertexAttribArray(position_attrib));
+  GL(VertexAttribPointer(position_attrib, 3, GL_FLOAT, GL_FALSE, _pos_stride,
+                         GL_PTR_OFFSET(_pos_offset)));
+
+  const GLint color_attrib = attrib(1);
+  if (_color_stride) {
+    GL(EnableVertexAttribArray(color_attrib));
+    GL(VertexAttribPointer(color_attrib, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                           _color_stride, GL_PTR_OFFSET(_color_offset)));
+  }
+  const GLint size_attrib = attrib(2);
+  if (_size_stride) {
+    GL(EnableVertexAttribArray(size_attrib));
+    GL(VertexAttribPointer(size_attrib, 1, GL_FLOAT, GL_TRUE, _size_stride,
+                           GL_PTR_OFFSET(_size_offset)));
+  }
+  const GLint screen_space_attrib = attrib(3);
+  GL(VertexAttrib1f(screen_space_attrib, 1.f * _screen_space));
+
+  // Binds mvp uniform
+  const GLint mvp_uniform = uniform(0);
+  const ozz::math::Float4x4 mvp = _view_proj * _model;
+  float values[16];
+  math::StorePtrU(mvp.cols[0], values + 0);
+  math::StorePtrU(mvp.cols[1], values + 4);
+  math::StorePtrU(mvp.cols[2], values + 8);
+  math::StorePtrU(mvp.cols[3], values + 12);
+  GL(UniformMatrix4fv(mvp_uniform, 1, false, values));
+
+  return {_color_stride ? -1 : color_attrib, _size_stride ? -1 : size_attrib};
+}
+
 namespace {
 const char* kPassUv =
-    "attribute vec2 a_uv;\n"
-    "varying vec2 v_vertex_uv;\n"
+    "in vec2 a_uv;\n"
+    "out vec2 v_vertex_uv;\n"
     "void PassUv() {\n"
     "  v_vertex_uv = a_uv;\n"
     "}\n";
@@ -338,11 +427,11 @@ const char* kPassNoUv =
     "}\n";
 const char* kShaderUberVS =
     "uniform mat4 u_mvp;\n"
-    "attribute vec3 a_position;\n"
-    "attribute vec3 a_normal;\n"
-    "attribute vec4 a_color;\n"
-    "varying vec3 v_world_normal;\n"
-    "varying vec4 v_vertex_color;\n"
+    "in vec3 a_position;\n"
+    "in vec3 a_normal;\n"
+    "in vec4 a_color;\n"
+    "out vec3 v_world_normal;\n"
+    "out vec4 v_vertex_color;\n"
     "void main() {\n"
     "  mat4 world_matrix = GetWorldMatrix();\n"
     "  vec4 vertex = vec4(a_position.xyz, 1.);\n"
@@ -367,23 +456,25 @@ const char* kShaderAmbientFct =
     "  return vec4(ambient, 1.);\n"
     "}\n";
 const char* kShaderAmbientFS =
-    "varying vec3 v_world_normal;\n"
-    "varying vec4 v_vertex_color;\n"
+    "in vec3 v_world_normal;\n"
+    "in vec4 v_vertex_color;\n"
+    "out vec4 o_color;\n"
     "void main() {\n"
     "  vec4 ambient = GetAmbient(v_world_normal);\n"
-    "  gl_FragColor = ambient *\n"
+    "  o_color = ambient *\n"
     "                 v_vertex_color;\n"
     "}\n";
 const char* kShaderAmbientTexturedFS =
     "uniform sampler2D u_texture;\n"
-    "varying vec3 v_world_normal;\n"
-    "varying vec4 v_vertex_color;\n"
-    "varying vec2 v_vertex_uv;\n"
+    "in vec3 v_world_normal;\n"
+    "in vec4 v_vertex_color;\n"
+    "in vec2 v_vertex_uv;\n"
+    "out vec4 o_color;\n"
     "void main() {\n"
     "  vec4 ambient = GetAmbient(v_world_normal);\n"
-    "  gl_FragColor = ambient *\n"
+    "  o_color = ambient *\n"
     "                 v_vertex_color *\n"
-    "                 texture2D(u_texture, v_vertex_uv);\n"
+    "                 texture(u_texture, v_vertex_uv);\n"
     "}\n";
 }  // namespace
 
@@ -446,7 +537,7 @@ ozz::unique_ptr<JointShader> JointShader::Build() {
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
-                          ? "attribute mat4 joint;\n"
+                          ? "in mat4 joint;\n"
                           : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -508,7 +599,7 @@ BoneShader::Build() {  // Builds a world matrix from joint uniforms,
       "}\n";
   const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
                       GL_ARB_instanced_arrays_supported
-                          ? "attribute mat4 joint;\n"
+                          ? "in mat4 joint;\n"
                           : "uniform mat4 joint;\n",
                       vs_joint_to_world_matrix, kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
@@ -620,10 +711,9 @@ void AmbientShader::Bind(const math::Float4x4& _model,
 ozz::unique_ptr<AmbientShaderInstanced> AmbientShaderInstanced::Build() {
   bool success = true;
 
-  const char* vs[] = {
-      kPlatformSpecivicVSHeader, kPassNoUv,
-      "attribute mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
-      kShaderUberVS};
+  const char* vs[] = {kPlatformSpecivicVSHeader, kPassNoUv,
+                      "in mat4 a_mw;\n mat4 GetWorldMatrix() {return a_mw;}\n",
+                      kShaderUberVS};
   const char* fs[] = {kPlatformSpecivicFSHeader, kShaderAmbientFct,
                       kShaderAmbientFS};
 

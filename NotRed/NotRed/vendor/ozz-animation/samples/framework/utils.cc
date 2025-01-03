@@ -28,30 +28,26 @@
 #include "framework/utils.h"
 
 #include <cassert>
+#include <chrono>
 #include <limits>
 
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/simd_quaternion.h"
-#include "ozz/base/maths/soa_transform.h"
-
-#include "ozz/base/memory/allocator.h"
-
+#include "framework/imgui.h"
+#include "framework/mesh.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_skeleton.h"
 #include "ozz/animation/runtime/animation.h"
 #include "ozz/animation/runtime/local_to_model_job.h"
 #include "ozz/animation/runtime/skeleton.h"
 #include "ozz/animation/runtime/track.h"
-
-#include "ozz/animation/offline/raw_skeleton.h"
-
-#include "ozz/geometry/runtime/skinning_job.h"
-
 #include "ozz/base/io/archive.h"
 #include "ozz/base/io/stream.h"
 #include "ozz/base/log.h"
-
-#include "framework/imgui.h"
-#include "framework/mesh.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/simd_quaternion.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/memory/allocator.h"
+#include "ozz/geometry/runtime/skinning_job.h"
 
 namespace ozz {
 namespace sample {
@@ -73,7 +69,7 @@ void PlaybackController::Update(const animation::Animation& _animation,
 
   // Must be called even if time doesn't change, in order to update previous
   // frame time ratio. Uses set_time_ratio function in order to update
-  // previous_time_ an wrap time value in the unit interval (depending on loop
+  // previous_time_ and wrap time value in the unit interval (depending on loop
   // mode).
   set_time_ratio(new_time);
 }
@@ -115,21 +111,22 @@ bool PlaybackController::OnGui(const animation::Animation& _animation,
 
   _im_gui->DoCheckBox("Loop", &loop_, _enabled);
 
-  char szLabel[64];
+  char label[64];
 
   // Uses a local copy of time_ so that set_time is used to actually apply
   // changes. Otherwise previous time would be incorrect.
   float ratio = time_ratio();
-  std::sprintf(szLabel, "Animation time: %.2f", ratio * _animation.duration());
-  if (_im_gui->DoSlider(szLabel, 0.f, 1.f, &ratio, 1.f,
+  std::snprintf(label, sizeof(label), "Animation time: %.2f",
+                ratio * _animation.duration());
+  if (_im_gui->DoSlider(label, 0.f, 1.f, &ratio, 1.f,
                         _enabled && _allow_set_time)) {
     set_time_ratio(ratio);
     // Pause the time if slider as moved.
     play_ = false;
     time_changed = true;
   }
-  std::sprintf(szLabel, "Playback speed: %.2f", playback_speed_);
-  _im_gui->DoSlider(szLabel, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
+  std::snprintf(label, sizeof(label), "Playback speed: %.2f", playback_speed_);
+  _im_gui->DoSlider(label, -5.f, 5.f, &playback_speed_, 1.f, _enabled);
 
   // Allow to reset speed if it is not the default value.
   if (_im_gui->DoButton("Reset playback speed",
@@ -144,7 +141,7 @@ bool OnRawSkeletonJointGui(
     ozz::sample::ImGui* _im_gui,
     ozz::animation::offline::RawSkeleton::Joint::Children* _children,
     ozz::vector<bool>::iterator* _oc_state) {
-  char txt[255];
+  char label[255];
 
   bool modified = false;
   for (size_t i = 0; i < _children->size(); ++i) {
@@ -157,23 +154,23 @@ bool OnRawSkeletonJointGui(
       // Translation
       ozz::math::Float3& translation = joint.transform.translation;
       _im_gui->DoLabel("Translation");
-      sprintf(txt, "x %.2g", translation.x);
-      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.x);
-      sprintf(txt, "y %.2g", translation.y);
-      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.y);
-      sprintf(txt, "z %.2g", translation.z);
-      modified |= _im_gui->DoSlider(txt, -1.f, 1.f, &translation.z);
+      snprintf(label, sizeof(label), "x %.2g", translation.x);
+      modified |= _im_gui->DoSlider(label, -1.f, 1.f, &translation.x);
+      snprintf(label, sizeof(label), "y %.2g", translation.y);
+      modified |= _im_gui->DoSlider(label, -1.f, 1.f, &translation.y);
+      snprintf(label, sizeof(label), "z %.2g", translation.z);
+      modified |= _im_gui->DoSlider(label, -1.f, 1.f, &translation.z);
 
       // Rotation (in euler form)
       ozz::math::Quaternion& rotation = joint.transform.rotation;
       _im_gui->DoLabel("Rotation");
       ozz::math::Float3 euler = ToEuler(rotation) * ozz::math::kRadianToDegree;
-      sprintf(txt, "x %.3g", euler.x);
-      bool euler_modified = _im_gui->DoSlider(txt, -180.f, 180.f, &euler.x);
-      sprintf(txt, "y %.3g", euler.y);
-      euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.y);
-      sprintf(txt, "z %.3g", euler.z);
-      euler_modified |= _im_gui->DoSlider(txt, -180.f, 180.f, &euler.z);
+      snprintf(label, sizeof(label), "x %.3g", euler.x);
+      bool euler_modified = _im_gui->DoSlider(label, -180.f, 180.f, &euler.x);
+      snprintf(label, sizeof(label), "y %.3g", euler.y);
+      euler_modified |= _im_gui->DoSlider(label, -180.f, 180.f, &euler.y);
+      snprintf(label, sizeof(label), "z %.3g", euler.z);
+      euler_modified |= _im_gui->DoSlider(label, -180.f, 180.f, &euler.z);
       if (euler_modified) {
         modified = true;
         ozz::math::Float3 euler_rad = euler * ozz::math::kDegreeToRadian;
@@ -184,8 +181,8 @@ bool OnRawSkeletonJointGui(
       // Scale (must be uniform and not 0)
       _im_gui->DoLabel("Scale");
       ozz::math::Float3& scale = joint.transform.scale;
-      sprintf(txt, "%.2g", scale.x);
-      if (_im_gui->DoSlider(txt, -1.f, 1.f, &scale.x)) {
+      snprintf(label, sizeof(label), "%.2g", scale.x);
+      if (_im_gui->DoSlider(label, -1.f, 1.f, &scale.x)) {
         modified = true;
         scale.y = scale.z = scale.x = scale.x != 0.f ? scale.x : .01f;
       }
@@ -224,9 +221,9 @@ void ComputeSkeletonBounds(const animation::Skeleton& _skeleton,
   // Allocate matrix array, out of memory is handled by the LocalToModelJob.
   ozz::vector<ozz::math::Float4x4> models(num_joints);
 
-  // Compute model space bind pose.
+  // Compute model space rest pose.
   ozz::animation::LocalToModelJob job;
-  job.input = _skeleton.joint_bind_poses();
+  job.input = _skeleton.joint_rest_poses();
   job.output = make_span(models);
   job.skeleton = &_skeleton;
   if (job.Run()) {
@@ -285,6 +282,25 @@ void MultiplySoATransformQuaternion(
   ozz::math::Transpose4x4(&aos_quats->xyzw, &soa_transform_ref.rotation.x);
 }
 
+namespace {
+
+class ProfileFctLog {
+  using clock = std::chrono::high_resolution_clock;
+
+ public:
+  ProfileFctLog(const char* _name) : name_{_name}, begin_{clock::now()} {}
+  ~ProfileFctLog() {
+    std::chrono::duration<float, std::milli> duration = clock::now() - begin_;
+    ozz::log::Out() << name_ << ": " << duration.count() << "ms" << std::endl;
+  }
+
+ private:
+  const char* name_;
+  clock::time_point begin_;
+};
+
+}  // namespace
+
 bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   assert(_filename && _skeleton);
   ozz::log::Out() << "Loading skeleton archive " << _filename << "."
@@ -303,8 +319,10 @@ bool LoadSkeleton(const char* _filename, ozz::animation::Skeleton* _skeleton) {
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_skeleton;
-
+  {
+    ProfileFctLog profile{"Skeleton loading time"};
+    archive >> *_skeleton;
+  }
   return true;
 }
 
@@ -327,7 +345,37 @@ bool LoadAnimation(const char* _filename,
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_animation;
+  {
+    ProfileFctLog profile{"Animation loading time"};
+    archive >> *_animation;
+  }
+
+  return true;
+}
+
+bool LoadRawAnimation(const char* _filename,
+                      ozz::animation::offline::RawAnimation* _animation) {
+  assert(_filename && _animation);
+  ozz::log::Out() << "Loading raw animation archive: " << _filename << "."
+                  << std::endl;
+  ozz::io::File file(_filename, "rb");
+  if (!file.opened()) {
+    ozz::log::Err() << "Failed to open raw animation file " << _filename << "."
+                    << std::endl;
+    return false;
+  }
+  ozz::io::IArchive archive(&file);
+  if (!archive.TestTag<ozz::animation::offline::RawAnimation>()) {
+    ozz::log::Err() << "Failed to load raw animation instance from file "
+                    << _filename << "." << std::endl;
+    return false;
+  }
+
+  // Once the tag is validated, reading cannot fail.
+  {
+    ProfileFctLog profile{"RawAnimation loading time"};
+    archive >> *_animation;
+  }
 
   return true;
 }
@@ -351,7 +399,10 @@ bool LoadTrackImpl(const char* _filename, _Track* _track) {
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_track;
+  {
+    ProfileFctLog profile{"Track loading time"};
+    archive >> *_track;
+  }
 
   return true;
 }
@@ -390,7 +441,10 @@ bool LoadMesh(const char* _filename, ozz::sample::Mesh* _mesh) {
   }
 
   // Once the tag is validated, reading cannot fail.
-  archive >> *_mesh;
+  {
+    ProfileFctLog profile{"Mesh loading time"};
+    archive >> *_mesh;
+  }
 
   return true;
 }
@@ -408,16 +462,19 @@ bool LoadMeshes(const char* _filename,
   }
   ozz::io::IArchive archive(&file);
 
-  while (archive.TestTag<ozz::sample::Mesh>()) {
-    _meshes->resize(_meshes->size() + 1);
-    archive >> _meshes->back();
+  {
+    ProfileFctLog profile{"Meshes loading time"};
+    while (archive.TestTag<ozz::sample::Mesh>()) {
+      _meshes->resize(_meshes->size() + 1);
+      archive >> _meshes->back();
+    }
   }
 
   return true;
 }
 
 namespace {
-// Moller–Trumbore intersection algorithm
+// Moller-Trumbore intersection algorithm
 // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
 bool RayIntersectsTriangle(const ozz::math::Float3& _ray_origin,
                            const ozz::math::Float3& _ray_direction,

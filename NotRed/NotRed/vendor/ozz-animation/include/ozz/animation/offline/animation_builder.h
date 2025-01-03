@@ -28,6 +28,7 @@
 #ifndef OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 #define OZZ_OZZ_ANIMATION_OFFLINE_ANIMATION_BUILDER_H_
 
+#include "ozz/animation/offline/export.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 namespace ozz {
@@ -44,7 +45,7 @@ struct RawAnimation;
 // Defines the class responsible of building runtime animation instances from
 // offline raw animations.
 // No optimization at all is performed on the raw animation.
-class AnimationBuilder {
+class OZZ_ANIMOFFLINE_DLL AnimationBuilder {
  public:
   // Creates an Animation based on _raw_animation and *this builder parameters.
   // Returns a valid Animation on success.
@@ -52,6 +53,15 @@ class AnimationBuilder {
   // The animation is returned as an unique_ptr as ownership is given back to
   // the caller.
   unique_ptr<Animation> operator()(const RawAnimation& _raw_animation) const;
+
+  // IFrames allow the sampler to instantly seek to a point in time in the
+  // animation. If no iframe is available, the sampler needs to read
+  // sequentially forward or backward to reach a point. So that's useful for
+  // long animations, if they are accessed randomly, or if sampling starts from
+  // the end. A 0 interval means no iframe is generated. Any positive number is
+  // the interval between iframes, with a guaranted one at the end of the
+  // animation if interval is bigger than animation duration.
+  float iframe_interval = 0.f;
 };
 }  // namespace offline
 }  // namespace animation

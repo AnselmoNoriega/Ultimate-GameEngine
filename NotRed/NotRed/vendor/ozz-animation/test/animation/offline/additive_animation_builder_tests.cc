@@ -25,15 +25,12 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/offline/additive_animation_builder.h"
-
 #include "gtest/gtest.h"
-
+#include "ozz/animation/offline/additive_animation_builder.h"
+#include "ozz/animation/offline/raw_animation.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/math_constant.h"
 #include "ozz/base/maths/transform.h"
-
-#include "ozz/animation/offline/raw_animation.h"
 
 using ozz::animation::offline::AdditiveAnimationBuilder;
 using ozz::animation::offline::RawAnimation;
@@ -85,12 +82,13 @@ TEST(Build, AdditiveAnimationBuilder) {
   AdditiveAnimationBuilder builder;
 
   RawAnimation input;
+  input.name = "test";
   input.duration = 1.f;
   input.tracks.resize(3);
 
   // First track is empty
   {
-      // input.tracks[0]
+    // input.tracks[0]
   }
 
   // 2nd track
@@ -140,6 +138,7 @@ TEST(Build, AdditiveAnimationBuilder) {
   {
     RawAnimation output;
     ASSERT_TRUE(builder(input, &output));
+    EXPECT_STREQ(output.name.c_str(), input.name.c_str());
     EXPECT_EQ(output.num_tracks(), 3);
 
     // 1st track.
@@ -199,10 +198,11 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
   RawAnimation input;
   input.duration = 1.f;
   input.tracks.resize(3);
+  input.name = "test";
 
   // First track is empty
   {
-      // input.tracks[0]
+    // input.tracks[0]
   }
 
   // 2nd track
@@ -263,6 +263,7 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
     RawAnimation output;
     ASSERT_TRUE(
         builder(input, ozz::span<ozz::math::Transform>(ref_pose), &output));
+    EXPECT_STREQ(output.name.c_str(), input.name.c_str());
     EXPECT_EQ(output.num_tracks(), 3);
 
     // 1st track.
@@ -283,7 +284,7 @@ TEST(BuildRefPose, AdditiveAnimationBuilder) {
           output.tracks[1].rotations;
       EXPECT_EQ(rotations.size(), 1u);
       EXPECT_FLOAT_EQ(rotations[0].time, 0.f);
-      EXPECT_QUATERNION_EQ(rotations[0].value, .5f, .5f, -.5f, .5f);
+      EXPECT_QUATERNION_EQ(rotations[0].value, .5f, -.5f, -.5f, .5f);
       const RawAnimation::JointTrack::Scales& scales = output.tracks[1].scales;
       EXPECT_EQ(scales.size(), 1u);
       EXPECT_FLOAT_EQ(scales[0].time, 0.f);

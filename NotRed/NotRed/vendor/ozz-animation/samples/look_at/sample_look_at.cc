@@ -25,27 +25,23 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/ik_aim_job.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/simd_quaternion.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/mesh.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/ik_aim_job.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/simd_quaternion.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/options/options.h"
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -106,7 +102,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -339,8 +335,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
     const int num_joints = skeleton_.num_joints();
     models_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     // Reading animation.
     if (!ozz::sample::LoadAnimation(OPTIONS_animation, &animation_)) {
@@ -391,15 +387,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
   virtual void OnDestroy() {}
 
   virtual bool OnGui(ozz::sample::ImGui* _im_gui) {
-    char txt[64];
+    char label[64];
 
     _im_gui->DoCheckBox("Enable ik", &enable_ik_);
-    sprintf(txt, "IK chain length: %d", chain_length_);
-    _im_gui->DoSlider(txt, 0, kMaxChainLength, &chain_length_);
-    sprintf(txt, "Joint weight %.2g", joint_weight_);
-    _im_gui->DoSlider(txt, 0.f, 1.f, &joint_weight_);
-    sprintf(txt, "Chain weight %.2g", chain_weight_);
-    _im_gui->DoSlider(txt, 0.f, 1.f, &chain_weight_);
+    snprintf(label, sizeof(label), "IK chain length: %d", chain_length_);
+    _im_gui->DoSlider(label, 0, kMaxChainLength, &chain_length_);
+    snprintf(label, sizeof(label), "Joint weight %.2g", joint_weight_);
+    _im_gui->DoSlider(label, 0.f, 1.f, &joint_weight_);
+    snprintf(label, sizeof(label), "Chain weight %.2g", chain_weight_);
+    _im_gui->DoSlider(label, 0.f, 1.f, &chain_weight_);
 
     // Exposes animation runtime playback controls.
     {
@@ -417,15 +413,15 @@ class LookAtSampleApplication : public ozz::sample::Application {
         const float kTargetRange = 3.f;
 
         _im_gui->DoLabel("Animated extent");
-        sprintf(txt, "%.2g", target_extent_);
-        _im_gui->DoSlider(txt, 0.f, kTargetRange, &target_extent_);
+        snprintf(label, sizeof(label), "%.2g", target_extent_);
+        _im_gui->DoSlider(label, 0.f, kTargetRange, &target_extent_);
 
-        sprintf(txt, "x %.2g", target_offset_.x);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.x);
-        sprintf(txt, "y %.2g", target_offset_.y);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.y);
-        sprintf(txt, "z %.2g", target_offset_.z);
-        _im_gui->DoSlider(txt, -kTargetRange, kTargetRange, &target_offset_.z);
+        snprintf(label, sizeof(label), "x %.2g", target_offset_.x);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.x);
+        snprintf(label, sizeof(label), "y %.2g", target_offset_.y);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.y);
+        snprintf(label, sizeof(label), "z %.2g", target_offset_.z);
+        _im_gui->DoSlider(label, -kTargetRange, kTargetRange, &target_offset_.z);
       }
     }
 
@@ -434,12 +430,12 @@ class LookAtSampleApplication : public ozz::sample::Application {
       ozz::sample::ImGui::OpenClose oc(_im_gui, "Eyes offset", &opened);
       if (opened) {
         const float kOffsetRange = .5f;
-        sprintf(txt, "x %.2g", eyes_offset_.x);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &eyes_offset_.x);
-        sprintf(txt, "y %.2g", eyes_offset_.y);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &eyes_offset_.y);
-        sprintf(txt, "z %.2g", eyes_offset_.z);
-        _im_gui->DoSlider(txt, -kOffsetRange, kOffsetRange, &eyes_offset_.z);
+        snprintf(label, sizeof(label), "x %.2g", eyes_offset_.x);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &eyes_offset_.x);
+        snprintf(label, sizeof(label), "y %.2g", eyes_offset_.y);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &eyes_offset_.y);
+        snprintf(label, sizeof(label), "z %.2g", eyes_offset_.z);
+        _im_gui->DoSlider(label, -kOffsetRange, kOffsetRange, &eyes_offset_.z);
       }
     }
 
@@ -472,8 +468,8 @@ class LookAtSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;
@@ -482,7 +478,7 @@ class LookAtSampleApplication : public ozz::sample::Application {
   ozz::vector<ozz::math::Float4x4> models_;
 
   // Buffer of skinning matrices, result of the joint multiplication of the
-  // inverse bind pose with the model-space matrix.
+  // inverse rest pose with the model-space matrix.
   ozz::vector<ozz::math::Float4x4> skinning_matrices_;
 
   // The mesh used by the sample.

@@ -25,36 +25,30 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/animation/offline/animation_builder.h"
-#include "ozz/animation/offline/animation_optimizer.h"
-#include "ozz/animation/offline/raw_animation.h"
-#include "ozz/animation/offline/raw_animation_utils.h"
-
-#include "ozz/base/memory/unique_ptr.h"
-
-#include "ozz/base/io/archive.h"
-#include "ozz/base/io/stream.h"
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/math_ex.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
+#include <algorithm>
 
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/profile.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
-
-#include <algorithm>
+#include "ozz/animation/offline/animation_builder.h"
+#include "ozz/animation/offline/animation_optimizer.h"
+#include "ozz/animation/offline/raw_animation.h"
+#include "ozz/animation/offline/raw_animation_utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/base/io/archive.h"
+#include "ozz/base/io/stream.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/math_ex.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/base/memory/unique_ptr.h"
+#include "ozz/options/options.h"
 
 // Skeleton and animation file can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
@@ -63,35 +57,6 @@ OZZ_OPTIONS_DECLARE_STRING(skeleton, "Path to the runtime skeleton file.",
 OZZ_OPTIONS_DECLARE_STRING(animation, "Path to the raw animation file.",
                            "media/animation_raw.ozz", false)
 
-namespace {
-
-// Loads a raw animation from a file.
-bool LoadAnimation(const char* _filename,
-                   ozz::animation::offline::RawAnimation* _animation) {
-  assert(_filename && _animation);
-  ozz::log::Out() << "Loading raw animation archive: " << _filename << "."
-                  << std::endl;
-  ozz::io::File file(_filename, "rb");
-  if (!file.opened()) {
-    ozz::log::Err() << "Failed to open animation file " << _filename << "."
-                    << std::endl;
-    return false;
-  }
-  ozz::io::IArchive archive(&file);
-  if (!archive.TestTag<ozz::animation::offline::RawAnimation>()) {
-    ozz::log::Err() << "Failed to load raw animation instance from file "
-                    << _filename << "." << std::endl;
-    return false;
-  }
-
-  // Once the tag is validated, reading cannot fail.
-  archive >> *_animation;
-
-  // Ensure animation is valid.
-  return _animation->Validate();
-}
-}  // namespace
-
 class OptimizeSampleApplication : public ozz::sample::Application {
  public:
   OptimizeSampleApplication()
@@ -99,6 +64,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
         optimize_(true),
         joint_setting_enable_(true),
         joint_(0),
+        enable_iframes_(true),
+        iframe_interval_(10.f),
         error_record_med_(64),
         error_record_max_(64),
         joint_error_record_(64) {}
@@ -111,7 +78,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Prepares sampling job.
     ozz::animation::SamplingJob sampling_job;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
 
     // Samples optimized animation (_according to the display mode).
@@ -129,20 +96,20 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Computes difference between the optimized and non-optimized animations
-    // in local space, and rebinds it to the bind pose.
+    // in local space, and rebinds it to the rest pose.
     {
-      const ozz::span<const ozz::math::SoaTransform>& bind_poses =
-          skeleton_.joint_bind_poses();
-      const ozz::math::SoaTransform* bind_pose = bind_poses.begin();
+      const ozz::span<const ozz::math::SoaTransform>& rest_poses =
+          skeleton_.joint_rest_poses();
+      const ozz::math::SoaTransform* rest_pose = rest_poses.begin();
       const ozz::math::SoaTransform* locals_raw = locals_raw_.data();
       const ozz::math::SoaTransform* locals_rt = locals_rt_.data();
       ozz::math::SoaTransform* locals_diff = locals_diff_.data();
-      for (; bind_pose < bind_poses.end();
-           ++locals_raw, ++locals_rt, ++locals_diff, ++bind_pose) {
+      for (; rest_pose < rest_poses.end();
+           ++locals_raw, ++locals_rt, ++locals_diff, ++rest_pose) {
         assert(locals_raw < array_end(locals_raw_) &&
                locals_rt < array_end(locals_rt_) &&
                locals_diff < array_end(locals_diff_) &&
-               bind_pose < bind_poses.end());
+               rest_pose < rest_poses.end());
 
         // Computes difference.
         const ozz::math::SoaTransform diff = {
@@ -150,10 +117,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
             locals_rt->rotation * Conjugate(locals_raw->rotation),
             locals_rt->scale / locals_raw->scale};
 
-        // Rebinds to the bind pose in the diff buffer.
-        locals_diff->translation = bind_pose->translation + diff.translation;
-        locals_diff->rotation = bind_pose->rotation * diff.rotation;
-        locals_diff->scale = bind_pose->scale * diff.scale;
+        // Rebinds to the rest pose in the diff buffer.
+        locals_diff->translation = rest_pose->translation + diff.translation;
+        locals_diff->rotation = rest_pose->rotation * diff.rotation;
+        locals_diff->scale = rest_pose->scale * diff.scale;
       }
     }
 
@@ -291,7 +258,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Imports offline animation from a binary file.
     // Invalid animations are rejected by the load function.
-    if (!LoadAnimation(OPTIONS_animation, &raw_animation_)) {
+    if (!ozz::sample::LoadRawAnimation(OPTIONS_animation, &raw_animation_)) {
       return false;
     }
 
@@ -320,8 +287,8 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     locals_diff_.resize(num_soa_joints);
     models_diff_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     return true;
   }
@@ -338,71 +305,83 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Exposes optimizer's tolerances.
+    bool rebuild = false;
     {
       static bool open = true;
       ozz::sample::ImGui::OpenClose ocb(_im_gui, "Optimization tolerances",
                                         &open);
       if (open) {
-        bool rebuild = false;
-
         rebuild |= _im_gui->DoCheckBox("Enable optimizations", &optimize_);
 
-        std::sprintf(label, "Tolerance: %0.2f mm", setting_.tolerance * 1000);
+        std::snprintf(label, sizeof(label), "Tolerance: %0.2f mm",
+                      setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &setting_.tolerance, .5f,
                                      optimize_);
 
-        std::sprintf(label, "Distance: %0.2f mm", setting_.distance * 1000);
+        std::snprintf(label, sizeof(label), "Distance: %0.2f mm",
+                      setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &setting_.distance, .5f,
                                      optimize_);
 
         rebuild |= _im_gui->DoCheckBox("Enable joint setting",
                                        &joint_setting_enable_, optimize_);
 
-        std::sprintf(label, "%s (%d)", skeleton_.joint_names()[joint_], joint_);
+        std::snprintf(label, sizeof(label), "%s (%d)",
+                      skeleton_.joint_names()[joint_], joint_);
         rebuild |=
             _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &joint_,
                               1.f, joint_setting_enable_ && optimize_);
 
-        std::sprintf(label, "Tolerance: %0.2f mm",
-                     joint_setting_.tolerance * 1000);
+        std::snprintf(label, sizeof(label), "Tolerance: %0.2f mm",
+                      joint_setting_.tolerance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, .1f, &joint_setting_.tolerance,
                                      .5f, joint_setting_enable_ && optimize_);
 
-        std::sprintf(label, "Distance: %0.2f mm",
-                     joint_setting_.distance * 1000);
+        std::snprintf(label, sizeof(label), "Distance: %0.2f mm",
+                      joint_setting_.distance * 1000);
         rebuild |= _im_gui->DoSlider(label, 0.f, 1.f, &joint_setting_.distance,
                                      .5f, joint_setting_enable_ && optimize_);
+      }
+    }
+    {
+      static bool open = true;
+      ozz::sample::ImGui::OpenClose ocb(_im_gui, "Builder settings", &open);
+      if (open) {
+        rebuild |= _im_gui->DoCheckBox("Enable iframes", &enable_iframes_);
 
-        if (rebuild) {
-          // Invalidates the cache in case the new animation has the same
-          // address as the previous one. Other cases (like changing animation)
-          // are automatic handled by the cache. See SamplingCache::Invalidate
-          // for more details.
-          cache_.Invalidate();
+        std::snprintf(label, sizeof(label), "Iframe interval: %0.2f s", iframe_interval_);
+        rebuild |= _im_gui->DoSlider(label, .1f, 20.f, &iframe_interval_, .5f,
+                                     enable_iframes_);
+      }
+    }
+    if (rebuild) {
+      // Invalidates the context in case the new animation has the same
+      // address as the previous one. Other cases (like changing animation)
+      // are automatic handled by the context. See
+      // SamplingJob::Context::Invalidate for more details.
+      context_.Invalidate();
 
-          // Rebuilds a new runtime animation.
-          if (!BuildAnimations()) {
-            return false;
-          }
-        }
+      // Rebuilds a new runtime animation.
+      if (!BuildAnimations()) {
+        return false;
       }
     }
     {
       static bool open = true;
       ozz::sample::ImGui::OpenClose ocb(_im_gui, "Memory size", &open);
       if (open) {
-        std::sprintf(label, "Original: %dKB",
-                     static_cast<int>(raw_animation_.size() >> 10));
+        std::snprintf(label, sizeof(label), "Original: %dKB",
+                      static_cast<int>(raw_animation_.size() >> 10));
         _im_gui->DoLabel(label);
 
-        std::sprintf(label, "Optimized: %dKB (%.1f:1)",
-                     static_cast<int>(raw_optimized_animation_.size() >> 10),
-                     static_cast<float>(raw_animation_.size()) /
-                         raw_optimized_animation_.size());
+        std::snprintf(label, sizeof(label), "Optimized: %dKB (%.1f:1)",
+                      static_cast<int>(raw_optimized_animation_.size() >> 10),
+                      static_cast<float>(raw_animation_.size()) /
+                          raw_optimized_animation_.size());
         _im_gui->DoLabel(label);
 
-        std::sprintf(
-            label, "Compressed: %dKB (%.1f:1)",
+        std::snprintf(
+            label, sizeof(label), "Compressed: %dKB (%.1f:1)",
             static_cast<int>(animation_rt_->size() >> 10),
             static_cast<float>(raw_animation_.size()) / animation_rt_->size());
         _im_gui->DoLabel(label);
@@ -423,37 +402,36 @@ class OptimizeSampleApplication : public ozz::sample::Application {
 
     // Show absolute error.
     {
-      char szLabel[64];
       static bool error_open = true;
       ozz::sample::ImGui::OpenClose oc_stats(_im_gui, "Absolute error",
                                              &error_open);
       if (error_open) {
         {
-          std::sprintf(szLabel, "Median error: %.2fmm",
-                       *error_record_med_.cursor());
+          std::snprintf(label, sizeof(label), "Median error: %.2fmm",
+                        *error_record_med_.cursor());
           const ozz::sample::Record::Statistics error_stats =
               error_record_med_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+          _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
                            error_record_med_.cursor(),
                            error_record_med_.record_begin(),
                            error_record_med_.record_end());
         }
         {
-          std::sprintf(szLabel, "Maximum error: %.2fmm",
-                       *error_record_max_.cursor());
+          std::snprintf(label, sizeof(label), "Maximum error: %.2fmm",
+                        *error_record_max_.cursor());
           const ozz::sample::Record::Statistics error_stats =
               error_record_max_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+          _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
                            error_record_max_.cursor(),
                            error_record_max_.record_begin(),
                            error_record_max_.record_end());
         }
         {
-          std::sprintf(szLabel, "Joint %d error: %.2fmm", joint_,
-                       *joint_error_record_.cursor());
+          std::snprintf(label, sizeof(label), "Joint %d error: %.2fmm", joint_,
+                        *joint_error_record_.cursor());
           const ozz::sample::Record::Statistics error_stats =
               joint_error_record_.GetStatistics();
-          _im_gui->DoGraph(szLabel, 0.f, error_stats.max, error_stats.latest,
+          _im_gui->DoGraph(label, 0.f, error_stats.max, error_stats.latest,
                            joint_error_record_.cursor(),
                            joint_error_record_.record_begin(),
                            joint_error_record_.record_end());
@@ -493,6 +471,7 @@ class OptimizeSampleApplication : public ozz::sample::Application {
     }
 
     // Builds runtime animation from the optimized one.
+    animation_builder.iframe_interval = enable_iframes_ ? iframe_interval_ : 0;
     animation_rt_ = animation_builder(raw_optimized_animation_);
 
     // Check if building runtime animation was successful.
@@ -533,6 +512,10 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   int joint_;
   ozz::animation::offline::AnimationOptimizer::Setting joint_setting_;
 
+  // Builder iframe interval
+  bool enable_iframes_;
+  float iframe_interval_;
+
   // Playback animation controller. This is a utility class that helps with
   // controlling animation playback time.
   ozz::sample::PlaybackController controller_;
@@ -540,9 +523,9 @@ class OptimizeSampleApplication : public ozz::sample::Application {
   // Runtime skeleton.
   ozz::animation::Skeleton skeleton_;
 
-  // Sampling cache, shared across optimized and non-optimized animations. This
-  // is not optimal, but it's not an issue either.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context, shared across optimized and non-optimized animations.
+  // This is not optimal, but it's not an issue either.
+  ozz::animation::SamplingJob::Context context_;
 
   // Runtime optimized animation.
   ozz::unique_ptr<ozz::animation::Animation> animation_rt_;

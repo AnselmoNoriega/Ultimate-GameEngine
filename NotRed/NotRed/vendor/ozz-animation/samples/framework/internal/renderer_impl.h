@@ -54,25 +54,32 @@
 #ifndef GL_VERSION_2_0
 #define OZZ_GL_VERSION_2_0_EXT
 #endif  // GL_VERSION_2_0
+#ifndef GL_VERSION_3_0
+#define OZZ_GL_VERSION_3_0_EXT
+#endif  // GL_VERSION_3_0
 
 #endif  // EMSCRIPTEN
 
 // Include features as extentions
 #include "GL/glext.h"
-
 #include "framework/renderer.h"
 #include "ozz/base/containers/vector.h"
+#include "ozz/base/log.h"
 #include "ozz/base/memory/unique_ptr.h"
 
 // Provides helper macro to test for glGetError on a gl call.
 #ifndef NDEBUG
-#define GL(_f)                    \
-  do {                            \
-    gl##_f;                       \
-    GLenum error = glGetError();  \
-    assert(error == GL_NO_ERROR); \
-                                  \
+#define GL(_f)                                                     \
+  do {                                                             \
+    gl##_f;                                                        \
+    GLenum gl_err = glGetError();                                  \
+    if (gl_err != 0) {                                             \
+      ozz::log::Err() << "GL error 0x" << std::hex << gl_err       \
+                      << " returned from 'gl" << #_f << std::endl; \
+    }                                                              \
+    assert(gl_err == GL_NO_ERROR);                                 \
   } while (void(0), 0)
+
 #else  // NDEBUG
 #define GL(_f) gl##_f
 #endif  // NDEBUG
@@ -91,6 +98,7 @@ namespace sample {
 namespace internal {
 class Camera;
 class Shader;
+class PointsShader;
 class SkeletonShader;
 class AmbientShader;
 class AmbientTexturedShader;
@@ -118,6 +126,12 @@ class RendererImpl : public Renderer {
                            ozz::span<const ozz::math::Float4x4> _matrices,
                            const ozz::math::Float4x4& _transform,
                            bool _draw_joints);
+
+  virtual bool DrawPoints(const ozz::span<const float>& _positions,
+                          const ozz::span<const float>& _sizes,
+                          const ozz::span<const Color>& _colors,
+                          const ozz::math::Float4x4& _transform,
+                          bool _screen_space);
 
   virtual bool DrawBoxIm(const ozz::math::Box& _box,
                          const ozz::math::Float4x4& _transform,
@@ -212,6 +226,9 @@ class RendererImpl : public Renderer {
   // Bone and joint model objects.
   Model models_[2];
 
+  // Vertex array
+  GLuint vertex_array_o_;
+
   // Dynamic vbo used for arrays.
   GLuint dynamic_array_bo_;
 
@@ -241,6 +258,7 @@ class RendererImpl : public Renderer {
   ozz::unique_ptr<AmbientShader> ambient_shader;
   ozz::unique_ptr<AmbientTexturedShader> ambient_textured_shader;
   ozz::unique_ptr<AmbientShaderInstanced> ambient_shader_instanced;
+  ozz::unique_ptr<PointsShader> points_shader;
 
   // Checkered texture
   unsigned int checkered_texture_;
@@ -324,9 +342,18 @@ extern PFNGLVERTEXATTRIB4FVPROC glVertexAttrib4fv;
 extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 #endif  // OZZ_GL_VERSION_2_0_EXT
 
+// OpenGL 3.0 vertex array
+#ifdef OZZ_GL_VERSION_3_0_EXT
+extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+extern PFNGLISVERTEXARRAYPROC glIsVertexArray;
+#endif  // OZZ_GL_VERSION_3_0_EXT
+
 // OpenGL ARB_instanced_arrays extension, optional.
 extern bool GL_ARB_instanced_arrays_supported;
 extern PFNGLVERTEXATTRIBDIVISORARBPROC glVertexAttribDivisor_;
 extern PFNGLDRAWARRAYSINSTANCEDARBPROC glDrawArraysInstanced_;
 extern PFNGLDRAWELEMENTSINSTANCEDARBPROC glDrawElementsInstanced_;
+
 #endif  // OZZ_SAMPLES_FRAMEWORK_INTERNAL_RENDERER_IMPL_H_

@@ -25,6 +25,7 @@ add_executable(sample_skinning
   "${CMAKE_CURRENT_BINARY_DIR}/media/animation.ozz")
 target_link_libraries(sample_skinning
   sample_framework)
+target_copy_shared_libraries(sample_skinning)
 
 set_target_properties(sample_skinning
   PROPERTIES FOLDER "samples")
@@ -32,7 +33,7 @@ set_target_properties(sample_skinning
 if(EMSCRIPTEN)
   # Resource files are embedded to the output file with emscripten
   set_target_properties(sample_skinning
-    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md --memory-init-file 0")
+    PROPERTIES LINK_FLAGS "--embed-file media --embed-file README.md")
 
   install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/sample_skinning.html

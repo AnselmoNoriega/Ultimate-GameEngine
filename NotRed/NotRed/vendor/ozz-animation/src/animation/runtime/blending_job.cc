@@ -69,12 +69,12 @@ bool BlendingJob::Validate() const {
 
   // Test for nullptr begin pointers.
   // Blending layers are mandatory, additive aren't.
-  valid &= !bind_pose.empty();
+  valid &= !rest_pose.empty();
   valid &= !output.empty();
 
-  // The bind pose size defines the ranges of transforms to blend, so all
+  // The rest pose size defines the ranges of transforms to blend, so all
   // other buffers should be bigger.
-  const size_t min_range = bind_pose.size();
+  const size_t min_range = rest_pose.size();
   valid &= output.size() >= min_range;
 
   // Validates layers.
@@ -93,45 +93,48 @@ bool BlendingJob::Validate() const {
 namespace {
 
 // Macro that defines the process of blending the 1st pass.
-#define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out)     \
-  do {                                                  \
-    _out->translation = _in.translation * _simd_weight; \
-    _out->rotation = _in.rotation * _simd_weight;       \
-    _out->scale = _in.scale * _simd_weight;             \
+#define OZZ_BLEND_1ST_PASS(_in, _simd_weight, _out)    \
+  do {                                                 \
+    _out.translation = _in.translation * _simd_weight; \
+    _out.rotation = _in.rotation * _simd_weight;       \
+    _out.scale = _in.scale * _simd_weight;             \
   } while (void(0), 0)
 
 // Macro that defines the process of blending any pass but the first.
-#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                              \
-  do {                                                                         \
-    /* Blends translation. */                                                  \
-    _out->translation = _out->translation + _in.translation * _simd_weight;    \
-    /* Blends rotations, negates opposed quaternions to be sure to choose*/    \
-    /* the shortest path between the two.*/                                    \
-    const math::SimdInt4 sign = math::Sign(Dot(_out->rotation, _in.rotation)); \
-    const math::SoaQuaternion rotation = {                                     \
-        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),      \
-        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};     \
-    _out->rotation = _out->rotation + rotation * _simd_weight;                 \
-    /* Blends scales.*/                                                        \
-    _out->scale = _out->scale + _in.scale * _simd_weight;                      \
+#define OZZ_BLEND_N_PASS(_in, _simd_weight, _out)                             \
+  do {                                                                        \
+    /* Blends translation. */                                                 \
+    _out.translation = _out.translation + _in.translation * _simd_weight;     \
+    /* Blends rotations, negates opposed quaternions to be sure to choose*/   \
+    /* the shortest path between the two.*/                                   \
+    const math::SimdInt4 sign = math::Sign(Dot(_out.rotation, _in.rotation)); \
+    const math::SoaQuaternion rotation = {                                    \
+        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),     \
+        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};    \
+    _out.rotation = _out.rotation + rotation * _simd_weight;                  \
+    /* Blends scales.*/                                                       \
+    _out.scale = _out.scale + _in.scale * _simd_weight;                       \
   } while (void(0), 0)
 
 // Macro that defines the process of adding a pass.
-#define OZZ_ADD_PASS(_in, _simd_weight, _out)                                \
-  do {                                                                       \
-    _out.translation = _out.translation + _in.translation * _simd_weight;    \
-    /* Interpolate quaternion between identity and src.rotation.*/           \
-    /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/  \
-    const math::SimdInt4 sign = math::Sign(_in.rotation.w);                  \
-    const math::SoaQuaternion rotation = {                                   \
-        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),    \
-        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};   \
-    const math::SoaQuaternion interp_quat = {                                \
-        rotation.x * _simd_weight, rotation.y * _simd_weight,                \
-        rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one}; \
-    _out.rotation = NormalizeEst(interp_quat) * _out.rotation;               \
-    _out.scale =                                                             \
-        _out.scale * (one_minus_weight_f3 + (_in.scale * _simd_weight));     \
+#define OZZ_ADD_PASS(_in, _simd_weight, _out)                               \
+  do {                                                                      \
+    _out.translation = _out.translation + _in.translation * _simd_weight;   \
+    /* Interpolate quaternion between identity and src.rotation.*/          \
+    /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/ \
+    const math::SimdInt4 sign = math::Sign(_in.rotation.w);                 \
+    const math::SoaQuaternion interp_quat = {                               \
+        math::Xor(_in.rotation.x, sign) * _simd_weight,                     \
+        math::Xor(_in.rotation.y, sign) * _simd_weight,                     \
+        math::Xor(_in.rotation.z, sign) * _simd_weight,                     \
+        (math::Xor(_in.rotation.w, sign) - one) * _simd_weight + one};      \
+    _out.rotation = _out.rotation * NormalizeEst(interp_quat);              \
+    _out.scale.x = _out.scale.x *                                           \
+                   math::MAdd(_in.scale.x, _simd_weight, one_minus_weight); \
+    _out.scale.y = _out.scale.y *                                           \
+                   math::MAdd(_in.scale.y, _simd_weight, one_minus_weight); \
+    _out.scale.z = _out.scale.z *                                           \
+                   math::MAdd(_in.scale.z, _simd_weight, one_minus_weight); \
   } while (void(0), 0)
 
 // Macro that defines the process of subtracting a pass.
@@ -141,26 +144,28 @@ namespace {
     /* Interpolate quaternion between identity and src.rotation.*/             \
     /* Quaternion sign is fixed up, so that lerp takes the shortest path.*/    \
     const math::SimdInt4 sign = math::Sign(_in.rotation.w);                    \
-    const math::SoaQuaternion rotation = {                                     \
-        math::Xor(_in.rotation.x, sign), math::Xor(_in.rotation.y, sign),      \
-        math::Xor(_in.rotation.z, sign), math::Xor(_in.rotation.w, sign)};     \
     const math::SoaQuaternion interp_quat = {                                  \
-        rotation.x * _simd_weight, rotation.y * _simd_weight,                  \
-        rotation.z * _simd_weight, (rotation.w - one) * _simd_weight + one};   \
-    _out.rotation = Conjugate(NormalizeEst(interp_quat)) * _out.rotation;      \
-    const math::SoaFloat3 rcp_scale = {                                        \
-        math::RcpEst(math::MAdd(_in.scale.x, _simd_weight, one_minus_weight)), \
-        math::RcpEst(math::MAdd(_in.scale.y, _simd_weight, one_minus_weight)), \
-        math::RcpEst(                                                          \
-            math::MAdd(_in.scale.z, _simd_weight, one_minus_weight))};         \
-    _out.scale = _out.scale * rcp_scale;                                       \
+        math::Xor(_in.rotation.x, sign) * _simd_weight,                        \
+        math::Xor(_in.rotation.y, sign) * _simd_weight,                        \
+        math::Xor(_in.rotation.z, sign) * _simd_weight,                        \
+        (math::Xor(_in.rotation.w, sign) - one) * _simd_weight + one};         \
+    _out.rotation = _out.rotation * Conjugate(NormalizeEst(interp_quat));      \
+    _out.scale.x =                                                             \
+        _out.scale.x *                                                         \
+        math::RcpEst(math::MAdd(_in.scale.x, _simd_weight, one_minus_weight)); \
+    _out.scale.y =                                                             \
+        _out.scale.y *                                                         \
+        math::RcpEst(math::MAdd(_in.scale.y, _simd_weight, one_minus_weight)); \
+    _out.scale.z =                                                             \
+        _out.scale.z *                                                         \
+        math::RcpEst(math::MAdd(_in.scale.z, _simd_weight, one_minus_weight)); \
   } while (void(0), 0)
 
 // Defines parameters that are passed through blending stages.
 struct ProcessArgs {
   ProcessArgs(const BlendingJob& _job)
       : job(_job),
-        num_soa_joints(_job.bind_pose.size()),
+        num_soa_joints(_job.rest_pose.size()),
         num_passes(0),
         num_partial_passes(0),
         accumulated_weight(0.f) {
@@ -182,7 +187,7 @@ struct ProcessArgs {
   // The job to process.
   const BlendingJob& job;
 
-  // The number of transforms to process as defined by the size of the bind
+  // The number of transforms to process as defined by the size of the rest
   // pose.
   size_t num_soa_joints;
 
@@ -230,7 +235,7 @@ void BlendLayers(ProcessArgs* _args) {
       if (_args->num_passes == 0) {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer.transform[i];
-          math::SoaTransform* dest = _args->job.output.begin() + i;
+          math::SoaTransform& dest = _args->job.output[i];
           const math::SimdFloat4 weight =
               layer_weight * math::Max0(layer.joint_weights[i]);
           _args->accumulated_weights[i] = weight;
@@ -239,7 +244,7 @@ void BlendLayers(ProcessArgs* _args) {
       } else {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer.transform[i];
-          math::SoaTransform* dest = _args->job.output.begin() + i;
+          math::SoaTransform& dest = _args->job.output[i];
           const math::SimdFloat4 weight =
               layer_weight * math::Max0(layer.joint_weights[i]);
           _args->accumulated_weights[i] =
@@ -252,14 +257,14 @@ void BlendLayers(ProcessArgs* _args) {
       if (_args->num_passes == 0) {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer.transform[i];
-          math::SoaTransform* dest = _args->job.output.begin() + i;
+          math::SoaTransform& dest = _args->job.output[i];
           _args->accumulated_weights[i] = layer_weight;
           OZZ_BLEND_1ST_PASS(src, layer_weight, dest);
         }
       } else {
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer.transform[i];
-          math::SoaTransform* dest = _args->job.output.begin() + i;
+          math::SoaTransform& dest = _args->job.output[i];
           _args->accumulated_weights[i] =
               _args->accumulated_weights[i] + layer_weight;
           OZZ_BLEND_N_PASS(src, layer_weight, dest);
@@ -271,24 +276,24 @@ void BlendLayers(ProcessArgs* _args) {
   }
 }
 
-// Blends bind pose to the output if accumulated weight is less than the
+// Blends rest pose to the output if accumulated weight is less than the
 // threshold value.
-void BlendBindPose(ProcessArgs* _args) {
+void BlendRestPose(ProcessArgs* _args) {
   assert(_args);
 
   // Asserts buffer sizes, which must never fail as it has been validated.
-  assert(_args->job.bind_pose.size() >= _args->num_soa_joints);
+  assert(_args->job.rest_pose.size() >= _args->num_soa_joints);
 
   if (_args->num_partial_passes == 0) {
     // No partial blending pass detected, threshold can be tested globally.
     const float bp_weight = _args->job.threshold - _args->accumulated_weight;
 
-    if (bp_weight > 0.f) {  // The bind-pose is needed if it has a weight.
+    if (bp_weight > 0.f) {  // The rest-pose is needed if it has a weight.
       if (_args->num_passes == 0) {
-        // Strictly copying bind-pose.
+        // Strictly copying rest-pose.
         _args->accumulated_weight = 1.f;
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          _args->job.output[i] = _args->job.bind_pose[i];
+          _args->job.output[i] = _args->job.rest_pose[i];
         }
       } else {
         // Updates global accumulated weight, but not per-joint weight any more
@@ -299,8 +304,8 @@ void BlendBindPose(ProcessArgs* _args) {
             math::simd_float4::Load1(bp_weight);
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-          const math::SoaTransform& src = _args->job.bind_pose[i];
-          math::SoaTransform* dest = _args->job.output.begin() + i;
+          const math::SoaTransform& src = _args->job.rest_pose[i];
+          math::SoaTransform& dest = _args->job.output[i];
           OZZ_BLEND_N_PASS(src, simd_bp_weight, dest);
         }
       }
@@ -315,8 +320,8 @@ void BlendBindPose(ProcessArgs* _args) {
     assert(_args->num_passes != 0);
 
     for (size_t i = 0; i < _args->num_soa_joints; ++i) {
-      const math::SoaTransform& src = _args->job.bind_pose[i];
-      math::SoaTransform* dest = _args->job.output.begin() + i;
+      const math::SoaTransform& src = _args->job.rest_pose[i];
+      math::SoaTransform& dest = _args->job.output[i];
       const math::SimdFloat4 bp_weight =
           math::Max0(threshold - _args->accumulated_weights[i]);
       _args->accumulated_weights[i] =
@@ -384,15 +389,11 @@ void AddLayers(ProcessArgs* _args) {
           const math::SimdFloat4 weight =
               layer_weight * math::Max0(layer.joint_weights[i]);
           const math::SimdFloat4 one_minus_weight = one - weight;
-          const math::SoaFloat3 one_minus_weight_f3 = {
-              one_minus_weight, one_minus_weight, one_minus_weight};
           OZZ_ADD_PASS(src, weight, dest);
         }
       } else {
         // This is a full layer.
         const math::SimdFloat4 one_minus_weight = one - layer_weight;
-        const math::SoaFloat3 one_minus_weight_f3 = {
-            one_minus_weight, one_minus_weight, one_minus_weight};
 
         for (size_t i = 0; i < _args->num_soa_joints; ++i) {
           const math::SoaTransform& src = layer.transform[i];
@@ -442,8 +443,8 @@ bool BlendingJob::Run() const {
   // Blends all layers to the job output buffers.
   BlendLayers(&process_args);
 
-  // Applies bind pose.
-  BlendBindPose(&process_args);
+  // Applies rest pose.
+  BlendRestPose(&process_args);
 
   // Normalizes output.
   Normalize(&process_args);

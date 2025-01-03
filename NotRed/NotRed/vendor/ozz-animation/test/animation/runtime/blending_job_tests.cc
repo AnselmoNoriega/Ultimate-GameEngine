@@ -27,6 +27,7 @@
 
 #include "gtest/gtest.h"
 #include "ozz/animation/runtime/blending_job.h"
+#include "ozz/base/log.h"
 #include "ozz/base/maths/gtest_math_helper.h"
 #include "ozz/base/maths/soa_transform.h"
 
@@ -36,7 +37,7 @@ TEST(JobValidity, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
   const ozz::math::SimdFloat4 zero = ozz::math::simd_float4::zero();
   BlendingJob::Layer layers[2];
-  const ozz::math::SoaTransform bind_poses[3] = {identity, identity, identity};
+  const ozz::math::SoaTransform rest_poses[3] = {identity, identity, identity};
   const ozz::math::SoaTransform input_transforms[3] = {identity, identity,
                                                        identity};
   ozz::math::SoaTransform output_transforms[3] = {identity, identity, identity};
@@ -54,18 +55,18 @@ TEST(JobValidity, BlendingJob) {
   {  // Invalid output.
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
   }
   {  // Layers are optional.
     BlendingJob job;
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
   }
-  {  // Invalid bind pose.
+  {  // Invalid rest pose.
     BlendingJob job;
     job.layers = {layers, layers + 2};
     job.output = {output_transforms, output_transforms + 2};
@@ -79,7 +80,7 @@ TEST(JobValidity, BlendingJob) {
 
     BlendingJob job;
     job.layers = invalid_layers;
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -87,7 +88,7 @@ TEST(JobValidity, BlendingJob) {
   {  // Invalid output range, smaller output.
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 1};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -96,7 +97,7 @@ TEST(JobValidity, BlendingJob) {
   {  // Invalid smaller input.
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 3};
+    job.rest_pose = {rest_poses, rest_poses + 3};
     job.output = {output_transforms, output_transforms + 3};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -106,7 +107,7 @@ TEST(JobValidity, BlendingJob) {
     BlendingJob job;
     job.threshold = 0.f;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -117,7 +118,7 @@ TEST(JobValidity, BlendingJob) {
 
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -128,7 +129,7 @@ TEST(JobValidity, BlendingJob) {
 
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -139,7 +140,7 @@ TEST(JobValidity, BlendingJob) {
 
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -150,7 +151,7 @@ TEST(JobValidity, BlendingJob) {
 
     BlendingJob job;
     job.layers = {layers, layers + 2};
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 3};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -158,7 +159,7 @@ TEST(JobValidity, BlendingJob) {
 
   {  // Valid no layers.
     BlendingJob job;
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -171,7 +172,7 @@ TEST(JobValidityAdditive, BlendingJob) {
   BlendingJob::Layer layers[2];
   BlendingJob::Layer additive_layers[2];
 
-  const ozz::math::SoaTransform bind_poses[3] = {identity, identity, identity};
+  const ozz::math::SoaTransform rest_poses[3] = {identity, identity, identity};
   const ozz::math::SoaTransform input_transforms[3] = {identity, identity,
                                                        identity};
   ozz::math::SoaTransform output_transforms[3] = {identity, identity, identity};
@@ -186,7 +187,7 @@ TEST(JobValidityAdditive, BlendingJob) {
   {  // Valid additive job, no normal blending.
     BlendingJob job;
     job.additive_layers = additive_layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -197,7 +198,7 @@ TEST(JobValidityAdditive, BlendingJob) {
     BlendingJob job;
     job.layers = layers;
     job.additive_layers = additive_layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -211,7 +212,7 @@ TEST(JobValidityAdditive, BlendingJob) {
     BlendingJob job;
     job.layers = layers;
     job.additive_layers = invalid_layers;
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_FALSE(job.Validate());
     EXPECT_FALSE(job.Run());
@@ -222,7 +223,7 @@ TEST(JobValidityAdditive, BlendingJob) {
 
     BlendingJob job;
     job.additive_layers = additive_layers;
-    job.bind_pose = {bind_poses, bind_poses + 2};
+    job.rest_pose = {rest_poses, rest_poses + 2};
     job.output = {output_transforms, output_transforms + 2};
     EXPECT_TRUE(job.Validate());
     EXPECT_TRUE(job.Run());
@@ -232,23 +233,23 @@ TEST(JobValidityAdditive, BlendingJob) {
 TEST(Empty, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[2] = {identity, identity};
-  bind_poses[0].translation = ozz::math::SoaFloat3::Load(
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[2] = {identity, identity};
+  rest_poses[0].translation = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
-  bind_poses[0].scale = ozz::math::SoaFloat3::Load(
+  rest_poses[0].scale = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 10.f, 20.f, 30.f),
       ozz::math::simd_float4::Load(40.f, 50.f, 60.f, 70.f),
       ozz::math::simd_float4::Load(80.f, 90.f, 100.f, 110.f));
-  bind_poses[1].translation = bind_poses[0].translation *
+  rest_poses[1].translation = rest_poses[0].translation *
                               ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
-  bind_poses[1].scale =
-      bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
+  rest_poses[1].scale =
+      rest_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
 
   BlendingJob job;
-  job.bind_pose = bind_poses;
+  job.rest_pose = rest_poses;
   ozz::math::SoaTransform output_transforms[2];
   job.output = output_transforms;
 
@@ -282,14 +283,14 @@ TEST(Weight, BlendingJob) {
   input_transforms[1][0].translation = -input_transforms[0][0].translation;
   input_transforms[1][1].translation = -input_transforms[0][1].translation;
 
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[2] = {identity, identity};
-  bind_poses[0].scale = ozz::math::SoaFloat3::Load(
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[2] = {identity, identity};
+  rest_poses[0].scale = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
-  bind_poses[1].scale =
-      bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
+  rest_poses[1].scale =
+      rest_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
 
   {
     BlendingJob::Layer layers[2];
@@ -300,7 +301,7 @@ TEST(Weight, BlendingJob) {
 
     BlendingJob job;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     // Weight 0 (a bit less must give the same result) for the first layer,
@@ -373,18 +374,18 @@ TEST(JointWeights, BlendingJob) {
        ozz::math::simd_float4::Load(1.f, 0.f, 1.f, 1.f)},
       {ozz::math::simd_float4::Load(1.f, 1.f, 1.f, 0.f),
        ozz::math::simd_float4::Load(0.f, 1.f, 1.f, 1.f)}};
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[2] = {identity, identity};
-  bind_poses[0].translation = ozz::math::SoaFloat3::Load(
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[2] = {identity, identity};
+  rest_poses[0].translation = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(10.f, 11.f, 12.f, 13.f),
       ozz::math::simd_float4::Load(14.f, 15.f, 16.f, 17.f),
       ozz::math::simd_float4::Load(18.f, 19.f, 20.f, 21.f));
-  bind_poses[0].scale = ozz::math::SoaFloat3::Load(
+  rest_poses[0].scale = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
-  bind_poses[1].scale =
-      bind_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
+  rest_poses[1].scale =
+      rest_poses[0].scale * ozz::math::simd_float4::Load(2.f, 2.f, 2.f, 2.f);
 
   BlendingJob::Layer layers[2];
   layers[0].transform = input_transforms[0];
@@ -397,7 +398,7 @@ TEST(JointWeights, BlendingJob) {
 
     BlendingJob job;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     layers[0].weight = .5f;
@@ -419,7 +420,7 @@ TEST(JointWeights, BlendingJob) {
 
     BlendingJob job;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     layers[0].weight = 0.f;
@@ -445,9 +446,9 @@ TEST(Normalize, BlendingJob) {
   // Initialize inputs.
   ozz::math::SoaTransform input_transforms[2][1] = {{identity}, {identity}};
 
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[1] = {identity};
-  bind_poses[0].scale = ozz::math::SoaFloat3::Load(
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[1] = {identity};
+  rest_poses[0].scale = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
@@ -483,7 +484,7 @@ TEST(Normalize, BlendingJob) {
 
     BlendingJob job;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     EXPECT_TRUE(job.Run());
@@ -520,7 +521,7 @@ TEST(Normalize, BlendingJob) {
 
     BlendingJob job;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     EXPECT_TRUE(job.Run());
@@ -559,7 +560,7 @@ TEST(Normalize, BlendingJob) {
 
     BlendingJob job;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     EXPECT_TRUE(job.Run());
@@ -578,9 +579,9 @@ TEST(Threshold, BlendingJob) {
   // Initialize inputs.
   ozz::math::SoaTransform input_transforms[2][1] = {{identity}, {identity}};
 
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[1] = {identity};
-  bind_poses[0].scale = ozz::math::SoaFloat3::Load(
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[1] = {identity};
+  rest_poses[0].scale = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
       ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
@@ -606,7 +607,7 @@ TEST(Threshold, BlendingJob) {
     BlendingJob job;
     job.threshold = .1f;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     EXPECT_TRUE(job.Run());
@@ -632,7 +633,7 @@ TEST(Threshold, BlendingJob) {
     BlendingJob job;
     job.threshold = .1f;
     job.layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     EXPECT_TRUE(job.Run());
@@ -648,10 +649,8 @@ TEST(Threshold, BlendingJob) {
 }
 
 TEST(AdditiveWeight, BlendingJob) {
-  const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
-
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[2][1] = {{identity}, {identity}};
+  ozz::math::SoaTransform input_transforms[2][1];
   input_transforms[0][0].translation = ozz::math::SoaFloat3::Load(
       ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
       ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
@@ -669,8 +668,22 @@ TEST(AdditiveWeight, BlendingJob) {
   input_transforms[1][0].rotation = Conjugate(input_transforms[0][0].rotation);
   input_transforms[1][0].scale = -input_transforms[0][0].scale;
 
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[1] = {identity};
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[1] = {
+      {ozz::math::SoaFloat3::Load(
+           ozz::math::simd_float4::Load(-0.f, -1.f, -2.f, -3.f),
+           ozz::math::simd_float4::Load(-4.f, -5.f, -6.f, -7.f),
+           ozz::math::simd_float4::Load(-8.f, -9.f, -10.f, -11.f)),
+       ozz::math::SoaQuaternion::Load(
+           ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
+           ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
+           ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f,
+                                        .9238795f),
+           ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f)),
+       ozz::math::SoaFloat3::Load(
+           ozz::math::simd_float4::Load(-12.f, -13.f, -14.f, -15.f),
+           ozz::math::simd_float4::Load(-16.f, -17.f, -18.f, -19.f),
+           ozz::math::simd_float4::Load(-20.f, -21.f, -22.f, -23.f))}};
 
   {
     BlendingJob::Layer layers[1];
@@ -680,46 +693,49 @@ TEST(AdditiveWeight, BlendingJob) {
 
     BlendingJob job;
     job.additive_layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     // No weight for the 1st layer.
     layers[0].weight = 0.f;
     EXPECT_TRUE(job.Run());
 
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, 0.f, 0.f, 0.f,
-                        0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f, 0.f,
-                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-                                1.f, 1.f, 1.f, 1.f);
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f,
-                        1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, -0.f, -1.f, -2.f,
+                        -3.f, -4.f, -5.f, -6.f, -7.f, -8.f, -9.f, -10.f, -11.f);
+    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f,
+                                .70710677f, 0.f, .70710677f, 0.f, 0.f,
+                                .382683432f, .70710677f, 1.f, -.70710677f,
+                                .9238795f, 0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, -12.f, -13.f, -14.f, -15.f,
+                        -16.f, -17.f, -18.f, -19.f, -20.f, -21.f, -22.f, -23.f);
 
     // .5 weight for the 1st layer.
     layers[0].weight = .5f;
     EXPECT_TRUE(job.Run());
 
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, .5f, 1.f, 1.5f,
-                        2.f, 2.5f, 3.f, 3.5f, 4.f, 4.5f, 5.f, 5.5f);
-    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, .3826834f, 0.f,
-                                0.f, .19509032f, 0.f, 0.f, -.3826834f, 0.f, 0.f,
-                                0.f, 0.f, 0.f, .9238795f, 1.f, .9238795f,
-                                .98078528f);
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, 6.5f, 7.f, 7.5f, 8.f, 8.5f,
-                        9.f, 9.5f, 10.f, 10.5f, 11.f, 11.5f, 12.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, -.5f, -1.f,
+                        -1.5f, -2.f, -2.5f, -3.f, -3.5f, -4.f, -4.5f, -5.f,
+                        -5.5f);
+    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f,
+                                .3826834f, 0.f, .9238795f, 0.f, 0.f,
+                                .555570245f, .3826834f, 1.f, -.9238795f,
+                                .831469595f, 0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, -78.f, -91.f, -105.f,
+                        -120.f, -136.f, -153.f, -171.f, -190.f, -210.f, -231.f,
+                        -253.f, -276.f);
 
     // Full weight for the 1st layer.
     layers[0].weight = 1.f;
     EXPECT_TRUE(job.Run());
 
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, 1.f, 2.f, 3.f,
-                        4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f, 11.f);
-    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, .70710677f, 0.f,
-                                0.f, .382683432f, 0.f, 0.f, -.70710677f, 0.f,
-                                0.f, 0.f, 0.f, 0.f, .70710677f, 1.f, .70710677f,
-                                .9238795f);
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, 12.f, 13.f, 14.f, 15.f,
-                        16.f, 17.f, 18.f, 19.f, 20.f, 21.f, 22.f, 23.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, 0.f, 0.f, 0.f,
+                        0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f, 0.f,
+                                0.f, 1.f, 0.f, 0.f, .70710677f, 0.f, 1.f, -1.f,
+                                .70710677f, 0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, -144.f, -169.f, -196.f,
+                        -225.f, -256.f, -289.f, -324.f, -361.f, -400.f, -441.f,
+                        -484.f, -529.f);
   }
 
   {
@@ -731,7 +747,7 @@ TEST(AdditiveWeight, BlendingJob) {
 
     BlendingJob job;
     job.additive_layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     // No weight for the 1st layer.
@@ -740,14 +756,14 @@ TEST(AdditiveWeight, BlendingJob) {
 
     EXPECT_TRUE(job.Run());
 
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, -0.f, -1.f, -2.f,
-                        -3.f, -4.f, -5.f, -6.f, -7.f, -8.f, -9.f, -10.f, -11.f);
-    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, -.70710677f,
-                                -0.f, -0.f, -.382683432f, -0.f, -0.f,
-                                .70710677f, -0.f, -0.f, -0.f, -0.f, -0.f,
-                                .70710677f, 1.f, .70710677f, .9238795f);
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, -12.f, -13.f, -14.f, -15.f,
-                        -16.f, -17.f, -18.f, -19.f, -20.f, -21.f, -22.f, -23.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, -0.f, -2.f, -4.f,
+                        -6.f, -8.f, -10.f, -12.f, -14.f, -16.f, -18.f, -20.f,
+                        -22.f);
+    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f, 1.f,
+                                0.f, 0.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f,
+                                0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, 144.f, 169.f, 196.f, 225.f,
+                        256.f, 289.f, 324.f, 361.f, 400.f, 441.f, 484.f, 529.f);
 
     // Full weight for the both layer.
     layers[0].weight = 1.f;
@@ -755,14 +771,15 @@ TEST(AdditiveWeight, BlendingJob) {
 
     EXPECT_TRUE(job.Run());
 
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, 0.f, 0.f, 0.f,
-                        0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f, 0.f,
-                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-                                1.f, 1.f, 1.f, 1.f);
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, -144.f, -169.f, -196.f,
-                        -225.f, -256.f, -289.f, -324.f, -361.f, -400.f, -441.f,
-                        -484.f, -529.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, -0.f, -1.f, -2.f,
+                        -3.f, -4.f, -5.f, -6.f, -7.f, -8.f, -9.f, -10.f, -11.f);
+    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f,
+                                .70710677f, 0.f, .70710677f, 0.f, 0.f,
+                                .3826834f, .70710677f, 1.f, -.70710677f,
+                                .9238795f, 0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].scale, 1728.f, 2197.f, 2744.f,
+                        3375.f, 4096.f, 4913.f, 5832.f, 6859.f, 8000.f, 9261.f,
+                        10648.f, 12167.f);
 
     // Subtract second layer.
     layers[0].weight = .5f;
@@ -771,13 +788,15 @@ TEST(AdditiveWeight, BlendingJob) {
 
     EXPECT_TRUE(job.Run());
 
-    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, 0.f, 0.f, 0.f, 0.f,
-                        0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f, 0.f,
-                                0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-                                1.f, 1.f, 1.f, 1.f);
-    EXPECT_SOAFLOAT3_EQ_EST(output_transforms[0].scale, 1.f, 1.f, 1.f, 1.f, 1.f,
-                            1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f);
+    EXPECT_SOAFLOAT3_EQ(output_transforms[0].translation, -0.f, -1.f, -2.f,
+                        -3.f, -4.f, -5.f, -6.f, -7.f, -8.f, -9.f, -10.f, -11.f);
+    EXPECT_SOAQUATERNION_EQ_EST(output_transforms[0].rotation, 0.f, 0.f,
+                                .70710677f, 0.f, .70710677f, 0.f, 0.f,
+                                .3826834f, .70710677f, 1.f, -.70710677f,
+                                .9238795f, 0.f, 0.f, 0.f, 0.f);
+    EXPECT_SOAFLOAT3_EQ_EST(output_transforms[0].scale, -12.f, -13.f, -14.f,
+                            -15.f, -16.f, -17.f, -18.f, -19.f, -20.f, -21.f,
+                            -22.f, -23.f);
   }
 }
 
@@ -785,26 +804,27 @@ TEST(AdditiveJointWeight, BlendingJob) {
   const ozz::math::SoaTransform identity = ozz::math::SoaTransform::identity();
 
   // Initialize inputs.
-  ozz::math::SoaTransform input_transforms[1] = {identity};
-  input_transforms[0].translation = ozz::math::SoaFloat3::Load(
-      ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
-      ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
-      ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f));
-  input_transforms[0].rotation = ozz::math::SoaQuaternion::Load(
-      ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
-      ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
-      ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
-      ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f, .9238795f));
-  input_transforms[0].scale = ozz::math::SoaFloat3::Load(
-      ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
-      ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
-      ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f));
+  ozz::math::SoaTransform input_transforms[1] = {
+      {input_transforms[0].translation = ozz::math::SoaFloat3::Load(
+           ozz::math::simd_float4::Load(0.f, 1.f, 2.f, 3.f),
+           ozz::math::simd_float4::Load(4.f, 5.f, 6.f, 7.f),
+           ozz::math::simd_float4::Load(8.f, 9.f, 10.f, 11.f)),
+       input_transforms[0].rotation = ozz::math::SoaQuaternion::Load(
+           ozz::math::simd_float4::Load(.70710677f, 0.f, 0.f, .382683432f),
+           ozz::math::simd_float4::Load(0.f, 0.f, .70710677f, 0.f),
+           ozz::math::simd_float4::Load(0.f, 0.f, 0.f, 0.f),
+           ozz::math::simd_float4::Load(.70710677f, 1.f, -.70710677f,
+                                        .9238795f)),
+       input_transforms[0].scale = ozz::math::SoaFloat3::Load(
+           ozz::math::simd_float4::Load(12.f, 13.f, 14.f, 15.f),
+           ozz::math::simd_float4::Load(16.f, 17.f, 18.f, 19.f),
+           ozz::math::simd_float4::Load(20.f, 21.f, 22.f, 23.f))}};
 
   ozz::math::SimdFloat4 joint_weights[1] = {
       ozz::math::simd_float4::Load(1.f, .5f, 0.f, -1.f)};
 
-  // Initialize bind pose.
-  ozz::math::SoaTransform bind_poses[1] = {identity};
+  // Initialize rest pose.
+  ozz::math::SoaTransform rest_poses[1] = {identity};
 
   {
     BlendingJob::Layer layers[1];
@@ -815,7 +835,7 @@ TEST(AdditiveJointWeight, BlendingJob) {
 
     BlendingJob job;
     job.additive_layers = layers;
-    job.bind_pose = bind_poses;
+    job.rest_pose = rest_poses;
     job.output = output_transforms;
 
     // No weight for the 1st layer.

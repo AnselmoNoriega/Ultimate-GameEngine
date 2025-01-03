@@ -25,24 +25,21 @@
 //                                                                            //
 //----------------------------------------------------------------------------//
 
-#include "ozz/animation/runtime/animation.h"
-#include "ozz/animation/runtime/local_to_model_job.h"
-#include "ozz/animation/runtime/sampling_job.h"
-#include "ozz/animation/runtime/skeleton.h"
-
-#include "ozz/base/log.h"
-
-#include "ozz/base/maths/box.h"
-#include "ozz/base/maths/simd_math.h"
-#include "ozz/base/maths/soa_transform.h"
-#include "ozz/base/maths/vec_float.h"
-
-#include "ozz/options/options.h"
-
 #include "framework/application.h"
 #include "framework/imgui.h"
 #include "framework/renderer.h"
 #include "framework/utils.h"
+#include "ozz/animation/runtime/animation.h"
+#include "ozz/animation/runtime/local_to_model_job.h"
+#include "ozz/animation/runtime/sampling_job.h"
+#include "ozz/animation/runtime/skeleton.h"
+#include "ozz/animation/runtime/skeleton_utils.h"
+#include "ozz/base/log.h"
+#include "ozz/base/maths/box.h"
+#include "ozz/base/maths/simd_math.h"
+#include "ozz/base/maths/soa_transform.h"
+#include "ozz/base/maths/vec_float.h"
+#include "ozz/options/options.h"
 
 // Skeleton archive can be specified as an option.
 OZZ_OPTIONS_DECLARE_STRING(skeleton,
@@ -67,7 +64,7 @@ class AttachSampleApplication : public ozz::sample::Application {
     // Samples optimized animation at t = animation_time_.
     ozz::animation::SamplingJob sampling_job;
     sampling_job.animation = &animation_;
-    sampling_job.cache = &cache_;
+    sampling_job.context = &context_;
     sampling_job.ratio = controller_.time_ratio();
     sampling_job.output = make_span(locals_);
     if (!sampling_job.Run()) {
@@ -133,15 +130,13 @@ class AttachSampleApplication : public ozz::sample::Application {
     locals_.resize(num_soa_joints);
     models_.resize(num_joints);
 
-    // Allocates a cache that matches animation requirements.
-    cache_.Resize(num_joints);
+    // Allocates a context that matches animation requirements.
+    context_.Resize(num_joints);
 
     // Finds the joint where the object should be attached.
-    for (int i = 0; i < num_joints; i++) {
-      if (std::strstr(skeleton_.joint_names()[i], "LeftHandMiddle")) {
-        attachment_ = i;
-        break;
-      }
+    attachment_ = FindJoint(skeleton_, "LeftHandMiddle1");
+    if (attachment_ < 0) {
+      return false;
     }
 
     return true;
@@ -166,16 +161,16 @@ class AttachSampleApplication : public ozz::sample::Application {
       if (open && skeleton_.num_joints() != 0) {
         _im_gui->DoLabel("Select joint:");
         char label[64];
-        std::sprintf(label, "%s (%d)", skeleton_.joint_names()[attachment_],
-                     attachment_);
+        std::snprintf(label, sizeof(label), "%s (%d)",
+                      skeleton_.joint_names()[attachment_], attachment_);
         _im_gui->DoSlider(label, 0, skeleton_.num_joints() - 1, &attachment_);
 
         _im_gui->DoLabel("Attachment offset:");
-        sprintf(label, "x: %02f", offset_.x);
+        std::snprintf(label, sizeof(label), "x: %02f", offset_.x);
         _im_gui->DoSlider(label, -1.f, 1.f, &offset_.x);
-        sprintf(label, "y: %02f", offset_.y);
+        std::snprintf(label, sizeof(label), "y: %02f", offset_.y);
         _im_gui->DoSlider(label, -1.f, 1.f, &offset_.y);
-        sprintf(label, "z: %02f", offset_.z);
+        std::snprintf(label, sizeof(label), "z: %02f", offset_.z);
         _im_gui->DoSlider(label, -1.f, 1.f, &offset_.z);
       }
     }
@@ -198,8 +193,8 @@ class AttachSampleApplication : public ozz::sample::Application {
   // Runtime animation.
   ozz::animation::Animation animation_;
 
-  // Sampling cache.
-  ozz::animation::SamplingCache cache_;
+  // Sampling context.
+  ozz::animation::SamplingJob::Context context_;
 
   // Buffer of local transforms as sampled from animation_.
   ozz::vector<ozz::math::SoaTransform> locals_;

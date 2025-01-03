@@ -137,11 +137,11 @@ unique_ptr<ozz::animation::Skeleton> LoadSkeleton(const char* _path) {
   return skeleton;
 }
 
-vector<math::Transform> SkeletonBindPoseSoAToAoS(const Skeleton& _skeleton) {
-  // Copy skeleton bind pose to AoS form.
+vector<math::Transform> SkeletonRestPoseSoAToAoS(const Skeleton& _skeleton) {
+  // Copy skeleton rest pose to AoS form.
   vector<math::Transform> transforms(_skeleton.num_joints());
   for (int i = 0; i < _skeleton.num_soa_joints(); ++i) {
-    const math::SoaTransform& soa_transform = _skeleton.joint_bind_poses()[i];
+    const math::SoaTransform& soa_transform = _skeleton.joint_rest_poses()[i];
     math::SimdFloat4 translation[4];
     math::SimdFloat4 rotation[4];
     math::SimdFloat4 scale[4];
@@ -248,7 +248,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
     bool succeeded = false;
     if (enum_found && reference == AdditiveReferenceEnum::kSkeleton) {
       const vector<math::Transform> transforms =
-          SkeletonBindPoseSoAToAoS(_skeleton);
+          SkeletonRestPoseSoAToAoS(_skeleton);
       succeeded =
           additive_builder(raw_animation, make_span(transforms), &raw_additive);
     } else {
@@ -269,6 +269,7 @@ bool Export(OzzImporter& _importer, const RawAnimation& _input_animation,
   if (!_config["raw"].asBool()) {
     ozz::log::Log() << "Builds runtime animation." << std::endl;
     AnimationBuilder builder;
+    builder.iframe_interval = _config["iframe_interval"].asFloat();
     animation = builder(raw_animation);
     if (!animation) {
       ozz::log::Err() << "Failed to build runtime animation." << std::endl;
@@ -326,12 +327,11 @@ bool ProcessAnimation(OzzImporter& _importer, const char* _animation_name,
     ozz::log::Err() << "Failed to import animation \"" << _animation_name
                     << "\"" << std::endl;
     return false;
-  } else {
-    // Give animation a name
-    animation.name = _animation_name;
-
-    return Export(_importer, animation, _skeleton, _config, _endianness);
   }
+
+  // Give animation a name
+  animation.name = _animation_name;
+  return Export(_importer, animation, _skeleton, _config, _endianness);
 }
 }  // namespace
 
@@ -371,9 +371,13 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       LoadSkeleton(skeleton_config["filename"].asCString()));
   success &= skeleton.get() != nullptr;
 
+  if (!success) {
+    return false;
+  }
+
   // Loop though all existing animations, and export those who match
   // configuration.
-  for (Json::ArrayIndex i = 0; success && i < animations_config.size(); ++i) {
+  for (Json::ArrayIndex i = 0; i < animations_config.size(); ++i) {
     const Json::Value& animation_config = animations_config[i];
     const char* clip_match = animation_config["clip"].asCString();
 
@@ -384,27 +388,44 @@ bool ImportAnimations(const Json::Value& _config, OzzImporter* _importer,
       continue;
     }
 
-    bool matched = false;
-    for (size_t j = 0; success && j < import_animation_names.size(); ++j) {
+    size_t num_not_clip_animation = 0, num_valid_animation = 0;
+    for (size_t j = 0; j < import_animation_names.size(); ++j) {
       const char* animation_name = import_animation_names[j].c_str();
       if (!strmatch(animation_name, clip_match)) {
         continue;
       }
+      ++num_not_clip_animation;
+      if (ProcessAnimation(*_importer, animation_name, *skeleton,
+                           animation_config, _endianness)) {
+        ++num_valid_animation;
+      }
 
-      matched = true;
-      success = ProcessAnimation(*_importer, animation_name, *skeleton,
-                                 animation_config, _endianness);
-
+      size_t num_valid_track = 0;
       const Json::Value& tracks_config = animation_config["tracks"];
-      for (Json::ArrayIndex t = 0; success && t < tracks_config.size(); ++t) {
-        success = ProcessTracks(*_importer, animation_name, *skeleton,
-                                tracks_config[t], _endianness);
+      for (Json::ArrayIndex t = 0; t < tracks_config.size(); ++t) {
+        if (ProcessTracks(*_importer, animation_name, *skeleton,
+                          tracks_config[t], _endianness)) {
+          ++num_valid_track;
+        }
+      }
+
+      if (num_valid_track != tracks_config.size()) {
+        ozz::log::Log() << "One of track failed when import: \""
+                        << animation_name << "\"" << std::endl;
+        success = false;
       }
     }
     // Don't display any message if no animation is supposed to be imported.
-    if (!matched && *clip_match != 0) {
+    if (0 == num_not_clip_animation && *clip_match != 0) {
       ozz::log::Log() << "No matching animation found for \"" << clip_match
                       << "\"." << std::endl;
+    }
+
+    if (num_valid_animation != num_not_clip_animation) {
+      ozz::log::Log()
+          << "One of animation failed when import, animation index: \"" << i
+          << "\"" << std::endl;
+      success = false;
     }
   }
 
