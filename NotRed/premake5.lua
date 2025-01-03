@@ -66,7 +66,6 @@ project "NotRed"
 		"%{prj.name}/..",
 		"%{IncludeDir.Assimp}",
 		"%{IncludeDir.Box2D}",
-		"%{IncludeDir.FBX}",
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.Glm}",
@@ -94,9 +93,7 @@ project "NotRed"
 		"opengl32.lib",
 		"ozz_base",
 		"ozz_animation",
-		"ozz_geometry",
 		"ozz_animation_offline",
-		"ozz_animation_fbx",
 		"%{Library.Vulkan}",
 		"%{Library.Mono}",
 		"%{Library.PhysX}",
@@ -132,10 +129,6 @@ project "NotRed"
 
 		links
 		{
-			"%{Library.FBX_Debug}",
-			"%{Library.FBX_XML2_Debug}",
-			"%{Library.FBX_ZLIB_Debug}", 
-
 			"%{Library.ShaderC_Debug}",
 			"%{Library.SPIRV_Cross_Debug}",
 			"%{Library.SPIRV_Cross_GLSL_Debug}"
@@ -151,10 +144,6 @@ project "NotRed"
 		
 		links
 		{
-			"%{Library.FBX_Release}",
-			"%{Library.FBX_XML2_Release}",
-			"%{Library.FBX_ZLIB_Release}", 
-
 			"%{Library.ShaderC_Release}",
 			"%{Library.SPIRV_Cross_Release}",
 			"%{Library.SPIRV_Cross_GLSL_Release}"
@@ -171,10 +160,6 @@ project "NotRed"
 		
 		links
 		{
-			"%{Library.FBX_Release}",
-			"%{Library.FBX_XML2_Release}",
-			"%{Library.FBX_ZLIB_Release}", 
-
 			"%{Library.ShaderC_Release}",
 			"%{Library.SPIRV_Cross_Release}",
 			"%{Library.SPIRV_Cross_GLSL_Release}"
@@ -208,8 +193,7 @@ project "NotEditor"
 	links 
 	{ 
 		"NotRed",
-		"ozz_animation_offline",
-		"ozz_animation_fbx"
+		"ozz_animation_offline"
 	}
 	
 	files 
@@ -226,7 +210,6 @@ project "NotEditor"
 		"NotRed/src",
 		"NotRed/vendor",
 		"%{IncludeDir.Entt}",
-		"%{IncludeDir.FBX}",
 		"%{IncludeDir.Glm}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Vulkan}",
@@ -258,10 +241,7 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib",
-			"%{Library.FBX_Debug}",
-			"%{Library.FBX_XML2_Debug}",
-			"%{Library.FBX_ZLIB_Debug}"
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib"
 		}
 
 		postbuildcommands 
@@ -281,10 +261,7 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib",
-			"%{Library.FBX_Release}",
-			"%{Library.FBX_XML2_Release}",
-			"%{Library.FBX_ZLIB_Release}"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
 		}
 
 		postbuildcommands 
@@ -299,10 +276,7 @@ project "NotEditor"
 
 		links
 		{
-			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib",
-			"%{Library.FBX_Release}",
-			"%{Library.FBX_XML2_Release}",
-			"%{Library.FBX_ZLIB_Release}"
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
 		}
 
 		postbuildcommands 
@@ -341,7 +315,6 @@ project "Not-Runtime"
 		"NotRed/src",
 		"NotRed/vendor",
 		"%{IncludeDir.entt}",
-		"%{IncludeDir.FBX}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.Vulkan}",

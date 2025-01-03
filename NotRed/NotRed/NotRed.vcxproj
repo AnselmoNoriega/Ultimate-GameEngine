@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -91,7 +91,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\debug\libfbxsdk-md.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\debug\libxml2-md.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\debug\zlib-md.lib;vendor\Vulkan\lib\shaderc_sharedd.lib;vendor\Vulkan\lib\spirv-cross-cored.lib;vendor\Vulkan\lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Debug\PhysX_64.lib;vendor\PhysX\lib\Debug\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Debug\PhysXCommon_64.lib;vendor\PhysX\lib\Debug\PhysXCooking_64.lib;vendor\PhysX\lib\Debug\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Debug\PhysXFoundation_64.lib;vendor\PhysX\lib\Debug\PhysXPvdSDK_static_64.lib;vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.lib;vendor\Vulkan\lib\shaderc_sharedd.lib;vendor\Vulkan\lib\spirv-cross-cored.lib;vendor\Vulkan\lib\spirv-cross-glsld.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -117,7 +117,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\release\libfbxsdk-md.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\release\libxml2-md.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\release\zlib-md.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Release\PhysX_64.lib;vendor\PhysX\lib\Release\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Release\PhysXCommon_64.lib;vendor\PhysX\lib\Release\PhysXCooking_64.lib;vendor\PhysX\lib\Release\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Release\PhysXFoundation_64.lib;vendor\PhysX\lib\Release\PhysXPvdSDK_static_64.lib;vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -126,7 +126,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -143,7 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\release\libfbxsdk-md.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\release\libxml2-md.lib;C:Program Files\Autodesk\FBX\FBX SDK\2020.3.7\lib\x64\release\zlib-md.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;vendor\Vulkan\lib\vulkan-1.lib;vendor\mono\lib\Debug\mono-2.0-sgen.lib;vendor\PhysX\lib\Dist\PhysX_64.lib;vendor\PhysX\lib\Dist\PhysXCharacterKinematic_static_64.lib;vendor\PhysX\lib\Dist\PhysXCommon_64.lib;vendor\PhysX\lib\Dist\PhysXCooking_64.lib;vendor\PhysX\lib\Dist\PhysXExtensions_static_64.lib;vendor\PhysX\lib\Dist\PhysXFoundation_64.lib;vendor\PhysX\lib\Dist\PhysXPvdSDK_static_64.lib;vendor\NsightAftermath\lib\GFSDK_Aftermath_Lib.x64.lib;vendor\Vulkan\lib\shaderc_shared.lib;vendor\Vulkan\lib\spirv-cross-core.lib;vendor\Vulkan\lib\spirv-cross-glsl.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -630,14 +630,8 @@
     <ProjectReference Include="vendor\ozz-animation\ozz_animation.vcxproj">
       <Project>{8764B778-F324-33AF-BC5F-7C2C28DF778B}</Project>
     </ProjectReference>
-    <ProjectReference Include="vendor\ozz-animation\ozz_geometry.vcxproj">
-      <Project>{F3C59EBF-DF28-2E64-88AE-661A74F0F9E6}</Project>
-    </ProjectReference>
     <ProjectReference Include="vendor\ozz-animation\ozz_animation_offline.vcxproj">
       <Project>{694CCA4B-D5B8-8546-9EAC-1DA40AD8A7AE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="vendor\ozz-animation\ozz_animation_fbx.vcxproj">
-      <Project>{06278A17-723D-88AD-BBB4-13CF270A5935}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

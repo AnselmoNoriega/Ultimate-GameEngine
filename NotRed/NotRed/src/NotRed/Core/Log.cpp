@@ -1,6 +1,8 @@
 #include "nrpch.h"
 #include "Log.h"
 
+#include <ozz/base/log.h>
+
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -15,6 +17,10 @@ namespace NR
 
 	void Log::Init()
 	{
+		// turn off ozz logging
+		ozz::log::SetLevel(ozz::log::kSilent);
+
+		// Create "logs" directory if doesn't exist
 		std::string logsDirectory = "logs";
 		if (!std::filesystem::exists(logsDirectory))
 		{

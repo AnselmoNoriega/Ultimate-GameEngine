@@ -3,6 +3,13 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include <ozz/base/containers/vector.h>
+#include <ozz/base/maths/soa_transform.h>
+#include <ozz/base/memory/unique_ptr.h>
+#include <ozz/animation/runtime/skeleton.h>
+#include <ozz/animation/runtime/sampling_job.h>
+#include <ozz/animation/runtime/animation.h>
+
 #include "NotRed/Asset/Asset.h"
 
 #include "NotRed/Renderer/Pipeline.h"
@@ -73,8 +80,11 @@ namespace NR
 
 	struct BoneInfo
 	{
+		ozz::math::Float4x4 InverseBindPose;
+
 		glm::mat4 BoneOffset;
 		glm::mat4 FinalTransformation;
+		uint32_t JointIndex;
 	};
 
 	struct VertexBoneData
@@ -177,7 +187,6 @@ namespace NR
 		Ref<IndexBuffer> mIndexBuffer;
 
 		std::vector<Vertex> mStaticVertices;
-		std::vector<AnimatedVertex> mAnimatedVertices;
 		std::vector<ParticleVertex> mParticleVertices;
 
 		AABB mBoundingBox;
@@ -186,9 +195,12 @@ namespace NR
 		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
 		const aiScene* mScene;
 
-		uint32_t mBoneCount = 0;
+		std::vector<AnimatedVertex> mAnimatedVertices;
 		std::unordered_map<std::string, uint32_t> mBoneMapping;
 		std::vector<BoneInfo> mBoneInfo;
+		ozz::unique_ptr<ozz::animation::Skeleton> mSkeleton;
+		ozz::unique_ptr<ozz::animation::Animation> mAnimation;
+		uint32_t mBoneCount = 0;
 
 		// Materials
 		std::vector<Ref<Material>> mMaterials;
@@ -237,7 +249,8 @@ namespace NR
 		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
 
 	private:
-		void BoneTransform(float time);
+		void UpdateBoneTransformUB();
+		void OZZUpdateBoneTransformUB();
 
 	private:
 		Ref<MeshAsset> mMeshAsset;
@@ -248,11 +261,17 @@ namespace NR
 
 		// Animation
 		float mAnimationTime = 0.0f;
-		float mWorldTime = 0.0f;
 		float mTimeMultiplier = 1.0f;
 		bool mAnimationPlaying = true;
 		std::vector<glm::mat4> mBoneTransforms;
+		ozz::vector<ozz::math::Float4x4> mOZZBoneTransforms;
 		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
+
+		// OZZ Animation
+		float mAnimationTimeOZZ = 0.0f;
+		ozz::animation::SamplingJob::Context mSamplingCache;
+		ozz::vector<ozz::math::SoaTransform> mLocalSpaceTransforms;
+		ozz::vector<ozz::math::Float4x4> mModelSpaceTransforms;
 
 	private:
 		friend class Renderer;
