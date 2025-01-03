@@ -277,6 +277,7 @@
     <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
+    <ClInclude Include="src\NotRed\Renderer\OZZImporterAssimp.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />

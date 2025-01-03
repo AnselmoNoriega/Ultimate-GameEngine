@@ -81,10 +81,11 @@ namespace NR
 	struct BoneInfo
 	{
 		ozz::math::Float4x4 InverseBindPose;
-
-		glm::mat4 BoneOffset;
-		glm::mat4 FinalTransformation;
+			
 		uint32_t JointIndex;
+
+		BoneInfo(ozz::math::Float4x4 inverseBindPose, uint32_t jointIndex) 
+			: InverseBindPose(inverseBindPose), JointIndex(jointIndex) {}
 	};
 
 	struct VertexBoneData
@@ -174,14 +175,11 @@ namespace NR
 
 	private:
 		void TraverseNodes(aiNode* node, const glm::mat4& parentTransform = glm::mat4(1.0f), uint32_t level = 0);
-		void ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& ParentTransform);
 
 	private:
 		std::vector<Submesh> mSubmeshes;
 
 		std::unique_ptr<Assimp::Importer> mImporter;
-
-		glm::mat4 mInverseTransform;
 
 		Ref<VertexBuffer> mVertexBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
@@ -196,11 +194,9 @@ namespace NR
 		const aiScene* mScene;
 
 		std::vector<AnimatedVertex> mAnimatedVertices;
-		std::unordered_map<std::string, uint32_t> mBoneMapping;
 		std::vector<BoneInfo> mBoneInfo;
 		ozz::unique_ptr<ozz::animation::Skeleton> mSkeleton;
 		ozz::unique_ptr<ozz::animation::Animation> mAnimation;
-		uint32_t mBoneCount = 0;
 
 		// Materials
 		std::vector<Ref<Material>> mMaterials;
@@ -209,8 +205,6 @@ namespace NR
 
 		// Animation
 		bool mIsAnimated = false;
-		float mTimeMultiplier = 1.0f;
-		bool mAnimationPlaying = true;
 
 		std::string mFilePath;
 
@@ -234,7 +228,6 @@ namespace NR
 
 		bool IsAnimated() { return mMeshAsset && mMeshAsset->IsAnimated(); }
 		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
-		const std::vector<glm::mat4>& GetBoneTransforms() const { return mBoneTransforms; }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
@@ -250,7 +243,6 @@ namespace NR
 
 	private:
 		void UpdateBoneTransformUB();
-		void OZZUpdateBoneTransformUB();
 
 	private:
 		Ref<MeshAsset> mMeshAsset;
@@ -263,15 +255,13 @@ namespace NR
 		float mAnimationTime = 0.0f;
 		float mTimeMultiplier = 1.0f;
 		bool mAnimationPlaying = true;
-		std::vector<glm::mat4> mBoneTransforms;
-		ozz::vector<ozz::math::Float4x4> mOZZBoneTransforms;
-		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
 		// OZZ Animation
-		float mAnimationTimeOZZ = 0.0f;
 		ozz::animation::SamplingJob::Context mSamplingCache;
 		ozz::vector<ozz::math::SoaTransform> mLocalSpaceTransforms;
 		ozz::vector<ozz::math::Float4x4> mModelSpaceTransforms;
+		ozz::vector<ozz::math::Float4x4> mBoneTransforms;
+		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
 	private:
 		friend class Renderer;

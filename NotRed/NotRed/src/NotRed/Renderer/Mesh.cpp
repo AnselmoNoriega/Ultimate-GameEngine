@@ -18,17 +18,17 @@
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
-#include <ozz/animation/offline/fbx/fbx.h>
-#include <ozz/animation/offline/fbx/fbx_skeleton.h>
+#include <ozz/base/maths/math_ex.h>                 
+#include <ozz/base/span.h>
+#include <ozz/animation/runtime/animation.h>     
+#include <ozz/animation/runtime/local_to_model_job.h>
+#include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/animation/offline/raw_skeleton.h>
 #include <ozz/animation/offline/skeleton_builder.h>
-
-#include <ozz/animation/offline/fbx/fbx_animation.h>
-#include <ozz/animation/offline/raw_animation.h>    
+#include <ozz/animation/offline/raw_animation.h>
 #include <ozz/animation/offline/animation_builder.h>
-#include <ozz/base/maths/math_ex.h>                 
-#include <ozz/base/span.h>                         
-#include <ozz/animation/runtime/local_to_model_job.h>
+
+#include "OZZImporterAssimp.h"
 
 #include "imgui/imgui.h"
 
@@ -46,16 +46,6 @@ namespace NR
 #else
 #define NR_MESH_LOG(...)
 #endif
-
-	ozz::math::Float4x4 Float4x4FromAssimpMat4(const aiMatrix4x4& matrix)
-	{
-		ozz::math::Float4x4 result;
-		result.cols[0] = ozz::math::simd_float4::Load(matrix.a1, matrix.b1, matrix.c1, matrix.d1);
-		result.cols[1] = ozz::math::simd_float4::Load(matrix.a2, matrix.b2, matrix.c2, matrix.d2);
-		result.cols[2] = ozz::math::simd_float4::Load(matrix.a3, matrix.b3, matrix.c3, matrix.d3);
-		result.cols[3] = ozz::math::simd_float4::Load(matrix.a4, matrix.b4, matrix.c4, matrix.d4);
-		return result;
-	}
 
 	ozz::math::Float4x4 Float4x4FromMat4(const glm::mat4 matrix)
 	{
@@ -139,7 +129,6 @@ namespace NR
 		mScene = scene;
 
 		mIsAnimated = scene->mAnimations != nullptr;
-		mInverseTransform = glm::inverse(AssimpMat4ToMat4(scene->mRootNode->mTransformation));
 
 		uint32_t vertexCount = 0;
 		uint32_t indexCount = 0;
@@ -213,73 +202,6 @@ namespace NR
 			}
 		}
 
-		ozz::animation::offline::fbx::FbxManagerInstance fbxManager;
-		ozz::animation::offline::fbx::FbxDefaultIOSettings fbxSettings(fbxManager);
-		ozz::animation::offline::fbx::FbxSceneLoader fbxSceneLoader(filename.c_str(), "", fbxManager, fbxSettings);
-
-		if (fbxSceneLoader.scene())
-		{
-			ozz::animation::offline::RawSkeleton rawSkeleton;
-			ozz::animation::offline::OzzImporter::NodeType types = { 0 };
-			types.skeleton = true;
-			types.marker = false;
-			types.camera = false;
-			types.geometry = false;
-			types.light = false;
-			types.any = false;
-			if (ozz::animation::offline::fbx::ExtractSkeleton(fbxSceneLoader, types, &rawSkeleton))
-			{
-				// build runtime skeleton from raw.
-				ozz::animation::offline::SkeletonBuilder builder;
-				mSkeleton = builder(rawSkeleton);
-				if (!mSkeleton)
-				{
-					NR_CORE_ERROR("Failed to build runtime skeleton from mesh file {0}", filename);
-				}
-			}
-			else
-			{
-				NR_CORE_INFO("No skeleton found in mesh file: {0}", filename);
-			}
-		}
-		else
-		{
-			NR_CORE_WARN("FBX SDK Failed to load mesh file: {0} => skeleton (if exists) was not loaded", filename);
-		}
-
-		// load ozz::animation from fbx here
-		if (fbxSceneLoader.scene())
-		{
-			auto animationNames = ozz::animation::offline::fbx::GetAnimationNames(fbxSceneLoader);
-			if (!animationNames.empty())
-			{
-				NR_CORE_ASSERT(mSkeleton, "Animation load requires valid skeleton.  Figure out what went wrong with skeleton build!");
-				ozz::animation::offline::RawAnimation rawAnimation;
-				if (ozz::animation::offline::fbx::ExtractAnimation(animationNames.front().c_str(), fbxSceneLoader, *mSkeleton, 0.0f, &rawAnimation))
-				{
-					if (rawAnimation.Validate()) 
-					{
-						rawAnimation.name = animationNames.front();
-
-						ozz::animation::offline::AnimationBuilder builder;
-						mAnimation = builder(rawAnimation);
-						if (!mAnimation)
-						{
-							NR_CORE_ERROR("Failed to build runtime animation for {} from mesh file {}", animationNames.front().c_str(), filename);
-						}
-					}
-					else
-					{
-						NR_CORE_ERROR("Validation failed for animation {} from mesh file: {}", animationNames.front().c_str(), filename);
-					}
-				}
-				else
-				{
-					NR_CORE_ERROR("Failed to extract animation {} from mesh file: {}", animationNames.front().c_str(), filename);
-				}
-			}
-		}
-
 		TraverseNodes(scene->mRootNode);
 
 		for (const auto& submesh : mSubmeshes)
@@ -295,6 +217,56 @@ namespace NR
 			mBoundingBox.Max.z = glm::max(mBoundingBox.Max.z, max.z);
 		}
 
+		auto animationNames = OZZImporterAssimp::GetAnimationNames(scene);
+		ozz::animation::offline::RawSkeleton rawSkeleton;
+		if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton)) {
+			ozz::animation::offline::SkeletonBuilder builder;
+			mSkeleton = builder(rawSkeleton);
+			if (!mSkeleton)
+			{
+				NR_CORE_ERROR("Failed to build runtime skeleton from mesh file '{0}'", filename);
+			}
+		}
+		else
+		{
+			if (!animationNames.empty())
+			{
+				NR_CORE_ERROR("Animations found, but no skeleton in mesh file '{0}'", filename);
+			}
+			else
+			{
+				NR_CORE_INFO("No skeleton found in mesh file '{0}'", filename);
+			}
+		}
+
+		if (!animationNames.empty() && mSkeleton)
+		{
+			ozz::animation::offline::RawAnimation rawAnimation;
+			aiString animationName;
+			if (OZZImporterAssimp::ExtractRawAnimation(animationNames.front(), scene, *mSkeleton, 0.0f, rawAnimation))
+			{
+				if (rawAnimation.Validate())
+				{
+					// build runtime animation from raw
+					ozz::animation::offline::AnimationBuilder builder;
+					mAnimation = builder(rawAnimation);
+					if (!mAnimation)
+					{
+						NR_CORE_ERROR("Failed to build runtime animation for '{}' from mesh file '{}'", animationNames.front(), filename);
+					}
+					// later, add support for "user tracks" here.  User tracks are animations of things other than joint transforms.
+				}
+				else
+				{
+					NR_CORE_ERROR("Validation failed for animation '{}' from mesh file '{}'", animationNames.front(), filename);
+				}
+			}
+			else
+			{
+				NR_CORE_ERROR("Failed to extract animation '{}' from mesh file '{}'", animationNames.front(), filename);
+			}
+		}
+
 		// Bones
 		if (mIsAnimated)
 		{
@@ -303,61 +275,47 @@ namespace NR
 				aiMesh* mesh = scene->mMeshes[m];
 				Submesh& submesh = mSubmeshes[m];
 
-				std::vector<std::string> OZZjointNames;
-				for (auto& name : mSkeleton->joint_names()) 
-				{
-					OZZjointNames.emplace_back(name);
-				}
-				std::vector<std::string> jointNames;
-				for (size_t i = 0; i < mesh->mNumBones; ++i)
-				{
-					jointNames.emplace_back(mesh->mBones[i]->mName.C_Str());
-				}
-
 				for (size_t i = 0; i < mesh->mNumBones; ++i)
 				{
 					aiBone* bone = mesh->mBones[i];
 					std::string boneName(bone->mName.data);
-					int boneIndex = 0;
-					if (mBoneMapping.find(boneName) == mBoneMapping.end())
-					{
-						// Find bone in skeleton
-						uint32_t jointIndex = ~0;
-						for (size_t j = 0; j < mSkeleton->joint_names().size(); ++j) 
-						{
-							if (boneName == mSkeleton->joint_names()[j]) 
-							{
-								jointIndex = static_cast<int>(j);
-								break;
-							}
-						}
-						if (jointIndex == ~0) 
-						{
-							NR_CORE_ERROR("Could not find mesh bone '{}' in skeleton!", boneName);
-						}
 
+					// Find bone in skeleton
+					uint32_t jointIndex = ~0;
+					for (size_t j = 0; j < mSkeleton->joint_names().size(); ++j)
+					{
+						if (boneName == mSkeleton->joint_names()[j])
+						{
+							jointIndex = static_cast<int>(j);
+							break;
+						}
+					}
+
+					if (jointIndex == ~0)
+					{
+						NR_CORE_ERROR("Could not find mesh bone '{}' in skeleton!", boneName);
+					}
+
+					uint32_t boneIndex = ~0;
+					for (size_t j = 0; j < mBoneInfo.size(); ++j)
+					{
+						if (mBoneInfo[j].JointIndex == jointIndex)
+						{
+							boneIndex = static_cast<uint32_t>(j);
+							break;
+						}
+					}
+
+					if (boneIndex == ~0)
+					{
 						// Allocate an index for a new bone
-						boneIndex = mBoneCount;
-						
+						boneIndex = static_cast<uint32_t>(mBoneInfo.size());
 						glm::mat4 boneOffset = AssimpMat4ToMat4(bone->mOffsetMatrix);
-						BoneInfo bi = { Float4x4FromMat4(boneOffset), boneOffset, glm::mat4(), jointIndex };   // TODO: invBindPose should be multiplied by submesh transform?
-						float x, y, z, w;
-						x = ozz::math::GetX(bi.InverseBindPose.cols[3]);
-						y = ozz::math::GetY(bi.InverseBindPose.cols[3]);
-						z = ozz::math::GetZ(bi.InverseBindPose.cols[3]);
-						w = ozz::math::GetW(bi.InverseBindPose.cols[3]);
-						bi.InverseBindPose.cols[3] = ozz::math::simd_float4::Load(x / 100.0f, y / 100.0f, z / 100.0f, w);
+						ozz::math::Float4x4 transform = Float4x4FromMat4(submesh.Transform);
+						mBoneInfo.emplace_back(Float4x4FromMat4(boneOffset), jointIndex);
+					}
 
-						mBoneInfo.push_back(bi);
-						mBoneMapping[boneName] = boneIndex;
-						++mBoneCount;
-					}
-					else
-					{
-						NR_MESH_LOG("Found existing bone in map");
-						boneIndex = mBoneMapping[boneName];
-					}
-					for (size_t j = 0; j < bone->mNumWeights; j++)
+					for (size_t j = 0; j < bone->mNumWeights; ++j)
 					{
 						int VertexID = submesh.BaseVertex + bone->mWeights[j].mVertexId;
 						float Weight = bone->mWeights[j].mWeight;
@@ -677,190 +635,6 @@ namespace NR
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
 	}
 
-	const aiNodeAnim* FindNodeAnim(const aiAnimation* animation, const std::string& nodeName)
-	{
-		for (uint32_t i = 0; i < animation->mNumChannels; ++i)
-		{
-			const aiNodeAnim* nodeAnim = animation->mChannels[i];
-			if (std::string(nodeAnim->mNodeName.data) == nodeName)
-			{
-				return nodeAnim;
-			}
-		}
-		return nullptr;
-	}
-
-	uint32_t FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim)
-	{
-		for (uint32_t i = 0; i < pNodeAnim->mNumPositionKeys - 1; ++i)
-		{
-			if (AnimationTime < (float)pNodeAnim->mPositionKeys[i + 1].mTime)
-			{
-				return i;
-			}
-		}
-
-		return 0;
-	}
-
-	uint32_t FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim)
-	{
-		NR_CORE_ASSERT(pNodeAnim->mNumRotationKeys > 0);
-
-		for (uint32_t i = 0; i < pNodeAnim->mNumRotationKeys - 1; ++i)
-		{
-			if (AnimationTime < (float)pNodeAnim->mRotationKeys[i + 1].mTime)
-			{
-				return i;
-			}
-		}
-
-		return 0;
-	}
-
-	uint32_t FindScaling(float AnimationTime, const aiNodeAnim* pNodeAnim)
-	{
-		NR_CORE_ASSERT(pNodeAnim->mNumScalingKeys > 0);
-
-		for (uint32_t i = 0; i < pNodeAnim->mNumScalingKeys - 1; ++i)
-		{
-			if (AnimationTime < (float)pNodeAnim->mScalingKeys[i + 1].mTime)
-			{
-				return i;
-			}
-		}
-
-		return 0;
-	}
-
-	void MeshAsset::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
-	{
-		glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
-		mNodeMap[node].resize(node->mNumMeshes);
-		for (uint32_t i = 0; i < node->mNumMeshes; ++i)
-		{
-			uint32_t mesh = node->mMeshes[i];
-			auto& submesh = mSubmeshes[mesh];
-			submesh.NodeName = node->mName.C_Str();
-			submesh.Transform = transform;
-			mNodeMap[node][i] = mesh;
-		}
-
-		for (uint32_t i = 0; i < node->mNumChildren; ++i)
-		{
-			TraverseNodes(node->mChildren[i], transform, level + 1);
-		}
-	}
-
-	glm::vec3 InterpolateTranslation(float animationTime, const aiNodeAnim* nodeAnim)
-	{
-		if (nodeAnim->mNumPositionKeys == 1)
-		{
-			auto v = nodeAnim->mPositionKeys[0].mValue;
-			return { v.x, v.y, v.z };
-		}
-
-		uint32_t positionIndex = FindPosition(animationTime, nodeAnim);
-		uint32_t nextPositionIndex = (positionIndex + 1);
-		NR_CORE_ASSERT(nextPositionIndex < nodeAnim->mNumPositionKeys);
-
-		float deltaTime = (float)(nodeAnim->mPositionKeys[nextPositionIndex].mTime - nodeAnim->mPositionKeys[positionIndex].mTime);
-		float factor = (animationTime - (float)nodeAnim->mPositionKeys[positionIndex].mTime) / deltaTime;
-		NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
-		factor = glm::clamp(factor, 0.0f, 1.0f);
-
-		const aiVector3D& start = nodeAnim->mPositionKeys[positionIndex].mValue;
-		const aiVector3D& end = nodeAnim->mPositionKeys[nextPositionIndex].mValue;
-		aiVector3D delta = end - start;
-		auto aiVec = start + factor * delta;
-		return { aiVec.x, aiVec.y, aiVec.z };
-	}
-
-
-	glm::quat InterpolateRotation(float animationTime, const aiNodeAnim* nodeAnim)
-	{
-		if (nodeAnim->mNumRotationKeys == 1)
-		{
-			auto v = nodeAnim->mRotationKeys[0].mValue;
-			return glm::quat(v.w, v.x, v.y, v.z);
-		}
-
-		uint32_t rotationIndex = FindRotation(animationTime, nodeAnim);
-		uint32_t nextRotationIndex = (rotationIndex + 1);
-		NR_CORE_ASSERT(nextRotationIndex < nodeAnim->mNumRotationKeys);
-
-		float DeltaTime = (float)(nodeAnim->mRotationKeys[nextRotationIndex].mTime - nodeAnim->mRotationKeys[rotationIndex].mTime);
-		float factor = (animationTime - (float)nodeAnim->mRotationKeys[rotationIndex].mTime) / DeltaTime;
-		NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
-		factor = glm::clamp(factor, 0.0f, 1.0f);
-
-		const aiQuaternion& startRotationQ = nodeAnim->mRotationKeys[rotationIndex].mValue;
-		const aiQuaternion& endRotationQ = nodeAnim->mRotationKeys[nextRotationIndex].mValue;
-		auto q = aiQuaternion();
-		aiQuaternion::Interpolate(q, startRotationQ, endRotationQ, factor);
-		q = q.Normalize();
-		return glm::quat(q.w, q.x, q.y, q.z);
-	}
-
-	glm::vec3 InterpolateScale(float animationTime, const aiNodeAnim* nodeAnim)
-	{
-		if (nodeAnim->mNumScalingKeys == 1)
-		{
-			auto v = nodeAnim->mScalingKeys[0].mValue;
-			return { v.x, v.y, v.z };
-		}
-
-		uint32_t index = FindScaling(animationTime, nodeAnim);
-		uint32_t nextIndex = (index + 1);
-		NR_CORE_ASSERT(nextIndex < nodeAnim->mNumScalingKeys);
-
-		float deltaTime = (float)(nodeAnim->mScalingKeys[nextIndex].mTime - nodeAnim->mScalingKeys[index].mTime);
-		float factor = (animationTime - (float)nodeAnim->mScalingKeys[index].mTime) / deltaTime;
-		NR_CORE_ASSERT(factor <= 1.0f, "Factor must be below 1.0f");
-		factor = glm::clamp(factor, 0.0f, 1.0f);
-
-		const auto& start = nodeAnim->mScalingKeys[index].mValue;
-		const auto& end = nodeAnim->mScalingKeys[nextIndex].mValue;
-		auto delta = end - start;
-		auto aiVec = start + factor * delta;
-		return { aiVec.x, aiVec.y, aiVec.z };
-	}
-
-	void MeshAsset::ReadNodeHierarchy(float AnimationTime, const aiNode* pNode, const glm::mat4& parentTransform)
-	{
-		std::string name(pNode->mName.data);
-		const aiAnimation* animation = mScene->mAnimations[0];
-		glm::mat4 nodeTransform(AssimpMat4ToMat4(pNode->mTransformation));
-		const aiNodeAnim* nodeAnim = FindNodeAnim(animation, name);
-
-		if (nodeAnim)
-		{
-			glm::vec3 translation = InterpolateTranslation(AnimationTime, nodeAnim);
-			glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(translation.x, translation.y, translation.z));
-
-			glm::quat rotation = InterpolateRotation(AnimationTime, nodeAnim);
-			glm::mat4 rotationMatrix = glm::toMat4(rotation);
-
-			glm::vec3 scale = InterpolateScale(AnimationTime, nodeAnim);
-			glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(scale.x, scale.y, scale.z));
-
-			nodeTransform = translationMatrix * rotationMatrix * scaleMatrix;
-		}
-
-		glm::mat4 transform = parentTransform * nodeTransform;
-
-		if (mBoneMapping.find(name) != mBoneMapping.end())
-		{
-			uint32_t BoneIndex = mBoneMapping[name];
-			mBoneInfo[BoneIndex].FinalTransformation = mInverseTransform * transform * mBoneInfo[BoneIndex].BoneOffset;
-		}
-
-		for (uint32_t i = 0; i < pNode->mNumChildren; ++i)
-		{
-			ReadNodeHierarchy(AnimationTime, pNode->mChildren[i], transform);
-		}
-	}
-
 	void MeshAsset::DumpVertexBuffer()
 	{
 		NR_MESH_LOG("------------------------------------------------------");
@@ -897,6 +671,25 @@ namespace NR
 		NR_MESH_LOG("------------------------------------------------------");
 	}
 
+	void MeshAsset::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
+	{
+		glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
+		mNodeMap[node].resize(node->mNumMeshes);
+
+		for (uint32_t i = 0; i < node->mNumMeshes; ++i)
+		{
+			uint32_t mesh = node->mMeshes[i];
+			auto& submesh = mSubmeshes[mesh];
+			submesh.NodeName = node->mName.C_Str();
+			submesh.Transform = transform;
+			mNodeMap[node][i] = mesh;
+		}
+
+		for (uint32_t i = 0; i < node->mNumChildren; ++i)
+		{
+			TraverseNodes(node->mChildren[i], transform, level + 1);
+		}
+	}
 
 	Mesh::Mesh(Ref<MeshAsset> meshAsset)
 		: mMeshAsset(meshAsset)
@@ -912,17 +705,16 @@ namespace NR
 
 		if (mMeshAsset->IsAnimated())
 		{
-			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
-			for (auto& ub : mBoneTransformUBs) 
-			{
-				ub = UniformBuffer::Create(meshAsset->mBoneCount * sizeof(glm::mat4), 0);
-			}
-
 			// ozz animation
 			mSamplingCache.Resize(mMeshAsset->mSkeleton->num_joints());
 			mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
 			mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
-			mOZZBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+			mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
+			for (auto& ub : mBoneTransformUBs)
+			{
+				ub = UniformBuffer::Create(static_cast<uint32_t>(meshAsset->mBoneInfo.size() * sizeof(glm::mat4)), 0);
+			}
 		}
 	}
 
@@ -940,17 +732,16 @@ namespace NR
 
 		if (mMeshAsset->IsAnimated())
 		{
-			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
-			for (auto& ub : mBoneTransformUBs) 
-			{
-				ub = UniformBuffer::Create(meshAsset->mBoneCount * sizeof(glm::mat4), 0);
-			}
-
 			// ozz animation
 			mSamplingCache.Resize(mMeshAsset->mSkeleton->num_joints());
 			mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
 			mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
-			mOZZBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+			mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
+			for (auto& ub : mBoneTransformUBs)
+			{
+				ub = UniformBuffer::Create(static_cast<uint32_t>(meshAsset->mBoneInfo.size() * sizeof(glm::mat4)), 0);
+			}
 		}
 	}
 
@@ -961,17 +752,16 @@ namespace NR
 
 		if (mMeshAsset->IsAnimated())
 		{
-			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
-			for (auto& ub : mBoneTransformUBs) 
-			{
-				ub = UniformBuffer::Create(mMeshAsset->mBoneCount * sizeof(glm::mat4), 0);
-			}
-
 			// ozz animation
 			mSamplingCache.Resize(mMeshAsset->mSkeleton->num_joints());
 			mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
 			mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
-			mOZZBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+			mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
+			for (auto& ub : mBoneTransformUBs)
+			{
+				ub = UniformBuffer::Create(static_cast<uint32_t>(mMeshAsset->mBoneInfo.size() * sizeof(glm::mat4)), 0);
+			}
 		}
 	}
 
@@ -981,74 +771,50 @@ namespace NR
 
 		if (IsAnimated())
 		{
-			if (mAnimationPlaying)
-			{
-				float ticksPerSecond = (float)(mMeshAsset->mScene->mAnimations[0]->mTicksPerSecond != 0 ? mMeshAsset->mScene->mAnimations[0]->mTicksPerSecond : 25.0f) * mTimeMultiplier;
-				mAnimationTime += dt * ticksPerSecond;
-				mAnimationTime = fmod(mAnimationTime, (float)mMeshAsset->mScene->mAnimations[0]->mDuration);
-				{
-					NR_PROFILE_SCOPE_DYNAMIC("SampleAnimation");
-					mMeshAsset->ReadNodeHierarchy(mAnimationTime, mMeshAsset->mScene->mRootNode, glm::mat4(1.0f));
-					mBoneTransforms.resize(mMeshAsset->mBoneCount);
-					for (size_t i = 0; i < mMeshAsset->mBoneCount; ++i)
-					{
-						mBoneTransforms[i] = mMeshAsset->mBoneInfo[i].FinalTransformation;
-					}
-				}
-			}
-			//UpdateBoneTransformUB();
-		}
-
-		// its more than 30 times faster (timings from optick in RELEASE build))
-		if (IsAnimated())
-		{
 			// first compute animation time in range 0.0f (beginning of animation) to 1.0f (end of animation)
-			// for now assume playback speed is 1.0, and animation always loops (later this will be part of the animation controller)
-			const float playbackSpeed = 1.0f;
 			const bool loop = true;
 			if (mAnimationPlaying)
 			{
-				mAnimationTimeOZZ = mAnimationTimeOZZ + dt * playbackSpeed / mMeshAsset->mAnimation->duration();
+				mAnimationTime = mAnimationTime + dt * mTimeMultiplier / mMeshAsset->mAnimation->duration();
 				if (loop)
 				{
-					// Wraps the unit interval [0-1], even for negative values (the reason for using floorf).
-					mAnimationTimeOZZ = mAnimationTimeOZZ - floorf(mAnimationTimeOZZ);
+					// Wraps the unit interval [0-1], even for negative values (the reason for using floorf)
+					mAnimationTime = mAnimationTime - floorf(mAnimationTime);
 				}
 				else
 				{
 					// Clamps in the unit interval [0-1].
-					mAnimationTimeOZZ = ozz::math::Clamp(0.0f, mAnimationTimeOZZ, 1.0f);
+					mAnimationTime = ozz::math::Clamp(0.0f, mAnimationTime, 1.0f);
 				}
 				{
 					// Sample animation at calculated time
-					NR_PROFILE_SCOPE_DYNAMIC("ozz::animation::SamplingJob");
 					ozz::animation::SamplingJob sampling_job;
 					sampling_job.animation = mMeshAsset->mAnimation.get();
 					sampling_job.context = &mSamplingCache;
-					sampling_job.ratio = mAnimationTimeOZZ;
+					sampling_job.ratio = mAnimationTime;
 					sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
 					if (!sampling_job.Run())
 					{
 						NR_CORE_ERROR("ozz animation sampling job failed!");
 					}
 
-					// converts from local space to model space matrices - this applies the skeleton joint hierarchy back to root.
 					ozz::animation::LocalToModelJob ltm_job;
 					ltm_job.skeleton = mMeshAsset->mSkeleton.get();
 					ltm_job.input = ozz::make_span(mLocalSpaceTransforms);
 					ltm_job.output = ozz::make_span(mModelSpaceTransforms);
-					if (!ltm_job.Run()) 
+					if (!ltm_job.Run())
 					{
 						NR_CORE_ERROR("ozz animation convertion to model space failed!");
 					}
-					// Compute skinning matrices by applying inverse bind pose
+
 					for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
 					{
-						mOZZBoneTransforms[i] = mModelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
+						mBoneTransforms[i] = mModelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
 					}
 				}
 			}
-			OZZUpdateBoneTransformUB();
+
+			UpdateBoneTransformUB();
 		}
 	}
 
@@ -1069,24 +835,16 @@ namespace NR
 		}
 	}
 
-	void Mesh::UpdateBoneTransformUB() 
-	{
-		NR_PROFILE_FUNC();
-
-		Ref<Mesh> instance = this;
-		// upload to GPU
-		Renderer::Submit([instance]() mutable {
-			instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransforms.data(), static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(glm::mat4)));
-			});
-	}
-
-	void Mesh::OZZUpdateBoneTransformUB() 
+	void Mesh::UpdateBoneTransformUB()
 	{
 		NR_PROFILE_FUNC();
 
 		Ref<Mesh> instance = this;
 		Renderer::Submit([instance]() mutable {
-			instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mOZZBoneTransforms.data(), static_cast<uint32_t>(instance->mOZZBoneTransforms.size() * sizeof(ozz::math::Float4x4)));
+			instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(
+				instance->mBoneTransforms.data(),
+				static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(ozz::math::Float4x4))
+			);
 			});
 	}
 }
