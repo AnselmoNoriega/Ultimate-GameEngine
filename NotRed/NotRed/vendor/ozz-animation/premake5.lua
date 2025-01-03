@@ -161,7 +161,7 @@ project "ozz_animation_fbx"
 	includedirs
 	{
 		"include",
-		"src"
+		"src",
 		"%{IncludeDir.FBX}"
 	}
 

@@ -1,6 +1,6 @@
 -- NotRed Dependencies
 
-FBX_SDK = os.getenv("FBX_SDK")
+FBX_SDK = os.getenv("FBX_SDK_PATH")
 
 IncludeDir = {}
 IncludeDir["Assimp"] = "%{wks.location}/NotRed/vendor/assimp/include"
@@ -52,10 +52,10 @@ Library["SPIRV_Cross_GLSL_Release"] = "%{LibraryDir.Vulkan}/spirv-cross-glsl.lib
 
 Library["NsightAftermath"] = "%{LibraryDir.NsightAftermath}/GFSDK_Aftermath_Lib.x64.lib"
 
-Library["FBX_Release"] = "%{LibraryDir.FBX}/vs2019/x64/release/libfbxsdk-md.lib"
-Library["FBX_XML2_Release"] = "%{LibraryDir.FBX}/vs2019/x64/release/libxml2-md.lib"
-Library["FBX_ZLIB_Release"] = "%{LibraryDir.FBX}/vs2019/x64/release/zlib-md.lib"
+Library["FBX_Release"] = "%{LibraryDir.FBX}/x64/release/libfbxsdk-md.lib"
+Library["FBX_XML2_Release"] = "%{LibraryDir.FBX}/x64/release/libxml2-md.lib"
+Library["FBX_ZLIB_Release"] = "%{LibraryDir.FBX}/x64/release/zlib-md.lib"
 
-Library["FBX_Debug"] = "%{LibraryDir.FBX}/vs2019/x64/debug/libfbxsdk-md.lib"
-Library["FBX_XML2_Debug"] = "%{LibraryDir.FBX}/vs2019/x64/debug/libxml2-md.lib"
-Library["FBX_ZLIB_Debug"] = "%{LibraryDir.FBX}/vs2019/x64/debug/zlib-md.lib"
+Library["FBX_Debug"] = "%{LibraryDir.FBX}/x64/debug/libfbxsdk-md.lib"
+Library["FBX_XML2_Debug"] = "%{LibraryDir.FBX}/x64/debug/libxml2-md.lib"
+Library["FBX_ZLIB_Debug"] = "%{LibraryDir.FBX}/x64/debug/zlib-md.lib"
