@@ -227,6 +227,8 @@ namespace NR
 		void Update(float dt);
 
 		bool IsAnimated() { return mMeshAsset && mMeshAsset->IsAnimated(); }
+		bool IsAnimationPlaying() { return mAnimationPlaying; }
+		void SetAnimationPlaying(bool value) { mAnimationPlaying = value; }
 		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }

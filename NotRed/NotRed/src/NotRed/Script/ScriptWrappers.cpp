@@ -699,6 +699,45 @@ namespace NR::Script
 		meshComponent.MeshObj = inMesh ? *inMesh : nullptr;
 	}
 
+	bool NR_MeshComponent_GetIsAnimated(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+		
+		Entity entity = entityMap.at(entityID);
+		auto& meshComponent = entity.GetComponent<MeshComponent>();
+		return meshComponent.MeshObj->IsAnimated();
+	}
+
+	bool NR_MeshComponent_GetIsAnimationPlaying(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		auto& meshComponent = entity.GetComponent<MeshComponent>();
+		return meshComponent.MeshObj->IsAnimationPlaying();
+	}
+
+	void NR_MeshComponent_SetIsAnimationPlaying(uint64_t entityID, bool value)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		auto& meshComponent = entity.GetComponent<MeshComponent>();
+		meshComponent.MeshObj->SetAnimationPlaying(value);
+	}
+
 	bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index)
 	{
 		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

@@ -76,6 +76,9 @@ namespace NR::Script
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
     bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index);
     Ref<MaterialAsset>* NR_MeshComponent_GetMaterial(uint64_t entityID, int index);
+    bool NR_MeshComponent_GetIsAnimated(uint64_t entityID);
+    bool NR_MeshComponent_GetIsAnimationPlaying(uint64_t entityID);
+    void NR_MeshComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
 
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
     void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);

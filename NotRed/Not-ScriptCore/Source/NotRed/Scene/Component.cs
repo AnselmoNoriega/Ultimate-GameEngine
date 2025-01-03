@@ -143,6 +143,26 @@ namespace NR
             return new Material(GetMaterial_Native(Entity.ID, index));
         }
 
+        public bool IsAnimated
+        {
+            get
+            {
+                return GetIsAnimated_Native(Entity.ID);
+            }
+        }
+
+        public bool IsAnimationPlaying
+        {
+            get
+            {
+                return GetIsAnimationPlaying_Native(Entity.ID);
+            }
+            set
+            {
+                SetIsAnimationPlaying_Native(Entity.ID, value);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern IntPtr GetMesh_Native(ulong entityID);
 
@@ -152,6 +172,13 @@ namespace NR
         internal static extern bool HasMaterial_Native(ulong entityID, int index);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern IntPtr GetMaterial_Native(ulong entityID, int index);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool GetIsAnimated_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void SetIsAnimationPlaying_Native(ulong entityID, bool value);
 
     }
 
