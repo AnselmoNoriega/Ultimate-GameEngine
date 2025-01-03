@@ -696,58 +696,57 @@ namespace NR
 						for (auto field : storedFields)
 						{
 							std::string name = field["Name"].as<std::string>();
-							std::string typeName = field["TypeName"] ? field["TypeName"].as<std::string>() : "";
-							FieldType type = (FieldType)field["Type"].as<uint32_t>();
 							auto& moduleFieldMap = sc.ModuleFieldMap;
 							auto& publicFields = moduleFieldMap[moduleName];
-							if (publicFields.find(name) == publicFields.end())
+							
+							auto publicFieldIter = publicFields.find(name);
+							if (publicFieldIter != publicFields.end())
 							{
-								PublicField moveValue = { name, typeName, type };
-								publicFields.emplace(name, moveValue);
-							}
-							auto dataNode = field["Data"];
-							switch (type)
-							{
-							case FieldType::Float:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<float>());
-								break;
-							}
-							case FieldType::Int:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<int32_t>());
-								break;
-							}
-							case FieldType::UnsignedInt:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<uint32_t>());
-								break;
-							}
-							case FieldType::String:
-							{
-								NR_CORE_ASSERT(false, "Unimplemented");
-								break;
-							}
-							case FieldType::Vec2:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<glm::vec2>());
-								break;
-							}
-							case FieldType::Vec3:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<glm::vec3>());
-								break;
-							}
-							case FieldType::Vec4:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<glm::vec4>());
-								break;
-							}
-							case FieldType::Asset:
-							{
-								publicFields.at(name).SetStoredValue(dataNode.as<UUID>());
-								break;
-							}
+								auto& publicField = publicFieldIter->second;
+								auto dataNode = field["Data"];
+								switch (publicField.Type)
+								{
+								case FieldType::Float:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<float>());
+									break;
+								}
+								case FieldType::Int:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<int32_t>());
+									break;
+								}
+								case FieldType::UnsignedInt:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<uint32_t>());
+									break;
+								}
+								case FieldType::String:
+								{
+									NR_CORE_ASSERT(false, "Unimplemented");
+									break;
+								}
+								case FieldType::Vec2:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<glm::vec2>());
+									break;
+								}
+								case FieldType::Vec3:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<glm::vec3>());
+									break;
+								}
+								case FieldType::Vec4:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<glm::vec4>());
+									break;
+								}
+								case FieldType::Asset:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<UUID>());
+									break;
+								}
+								}
 							}
 						}
 					}

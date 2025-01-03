@@ -969,6 +969,14 @@ namespace NR
 	{
 		if (&other != this)
 		{
+			Name = other.Name;
+			TypeName = other.TypeName;
+			Type = other.Type;
+			IsReadOnly = other.IsReadOnly;
+			
+			mMonoClassField = other.mMonoClassField;
+			mMonoProperty = other.mMonoProperty;
+
 			if (Type != FieldType::String)
 			{
 				mStoredValueBuffer = AllocateBuffer(Type);
@@ -978,14 +986,6 @@ namespace NR
 			{
 				mStoredValueBuffer = other.mStoredValueBuffer;
 			}
-
-			Name = other.Name;
-			TypeName = other.TypeName;
-			Type = other.Type;
-			IsReadOnly = other.IsReadOnly;
-
-			mMonoClassField = other.mMonoClassField;
-			mMonoProperty = other.mMonoProperty;
 		}
 
 		return *this;
