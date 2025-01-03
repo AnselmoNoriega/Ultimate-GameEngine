@@ -706,7 +706,7 @@ namespace NR
 		if (mMeshAsset->IsAnimated())
 		{
 			// ozz animation
-			mSamplingCache.Resize(mMeshAsset->mSkeleton->num_joints());
+			mSamplingContext.Resize(mMeshAsset->mSkeleton->num_joints());
 			mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
 			mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
 			mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
@@ -733,7 +733,7 @@ namespace NR
 		if (mMeshAsset->IsAnimated())
 		{
 			// ozz animation
-			mSamplingCache.Resize(mMeshAsset->mSkeleton->num_joints());
+			mSamplingContext.Resize(mMeshAsset->mSkeleton->num_joints());
 			mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
 			mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
 			mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
@@ -753,7 +753,7 @@ namespace NR
 		if (mMeshAsset->IsAnimated())
 		{
 			// ozz animation
-			mSamplingCache.Resize(mMeshAsset->mSkeleton->num_joints());
+			mSamplingContext.Resize(mMeshAsset->mSkeleton->num_joints());
 			mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
 			mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
 			mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
@@ -767,14 +767,12 @@ namespace NR
 
 	void Mesh::Update(float dt)
 	{
-		NR_PROFILE_FUNC();
-
 		if (IsAnimated())
 		{
-			// first compute animation time in range 0.0f (beginning of animation) to 1.0f (end of animation)
-			const bool loop = true;
 			if (mAnimationPlaying)
 			{
+				constexpr bool loop = true;
+
 				mAnimationTime = mAnimationTime + dt * mTimeMultiplier / mMeshAsset->mAnimation->duration();
 				if (loop)
 				{
@@ -786,35 +784,8 @@ namespace NR
 					// Clamps in the unit interval [0-1].
 					mAnimationTime = ozz::math::Clamp(0.0f, mAnimationTime, 1.0f);
 				}
-				{
-					// Sample animation at calculated time
-					ozz::animation::SamplingJob sampling_job;
-					sampling_job.animation = mMeshAsset->mAnimation.get();
-					sampling_job.context = &mSamplingCache;
-					sampling_job.ratio = mAnimationTime;
-					sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
-					if (!sampling_job.Run())
-					{
-						NR_CORE_ERROR("ozz animation sampling job failed!");
-					}
-
-					ozz::animation::LocalToModelJob ltm_job;
-					ltm_job.skeleton = mMeshAsset->mSkeleton.get();
-					ltm_job.input = ozz::make_span(mLocalSpaceTransforms);
-					ltm_job.output = ozz::make_span(mModelSpaceTransforms);
-					if (!ltm_job.Run())
-					{
-						NR_CORE_ERROR("ozz animation convertion to model space failed!");
-					}
-
-					for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
-					{
-						mBoneTransforms[i] = mModelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
-					}
-				}
 			}
-
-			UpdateBoneTransformUB();
+			BoneTransform(mAnimationTime);
 		}
 	}
 
@@ -835,16 +806,48 @@ namespace NR
 		}
 	}
 
-	void Mesh::UpdateBoneTransformUB()
+	void Mesh::BoneTransform(float time)
 	{
 		NR_PROFILE_FUNC();
+		{
+			NR_PROFILE_SCOPE_DYNAMIC("Sample animation");
 
-		Ref<Mesh> instance = this;
-		Renderer::Submit([instance]() mutable {
-			instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(
-				instance->mBoneTransforms.data(),
-				static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(ozz::math::Float4x4))
-			);
-			});
+			ozz::animation::SamplingJob sampling_job;
+			sampling_job.animation = mMeshAsset->mAnimation.get();
+			sampling_job.context = &mSamplingContext;
+			sampling_job.ratio = mAnimationTime;
+			sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
+
+			if (!sampling_job.Run())
+			{
+				NR_CORE_ERROR("ozz animation sampling job failed!");
+			}
+
+			ozz::animation::LocalToModelJob ltm_job;
+			ltm_job.skeleton = mMeshAsset->mSkeleton.get();
+			ltm_job.input = ozz::make_span(mLocalSpaceTransforms);
+			ltm_job.output = ozz::make_span(mModelSpaceTransforms);
+
+			if (!ltm_job.Run())
+			{
+				NR_CORE_ERROR("ozz animation convertion to model space failed!");
+			}
+
+			for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
+			{
+				mBoneTransforms[i] = mModelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
+			}
+		}
+		{
+			NR_PROFILE_SCOPE_DYNAMIC("Upload bone transform UB");
+			// upload to GPU
+			Ref<Mesh> instance = this;
+			Renderer::Submit([instance]() mutable {
+				instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(
+					instance->mBoneTransforms.data(), 
+					static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(glm::mat4))
+				);
+				});
+		}
 	}
 }

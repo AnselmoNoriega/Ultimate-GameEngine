@@ -193,6 +193,5 @@ namespace NR
 			std::set<std::string> mBones;
 			const aiScene* mScene;
 		};
-
 	};
 }

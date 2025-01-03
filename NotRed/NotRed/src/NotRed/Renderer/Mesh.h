@@ -242,7 +242,7 @@ namespace NR
 		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
 
 	private:
-		void UpdateBoneTransformUB();
+		void BoneTransform(float time);
 
 	private:
 		Ref<MeshAsset> mMeshAsset;
@@ -257,7 +257,7 @@ namespace NR
 		bool mAnimationPlaying = true;
 
 		// OZZ Animation
-		ozz::animation::SamplingJob::Context mSamplingCache;
+		ozz::animation::SamplingJob::Context mSamplingContext;
 		ozz::vector<ozz::math::SoaTransform> mLocalSpaceTransforms;
 		ozz::vector<ozz::math::Float4x4> mModelSpaceTransforms;
 		ozz::vector<ozz::math::Float4x4> mBoneTransforms;
