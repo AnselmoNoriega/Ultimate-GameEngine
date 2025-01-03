@@ -146,6 +146,9 @@ Assets:
   - Handle: 6447245779541325488
     FilePath: Models/Source/Sponza/14650633544276105767.jpg
     Type: Texture
+  - Handle: 6628700756885003527
+    FilePath: Meshes/Demo/m1911.nrmesh
+    Type: Mesh
   - Handle: 6791575183051968345
     FilePath: Models/Source/Sponza/white.png
     Type: Texture
