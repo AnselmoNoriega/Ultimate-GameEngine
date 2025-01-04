@@ -98,7 +98,9 @@ namespace NR
 					continue;
 				}
 
-				e.AddComponent<RigidBodyComponent>();
+				auto& rigidbody = e.AddComponent<RigidBodyComponent>();
+				rigidbody.BodyType = RigidBodyComponent::Type::Static;
+
 				CreateActor(e);
 			}
 		}

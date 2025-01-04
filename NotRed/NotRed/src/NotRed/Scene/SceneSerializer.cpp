@@ -572,33 +572,6 @@ namespace NR
 		}
 		out << YAML::EndSeq;
 
-		out << YAML::Key << "PhysicsLayers";
-		out << YAML::Value << YAML::BeginSeq;
-
-		for (const auto& layer : PhysicsLayerManager::GetLayers())
-		{
-			// Never serialize the Default layer
-			if (layer.ID == 0)
-			{
-				continue;
-			}
-
-			out << YAML::BeginMap;
-			out << YAML::Key << "Name" << YAML::Value << layer.Name;
-
-			out << YAML::Key << "CollidesWith" << YAML::Value;
-			out << YAML::BeginSeq;
-			for (const auto& collidingLayer : PhysicsLayerManager::GetLayerCollisions(layer.ID))
-			{
-				out << YAML::BeginMap;
-				out << YAML::Key << "Name" << YAML::Value << collidingLayer.Name;
-				out << YAML::EndMap;
-			}
-			out << YAML::EndSeq;
-			out << YAML::EndMap;
-		}
-		out << YAML::EndSeq;
-
 		// Scene Audio
 		Audio::AudioEngine::Get().SerializeSceneAudio(out, mScene);
 
@@ -999,21 +972,23 @@ namespace NR
 			auto rigidBodyComponent = entity["RigidBodyComponent"];
 			if (rigidBodyComponent)
 			{
-				auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
-				component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
-				component.Mass = rigidBodyComponent["Mass"].as<float>();
-				component.LinearDrag = rigidBodyComponent["LinearDrag"] ? rigidBodyComponent["LinearDrag"].as<float>() : 0.0f;
-				component.AngularDrag = rigidBodyComponent["AngularDrag"] ? rigidBodyComponent["AngularDrag"].as<float>() : 0.05f;
-				component.DisableGravity = rigidBodyComponent["DisableGravity"] ? rigidBodyComponent["DisableGravity"].as<bool>() : false;
-				component.IsKinematic = rigidBodyComponent["IsKinematic"] ? rigidBodyComponent["IsKinematic"].as<bool>() : false;
-				component.Layer = rigidBodyComponent["Layer"] ? rigidBodyComponent["Layer"].as<uint32_t>() : 0;
-
-				component.LockPositionX = rigidBodyComponent["Constraints"]["LockPositionX"].as<bool>();
-				component.LockPositionY = rigidBodyComponent["Constraints"]["LockPositionY"].as<bool>();
-				component.LockPositionZ = rigidBodyComponent["Constraints"]["LockPositionZ"].as<bool>();
-				component.LockRotationX = rigidBodyComponent["Constraints"]["LockRotationX"].as<bool>();
-				component.LockRotationY = rigidBodyComponent["Constraints"]["LockRotationY"].as<bool>();
-				component.LockRotationZ = rigidBodyComponent["Constraints"]["LockRotationZ"].as<bool>();
+				if (rigidBodyComponent["BodyType"] && (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>() == RigidBodyComponent::Type::Dynamic)
+				{
+					auto& component = deserializedEntity.AddComponent<RigidBodyComponent>();
+					component.BodyType = (RigidBodyComponent::Type)rigidBodyComponent["BodyType"].as<int>();
+					component.Mass = rigidBodyComponent["Mass"].as<float>();
+					component.LinearDrag = rigidBodyComponent["LinearDrag"] ? rigidBodyComponent["LinearDrag"].as<float>() : 0.0f;
+					component.AngularDrag = rigidBodyComponent["AngularDrag"] ? rigidBodyComponent["AngularDrag"].as<float>() : 0.05f;
+					component.DisableGravity = rigidBodyComponent["DisableGravity"] ? rigidBodyComponent["DisableGravity"].as<bool>() : false;
+					component.IsKinematic = rigidBodyComponent["IsKinematic"] ? rigidBodyComponent["IsKinematic"].as<bool>() : false;
+					component.Layer = rigidBodyComponent["Layer"] ? rigidBodyComponent["Layer"].as<uint32_t>() : 0;
+					component.LockPositionX = rigidBodyComponent["Constraints"]["LockPositionX"].as<bool>();
+					component.LockPositionY = rigidBodyComponent["Constraints"]["LockPositionY"].as<bool>();
+					component.LockPositionZ = rigidBodyComponent["Constraints"]["LockPositionZ"].as<bool>();
+					component.LockRotationX = rigidBodyComponent["Constraints"]["LockRotationX"].as<bool>();
+					component.LockRotationY = rigidBodyComponent["Constraints"]["LockRotationY"].as<bool>();
+					component.LockRotationZ = rigidBodyComponent["Constraints"]["LockRotationZ"].as<bool>();
+				}
 			}
 
 			auto boxColliderComponent = entity["BoxColliderComponent"];
@@ -1246,30 +1221,6 @@ namespace NR
 		if (entities)
 		{
 			DeserializeEntities(entities, mScene);
-		}
-
-		auto physicsLayers = data["PhysicsLayers"];
-		if (physicsLayers)
-		{
-			for (auto layer : physicsLayers)
-			{
-				PhysicsLayerManager::AddLayer(layer["Name"].as<std::string>(), false);
-			}
-
-			for (auto layer : physicsLayers)
-			{
-				const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layer["Name"].as<std::string>());
-
-				auto collidesWith = layer["CollidesWith"];
-				if (collidesWith)
-				{
-					for (auto collisionLayer : collidesWith)
-					{
-						const auto& otherLayer = PhysicsLayerManager::GetLayer(collisionLayer["Name"].as<std::string>());
-						PhysicsLayerManager::SetLayerCollision(layerInfo.ID, otherLayer.ID, true);
-					}
-				}
-			}
 		}
 
 		auto sceneAudio = data["SceneAudio"];

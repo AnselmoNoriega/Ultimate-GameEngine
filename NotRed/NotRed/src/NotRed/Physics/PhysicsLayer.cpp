@@ -134,6 +134,13 @@ namespace NR
 		return layer.ID != sNullLayer.ID && layer.IsValid();
 	}
 
+	void PhysicsLayerManager::ClearLayers()
+	{
+		sLayers.clear();
+		sLayerNames.clear();
+		AddLayer("Default");
+	}
+
 	uint32_t PhysicsLayerManager::GetNextLayerID()
 	{
 		int32_t lastId = -1;

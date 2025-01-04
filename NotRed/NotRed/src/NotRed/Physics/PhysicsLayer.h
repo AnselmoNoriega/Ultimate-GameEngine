@@ -34,6 +34,8 @@ namespace NR
 		static bool ShouldCollide(uint32_t layer1, uint32_t layer2);
 		static bool IsLayerValid(uint32_t layerId);
 
+		static void ClearLayers();
+
 	private:
 		static uint32_t GetNextLayerID();
 

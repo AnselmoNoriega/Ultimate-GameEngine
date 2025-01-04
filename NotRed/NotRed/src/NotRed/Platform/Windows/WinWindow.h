@@ -24,8 +24,10 @@ namespace NR
         void SetEventCallback(const EventCallbackFn& callback) override { mData.EventCallback = callback; }
         void SetVSync(bool enabled) override;
         bool IsVSync() const override;
+        void SetResizable(bool resizable) const override;
 
         void Maximize() override;
+        void CenterWindow() override;
 
         const std::string& GetTitle() const override { return mData.Title; }
         void SetTitle(const std::string& title) override;

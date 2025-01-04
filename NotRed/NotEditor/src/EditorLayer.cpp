@@ -18,7 +18,9 @@
 #include "NotRed/Editor/AssetEditorPanel.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/PhysicsLayer.h"
 #include "NotRed/Physics/Debug/PhysicsDebugger.h"
+
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"
 
@@ -31,8 +33,13 @@
 
 namespace NR
 {
-    EditorLayer::EditorLayer()
-        : mSceneType(SceneType::Model)
+#define MAX_PROJECT_NAME_LENGTH 255
+#define MAX_PROJECT_FILEPATH_LENGTH 512
+
+    static char* sProjectNameBuffer = new char[MAX_PROJECT_NAME_LENGTH];
+    static char* sProjectFilePathBuffer = new char[MAX_PROJECT_FILEPATH_LENGTH];
+    EditorLayer::EditorLayer(const Ref<UserPreferences>& userPreferences)
+        : mUserPreferences(userPreferences)
     {
     }
 
@@ -44,6 +51,8 @@ namespace NR
     {
         return lhs.x < rhs.x && lhs.y < rhs.y;
     }
+
+    static std::string sNotRedInstallPath = "";
 
     void EditorLayer::Attach()
     {
@@ -71,7 +80,10 @@ namespace NR
 
         Renderer2D::SetLineWidth(mLineWidth);
 
-        OpenProject("SandboxProject/Sandbox.nrproj");
+        if (!mUserPreferences->StartupProject.empty())
+        {
+            OpenProject(mUserPreferences->StartupProject);
+        }
 
         mObjectsPanel = CreateScope<ObjectsPanel>();
         mConsolePanel = CreateScope<EditorConsolePanel>();
@@ -84,10 +96,13 @@ namespace NR
         FileSystem::StartWatching();
 
         UpdateSceneRendererSettings();
+
+        sNotRedInstallPath = FileSystem::GetEnvironmentVariable("NOTRED_DIR");
     }
 
     void EditorLayer::Detach()
     {
+        CloseProject(false);
         FileSystem::StopWatching();
         AssetEditorPanel::UnregisterAllEditors();
     }
@@ -102,7 +117,7 @@ namespace NR
 
         mConsolePanel->ScenePlay();
 
-        if (mReloadScriptOnPlay)
+        if (Project::GetActive()->GetConfig().ReloadAssemblyOnPlay)
         {
             ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
         }
@@ -409,22 +424,103 @@ namespace NR
         Renderer2D::EndScene();
     }
 
-    void EditorLayer::CreateProject()
+    static void ReplaceProjectName(std::string& str, const std::string& projectName)
     {
-        // TODO:
-        // 1) prompt user for project name
-        // 2) Create a folder with that project name
-        // 3) In the folder, place the .nrproj, together with Assets folder containing the assets for a working "empty" project (including C# assembly)
+        static const char* sProjectNameToken = "$PROJECT_NAME$";
+        size_t pos = 0;
+        while ((pos = str.find(sProjectNameToken, pos)) != std::string::npos)
+        {
+            str.replace(pos, strlen(sProjectNameToken), projectName);
+            pos += strlen(sProjectNameToken);
+        }
+    }
+
+    void EditorLayer::CreateProject(std::filesystem::path projectPath)
+    {
+        if (!FileSystem::HasEnvironmentVariable("NOTRED_DIR"))
+        {
+            return;
+        }
+
+        if (!std::filesystem::exists(projectPath))
+        {
+            std::filesystem::create_directories(projectPath);
+        }
+
+        std::filesystem::copy(sNotRedInstallPath + "/Shared/NewProjectTemplate", projectPath, std::filesystem::copy_options::recursive);
+        {
+            // premake5.lua
+            std::ifstream stream(projectPath / "premake5.lua");
+            NR_CORE_VERIFY(stream.is_open());
+
+            std::stringstream ss;
+            ss << stream.rdbuf();
+            stream.close();
+            std::string str = ss.str();
+
+            ReplaceProjectName(str, sProjectNameBuffer);
+
+            std::ofstream ostream(projectPath / "premake5.lua");
+            ostream << str;
+            ostream.close();
+        }
+        {
+            // Project File
+            std::ifstream stream(projectPath / "Project.nrproj");
+            NR_CORE_VERIFY(stream.is_open());
+
+            std::stringstream ss;
+            ss << stream.rdbuf();
+            stream.close();
+            std::string str = ss.str();
+
+            ReplaceProjectName(str, sProjectNameBuffer);
+
+            std::ofstream ostream(projectPath / "Project.nrproj");
+            ostream << str;
+            ostream.close();
+
+            std::string newProjectFileName = std::string(sProjectNameBuffer) + ".nrproj";
+            std::filesystem::rename(projectPath / "Project.nrproj", projectPath / newProjectFileName);
+        }
+
+        std::string batchFilePath = projectPath.string();
+        std::replace(batchFilePath.begin(), batchFilePath.end(), '/', '\\'); // Only windows
+        batchFilePath += "\\Win-CreateScriptProjects.bat";
+        system(batchFilePath.c_str());
+        OpenProject(projectPath.string() + "/" + std::string(sProjectNameBuffer) + ".nrproj");
     }
 
     void EditorLayer::OpenProject()
     {
         auto& app = Application::Get();
         std::string filepath = app.OpenFile("NotRed Project (*.nrproj)\0*.nrproj\0");
-        if (!filepath.empty())
+
+        if (filepath.empty())
         {
-            OpenProject(filepath);
+            return;
         }
+
+        OpenProject(filepath);
+        std::filesystem::path projectFile = filepath;
+
+        RecentProject projectEntry;
+        projectEntry.Name = Utils::RemoveExtension(projectFile.filename().string());
+        projectEntry.FilePath = filepath;
+        projectEntry.LastOpened = time(NULL);
+
+        for (auto it = mUserPreferences->RecentProjects.begin(); it != mUserPreferences->RecentProjects.end(); it++)
+        {
+            if (it->second.Name == projectEntry.Name)
+            {
+                mUserPreferences->RecentProjects.erase(it);
+                break;
+            }
+        }
+
+        mUserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
+        UserPreferencesSerializer serializer(mUserPreferences);
+        serializer.Serialize(mUserPreferences->FilePath);
     }
 
     void EditorLayer::OpenProject(const std::string& filepath)
@@ -444,8 +540,13 @@ namespace NR
 
         if (!project->GetConfig().StartScene.empty())
         {
-            OpenScene((Project::GetProjectDirectory() / project->GetConfig().StartScene).string());
+            OpenScene((Project::GetAssetDirectory() / project->GetConfig().StartScene).string());
         }
+        else
+        {
+            NewScene();
+        }
+
         if (mEditorScene)
         {
             mEditorScene->SetSelectedEntity({});
@@ -453,8 +554,7 @@ namespace NR
 
         mSelectionContext.clear();
         mContentBrowserPanel = CreateScope<ContentBrowserPanel>(project);
-        mPhysicsSettingsPanel = CreateScope<PhysicsSettingsWindow>();
-
+        mProjectSettingsPanel = CreateScope<ProjectSettingsWindow>(project);
         FileSystem::StartWatching();
         
         // Reset cameras
@@ -462,9 +562,23 @@ namespace NR
         mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
     }
 
-    void EditorLayer::CloseProject()
+    void EditorLayer::SaveProject()
+    {
+        if (!Project::GetActive())
+        {
+            NR_CORE_ASSERT(false);
+        }
+
+        auto project = Project::GetActive();
+        ProjectSerializer serializer(project);
+        serializer.Serialize(project->GetConfig().ProjectDirectory + "/" + project->GetConfig().ProjectFileName);
+    }
+
+    void EditorLayer::CloseProject(bool unloadProject)
     {
         FileSystem::StopWatching();
+
+        SaveProject();
         
         mSceneHierarchyPanel->SetContext(nullptr);
         ScriptEngine::SetSceneContext(nullptr);
@@ -477,7 +591,13 @@ namespace NR
 
         NR_CORE_ASSERT(mEditorScene->GetRefCount() == 1, "Scene will not be destroyed after project is closed - something is still holding scene refs!");
         mEditorScene = nullptr;
-        Project::SetActive(nullptr);
+
+        PhysicsLayerManager::ClearLayers();
+
+        if (unloadProject)
+        {
+            Project::SetActive(nullptr);
+        }
     }
 
     void EditorLayer::NewScene()
@@ -492,6 +612,15 @@ namespace NR
 
         mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
         mCurrentScene = mEditorScene;
+
+        if (mViewportRenderer)
+        {
+            mViewportRenderer->SetScene(mCurrentScene);
+        }
+        if (mSecondViewportRenderer)
+        {
+            mSecondViewportRenderer->SetScene(mCurrentScene);
+        }
     }
 
     void EditorLayer::OpenScene()
@@ -564,7 +693,7 @@ namespace NR
 
     void EditorLayer::UI_WelcomePopup()
     {
-        if (mShowWelcomePopup)
+        if (mUserPreferences->ShowWelcomeScreen && mShowWelcomePopup)
         {
             ImGui::OpenPopup("Welcome");
             mShowWelcomePopup = false;
@@ -583,6 +712,18 @@ namespace NR
             if (ImGui::Button("OK"))
             {
                 ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine(250.0f);
+            ImGui::TextUnformatted("Don't Show Again");
+            ImGui::SameLine(365.0f);
+            
+            bool dontShowAgain = !mUserPreferences->ShowWelcomeScreen;
+            if (ImGui::Checkbox("##dont_show_again", &dontShowAgain))
+            {
+                mUserPreferences->ShowWelcomeScreen = !dontShowAgain;
+                UserPreferencesSerializer serializer(mUserPreferences);
+                serializer.Serialize(mUserPreferences->FilePath);
             }
 
             ImGui::EndPopup();
@@ -906,7 +1047,7 @@ namespace NR
         ImGui::End();
 
         mContentBrowserPanel->ImGuiRender();
-        mPhysicsSettingsPanel->ImGuiRender(mShowPhysicsSettings);
+        mProjectSettingsPanel->ImGuiRender(mShowProjectSettings);
         mObjectsPanel->ImGuiRender();
         mConsolePanel->ImGuiRender(&mShowConsolePanel);
 
@@ -1300,12 +1441,38 @@ namespace NR
             {
                 if (ImGui::MenuItem("Create Project..."))
                 {
-                    CreateProject();
+                    mShowCreateNewProjectPopup = true;
                 }
-                if (ImGui::MenuItem("Open Project..."))
+                if (ImGui::MenuItem("Save Project"))
                 {
-                    OpenProject();
+                    SaveProject();
                 }
+                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+                    OpenProject();
+                if (ImGui::BeginMenu("Open Recent"))
+                {
+                    size_t i = 0;
+                    for (auto it = m_UserPreferences->RecentProjects.begin(); it != m_UserPreferences->RecentProjects.end(); it++)
+                    {
+                        if (i > 10)
+                            break;
+                        if (ImGui::MenuItem(it->second.Name.c_str()))
+                        {
+                            OpenProject(it->second.FilePath);
+                            RecentProject projectEntry;
+                            projectEntry.Name = it->second.Name;
+                            projectEntry.FilePath = it->second.FilePath;
+                            projectEntry.LastOpened = time(NULL);
+                            it = m_UserPreferences->RecentProjects.erase(it);
+                            m_UserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
+                            UserPreferencesSerializer preferencesSerializer(m_UserPreferences);
+                            preferencesSerializer.Serialize(m_UserPreferences->FilePath);
+                            break;
+                        }
+                        i++;
+                    }
+                    ImGui::EndMenu();
+                }hhh
                 
                 ImGui::Separator();
 

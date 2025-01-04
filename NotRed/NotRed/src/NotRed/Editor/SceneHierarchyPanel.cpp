@@ -610,8 +610,7 @@ namespace NR
 			{
 				if (ImGui::Button("Rigidbody"))
 				{
-					auto& rigidbody = mSelectionContext.AddComponent<RigidBodyComponent>();
-					rigidbody.BodyType = RigidBodyComponent::Type::Dynamic;
+					mSelectionContext.AddComponent<RigidBodyComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -910,17 +909,21 @@ namespace NR
 				UI::BeginPropertyGrid();
 				UI::PropertyAssetReference("Environment Map", slc.SceneEnvironment);
 				UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
-				if (slc.SceneEnvironment->RadianceMap)
+				if (slc.SceneEnvironment)
 				{
-					UI::PropertySlider("Lod", slc.Lod, 0, slc.SceneEnvironment->RadianceMap->GetMipLevelCount());
-				}
-				else
-				{
-					UI::PushItemDisabled();
-					UI::PropertySlider("Lod", slc.Lod, 0, 10);
-					UI::PopItemDisabled();
+					if (slc.SceneEnvironment->RadianceMap)
+					{
+						UI::PropertySlider("Lod", slc.Lod, 0, slc.SceneEnvironment->RadianceMap->GetMipLevelCount());
+					}
+					else
+					{
+						UI::PushItemDisabled();
+						UI::PropertySlider("Lod", slc.Lod, 0, 10);
+						UI::PopItemDisabled();
+					}
 				}
 				ImGui::Separator();
+
 				UI::Property("Dynamic Sky", slc.DynamicSky);
 				if (slc.DynamicSky)
 				{
@@ -943,7 +946,13 @@ namespace NR
 				bool isError = !ScriptEngine::ModuleExists(sc.ModuleName);
 				std::string name = ScriptEngine::StripNamespace(Project::GetActive()->GetConfig().DefaultNamespace, sc.ModuleName);
 
-				if (UI::Property("Module Name", name, isError))
+				bool err = isError;
+				if (err)
+				{
+					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+				}
+
+				if (UI::Property("Module Name", name))
 				{
 					// Shutdown old script
 					if (!isError)
@@ -971,6 +980,11 @@ namespace NR
 					{
 						ScriptEngine::InitScriptEntity(entity);
 					}
+				}
+
+				if (err)
+				{
+					ImGui::PopStyleColor();
 				}
 
 				// Public Fields

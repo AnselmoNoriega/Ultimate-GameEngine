@@ -34,6 +34,7 @@ namespace NR
 
         static AssetMetadata& GetMetadata(AssetHandle handle);
         static AssetMetadata& GetMetadata(const std::filesystem::path& filepath);
+        static AssetMetadata& GetMetadata(const Ref<Asset>& asset) { return GetMetadata(asset->Handle); }
 
         static AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& filepath);
         static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
@@ -134,13 +135,7 @@ namespace NR
         template<typename T>
         static Ref<T> GetAsset(const std::string& filepath)
         {
-            std::string fp = filepath;
-            if (fp.find(Project::GetAssetDirectory().string()) == std::string::npos)
-            {
-                fp = (Project::GetAssetDirectory() / fp).string();
-            }
-
-            return GetAsset<T>(GetAssetHandleFromFilePath(fp));
+            return GetAsset<T>(GetAssetHandleFromFilePath(filepath));
         }
 
         static bool FileExists(AssetMetadata& metadata)

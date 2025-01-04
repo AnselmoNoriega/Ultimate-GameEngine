@@ -15,6 +15,8 @@ namespace NR
 		uint16_t Flags = (uint16_t)AssetFlag::None;
 
 		virtual ~Asset() = default;
+		
+		static AssetType GetStaticType() { return AssetType::None; }
 		virtual AssetType GetAssetType() const { return AssetType::None; }
 
 		bool IsValid() const { return ((Flags & (uint16_t)AssetFlag::Missing) | (Flags & (uint16_t)AssetFlag::Invalid)) == 0; }
@@ -57,7 +59,7 @@ namespace NR
 		}
 
 		static AssetType GetStaticType() { return AssetType::PhysicsMat; }
-		virtual AssetType GetAssetType() const override { return AssetType::PhysicsMat; }
+		AssetType GetAssetType() const override { return AssetType::PhysicsMat; }
 	};
 
 	class AudioFile : public Asset
@@ -75,6 +77,6 @@ namespace NR
 		{}
 
 		static AssetType GetStaticType() { return AssetType::Audio; }
-		virtual AssetType GetAssetType() const override { return AssetType::Audio; }
+		AssetType GetAssetType() const override { return AssetType::Audio; }
 	};
 }

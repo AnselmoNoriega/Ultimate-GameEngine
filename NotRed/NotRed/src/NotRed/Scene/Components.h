@@ -233,7 +233,7 @@ namespace NR
         enum class Type { Static, Dynamic };
         enum class CollisionDetectionType { Discrete, Continuous, ContinuousSpeculative };
 
-        Type BodyType;
+        Type BodyType = Type::Dynamic;
         float Mass = 1.0f;
         float LinearDrag = 0.01f;
         float AngularDrag = 0.05f;

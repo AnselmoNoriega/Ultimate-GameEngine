@@ -20,6 +20,8 @@ namespace NR
         bool Fullscreen = false;
         bool VSync = true;
         std::string WorkingDirectory;
+        bool StartMaximized = true;
+        bool Resizable = true;
         bool EnableImGui = true;
     };
 
@@ -42,9 +44,14 @@ namespace NR
 
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* layer);
+        void PopLayer(Layer* layer);
+        void PopOverlay(Layer* layer);
 
         std::string OpenFile(const char* filter = "All\0*.*\0") const;
+        std::string OpenFolder(const char* initialFolder = "") const;
         std::string SaveFile(const char* filter = "All\0*.*\0") const;
+
+        void SetShowStats(bool show) { mShowStats = show; }
 
         inline Window& GetWindow() { return *mWindow; }
 
@@ -80,6 +87,7 @@ namespace NR
         bool mEnableImGui = true;
 
         PerformanceProfiler* mProfiler = nullptr;
+        bool mShowStats = true;
     };
 
     Application* CreateApplication(int argc, char** argv);

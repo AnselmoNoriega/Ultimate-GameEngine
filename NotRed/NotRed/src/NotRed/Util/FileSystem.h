@@ -59,6 +59,11 @@ namespace NR
 
 		static void SkipNextFileSystemChange();
 
+	public:
+		static bool HasEnvironmentVariable(const std::string& key);
+		static bool SetEnvironmentVariable(const std::string& key, const std::string& value);
+		static std::string GetEnvironmentVariable(const std::string& key);
+
 	private:
 		static unsigned long Watch(void* param);
 

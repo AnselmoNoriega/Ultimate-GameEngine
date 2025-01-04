@@ -71,16 +71,19 @@ namespace NR::UI
 	static void PushItemDisabled()
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+	}
+
+	static bool IsItemDisabled()
+	{
+		return ImGui::GetItemFlags() & ImGuiItemFlags_Disabled;
 	}
 
 	static void PopItemDisabled()
 	{
 		ImGui::PopItemFlag();
-		ImGui::PopStyleVar();
 	}
 
-	static bool Property(const char* label, std::string& value, bool error = false)
+	static bool Property(const char* label, std::string& value)
 	{
 		bool modified = false;
 
@@ -96,18 +99,20 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
-		if (error)
+		if (IsItemDisabled())
 		{
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
+
 		if (ImGui::InputText(sIDBuffer, buffer, 256))
 		{
 			value = buffer;
 			modified = true;
 		}
-		if (error)
+
+		if (IsItemDisabled())
 		{
-			ImGui::PopStyleColor();
+			ImGui::PopStyleVar();
 		}
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -125,7 +130,10 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		ImGui::InputText(sIDBuffer, (char*)value, 256, ImGuiInputTextFlags_ReadOnly);
+		ImGui::PopStyleVar();
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -142,7 +150,18 @@ namespace NR::UI
 
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		bool changed = ImGui::InputText(sIDBuffer, value, length);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -161,9 +180,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+		
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::Checkbox(sIDBuffer, &value))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -185,9 +215,19 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::DragInt(sIDBuffer, &value))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -208,9 +248,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+		
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::SliderInt(sIDBuffer, &value, min, max))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -231,9 +282,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::SliderFloat(sIDBuffer, &value, min, max))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -254,9 +316,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::SliderFloat2(sIDBuffer, glm::value_ptr(value), min, max))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -277,8 +350,21 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::SliderFloat3(sIDBuffer, glm::value_ptr(value), min, max))
+		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -298,8 +384,21 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::SliderFloat4(sIDBuffer, glm::value_ptr(value), min, max))
+		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
@@ -320,9 +419,19 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::DragFloat(sIDBuffer, &value, delta, min, max))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -343,10 +452,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
 		
 		if (ImGui::DragFloat2(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -367,9 +486,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::ColorEdit3(sIDBuffer, glm::value_ptr(value)))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -391,9 +521,19 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::DragFloat3(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -415,9 +555,19 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
 
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::DragFloat4(sIDBuffer, glm::value_ptr(value), delta))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -438,7 +588,18 @@ namespace NR::UI
 		memset(sIDBuffer + 2, 0, 14);
 		itoa(sCounter++, sIDBuffer + 2, 16);
 
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		ImGui::InputText(sIDBuffer, (char*)value.c_str(), value.size(), ImGuiInputTextFlags_ReadOnly);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
+
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 	}
@@ -450,6 +611,12 @@ namespace NR::UI
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
 		bool changed = false;
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		const std::string id = "##" + std::string(label);
 		if (ImGui::BeginCombo(id.c_str(), current))
 		{
@@ -469,6 +636,12 @@ namespace NR::UI
 			}
 			ImGui::EndCombo();
 		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
+
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 		return changed;
@@ -480,6 +653,11 @@ namespace NR::UI
 		ImGui::Text(label);
 		ImGui::NextColumn();
 		ImGui::PushItemWidth(-1);
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
 
 		bool changed = false;
 
@@ -499,6 +677,11 @@ namespace NR::UI
 					ImGui::SetItemDefaultFocus();
 			}
 			ImGui::EndCombo();
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		ImGui::PopItemWidth();
@@ -651,9 +834,20 @@ namespace NR::UI
 		sIDBuffer[1] = '#';
 		memset(sIDBuffer + 2, 0, 14);
 		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+		
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
 		if (ImGui::Checkbox(sIDBuffer, &value))
 		{
 			modified = true;
+		}
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
 		}
 
 		return modified;

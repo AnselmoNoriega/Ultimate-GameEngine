@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 #include <Windows.h>
+#include <Shlobj.h>
 
 #include <imgui/imgui.h>
 #include "imgui/imgui_internal.h"
@@ -58,7 +59,15 @@ namespace NR
 
 		mWindow->Init();
 		mWindow->SetEventCallback([this](Event& e) { return OnEvent(e); });
-		mWindow->Maximize();
+		if (specification.StartMaximized)
+		{
+			mWindow->Maximize();
+		}
+		else
+		{
+			mWindow->CenterWindow();
+		}
+		mWindow->SetResizable(specification.Resizable);
 		mWindow->SetVSync(true);
 
 		Renderer::Init();
@@ -102,84 +111,98 @@ namespace NR
 		mProfiler = nullptr;
 	}
 
+	void Application::PopLayer(Layer* layer)
+	{
+		mLayerStack.PopLayer(layer);
+		layer->Detach();
+	}
+
+	void Application::PopOverlay(Layer* layer)
+	{
+		mLayerStack.PopOverlay(layer);
+		layer->Detach();
+	}
+
 	void Application::RenderImGui()
 	{
 		NR_SCOPE_PERF("Application::RenderImGui");
 
 		mImGuiLayer->Begin();
 
-		{
-			ImGui::Begin("Renderer");
-			auto& caps = Renderer::GetCapabilities();
-			ImGui::Text("Vendor: %s", caps.Vendor.c_str());
-			ImGui::Text("Renderer: %s", caps.Device.c_str());
-			ImGui::Text("Version: %s", caps.Version.c_str());
-			ImGui::Separator();
-			ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-
-			if (RendererAPI::Current() == RendererAPIType::Vulkan)
+			if (mShowStats)
 			{
-				GPUMemoryStats memoryStats = VKAllocator::GetStats();
-				std::string used = Utils::BytesToString(memoryStats.Used);
-				std::string free = Utils::BytesToString(memoryStats.Free);
-				ImGui::Text("Used VRAM: %s", used.c_str());
-				ImGui::Text("Free VRAM: %s", free.c_str());
-				ImGui::Text("Descriptor Allocs: %d", VKRenderer::GetDescriptorAllocationCount(Renderer::GetCurrentFrameIndex()));
+				ImGui::Begin("Renderer");
+				{
+					auto& caps = Renderer::GetCapabilities();
+					ImGui::Text("Vendor: %s", caps.Vendor.c_str());
+					ImGui::Text("Renderer: %s", caps.Device.c_str());
+					ImGui::Text("Version: %s", caps.Version.c_str());
+					ImGui::Separator();
+
+					ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+					if (RendererAPI::Current() == RendererAPIType::Vulkan)
+					{
+						GPUMemoryStats memoryStats = VKAllocator::GetStats();
+						std::string used = Utils::BytesToString(memoryStats.Used);
+						std::string free = Utils::BytesToString(memoryStats.Free);
+						ImGui::Text("Used VRAM: %s", used.c_str());
+						ImGui::Text("Free VRAM: %s", free.c_str());
+						ImGui::Text("Descriptor Allocs: %d", VKRenderer::GetDescriptorAllocationCount(Renderer::GetCurrentFrameIndex()));
+					}
+
+					bool vsync = mWindow->IsVSync();
+					if (ImGui::Checkbox("Vsync", &vsync))
+					{
+						mWindow->SetVSync(vsync);
+					}
+
+					ImGui::End();
+					ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+				}
+
+				ImGui::Begin("Audio Stats");
+				{
+					ImGui::Separator();
+
+					Audio::Stats audioStats = AudioEngine::GetStats();
+					std::string objects = std::to_string(audioStats.AudioObjects);
+					std::string events = std::to_string(audioStats.ActiveEvents);
+					std::string active = std::to_string(audioStats.NumActiveSounds);
+					std::string max = std::to_string(audioStats.TotalSources);
+					std::string numAC = std::to_string(audioStats.NumAudioComps);
+					std::string ramEn = Utils::BytesToString(audioStats.MemEngine);
+					std::string ramRM = Utils::BytesToString(audioStats.MemResManager);
+
+					ImGui::Text("Audio Objects: %s", objects.c_str());
+					ImGui::Text("Active Events: %s", events.c_str());
+					ImGui::Text("Active Sounds: %s", active.c_str());
+					ImGui::Text("Max Sources: %s", max.c_str());
+					ImGui::Text("Audio Components: %s", numAC.c_str());
+					ImGui::Separator();
+
+					ImGui::Text("Frame Time: %.3fms\n", audioStats.FrameTime);
+					ImGui::Text("Used RAM (Engine - backend): %s", ramEn.c_str());
+					ImGui::Text("Used RAM (Resource Manager): %s", ramRM.c_str());
+					ImGui::End();
+				}
+
+				ImGui::Begin("Performance");
+				ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+				const auto& perFrameData = mProfiler->GetPerFrameData();
+				for (auto&& [name, time] : perFrameData)
+				{
+					ImGui::Text("%s: %.3fms\n", name, time);
+				}
+				ImGui::End();
 			}
-		}
 
-		bool vsync = mWindow->IsVSync();
-		if (ImGui::Checkbox("Vsync", &vsync))
-		{
-			mWindow->SetVSync(vsync);
-		}
-
-		ImGui::End();
-
-		{
-			ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-			ImGui::Begin("Audio Stats");
-
-			ImGui::Separator();
-
-			Audio::Stats audioStats = Audio::AudioEngine::GetStats();
-			std::string active = std::to_string(audioStats.NumActiveSounds);
-
-			std::string max = std::to_string(audioStats.TotalSources);
-			std::string numAC = std::to_string(audioStats.NumAudioComps);
-			std::string ramEn = Utils::BytesToString(audioStats.MemEngine);
-			std::string ramRM = Utils::BytesToString(audioStats.MemResManager);
-
-			ImGui::Text("Active Sounds: %s", active.c_str());
-			ImGui::Text("Max Sources: %s", max.c_str());
-			ImGui::Text("Audio Components: %s", numAC.c_str());
-
-			ImGui::Separator();
-
-			ImGui::Text("Frame Time: %.3fms\n", audioStats.FrameTime);
-			ImGui::Text("Used RAM (Engine - backend): %s", ramEn.c_str());
-			ImGui::Text("Used RAM (Resource Manager): %s", ramRM.c_str());
-
-			ImGui::End();
-		}
-		{
-			ImGui::Begin("Performance");
-			ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-
-			const auto& perFrameData = mProfiler->GetPerFrameData();
-			for (auto&& [name, time] : perFrameData)
-			{
-				ImGui::Text("%s: %.3fms\n", name, time);
-			}
-
-			ImGui::End();
 			mProfiler->Clear();
-		}
 
-		for (Layer* layer : mLayerStack)
-		{
-			layer->ImGuiRender();
-		}
+
+			for (int i = 0; i < mLayerStack.Size(); i++)
+			{
+				mLayerStack[i]->ImGuiRender();
+			}
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -308,6 +331,35 @@ namespace NR
 		return std::string();
 	}
 
+	std::string Application::OpenFolder(const char* initialFolder) const
+	{
+		std::string result = "";
+		IFileOpenDialog* dialog;
+		if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, (void**)&dialog)))
+		{
+			DWORD options;
+			dialog->GetOptions(&options);
+			dialog->SetOptions(options | FOS_PICKFOLDERS);
+			if (SUCCEEDED(dialog->Show(NULL)))
+			{
+				IShellItem* selectedItem;
+				if (SUCCEEDED(dialog->GetResult(&selectedItem)))
+				{
+					PWSTR pszFilePath;
+					if (SUCCEEDED(selectedItem->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &pszFilePath)))
+					{
+						std::filesystem::path p = pszFilePath;
+						result = p.string();
+						CoTaskMemFree(pszFilePath);
+					}
+					selectedItem->Release();
+				}
+			}
+			dialog->Release();
+		}
+		return result;
+	}
+
 	std::string Application::SaveFile(const char* filter) const
 	{
 		OPENFILENAMEA ofn;       // common dialog box structure
@@ -373,5 +425,5 @@ namespace NR
 #else
 #error Undefined platform?
 #endif
-	}
+}
 }

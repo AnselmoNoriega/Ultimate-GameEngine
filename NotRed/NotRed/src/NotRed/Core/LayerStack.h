@@ -18,6 +18,19 @@ namespace NR
 		void PopLayer(Layer* layer);
 		void PopOverlay(Layer* overlay);
 
+		Layer* operator[](size_t index)
+		{
+			NR_CORE_ASSERT(index >= 0 && index < mLayers.size());
+			return mLayers[index];
+		}
+		const Layer* operator[](size_t index) const
+		{
+			NR_CORE_ASSERT(index >= 0 && index < mLayers.size());
+			return mLayers[index];
+		}
+
+		size_t Size() const { return mLayers.size(); }
+
 		std::vector<Layer*>::iterator begin() { return mLayers.begin(); }
 		std::vector<Layer*>::iterator end() { return mLayers.end(); }
 

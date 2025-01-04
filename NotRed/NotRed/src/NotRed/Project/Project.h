@@ -21,6 +21,9 @@ namespace NR
 
 		std::string StartScene;
 
+		bool ReloadAssemblyOnPlay;
+
+		std::string ProjectFileName;
 		std::string ProjectDirectory;
 	};
 
@@ -88,7 +91,11 @@ namespace NR
 
 	private:
 		ProjectConfig mConfig;
-		friend class ProjectSerializer;
+
 		inline static Ref<Project> sActiveProject;
+
+	private:
+		friend class ProjectSettingsWindow;
+		friend class ProjectSerializer;
 	};
 }

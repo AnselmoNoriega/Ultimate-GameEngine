@@ -17,13 +17,14 @@ namespace NR
 		sSerializers[AssetType::PhysicsMat] = CreateScope<PhysicsMaterialSerializer>();
 		sSerializers[AssetType::Audio] = CreateScope<AudioFileSourceSerializer>();
 		sSerializers[AssetType::SoundConfig] = CreateScope<SoundConfigSerializer>();
+		sSerializers[AssetType::Scene] = CreateScope<SceneAssetSerializer>();
 	}
 
 	void AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)
 	{
 		if (sSerializers.find(metadata.Type) == sSerializers.end())
 		{
-			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.extension().string());
+			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.stem().string());
 			return;
 		}
 
@@ -40,7 +41,7 @@ namespace NR
 	{
 		if (sSerializers.find(metadata.Type) == sSerializers.end())
 		{
-			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.extension().string());
+			NR_CORE_WARN("There's currently no importer for assets of type {0}", metadata.FilePath.stem().string());
 			return false;
 		}
 

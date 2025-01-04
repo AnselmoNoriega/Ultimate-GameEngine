@@ -1641,7 +1641,7 @@ namespace NR
 
 	void SceneRenderer::FlushDrawList()
 	{
-		if (mResourcesCreated)
+		if (mResourcesCreated && mViewportWidth > 0 && mViewportHeight > 0)
 		{
 			mCommandBuffer->Begin();
 

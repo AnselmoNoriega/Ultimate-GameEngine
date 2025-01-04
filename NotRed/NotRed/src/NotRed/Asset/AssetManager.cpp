@@ -21,7 +21,6 @@ namespace NR
         LoadAssetRegistry();
         FileSystem::SetChangeCallback(AssetManager::FileSystemChanged);
         ReloadAssets();
-        WriteRegistryToFile();
     }
 
     void AssetManager::Shutdown()
@@ -182,7 +181,6 @@ namespace NR
 
         if (!FileSystem::Exists(assetRegistryPath))
         {
-            NR_CORE_VERIFY(false);
             return;
         }
 

@@ -20,43 +20,6 @@ namespace NR
 		sCallback = callback;
 	}
 
-	/*std::string FileSystem::Rename(const std::string& filepath, const std::string& newName)
-	{
-		NR_CORE_ASSERT(false);
-		sIgnoreNextChange = true;
-
-		std::filesystem::path p = filepath;
-		std::string newFilePath = p.parent_path().string() + "/" + newName + p.extension().string();
-
-		MoveFileA(filepath.c_str(), newFilePath.c_str());
-		sIgnoreNextChange = false;
-		
-		return newFilePath;
-	}
-
-	bool FileSystem::DeleteFile(const std::string& filepath)
-	{
-		sIgnoreNextChange = true;
-		
-		std::string fp = filepath;
-		fp.append(1, '\0');
-		
-		SHFILEOPSTRUCTA file_op;
-		file_op.hwnd = NULL;
-		file_op.wFunc = FO_DELETE;
-		file_op.pFrom = fp.c_str();
-		file_op.pTo = "";
-		file_op.fFlags = FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT;
-		file_op.fAnyOperationsAborted = false;
-		file_op.hNameMappings = 0;
-		file_op.lpszProgressTitle = "";
-
-		int result = SHFileOperationA(&file_op);
-		sIgnoreNextChange = false;
-		
-		return result == 0;
-	}*/
-
 	void FileSystem::StartWatching()
 	{
 		sWatching = false;
@@ -67,6 +30,11 @@ namespace NR
 
 	void FileSystem::StopWatching()
 	{
+		if (!sWatching)
+		{
+			return;
+		}
+
 		sWatching = false;
 		DWORD result = WaitForSingleObject(sWatcherThread, 5000);
 		
@@ -77,18 +45,6 @@ namespace NR
 		
 		CloseHandle(sWatcherThread);
 	}
-
-	/*bool FileSystem::IsDirectory(const std::string& filepath)
-	{
-		bool result = std::filesystem::is_directory(filepath);
-
-		if (!result)
-		{
-			result = Utils::GetExtension(filepath).empty();
-		}
-
-		return result;
-	}*/
 
 	static std::string wchar_to_string(wchar_t* input)
 	{
@@ -261,4 +217,64 @@ namespace NR
 		return buffer;
 	}
 
+	bool FileSystem::HasEnvironmentVariable(const std::string& key)
+	{
+		HKEY hKey;
+		LPCSTR keyPath = "Environment";
+		LSTATUS lOpenStatus = RegOpenKeyExA(HKEY_CURRENT_USER, keyPath, 0, KEY_ALL_ACCESS, &hKey);
+		
+		if (lOpenStatus == ERROR_SUCCESS)
+		{
+			lOpenStatus = RegQueryValueExA(hKey, key.c_str(), 0, NULL, NULL, NULL);
+			RegCloseKey(hKey);
+		}
+
+		return lOpenStatus == ERROR_SUCCESS;
+	}
+
+	bool FileSystem::SetEnvironmentVariable(const std::string& key, const std::string& value)
+	{
+		HKEY hKey;
+		LPCSTR keyPath = "Environment";
+		DWORD createdNewKey;
+		LSTATUS lOpenStatus = RegCreateKeyExA(HKEY_CURRENT_USER, keyPath, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &createdNewKey);
+		
+		if (lOpenStatus == ERROR_SUCCESS)
+		{
+			LSTATUS lSetStatus = RegSetValueExA(hKey, key.c_str(), 0, REG_SZ, (LPBYTE)value.c_str(), value.length() + 1);
+			RegCloseKey(hKey);
+			if (lSetStatus == ERROR_SUCCESS)
+			{
+				SendMessageTimeoutA(HWND_BROADCAST, WM_SETTINGCHANGE, 0, (LPARAM)"Environment", SMTO_BLOCK, 100, NULL);
+				return true;
+			}
+		}
+
+		return false;
+	}
+	std::string FileSystem::GetEnvironmentVariable(const std::string& key)
+	{
+		HKEY hKey;
+		LPCSTR keyPath = "Environment";
+		DWORD createdNewKey;
+		LSTATUS lOpenStatus = RegCreateKeyExA(HKEY_CURRENT_USER, keyPath, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, &createdNewKey);
+		
+		if (lOpenStatus == ERROR_SUCCESS)
+		{
+			DWORD valueType;
+			char* data = new char[512];
+			DWORD dataSize = 512;
+			LSTATUS status = RegGetValueA(hKey, NULL, key.c_str(), RRF_RT_ANY, &valueType, (PVOID)data, &dataSize);
+			RegCloseKey(hKey);
+
+			if (status == ERROR_SUCCESS)
+			{
+				std::string result(data);
+				delete[] data;
+				return result;
+			}
+		}
+
+		return std::string{};
+	}
 }

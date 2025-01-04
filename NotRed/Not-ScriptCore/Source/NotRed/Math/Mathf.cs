@@ -37,6 +37,11 @@ namespace NR
             return (float)System.Math.Atan2((double)y, (double)x);
         }
 
+        public static float Min(float v0, float v1)
+        {
+            return v0 < v1 ? v0 : v1;
+        }
+
         public static float Max(float v0, float v1)
         {
             return v0 > v1 ? v0 : v1;
@@ -68,6 +73,11 @@ namespace NR
                 return p2;
             }
             return p1 + ((p2 - p1) * t);
+        }
+
+        public static float Modulo(float a, float b)
+        {
+            return a - b * (float)Math.Floor(a / b);
         }
     }
 }

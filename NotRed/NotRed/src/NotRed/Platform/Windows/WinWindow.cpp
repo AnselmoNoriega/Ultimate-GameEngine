@@ -232,9 +232,22 @@ namespace NR
         glfwMaximizeWindow(mWindow);
     }
 
+    void WinWindow::CenterWindow()
+    {
+        const GLFWvidmode* videmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        int x = (videmode->width / 2) - (mData.Width / 2);
+        int y = (videmode->height / 2) - (mData.Height / 2);
+        glfwSetWindowPos(mWindow, x, y);
+    }
+
     bool WinWindow::IsVSync() const
     {
         return mData.VSync;
+    }
+
+    void WinWindow::SetResizable(bool resizable) const
+    {
+        glfwSetWindowAttrib(mWindow, GLFW_RESIZABLE, resizable ? GLFW_TRUE : GLFW_FALSE);
     }
 
     void WinWindow::Shutdown()

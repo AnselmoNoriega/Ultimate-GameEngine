@@ -38,6 +38,7 @@ namespace NR
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void SetVSync(bool enabled) = 0;
 		virtual bool IsVSync() const = 0;
+		virtual void SetResizable(bool resizable) const = 0;
 
 		virtual const std::string& GetTitle() const = 0;
 		virtual void SetTitle(const std::string& title) = 0;
@@ -49,6 +50,7 @@ namespace NR
 		virtual VKSwapChain& GetSwapChain() = 0;
 
 		virtual void Maximize() = 0;
+		virtual void CenterWindow() = 0;
 
 		static Window* Create(const WindowSpecification& specification = WindowSpecification());
 	};
