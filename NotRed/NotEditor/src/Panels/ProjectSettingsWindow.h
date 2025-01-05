@@ -1,19 +1,22 @@
 #pragma once
 
+#include "NotRed/Core/Log.h"
+#include "NotRed/Project/Project.h"
+#include "NotRed/Scene/Scene.h"
+
 namespace NR
 {
-	class PhysicsSettingsWindow
+	class ProjectSettingsWindow
 	{
 	public:
+		ProjectSettingsWindow(const Ref<Project>& project);
+		~ProjectSettingsWindow();
+		
 		void ImGuiRender(bool& show);
 
 	private:
-		void RenderWorldSettings();
-
-		void RenderLayerList();
-		void RenderSelectedLayer();
-	
-	private:
+		Ref<Project> mProject;
+		Ref<Asset> mDefaultScene;
 		int32_t mSelectedLayer = -1;
 		char mNewLayerNameBuffer[255];
 	};

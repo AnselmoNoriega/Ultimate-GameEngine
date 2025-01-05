@@ -486,6 +486,9 @@
     <ClInclude Include="src\NotRed\Project\ProjectSerializer.h">
       <Filter>src\NotRed\Project</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Project\UserPreferences.h">
+      <Filter>src\NotRed\Project</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -508,6 +511,9 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\OZZImporterAssimp.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
@@ -798,7 +804,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\OZZImporterAssimp.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1084,6 +1089,9 @@
       <Filter>src\NotRed\Project</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp">
+      <Filter>src\NotRed\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Project\UserPreferences.cpp">
       <Filter>src\NotRed\Project</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp">

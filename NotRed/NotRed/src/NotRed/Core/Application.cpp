@@ -164,7 +164,7 @@ namespace NR
 				{
 					ImGui::Separator();
 
-					Audio::Stats audioStats = AudioEngine::GetStats();
+					Audio::Stats audioStats = Audio::AudioEngine::GetStats();
 					std::string objects = std::to_string(audioStats.AudioObjects);
 					std::string events = std::to_string(audioStats.ActiveEvents);
 					std::string active = std::to_string(audioStats.NumActiveSounds);

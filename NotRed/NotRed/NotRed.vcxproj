@@ -269,6 +269,7 @@
     <ClInclude Include="src\NotRed\Platform\Windows\WinWindow.h" />
     <ClInclude Include="src\NotRed\Project\Project.h" />
     <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
+    <ClInclude Include="src\NotRed\Project\UserPreferences.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
@@ -471,6 +472,7 @@
     <ClCompile Include="src\NotRed\Platform\Windows\WinWindow.cpp" />
     <ClCompile Include="src\NotRed\Project\Project.cpp" />
     <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Project\UserPreferences.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Image.cpp" />

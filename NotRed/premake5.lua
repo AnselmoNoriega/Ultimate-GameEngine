@@ -215,6 +215,7 @@ project "NotEditor"
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.Yaml}",
 		"%{IncludeDir.Ozz}"
 	}
 
@@ -284,7 +285,106 @@ project "NotEditor"
 			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mtd.dll" "%{cfg.targetdir}"',
 			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
-group ""
+
+project "NotLauncher"
+	location "NotLauncher"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "off"
+	
+	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	links 
+	{ 
+		"NotRed"
+	}
+	
+	files 
+	{ 
+		"%{prj.name}/src/**.h", 
+		"%{prj.name}/src/**.c", 
+		"%{prj.name}/src/**.hpp", 
+		"%{prj.name}/src/**.cpp" 
+	}
+	
+	includedirs 
+	{
+		"%{prj.name}/src",
+		"NotRed/src",
+		"NotRed/vendor",
+		"%{IncludeDir.Yaml}",
+		"%{IncludeDir.Entt}",
+		"%{IncludeDir.Glm}",
+		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.PhysX}",
+		"%{IncludeDir.Vulkan}",
+		"%{IncludeDir.Glad}",
+		"%{IncludeDir.MiniAudio}"
+	}
+	postbuildcommands 
+	{
+		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"'
+	}
+	
+	filter "system:windows"
+		systemversion "latest"
+				
+		defines 
+		{ 
+			"NR_PLATFORM_WINDOWS"
+		}
+	
+	filter "configurations:Debug"
+		defines "NR_DEBUG"
+		symbols "on"
+
+		links
+		{
+			"NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.lib"
+		}
+		
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bin/Debug/assimp-vc143-mtd.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"',
+		    '{COPY} "../NotRed/vendor/Vulkan/win64/shaderc_sharedd.dll" "%{cfg.targetdir}"'
+		}
+				
+	filter "configurations:Release"
+		defines
+		{
+			"NR_RELEASE",
+			"NDEBUG"
+		}
+
+		optimize "on"
+
+		links
+		{
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
+		}
+
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+		}
+		
+	filter "configurations:Dist"
+		defines "NR_DIST"
+		optimize "on"
+
+		links
+		{
+			"NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.lib"
+		}
+
+		postbuildcommands 
+		{
+			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
+			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+		}
 
 group "Runtime"
 project "Not-Runtime"
