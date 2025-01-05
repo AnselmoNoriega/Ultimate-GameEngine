@@ -204,6 +204,11 @@ namespace NR
 								}
 							}
 
+							if (ImGui::MenuItem("Scene"))
+							{
+								CreateAsset<Scene>("New Scene.nrscene");
+							}
+
 							if (ImGui::MenuItem("Material"))
 							{
 								CreateAsset<MaterialAsset>("New Material.nrmaterial");
@@ -575,7 +580,7 @@ namespace NR
 			{
 				if (item->GetType() == ContentBrowserItem::ItemType::Directory)
 				{
-					FileSystem::OpenExternally(mProject->GetAssetDirectory() / mCurrentDirectory->FilePath / item->GetName());
+					FileSystem::ShowFileInExplorer(mProject->GetAssetDirectory() / mCurrentDirectory->FilePath / item->GetName());
 				}
 				else
 				{

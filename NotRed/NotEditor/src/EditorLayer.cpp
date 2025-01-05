@@ -1452,7 +1452,7 @@ namespace NR
                 if (ImGui::BeginMenu("Open Recent"))
                 {
                     size_t i = 0;
-                    for (auto it = m_UserPreferences->RecentProjects.begin(); it != m_UserPreferences->RecentProjects.end(); it++)
+                    for (auto it = mUserPreferences->RecentProjects.begin(); it != mUserPreferences->RecentProjects.end(); ++it)
                     {
                         if (i > 10)
                             break;
@@ -1463,16 +1463,16 @@ namespace NR
                             projectEntry.Name = it->second.Name;
                             projectEntry.FilePath = it->second.FilePath;
                             projectEntry.LastOpened = time(NULL);
-                            it = m_UserPreferences->RecentProjects.erase(it);
-                            m_UserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
-                            UserPreferencesSerializer preferencesSerializer(m_UserPreferences);
-                            preferencesSerializer.Serialize(m_UserPreferences->FilePath);
+                            it = mUserPreferences->RecentProjects.erase(it);
+                            mUserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
+                            UserPreferencesSerializer preferencesSerializer(mUserPreferences);
+                            preferencesSerializer.Serialize(mUserPreferences->FilePath);
                             break;
                         }
-                        i++;
+                        ++i;
                     }
                     ImGui::EndMenu();
-                }hhh
+                }
                 
                 ImGui::Separator();
 
@@ -1480,13 +1480,6 @@ namespace NR
                 {
                     NewScene();
                 }
-                if (ImGui::MenuItem("Open Scene...", "Ctrl+O"))
-                {
-                    OpenScene();
-                }
-
-                ImGui::Separator();
-
                 if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
                 {
                     SaveScene();
@@ -1519,7 +1512,12 @@ namespace NR
 
             if (ImGui::BeginMenu("Edit"))
             {
+                ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
                 ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
+                if (ImGui::MenuItem("Reload C# Assembly"))
+                {
+                    ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
+                }
 
                 ImGui::EndMenu();
             }
@@ -1527,18 +1525,6 @@ namespace NR
             if (ImGui::BeginMenu("View"))
             {
                 ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
-                ImGui::MenuItem("Physics Settings", nullptr, &mShowPhysicsSettings);
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Script"))
-            {
-                if (ImGui::MenuItem("Reload C# Assembly"))
-                {
-                    ScriptEngine::ReloadAssembly((Project::GetScriptModulePath() / "ExampleApp.dll").string());
-                }
-
-                ImGui::MenuItem("Reload assembly on play", nullptr, &mReloadScriptOnPlay);
                 ImGui::EndMenu();
             }
 
@@ -1918,27 +1904,109 @@ namespace NR
 
         mFocusedRenderer->ImGuiRender();
 
-        // Project panel
-        {
-            ImGui::Begin("Project");
-
-            Ref<Project> project = Project::GetActive();
-            const auto& config = project->GetConfig();
-
-            UI::BeginPropertyGrid();
-            UI::Property("Name", config.Name);
-            UI::Property("Asset Directory", config.AssetDirectory);
-            UI::Property("Asset Registry Path", config.AssetRegistryPath);
-            UI::Property("Mesh Path", config.MeshPath);
-            UI::Property("Mesh Source Path", config.MeshSourcePath);
-            UI::Property("Script Module Path", config.ScriptModulePath);
-            UI::Property("Start Scene", config.StartScene);
-            UI::Property("Project Directory", config.ProjectDirectory);
-            UI::EndPropertyGrid();
-            ImGui::End();
-        }
-
         ImGui::End();
+
+        {
+            if (sNotRedInstallPath.empty() && !ImGui::IsPopupOpen("Select NotRed Install"))
+            {
+                ImGui::OpenPopup("Select NotRed Install");
+                sNotRedInstallPath.reserve(MAX_PROJECT_FILEPATH_LENGTH);
+            }
+
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            ImGui::SetNextWindowSize(ImVec2(700, 0));
+            if (ImGui::BeginPopupModal("Select NotRed Install", 0, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+            {
+                ImGui::PushFont(boldFont);
+                ImGui::TextUnformatted("Failed to find an appropiate NotRed installation!");
+                ImGui::PopFont();
+
+                ImGui::TextWrapped("Please select the root folder for the NotRed version you want to use (E.g C:/Dev/NotRed-dev).You should be able to find a file called premake5.lua in the root folder.");
+                ImGui::Dummy(ImVec2(0, 8));
+                ImVec2 label_size = ImGui::CalcTextSize("...", NULL, true);
+                auto& style = ImGui::GetStyle();
+                ImVec2 button_size = ImGui::CalcItemSize(ImVec2(0, 0), label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 10));
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 6));
+                ImGui::SetNextItemWidth(700 - button_size.x - style.FramePadding.x * 2.0f - style.ItemInnerSpacing.x - 1);
+                ImGui::InputTextWithHint("##notred_install_location", "C:/Dev/NotRed-dev/", sNotRedInstallPath.data(), MAX_PROJECT_FILEPATH_LENGTH, ImGuiInputTextFlags_ReadOnly);
+                ImGui::SameLine();
+                if (ImGui::Button("..."))
+                {
+                    std::string result = Application::Get().OpenFolder();
+                    sNotRedInstallPath.assign(result);
+                }
+                if (ImGui::Button("Confirm"))
+                {
+                    bool success = FileSystem::SetEnvironmentVariable("NOTRED_DIR", sNotRedInstallPath);
+                    NR_CORE_ASSERT(success, "Failed to set Environment Variable!");
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::PopStyleVar(2);
+                ImGui::EndPopup();
+            }
+        }
+        {
+            if (mShowCreateNewProjectPopup)
+            {
+                ImGui::OpenPopup("New Project");
+                memset(sProjectNameBuffer, 0, MAX_PROJECT_NAME_LENGTH);
+                memset(sProjectFilePathBuffer, 0, MAX_PROJECT_FILEPATH_LENGTH);
+                mShowCreateNewProjectPopup = false;
+            }
+
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+            ImGui::SetNextWindowSize(ImVec2{ 700, 325 });
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 10));
+
+            if (ImGui::BeginPopupModal("New Project", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+            {
+                ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 325 / 8);
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 7));
+                ImGui::PushFont(boldFont);
+                std::string fullProjectPath = strlen(sProjectFilePathBuffer) > 0 ? std::string(sProjectFilePathBuffer) + "/" + std::string(sProjectNameBuffer) : "";
+                ImGui::Text("Full Project Path: %s", fullProjectPath.c_str());
+                ImGui::PopFont();
+                ImGui::SetNextItemWidth(-1);
+                ImGui::InputTextWithHint("##new_project_name", "Project Name", sProjectNameBuffer, MAX_PROJECT_NAME_LENGTH);
+                ImVec2 label_size = ImGui::CalcTextSize("...", NULL, true);
+                auto& style = ImGui::GetStyle();
+                ImVec2 button_size = ImGui::CalcItemSize(ImVec2(0, 0), label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
+                ImGui::SetNextItemWidth(600 - button_size.x - style.FramePadding.x * 2.0f - style.ItemInnerSpacing.x - 1);
+                ImGui::InputTextWithHint("##new_project_location", "Project Location", sProjectFilePathBuffer, MAX_PROJECT_FILEPATH_LENGTH, ImGuiInputTextFlags_ReadOnly);
+                
+                ImGui::SameLine();
+                
+                if (ImGui::Button("..."))
+                {
+                    std::string result = Application::Get().OpenFolder();
+                    std::replace(result.begin(), result.end(), '\\', '/');
+                    memcpy(sProjectFilePathBuffer, result.data(), result.length());
+                }
+
+                ImGui::Separator();
+                ImGui::PushFont(boldFont);
+                if (ImGui::Button("Create"))
+                {
+                    CreateProject(fullProjectPath);
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel"))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::PopFont();
+                ImGui::PopStyleVar();
+                ImGui::EndPopup();
+            }
+            ImGui::PopStyleVar(2);
+        }
 
         UI_WelcomePopup();
         UI_AboutPopup();

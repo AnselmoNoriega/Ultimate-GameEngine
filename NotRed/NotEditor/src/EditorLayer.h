@@ -17,9 +17,11 @@
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
-#include "Panels/PhysicsSettingsWindow.h"
+#include "Panels/ProjectSettingsWindow.h"
 #include "NotRed/Editor/ObjectsPanel.h"
 #include "NotRed/Editor/EditorConsolePanel.h"
+
+#include "NotRed/Project/UserPreferences.h"
 
 namespace NR
 {
@@ -35,7 +37,7 @@ namespace NR
 		};
 
 	public:
-		EditorLayer();
+		EditorLayer(const Ref<UserPreferences>& userPreferences);
 		~EditorLayer() override;
 
 		void Attach() override;
@@ -52,13 +54,14 @@ namespace NR
 		void SelectEntity(Entity entity);
 
 		void NewScene();
-		void CreateProject();
 		void OpenProject();
 		void OpenProject(const std::string& filepath);
+		void CreateProject(std::filesystem::path projectPath);
+		void SaveProject();
+		void CloseProject(bool unloadProject = true);
 		void OpenScene(const std::string& filepath);
 		void OpenScene(const AssetMetadata& assetMetadata);
 		void OpenScene();
-		void CloseProject();
 		void SaveScene();
 		void SaveSceneAs();
 
@@ -97,9 +100,10 @@ namespace NR
 		void UpdateSceneRendererSettings();
 
 	private:
+		Ref<UserPreferences> mUserPreferences;
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel, mPrefabHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
-		Scope<PhysicsSettingsWindow> mPhysicsSettingsPanel;
+		Scope<ProjectSettingsWindow> mProjectSettingsPanel;
 		Scope<ObjectsPanel> mObjectsPanel;
 		Scope<EditorConsolePanel> mConsolePanel;
 
@@ -108,7 +112,6 @@ namespace NR
 		Ref<SceneRenderer> mSecondViewportRenderer;
 		Ref<SceneRenderer> mFocusedRenderer;
 		std::string mSceneFilePath;
-		bool mReloadScriptOnPlay = true;
 
 		EditorCamera mEditorCamera;
 		EditorCamera mSecondEditorCamera;
@@ -145,12 +148,6 @@ namespace NR
 		};
 
 		float mEnvMapRotation = 0.0f;
-
-		enum class SceneType : uint32_t
-		{
-			Spheres = 0, Model = 1
-		};
-		SceneType mSceneType;
 
 		// Editor resources
 		Ref<Texture2D> mCheckerboardTex;
@@ -190,11 +187,12 @@ namespace NR
 		bool mViewportPanel2MouseOver = false;
 		bool mViewportPanel2Focused = false;
 
-		bool mShowPhysicsSettings = false;
+		bool mShowProjectSettings = false;
 		bool mShowSecondViewport = false;
 
 		bool mShowWelcomePopup = true;
 		bool mShowAboutPopup = false;
+		bool mShowCreateNewProjectPopup = false;
 
 		bool mShowCreateNewMeshPopup = false;
 
