@@ -1,0 +1,8 @@
+Project:
+  Name: $PROJECT_NAME$
+  AssetDirectory: Assets
+  AssetRegistry: Assets/AssetRegistry.nrr
+  AudioCommandsRegistryPath: Assets/AudioCommandsRegistry.nrr
+  MeshPath: Assets/Meshes
+  MeshSourcePath: Assets/Meshes/Source
+  ScriptModulePath: Assets/Scripts/Binaries
