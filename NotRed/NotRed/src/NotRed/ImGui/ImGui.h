@@ -868,6 +868,48 @@ namespace NR::UI
 		sCheckboxCount = 0;
 	}
 
+	static bool PropertyEntityReference(const char* label, Entity& entity)
+	{
+		bool receivedValidEntity = false;
+
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+
+		ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
+		{
+			ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+			float width = ImGui::GetContentRegionAvail().x;
+			float itemHeight = 28.0f;
+			std::string buttonText = "Null";
+			if (entity)
+			{
+				buttonText = entity.GetComponent<TagComponent>().Tag;
+			}
+
+			ImGui::Button(fmt::format("{}##{}", buttonText, sCounter++).c_str(), { width, itemHeight });
+		}
+
+		ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
+
+		if (ImGui::BeginDragDropTarget())
+		{
+			auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
+			if (data)
+			{
+				entity = *(Entity*)data->Data;
+				receivedValidEntity = true;
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+
+		return receivedValidEntity;
+	}
+
 	template<typename T>
 	static bool PropertyAssetReference(
 		const char* label,

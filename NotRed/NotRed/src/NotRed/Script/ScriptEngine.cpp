@@ -677,6 +677,7 @@ namespace NR
 		{
 			char* name = mono_type_get_name(monoType);
 			if (strcmp(name, "NR.Prefab") == 0) return FieldType::Asset;
+			if (strcmp(name, "NR.Entity") == 0) return FieldType::Entity;
 			return FieldType::ClassReference;
 		}
 		case MONO_TYPE_VALUETYPE:
@@ -936,6 +937,7 @@ namespace NR
 		case FieldType::Vec3:        return 4 * 3;
 		case FieldType::Vec4:        return 4 * 4;
 		case FieldType::Asset:       return 8;
+		case FieldType::Entity:		 return 8;
 		default:
 		{
 			NR_CORE_ASSERT(false, "Unknown field type!");
@@ -1034,6 +1036,26 @@ namespace NR
 			// Create Managed Object
 			void* params[] = { mStoredValueBuffer };
 			MonoObject* obj = ScriptEngine::Construct(TypeName + ":.ctor(ulong)", true, params);
+			if (mMonoProperty)
+			{
+				void* data[] = { obj };
+				mono_property_set_value(mMonoProperty, entityInstance.GetInstance(), data, nullptr);
+			}
+			else
+			{
+				mono_field_set_value(entityInstance.GetInstance(), mMonoClassField, obj);
+			}
+		}
+		else if (Type == FieldType::Entity)
+		{
+			if (GetStoredValue<UUID>() == 0)
+			{
+				return;
+			}
+
+			void* params[] = { mStoredValueBuffer };
+			MonoObject* obj = ScriptEngine::Construct("NR.Entity:.ctor(ulong)", true, params);
+
 			if (mMonoProperty)
 			{
 				void* data[] = { obj };

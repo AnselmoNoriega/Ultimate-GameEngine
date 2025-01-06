@@ -17,7 +17,8 @@ namespace NR
 		Float, Int, UnsignedInt, 
 		String, 
 		Vec2, Vec3, Vec4, 
-		ClassReference, Asset
+		ClassReference, Asset,
+		Entity
 	};
 
 	inline const char* FieldTypeToString(FieldType type)
