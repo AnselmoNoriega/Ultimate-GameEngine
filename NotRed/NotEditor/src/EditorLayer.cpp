@@ -447,7 +447,7 @@ namespace NR
             std::filesystem::create_directories(projectPath);
         }
 
-        std::filesystem::copy(sNotRedInstallPath + "/Shared/NewProjectTemplate", projectPath, std::filesystem::copy_options::recursive);
+        std::filesystem::copy(sNotRedInstallPath + "/NotEditor/Resources/NewProjectTemplate", projectPath, std::filesystem::copy_options::recursive);
         {
             // premake5.lua
             std::ifstream stream(projectPath / "premake5.lua");
@@ -483,6 +483,13 @@ namespace NR
             std::string newProjectFileName = std::string(sProjectNameBuffer) + ".nrproj";
             std::filesystem::rename(projectPath / "Project.nrproj", projectPath / newProjectFileName);
         }
+
+        std::filesystem::create_directories(projectPath / "Assets" / "Audio");
+        std::filesystem::create_directories(projectPath / "Assets" / "Materials");
+        std::filesystem::create_directories(projectPath / "Assets" / "Meshes" / "Source");
+        std::filesystem::create_directories(projectPath / "Assets" / "Scenes");
+        std::filesystem::create_directories(projectPath / "Assets" / "Scripts" / "Source");
+        std::filesystem::create_directories(projectPath / "Assets" / "Textures");
 
         std::string batchFilePath = projectPath.string();
         std::replace(batchFilePath.begin(), batchFilePath.end(), '/', '\\'); // Only windows

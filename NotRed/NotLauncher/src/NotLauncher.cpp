@@ -101,6 +101,9 @@ NR::Application* NR::CreateApplication(int argc, char** argv)
 	specification.VSync = true;
 	specification.StartMaximized = false;
 	specification.Resizable = false;
+	specification.WorkingDirectory = FileSystem::HasEnvironmentVariable("NOTRED_DIR") ? 
+		FileSystem::GetEnvironmentVariable("NOTRED_DIR") + "/NotEditor" : 
+		"../NotEditor";
 
 	return new NotEditorLauncherApplication(specification);
 }
