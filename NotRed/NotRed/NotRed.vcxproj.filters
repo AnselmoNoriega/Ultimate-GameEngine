@@ -804,6 +804,9 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\ImGui\Colors.h" />
+    <ClInclude Include="src\NotRed\ImGui\CustomTreeNode.h" />
+    <ClInclude Include="src\NotRed\ImGui\ImGuiUtil.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1307,5 +1310,8 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\Colors.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\CustomTreeNode.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp" />
   </ItemGroup>
 </Project>

@@ -207,8 +207,11 @@
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
+    <ClInclude Include="src\NotRed\ImGui\Colors.h" />
+    <ClInclude Include="src\NotRed\ImGui\CustomTreeNode.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGui.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h" />
+    <ClInclude Include="src\NotRed\ImGui\ImGuiUtil.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h" />
     <ClInclude Include="src\NotRed\Math\AABB.h" />
     <ClInclude Include="src\NotRed\Math\Math.h" />
@@ -414,8 +417,11 @@
     <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\Colors.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\CustomTreeNode.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />

@@ -788,6 +788,77 @@ namespace NR::UI
 		return modified;
 	}
 
+	template<typename TAssetType>
+	static bool PropertyAssetDropdown(const char* label, Ref<TAssetType>& object, float width, AssetHandle* selected)
+	{
+		bool modified = false;
+		std::string preview;
+		float itemHeight = 28.0f;
+		UI::PushID();
+
+		if (AssetManager::IsAssetHandleValid(*selected))
+		{
+			object = AssetManager::GetAsset<TAssetType>(*selected);
+		}
+
+		if (object)
+		{
+			if (!object->IsFlagSet(AssetFlag::Missing))
+			{
+				preview = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+			}
+			else
+			{
+				preview = "Missing";
+			}
+		}
+		else
+		{
+			preview = "Null";
+		}
+		auto& assets = AssetManager::GetLoadedAssets();
+		AssetHandle current = *selected;
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		ImGui::PushItemWidth(width);
+		const std::string id = "##" + std::string(label);
+		if (ImGui::BeginCombo(id.c_str(), preview.c_str(), ImGuiComboFlags_PopupAlignLeft))
+		{
+			ImGui::SetKeyboardFocusHere(0);
+			for (auto& [handle, asset] : assets)
+			{
+				if (typeid(*asset.Raw()) != typeid(TAssetType))
+					continue;
+				auto& metadata = AssetManager::GetMetadata(handle);
+				const bool is_selected = (current == handle);
+				if (ImGui::Selectable(metadata.FilePath.string().c_str(), is_selected))
+				{
+					current = handle;
+					*selected = handle;
+					modified = true;
+				}
+
+				if (is_selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		ImGui::PopItemWidth();
+
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
+		UI::PopID();
+
+		return modified;
+	}
+
 	static void EndPropertyGrid()
 	{
 		ImGui::Columns(1);
