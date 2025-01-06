@@ -81,7 +81,8 @@ project "NotRed"
 		"%{IncludeDir.FastNoise}",
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.NsightAftermath}",
-		"%{IncludeDir.MiniAudio}"
+		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.Farbot}"
 	}
 	
 	links 
@@ -217,6 +218,7 @@ project "NotEditor"
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.Farbot}",
 		"%{IncludeDir.Yaml}",
 		"%{IncludeDir.Ozz}"
 	}
@@ -323,7 +325,8 @@ project "NotLauncher"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.Glad}",
-		"%{IncludeDir.MiniAudio}"
+		"%{IncludeDir.MiniAudio}",
+		"%{IncludeDir.Farbot}"
 	}
 	postbuildcommands 
 	{
