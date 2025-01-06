@@ -320,6 +320,11 @@ namespace NR
 
 	void PhysicsActor::ModifyLockFlag(ActorLockFlag flag, bool addFlag)
 	{
+		if (!IsDynamic())
+		{
+			return;
+		}
+
 		if (addFlag)
 		{
 			mLockFlags |= (uint32_t)flag;
@@ -329,12 +334,7 @@ namespace NR
 			mLockFlags &= ~(uint32_t)flag;
 		}
 
-		if (!IsDynamic())
-		{
-			return;
-		}
-
-		mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(PhysicsUtils::ToPhysicsActorLockFlag(flag), addFlag);
+		mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlags((physx::PxRigidDynamicLockFlags)mLockFlags);
 	}
 
 	void PhysicsActor::FixedUpdate(float fixedDeltaTime)

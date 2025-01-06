@@ -271,7 +271,7 @@ namespace NR
 			ImGui::PopStyleColor();
 		}
 
-		if (ImGui::IsItemClicked())
+		if (ImGui::IsItemHovered(ImGuiHoveredFlags_None) && ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 		{
 			mSelectionContext = entity;
 			if (mSelectionChangedCallback)
@@ -1120,6 +1120,23 @@ namespace NR
 									}
 								}
 								break;
+							}
+							case FieldType::Entity:
+							{
+								UUID uuid = isRuntime ? field.GetRuntimeValue<UUID>(entityInstanceData.Instance) : field.GetStoredValue<UUID>();
+								std::string entityName = "";
+								Entity entity = mContext->FindEntityByID(uuid);
+								if (UI::PropertyEntityReference(field.Name.c_str(), entity))
+								{
+									if (isRuntime)
+									{
+										field.SetRuntimeValue(entityInstanceData.Instance, entity.GetID());
+									}
+									else
+									{
+										field.SetStoredValue(entity.GetID());
+									}
+								}
 							}
 							}
 							if (field.IsReadOnly)

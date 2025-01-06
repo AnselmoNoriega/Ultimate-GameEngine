@@ -108,6 +108,9 @@ namespace NR::Script
     void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass);
     void NR_RigidBodyComponent_GetKinematicTarget(uint64_t entityID, glm::vec3* outTargetPosition, glm::vec3* outTargetRotation);
     void NR_RigidBodyComponent_SetKinematicTarget(uint64_t entityID, glm::vec3* inTargetPosition, glm::vec3* inTargetRotation);
+    void NR_RigidBodyComponent_SetLockFlag(uint64_t entityID, ActorLockFlag flag, bool value);
+    bool NR_RigidBodyComponent_IsLockFlagSet(uint64_t entityID, ActorLockFlag flag);
+    uint32_t NR_RigidBodyComponent_GetLockFlags(uint64_t entityID);
 
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize);
     void NR_BoxColliderComponent_SetSize(uint64_t entityID, glm::vec3* inSize);

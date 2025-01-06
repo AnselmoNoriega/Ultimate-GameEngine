@@ -29,8 +29,11 @@ namespace NR
 
 	enum class ActorLockFlag
 	{
-		PositionX = 1 << 0, PositionY = 1 << 1, PositionZ = 1 << 2,
-		RotationX = 1 << 3, RotationY = 1 << 4, RotationZ = 1 << 5
+		PositionX = 1 << 0, PositionY = 1 << 1, PositionZ = 1 << 2, 
+		Position = PositionX | PositionY | PositionZ,
+		
+		RotationX = 1 << 3, RotationY = 1 << 4, RotationZ = 1 << 5, 
+		Rotation = RotationX | RotationY | RotationZ
 	};
 
 	namespace PhysicsUtils
@@ -51,7 +54,5 @@ namespace NR
 
 		CookingResult FromPhysicsCookingResult(physx::PxConvexMeshCookingResult::Enum cookingResult);
 		CookingResult FromPhysicsCookingResult(physx::PxTriangleMeshCookingResult::Enum cookingResult);
-
-		physx::PxRigidDynamicLockFlag::Enum ToPhysicsActorLockFlag(ActorLockFlag flag);
 	}
 }

@@ -31,6 +31,19 @@ namespace NR
         public Type[] RequiredComponents;
     }
 
+    public enum ActorLockFlag : uint
+    {
+        TranslationX = 1 << 0,
+        TranslationY = 1 << 1,
+        TranslationZ = 1 << 2,
+        TranslationXYZ = TranslationX | TranslationY | TranslationZ,
+
+        RotationX = 1 << 3,
+        RotationY = 1 << 4,
+        RotationZ = 1 << 5,
+        RotationXYZ = RotationX | RotationY | RotationZ
+    }
+
     public static class Physics
     {
         public static Vector3 Gravity

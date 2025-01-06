@@ -613,8 +613,11 @@ namespace NR
 		if (sEntityInstanceMap.find(sceneID) != sEntityInstanceMap.end())
 		{
 			auto& entityMap = sEntityInstanceMap.at(sceneID);
-			NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end());
-			entityMap.erase(entityID);
+
+			if (entityMap.find(entityID) != entityMap.end())
+			{
+				entityMap.erase(entityID);
+			}
 		}
 	}
 

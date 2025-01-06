@@ -39,7 +39,7 @@ namespace NR
 
 	void LauncherLayer::Attach()
 	{
-		mNotRedLogoTexture = Texture2D::Create("Resources/Editor/hazel.png");
+		mNotRedLogoTexture = Texture2D::Create("Resources/Editor/notred.png");
 	}
 
 	void LauncherLayer::Detach()
@@ -94,7 +94,7 @@ namespace NR
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 10));
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 6));
 				ImGui::SetNextItemWidth(700 - button_size.x - style.FramePadding.x * 2.0f - style.ItemInnerSpacing.x - 1);
-				ImGui::InputTextWithHint("##hazel_install_location", "C:/Dev/NotRed-dev/", mProperties.InstallPath.data(), MAX_PROJECT_FILEPATH_LENGTH, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputTextWithHint("##notred_install_location", "C:/Dev/NotRed-dev/", mProperties.InstallPath.data(), MAX_PROJECT_FILEPATH_LENGTH, ImGuiInputTextFlags_ReadOnly);
 				ImGui::SameLine();
 
 				if (ImGui::Button("..."))
@@ -104,7 +104,7 @@ namespace NR
 				}
 				if (ImGui::Button("Confirm"))
 				{
-					bool success = FileSystem::SetEnvironmentVariable("HAZEL_DIR", mProperties.InstallPath);
+					bool success = FileSystem::SetEnvironmentVariable("NOTRED_DIR", mProperties.InstallPath);
 					NR_CORE_ASSERT(success, "Failed to set Environment Variable!");
 					ImGui::CloseCurrentPopup();
 				}

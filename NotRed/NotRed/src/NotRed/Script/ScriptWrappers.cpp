@@ -1193,6 +1193,54 @@ namespace NR::Script
 		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
 		actor->SetKinematicTarget(*inTargetPosition, *inTargetRotation);
 	}
+
+	void NR_RigidBodyComponent_SetLockFlag(uint64_t entityID, ActorLockFlag flag, bool value)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+		
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+		auto& component = entity.GetComponent<RigidBodyComponent>();
+		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+		actor->ModifyLockFlag(flag, value);
+	}
+
+	bool NR_RigidBodyComponent_IsLockFlagSet(uint64_t entityID, ActorLockFlag flag)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+		auto& component = entity.GetComponent<RigidBodyComponent>();
+		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+		return actor->IsLockFlagSet(flag);
+	}
+
+	uint32_t NR_RigidBodyComponent_GetLockFlags(uint64_t entityID)
+	{
+		Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+		NR_CORE_ASSERT(scene, "No active scene!");
+
+		const auto& entityMap = scene->GetEntityMap();
+		NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+		Entity entity = entityMap.at(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+		auto& component = entity.GetComponent<RigidBodyComponent>();
+		Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+		return actor->GetLockFlags();
+	}
 	
 	void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize)
 	{

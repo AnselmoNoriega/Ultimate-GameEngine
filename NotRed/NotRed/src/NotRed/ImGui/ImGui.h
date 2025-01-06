@@ -14,6 +14,7 @@
 #include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Renderer/Texture.h"
+#include "NotRed/Scene/Entity.h"
 
 #include "imgui/imgui.h"
 

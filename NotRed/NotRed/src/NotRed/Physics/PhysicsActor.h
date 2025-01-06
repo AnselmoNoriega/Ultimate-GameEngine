@@ -45,8 +45,9 @@ namespace NR
 		bool IsGravityDisabled() const { return mRigidActor->getActorFlags().isSet(physx::PxActorFlag::eDISABLE_GRAVITY); }
 		void SetGravityDisabled(bool disable);
 
-		bool GetLockFlag(ActorLockFlag flag) const { return (uint32_t)flag & mLockFlags; }
+		bool IsLockFlagSet(ActorLockFlag flag) const { return (uint32_t)flag & mLockFlags; }
 		void ModifyLockFlag(ActorLockFlag flag, bool addFlag);
+		uint32_t GetLockFlags() const { return mLockFlags; }
 
 		void FixedUpdate(float fixedDeltaTime);
 

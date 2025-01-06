@@ -389,6 +389,10 @@ namespace NR
             Rotate_Native(Entity.ID, ref rotation);
         }
 
+        public void SetLockFlag(ActorLockFlag flag, bool value) => SetLockFlag_Native(Entity.ID, flag, value);
+        public bool IsLockFlagSet(ActorLockFlag flag) => IsLockFlagSet_Native(Entity.ID, flag);
+        public uint GetLockFlags() => GetLockFlags_Native(Entity.ID);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetPosition_Native(ulong entityID, out Vector3 position);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -437,6 +441,12 @@ namespace NR
         internal static extern void GetKinematicTarget_Native(ulong entityID, out Vector3 targetPosition, out Vector3 targetRotation);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetKinematicTarget_Native(ulong entityID, ref Vector3 targetPosition, ref Vector3 targetRotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetLockFlag_Native(ulong entityID, ActorLockFlag flag, bool value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsLockFlagSet_Native(ulong entityID, ActorLockFlag flag);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern uint GetLockFlags_Native(ulong entityID);
     }
 
     public class BoxColliderComponent : Component

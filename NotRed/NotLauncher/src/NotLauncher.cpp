@@ -51,8 +51,8 @@ public:
 
 		// Installation Path
 		{
-			if (NR::FileSystem::HasEnvironmentVariable("HAZEL_DIR"))
-				launcherProperties.InstallPath = NR::FileSystem::GetEnvironmentVariable("HAZEL_DIR");
+			if (NR::FileSystem::HasEnvironmentVariable("NOTRED_DIR"))
+				launcherProperties.InstallPath = NR::FileSystem::GetEnvironmentVariable("NOTRED_DIR");
 		}
 
 		SetShowStats(false);
@@ -66,7 +66,7 @@ private:
 		std::string editorWorkingDirectory = (notredDir / "NotEditor").string();
 
 #ifdef HZ_DEBUG
-		hazelDir = hazelDir / "bin" / "Debug-windows-x86_64" / "NotEditor";
+		notredDir = notredDir / "bin" / "Debug-windows-x86_64" / "NotEditor";
 #else
 		notredDir = notredDir / "bin" / "Release-windows-x86_64" / "NotEditor";
 #endif

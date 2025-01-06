@@ -74,21 +74,5 @@ namespace NR
 			}
 			return CookingResult::Failure;
 		}
-
-		physx::PxRigidDynamicLockFlag::Enum ToPhysicsActorLockFlag(ActorLockFlag flag)
-		{
-			switch (flag)
-			{
-			case ActorLockFlag::PositionX: return physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X;
-			case ActorLockFlag::PositionY: return physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Y;
-			case ActorLockFlag::PositionZ: return physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_Z;
-			case ActorLockFlag::RotationX: return physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_X;
-			case ActorLockFlag::RotationY: return physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Y;
-			case ActorLockFlag::RotationZ: return physx::PxRigidDynamicLockFlag::eLOCK_ANGULAR_Z;
-			default:
-				NR_CORE_ASSERT(false);
-				return physx::PxRigidDynamicLockFlag::eLOCK_LINEAR_X;
-			}
-		}
 	}
 }
