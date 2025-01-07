@@ -786,7 +786,9 @@ namespace NR
 							if (auto* object = GetAudioObject(objectID).value_or(nullptr))
 							{
 								if (object->mReleased)
+								{
 									ReleaseAudioObject(objectID);
+								}
 							}
 						}
 					}
@@ -1727,7 +1729,7 @@ namespace NR
 		bool stopPlayback = true;
 		if (auto ac = mAudioComponentRegistry.Get(sceneID, entityID))
 		{
-			stopPlayback = ac->GetComponent<AudioComponent>().bStopIfEntityDestroyed;
+			stopPlayback = ac->GetComponent<AudioComponent>().StopIfEntityDestroyed;
 			mAudioComponentRegistry.Remove(sceneID, entityID);
 		}
 		{

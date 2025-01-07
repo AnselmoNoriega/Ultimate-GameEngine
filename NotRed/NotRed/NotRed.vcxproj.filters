@@ -816,6 +816,8 @@
     <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.h" />
     <ClInclude Include="src\NotRed\Audio\Editor\AudioEventsEditor.h" />
     <ClInclude Include="src\NotRed\Audio\Editor\OrderedVector.h" />
+    <ClInclude Include="src\NotRed\Audio\Editor\TreeModel.h" />
+    <ClInclude Include="src\NotRed\Audio\EntityIDMaps.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1328,5 +1330,7 @@
     <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\VBAP.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.cpp" />
     <ClCompile Include="src\NotRed\Audio\Editor\AudioEventsEditor.cpp" />
+    <ClCompile Include="src\NotRed\Audio\Editor\OrderedVector.cpp" />
+    <ClCompile Include="src\NotRed\Audio\EntityIDMaps.cpp" />
   </ItemGroup>
 </Project>

@@ -18,6 +18,19 @@ namespace NR
 	private:
 		uint64_t mID;
 	};
+
+	class UUID32
+	{
+	public:
+		UUID32();
+		UUID32(uint32_t uuid);
+		UUID32(const UUID32& other);
+
+		operator uint32_t () { return mUUID; }
+		operator const uint32_t() const { return mUUID; }
+	private:
+		uint32_t mUUID;
+	};
 }
 
 namespace std 
@@ -28,6 +41,15 @@ namespace std
 		std::size_t operator()(const NR::UUID& uuid) const
 		{
 			return hash<uint64_t>()((uint64_t)uuid);
+		}
+	};
+
+	template <>
+	struct hash<NR::UUID32>
+	{
+		std::size_t operator()(const NR::UUID32& uuid) const
+		{
+			return hash<uint32_t>()((uint32_t)uuid);
 		}
 	};
 }

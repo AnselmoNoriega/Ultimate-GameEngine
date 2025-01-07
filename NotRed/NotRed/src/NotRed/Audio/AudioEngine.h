@@ -285,7 +285,7 @@ namespace NR
         // TODO
         void AttachObject(uint64_t audioComponentID, uint64_t audioObjectID, const glm::vec3& PositionOffset);
 
-        EventID PostTrigger(Audio::CommandID triggerCommandID, UUID objectID);
+        Audio::EventID PostTrigger(Audio::CommandID triggerCommandID, UUID objectID);
 
         // TODO
         //void SetSwitch(Audio::SwitchCommand switchCommand, Audio::CommandID valueID);

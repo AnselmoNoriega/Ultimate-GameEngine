@@ -11,7 +11,7 @@ namespace NR
 	class AudioObject : public RefCounted
 	{
 	public:
-		friend class MiniAudioEngine;
+		friend class AudioEngine;
 
 		AudioObject(UUID ID);
 		AudioObject(UUID ID, const std::string& debugName);
