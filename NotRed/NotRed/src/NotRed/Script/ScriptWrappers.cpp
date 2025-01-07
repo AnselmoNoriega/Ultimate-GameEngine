@@ -32,6 +32,10 @@
 #include "NotRed/Audio/AudioPlayback.h"
 #include "NotRed/Script/ScriptEngine.h"
 
+#include "NotRed/Audio/AudioEngine.h"
+#include "NotRed/Audio/AudioEvents/CommandID.h"
+#include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
+
 #include "NotRed/Debug/Profiler.h"
 
 namespace NR
@@ -1628,191 +1632,160 @@ namespace NR::Script
 	bool NR_AudioComponent_IsPlaying(uint64_t entityID)
 	{
 		Entity entity = GetEntityFromScene(entityID);
-		NR_CORE_ASSERT(entity.HasComponent<Audio::AudioComponent>());
-		return Audio::AudioPlayback::IsPlaying(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<AudioComponent>());
+		return AudioPlayback::IsPlaying(entityID);
 	}
 
 	bool NR_AudioComponent_Play(uint64_t entityID, float startTime)
 	{
 		Entity entity = GetEntityFromScene(entityID);
-		NR_CORE_ASSERT(entity.HasComponent<Audio::AudioComponent>());
-		return Audio::AudioPlayback::Play(entityID, startTime);
+		NR_CORE_ASSERT(entity.HasComponent<AudioComponent>());
+		return AudioPlayback::Play(entityID, startTime);
 	}
 
 	bool NR_AudioComponent_Stop(uint64_t entityID)
 	{
 		Entity entity = GetEntityFromScene(entityID);
-		NR_CORE_ASSERT(entity.HasComponent<Audio::AudioComponent>());
-		return Audio::AudioPlayback::StopActiveSound(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<AudioComponent>());
+		return AudioPlayback::StopActiveSound(entityID);
 	}
 
 	bool NR_AudioComponent_Pause(uint64_t entityID)
 	{
 		Entity entity = GetEntityFromScene(entityID);
-		NR_CORE_ASSERT(entity.HasComponent<Audio::AudioComponent>());
-		return Audio::AudioPlayback::PauseActiveSound(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<AudioComponent>());
+		return AudioPlayback::PauseActiveSound(entityID);
+	}
+
+	bool NR_AudioComponent_Resume(uint64_t entityID)
+	{
+		Entity entity = GetEntityFromScene(entityID);
+		NR_CORE_ASSERT(entity.HasComponent<AudioComponent>());
+		return AudioPlayback::Resume(entityID);
 	}
 
 	float NR_AudioComponent_GetVolumeMult(uint64_t entityID)
 	{
-		return GetEntityComponent<Audio::AudioComponent>(entityID).VolumeMultiplier;
+		return GetEntityComponent<AudioComponent>(entityID).VolumeMultiplier;
 	}
 
 	void NR_AudioComponent_SetVolumeMult(uint64_t entityID, float volumeMult)
 	{
-		GetEntityComponent<Audio::AudioComponent>(entityID).VolumeMultiplier = volumeMult;
+		GetEntityComponent<AudioComponent>(entityID).VolumeMultiplier = volumeMult;
 	}
 
 	float NR_AudioComponent_GetPitchMult(uint64_t entityID)
 	{
-		return GetEntityComponent<Audio::AudioComponent>(entityID).PitchMultiplier;
+		return GetEntityComponent<AudioComponent>(entityID).PitchMultiplier;
 	}
 
 	void NR_AudioComponent_SetPitchMult(uint64_t entityID, float pitchMult)
 	{
-		GetEntityComponent<Audio::AudioComponent>(entityID).PitchMultiplier = pitchMult;
+		GetEntityComponent<AudioComponent>(entityID).PitchMultiplier = pitchMult;
 	}
 
-	bool NR_AudioComponent_GetLooping(uint64_t entityID)
+	void NR_AudioComponent_SetEvent(uint64_t entityID, Audio::CommandID eventID)
 	{
-		return GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->Looping;
-	}
+		if (!AudioCommandRegistry::DoesCommandExist<Audio::TriggerCommand>(eventID))
+		{
+			NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", eventID);
+			return;
+		}
 
-	void NR_AudioComponent_SetLooping(uint64_t entityID, bool looping)
-	{
-		GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->Looping = looping;
+		auto& audioComponent = GetEntityComponent<AudioComponent>(entityID);
+		audioComponent.StartCommandID = eventID;
+		audioComponent.StartEvent = AudioCommandRegistry::GetCommand<Audio::TriggerCommand>(eventID).DebugName;
 	}
-
-	float NR_AudioComponent_GetMasterReverbSend(uint64_t entityID)
-	{
-		return Audio::AudioPlayback::GetMasterReverbSend(entityID);
-	}
-
-	void NR_AudioComponent_SetMasterReverbSend(uint64_t entityID, float sendLevel)
-	{
-		Audio::AudioPlayback::SetMasterReverbSend(entityID, sendLevel);
-	}
-
-	void NR_AudioComponent_SetSound(uint64_t entityID, Ref<AudioFile>* sound)
-	{
-		NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-		GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->FileAsset = *sound;
-	}
-
-	void NR_AudioComponent_SetSoundPath(uint64_t entityID, MonoString* filepath)
-	{
-		auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
-		NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-		GetEntityComponent<Audio::AudioComponent>(entityID).SoundConfig->FileAsset = asset;
-	}
-
-	MonoString* NR_AudioComponent_GetSound(uint64_t entityID)
-	{
-		auto& audioComponent = GetEntityComponent<Audio::AudioComponent>(entityID);
-		const std::string& filepath = AssetManager::GetMetadata(audioComponent.SoundConfig->FileAsset->Handle).FilePath.string();
-		return mono_string_new_wrapper(filepath.c_str());
-	}
-
-	bool NR_Audio_PlaySound2DAsset(Ref<AudioFile>* sound, float volume, float pitch)
-	{
-		NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-		return Audio::AudioPlayback::PlaySound2D(*sound, volume, pitch);
-	}
-
-	bool NR_Audio_PlaySound2DAssetPath(MonoString* filepath, float volume, float pitch)
-	{
-		NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-		auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
-		NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-		return Audio::AudioPlayback::PlaySound2D(asset, volume, pitch);
-	}
-
-	bool NR_Audio_PlaySoundAtLocationAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume, float pitch)
-	{
-		NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-		return Audio::AudioPlayback::PlaySoundAtLocation(*sound, *location, volume, pitch);
-	}
-
-	bool NR_Audio_PlaySoundAtLocationAssetPath(MonoString* filepath, glm::vec3* location, float volume, float pitch)
-	{
-		NR_CORE_ASSERT(CheckActiveScene(), "No active scene!");
-		auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
-		NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-		return Audio::AudioPlayback::PlaySoundAtLocation(asset, *location, volume, pitch);
-	}
-
-	Ref<AudioFile>* NR_SimpleSound_Constructor(MonoString* filepath)
-	{
-		auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
-		NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-		return new Ref<AudioFile>(AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath)));
-	}
-
-	void NR_SimpleSound_Destructor(Ref<AudioFile>* _this)
-	{
-		delete _this;
-	}
-
-	uint64_t NR_AudioCreateSound2DAsset(Ref<AudioFile>* sound, float volume, float pitch)
+	
+	uint64_t NR_Audio_CreateSound(Audio::CommandID eventID, Audio::Transform* inSpawnLocation, float volume, float pitch)
 	{
 		auto scene = CheckActiveScene();
+		if (!AudioCommandRegistry::DoesCommandExist<Audio::TriggerCommand>(eventID))
+		{
+			NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", eventID);
+			return 0;
+		}
 		Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
-		auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
-
-		audioComponent.SoundConfig->FileAsset = *sound;
+		auto& audioComponent = entity.AddComponent<AudioComponent>();
+		audioComponent.StartCommandID = eventID;
+		audioComponent.StartEvent = AudioCommandRegistry::GetCommand<Audio::TriggerCommand>(eventID).DebugName;
 		audioComponent.VolumeMultiplier = volume;
 		audioComponent.PitchMultiplier = pitch;
-
 		return entity.GetID();
 	}
 
-	uint64_t NR_AudioCreateSound2DPath(MonoString* filepath, float volume, float pitch)
+	uint32_t NR_Audio_CommandID_Constructor(MonoString* commandName)
 	{
-		auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
-		NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-		auto scene = CheckActiveScene();
-		Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
-		auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
-
-		audioComponent.SoundConfig->FileAsset = asset;
-		audioComponent.VolumeMultiplier = volume;
-		audioComponent.PitchMultiplier = pitch;
-
-		return entity.GetID();
+		return Audio::CommandID(mono_string_to_utf8(commandName));
 	}
 
-	uint64_t NR_AudioCreateSound3DAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume, float pitch)
+	uint32_t NR_Audio_PostEvent(Audio::CommandID eventID, uint64_t objectID)
 	{
-		auto scene = CheckActiveScene();
-		Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
-		auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
-
-		audioComponent.SoundConfig->FileAsset = *sound;
-		audioComponent.SoundConfig->SpatializationEnabled = true;
-		audioComponent.SoundConfig->SpawnLocation = *location;
-		audioComponent.VolumeMultiplier = volume;
-		audioComponent.PitchMultiplier = pitch;
-		audioComponent.SourcePosition = *location;
-
-		return entity.GetID();
+		return AudioPlayback::PostTrigger(eventID, objectID);
 	}
 
-	uint64_t NR_AudioCreateSound3DPath(MonoString* filepath, glm::vec3* location, float volume, float pitch)
+	uint32_t NR_Audio_PostEventFromAC(Audio::CommandID eventID, uint64_t entityID)
 	{
-		auto asset = AssetManager::GetAsset<AudioFile>(mono_string_to_utf8(filepath));
-		NR_CORE_ASSERT(asset, "Asset by supplied filepath does not exist!");
-		auto scene = CheckActiveScene();
-		Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");
-		auto& audioComponent = entity.AddComponent<Audio::AudioComponent>();
+		GetEntityComponent<AudioComponent>(entityID).StartCommandID = eventID;
 
-		audioComponent.SoundConfig->FileAsset = asset;
-		audioComponent.SoundConfig->SpatializationEnabled = true;
-		audioComponent.SoundConfig->SpawnLocation = *location;
-		audioComponent.VolumeMultiplier = volume;
-		audioComponent.PitchMultiplier = pitch;
-		audioComponent.SourcePosition = *location;
+		return AudioPlayback::PostTriggerFromAC(eventID, entityID);
+	}
 
-		return entity.GetID();
+	uint32_t NR_Audio_PostEventAtLocation(Audio::CommandID eventID, Audio::Transform* inSpawnLocation)
+	{
+		return AudioPlayback::PostTriggerAtLocation(eventID, *inSpawnLocation);
+	}
+
+	bool NR_Audio_StopEventID(uint32_t playingEvent)
+	{
+		return AudioPlayback::StopEventID(playingEvent);
+	}
+
+	bool NR_Audio_PauseEventID(uint32_t playingEvent)
+	{
+		return AudioPlayback::PauseEventID(playingEvent);
+	}
+
+	bool NR_Audio_ResumeEventID(uint32_t playingEvent)
+	{
+		return AudioPlayback::ResumeEventID(playingEvent);
+	}
+
+	//--- AudioObject ---
+	//===================
+
+	uint64_t NR_AudioObject_Constructor(MonoString* debugName, Audio::Transform* inObjectTransform)
+	{
+		return AudioPlayback::InitializeAudioObject(mono_string_to_utf8(debugName), *inObjectTransform);
+	}
+
+	void NR_ReleaseAudioObject(uint64_t objectID)
+	{
+		AudioPlayback::ReleaseAudioObject(objectID);
+	}
+
+	void NR_AudioObject_SetTransform(uint64_t objectID, Audio::Transform* inObjectTransform)
+	{
+		AudioEngine::Get().SetTransform(objectID, *inObjectTransform);
+	}
+
+	void NR_AudioObject_GetTransform(uint64_t objectID, Audio::Transform* outObjectTransform)
+	{
+		if (auto transform = AudioEngine::Get().GetTransform(objectID))
+		{
+			*outObjectTransform = transform.value();
+		}
+	}
+
+	bool NR_Audio_GetObjectInfo(uint64_t objectID, MonoString* outDebugName)
+	{
+		auto objectInfo = AudioEngine::Get().GetAudioObjectInfo(objectID);
+		if (!objectInfo.empty())
+		{
+			outDebugName = mono_string_new(mono_domain_get(), objectInfo.c_str());
+			return true;
+		}
+		return false;
 	}
 
 	void NR_Log_LogMessage(LogLevel level, MonoString* message)

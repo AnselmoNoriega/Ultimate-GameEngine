@@ -815,6 +815,7 @@
     <ClInclude Include="src\NotRed\Audio\Editor\OrderedVector.h" />
     <ClInclude Include="src\NotRed\Audio\Editor\TreeModel.h" />
     <ClInclude Include="src\NotRed\Audio\EntityIDMaps.h" />
+    <ClInclude Include="src\NotRed\Util\SerializationMacros.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

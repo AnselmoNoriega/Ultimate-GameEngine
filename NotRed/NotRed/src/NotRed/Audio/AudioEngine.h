@@ -189,8 +189,8 @@ namespace NR
 
         static void SetSceneContext(const Ref<Scene>& scene);
         static Ref<Scene>& GetCurrentSceneContext();
-        static void OnRuntimePlaying(UUID sceneID);
-        static void OnSceneDestruct(UUID sceneID);
+        static void RuntimePlaying(UUID sceneID);
+        static void SceneDestruct(UUID sceneID);
 
         void SerializeSceneAudio(YAML::Emitter& out, const Ref<Scene>& scene);
         void DeserializeSceneAudio(YAML::Node& data);

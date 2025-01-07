@@ -324,6 +324,7 @@
     <ClInclude Include="src\NotRed\Script\ScriptModuleField.h" />
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
     <ClInclude Include="src\NotRed\Util\FileSystem.h" />
+    <ClInclude Include="src\NotRed\Util\SerializationMacros.h" />
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />
     <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h" />
     <ClInclude Include="src\nrpch.h" />

@@ -69,4 +69,4 @@ namespace NR
 		static Registry<Audio::StateCommand> sStates;
 		static Registry<Audio::ParameterCommand> sParameters;
 	};
-} // namespace Hazel
+} // namespace

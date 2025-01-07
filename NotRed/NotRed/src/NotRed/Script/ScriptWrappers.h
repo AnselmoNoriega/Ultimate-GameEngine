@@ -12,6 +12,12 @@ extern "C" {
     typedef struct _MonoArray MonoArray;
 }
 
+namespace NR::Audio
+{
+    class CommandID;
+    struct Transform;
+}
+
 namespace NR::Script
 {
     // Math
@@ -175,33 +181,31 @@ namespace NR::Script
     bool NR_AudioComponent_Play(uint64_t entityID, float startTime = 0.0f);
     bool NR_AudioComponent_Stop(uint64_t entityID);
     bool NR_AudioComponent_Pause(uint64_t entityID);
+    bool NR_AudioComponent_Resume(uint64_t entityID);
 
-    void NR_AudioComponent_SetSound(uint64_t entityID, Ref<AudioFile>* sound);
-    void NR_AudioComponent_SetSoundPath(uint64_t entityID, MonoString* filepath);
-    void NR_AudioComponent_SetVolumeMult(uint64_t entityID, float volumeMult);
-    void NR_AudioComponent_SetPitchMult(uint64_t entityID, float pitchMult);
-    void NR_AudioComponent_SetLooping(uint64_t entityID, bool looping);
-    float NR_AudioComponent_GetMasterReverbSend(uint64_t entityID);
-    void NR_AudioComponent_SetMasterReverbSend(uint64_t entityID, float sendLevel);
-
-    MonoString* NR_AudioComponent_GetSound(uint64_t entityID);
     float NR_AudioComponent_GetVolumeMult(uint64_t entityID);
+    void NR_AudioComponent_SetVolumeMult(uint64_t entityID, float volumeMult);
     float NR_AudioComponent_GetPitchMult(uint64_t entityID);
-    bool NR_AudioComponent_GetLooping(uint64_t entityID);
+    void NR_AudioComponent_SetPitchMult(uint64_t entityID, float pitchMult);
 
-    bool NR_Audio_PlaySound2DAsset(Ref<AudioFile>* sound, float volume = 1.0f, float pitch = 1.0f);
-    bool NR_Audio_PlaySound2DAssetPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
-    bool NR_Audio_PlaySoundAtLocationAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
-    bool NR_Audio_PlaySoundAtLocationAssetPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+    void NR_AudioComponent_SetEvent(uint64_t entityID, Audio::CommandID eventID);
 
-    Ref<AudioFile>* NR_SimpleSound_Constructor(MonoString* filepath);
+    uint64_t NR_Audio_CreateSound(Audio::CommandID eventID, Audio::Transform* inSpawnLocation, float volume = 1.0f, float pitch = 1.0f);
 
-    void NR_SimpleSound_Destructor(Ref<AudioFile>* _this);
+    uint32_t NR_Audio_CommandID_Constructor(MonoString* commandName);
+    uint32_t NR_Audio_PostEvent(Audio::CommandID eventID, uint64_t objectID);
+    uint32_t NR_Audio_PostEventFromAC(Audio::CommandID eventID, uint64_t entityID);
+    uint32_t NR_Audio_PostEventAtLocation(Audio::CommandID eventID, Audio::Transform* inSpawnLocation);
 
-    uint64_t NR_AudioCreateSound2DAsset(Ref<AudioFile>* sound, float volume = 1.0f, float pitch = 1.0f);
-    uint64_t NR_AudioCreateSound2DPath(MonoString* filepath, float volume = 1.0f, float pitch = 1.0f);
-    uint64_t NR_AudioCreateSound3DAsset(Ref<AudioFile>* sound, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
-    uint64_t NR_AudioCreateSound3DPath(MonoString* filepath, glm::vec3* location, float volume = 1.0f, float pitch = 1.0f);
+    bool NR_Audio_StopEventID(uint32_t playingEvent);
+    bool NR_Audio_PauseEventID(uint32_t playingEvent);
+    bool NR_Audio_ResumeEventID(uint32_t playingEvent);
+
+    uint64_t NR_AudioObject_Constructor(MonoString* debugName, Audio::Transform* inObjectTransform);
+    void NR_ReleaseAudioObject(uint64_t objectID);
+    void NR_AudioObject_SetTransform(uint64_t objectID, Audio::Transform* inObjectTransform);
+    void NR_AudioObject_GetTransform(uint64_t objectID, Audio::Transform* outObjectTransform);
+    bool NR_Audio_GetObjectInfo(uint64_t objectID, MonoString* outDebugName);
 
     enum class LogLevel : int32_t
     {

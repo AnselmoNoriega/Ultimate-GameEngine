@@ -19,6 +19,7 @@
 
 #include "yaml-cpp/yaml.h"
 #include "NotRed/Util/YAMLSerializationHelpers.h"
+#include "NotRed/Util/SerializationMacros.h"
 
 namespace NR
 {
@@ -106,8 +107,6 @@ namespace NR
 
 		Ref<MaterialAsset> material = Ref<MaterialAsset>::Create();
 
-#define NR_DESERIALIZE_PROPERTY(propName, destination, node, defaultValue) destination = node[#propName] ? node[#propName].as<decltype(defaultValue)>() : defaultValue
-
 		NR_DESERIALIZE_PROPERTY(AlbedoColor, material->GetAlbedoColor(), materialNode, glm::vec3(0.8f));
 		NR_DESERIALIZE_PROPERTY(Emission, material->GetEmission(), materialNode, 0.0f);
 		material->SetUseNormalMap(materialNode["UseNormalMap"] ? materialNode["UseNormalMap"].as<bool>() : false);
@@ -148,7 +147,6 @@ namespace NR
 				material->SetRoughnessMap(AssetManager::GetAsset<Texture2D>(roughnessMap));
 			}
 		}
-#undef NR_DESERIALIZE_PROPERTY
 
 		asset = material;
 		asset->Handle = metadata.Handle;
@@ -229,7 +227,7 @@ namespace NR
 
 	void SoundConfigSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
 	{
-		Ref<Audio::SoundConfig> soundConfig = asset.As<Audio::SoundConfig>();
+		Ref<SoundConfig> soundConfig = asset.As<SoundConfig>();
 
 		YAML::Emitter out;
 		out << YAML::BeginMap; // SoundConfig
@@ -239,7 +237,7 @@ namespace NR
 			NR_SERIALIZE_PROPERTY(AssetID, soundConfig->FileAsset->Handle, out);
 		}
 
-		NR_SERIALIZE_PROPERTY(IsLooping, (bool)soundConfig->Looping, out);
+		NR_SERIALIZE_PROPERTY(IsLooping, (bool)soundConfig->bLooping, out);
 		NR_SERIALIZE_PROPERTY(VolumeMultiplier, soundConfig->VolumeMultiplier, out);
 		NR_SERIALIZE_PROPERTY(PitchMultiplier, soundConfig->PitchMultiplier, out);
 		NR_SERIALIZE_PROPERTY(MasterReverbSend, soundConfig->MasterReverbSend, out);
@@ -250,7 +248,7 @@ namespace NR
 		out << YAML::BeginMap; // Spatialization
 
 		auto& spatialConfig = soundConfig->Spatialization;
-		NR_SERIALIZE_PROPERTY(Enabled, soundConfig->SpatializationEnabled, out);
+		NR_SERIALIZE_PROPERTY(Enabled, soundConfig->bSpatializationEnabled, out);
 		NR_SERIALIZE_PROPERTY(AttenuationModel, (int)spatialConfig->AttenuationMod, out);
 		NR_SERIALIZE_PROPERTY(MinGain, spatialConfig->MinGain, out);
 		NR_SERIALIZE_PROPERTY(MaxGain, spatialConfig->MaxGain, out);
@@ -261,7 +259,7 @@ namespace NR
 		NR_SERIALIZE_PROPERTY(ConeOuterGain, spatialConfig->ConeOuterGain, out);
 		NR_SERIALIZE_PROPERTY(DopplerFactor, spatialConfig->DopplerFactor, out);
 		NR_SERIALIZE_PROPERTY(Rollor, spatialConfig->Rolloff, out);
-		NR_SERIALIZE_PROPERTY(AirAbsorptionEnabled, spatialConfig->AirAbsorptionEnabled, out);
+		NR_SERIALIZE_PROPERTY(AirAbsorptionEnabled, spatialConfig->bAirAbsorptionEnabled, out);
 
 		out << YAML::EndMap; // Spatialization
 		out << YAML::EndMap; // SoundConfig
@@ -294,7 +292,7 @@ namespace NR
 			NR_CORE_ERROR("Tried to load invalid Audio File asset in SoundConfig: {0}", metadata.FilePath.string());
 		}
 
-		NR_DESERIALIZE_PROPERTY(IsLooping, soundConfig->Looping, data, false);
+		NR_DESERIALIZE_PROPERTY(IsLooping, soundConfig->bLooping, data, false);
 		NR_DESERIALIZE_PROPERTY(VolumeMultiplier, soundConfig->VolumeMultiplier, data, 1.0f);
 		NR_DESERIALIZE_PROPERTY(PitchMultiplier, soundConfig->PitchMultiplier, data, 1.0f);
 		NR_DESERIALIZE_PROPERTY(MasterReverbSend, soundConfig->MasterReverbSend, data, 0.0f);
@@ -304,9 +302,9 @@ namespace NR
 		auto spConfigData = data["Spatialization"];
 		if (spConfigData)
 		{
-			soundConfig->SpatializationEnabled = spConfigData["Enabled"] ? spConfigData["Enabled"].as<bool>() : false;
+			soundConfig->bSpatializationEnabled = spConfigData["Enabled"] ? spConfigData["Enabled"].as<bool>() : false;
 			auto& spatialConfig = soundConfig->Spatialization;
-			NR_DESERIALIZE_PROPERTY(Enabled, soundConfig->SpatializationEnabled, spConfigData, false);
+			NR_DESERIALIZE_PROPERTY(Enabled, soundConfig->bSpatializationEnabled, spConfigData, false);
 
 			spatialConfig->AttenuationMod = spConfigData["AttenuationModel"] ? static_cast<AttenuationModel>(spConfigData["AttenuationModel"].as<int>())
 				: AttenuationModel::Inverse;

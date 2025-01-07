@@ -82,48 +82,43 @@ namespace NR::Audio
 	{
 		ECommandType GetType() const override { return ECommandType::Parameter; }
 	};
-
-
-
 } // namespace Audio
 
-namespace Utils
+namespace NR::Utils
 {
-	inline Audio::EActionType AudioActionTypeFromString(const std::string& actionType)
+	inline NR::Audio::EActionType AudioActionTypeFromString(const std::string& actionType)
 	{
-		if (actionType == "Play")		return Audio::EActionType::Play;
-		if (actionType == "Stop")		return Audio::EActionType::Stop;
-		if (actionType == "StopAll")	return Audio::EActionType::StopAll;
-		if (actionType == "Pause")		return Audio::EActionType::Pause;
-		if (actionType == "PauseAll")	return Audio::EActionType::PauseAll;
-		if (actionType == "Resume")		return Audio::EActionType::Resume;
-		if (actionType == "ResumeAll")	return Audio::EActionType::ResumeAll;
-		if (actionType == "Break")		return Audio::EActionType::Break;
-		if (actionType == "Seek")		return Audio::EActionType::Seek;
-		if (actionType == "SeekAll")	return Audio::EActionType::SeekAll;
-		if (actionType == "PostTrigger")return Audio::EActionType::PostTrigger;
-		default:
-		{
-			NR_CORE_ASSERT(false, "Unknown Action Type");
-			return Audio::EActionType::Play;
-		}
+		if (actionType == "Play")		return NR::Audio::EActionType::Play;
+		if (actionType == "Stop")		return NR::Audio::EActionType::Stop;
+		if (actionType == "StopAll")	return NR::Audio::EActionType::StopAll;
+		if (actionType == "Pause")		return NR::Audio::EActionType::Pause;
+		if (actionType == "PauseAll")	return NR::Audio::EActionType::PauseAll;
+		if (actionType == "Resume")		return NR::Audio::EActionType::Resume;
+		if (actionType == "ResumeAll")	return NR::Audio::EActionType::ResumeAll;
+		if (actionType == "Break")		return NR::Audio::EActionType::Break;
+		if (actionType == "Seek")		return NR::Audio::EActionType::Seek;
+		if (actionType == "SeekAll")	return NR::Audio::EActionType::SeekAll;
+		if (actionType == "PostTrigger")return NR::Audio::EActionType::PostTrigger;
+
+		NR_CORE_ASSERT(false, "Unknown Action Type");
+		return NR::Audio::EActionType::Play;
 	}
 
-	inline const char* AudioActionTypeToString(Audio::EActionType actionType)
+	inline const char* AudioActionTypeToString(NR::Audio::EActionType actionType)
 	{
 		switch (actionType)
 		{
-		case Audio::EActionType::Play:			return "Play";
-		case Audio::EActionType::Stop:			return "Stop";
-		case Audio::EActionType::StopAll:		return "StopAll";
-		case Audio::EActionType::Pause:			return "Pause";
-		case Audio::EActionType::PauseAll:		return "PauseAll";
-		case Audio::EActionType::Resume:		return "Resume";
-		case Audio::EActionType::ResumeAll:		return "ResumeAll";
-		case Audio::EActionType::Break:			return "Break";
-		case Audio::EActionType::Seek:			return "Seek";
-		case Audio::EActionType::SeekAll:		return "SeekAll";
-		case Audio::EActionType::PostTrigger:	return "PostTrigger";
+		case NR::Audio::EActionType::Play:			return "Play";
+		case NR::Audio::EActionType::Stop:			return "Stop";
+		case NR::Audio::EActionType::StopAll:		return "StopAll";
+		case NR::Audio::EActionType::Pause:			return "Pause";
+		case NR::Audio::EActionType::PauseAll:		return "PauseAll";
+		case NR::Audio::EActionType::Resume:		return "Resume";
+		case NR::Audio::EActionType::ResumeAll:		return "ResumeAll";
+		case NR::Audio::EActionType::Break:			return "Break";
+		case NR::Audio::EActionType::Seek:			return "Seek";
+		case NR::Audio::EActionType::SeekAll:		return "SeekAll";
+		case NR::Audio::EActionType::PostTrigger:	return "PostTrigger";
 		default:
 		{
 			NR_CORE_ASSERT(false, "Unknown Action Type");
@@ -132,21 +127,21 @@ namespace Utils
 		}
 	}
 
-	inline Audio::EActionContext AudioActionContextFromString(const std::string& context)
+	inline NR::Audio::EActionContext AudioActionContextFromString(const std::string& context)
 	{
-		if (context == "GameObject")	return Audio::EActionContext::GameObject;
-		if (context == "Global")		return Audio::EActionContext::Global;
+		if (context == "GameObject")	return NR::Audio::EActionContext::GameObject;
+		if (context == "Global")		return NR::Audio::EActionContext::Global;
 
 		NR_CORE_ASSERT(false, "Unknown Context Type");
-		return Audio::EActionContext::GameObject;
+		return NR::Audio::EActionContext::GameObject;
 	}
 
-	inline const char* AudioActionContextToString(Audio::EActionContext context)
+	inline const char* AudioActionContextToString(NR::Audio::EActionContext context)
 	{
 		switch (context)
 		{
-		case Audio::EActionContext::GameObject:	return "GameObject";
-		case Audio::EActionContext::Global:		return "Global";
+		case NR::Audio::EActionContext::GameObject:	return "GameObject";
+		case NR::Audio::EActionContext::Global:		return "Global";
 		default:
 		{
 			NR_CORE_ASSERT(false, "Unknown Context Type");
