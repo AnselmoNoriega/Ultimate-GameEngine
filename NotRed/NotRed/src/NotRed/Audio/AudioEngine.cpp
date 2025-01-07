@@ -1268,7 +1268,7 @@ namespace NR
 			if (pausingOrStopping)
 			{
 				for (auto* sound : mActiveSounds)
-					sound->Update(ts);
+					sound->Update(dt);
 			}
 		}
 
@@ -1620,7 +1620,7 @@ namespace NR
 			Entity audioEntity = { entity, newScene.Raw() };
 
 			auto& ac = audioEntity.GetComponent<AudioComponent>();
-			if (ac.bPlayOnAwake)
+			if (ac.PlayOnAwake)
 			{
 				auto newScene = Scene::GetScene(currentSceneID);
 				// TODO: Play on awake! Duck-taped.
@@ -1670,7 +1670,7 @@ namespace NR
 
 	void AudioEngine::RegisterAudioComponent(Entity audioEntity)
 	{
-		const auto sceneID = audioEntity.GetSceneUUID();
+		const auto sceneID = audioEntity.GetSceneID();
 		mAudioComponentRegistry.Add(sceneID, audioEntity.GetID(), audioEntity);
 		{
 			std::scoped_lock lock{ sStats.mutex };
@@ -1703,7 +1703,7 @@ namespace NR
 
 		////uint64_t entityID = audioEntity.GetID();
 		auto* ac = GetAudioComponentFromID(sceneID, entityID);
-		if (ac->bPlayOnAwake)
+		if (ac->PlayOnAwake)
 		{
 			auto newScene = Scene::GetScene(sceneID);
 			// TODO: Play on awake! Duck-taped.

@@ -177,6 +177,8 @@
     <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\VBAP.h" />
+    <ClInclude Include="src\NotRed\Audio\Editor\AudioEventsEditor.h" />
+    <ClInclude Include="src\NotRed\Audio\Editor\OrderedVector.h" />
     <ClInclude Include="src\NotRed\Audio\SceneAudio.h" />
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
@@ -408,6 +410,7 @@
     <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\VBAP.cpp" />
+    <ClCompile Include="src\NotRed\Audio\Editor\AudioEventsEditor.cpp" />
     <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp" />
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
     <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />

@@ -1,62 +1,62 @@
 #pragma once
 
-#include <memory>
-
 #include "miniaudio.h"
+#include "miniaudio_engine.h"
 
-#include "NotRed/Audio/DSP/Components/revmodel.hpp"
-#include "NotRed/Audio/DSP/Components/DelayLine.h"
+#include <memory>
 
 class revmodel;
 
-namespace NR::Audio
+namespace NR::Audio::DSP
 {
-    namespace DSP
+    class DelayLine;
+
+    enum EReverbParameters
     {
-        enum EReverbParameters
+        PreDelay, Mode, RoomSize, Damp, Width, Wet, Dry,
+        NumParams
+    };
+
+    struct Reverb
+    {
+    public:
+        Reverb();
+        ~Reverb();
+
+        bool Initialize(ma_engine* engine, ma_node_base* nodeToAttachTo);
+        void Uninitialize();
+        ma_node_base* GetNode() { return &mNode.base; }
+
+        // TODO: put this into an EffectInterface
+        void SetParameter(EReverbParameters parameter, float value);
+        float GetParameter(EReverbParameters parameter) const;
+        const char* GetParameterLabel(EReverbParameters parameter) const;
+        std::string GetParameterDisplay(EReverbParameters parameter) const;
+        const char* GetParameterName(EReverbParameters parameter) const;
+
+    private:
+        // --- Internal members
+        bool mInitialized = false;
+
+        friend void reverb_node_process_pcm_frames(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn,
+            float** ppFramesOut, ma_uint32* pFrameCountOut);
+
+        const float mMaxPreDelay = 1000.0f;
+        struct reverb_node
         {
-            PreDelay, Mode, RoomSize, Damp, Width, Wet, Dry,
-            NumParams
+            ma_node_base base; // <-- This must always the first member.
+            DelayLine* delayLine;
+            revmodel* reverb;
         };
+        reverb_node mNode;
+        // ~ End of internal members
 
-        struct Reverb
-        {
-        public:
-            Reverb() = default;
-            ~Reverb();
+        std::unique_ptr<revmodel> mRevModel = nullptr;
+        std::unique_ptr<DelayLine> mDelayLine = nullptr;
 
-            bool Initialize(ma_engine* engine, ma_node_base* nodeToAttachTo);
-
-            void SetParameter(EReverbParameters parameter, float value);
-
-            ma_node_base* GetNode() { return &mNode.base; }
-
-            float GetParameter(EReverbParameters parameter) const;
-            const char* GetParameterLabel(EReverbParameters parameter) const;
-            std::string GetParameterDisplay(EReverbParameters parameter) const;
-            const char* GetParameterName(EReverbParameters parameter) const;
-
-        private:
-            friend void reverb_node_process_pcm_frames(ma_node* pNode, const float** ppFramesIn, ma_uint32* pFrameCountIn, float** ppFramesOut, ma_uint32* pFrameCountOut);
-
-            struct reverb_node
-            {
-                ma_node_base base; // <-- This must always be the first member.
-                DelayLine* delayLine;
-                revmodel* reverb;
-            };
-
-        private:
-            void Suspend();
-            void Resume();
-
-        private:
-            const float mMaxPreDelay = 1000.0f;
-
-            reverb_node mNode;
-
-            std::unique_ptr<revmodel> mRevModel = nullptr;
-            std::unique_ptr<DelayLine> mDelayLine = nullptr;
-        };
-    }
+        //=================================
+        //? Currently not used.
+        void Suspend();
+        void Resume();
+    };
 }

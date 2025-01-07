@@ -288,9 +288,9 @@ namespace NR
         EventID PostTrigger(Audio::CommandID triggerCommandID, UUID objectID);
 
         // TODO
-        void SetSwitch(Audio::SwitchCommand switchCommand, Audio::CommandID valueID);
-        void SetState(Audio::StateCommand switchCommand, Audio::CommandID valueID);
-        void SetParameter(Audio::ParameterCommand parameter, double value);
+        //void SetSwitch(Audio::SwitchCommand switchCommand, Audio::CommandID valueID);
+        //void SetState(Audio::StateCommand switchCommand, Audio::CommandID valueID);
+        //void SetParameter(Audio::ParameterCommand parameter, double value);
 
         Sound* InitiateNewVoice(UUID objectID, Audio::EventID playbackID, const Ref<SoundConfig>& sourceConfig);
 
