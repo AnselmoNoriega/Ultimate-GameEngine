@@ -131,16 +131,22 @@ namespace NR
 		auto entityID = registry.get<IDComponent>(entity).ID;
 		NR_CORE_ASSERT(mEntityIDMap.find(entityID) != mEntityIDMap.end());
 
-		registry.get<Audio::AudioComponent>(entity).ParentHandle = entityID;
-		Audio::AudioEngine::Get().RegisterAudioComponent(mEntityIDMap.at(entityID));
+		registry.get<AudioComponent>(entity).ParentHandle = entityID;
+		AudioEngine::Get().RegisterAudioComponent(mEntityIDMap.at(entityID));
 	}
 
 	void Scene::AudioComponentDestroy(entt::registry& registry, entt::entity entity)
 	{
-		auto entityID = registry.get<IDComponent>(entity).ID;
-		NR_CORE_ASSERT(mEntityIDMap.find(entityID) != mEntityIDMap.end());
+		auto sceneView = registry.view<SceneComponent>();
+		UUID sceneID = registry.get<SceneComponent>(sceneView.front()).SceneID;
 
-		Audio::AudioEngine::Get().UnregisterAudioComponent(GetID(), mEntityIDMap.at(entityID).GetID());
+		Scene* scene = sActiveScenes[sceneID];
+
+		if (registry.try_get<IDComponent>(entity))
+		{
+			auto entityID = registry.get<IDComponent>(entity).ID;
+			AudioEngine::Get().UnregisterAudioComponent(sceneID, entityID);
+		}
 	}
 
 	Scene::Scene(const std::string& debugName, bool isEditorScene, bool construct)
@@ -151,7 +157,9 @@ namespace NR
 			mRegistry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentConstruct>(this);
 			mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(this);
 
-			mRegistry.on_construct<Audio::AudioComponent>().connect<&Scene::AudioComponentConstruct>(this);
+			mRegistry.on_construct<AudioComponent>().connect<&AudioComponentConstruct>();
+			mRegistry.on_destroy<AudioComponent>().connect<&AudioComponentDestroy>();
+
 			mSceneEntity = mRegistry.create();
 			mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
@@ -168,13 +176,12 @@ namespace NR
 	{
 		mRegistry.on_construct<ScriptComponent>().disconnect(this);
 		mRegistry.on_destroy<ScriptComponent>().disconnect(this);
-		mRegistry.on_construct<Audio::AudioComponent>().disconnect(this);
-		////mRegistry.on_destroy<Audio::AudioComponent>().disconnect();
+		mRegistry.on_construct<AudioComponent>().disconnect(this);
 
 		mRegistry.clear();
 		sActiveScenes.erase(mSceneID);
 		ScriptEngine::SceneDestruct(mSceneID);
-		Audio::AudioEngine::SceneDestruct(mSceneID);
+		AudioEngine::SceneDestruct(mSceneID);
 	}
 
 	void Scene::Init()
@@ -268,16 +275,25 @@ namespace NR
 			for (auto entity : view)
 			{
 				Entity e = { entity, this };
-				if (e.GetComponent<AudioListenerComponent>().Active)
+				auto& listenerComponent = e.GetComponent<AudioListenerComponent>();
+				if (listenerComponent.Active)
 				{
 					listener = e;
-					auto worldSpaceTransform = GetWorldSpaceTransform(listener);
-					Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
+					auto worldSpaceTransform = GetWorldSpaceTransform(listener);					
+
+					Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+					AudioEngine::Get().UpdateListenerPosition(transform);
+					AudioEngine::Get().UpdateListenerConeAttenuation(
+						listenerComponent.ConeInnerAngleInRadians,
+						listenerComponent.ConeOuterAngleInRadians,
+						listenerComponent.ConeOuterGain);
 
 					if (auto physicsActor = PhysicsManager::GetScene()->GetActor(listener))
 					{
 						if (physicsActor->IsDynamic())
-							Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetVelocity());
+						{
+							AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetVelocity());
+						}
 					}
 					break;
 				}
@@ -293,13 +309,22 @@ namespace NR
 					if (!listener.HasComponent<AudioListenerComponent>())
 						listener.AddComponent<AudioListenerComponent>();
 
-					auto worldSpaceTransform = GetWorldSpaceTransform(listener);
-					Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
+					auto worldSpaceTransform = GetWorldSpaceTransform(listener);					
+					
+					Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+					AudioEngine::Get().UpdateListenerPosition(transform);
+
+					auto& listenerComponent = listener.GetComponent<AudioListenerComponent>();
+					AudioEngine::Get().UpdateListenerConeAttenuation(
+						listenerComponent.ConeInnerAngleInRadians,
+						listenerComponent.ConeOuterAngleInRadians,
+						listenerComponent.ConeOuterGain
+					);
 
 					if (auto physicsActor = PhysicsManager::GetScene()->GetActor(listener))
 					{
 						if (physicsActor->IsDynamic())
-							Audio::AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetVelocity());
+							AudioEngine::Get().UpdateListenerVelocity(physicsActor->GetVelocity());
 					}
 				}
 			}
@@ -309,18 +334,18 @@ namespace NR
 			//===============================
 
 			NR_PROFILE_FUNC("Scene::OnUpdate - Update Audio Components");
-			auto view = mRegistry.view<Audio::AudioComponent>();
+			auto view = mRegistry.view<AudioComponent>();
 
 			std::vector<Entity> deadEntities;
 			deadEntities.reserve(view.size());
 
-			std::vector<Audio::SoundSourceUpdateData> updateData;
+			std::vector<SoundSourceUpdateData> updateData;
 			updateData.reserve(view.size());
 
 			for (auto entity : view)
 			{
 				Entity e = { entity, this };
-				auto& audioComponent = e.GetComponent<Audio::AudioComponent>();
+				auto& audioComponent = e.GetComponent<AudioComponent>();
 
 				// 1. Handle Audio Components marked for Auto Destroy
 				// AutoDestroy flag is only set for "one-shot" sounds
@@ -332,6 +357,7 @@ namespace NR
 
 				// 2. Update positions of associated sound sources
 				auto worldSpaceTransform = GetWorldSpaceTransform(e);
+				Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
 
 				// 3. Update velocities of associated sound sources
 				glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
@@ -343,19 +369,17 @@ namespace NR
 					}
 				}
 
-				updateData.emplace_back(
-					Audio::SoundSourceUpdateData{
-						e.GetID(),
-						audioComponent.VolumeMultiplier,
-						audioComponent.PitchMultiplier,
-						worldSpaceTransform.Translation,
-						velocity
-					});
+				updateData.emplace_back(SoundSourceUpdateData{ 
+					e.GetID(),
+					transform,
+					velocity,
+					audioComponent.VolumeMultiplier,
+					audioComponent.PitchMultiplier });
 			}
 
 			//--- Submit values to AudioEngine to update associated sound sources ---
 			//-----------------------------------------------------------------------
-			Audio::AudioEngine::Get().SubmitSourceUpdateData(updateData);
+			AudioEngine::Get().SubmitSourceUpdateData(updateData);
 
 			for (int i = (int)deadEntities.size() - 1; i >= 0; i--)
 			{
@@ -687,23 +711,25 @@ namespace NR
 		{
 			const auto& camPosition = editorCamera.GetPosition();
 			auto camDirection = glm::rotate(editorCamera.GetOrientation(), glm::vec3(0.0f, 0.0f, -1.0f));
-			Audio::AudioEngine::Get().UpdateListenerPosition(camPosition, camDirection);
+			auto camUp = glm::rotate(editorCamera.GetOrientation(), glm::vec3(0.0f, 1.0f, 0.0f));
+			Audio::Transform transform{ camPosition, camDirection, camUp };
+			AudioEngine::Get().UpdateListenerPosition(transform);
 		}
 
 		{	//--- Update Audio Component (editor scene update) ---
 			//====================================================
 
-			auto view = mRegistry.view<Audio::AudioComponent>();
+			auto view = mRegistry.view<AudioComponent>();
 
 			std::vector<Entity> deadEntities;
 
-			std::vector<Audio::SoundSourceUpdateData> updateData;
+			std::vector<SoundSourceUpdateData> updateData;
 			updateData.reserve(view.size());
 
 			for (auto entity : view)
 			{
 				Entity e = { entity, this };
-				auto& audioComponent = e.GetComponent<Audio::AudioComponent>();
+				auto& audioComponent = e.GetComponent<AudioComponent>();
 
 				// AutoDestroy flag is only set for "one-shot" sounds
 				if (audioComponent.AutoDestroy && audioComponent.MarkedForDestroy)
@@ -713,21 +739,20 @@ namespace NR
 				}
 
 				auto worldSpaceTransform = GetWorldSpaceTransform(e);
+				Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
 
 				glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
-				updateData.emplace_back(
-					Audio::SoundSourceUpdateData{
-						e.GetID(),
-						audioComponent.VolumeMultiplier,
-						audioComponent.PitchMultiplier,
-						worldSpaceTransform.Translation,
-						velocity
-					});
+				updateData.emplace_back(SoundSourceUpdateData{ 
+					e.GetID(),
+					transform,
+					velocity,
+					audioComponent.VolumeMultiplier,
+					audioComponent.PitchMultiplier });
 			}
 
 			//--- Submit values to AudioEngine to update associated sound sources ---
 			//-----------------------------------------------------------------------
-			Audio::AudioEngine::Get().SubmitSourceUpdateData(updateData);
+			AudioEngine::Get().SubmitSourceUpdateData(updateData);
 
 			for (int i = (int)deadEntities.size() - 1; i >= 0; i--)
 			{
@@ -962,7 +987,7 @@ namespace NR
 		NR_PROFILE_FUNC();
 
 		ScriptEngine::SetSceneContext(this);
-		Audio::AudioEngine::SetSceneContext(this);
+		AudioEngine::SetSceneContext(this);
 
 		// Box2D physics
 		auto sceneView = mRegistry.view<Box2DWorldComponent>();
@@ -1115,16 +1140,23 @@ namespace NR
 			{
 				// Initialize listener's position
 				auto worldSpaceTransform = GetWorldSpaceTransform(listener);
-				Audio::AudioEngine::Get().UpdateListenerPosition(worldSpaceTransform.Translation, worldSpaceTransform.Forward);
+				Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+				AudioEngine::Get().UpdateListenerPosition(transform);
+				
+				auto& listenerComponent = listener.GetComponent<AudioListenerComponent>();
+				AudioEngine::Get().UpdateListenerConeAttenuation(
+					listenerComponent.ConeInnerAngleInRadians,
+					listenerComponent.ConeOuterAngleInRadians,
+					listenerComponent.ConeOuterGain);
 			}
 		}
 
 		{	//--- Initialize audio component sound positions ---
 			//==================================================
 
-			auto view = mRegistry.view<Audio::AudioComponent>();
+			auto view = mRegistry.view<AudioComponent>();
 
-			std::vector<Audio::SoundSourceUpdateData> updateData;
+			std::vector<SoundSourceUpdateData> updateData;
 			updateData.reserve(view.size());
 
 			for (auto entity : view)
@@ -1133,25 +1165,22 @@ namespace NR
 
 				Entity e = { entity, this };
 				auto worldSpaceTransform = GetWorldSpaceTransform(e);
-
-				// If sounds are not spawned yet, this sets "spawn" position
-				audioComponent.SourcePosition = worldSpaceTransform.Translation;
+				Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
 
 
 				glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
-				updateData.emplace_back(
-					Audio::SoundSourceUpdateData{
-						e.GetID(),
-						audioComponent.VolumeMultiplier,
-						audioComponent.PitchMultiplier,
-						worldSpaceTransform.Translation,
-						velocity
-					});
+				updateData.emplace_back(SoundSourceUpdateData{ 
+					e.GetID(), 
+					transform,
+					velocity,
+					audioComponent.VolumeMultiplier,
+					audioComponent.PitchMultiplier }
+					);
 			}
 
 			//--- Submit values to AudioEngine to update associated sound sources ---
 			//-----------------------------------------------------------------------
-			Audio::AudioEngine::Get().SubmitSourceUpdateData(updateData);
+			AudioEngine::Get().SubmitSourceUpdateData(updateData);
 		}
 
 
@@ -1160,7 +1189,7 @@ namespace NR
 
 		// Now that the scene has initialized, we can start sounds marked to "play on awake"
 		// or the sounds that were deserialized in playing state (in the future).
-		Audio::AudioEngine::RuntimePlaying(mSceneID);
+		AudioEngine::RuntimePlaying(mSceneID);
 	}
 
 	void Scene::RuntimeStop()
@@ -1365,9 +1394,9 @@ namespace NR
 			ScriptEngine::ScriptComponentDestroyed(mSceneID, entity.GetID());
 		}
 
-		if (entity.HasComponent<Audio::AudioComponent>())
+		if (entity.HasComponent<AudioComponent>())
 		{
-			Audio::AudioEngine::Get().UnregisterAudioComponent(mSceneID, entity.GetID());
+			AudioEngine::Get().UnregisterAudioComponent(mSceneID, entity.GetID());
 		}
 
 		if (!mIsEditorScene)
@@ -1455,8 +1484,8 @@ namespace NR
 		CopyComponentIfExists<DirectionalLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<PointLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<SkyLightComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+		CopyComponentIfExists<AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 		CopyComponentIfExists<AudioListenerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
-		CopyComponentIfExists<Audio::AudioComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
 
 #if _DEBUG && 0
 		// Check that nothing has been forgotten...
@@ -1537,7 +1566,7 @@ namespace NR
 		CopyComponentIfExists<SphereColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<CapsuleColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<MeshColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
-		CopyComponentIfExists<Audio::AudioComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<AudioComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<AudioListenerComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
 
 		if (translation)
@@ -1825,7 +1854,7 @@ namespace NR
 		CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
 		CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
 		CopyComponent<MeshColliderComponent>(target->mRegistry, mRegistry, enttMap);
-		CopyComponent<Audio::AudioComponent>(target->mRegistry, mRegistry, enttMap);
+		CopyComponent<AudioComponent>(target->mRegistry, mRegistry, enttMap);
 		CopyComponent<AudioListenerComponent>(target->mRegistry, mRegistry, enttMap);
 
 		const auto& entityInstanceMap = ScriptEngine::GetEntityInstanceMap();

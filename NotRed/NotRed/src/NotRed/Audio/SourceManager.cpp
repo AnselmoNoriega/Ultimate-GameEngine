@@ -42,7 +42,9 @@ namespace NR
     void SourceManager::UninitializeEffects()
     {
         for (auto* source : mAudioEngine.mSoundSources)
+        {
             ReleaseSource(source->mSoundSourceID);
+        }
 
     }
 

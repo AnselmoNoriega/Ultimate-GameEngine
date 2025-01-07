@@ -270,9 +270,6 @@
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h">
-      <Filter>src\NotRed\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -1332,5 +1329,6 @@
     <ClCompile Include="src\NotRed\Audio\Editor\AudioEventsEditor.cpp" />
     <ClCompile Include="src\NotRed\Audio\Editor\OrderedVector.cpp" />
     <ClCompile Include="src\NotRed\Audio\EntityIDMaps.cpp" />
+    <ClCompile Include="src\NotRed\Core\HashCRC32.cpp" />
   </ItemGroup>
 </Project>

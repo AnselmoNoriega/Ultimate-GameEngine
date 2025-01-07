@@ -207,7 +207,6 @@
     <ClInclude Include="src\NotRed\Core\Window.h" />
     <ClInclude Include="src\NotRed\Debug\Profiler.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\AudioEventsEditor.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
@@ -422,6 +421,7 @@
     <ClCompile Include="src\NotRed\Core\Application.cpp" />
     <ClCompile Include="src\NotRed\Core\Core.cpp" />
     <ClCompile Include="src\NotRed\Core\Hash.cpp" />
+    <ClCompile Include="src\NotRed\Core\HashCRC32.cpp" />
     <ClCompile Include="src\NotRed\Core\Layer.cpp" />
     <ClCompile Include="src\NotRed\Core\LayerStack.cpp" />
     <ClCompile Include="src\NotRed\Core\Log.cpp" />

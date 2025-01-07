@@ -1,6 +1,6 @@
 #pragma once
 
-namespace NR::Audio
+namespace NR
 {
 	class SceneAudio
 	{

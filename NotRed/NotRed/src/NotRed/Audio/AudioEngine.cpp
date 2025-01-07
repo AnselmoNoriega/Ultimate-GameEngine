@@ -1577,7 +1577,7 @@ namespace NR
 
 		//? A bit of a hack to handle changing scenes in Editor context.
 		//? OnSceneDestruct is not called when creating new scene, or loading a different scene.
-		OnSceneDestruct(audioEngine.mCurrentSceneID);
+		SceneDestruct(audioEngine.mCurrentSceneID);
 
 		audioEngine.mSceneContext = scene;
 		if (scene) {
@@ -1607,7 +1607,7 @@ namespace NR
 		//NR_CORE_INFO("SET SCENE CONTEXT");
 	}
 
-	void AudioEngine::OnRuntimePlaying(UUID sceneID)
+	void AudioEngine::RuntimePlaying(UUID sceneID)
 	{
 		auto& audioEngine = Get();
 
@@ -1641,7 +1641,7 @@ namespace NR
 		//NR_CORE_INFO("ON RUNTIME PLAYING");
 	}
 
-	void AudioEngine::OnSceneDestruct(UUID sceneID)
+	void AudioEngine::SceneDestruct(UUID sceneID)
 	{
 		auto& instance = Get();
 

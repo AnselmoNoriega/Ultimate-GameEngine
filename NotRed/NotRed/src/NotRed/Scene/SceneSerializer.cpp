@@ -474,59 +474,34 @@ namespace NR
 			out << YAML::EndMap; // MeshColliderComponent
 		}
 
-		if (entity.HasComponent<Audio::AudioComponent>())
+		if (entity.HasComponent<AudioComponent>())
 		{
-#define NR_SERIALIZE_PROPERTY(propName, propVal) out << YAML::Key << #propName << YAML::Value << propVal
+#define NR_SERIALIZE_PROPERTY(propName, propVal, outputData) outputData << YAML::Key << #propName << YAML::Value << propVal
 
 			out << YAML::Key << "AudioComponent";
 			out << YAML::BeginMap; // AudioComponent
-			auto& audioComponent = entity.GetComponent<Audio::AudioComponent>();
-			const auto& soundConfig = audioComponent.SoundConfig;
-			if (soundConfig->FileAsset)
-			{
-				NR_SERIALIZE_PROPERTY(AssetID, soundConfig->FileAsset->Handle);
-			}
 
-			NR_SERIALIZE_PROPERTY(IsLooping, (bool)soundConfig->Looping);
-			NR_SERIALIZE_PROPERTY(VolumeMultiplier, audioComponent.VolumeMultiplier);
-			NR_SERIALIZE_PROPERTY(PitchMultiplier, audioComponent.PitchMultiplier);
-			NR_SERIALIZE_PROPERTY(AutoDestroy, audioComponent.AutoDestroy);
-			NR_SERIALIZE_PROPERTY(PlayOnAwake, audioComponent.PlayOnAwake);
-			NR_SERIALIZE_PROPERTY(MasterReverbSend, soundConfig->MasterReverbSend);
-			NR_SERIALIZE_PROPERTY(LPFilterValue, soundConfig->LPFilterValue);
-			NR_SERIALIZE_PROPERTY(HPFilterValue, soundConfig->HPFilterValue);
+			auto& audioComponent = entity.GetComponent<AudioComponent>();
+			NR_SERIALIZE_PROPERTY(StartEvent, audioComponent.StartEvent, out);
+			NR_SERIALIZE_PROPERTY(StartCommandID, audioComponent.StartCommandID, out);
+			NR_SERIALIZE_PROPERTY(PlayOnAwake, audioComponent.PlayOnAwake, out);
+			NR_SERIALIZE_PROPERTY(StopIfEntityDestroyed, audioComponent.StopIfEntityDestroyed, out);
+			NR_SERIALIZE_PROPERTY(VolumeMultiplier, audioComponent.VolumeMultiplier, out);
+			NR_SERIALIZE_PROPERTY(PitchMultiplier, audioComponent.PitchMultiplier, out);
+			NR_SERIALIZE_PROPERTY(AutoDestroy, audioComponent.AutoDestroy, out);
 
-			out << YAML::Key << "Spatialization";
-			out << YAML::BeginMap; // Spatialization
-
-			auto& spatialConfig = soundConfig->Spatialization;
-			NR_SERIALIZE_PROPERTY(Enabled, soundConfig->SpatializationEnabled);
-			NR_SERIALIZE_PROPERTY(AttenuationModel, (int)spatialConfig.AttenuationMod);
-			NR_SERIALIZE_PROPERTY(MinGain, spatialConfig.MinGain);
-			NR_SERIALIZE_PROPERTY(MaxGain, spatialConfig.MaxGain);
-			NR_SERIALIZE_PROPERTY(MinDistance, spatialConfig.MinDistance);
-			NR_SERIALIZE_PROPERTY(MaxDistance, spatialConfig.MaxDistance);
-			NR_SERIALIZE_PROPERTY(ConeInnerAngle, spatialConfig.ConeInnerAngleInRadians);
-			NR_SERIALIZE_PROPERTY(ConeOuterAngle, spatialConfig.ConeOuterAngleInRadians);
-			NR_SERIALIZE_PROPERTY(ConeOuterGain, spatialConfig.ConeOuterGain);
-			NR_SERIALIZE_PROPERTY(DopplerFactor, spatialConfig.DopplerFactor);
-			NR_SERIALIZE_PROPERTY(Rollor, spatialConfig.Rolloff);
-			NR_SERIALIZE_PROPERTY(AirAbsorptionEnabled, spatialConfig.AirAbsorptionEnabled);
-
-			out << YAML::EndMap; // Spatialization
-			out << YAML::EndMap; // AudioComponent
-
+			out << YAML::EndMap;
 		}
 
 		if (entity.HasComponent<AudioListenerComponent>())
 		{
 			out << YAML::Key << "AudioListenerComponent";
 			out << YAML::BeginMap; // AudioComponent
-			auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();
-			NR_SERIALIZE_PROPERTY(Active, audioListenerComponent.Active);
-			NR_SERIALIZE_PROPERTY(ConeInnerAngle, audioListenerComponent.ConeInnerAngleInRadians);
-			NR_SERIALIZE_PROPERTY(ConeOuterAngle, audioListenerComponent.ConeOuterAngleInRadians);
-			NR_SERIALIZE_PROPERTY(ConeOuterGain, audioListenerComponent.ConeOuterGain);
+			auto& audioListenerComponent = entity.GetComponent<AudioListenerComponent>();			
+			NR_SERIALIZE_PROPERTY(Active, audioListenerComponent.Active, out);
+			NR_SERIALIZE_PROPERTY(ConeInnerAngle, audioListenerComponent.ConeInnerAngleInRadians, out);
+			NR_SERIALIZE_PROPERTY(ConeOuterAngle, audioListenerComponent.ConeOuterAngleInRadians, out);
+			NR_SERIALIZE_PROPERTY(ConeOuterGain, audioListenerComponent.ConeOuterGain, out);
 			out << YAML::EndMap; // AudioComponent
 
 #undef NR_SERIALIZE_PROPERTY
@@ -573,7 +548,7 @@ namespace NR
 		out << YAML::EndSeq;
 
 		// Scene Audio
-		Audio::AudioEngine::Get().SerializeSceneAudio(out, mScene);
+		AudioEngine::Get().SerializeSceneAudio(out, mScene);
 
 		out << YAML::EndMap;
 
@@ -1142,49 +1117,16 @@ namespace NR
 			{
 #define NR_DESERIALIZE_PROPERTY(propName, destination, inputData, defaultValue) destination = inputData[#propName] ? inputData[#propName].as<decltype(defaultValue)>() : defaultValue
 
-				auto& component = deserializedEntity.AddComponent<Audio::AudioComponent>();
-				Ref<Audio::SoundConfig> soundConfig = Ref<Audio::SoundConfig>::Create();
+				auto& component = deserializedEntity.AddComponent<AudioComponent>();
 
-				AssetHandle assetHandle = audioComponent["AssetID"] ? audioComponent["AssetID"].as<uint64_t>() : 0;
+				NR_DESERIALIZE_PROPERTY(StartEvent, component.StartEvent, audioComponent, std::string(""));
+				component.StartCommandID = audioComponent["StartCommandID"] ? Audio::CommandID::FromUnsignedInt(audioComponent["StartCommandID"].as<uint32_t>()) : Audio::CommandID::InvalidID();
 
-				if (AssetManager::IsAssetHandleValid(assetHandle))
-					soundConfig->FileAsset = AssetManager::GetAsset<AudioFile>(assetHandle);
-				else
-					NR_CORE_ERROR("Tried to load invalid Audio File asset in Entity {0}", deserializedEntity.GetID());
-
-				NR_DESERIALIZE_PROPERTY(IsLooping, soundConfig->Looping, audioComponent, false);
-				NR_DESERIALIZE_PROPERTY(AutoDestroy, component.AutoDestroy, audioComponent, false);
 				NR_DESERIALIZE_PROPERTY(PlayOnAwake, component.PlayOnAwake, audioComponent, false);
+				NR_DESERIALIZE_PROPERTY(StopIfEntityDestroyed, component.StopIfEntityDestroyed, audioComponent, true);
 				NR_DESERIALIZE_PROPERTY(VolumeMultiplier, component.VolumeMultiplier, audioComponent, 1.0f);
 				NR_DESERIALIZE_PROPERTY(PitchMultiplier, component.PitchMultiplier, audioComponent, 1.0f);
-				NR_DESERIALIZE_PROPERTY(VolumeMultiplier, soundConfig->VolumeMultiplier, audioComponent, 1.0f);
-				NR_DESERIALIZE_PROPERTY(PitchMultiplier, soundConfig->PitchMultiplier, audioComponent, 1.0f);
-				NR_DESERIALIZE_PROPERTY(MasterReverbSend, soundConfig->MasterReverbSend, audioComponent, 0.0f);
-				NR_DESERIALIZE_PROPERTY(LPFilterValue, soundConfig->LPFilterValue, audioComponent, 20000.0f);
-				NR_DESERIALIZE_PROPERTY(HPFilterValue, soundConfig->HPFilterValue, audioComponent, 0.0f);
-
-				auto spConfigData = audioComponent["Spatialization"];
-				if (spConfigData)
-				{
-					NR_DESERIALIZE_PROPERTY(Enabled, soundConfig->SpatializationEnabled, spConfigData, false);
-
-					auto& spatialConfig = soundConfig->Spatialization;
-					spatialConfig.AttenuationMod = spConfigData["AttenuationModel"] ? static_cast<Audio::AttenuationModel>(spConfigData["AttenuationModel"].as<int>())
-						: Audio::AttenuationModel::Inverse;
-
-					NR_DESERIALIZE_PROPERTY(MinGain, spatialConfig.MinGain, spConfigData, 0.0f);
-					NR_DESERIALIZE_PROPERTY(MaxGain, spatialConfig.MaxGain, spConfigData, 1.0f);
-					NR_DESERIALIZE_PROPERTY(MinDistance, spatialConfig.MinDistance, spConfigData, 1.0f);
-					NR_DESERIALIZE_PROPERTY(MaxDistance, spatialConfig.MaxDistance, spConfigData, 1000.0f);
-					NR_DESERIALIZE_PROPERTY(ConeInnerAngle, spatialConfig.ConeInnerAngleInRadians, spConfigData, 6.283185f);
-					NR_DESERIALIZE_PROPERTY(ConeOuterAngle, spatialConfig.ConeOuterAngleInRadians, spConfigData, 6.283185f);
-					NR_DESERIALIZE_PROPERTY(ConeOuterGain, spatialConfig.ConeOuterGain, spConfigData, 0.0f);
-					NR_DESERIALIZE_PROPERTY(DopplerFactor, spatialConfig.DopplerFactor, spConfigData, 1.0f);
-					NR_DESERIALIZE_PROPERTY(Rollor, spatialConfig.Rolloff, spConfigData, 1.0f);
-					NR_DESERIALIZE_PROPERTY(AirAbsorptionEnabled, spatialConfig.AirAbsorptionEnabled, spConfigData, true);
-				}
-
-				component.SoundConfig = soundConfig;
+				NR_DESERIALIZE_PROPERTY(AutoDestroy, component.AutoDestroy, audioComponent, false);
 			}
 
 			auto audioListener = entity["AudioListenerComponent"];
@@ -1226,7 +1168,7 @@ namespace NR
 		auto sceneAudio = data["SceneAudio"];
 		if (sceneAudio)
 		{
-			Audio::AudioEngine::Get().DeserializeSceneAudio(sceneAudio);
+			AudioEngine::Get().DeserializeSceneAudio(sceneAudio);
 		}
 
 		// Sort IdComponent by by entity handle (which is essentially the order in which they were created)

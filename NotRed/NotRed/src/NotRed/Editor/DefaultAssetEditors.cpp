@@ -504,8 +504,8 @@ namespace NR
 
 	void SoundConfigEditor::SetAsset(const Ref<Asset>& asset)
 	{
-		mAsset = (Ref<Audio::SoundConfig>)asset;
-		AssetMetadata& metadata = AssetManager::GetMetadata(mAsset.As<Audio::SoundConfig>()->Handle);
+		mAsset = (Ref<SoundConfig>)asset;
+		AssetMetadata& metadata = AssetManager::GetMetadata(mAsset.As<SoundConfig>()->Handle);
 		SetTitle(metadata.FilePath.stem().string());
 	}
 
@@ -564,7 +564,7 @@ namespace NR
 
 			//=======================================================
 
-			auto& soundConfig = *mAsset;
+			SoundConfig& soundConfig = *mAsset;
 
 			// Adding space after header
 			ImGui::Spacing();
@@ -590,11 +590,11 @@ namespace NR
 
 			UI::Property("Volume Multiplier", soundConfig.VolumeMultiplier, 0.01f, 0.0f, 1.0f); //TODO: switch to dBs in the future ?
 			UI::Property("Pitch Multiplier", soundConfig.PitchMultiplier, 0.01f, 0.0f, 24.0f); // max pitch 24 is just an arbitrary number here
-			
+
 			propertyGridSpacing();
 			propertyGridSpacing();
-			
-			UI::Property("Looping", soundConfig.Looping);
+
+			UI::Property("Looping", soundConfig.bLooping);
 
 			singleColumnSeparator();
 			propertyGridSpacing();
@@ -638,7 +638,7 @@ namespace NR
 			ImGui::Spacing();
 
 			auto contentRegionAvailable = ImGui::GetContentRegionAvail();
-			
+
 			ImGui::PopStyleColor(3); // ImGuiCol_ChildBg, ImGuiCol_FrameBg, ImGuiCol_Border
 
 			//--- Enable Spatialization
@@ -657,11 +657,11 @@ namespace NR
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 4.0f, 6.0f });
 
 			bool spatializationOpen = ImGui::CollapsingHeader("Spatialization", flags);
-			
+
 			ImGui::PopStyleVar();
 			ImGui::SameLine(contentRegionAvailable.x - (ImGui::GetFrameHeight() + GImGui->Style.FramePadding.y * 2.0f));
 			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
-			ImGui::Checkbox("##enabled", &soundConfig.SpatializationEnabled);
+			ImGui::Checkbox("##enabled", &soundConfig.bSpatializationEnabled);
 			ImGui::PopStyleColor(2);
 
 			ImGui::PushStyleColor(ImGuiCol_ChildBg, colors[ImGuiCol_FrameBg]);
@@ -675,7 +675,7 @@ namespace NR
 			{
 				ImGui::Spacing();
 
-				using AttModel = Audio::AttenuationModel;
+				using AttModel = AttenuationModel;
 
 				auto& spatialConfig = soundConfig.Spatialization;
 				auto getTextForModel = [&](AttModel model)
@@ -694,67 +694,72 @@ namespace NR
 																	getTextForModel(AttModel::Inverse),
 																	getTextForModel(AttModel::Linear),
 																	getTextForModel(AttModel::Exponential) };
-				
+
 				UI::BeginPropertyGrid();
-				
-				int32_t selectedModel = static_cast<int32_t>(spatialConfig.AttenuationMod);
+
+				int32_t selectedModel = static_cast<int32_t>(spatialConfig->AttenuationMod);
 				if (UI::PropertyDropdown("Attenuaion Model", attenModStr, (int32_t)attenModStr.size(), &selectedModel))
 				{
-					spatialConfig.AttenuationMod = static_cast<AttModel>(selectedModel);
+					spatialConfig->AttenuationMod = static_cast<AttModel>(selectedModel);
 				}
 
 				singleColumnSeparator();
 				propertyGridSpacing();
 				propertyGridSpacing();
-				
-				UI::Property("Min Gain", spatialConfig.MinGain, 0.01f, 0.0f, 1.0f);
-				UI::Property("Max Gain", spatialConfig.MaxGain, 0.01f, 0.0f, 1.0f);
-				UI::Property("Min Distance", spatialConfig.MinDistance, 1.00f, 0.0f, FLT_MAX);
-				UI::Property("Max Distance", spatialConfig.MaxDistance, 1.00f, 0.0f, FLT_MAX);
-				
+
+				UI::Property("Min Gain", spatialConfig->MinGain, 0.01f, 0.0f, 1.0f);
+				UI::Property("Max Gain", spatialConfig->MaxGain, 0.01f, 0.0f, 1.0f);
+				UI::Property("Min Distance", spatialConfig->MinDistance, 1.00f, 0.0f, FLT_MAX);
+				UI::Property("Max Distance", spatialConfig->MaxDistance, 1.00f, 0.0f, FLT_MAX);
+
 				singleColumnSeparator();
 				propertyGridSpacing();
 				propertyGridSpacing();
-				
-				float inAngle = glm::degrees(spatialConfig.ConeInnerAngleInRadians);
-				float outAngle = glm::degrees(spatialConfig.ConeOuterAngleInRadians);
-				float outGain = spatialConfig.ConeOuterGain;
-				
+
+				float inAngle = glm::degrees(spatialConfig->ConeInnerAngleInRadians);
+				float outAngle = glm::degrees(spatialConfig->ConeOuterAngleInRadians);
+				float outGain = spatialConfig->ConeOuterGain;
+
 				// Manually clamp here because UI::Property doesn't take flags to pass in ImGuiSliderFlags_ClampOnInput
 				if (UI::Property("Cone Inner Angle", inAngle, 1.0f, 0.0f, 360.0f))
 				{
-					if (inAngle > 360.0f) 
+					if (inAngle > 360.0f)
 					{
 						inAngle = 360.0f;
 					}
-					spatialConfig.ConeInnerAngleInRadians = glm::radians(inAngle);
+					spatialConfig->ConeInnerAngleInRadians = glm::radians(inAngle);
 				}
 				if (UI::Property("Cone Outer Angle", outAngle, 1.0f, 0.0f, 360.0f))
 				{
-					if (outAngle > 360.0f) 
+					if (outAngle > 360.0f)
 					{
 						outAngle = 360.0f;
 					}
-					spatialConfig.ConeOuterAngleInRadians = glm::radians(outAngle);
+					spatialConfig->ConeOuterAngleInRadians = glm::radians(outAngle);
 				}
 				if (UI::Property("Cone Outer Gain", outGain, 0.01f, 0.0f, 1.0f))
 				{
-					if (outGain > 1.0f) 
+					if (outGain > 1.0f)
 					{
 						outGain = 1.0f;
 					}
-					spatialConfig.ConeOuterGain = outGain;
+					spatialConfig->ConeOuterGain = outGain;
 				}
 
 				singleColumnSeparator();
 				propertyGridSpacing();
 				propertyGridSpacing();
-				
-				UI::Property("Doppler Factor", spatialConfig.DopplerFactor, 0.01f, 0.0f, 1.0f);
-				
+
+				UI::Property("Doppler Factor", spatialConfig->DopplerFactor, 0.01f, 0.0f, 1.0f);
+
 				propertyGridSpacing();
 				propertyGridSpacing();
-				
+
+				UI::Property("Spread from Source Size", spatialConfig->bSpreadFromSourceSize);
+				UI::Property("Source Size", spatialConfig->SourceSize, 0.01f, 0.01f, FLT_MAX);
+				UI::Property("Spread", spatialConfig->Spread, 0.01f, 0.0f, 1.0f);
+				UI::Property("Focus", spatialConfig->Focus, 0.01f, 0.0f, 1.0f);
+
 				UI::EndPropertyGrid();
 			}
 

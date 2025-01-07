@@ -655,11 +655,11 @@ namespace NR
 					ImGui::CloseCurrentPopup();
 				}
 			}
-			if (!mSelectionContext.HasComponent<Audio::AudioComponent>())
+			if (!mSelectionContext.HasComponent<AudioComponent>())
 			{
 				if (ImGui::Button("Audio"))
 				{
-					mSelectionContext.AddComponent<Audio::AudioComponent>();
+					mSelectionContext.AddComponent<AudioComponent>();
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -672,7 +672,7 @@ namespace NR
 					auto& listenerComponent = mSelectionContext.AddComponent<AudioListenerComponent>();
 
 					listenerComponent.Active = !listenerExists;
-					Audio::AudioEngine::Get().RegisterNewListener(listenerComponent);
+					AudioEngine::Get().RegisterNewListener(listenerComponent);
 					ImGui::CloseCurrentPopup();
 				}
 			}
@@ -1394,7 +1394,7 @@ namespace NR
 				UI::EndPropertyGrid();
 			});
 
-		DrawComponent<Audio::AudioComponent>("Audio", entity, [&](Audio::AudioComponent& ac)
+		DrawComponent<AudioComponent>("Audio", entity, [&](AudioComponent& ac)
 			{
 				auto propertyGridSpacing = []
 					{
@@ -1415,194 +1415,39 @@ namespace NR
 				const float brM = 0.6f;
 				colors[ImGuiCol_Separator] = ImVec4{ oldSCol.x * brM, oldSCol.y * brM, oldSCol.z * brM, 1.0f };
 
-				Ref<Audio::SoundConfig> soundConfig = ac.SoundConfig;
-
 				ImGui::Spacing();
 
 				UI::PushID();
 				UI::BeginPropertyGrid();
 
-				bool bWasEmpty = soundConfig->FileAsset == nullptr;
-				if (UI::PropertyAssetReference("Sound", soundConfig->FileAsset))
+				//=== Audio Objects API
+
+				if (UI::Property("Start Event", ac.StartEvent))
 				{
-					if (bWasEmpty)
-					{
-						soundConfig->FileAsset.Create();
-					}
+					ac.StartCommandID = Audio::CommandID::FromString(ac.StartEvent.c_str());
 				}
 
+				//=====================
 				propertyGridSpacing();
 				propertyGridSpacing();
 
-				if (UI::Property("Volume Multiplier", soundConfig->VolumeMultiplier, 0.01f, 0.0f, 1.0f))
+				if (UI::Property("Volume Multiplier", ac.VolumeMultiplier, 0.01f, 0.0f, 1.0f)) //TODO: switch to dBs in the future ?
 				{
-					ac.VolumeMultiplier = soundConfig->VolumeMultiplier;
+					//ac.VolumeMultiplier = soundConfig.VolumeMultiplier;
 				}
-				if (UI::Property("Pitch Multiplier", soundConfig->PitchMultiplier, 0.01f, 0.0f, 24.0f))
+				if (UI::Property("Pitch Multiplier", ac.PitchMultiplier, 0.01f, 0.0f, 24.0f)) // max pitch 24 is just an arbitrary number here
 				{
-					ac.PitchMultiplier = soundConfig->PitchMultiplier;
+					//ac.PitchMultiplier = soundConfig.PitchMultiplier;
 				}
 
 				propertyGridSpacing();
 				propertyGridSpacing();
 
 				UI::Property("Play on Awake", ac.PlayOnAwake);
-				UI::Property("Looping", soundConfig->Looping);
-
-				singleColumnSeparator();
-				propertyGridSpacing();
-				propertyGridSpacing();
-
-				auto logFrequencyToNormScale = [](float frequencyN)
-					{
-						return (log2(frequencyN) + 8.0f) / 8.0f;
-					};
-
-				auto sliderScaleToLogFreq = [](float sliderValue)
-					{
-						return pow(2.0f, 8.0f * sliderValue - 8.0f);
-					};
-
-				float lpfFreq = 1.0f - soundConfig->LPFilterValue;
-				if (UI::Property("Low-Pass Filter", lpfFreq, 0.0f, 0.0f, 1.0f))
-				{
-					lpfFreq = std::clamp(lpfFreq, 0.0f, 1.0f);
-					soundConfig->LPFilterValue = 1.0f - lpfFreq;
-				}
-
-				float hpfFreq = soundConfig->HPFilterValue;
-				if (UI::Property("High-Pass Filter", hpfFreq, 0.0f, 0.0f, 1.0f))
-				{
-					hpfFreq = std::clamp(hpfFreq, 0.0f, 1.0f);
-					soundConfig->HPFilterValue = hpfFreq;
-				}
-
-				singleColumnSeparator();
-				propertyGridSpacing();
-				propertyGridSpacing();
-
-				UI::Property("Master Reverb send", soundConfig->MasterReverbSend, 0.01f, 0.0f, 1.0f);
+				UI::Property("Stop When Entity Is Destroyed", ac.StopIfEntityDestroyed);
 
 				UI::EndPropertyGrid();
 				UI::PopID();
-
-				if (soundConfig->FileAsset != nullptr)
-				{
-					ImGui::Spacing();
-					ImGui::Spacing();
-					ImGui::Separator();
-					ImGui::Spacing();
-
-					const float space = 10.0f;
-					const ImVec2 buttonSize{ 70.0f, 30.0f };
-					ImGui::SetCursorPosX(ImGui::GetColumnWidth() - (buttonSize.x * 3));
-					if (ImGui::Button("Play", buttonSize))
-					{
-						Audio::AudioPlayback::Play(ac.ParentHandle);
-					}
-
-					ImGui::SameLine(0.0f, space);
-					if (ImGui::Button("Stop", buttonSize))
-					{
-						Audio::AudioPlayback::StopActiveSound(ac.ParentHandle);
-					}
-					ImGui::SameLine(0.0f, space);
-					if (ImGui::Button("Pause", buttonSize))
-					{
-						Audio::AudioPlayback::PauseActiveSound(ac.ParentHandle);
-					}
-
-					ImGui::SetCursorPosX(0);
-				}
-
-				ImGui::Spacing();
-				ImGui::Spacing();
-				ImGui::Separator();
-				ImGui::Spacing();
-				ImGui::Spacing();
-
-				ImGui::Text("Spatialization");
-				ImGui::SameLine(contentRegionAvailable.x - (ImGui::GetFrameHeight() + GImGui->Style.FramePadding.y));
-				ImGui::Checkbox("##enabled", &soundConfig->SpatializationEnabled);
-
-				if (soundConfig->SpatializationEnabled)
-				{
-					ImGui::Spacing();
-					ImGui::Separator();
-					ImGui::Spacing();
-					ImGui::Spacing();
-
-					using AttModel = Audio::AttenuationModel;
-					auto& spatialConfig = soundConfig->Spatialization;
-					auto getTextForModel = [&](AttModel model)
-						{
-							switch (model)
-							{
-							case AttModel::None:             return "None";
-							case AttModel::Inverse:          return "Inverse";
-							case AttModel::Linear:           return "Linear";
-							case AttModel::Exponential:      return "Exponential";
-							}
-						};
-
-					const auto& attenModStr = std::vector<std::string>{ getTextForModel(AttModel::None),
-																		getTextForModel(AttModel::Inverse),
-																		getTextForModel(AttModel::Linear),
-																		getTextForModel(AttModel::Exponential) };
-
-					UI::BeginPropertyGrid();
-
-					int32_t selectedModel = static_cast<int32_t>(spatialConfig.AttenuationMod);
-					if (UI::PropertyDropdown("Attenuaion Model", attenModStr, attenModStr.size(), &selectedModel))
-					{
-						spatialConfig.AttenuationMod = static_cast<AttModel>(selectedModel);
-					}
-
-					singleColumnSeparator();
-					propertyGridSpacing();
-					propertyGridSpacing();
-
-					UI::Property("Min Gain", spatialConfig.MinGain, 0.01f, 0.0f, 1.0f);
-					UI::Property("Max Gain", spatialConfig.MaxGain, 0.01f, 0.0f, 1.0f);
-					UI::Property("Min Distance", spatialConfig.MinDistance, 1.00f, 0.0f, FLT_MAX);
-					UI::Property("Max Distance", spatialConfig.MaxDistance, 1.00f, 0.0f, FLT_MAX);
-
-					singleColumnSeparator();
-					propertyGridSpacing();
-					propertyGridSpacing();
-
-					float inAngle = glm::degrees(spatialConfig.ConeInnerAngleInRadians);
-					float outAngle = glm::degrees(spatialConfig.ConeOuterAngleInRadians);
-					float outGain = spatialConfig.ConeOuterGain;
-
-					if (UI::Property("Cone Inner Angle", inAngle, 1.0f, 0.0f, 360.0f))
-					{
-						if (inAngle > 360.0f) inAngle = 360.0f;
-						spatialConfig.ConeInnerAngleInRadians = glm::radians(inAngle);
-					}
-					if (UI::Property("Cone Outer Angle", outAngle, 1.0f, 0.0f, 360.0f))
-					{
-						if (outAngle > 360.0f) outAngle = 360.0f;
-						spatialConfig.ConeOuterAngleInRadians = glm::radians(outAngle);
-					}
-					if (UI::Property("Cone Outer Gain", outGain, 0.01f, 0.0f, 1.0f))
-					{
-						if (outGain > 1.0f) outGain = 1.0f;
-						spatialConfig.ConeOuterGain = outGain;
-					}
-
-					singleColumnSeparator();
-					propertyGridSpacing();
-					propertyGridSpacing();
-
-					UI::Property("Doppler Factor", spatialConfig.DopplerFactor, 0.01f, 0.0f, 1.0f);
-
-					propertyGridSpacing();
-					propertyGridSpacing();
-
-					UI::EndPropertyGrid();
-				}
-
 				colors[ImGuiCol_Separator] = oldSCol;
 			});
 	}

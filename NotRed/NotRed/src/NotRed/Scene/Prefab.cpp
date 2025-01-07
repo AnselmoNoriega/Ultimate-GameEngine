@@ -43,7 +43,7 @@ namespace NR
 		CopyComponentIfExists<SphereColliderComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<CapsuleColliderComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<MeshColliderComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
-		CopyComponentIfExists<Audio::AudioComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<AudioComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<AudioListenerComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 
 		for (auto childId : entity.Children())

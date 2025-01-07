@@ -17,6 +17,7 @@
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Asset/AssetManager.h"
+#include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 
 #include "NotRed/Audio/AudioEngine.h"
 
@@ -94,6 +95,7 @@ namespace NR
 
 		FrameBufferPool::GetGlobal()->GetAll().clear();
 
+		AudioCommandRegistry::Shutdown();
 		Project::SetActive(nullptr);
 		PhysicsManager::Shutdown();
 		ScriptEngine::Shutdown();

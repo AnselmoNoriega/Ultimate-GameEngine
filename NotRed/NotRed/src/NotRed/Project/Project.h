@@ -13,6 +13,8 @@ namespace NR
 		std::string AssetDirectory;
 		std::string AssetRegistryPath;
 
+		std::string AudioCommandsRegistryPath;
+
 		std::string MeshPath;
 		std::string MeshSourcePath;
 
@@ -60,6 +62,12 @@ namespace NR
 		{
 			NR_CORE_ASSERT(sActiveProject);
 			return std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / sActiveProject->GetConfig().AssetRegistryPath;
+		}
+
+		static std::filesystem::path GetAudioCommandsRegistryPath()
+		{
+			NR_CORE_ASSERT(sActiveProject);
+			return std::filesystem::path(sActiveProject->GetConfig().ProjectDirectory) / sActiveProject->GetConfig().AudioCommandsRegistryPath;
 		}
 
 		static std::filesystem::path GetScriptModulePath()

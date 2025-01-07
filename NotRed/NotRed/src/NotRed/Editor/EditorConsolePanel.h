@@ -26,6 +26,7 @@ namespace NR
 
 		bool mShouldClearOnPlay = false;
 		bool mCollapseMessages = false;
+		bool mNewMessageAdded = false;
 
 		static constexpr uint32_t sMessageBufferCapacity = 500;
 		std::array<ConsoleMessage, sMessageBufferCapacity> mMessageBuffer;

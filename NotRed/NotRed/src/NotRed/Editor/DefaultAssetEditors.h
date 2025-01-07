@@ -8,10 +8,7 @@
 
 namespace NR
 {
-	namespace Audio
-	{
-		struct SoundConfig;
-	}
+	struct SoundConfig;
 
 	class PhysicsMaterialEditor : public AssetEditor
 	{
@@ -98,6 +95,6 @@ namespace NR
 		void Render() override;
 
 	private:
-		Ref<Audio::SoundConfig> mAsset;
+		Ref<SoundConfig> mAsset;
 	};
 }

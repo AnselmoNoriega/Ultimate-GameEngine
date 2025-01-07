@@ -194,6 +194,12 @@ namespace NR
 			}
 		}
 
+		if (mNewMessageAdded)
+		{
+			ImGui::SetScrollHereY(1.0f);
+			mNewMessageAdded = false;
+		}
+
 		if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY() && !mDisplayMessageInspector)
 		{
 			ImGui::SetScrollHereY(1.0f);
@@ -245,6 +251,7 @@ namespace NR
 		}
 
 		sInstance->mMessageBuffer[sInstance->mMessageBufferBegin++] = message;
+		sInstance->mNewMessageAdded = true;
 
 		if (sInstance->mMessageBufferBegin == sMessageBufferCapacity)
 		{

@@ -2,6 +2,7 @@
 #include "Project.h"
 
 #include "NotRed/Asset/AssetManager.h"
+#include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 
 namespace NR
 {
@@ -24,6 +25,7 @@ namespace NR
 		if (sActiveProject)
 		{
 			AssetManager::Init();
+			AudioCommandRegistry::Init();
 		}
 	}
 
