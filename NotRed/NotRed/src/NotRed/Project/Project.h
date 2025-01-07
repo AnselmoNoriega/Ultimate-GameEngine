@@ -13,7 +13,7 @@ namespace NR
 		std::string AssetDirectory;
 		std::string AssetRegistryPath;
 
-		std::string AudioCommandsRegistryPath;
+		std::string AudioCommandsRegistryPath = "Assets/AudioCommandsRegistry.nrr";
 
 		std::string MeshPath;
 		std::string MeshSourcePath;

@@ -157,8 +157,8 @@ namespace NR
 			mRegistry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentConstruct>(this);
 			mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(this);
 
-			mRegistry.on_construct<AudioComponent>().connect<&AudioComponentConstruct>();
-			mRegistry.on_destroy<AudioComponent>().connect<&AudioComponentDestroy>();
+			mRegistry.on_construct<AudioComponent>().connect<&Scene::AudioComponentConstruct>(this);
+			mRegistry.on_destroy<AudioComponent>().connect<&Scene::AudioComponentDestroy>(this);
 
 			mSceneEntity = mRegistry.create();
 			mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);

@@ -30,7 +30,10 @@ namespace NR
 	public:
 		using CommandsTree = TreeModel<Audio::CommandID>;
 
-		static void OnImGuiRender(bool& show);
+		static void Init();
+		static void Shutdown();
+
+		static void ImGuiRender(bool& show);
 		static bool OnKeyPressedEvent(KeyPressedEvent& e);
 
 		static void SerializeTree(YAML::Emitter& out);
@@ -90,4 +93,4 @@ namespace NR
 	};
 
 
-} // namespace Hazel
+} // namespace NotRed

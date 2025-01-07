@@ -16,6 +16,9 @@
 #include "NotRed/Renderer/Renderer2D.h"
 #include "NotRed/Script/ScriptEngine.h"
 #include "NotRed/Editor/AssetEditorPanel.h"
+#include "NotRed/Audio/Editor/AudioEventsEditor.h"
+
+#include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsLayer.h"
@@ -28,6 +31,7 @@
 #include "NotRed/Project/ProjectSerializer.h"
 
 #include "NotRed/Audio/AudioEngine.h"
+#include "NotRed/Audio/SceneAudio.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -93,9 +97,13 @@ namespace NR
         mFocusedRenderer = mViewportRenderer;
 
         AssetEditorPanel::RegisterDefaultEditors();
-        FileSystem::StartWatching();
+        //FileSystem::StartWatching();
+
+        Renderer2D::SetLineWidth(mLineWidth);
+        mViewportRenderer->SetLineWidth(mLineWidth);
 
         UpdateSceneRendererSettings();
+        AudioEventsEditor::Init();
 
         sNotRedInstallPath = FileSystem::GetEnvironmentVariable("NOTRED_DIR");
     }
@@ -103,6 +111,7 @@ namespace NR
     void EditorLayer::Detach()
     {
         CloseProject(false);
+        AudioEventsEditor::Shutdown();
         FileSystem::StopWatching();
         AssetEditorPanel::UnregisterAllEditors();
     }
@@ -141,6 +150,7 @@ namespace NR
 
         mSelectionContext.clear();
         ScriptEngine::SetSceneContext(mEditorScene);
+        AudioEngine::SetSceneContext(mEditorScene);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         mCurrentScene = mEditorScene;
     }
@@ -589,7 +599,7 @@ namespace NR
         
         mSceneHierarchyPanel->SetContext(nullptr);
         ScriptEngine::SetSceneContext(nullptr);
-        Audio::AudioEngine::SetSceneContext(nullptr);
+        AudioEngine::SetSceneContext(nullptr);
         mViewportRenderer->SetScene(nullptr);
         mSecondViewportRenderer->SetScene(nullptr);
 
@@ -614,6 +624,7 @@ namespace NR
         mEditorScene = Ref<Scene>::Create("Scene", true);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
+        AudioEngine::SetSceneContext(mEditorScene);
         UpdateWindowTitle("Scene");
         mSceneFilePath = std::string();
 
@@ -652,6 +663,7 @@ namespace NR
         UpdateWindowTitle(path.filename().string());
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
+        AudioEngine::SetSceneContext(mEditorScene);
 
         mEditorScene->SetSelectedEntity({});
         mSelectionContext.clear();
@@ -671,6 +683,8 @@ namespace NR
         {
             SceneSerializer serializer(mEditorScene);
             serializer.Serialize(mSceneFilePath);
+
+            AudioCommandRegistry::WriteRegistryToFile();
         }
         else
         {
@@ -1531,6 +1545,8 @@ namespace NR
 
             if (ImGui::BeginMenu("View"))
             {
+                ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
+
                 ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
                 ImGui::EndMenu();
             }
@@ -1910,6 +1926,8 @@ namespace NR
         }
 
         mFocusedRenderer->ImGuiRender();
+        SceneAudio::ImGuiRender();
+        AudioEventsEditor::ImGuiRender(mShowAudioEventsEditor);
 
         ImGui::End();
 
@@ -2056,6 +2074,28 @@ namespace NR
 
     bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
     {
+        auto isAudioEventsEditorFocused = []
+            {
+                // Note: child name usually starts with "parent window name"/"child name"
+                auto* audioEventsEditorWindow = ImGui::FindWindowByName("Audio Events Editor");
+                if (GImGui->NavWindow)
+                {
+                    return GImGui->NavWindow == audioEventsEditorWindow || Utils::StartsWith(GImGui->NavWindow->Name, "Audio Events Editor");
+                }
+                else
+                {
+                    return false;
+                }
+            };
+
+        if (isAudioEventsEditorFocused())
+        {
+            if (AudioEventsEditor::OnKeyPressedEvent(e))
+            {
+                return true;
+            }
+        }
+
         if (GImGui->ActiveId == 0)
         {
             if ((mViewportPanelMouseOver || mViewportPanel2MouseOver) && !Input::IsMouseButtonPressed(MouseButton::Right))

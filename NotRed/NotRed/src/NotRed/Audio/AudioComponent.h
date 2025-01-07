@@ -14,9 +14,6 @@ namespace NR
 
 		float VolumeMultiplier;
 		float PitchMultiplier;
-
-		glm::vec3 Position;
-		glm::vec3 Velocity;
 	};
 
 	/*  ======================================================================

@@ -86,7 +86,7 @@ namespace NR::Audio::DSP
         }
 
         ma_lpf1_config config = ma_lpf1_config_init(ma_format_f32, numChannels, (ma_uint32)mSampleRate, mCutoffMultiplier.load());
-        result = ma_lpf1_init(&config, nullptr, &mNode.filter);
+        result = ma_lpf1_init(&config, &mNode.filter);
         if (abortIfFailed(result, "Filter Init failed"))
         {
             return false;

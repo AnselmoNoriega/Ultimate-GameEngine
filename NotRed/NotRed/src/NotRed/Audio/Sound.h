@@ -246,4 +246,4 @@ namespace NR
         //DSP::AirAbsorptionFilter mAirAbsorptionFilter;
     };
 
-} // namespace Hazel
+} // namespace NotRed

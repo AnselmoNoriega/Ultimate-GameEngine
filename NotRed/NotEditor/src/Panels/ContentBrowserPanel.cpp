@@ -221,7 +221,7 @@ namespace NR
 
 							if (ImGui::MenuItem("Sound Config"))
 							{
-								CreateAsset<Audio::SoundConfig>("New Sound Config.nrsoundc");
+								CreateAsset<SoundConfig>("New Sound Config.nrsoundc");
 							}
 
 							ImGui::EndMenu();

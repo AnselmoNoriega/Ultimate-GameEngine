@@ -189,6 +189,7 @@ namespace NR
 
 		bool mShowProjectSettings = false;
 		bool mShowSecondViewport = false;
+		bool mShowAudioEventsEditor = false;
 
 		bool mShowWelcomePopup = true;
 		bool mShowAboutPopup = false;

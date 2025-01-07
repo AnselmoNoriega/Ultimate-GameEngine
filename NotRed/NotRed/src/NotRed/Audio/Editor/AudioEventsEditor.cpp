@@ -64,7 +64,7 @@ namespace NR
 			}
 			else
 			{
-				ImGui::InputText("##assetRef", "Missing", 256, ImGuiInputTextFlags_ReadOnly);
+				ImGui::InputText("##assetRef", (char*)"Missing", 256, ImGuiInputTextFlags_ReadOnly);
 			}
 		}
 		else
@@ -94,7 +94,7 @@ namespace NR
 		return modified;
 	}
 
-	static bool NameProperty(const char* label, std::string& value, bool error = false, ImGuiInputTextFlags_ flags)
+	static bool NameProperty(const char* label, std::string& value, bool error = false, ImGuiInputTextFlags flags = 0)
 	{
 		bool modified = false;
 
@@ -112,14 +112,18 @@ namespace NR
 		std::string id = "##" + std::string(label);
 
 		if (error)
+		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+		}
 		if (ImGui::InputText(id.c_str(), buffer, 256, flags))
 		{
 			value = buffer;
 			modified = true;
 		}
 		if (error)
+		{
 			ImGui::PopStyleColor();
+		}
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
 
@@ -150,28 +154,33 @@ namespace NR
 	Ref<Texture2D> AudioEventsEditor::sMoveIcon;
 	Ref<Texture2D> AudioEventsEditor::sDeleteIcon;
 
+	void AudioEventsEditor::Init()
+	{
+		AudioCommandRegistry::onRegistryChange = [] { OnRegistryChanged(); };
+		sFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
+		sMoveIcon = Texture2D::Create("Resources/Editor/move.png");
+		sDeleteIcon = Texture2D::Create("Resources/Editor/close.png");
+	}
 
 	void AudioEventsEditor::OnOpennesChange(bool opened)
 	{
-		if (opened)
+		if (!opened)
 		{
-			AudioCommandRegistry::onRegistryChange = [] { OnRegistryChanged(); };
-
-			if (!sFolderIcon)
-				sFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
-			if (!sMoveIcon)
-				sMoveIcon = Texture2D::Create("Resources/Editor/move.png");
-			if (!sDeleteIcon)
-				sDeleteIcon = Texture2D::Create("Resources/Editor/close.png");
-		}
-		else
 			AudioCommandRegistry::WriteRegistryToFile();
+		}
+	}
+
+	void AudioEventsEditor::Shutdown()
+	{
+		sDeleteIcon.Reset();
+		sMoveIcon.Reset();
+		sFolderIcon.Reset();
+		AudioCommandRegistry::onRegistryChange = nullptr;
 	}
 
 	void AudioEventsEditor::OnRegistryChanged()
 	{
 	}
-
 
 	bool AudioEventsEditor::OnKeyPressedEvent(KeyPressedEvent& e)
 	{
@@ -230,7 +239,7 @@ namespace NR
 	}
 
 
-	void AudioEventsEditor::OnImGuiRender(bool& show)
+	void AudioEventsEditor::ImGuiRender(bool& show)
 	{
 		if (!show)
 		{
@@ -1265,7 +1274,7 @@ namespace NR
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 			{
-				auto& assetName = AssetManager::GetMetadata(action.Target->Handle).FilePath.filename().string();
+				const auto& assetName = AssetManager::GetMetadata(action.Target->Handle).FilePath.filename().string();
 				const std::string dragTooltip = std::string(Utils::AudioActionTypeToString(action.Type))
 					+ " | " + assetName
 					+ " | " + std::string(Utils::AudioActionContextToString(action.Context));
@@ -1615,7 +1624,7 @@ namespace NR
 
 		YAML::Node treeView = (*it)["TriggersTreeView"];
 
-		auto deserializeNode = [](YAML::Node& node, CommandsTree::Node* parentFolder, auto deserializeNode) ->void
+		auto deserializeNode = [](const YAML::Node& node, CommandsTree::Node* parentFolder, auto deserializeNode) ->void
 			{
 				const bool isFolder = node["Children"].IsDefined();
 				if (isFolder)
@@ -1626,8 +1635,10 @@ namespace NR
 					NR_DESERIALIZE_PROPERTY(Name, folder.Name, node, std::string(""));
 					folder.Parent = parentFolder;
 
-					for (auto& childNode : node["Children"])
+					for (const auto& childNode : node["Children"])
+					{
 						deserializeNode(childNode, &folder, deserializeNode);
+					}
 
 					parentFolder->Children.emplace(std::make_pair(folder.Name, Ref<CommandsTree::Node>::Create(folder)));
 				}
@@ -1650,4 +1661,4 @@ namespace NR
 			deserializeNode(node, &sTree.RootNode, deserializeNode);
 	}
 
-} // namespace Hazel
+} // namespace NotRed

@@ -313,4 +313,4 @@ namespace NR
 
 	} // namespace Audio
 
-} // namespace Hazel
+} // namespace NotRed

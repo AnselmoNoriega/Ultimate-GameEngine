@@ -13,6 +13,9 @@
     <Filter Include="src\NotRed\Audio">
       <UniqueIdentifier>{29B1F707-15AA-165A-3EDC-FBDE2A34F665}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Audio\AudioEvents">
+      <UniqueIdentifier>{DF85EF41-CB40-DFED-74F8-57386092297E}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Audio\DSP">
       <UniqueIdentifier>{BF0F69B1-AB9E-F27A-54BD-0676402B0321}</UniqueIdentifier>
     </Filter>
@@ -24,6 +27,12 @@
     </Filter>
     <Filter Include="src\NotRed\Audio\DSP\Reverb">
       <UniqueIdentifier>{344A7EEA-A057-ACD0-293E-A8BB954A7887}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Audio\DSP\Spatializer">
+      <UniqueIdentifier>{B6A37C8C-A2F4-67CE-CB58-5690B708FB37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Audio\Editor">
+      <UniqueIdentifier>{3FE603B1-AB1D-4C48-B427-B06B20DE7241}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\Core">
       <UniqueIdentifier>{80820827-EC0D-76EB-F51E-F9DF6129D2EB}</UniqueIdentifier>
@@ -159,7 +168,19 @@
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h">
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.h">
+      <Filter>src\NotRed\Audio\AudioEvents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommands.h">
+      <Filter>src\NotRed\Audio\AudioEvents</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\CommandID.h">
+      <Filter>src\NotRed\Audio\AudioEvents</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioFileUtils.h">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\AudioObject.h">
       <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h">
@@ -191,6 +212,24 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h">
       <Filter>src\NotRed\Audio\DSP\Reverb</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.h">
+      <Filter>src\NotRed\Audio\DSP\Spatializer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\VBAP.h">
+      <Filter>src\NotRed\Audio\DSP\Spatializer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\Editor\AudioEventsEditor.h">
+      <Filter>src\NotRed\Audio\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\Editor\OrderedVector.h">
+      <Filter>src\NotRed\Audio\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\Editor\TreeModel.h">
+      <Filter>src\NotRed\Audio\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Audio\EntityIDMaps.h">
+      <Filter>src\NotRed\Audio</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\SceneAudio.h">
       <Filter>src\NotRed\Audio</Filter>
@@ -297,10 +336,19 @@
     <ClInclude Include="src\NotRed\EntryPoint.h">
       <Filter>src\NotRed</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\ImGui\Colors.h">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\ImGui\CustomTreeNode.h">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGui.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGuiLayer.h">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\ImGui\ImGuiUtil.h">
       <Filter>src\NotRed\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\ImGui\ImGuizmo.h">
@@ -612,6 +660,9 @@
     <ClInclude Include="src\NotRed\Util\FileSystem.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Util\SerializationMacros.h">
+      <Filter>src\NotRed\Util</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Util\StringUtils.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
@@ -801,21 +852,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\ImGui\Colors.h" />
-    <ClInclude Include="src\NotRed\ImGui\CustomTreeNode.h" />
-    <ClInclude Include="src\NotRed\ImGui\ImGuiUtil.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioEvents\CommandID.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommands.h" />
-    <ClInclude Include="src\NotRed\Audio\AudioObject.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\VBAP.h" />
-    <ClInclude Include="vendor\MiniAudio\include\miniaudio_engine.h" />
-    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.h" />
-    <ClInclude Include="src\NotRed\Audio\Editor\AudioEventsEditor.h" />
-    <ClInclude Include="src\NotRed\Audio\Editor\OrderedVector.h" />
-    <ClInclude Include="src\NotRed\Audio\Editor\TreeModel.h" />
-    <ClInclude Include="src\NotRed\Audio\EntityIDMaps.h" />
-    <ClInclude Include="src\NotRed\Util\SerializationMacros.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -842,7 +878,16 @@
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp">
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.cpp">
+      <Filter>src\NotRed\Audio\AudioEvents</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioEvents\CommandID.cpp">
+      <Filter>src\NotRed\Audio\AudioEvents</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioFileUtils.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\AudioObject.cpp">
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp">
@@ -866,6 +911,21 @@
     <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp">
       <Filter>src\NotRed\Audio\DSP\Reverb</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.cpp">
+      <Filter>src\NotRed\Audio\DSP\Spatializer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\VBAP.cpp">
+      <Filter>src\NotRed\Audio\DSP\Spatializer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\Editor\AudioEventsEditor.cpp">
+      <Filter>src\NotRed\Audio\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\Editor\OrderedVector.cpp">
+      <Filter>src\NotRed\Audio\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Audio\EntityIDMaps.cpp">
+      <Filter>src\NotRed\Audio</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp">
       <Filter>src\NotRed\Audio</Filter>
     </ClCompile>
@@ -885,6 +945,9 @@
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Hash.cpp">
+      <Filter>src\NotRed\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Core\HashCRC32.cpp">
       <Filter>src\NotRed\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Core\Layer.cpp">
@@ -929,10 +992,19 @@
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\Colors.cpp">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\CustomTreeNode.cpp">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
@@ -1319,17 +1391,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\ImGui\Colors.cpp" />
-    <ClCompile Include="src\NotRed\ImGui\CustomTreeNode.cpp" />
-    <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp" />
-    <ClCompile Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.cpp" />
-    <ClCompile Include="src\NotRed\Audio\AudioEvents\CommandID.cpp" />
-    <ClCompile Include="src\NotRed\Audio\AudioObject.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\VBAP.cpp" />
-    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.cpp" />
-    <ClCompile Include="src\NotRed\Audio\Editor\AudioEventsEditor.cpp" />
-    <ClCompile Include="src\NotRed\Audio\Editor\OrderedVector.cpp" />
-    <ClCompile Include="src\NotRed\Audio\EntityIDMaps.cpp" />
-    <ClCompile Include="src\NotRed\Core\HashCRC32.cpp" />
   </ItemGroup>
 </Project>

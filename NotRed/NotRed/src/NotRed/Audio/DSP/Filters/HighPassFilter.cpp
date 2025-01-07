@@ -86,7 +86,7 @@ namespace NR::Audio::DSP
         }
 
         ma_hpf2_config config = ma_hpf2_config_init(ma_format_f32, numChannels, (ma_uint32)mSampleRate, mCutoffMultiplier.load(), 0.707);
-        result = ma_hpf2_init(&config, nullptr, &mNode.filter);
+        result = ma_hpf2_init(&config, &mNode.filter);
         if (abortIfFailed(result, "Filter Init failed"))
         {
             return false;

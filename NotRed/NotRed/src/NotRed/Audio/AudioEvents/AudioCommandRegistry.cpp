@@ -29,7 +29,10 @@ namespace NR
 
 	void AudioCommandRegistry::Shutdown()
 	{
-		WriteRegistryToFile();
+		if (Project::GetActive())
+		{
+			WriteRegistryToFile();
+		}
 
 		sTriggers.clear();
 		sSwitches.clear();

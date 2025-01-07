@@ -72,7 +72,7 @@ namespace NR::Audio::DSP
     }
 
     static ma_node_vtable reverb_vtable = {
-        reverb_node_process_pcmframes,
+        reverb_node_process_pcm_frames,
         nullptr,
         2, // 1 input bus.
         1, // 1 output bus.

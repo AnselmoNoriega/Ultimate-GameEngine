@@ -1580,7 +1580,8 @@ namespace NR
 		SceneDestruct(audioEngine.mCurrentSceneID);
 
 		audioEngine.mSceneContext = scene;
-		if (scene) {
+		if (scene) 
+		{
 			auto* newScene = audioEngine.mSceneContext.Raw();
 			const auto newSceneID = newScene->GetID();
 			audioEngine.mCurrentSceneID = newSceneID;
@@ -1598,10 +1599,6 @@ namespace NR
 
 				sInstance->RegisterAudioComponent(e);
 			}
-		}
-		else
-		{
-			NR_CORE_ASSERT(false);
 		}
 
 		//NR_CORE_INFO("SET SCENE CONTEXT");

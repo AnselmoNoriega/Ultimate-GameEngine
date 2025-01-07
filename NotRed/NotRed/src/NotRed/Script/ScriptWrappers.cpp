@@ -1688,7 +1688,7 @@ namespace NR::Script
 	{
 		if (!AudioCommandRegistry::DoesCommandExist<Audio::TriggerCommand>(eventID))
 		{
-			NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", eventID);
+			NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", (uint32_t)eventID);
 			return;
 		}
 
@@ -1702,7 +1702,7 @@ namespace NR::Script
 		auto scene = CheckActiveScene();
 		if (!AudioCommandRegistry::DoesCommandExist<Audio::TriggerCommand>(eventID))
 		{
-			NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", eventID);
+			NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", (uint32_t)eventID);
 			return 0;
 		}
 		Entity entity = scene->CreateEntityWithID(NR::UUID(), "Sound3D");

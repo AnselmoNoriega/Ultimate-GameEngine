@@ -87,7 +87,7 @@ namespace NR
             return engine.PostTrigger(triggerCommandID, objectID);
         }
 
-        NR_CORE_ERROR("Audio command with ID {0} does not exist!", triggerCommandID);
+        NR_CORE_ERROR("Audio command with ID {0} does not exist!", (uint32_t)triggerCommandID);
         return 0;
     }
 

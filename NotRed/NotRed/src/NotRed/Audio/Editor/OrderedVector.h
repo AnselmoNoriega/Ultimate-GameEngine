@@ -136,7 +136,7 @@ namespace NR
 			return SetNewPosition(order[oldIndex], newIndex);
 		}
 
-		bool IsIndexValid(int index) const { LockType lock{ mMutex, true }; return index >= 0 && index < order.size() }
+		bool IsIndexValid(int index) const { LockType lock{ mMutex, true }; return index >= 0 && index < order.size(); }
 		size_t GetSize() const { LockType lock{ mMutex, true }; return order.size(); }
 		bool IsEmpty() const { LockType lock{ mMutex, true }; return order.empty(); }
 		void Clear() { LockType lock{ mMutex }; order.clear(); }
@@ -188,7 +188,7 @@ namespace NR
 				else
 				{
 					order.push_back(value);
-					return 0
+					return 0;
 				}
 			}
 		}
@@ -239,7 +239,7 @@ namespace NR
 		{
 			LockType lock{ mMutex };
 
-			auto isValid = [&] { return index >= 0 && index < order.size(); };
+			auto isValid = [&](int index) { return index >= 0 && index < order.size(); };
 			if (!isValid(position1) || !isValid(position2))
 				return false;
 
@@ -296,7 +296,7 @@ namespace NR
 				else
 				{
 					vector.push_back(value);
-					return 0
+					return 0;
 				}
 			}
 		}
@@ -351,4 +351,4 @@ namespace NR
 		mutable std::shared_mutex mMutex;
 	};
 
-} // namespace Hazel
+} // namespace NotRed

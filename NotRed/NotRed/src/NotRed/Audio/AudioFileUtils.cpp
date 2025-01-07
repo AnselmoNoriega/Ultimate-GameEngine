@@ -2,7 +2,6 @@
 #include "AudioFileUtils.h"
 
 #include "miniaudio.h"
-#define DR_WAV_IMPLEMENTATION
 #include "dr_wav.h"
 #include "stb_vorbis.c"
 

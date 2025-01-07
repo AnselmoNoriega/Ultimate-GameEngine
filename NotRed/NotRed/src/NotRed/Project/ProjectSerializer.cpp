@@ -95,7 +95,10 @@ namespace NR
 		config.Name = rootNode["Name"].as<std::string>();
 		config.AssetDirectory = rootNode["AssetDirectory"].as<std::string>();
 		config.AssetRegistryPath = rootNode["AssetRegistry"].as<std::string>();
-		config.AudioCommandsRegistryPath = rootNode["AudioCommandsRegistryPath"].as<std::string>();
+		if (rootNode["AudioCommandsRegistryPath"])
+		{
+			config.AudioCommandsRegistryPath = rootNode["AudioCommandsRegistryPath"].as<std::string>();
+		}
 		config.MeshPath = rootNode["MeshPath"].as<std::string>();
 		config.MeshSourcePath = rootNode["MeshSourcePath"].as<std::string>();
 		config.ScriptModulePath = rootNode["ScriptModulePath"].as<std::string>();

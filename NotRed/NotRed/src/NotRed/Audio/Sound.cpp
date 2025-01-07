@@ -533,4 +533,4 @@ namespace NR
         return (float)currentFrame / (float)totalFrames;
     }
 
-} // namespace Hazel
+} // namespace NotRed

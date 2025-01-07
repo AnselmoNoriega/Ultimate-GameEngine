@@ -178,7 +178,7 @@ namespace NR::Audio::DSP
     /// SPATIALIZER DEFINITIONS
 
     static ma_node_vtable spatializer_node_vtable = {
-    spatializer_node_process_pcmframes,
+    spatializer_node_process_pcm_frames,
     nullptr,
     1, // 1 input bus.
     1, // 1 output bus.
