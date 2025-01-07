@@ -1,8 +1,10 @@
 Project:
-    Name: Sandbox
-    AssetDirectory: Assets
-    AssetRegistry: Assets/AssetRegistry.nrr
-    MeshPath: Assets/Meshes
-    MeshSourcePath: Assets/Meshes/Source
-    ScriptModulePath: Assets/Scripts/Binaries
-    StartScene: Assets/Scenes/Demo.nrsc
+  Name: Sandbox
+  AssetDirectory: Assets
+  AssetRegistry: Assets/AssetRegistry.nrr
+  AudioCommandsRegistryPath: Assets/AudioCommandsRegistry.nrr
+  MeshPath: Assets/Meshes
+  MeshSourcePath: Assets/Meshes/Source
+  ScriptModulePath: Assets/Scripts/Binaries
+  StartScene: Scenes/Demo.nrsc
+  ReloadAssemblyOnPlay: true
