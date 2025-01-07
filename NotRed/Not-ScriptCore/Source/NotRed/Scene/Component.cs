@@ -666,6 +666,11 @@ namespace NR
             return Pause_Native(Entity.ID);
         }
 
+        public bool Resume()
+        {
+            return Resume_Native(Entity.ID);
+        }
+
         public float VolumeMultiplier
         {
             get { return GetVolumeMult_Native(Entity.ID); }
@@ -677,69 +682,49 @@ namespace NR
             get { return GetPitchMult_Native(Entity.ID); }
             set { SetPitchMult_Native(Entity.ID, value); }
         }
-
-        public bool Looping
+        public void SetEvent(Audio.CommandID eventID)
         {
-            get { return GetLooping_Native(Entity.ID); }
-            set { SetLooping_Native(Entity.ID, value); }
+            SetEvent_Native(Entity.ID, (uint)eventID.GetHashCode());
         }
 
-        public void SetSound(SimpleSound sound)
+        public void SetEvent(string eventName)
         {
-            SetSound_Native(Entity.ID, sound._unmanagedInstance);
-        }
-
-        public void SetSound(string assetPath)
-        {
-            SetSoundPath_Native(Entity.ID, assetPath);
-        }
-
-        public SimpleSound GetSound()
-        {
-            return new SimpleSound(GetSound_Native(Entity.ID));
-        }
-
-        public float MasterReverbSend
-        {
-            get 
-            {
-                return GetMasterReverbSend_Native(Entity.ID); 
-            }
-            set 
-            { 
-                SetMasterReverbSend_Native(Entity.ID, value); 
-            }
+            Audio.CommandID command = new Audio.CommandID(eventName);
+            SetEvent_Native(Entity.ID, (uint)command.GetHashCode());
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool IsPlaying_Native(ulong entityID);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Play_Native(ulong entityID, float startTime);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Stop_Native(ulong entityID);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Pause_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool Resume_Native(ulong entityID);
+
+
+        //=================================================================================================
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float GetVolumeMult_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetVolumeMult_Native(ulong entityID, float volumeMult);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float GetPitchMult_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetPitchMult_Native(ulong entityID, float pitchMult);
+
+
+        //=================================================================================================
+
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool GetLooping_Native(ulong entityID);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetLooping_Native(ulong entityID, bool volumeMult);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetSound_Native(ulong entityID, IntPtr simpleSound);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetSoundPath_Native(ulong entityID, string assetPath);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern string GetSound_Native(ulong entityID);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern float GetMasterReverbSend_Native(ulong entityID);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetMasterReverbSend_Native(ulong entityID, float sendLevel);
+        internal static extern void SetEvent_Native(ulong entityID, uint eventID);
     }
 }

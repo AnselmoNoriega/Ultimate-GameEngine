@@ -160,7 +160,11 @@
     <ClInclude Include="src\NotRed\Audio\Audio.h" />
     <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommands.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\CommandID.h" />
     <ClInclude Include="src\NotRed\Audio\AudioFileUtils.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioObject.h" />
     <ClInclude Include="src\NotRed\Audio\AudioPlayback.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\DelayLine.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Components\allpass.hpp" />
@@ -171,6 +175,8 @@
     <ClInclude Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.h" />
     <ClInclude Include="src\NotRed\Audio\DSP\Reverb\Reverb.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\VBAP.h" />
     <ClInclude Include="src\NotRed\Audio\SceneAudio.h" />
     <ClInclude Include="src\NotRed\Audio\Sound.h" />
     <ClInclude Include="src\NotRed\Audio\SoundObject.h" />
@@ -318,6 +324,7 @@
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />
     <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h" />
     <ClInclude Include="src\nrpch.h" />
+    <ClInclude Include="vendor\MiniAudio\include\miniaudio_engine.h" />
     <ClInclude Include="vendor\VulkanMemoryAllocator\vk_mem_alloc.h" />
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\anchor.h" />
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\binary.h" />
@@ -388,7 +395,10 @@
     <ClCompile Include="src\NotRed\Audio\Audio.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioComponent.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioEngine.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioEvents\CommandID.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioFileUtils.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioObject.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioPlayback.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\allpass.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Components\comb.cpp" />
@@ -396,6 +406,8 @@
     <ClCompile Include="src\NotRed\Audio\DSP\Filters\HighPassFilter.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Filters\LowPassFilter.cpp" />
     <ClCompile Include="src\NotRed\Audio\DSP\Reverb\Reverb.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\VBAP.cpp" />
     <ClCompile Include="src\NotRed\Audio\SceneAudio.cpp" />
     <ClCompile Include="src\NotRed\Audio\Sound.cpp" />
     <ClCompile Include="src\NotRed\Audio\SoundObject.cpp" />

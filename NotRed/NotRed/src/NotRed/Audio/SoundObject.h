@@ -23,6 +23,6 @@ namespace NR::Audio
         virtual bool FadeIn(const float duration, const float targetVolume) = 0;
         virtual bool FadeOut(const float duration, const float targetVolume) = 0;
 
-        virtual void Update(TimeFrame tf) = 0;
+        virtual void Update(float dt) = 0;
     };
 }

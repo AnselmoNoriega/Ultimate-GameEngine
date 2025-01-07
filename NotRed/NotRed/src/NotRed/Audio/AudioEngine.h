@@ -7,18 +7,23 @@
 
 #include <glm/glm.hpp>
 
-#include "miniaudioInc.h"
-
-#include "NotRed/Scene/Components.h"
-#include "Audio.h"
-#include "SourceManager.h"
-#include "Sound.h"
-#include "AudioComponent.h"
-#include "AudioPlayback.h"
+#include "MiniAudio/include/miniaudioInc.h"
 
 #include "NotRed/Core/Timer.h"
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
+
+#include "Audio.h"
+#include "SourceManager.h"
+#include "Sound.h"
+#include "AudioObject.h"
+#include "EntityIDMaps.h"
+#include "AudioEvents/AudioCommands.h"
+#include "AudioEvents/CommandID.h"
+#include "AudioComponent.h"
+#include "AudioPlayback.h"
+
+#include "NotRed/Scene/Components.h"
 
 namespace YAML
 {
@@ -26,70 +31,109 @@ namespace YAML
     class Node;
 }
 
-namespace NR::Audio
+namespace NR
 {
-
     class SourceManager;
     class Sound;
-    class SoundSource;
-    class AudioComponent;
+    struct AudioComponent;
+    class AudioObject;
 
-    namespace DSP
+    namespace Audio::DSP
     {
         struct Reverb;
     }
 
-    struct Stats
+    namespace Audio
     {
-        Stats() = default;
-        Stats(const Stats& other)
+        struct Stats
         {
-            std::shared_lock lock{ other.mutex };
-            NumActiveSounds = other.NumActiveSounds;
-            TotalSources = other.TotalSources;
-            MemEngine = other.MemEngine;
-            MemResManager = other.MemResManager;
-            FrameTime = other.FrameTime;
-            NumAudioComps = other.NumAudioComps;
-        }
+            Stats() = default;
+            Stats(const Stats& other)
+            {
+                std::shared_lock lock{ other.mutex };
+                AudioObjects = other.AudioObjects;
+                ActiveEvents = other.ActiveEvents;
+                NumActiveSounds = other.NumActiveSounds;
+                TotalSources = other.TotalSources;
+                MemEngine = other.MemEngine;
+                MemResManager = other.MemResManager;
+                FrameTime = other.FrameTime;
+                NumAudioComps = other.NumAudioComps;
+            }
 
-        uint32_t NumActiveSounds = 0;
-        uint32_t TotalSources = 0;
-        uint64_t MemEngine = 0;
-        uint64_t MemResManager = 0;
-        float FrameTime = 0.0f;
-        uint64_t NumAudioComps = 0;
+            uint32_t AudioObjects = 0;
+            uint32_t ActiveEvents = 0;
+            uint32_t NumActiveSounds = 0;
+            uint32_t TotalSources = 0;
+            uint64_t MemEngine = 0;
+            uint64_t MemResManager = 0;
+            float FrameTime = 0.0f;
+            uint64_t NumAudioComps = 0;
 
-        mutable std::shared_mutex mutex;
-    };
+            mutable std::shared_mutex mutex;
+        };
 
-    struct AllocationCallbackData
-    {
-        bool isResourceManager = false;
-        Stats& Stats;
-    };
 
+        /* ----------------------------------------------------------------
+            For now just a flag to pass into the memory allocation callback
+            to sort allocation stats accordingly to the source of operation
+            ---------------------------------------------------------------
+        */
+        struct AllocationCallbackData // TODO: hide this into Source Manager?
+        {
+            bool isResourceManager = false;
+            Stats& Stats;
+        };
+
+    } // namespace Audio
+
+    /*  =================================================================
+        Object representing current state of the Audio Listener
+
+        Updated from Game Thead, checked and updated to from Audio Thread
+        -----------------------------------------------------------------
+    */
     struct AudioListener
     {
-        bool PositionNeedsUpdate(const glm::vec3& newPosition, const glm::vec3& newDirection) const
+        bool PositionNeedsUpdate(const Audio::Transform& newTransform) const
         {
             std::shared_lock lock{ mMutex };
-            return newPosition != mLastPosition || newDirection != mLastDirection;
+            //return newPosition != mLastPosition || newDirection != mLastDirection;
+            return mTransform != newTransform;
         }
 
-        void SetPositionDirection(const glm::vec3& newPosition, const glm::vec3& newDirection)
+        void SetNewPositionDirection(const Audio::Transform& newTransform)
         {
             std::unique_lock lock{ mMutex };
-            mLastPosition = newPosition;
-            mLastDirection = newDirection;
+            //mLastPosition = newPosition;
+            //mLastDirection = newDirection;
+            mTransform = newTransform;
             mChanged = true;
         }
 
-        void SetVelocity(const glm::vec3& newVelocity)
+        void SetNewVelocity(const glm::vec3& newVelocity)
         {
             std::unique_lock lock{ mMutex };
             mChanged = newVelocity != mLastVelocity;
             mLastVelocity = newVelocity;
+        }
+
+        void SetNewConeAngles(float innerAngle, float outerAngle, float outerGain)
+        {
+            mInnerAngle.store(innerAngle);
+            mOuterAngle.store(outerAngle);
+            mOuterGain.store(outerGain);
+            mChanged = true;
+        }
+
+        [[nodiscard]] std::pair<float, float> GetConeInnerOuterAngles() const
+        {
+            return { mInnerAngle.load(), mOuterAngle.load() };
+        }
+
+        [[nodiscard]] float GetConeOuterGain() const
+        {
+            return mOuterGain.load();
         }
 
         void GetVelocity(glm::vec3& velocity) const
@@ -98,118 +142,36 @@ namespace NR::Audio
             velocity = mLastVelocity;
         }
 
-        void GetPositionDirection(glm::vec3& position, glm::vec3& direction) const
+        Audio::Transform GetPositionDirection() const
         {
             std::shared_lock lock{ mMutex };
-            position = mLastPosition;
-            direction = mLastDirection;
+            //position = mLastPosition;
+            //direction = mLastDirection;
+            return mTransform;
         }
 
         bool HasChanged(bool resetFlag) const
         {
             bool changed = mChanged.load();
             if (resetFlag) mChanged.store(false);
-            {
-                return changed;
-            }
+            return changed;
         }
 
     private:
         mutable std::shared_mutex mMutex;
-
-        glm::vec3 mLastPosition = glm::vec3(0.0f);
-        glm::vec3 mLastDirection = glm::vec3(0.0f, 0.0f, -1.0f);
-        glm::vec3 mLastVelocity = glm::vec3(0.0f);
-
+        glm::vec3 mLastVelocity{ 0.0f, 0.0f, 0.0f };
+        Audio::Transform mTransform;
         mutable std::atomic<bool> mChanged = false;
+
+        std::atomic<float> mInnerAngle{ 6.283185f }, mOuterAngle{ 6.283185f }, mOuterGain{ 0.0f };
     };
 
+    /* ========================================
+       Generic Audio operations
 
-    template<typename T>
-    struct EntityIDMap
-    {
-        void Add(UUID sceneID, UUID entityID, T object)
-        {
-            std::scoped_lock lock{ mMutex };
-            mEntityIDMap[sceneID][entityID] = object;
-        }
-
-        void Remove(UUID sceneID, UUID entityID)
-        {
-            std::scoped_lock lock{ mMutex };
-            NR_CORE_ASSERT(mEntityIDMap.at(sceneID).find(entityID) != mEntityIDMap.at(sceneID).end(), "Could not find entityID in the registry to remove.");
-
-            mEntityIDMap.at(sceneID).erase(entityID);
-            if (mEntityIDMap.at(sceneID).empty())
-            {
-                mEntityIDMap.erase(sceneID);
-            }
-        }
-
-        std::optional<T> Get(UUID sceneID, UUID entityID) const
-        {
-            std::shared_lock lock{ mMutex };
-            if (mEntityIDMap.find(sceneID) != mEntityIDMap.end())
-            {
-                if (mEntityIDMap.at(sceneID).find(entityID) != mEntityIDMap.at(sceneID).end())
-                {
-                    return std::optional<T>(mEntityIDMap.at(sceneID).at(entityID));
-                }
-            }
-            return std::optional<T>();
-        }
-
-        void Clear(UUID sceneID)
-        {
-            std::scoped_lock lock{ mMutex };
-            if (sceneID == 0)
-            {
-                mEntityIDMap.clear();
-            }
-            else if (mEntityIDMap.find(sceneID) != mEntityIDMap.end())
-            {
-                mEntityIDMap.at(sceneID).clear();
-                mEntityIDMap.erase(sceneID);
-            }
-        }
-
-        uint64_t Count(UUID sceneID) const
-        {
-            std::shared_lock lock{ mMutex };
-            if (mEntityIDMap.find(sceneID) != mEntityIDMap.end())
-            {
-                return mEntityIDMap.at(sceneID).size();
-            }
-
-            return 0;
-        }
-
-    private:
-        mutable std::shared_mutex mMutex;
-        std::unordered_map<UUID, std::unordered_map<UUID, T>> mEntityIDMap;
-    };
-
-    struct AudioComponentRegistry : public EntityIDMap<Entity>
-    {
-        AudioComponent* GetAudioComponent(UUID sceneID, uint64_t audioComponentID) const
-        {
-            std::optional<Entity> o = Get(sceneID, audioComponentID);
-            if (o.has_value())
-            {
-                return &o->GetComponent<AudioComponent>();
-            }
-            else
-            {
-                NR_CORE_ASSERT("Component was not found in registry");
-                return nullptr;
-            }
-        }
-
-        Entity GetEntity(UUID sceneID, uint64_t audioComponentID) const
-        {
-            return Get(sceneID, UUID(audioComponentID)).value_or(Entity());
-        }
-    };
+       Hardware Initialization, main Update hub
+       ----------------------------------------
+    */
 
     class AudioEngine
     {
@@ -217,53 +179,126 @@ namespace NR::Audio
         AudioEngine();
         ~AudioEngine();
 
+        /* Initialize Instance */
         static void Init();
 
+        /* Shutdown AudioEngine and tear down hardware initialization */
         static void Shutdown();
 
         static inline AudioEngine& Get() { return *sInstance; }
 
         static void SetSceneContext(const Ref<Scene>& scene);
         static Ref<Scene>& GetCurrentSceneContext();
-        static void RuntimePlaying(UUID sceneID);
-        static void SceneDestruct(UUID sceneID);
+        static void OnRuntimePlaying(UUID sceneID);
+        static void OnSceneDestruct(UUID sceneID);
 
         void SerializeSceneAudio(YAML::Emitter& out, const Ref<Scene>& scene);
         void DeserializeSceneAudio(YAML::Node& data);
 
-        static Stats GetStats();
+        static Audio::Stats GetStats();
 
+        /* Initializes AudioEngine and hardware. This is called from AudioEngine instance construct.
+            Executed on Audio Thread.
+
+           @returns true - if initialization succeeded, or if AudioEngine already initialized
+        */
         bool Initialize();
 
+        /* Tear down hardware initialization. This is called from Shutdown(). Or AudioEngine deconstruct
+
+           @returns true - if initialization succeeded, or if AudioEngine already initialized
+        */
         bool Uninitialize();
 
-        /* Stop immediately if set 'true', otherwise apply "stop-fade"*/
+
+        //==================================================================================
+
         void StopAll(bool stopNow = false);
+        void PauseAll();
+        void ResumeAll();
+
+        /* Stop all Active Sounds
+           @param stopNow - stop immediately if set 'true', otherwise apply "stop-fade"
+        */
         static void StopAllSounds(bool stopNow = false) { sInstance->StopAll(stopNow); }
+
+        /* Pause Audio Engine. E.g. when game minimized. */
+        static void Pause() { sInstance->PauseAll(); }
+        /* Resume paused Audio Engine. E.g. when game window restored from minimized state. */
+        static void Resume() { sInstance->ResumeAll(); }
+
+        // Playback stated used to pause, or resume all of the audio globaly when game minimized.
+        enum class EPlaybackState
+        {
+            Playing,
+            Paused
+        } mPlaybackState{ EPlaybackState::Playing }; // Could add in "Initialized" state as well in the future.
 
         SourceManager& GetSourceManager() { return mSourceManager; }
         const SourceManager& GetSourceManager() const { return mSourceManager; }
 
-        DSP::Reverb* GetMasterReverb() { return mMasterReverb.get(); }
+        Audio::DSP::Reverb* GetMasterReverb() { return mMasterReverb.get(); }
+
+
+        //==================================================================================
 
         /* Main Audio Thread tick update function */
-        void Update(TimeFrame dt);
+        void Update(float dt);
 
+        /* Submit data to update Sound Sources from Game Thread.
+           @param updateData - updated data submitted on scene update
+        */
         void SubmitSourceUpdateData(std::vector<SoundSourceUpdateData> updateData);
 
         /* Update Audio Listener position from game Entity owning active AudioListenerComponent.
-            Called from Game Thread.*/
-        void UpdateListenerPosition(const glm::vec3& newTranslation, const glm::vec3& newDirection);
+            Called from Game Thread.
+
+           @param newTranslation - new position to check Audio Listener against and to update from if changed
+           @param newDirection - new facing direction to check Audio Listener against and to update from if changed
+        */
+        void UpdateListenerPosition(const Audio::Transform& newTransform);
 
         /* Update Audio Listener velocity from game Entity owning active AudioListenerComponent.
-            Called from Game Thread.*/
+            Called from Game Thread.
+
+           @param newVelocity - new velocity to update Audio Listener from. This doesn't check if changed.
+        */
         void UpdateListenerVelocity(const glm::vec3& newVelocity);
 
+        void UpdateListenerConeAttenuation(float innerAngle, float outerAngle, float outerGain);
+
+        // TODO
         void RegisterNewListener(AudioListenerComponent& listenerComponent);
 
+        //==================================================================================
 
+        UUID InitializeAudioObject(UUID objectID, const std::string& debugName, const Audio::Transform& objectPosition = Audio::Transform());
+        void ReleaseAudioObject(UUID objectID);
+        std::optional<AudioObject*> GetAudioObject(uint64_t objectID);
+        std::string GetAudioObjectInfo(uint64_t objectID);
+        UUID GetAudioObjectOfComponent(uint64_t audioComponentID);
+
+        //? TEMP. This is not ideal, but thread safe
+        bool SetTransform(uint64_t objectID, const Audio::Transform& objectPosition);
+        std::optional<Audio::Transform> GetTransform(uint64_t objectID);
+
+        // TODO
+        void AttachObject(uint64_t audioComponentID, uint64_t audioObjectID, const glm::vec3& PositionOffset);
+
+        EventID PostTrigger(Audio::CommandID triggerCommandID, UUID objectID);
+
+        // TODO
+        void SetSwitch(Audio::SwitchCommand switchCommand, Audio::CommandID valueID);
+        void SetState(Audio::StateCommand switchCommand, Audio::CommandID valueID);
+        void SetParameter(Audio::ParameterCommand parameter, double value);
+
+        Sound* InitiateNewVoice(UUID objectID, Audio::EventID playbackID, const Ref<SoundConfig>& sourceConfig);
+
+        //==================================================================================
+
+        // TODO: add blocking vs async versions
         /* Execute arbitrary function on Audio Thread. Used to synchronize updates between Game Thread and Audio Thread */
-        static void ExecuteOnAudioThread(AudioThreadCallbackFunction func, /*void* parameter, */const char* jobID = "NONE");
+        static void ExecuteOnAudioThread(Audio::AudioThreadCallbackFunction func, /*void* parameter, */const char* jobID = "NONE");
 
         /* Add AudioComponent to AudioComponentRegistry for easy access from AduioEngine. */
         void RegisterAudioComponent(Entity entity);
@@ -286,23 +321,6 @@ namespace NR::Audio
         /* Internal function call to update sound sources to new values recieved from Game Thread */
         void UpdateSources();
 
-        /* This attempts to find ActiveSound for the AudioComponent.
-
-            @returns nullptr - if there is no ActiveSound associated to supplied audioComponentID
-        */
-        Sound* GetSoundForAudioComponent(uint64_t audioComponentID);
-
-        /* This attempts to find ActiveSound for the AudioComponent first. If failed,
-            it attempts to initialize new sound source. When the sound source is obtaint,
-            it is added to ActiveSounds list.
-
-            @param audioComponentID - AudioComponent to get sound for
-            @param sourceConfig - configuration to initialize new sound source from
-
-           @returns nullptr - if there is no ActiveSound associated to supplied audioComponentID
-        */
-        Sound* GetSoundForAudioComponent(uint64_t audioComponentID, const Ref<SoundConfig>& sourceConfig);
-
         /* This is called when there is no free source available in pool for new playback start request. */
         Sound* FreeLowestPrioritySource();
 
@@ -310,37 +328,39 @@ namespace NR::Audio
         //==================================================================================
         //=== Playback interface. In most cases these functions are called from Game Thread.
 
-        /*  Internal version of "Play" command. Attempts to GetSoundForAudioComponent()
-            and submit it for the playback.
-
-            @param audioComponentID - AudioComponent to associate sound with
-            @param sourceConfig - configuration to initialize new sound source from
-        */
-        void SubmitSoundToPlay(uint64_t audioComponentID, const Ref<SoundConfig>& sourceConfig);
-
-        /*  Internal version of "Play" command. Attempts to GetSoundForAudioComponent()
-            and submit it for the playback. SoundConfig is taken from the AudioComponent.
+        /*  Internal version of "Play" command. Posts Audio Event assigned to AudioComponent.
 
             @param audioComponentID - AudioComponent to associate new sound with
             @returns false - if failed to find audioComponentID in AudioComponentRegistry
         */
         bool SubmitSoundToPlay(uint64_t audioComponentID);
 
-        /*  Internal version of "Stop" command. Attempts to stop ActiveSound
-            associated with audioComponentID.
+        /*  Internal version of "Stop" command. Attempts to stop Active Sources
+            initiated by playing events on AudioComponent.
 
-            @returns false - if failed to find audioComponentID in AudioComponentRegistry
+            @returns false - if failed to post event, or if audioComponentID is invalid
         */
         bool StopActiveSoundSource(uint64_t audioComponentID);
 
-        /*  Internal version of "Pause" command. Attempts to pause ActiveSound
-            associated with audioComponentID.
+        /*  Internal version of "Pause" command. Attempts to pause Active Sources
+            initiated by playing events on AudioComponent.
 
             @returns false - if failed to find audioComponentID in AudioComponentRegistry
         */
         bool PauseActiveSoundSource(uint64_t audioComponentID);
 
-        /*  Check if AudioComponent has associated ActiveSound that's currently playing
+        /*  Internal version of "Resume" command. Attempts to resume Active Sources
+             initiated by playing events on AudioComponent.
+
+             @returns false - if failed to find audioComponentID in AudioComponentRegistry
+         */
+        bool ResumeActiveSoundSource(uint64_t audioComponentID);
+
+        bool StopEventID(Audio::EventID playingEvent);
+        bool PauseEventID(Audio::EventID playingEvent);
+        bool ResumeEventID(Audio::EventID playingEvent);
+
+        /*  Check if AudioComponent has Active Sources associated to active Events
 
             @returns false - if there is no ActiveSound associated to the audioComponentID
         */
@@ -352,10 +372,11 @@ namespace NR::Audio
         friend class AudioPlayback;
 
         ma_engine mEngine;
+        ma_log mmaLog;
         bool bInitialized = false;
         ma_sound mTestSound;
 
-        Scope<DSP::Reverb> mMasterReverb = nullptr;
+        Scope<Audio::DSP::Reverb> mMasterReverb = nullptr;
 
         SourceManager mSourceManager{ *this };
 
@@ -368,20 +389,34 @@ namespace NR::Audio
         */
         int mNumSources = 0;
         std::vector<Sound*> mSoundSources;
-        std::vector<SoundObject*> mActiveSounds;
-        std::vector<SoundObject*> mSoundsToStart;
+        std::vector<Sound*> mActiveSounds;
+        std::vector<Sound*> mSoundsToStart;
 
-        EntityIDMap<Sound*> mComponentSoundMap;
+        ////EntityIDMap<Sound*> mComponentSoundMap;
+        EntityIDMap<UUID> mComponentObjectMap;
         AudioComponentRegistry mAudioComponentRegistry;
 
         std::mutex mUpdateSourcesLock;
         std::vector<SoundSourceUpdateData> mSourceUpdateData;
 
+        std::shared_mutex mObjectsLock;
+        std::unordered_map<UUID, AudioObject> mAudioObjects;
+
+        std::queue< std::pair<Audio::ECommandType, Audio::EventInfo> > mCommandQueue;
+
+        // Map of Objects and associated active Sources
+        Audio::ObjectSourceRegistry mObjectSourceMap;
+        // Map of all active Events
+        Audio::EventRegistry mEventRegistry;
+        // Map of Events active on Objects
+        Audio::ObjectEventRegistry mObjectEventsRegistry;
+
         //==============================================
         static AudioEngine* sInstance;
 
-        static Stats sStats;
-        AllocationCallbackData mEngineCallbackData{ false, sStats };
-        AllocationCallbackData mRMCallbackData{ true, sStats };
+        static Audio::Stats sStats;
+        Audio::AllocationCallbackData mEngineCallbackData{ false, sStats };
+        Audio::AllocationCallbackData mRMCallbackData{ true, sStats };
+
     };
-}
+} // namespace

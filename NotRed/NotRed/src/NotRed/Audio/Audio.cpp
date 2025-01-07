@@ -110,11 +110,11 @@ namespace NR::Audio
         }
         NR_CORE_ASSERT(mUpdateCallback != nullptr, "Update Function is not bound!");
 
-        mUpdateCallback(sTimeFrame);
-        sTimeFrame = sTimer.Elapsed();
-        sLastFrameTime = sTimeFrame.GetMilliseconds();   
+        mUpdateCallback(sTimeFrame); 
         
         std::this_thread::sleep_for(1ms);
+        sTimeFrame = sTimer.Elapsed();
+        sLastFrameTime = sTimeFrame.GetMilliseconds();
     }
 
     std::thread* AudioThread::sAudioThread = nullptr;

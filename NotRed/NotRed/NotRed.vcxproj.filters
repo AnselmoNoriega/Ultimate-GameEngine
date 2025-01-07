@@ -807,6 +807,13 @@
     <ClInclude Include="src\NotRed\ImGui\Colors.h" />
     <ClInclude Include="src\NotRed\ImGui\CustomTreeNode.h" />
     <ClInclude Include="src\NotRed\ImGui\ImGuiUtil.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\CommandID.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioEvents\AudioCommands.h" />
+    <ClInclude Include="src\NotRed\Audio\AudioObject.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\VBAP.h" />
+    <ClInclude Include="vendor\MiniAudio\include\miniaudio_engine.h" />
+    <ClInclude Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1313,5 +1320,10 @@
     <ClCompile Include="src\NotRed\ImGui\Colors.cpp" />
     <ClCompile Include="src\NotRed\ImGui\CustomTreeNode.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioEvents\AudioCommandRegistry.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioEvents\CommandID.cpp" />
+    <ClCompile Include="src\NotRed\Audio\AudioObject.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\VBAP.cpp" />
+    <ClCompile Include="src\NotRed\Audio\DSP\Spatializer\Spatializer.cpp" />
   </ItemGroup>
 </Project>

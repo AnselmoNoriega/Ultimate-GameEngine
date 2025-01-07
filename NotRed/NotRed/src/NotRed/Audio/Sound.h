@@ -1,209 +1,249 @@
 #pragma once
 
-#include <glm/glm.hpp>
-
 #include "SoundObject.h"
 #include "miniaudioInc.h"
+
+#include <glm/glm.hpp>
 
 #include "NotRed/Asset/Asset.h"
 #include "NotRed/Asset/AssetTypes.h"
 
+#include "DSP/Spatializer/Spatializer.h"
 #include "DSP/Filters/LowPassFilter.h"
 #include "DSP/Filters/HighPassFilter.h"
 
-namespace NR::Audio
+namespace NR
 {
-	class AudioEngine;
-	enum class AttenuationModel
-	{
-		None,          // No distance attenuation and no spatialization.
-		Inverse,       // Equivalent to OpenAL's AL_INVERSE_DISTANCE_CLAMPED.
-		Linear,        // Linear attenuation. Equivalent to OpenAL's AL_LINEAR_DISTANCE_CLAMPED.
-		Exponential    // Exponential attenuation. Equivalent to OpenAL's AL_EXPONENT_DISTANCE_CLAMPED.
-	};
+    class AudioEngine;
 
-	struct SpatializationConfig : public Asset
-	{
-		AttenuationModel AttenuationMod{ AttenuationModel::Inverse };     // Distance attenuation function
-		
-		float MinGain{ 0.0f };                                            // Minumum volume muliplier
-		float MaxGain{ 1.0f };                                            // Maximum volume multiplier
-		float MinDistance{ 1.0f };                                        // Distance where to start attenuation
-		float MaxDistance{ 1000.0f };                                     // Distance where to end attenuation
-		float ConeInnerAngleInRadians{ 6.283185f };                       // Defines the angle where no directional attenuation occurs 
-		float ConeOuterAngleInRadians{ 6.283185f };                       // Defines the angle where directional attenuation is at max value (lowest multiplier)
-		float ConeOuterGain{ 0.0f };                                      // Attenuation multiplier when direction of the emmiter falls outside of the ConeOuterAngle
-		float DopplerFactor{ 1.0f };                                      // The amount of doppler effect to apply. Set to 0 to disables doppler effect. 
-		float Rolloff{ 0.6f };                                            // Affects steepness of the attenuation curve. At 1.0 Inverse model is the same as Exponential
+    enum class AttenuationModel
+    {
+        None,          // No distance attenuation and no spatialization.
+        Inverse,       // Equivalent to OpenAL's AL_INVERSE_DISTANCE_CLAMPED.
+        Linear,        // Linear attenuation. Equivalent to OpenAL's AL_LINEAR_DISTANCE_CLAMPED.
+        Exponential    // Exponential attenuation. Equivalent to OpenAL's AL_EXPONENT_DISTANCE_CLAMPED.
 
-		bool AirAbsorptionEnabled{ true };
+        // TODO: CusomCurve
+    };
 
-		static AssetType GetStaticType() { return AssetType::SpatializationConfig; }
-		AssetType GetAssetType() const override { return AssetType::SpatializationConfig; }                             // Enable Air Absorption filter
-	};
+    /* ==============================================
+        Configuration for 3D spatialization behavior
+        ---------------------------------------------
+     */
+    struct SpatializationConfig : public Asset
+    {
+        AttenuationModel AttenuationMod{ AttenuationModel::Inverse };   // Distance attenuation function
+        float MinGain{ 0.0f };                                            // Minumum volume muliplier
+        float MaxGain{ 1.0f };                                            // Maximum volume multiplier
+        float MinDistance{ 1.0f };                                        // Distance where to start attenuation
+        float MaxDistance{ 1000.0f };                                     // Distance where to end attenuation
+        float ConeInnerAngleInRadians{ 6.283185f };                     // Defines the angle where no directional attenuation occurs 
+        float ConeOuterAngleInRadians{ 6.283185f };                     // Defines the angle where directional attenuation is at max value (lowest multiplier)
+        float ConeOuterGain{ 0.0f };                                      // Attenuation multiplier when direction of the emmiter falls outside of the ConeOuterAngle
+        float DopplerFactor{ 1.0f };                                      // The amount of doppler effect to apply. Set to 0 to disables doppler effect. 
+        float Rolloff{ 0.6f };                                            // Affects steepness of the attenuation curve. At 1.0 Inverse model is the same as Exponential
 
-	struct SoundConfig : public Asset
-	{
-		Ref<AudioFile> FileAsset;
+        bool bAirAbsorptionEnabled{ true };                            // Enable Air Absorption filter (TODO)
 
-		bool Looping = false;
-		float VolumeMultiplier = 1.0f;
-		float PitchMultiplier = 1.0f;
-		bool SpatializationEnabled = false;
+        bool bSpreadFromSourceSize{ true };                             // If this option is enabled, spread of a sound source automatically calculated from the source size.
+        float SourceSize{ 1.0f };                                       // Diameter of the sound source in game world.
+        float Spread{ 1.0f };
+        float Focus{ 1.0f };
 
-		SpatializationConfig Spatialization;
-		glm::vec3 SpawnLocation{ 0.0f, 0.0f, 0.0f };
+        static AssetType GetStaticType() { return AssetType::SpatializationConfig; }
+        virtual AssetType GetAssetType() const { return GetStaticType(); }
+    };
 
-		float MasterReverbSend = 0.0f;
 
-		float LPFilterValue = 1.0f;
-		float HPFilterValue = 0.0f;
+    /* ==============================================
+        Sound configuration to initialize sound source
 
-		static AssetType GetStaticType() { return AssetType::SoundConfig; }
-		AssetType GetAssetType() const override { return AssetType::SoundConfig; }
-	};
+        Can be passed to an AudioComponent              (TODO: or to directly initialize Sound to play)
+        This represents a basic sound to play
+        ----------------------------------------------
+    */
+    struct SoundConfig : public Asset
+    {
+        Ref<AudioFile> FileAsset;     // Audio data source
 
-	class Sound : public SoundObject
-	{
-	public:
-		Sound() = default;
-		~Sound();
+        bool bLooping = false;
+        float VolumeMultiplier = 1.0f;
+        float PitchMultiplier = 1.0f;
 
-		bool Play() override;
-		bool Stop() override;
-		bool Pause() override;
+        bool bSpatializationEnabled = false;
+        Ref<SpatializationConfig> Spatialization{ new SpatializationConfig() };        // Configuration for 3D spatialization behavior
 
-		bool IsPlaying() const override;
+        float MasterReverbSend = 0.0f;
+        float LPFilterValue = 1.0f;
+        float HPFilterValue = 0.0f;
 
-		void SetVolume(float newVolume) override;
-		void SetPitch(float newPitch) override;
-		void SetLooping(bool looping);
+        static AssetType GetStaticType() { return AssetType::SoundConfig; }
+        virtual AssetType GetAssetType() const override { return GetStaticType(); }
+    };
 
-		float GetVolume() override;
-		float GetPitch() override;
 
-		bool FadeIn(const float duration, const float targetVolume) override;
-		bool FadeOut(const float duration, const float targetVolume) override;
 
-		/* Initialize data source from sound configuration.
-			@param soundConfig - configuration to initialized data source with
-			@param audioEngine - reference to AudioEngine
+    /* =====================================
+        Basic Sound, represents playing voice
 
-			@returns true - if successfully initialized data source
-		 */
-		bool InitializeDataSource(const Ref<SoundConfig>& soundConfig, AudioEngine* audioEngine);
+        -------------------------------------
+    */
+    class Sound : public Audio::SoundObject
+    {
+    public:
+        Sound() = default;
+        ~Sound();
 
-		void SetLocation(const glm::vec3& location);
-		void SetVelocity(const glm::vec3& velocity = { 0.0f, 0.0f, 0.0f });
+        //--- Sound Source Interface
+        virtual bool Play() override;
+        virtual bool Stop() override;
+        virtual bool Pause() override;
+        virtual bool IsPlaying() const override;
+        // ~ End of Sound Source Interface
 
-		/* @return true - if has a valid data source */
-		bool IsReadyToPlay() const { return mIsReadyToPlay; }
+        virtual void SetVolume(float newVolume) override;
+        virtual void SetPitch(float newPitch) override;
+        void SetLooping(bool looping);
 
-		void Update(TimeFrame dt) override;
+        virtual float GetVolume() override;
+        virtual float GetPitch() override;
 
-		/* @returns true - if playback complete. E.g. reached the end of data, or has been hard-stopped. */
-		bool IsFinished() const;
+        virtual bool FadeIn(const float duration, const float targetVolume) override;
+        virtual bool FadeOut(const float duration, const float targetVolume) override;
 
-		/* @returns true - if currently "stop-fading". */
-		bool IsStopping() const;
+        /* Initialize data source from sound configuration.
+            @param soundConfig - configuration to initialized data source with
+            @param audioEngine - reference to AudioEngine
 
-		/* Get current level of fader performing fade operations.
-		   Such operations performed when FadeIn(), or FadeOut() are called,
-		   as well as "stop-fade" and "resume from pause" fade.
+            @returns true - if successfully initialized data source
+         */
+        bool InitializeDataSource(const Ref<SoundConfig>& soundConfig, AudioEngine* audioEngine);
 
-		   @returns current fader level
-		*/
-		float GetCurrentFadeVolume();
+        void ReleaseResources();
 
-		/* Get current priority level based on current fade volume
-		   and priority value set for this sound source.
+        void SetLocation(const glm::vec3& location, const glm::vec3& orientation);
+        void SetVelocity(const glm::vec3& velocity = { 0.0f, 0.0f, 0.0f });
 
-		   @returns normalized priority value
-		*/
-		float GetPriority();
+        /* @return true - if has a valid data source */
+        bool IsReadyToPlay() const { return bIsReadyToPlay; }
 
-		/* @returns current playback percentage (read position) whithin data source */
-		float GetPlaybackPercentage();
+        void Update(float dt) override;
 
-	private:
-		std::function<void()> mPlaybackComplete;
+        /* @returns true - if playback complete. E.g. reached the end of data, or has been hard-stopped. */
+        bool IsFinished() const;
 
-		enum class ESoundPlayState
-		{
-			Stopped,
-			Starting,
-			Playing,
-			Pausing,
-			Paused,
-			Stopping,
-			FadingOut,
-			FadingIn
-		};
+        /* @returns true - if currently "stop-fading". */
+        bool IsStopping() const;
 
-	private:
-		/* Stop playback with short fade-out to prevent click.
-		   @param numSamples - length of the fade-out in PCM frames
+        /* Get current level of fader performing fade operations.
+           Such operations performed when FadeIn(), or FadeOut() are called,
+           as well as "stop-fade" and "resume from pause" fade.
 
-		   @returns true - if successfully initialized fade
-		*/
-		bool StopFade(uint64_t numSamples);
+           @returns current fader level
+        */
+        float GetCurrentFadeVolume();
 
-		/* Stop playback with short fade-out to prevent click.
-		   @param milliseconds - length of the fade-out in milliseconds
+        /* Get current priority level based on current fade volume
+           and priority value set for this sound source.
 
-		   @returns true - if successfully initialized fade
-		*/
-		bool StopFade(int milliseconds);
+           @returns normalized priority value
+        */
+        float GetPriority();
 
-		/* "Hard-stop" playback without fade. This is called to immediatelly stop playback, has ended,
-		   as well as to reset the play state when "stop-fade" has ended.
-		   @param notifyPlaybackComplete - used when the sound has finished its playback
-		   @param resetPlaybackPosition - set to 'false' when pausing
+        /* @returns current playback percentage (read position) whithin data source */
+        float GetPlaybackPercentage();
 
-		   @returns ID of the sound source in pool
-		*/
-		int StopNow(bool notifyPlaybackComplete = true, bool resetPlaybackPosition = true);
+    private:
+        /* Stop playback with short fade-out to prevent click.
+           @param numSamples - length of the fade-out in PCM frames
 
-		void InitializeEffects(const Ref<SoundConfig>& config);
+           @returns true - if successfully initialized fade
+        */
+        bool StopFade(uint64_t numSamples);
 
-		static const std::string StringFromState(Sound::ESoundPlayState state);
+        /* Stop playback with short fade-out to prevent click.
+           @param milliseconds - length of the fade-out in milliseconds
 
-	private:
-		ESoundPlayState mPlayState = ESoundPlayState::Stopped;
+           @returns true - if successfully initialized fade
+        */
+        bool StopFade(int milliseconds);
 
-		/* ID of this sound source in pool of pre-initialized sources. */
-		int mSoundSourceID = -1;
+        /* "Hard-stop" playback without fade. This is called to immediatelly stop playback, has ended,
+           as well as to reset the play state when "stop-fade" has ended.
+           @param notifyPlaybackComplete - used when the sound has finished its playback
+           @param resetPlaybackPosition - set to 'false' when pausing
 
-		/* Data source. For now all we use is Miniaudio,
-			in the future SoundObject will access data source via SoundSource class.
-		 */
-		ma_sound mSound;
-		ma_splitter_node mMasterSplitter;
+           @returns ID of the sound source in pool
+        */
+        int StopNow(bool notifyPlaybackComplete = true, bool resetPlaybackPosition = true);
 
-		bool mIsReadyToPlay = false;
-		
-		uint8_t mPriority = 64;
-		bool mLooping = false;
-		bool mFinished = false;
+        void InitializeEffects(const Ref<SoundConfig>& config);
 
-		/* Stored Fader "resting" value. Used to restore Fader before restarting playback if a fade has occured. */
-		float mStoredFaderValue = 1.0f;
-		float mLastFadeOutDuration = 0.0f;
 
-		/* Stop-fade counter. Used to stop the sound after "stopping-fade" has finished. */
-		double mStopFadeTime = 0.0;
+    private:
+        friend class AudioEngine;
+        friend class SourceManager;
 
-		/* ID of the AudioComponent this voice was initialized from and is attached to */
-		uint64_t mAudioComponentID = 0;
+        std::function<void()> onPlaybackComplete;
+        Ref<SoundConfig> mSoundConfig;
+        std::string mDebugName;
 
-		/* ID of the scene this voice belongs to. */
-		uint64_t mSceneID = 0;
+        enum class ESoundPlayState
+        {
+            Stopped,
+            Starting,
+            Playing,
+            Pausing,
+            Paused,
+            Stopping,
+            FadingOut,
+            FadingIn
+        };
+        static const std::string StringFromState(Sound::ESoundPlayState state);
 
-		DSP::LowPassFilter mLowPass;
-		DSP::HighPassFilter mHighPass;
+        ESoundPlayState mPlayState{ ESoundPlayState::Stopped };
 
-	private:
-		friend class AudioEngine;
-		friend class SourceManager;
-	};
-}
+
+        /* ID of this sound source in pool of pre-initialized sources. */
+        int mSoundSourceID = -1;
+
+        /* Data source. For now all we use is Miniaudio,
+            in the future SoundObject will access data source via SoundSource class.
+         */
+        ma_sound mSound;
+        ma_splitter_node mMasterSplitter;
+
+        bool bIsReadyToPlay = false;
+
+        // TODO
+        uint8_t mPriority = 64;
+
+        bool bLooping = false;
+        bool bFinished = false;
+
+        /* Stored Fader "resting" value. Used to restore Fader before restarting playback if a fade has occured. */
+        float mStoredFaderValue = 1.0f;
+        float mLastFadeOutDuration = 0.0f;
+
+        double mVolume = 1.0f;
+        double mPitch = 1.0f;
+
+        /* Stop-fade counter. Used to stop the sound after "stopping-fade" has finished. */
+        double mStopFadeTime = 0.0;
+
+        /* ID of the AudioComponent this voice was initialized from and is attached to */
+        ////uint64_t mAudioComponentID = 0;
+        uint64_t mAudioObjectID = 0;
+        uint32_t mEventID = 0;
+
+        /* ID of the scene this voice belongs to. */
+        uint64_t mSceneID = 0;
+
+        Audio::DSP::LowPassFilter mLowPass;
+        Audio::DSP::HighPassFilter mHighPass;
+
+        //? TESTING
+        //DSP::AirAbsorptionFilter mAirAbsorptionFilter;
+    };
+
+} // namespace Hazel

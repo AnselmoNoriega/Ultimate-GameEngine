@@ -81,7 +81,7 @@ namespace NR
 
 		ScriptEngine::Init("Resources/Scripts/Not-ScriptCore.dll");
 		PhysicsManager::Init();
-		Audio::AudioEngine::Init();
+		AudioEngine::Init();
 	}
 
 	Application::~Application()
@@ -97,7 +97,7 @@ namespace NR
 		Project::SetActive(nullptr);
 		PhysicsManager::Shutdown();
 		ScriptEngine::Shutdown();
-		Audio::AudioEngine::Shutdown();
+		AudioEngine::Shutdown();
 
 		Renderer::WaitAndRender();
 		for (uint32_t i = 0; i < Renderer::GetConfig().FramesInFlight; ++i)
@@ -164,7 +164,7 @@ namespace NR
 				{
 					ImGui::Separator();
 
-					Audio::Stats audioStats = Audio::AudioEngine::GetStats();
+					Audio::Stats audioStats = AudioEngine::GetStats();
 					std::string objects = std::to_string(audioStats.AudioObjects);
 					std::string events = std::to_string(audioStats.ActiveEvents);
 					std::string active = std::to_string(audioStats.NumActiveSounds);

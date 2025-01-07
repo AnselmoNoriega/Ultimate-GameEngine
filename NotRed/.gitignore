@@ -4,6 +4,7 @@
 !NotRed/vendor/mono/bin
 bin-int/
 Intermediates/
+NotEditor/Resources/Scripts/
 Binaries
 obj/
 **/cache/**
