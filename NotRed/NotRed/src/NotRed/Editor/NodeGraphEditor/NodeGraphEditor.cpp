@@ -530,23 +530,13 @@ namespace NR
 						UI::Image(mSearchIcon, searchIconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
 					}
 
-					// TODO: This is a bit of a messy hack to grab keyboard focus when popup opens
-					//       unfortunitely it also messes up normal mouse click and keyboard input behavior for the rest of the popup
 					if (!ImGui::IsItemFocused() && sNewNodePopupOpening)
 					{
 						ImGui::SetKeyboardFocusHere(0);
 					}
-
-					// Need to release focus to allow nested widgets to get mouse events
-					if ((ImGui::IsMouseClicked(ImGuiMouseButton_Left)
-						|| ImGui::IsMouseClicked(ImGuiMouseButton_Right)) && !ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()))
-					{
-						ImGui::ClearActiveID();
-					}
 				}
 
 				searching = searchBuffer[0] != 0;
-				uint32_t nodeItemIndex = 0;
 
 				for (const auto& [categoryName, category] : nodeRegistry)
 				{
@@ -595,8 +585,9 @@ namespace NR
 							for (const auto& [nodeName, spawnFunction] : category)
 							{
 								if (ImGui::MenuItem(choc::text::replace(nodeName, "_", " ").c_str()))
+								{
 									node = GetModel()->CreateNode(categoryName, nodeName);
-								nodeItemIndex++;
+								}
 							}
 						}
 

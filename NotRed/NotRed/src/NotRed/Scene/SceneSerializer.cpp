@@ -366,6 +366,7 @@ namespace NR
 			out << YAML::Key << "DisableGravity" << YAML::Value << rigidbodyComponent.DisableGravity;
 			out << YAML::Key << "IsKinematic" << YAML::Value << rigidbodyComponent.IsKinematic;
 			out << YAML::Key << "Layer" << YAML::Value << rigidbodyComponent.Layer;
+			out << YAML::Key << "CollisionDetection" << YAML::Value << (uint32_t)rigidbodyComponent.CollisionDetection;
 
 			out << YAML::Key << "Constraints";
 			out << YAML::BeginMap; // Constraints
@@ -957,6 +958,9 @@ namespace NR
 					component.DisableGravity = rigidBodyComponent["DisableGravity"] ? rigidBodyComponent["DisableGravity"].as<bool>() : false;
 					component.IsKinematic = rigidBodyComponent["IsKinematic"] ? rigidBodyComponent["IsKinematic"].as<bool>() : false;
 					component.Layer = rigidBodyComponent["Layer"] ? rigidBodyComponent["Layer"].as<uint32_t>() : 0;
+					component.CollisionDetection = rigidBodyComponent["CollisionDetection"] ? 
+						((RigidBodyComponent::CollisionDetectionType)rigidBodyComponent["CollisionDetection"].as<uint32_t>()) : 
+						RigidBodyComponent::CollisionDetectionType::Discrete;
 					component.LockPositionX = rigidBodyComponent["Constraints"]["LockPositionX"].as<bool>();
 					component.LockPositionY = rigidBodyComponent["Constraints"]["LockPositionY"].as<bool>();
 					component.LockPositionZ = rigidBodyComponent["Constraints"]["LockPositionZ"].as<bool>();

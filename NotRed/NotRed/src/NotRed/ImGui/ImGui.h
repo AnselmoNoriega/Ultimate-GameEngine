@@ -605,6 +605,49 @@ namespace NR::UI
 		ImGui::NextColumn();
 	}
 
+	template<typename TEnum, typename TUnderlying = int32_t>
+	static bool PropertyDropdown(const char* label, const char** options, int32_t optionCount, TEnum& selected)
+	{
+		TUnderlying selectedIndex = (TUnderlying)selected;
+		const char* current = options[selectedIndex];
+		ImGui::Text(label);
+		ImGui::NextColumn();
+		ImGui::PushItemWidth(-1);
+		bool changed = false;
+
+		if (IsItemDisabled())
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		const std::string id = "##" + std::string(label);
+		if (ImGui::BeginCombo(id.c_str(), current))
+		{
+			for (int i = 0; i < optionCount; ++i)
+			{
+				const bool is_selected = (current == options[i]);
+				if (ImGui::Selectable(options[i], is_selected))
+				{
+					current = options[i];
+					selected = (TEnum)i;
+					changed = true;
+				}
+				if (is_selected)
+				{
+					ImGui::SetItemDefaultFocus();
+				}
+			}
+			ImGui::EndCombo();
+		}
+		if (IsItemDisabled())
+		{
+			ImGui::PopStyleVar();
+		}
+		ImGui::PopItemWidth();
+		ImGui::NextColumn();
+		return changed;
+	}
+
 	static bool PropertyDropdown(const char* label, const char** options, int32_t optionCount, int32_t* selected)
 	{
 		const char* current = options[*selected];

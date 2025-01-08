@@ -35,6 +35,8 @@ namespace NR
 
 		mPhysicsScene = PhysicsInternal::GetPhysicsSDK().createScene(sceneDesc);
 		NR_CORE_ASSERT(mPhysicsScene);
+
+		CreateRegions();
 	}
 
 	PhysicsScene::~PhysicsScene()
@@ -177,18 +179,20 @@ namespace NR
 	{
 		const PhysicsSettings& settings = PhysicsManager::GetSettings();
 
-		if (settings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
+		if (settings.BroadphaseAlgorithm == BroadphaseType::AutomaticBoxPrune)
 		{
-			physx::PxBounds3* regionBounds = new physx::PxBounds3[settings.WorldBoundsSubdivisions * settings.WorldBoundsSubdivisions];
-			physx::PxBounds3 globalBounds(PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMin), PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMax));
-			uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, settings.WorldBoundsSubdivisions);
+			return;
+		}
 
-			for (uint32_t i = 0; i < regionCount; ++i)
-			{
-				physx::PxBroadPhaseRegion region;
-				region.mBounds = regionBounds[i];
-				mPhysicsScene->addBroadPhaseRegion(region);
-			}
+		physx::PxBounds3* regionBounds = new physx::PxBounds3[settings.WorldBoundsSubdivisions * settings.WorldBoundsSubdivisions];
+		physx::PxBounds3 globalBounds(PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMin), PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMax));
+		uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, settings.WorldBoundsSubdivisions);
+		
+		for (uint32_t i = 0; i < regionCount; ++i)
+		{
+			physx::PxBroadPhaseRegion region;
+			region.mBounds = regionBounds[i];
+			mPhysicsScene->addBroadPhaseRegion(region);
 		}
 	}
 

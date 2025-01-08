@@ -80,7 +80,7 @@ namespace NR
 
 		physx::PxTolerancesScale scale = physx::PxTolerancesScale();
 		scale.length = 1.0f;
-		scale.speed = 9.81f;
+		scale.speed = 100.0f;
 
 		PhysicsDebugger::Initialize();
 

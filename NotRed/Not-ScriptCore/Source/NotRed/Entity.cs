@@ -6,6 +6,7 @@ namespace NR
     public class Entity
     {
         public ulong ID { get; private set; }
+        public string Tag => GetComponent<TagComponent>().Tag;
 
         private Action<Entity> _collision2DBeginCallbacks;
         private Action<Entity> _collision2DEndCallbacks;

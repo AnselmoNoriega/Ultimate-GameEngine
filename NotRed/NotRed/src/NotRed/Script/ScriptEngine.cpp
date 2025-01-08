@@ -902,8 +902,6 @@ namespace NR
 				field.CopyStoredValueToRuntime(entityInstance);
 			}
 		}
-
-		CreateEntity(entity);
 	}
 
 	EntityInstanceData& ScriptEngine::GetEntityInstanceData(UUID sceneID, UUID entityID)

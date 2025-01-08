@@ -3,7 +3,10 @@
 
 #include <filesystem>
 
+#include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsLayer.h"
+
+#include "NotRed/Util/YAMLSerializationHelpers.h"
 
 #include "yaml-cpp/yaml.h"
 
@@ -32,36 +35,63 @@ namespace NR
 			out << YAML::Key << "StartScene" << YAML::Value << mProject->mConfig.StartScene;
 			out << YAML::Key << "ReloadAssemblyOnPlay" << YAML::Value << mProject->mConfig.ReloadAssemblyOnPlay;
 
-			// > 1 because of the Default layer
-			if (PhysicsLayerManager::GetLayerCount() > 1)
+
+			out << YAML::Key << "Physics" << YAML::Value;
 			{
-				out << YAML::Key << "PhysicsLayers";
-				out << YAML::Value << YAML::BeginSeq;
+				out << YAML::BeginMap;
+				const auto& physicsSettings = PhysicsManager::GetSettings();
 
-				for (const auto& layer : PhysicsLayerManager::GetLayers())
+				out << YAML::Key << "FixedTimestep" << YAML::Value << physicsSettings.FixedDeltaTime;
+				out << YAML::Key << "Gravity" << YAML::Value << physicsSettings.Gravity;
+				out << YAML::Key << "BroadphaseAlgorithm" << YAML::Value << (uint32_t)physicsSettings.BroadphaseAlgorithm;
+
+				if (physicsSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
 				{
-					// Never serialize the Default layer
-					if (layer.ID == 0)
-					{
-						continue;
-					}
+					out << YAML::Key << "WorldBoundsMin" << YAML::Value << physicsSettings.WorldBoundsMin;
+					out << YAML::Key << "WorldBoundsMax" << YAML::Value << physicsSettings.WorldBoundsMax;
+					out << YAML::Key << "WorldBoundsSubdivisions" << YAML::Value << physicsSettings.WorldBoundsSubdivisions;
+				}
 
-					out << YAML::BeginMap;
-					out << YAML::Key << "Name" << YAML::Value << layer.Name;
-					out << YAML::Key << "CollidesWith" << YAML::Value;
-					out << YAML::BeginSeq;
+				out << YAML::Key << "FrictionModel" << YAML::Value << (int)physicsSettings.FrictionModel;
+				out << YAML::Key << "SolverPositionIterations" << YAML::Value << physicsSettings.SolverIterations;
+				out << YAML::Key << "SolverVelocityIterations" << YAML::Value << physicsSettings.SolverVelocityIterations;
 
-					for (const auto& collidingLayer : PhysicsLayerManager::GetLayerCollisions(layer.ID))
+#ifdef NR_DEBUG
+				out << YAML::Key << "DebugOnPlay" << YAML::Value << physicsSettings.DebugOnPlay;
+				out << YAML::Key << "DebugType" << YAML::Value << (int8_t)physicsSettings.DebugType;
+#endif
+
+				// > 1 because of the Default layer
+				if (PhysicsLayerManager::GetLayerCount() > 1)
+				{
+					out << YAML::Key << "PhysicsLayers";
+					out << YAML::Value << YAML::BeginSeq;
+					for (const auto& layer : PhysicsLayerManager::GetLayers())
 					{
+						// Never serialize the Default layer
+						if (layer.ID == 0)
+						{
+							continue;
+						}
+
 						out << YAML::BeginMap;
-						out << YAML::Key << "Name" << YAML::Value << collidingLayer.Name;
+						out << YAML::Key << "Name" << YAML::Value << layer.Name;
+						out << YAML::Key << "CollidesWith" << YAML::Value;
+						out << YAML::BeginSeq;
+
+						for (const auto& collidingLayer : PhysicsLayerManager::GetLayerCollisions(layer.ID))
+						{
+							out << YAML::BeginMap;
+							out << YAML::Key << "Name" << YAML::Value << collidingLayer.Name;
+							out << YAML::EndMap;
+						}
+
+						out << YAML::EndSeq;
 						out << YAML::EndMap;
 					}
-
 					out << YAML::EndSeq;
-					out << YAML::EndMap;
 				}
-				out << YAML::EndSeq;
+				out << YAML::EndMap;
 			}
 			out << YAML::EndMap;
 		}
@@ -111,24 +141,50 @@ namespace NR
 		config.ProjectFileName = projectPath.filename().string();
 		config.ProjectDirectory = projectPath.parent_path().string();
 
-		auto physicsLayers = rootNode["PhysicsLayers"];
-		if (physicsLayers)
+		// Physics
+		auto physicsNode = rootNode["Physics"];
+		if (physicsNode)
 		{
-			for (auto layer : physicsLayers)
+			auto& physicsSettings = PhysicsManager::GetSettings();
+
+			physicsSettings.FixedDeltaTime = physicsNode["FixedTimestep"] ? physicsNode["FixedTimestep"].as<float>() : 1.0f / 100.0f;
+			physicsSettings.Gravity = physicsNode["Gravity"] ? physicsNode["Gravity"].as<glm::vec3>() : glm::vec3{ 0.0f, -9.81f, 0.0f };
+			physicsSettings.BroadphaseAlgorithm = physicsNode["BroadphaseAlgorithm"] ? (BroadphaseType)physicsNode["BroadphaseAlgorithm"].as<uint32_t>() : BroadphaseType::AutomaticBoxPrune;
+			
+			if (physicsSettings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
 			{
-				PhysicsLayerManager::AddLayer(layer["Name"].as<std::string>(), false);
+				physicsSettings.WorldBoundsMin = physicsNode["WorldBoundsMin"] ? physicsNode["WorldBoundsMin"].as<glm::vec3>() : glm::vec3(-100.0f);
+				physicsSettings.WorldBoundsMax = physicsNode["WorldBoundsMax"] ? physicsNode["WorldBoundsMax"].as<glm::vec3>() : glm::vec3(100.0f);
+				physicsSettings.WorldBoundsSubdivisions = physicsNode["WorldBoundsSubdivisions"] ? physicsNode["WorldBoundsSubdivisions"].as<uint32_t>() : 2;
 			}
 
-			for (auto layer : physicsLayers)
+			physicsSettings.FrictionModel = physicsNode["FrictionModel"] ? (FrictionType)physicsNode["FrictionModel"].as<int>() : FrictionType::Patch;
+			physicsSettings.SolverIterations = physicsNode["SolverPositionIterations"] ? physicsNode["SolverPositionIterations"].as<uint32_t>() : 8;
+			physicsSettings.SolverVelocityIterations = physicsNode["SolverVelocityIterations"] ? physicsNode["SolverVelocityIterations"].as<uint32_t>() : 2;
+
+#ifdef NR_DEBUG
+			physicsSettings.DebugOnPlay = physicsNode["DebugOnPlay"] ? physicsNode["DebugOnPlay"].as<bool>() : true;
+			physicsSettings.DebugType = physicsNode["DebugType"] ? (DebugType)physicsNode["DebugType"].as<int8_t>() : DebugType::LiveDebug;
+#endif
+			auto physicsLayers = physicsNode["Layers"];
+			if (physicsLayers)
 			{
-				const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layer["Name"].as<std::string>());
-				auto collidesWith = layer["CollidesWith"];
-				if (collidesWith)
+				for (auto layer : physicsLayers)
 				{
-					for (auto collisionLayer : collidesWith)
+					PhysicsLayerManager::AddLayer(layer["Name"].as<std::string>(), false);
+				}
+
+				for (auto layer : physicsLayers)
+				{
+					const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layer["Name"].as<std::string>());
+					auto collidesWith = layer["CollidesWith"];
+					if (collidesWith)
 					{
-						const auto& otherLayer = PhysicsLayerManager::GetLayer(collisionLayer["Name"].as<std::string>());
-						PhysicsLayerManager::SetLayerCollision(layerInfo.ID, otherLayer.ID, true);
+						for (auto collisionLayer : collidesWith)
+						{
+							const auto& otherLayer = PhysicsLayerManager::GetLayer(collisionLayer["Name"].as<std::string>());
+							PhysicsLayerManager::SetLayerCollision(layerInfo.ID, otherLayer.ID, true);
+						}
 					}
 				}
 			}

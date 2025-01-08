@@ -33,6 +33,7 @@ namespace NR
 
 		ImGui::Begin("Project Settings", &show);
 
+		ImGui::PushID("General");
 		if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
 		{
 			UI::BeginPropertyGrid();
@@ -61,7 +62,9 @@ namespace NR
 
 			UI::EndPropertyGrid();
 		}
+		ImGui::PopID();
 
+		ImGui::PushID("Scripting");
 		if (ImGui::CollapsingHeader("Scripting", ImGuiTreeNodeFlags_Framed))
 		{
 			UI::BeginPropertyGrid();
@@ -75,7 +78,9 @@ namespace NR
 			}
 			UI::EndPropertyGrid();
 		}
+		ImGui::PopID();
 
+		ImGui::PushID("Physics");
 		if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_Framed))
 		{
 			UI::BeginPropertyGrid();
@@ -202,6 +207,7 @@ namespace NR
 
 			UI::EndPropertyGrid();
 		}
+		ImGui::PopID();
 
 		ImGui::End();
 

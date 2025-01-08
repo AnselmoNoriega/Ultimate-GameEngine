@@ -31,9 +31,9 @@ namespace NR
 		glm::vec3 Gravity = { 0.0f, -9.81f, 0.0f };
 		
 		BroadphaseType BroadphaseAlgorithm = BroadphaseType::AutomaticBoxPrune;
-		
-		glm::vec3 WorldBoundsMin = glm::vec3(0.0f);
-		glm::vec3 WorldBoundsMax = glm::vec3(1.0f);
+
+		glm::vec3 WorldBoundsMin = glm::vec3(-100.0f);
+		glm::vec3 WorldBoundsMax = glm::vec3(100.0f);
 		
 		uint32_t WorldBoundsSubdivisions = 2;
 		
@@ -42,7 +42,9 @@ namespace NR
 		uint32_t SolverIterations = 8;
 		uint32_t SolverVelocityIterations = 2;
 
+#ifdef NR_DEBUG
 		bool DebugOnPlay = true;
 		DebugType DebugType = DebugType::LiveDebug;
+#endif
 	};
 }

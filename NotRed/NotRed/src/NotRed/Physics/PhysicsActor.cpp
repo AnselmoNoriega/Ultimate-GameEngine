@@ -72,7 +72,6 @@ namespace NR
 	{
 		if (!IsDynamic())
 		{
-			NR_CORE_WARN("Cannot set mass of non-dynamic PhysicsActor.");
 			return;
 		}
 
@@ -414,8 +413,6 @@ namespace NR
 			mRigidActor->is<physx::PxRigidDynamic>()->setSolverIterationCounts(settings.SolverIterations, settings.SolverVelocityIterations);
 			mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, mRigidBodyData.CollisionDetection == RigidBodyComponent::CollisionDetectionType::Continuous);
 			mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_SPECULATIVE_CCD, mRigidBodyData.CollisionDetection == RigidBodyComponent::CollisionDetectionType::ContinuousSpeculative);
-
-			SetMass(mRigidBodyData.Mass);
 		}
 
 		if (!PhysicsLayerManager::IsLayerValid(mRigidBodyData.Layer))
@@ -439,6 +436,8 @@ namespace NR
 		{
 			AddCollider(mEntity.GetComponent<MeshColliderComponent>(), mEntity);
 		}
+
+		SetMass(mRigidBodyData.Mass);
 
 		mRigidActor->userData = this;
 

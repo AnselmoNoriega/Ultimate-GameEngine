@@ -8,3 +8,12 @@ Project:
   ScriptModulePath: Assets/Scripts/Binaries
   StartScene: Scenes/Demo.nrsc
   ReloadAssemblyOnPlay: true
+  Physics:
+    FixedTimestep: 0.00999999978
+    Gravity: [0, -9.81000042, 0]
+    BroadphaseAlgorithm: 2
+    FrictionModel: 0
+    SolverPositionIterations: 8
+    SolverVelocityIterations: 2
+    DebugOnPlay: true
+    DebugType: 49

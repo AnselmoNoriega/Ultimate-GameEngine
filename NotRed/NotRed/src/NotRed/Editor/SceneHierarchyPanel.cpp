@@ -1219,6 +1219,9 @@ namespace NR
 				const auto& layerNames = PhysicsLayerManager::GetLayerNames();
 				UI::PropertyDropdown("Layer", layerNames, layerCount, (int*)&rbc.Layer);
 
+				static const char* sCollisionDetectionNames[] = { "Discrete", "Continuous", "Continuous Speculative" };
+				UI::PropertyDropdown("Collision Detection", sCollisionDetectionNames, 3, rbc.CollisionDetection);
+
 				UI::BeginPropertyGrid();
 				UI::Property("Mass", rbc.Mass);
 				UI::Property("Linear Drag", rbc.LinearDrag);

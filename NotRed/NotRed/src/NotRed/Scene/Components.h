@@ -231,7 +231,7 @@ namespace NR
     struct RigidBodyComponent
     {
         enum class Type { Static, Dynamic };
-        enum class CollisionDetectionType { Discrete, Continuous, ContinuousSpeculative };
+        enum class CollisionDetectionType : uint32_t { Discrete, Continuous, ContinuousSpeculative };
 
         Type BodyType = Type::Dynamic;
         float Mass = 1.0f;

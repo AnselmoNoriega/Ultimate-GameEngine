@@ -1094,6 +1094,15 @@ namespace NR
 					ScriptEngine::InstantiateEntityClass(e);
 				}
 			}
+
+			for (auto entity : view)
+			{
+				Entity e = { entity, this };
+				if (ScriptEngine::ModuleExists(e.GetComponent<ScriptComponent>().ModuleName))
+				{
+					ScriptEngine::CreateEntity(e);
+				}
+			}
 		}
 
 		{	//--- Make sure we have an audio listener ---
@@ -1601,6 +1610,7 @@ namespace NR
 				if (ScriptEngine::ModuleExists(newEntity.GetComponent<ScriptComponent>().ModuleName))
 				{
 					ScriptEngine::InstantiateEntityClass(newEntity);
+					ScriptEngine::CreateEntity(newEntity);
 				}
 			}
 		}
