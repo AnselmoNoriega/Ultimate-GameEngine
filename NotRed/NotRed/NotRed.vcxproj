@@ -544,6 +544,12 @@
     <ClCompile Include="src\NotRed\Script\ScriptWrappers.cpp" />
     <ClCompile Include="src\NotRed\Util\FileSystem.cpp" />
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\builders.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\crude_json.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_canvas.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_node_editor.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_node_editor_api.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\widgets.cpp" />
     <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

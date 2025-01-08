@@ -8,8 +8,8 @@
 #include "imgui-node-editor/imgui_node_editor.h"
 #include "imgui-node-editor/imgui_node_editor_internal.h"
 
-#include "imgui-node-editor/examples/blueprints-example/utilities/builders.h"
-#include "imgui-node-editor/examples/blueprints-example/utilities/widgets.h"
+#include "imgui-node-editor/builders.h"
+#include "imgui-node-editor/widgets.h"
 
 #include "NotRed/ImGui/ImGuiUtil.h"
 #include "NotRed/ImGui/Colors.h"
@@ -1092,9 +1092,8 @@ namespace NR
 
 		if (pin.Storage == StorageKind::Array)
 		{
-			ax::Widgets::Icon(
+			ax::Widgets::IconGrid(
 				ImVec2(static_cast<float>(pinIconSize), static_cast<float>(pinIconSize)), 
-				ax::Widgets::IconType::Grid,
 				connected || acceptingLink, 
 				color, 
 				ImColor(32, 32, 32, alpha)
@@ -1115,11 +1114,12 @@ namespace NR
 			}
 
 			const float iconWidth = image->GetWidth();
-			const float iconHeight = image->GetHeight();    
-			ax::Widgets::Icon(
-				ImVec2(static_cast<float>(iconWidth), static_cast<float>(iconHeight)),
-				ax::Widgets::IconType::Square,
+			const float iconHeight = image->GetHeight();
+			ax::Widgets::ImageIcon(
+				ImVec2(static_cast<float>(iconWidth), static_cast<float>(iconHeight)), 
+				UI::GetTextureID(image), 
 				connected, 
+				(float)pinIconSize, 
 				color, 
 				ImColor(32, 32, 32, alpha)
 			);

@@ -15,14 +15,12 @@
 
 
 //------------------------------------------------------------------------------
-# ifndef IMGUI_DEFINE_MATH_OPERATORS
-#     define IMGUI_DEFINE_MATH_OPERATORS
-# endif
 # include "imgui_node_editor.h"
 
 
 //------------------------------------------------------------------------------
 # include <imgui.h>
+# define IMGUI_DEFINE_MATH_OPERATORS
 # include <imgui_internal.h>
 # include "imgui_extra_math.h"
 # include "imgui_bezier_math.h"
@@ -58,7 +56,6 @@ void Log(const char* fmt, ...);
 //inline ImRect ToRect(const ax::rectf& rect);
 //inline ImRect ToRect(const ax::rect& rect);
 inline ImRect ImGui_GetItemRect();
-inline ImVec2 ImGui_GetMouseClickPos(ImGuiMouseButton buttonIndex);
 
 
 //------------------------------------------------------------------------------
@@ -207,8 +204,7 @@ struct Object
     {
         None     = 0,
         Hovered  = 1,
-        Selected = 2,
-        Highlighted = 4,
+        Selected = 2
     };
 
     inline friend DrawFlags operator|(DrawFlags lhs, DrawFlags rhs)  { return static_cast<DrawFlags>(static_cast<int>(lhs) | static_cast<int>(rhs)); }
@@ -219,14 +215,10 @@ struct Object
     EditorContext* const Editor;
 
     bool    m_IsLive;
-    bool    m_IsSelected;
-    bool    m_DeleteOnNewFrame;
 
     Object(EditorContext* editor)
         : Editor(editor)
         , m_IsLive(true)
-        , m_IsSelected(false)
-        , m_DeleteOnNewFrame(false)
     {
     }
 
@@ -305,7 +297,6 @@ struct Pin final: Object
     float   m_Radius;
     float   m_ArrowSize;
     float   m_ArrowWidth;
-    bool    m_SnapLinkToDir;
     bool    m_HasConnection;
     bool    m_HadConnection;
 
@@ -326,7 +317,6 @@ struct Pin final: Object
         , m_Radius(0)
         , m_ArrowSize(0)
         , m_ArrowWidth(0)
-        , m_SnapLinkToDir(true)
         , m_HasConnection(false)
         , m_HadConnection(false)
     {
@@ -400,8 +390,6 @@ struct Node final: Object
     float    m_GroupRounding;
     ImRect   m_GroupBounds;
 
-    bool     m_HighlightConnectedLinks;
-
     bool     m_RestoreState;
     bool     m_CenterOnScreen;
 
@@ -419,7 +407,6 @@ struct Node final: Object
         , m_BorderWidth(0)
         , m_Rounding(0)
         , m_GroupBounds()
-        , m_HighlightConnectedLinks(false)
         , m_RestoreState(false)
         , m_CenterOnScreen(false)
     {
@@ -435,7 +422,7 @@ struct Node final: Object
     virtual bool IsSelectable() override { return true; }
 
     virtual void Draw(ImDrawList* drawList, DrawFlags flags = None) override final;
-    void DrawBorder(ImDrawList* drawList, ImU32 color, float thickness = 1.0f, float offset = 0.0f);
+    void DrawBorder(ImDrawList* drawList, ImU32 color, float thickness = 1.0f);
 
     void GetGroupedNodes(std::vector<Node*>& result, bool append = false);
 
@@ -457,7 +444,6 @@ struct Link final: Object
     Pin*   m_StartPin;
     Pin*   m_EndPin;
     ImU32  m_Color;
-    ImU32  m_HighlightColor;
     float  m_Thickness;
     ImVec2 m_Start;
     ImVec2 m_End;
@@ -546,7 +532,6 @@ struct Settings
 
     NodeSettings* AddNode(NodeId id);
     NodeSettings* FindNode(NodeId id);
-    void RemoveNode(NodeId id);
 
     void ClearDirty(Node* node = nullptr);
     void MakeDirty(SaveReasonFlags reason, Node* node = nullptr);
@@ -576,16 +561,16 @@ struct Control
     Link*   DoubleClickedLink;
     bool    BackgroundHot;
     bool    BackgroundActive;
-    int     BackgroundClickButtonIndex;
-    int     BackgroundDoubleClickButtonIndex;
+    bool    BackgroundClicked;
+    bool    BackgroundDoubleClicked;
 
     Control()
-        : Control(nullptr, nullptr, nullptr, nullptr, false, false, -1, -1)
+        : Control(nullptr, nullptr, nullptr, nullptr, false, false, false, false)
     {
     }
 
     Control(Object* hotObject, Object* activeObject, Object* clickedObject, Object* doubleClickedObject,
-        bool backgroundHot, bool backgroundActive, int backgroundClickButtonIndex, int backgroundDoubleClickButtonIndex)
+        bool backgroundHot, bool backgroundActive, bool backgroundClicked, bool backgroundDoubleClicked)
         : HotObject(hotObject)
         , ActiveObject(activeObject)
         , ClickedObject(clickedObject)
@@ -604,8 +589,8 @@ struct Control
         , DoubleClickedLink(nullptr)
         , BackgroundHot(backgroundHot)
         , BackgroundActive(backgroundActive)
-        , BackgroundClickButtonIndex(backgroundClickButtonIndex)
-        , BackgroundDoubleClickButtonIndex(backgroundDoubleClickButtonIndex)
+        , BackgroundClicked(backgroundClicked)
+        , BackgroundDoubleClicked(backgroundDoubleClicked)
     {
         if (hotObject)
         {
@@ -879,9 +864,6 @@ private:
     bool               m_MovingOverEdge;
     ImVec2             m_MoveScreenOffset;
 
-    const float*       m_ZoomLevels;
-    int                m_ZoomLevelCount;
-
     bool HandleZoom(const Control& control);
 
     void NavigateTo(const ImRect& target, float duration = -1.0f, NavigationReason reason = NavigationReason::Unknown);
@@ -889,8 +871,8 @@ private:
     float MatchZoom(int steps, float fallbackZoom);
     int MatchZoomIndex(int direction);
 
-    static const float s_DefaultZoomLevels[];
-    static const int   s_DefaultZoomLevelCount;
+    static const float s_ZoomLevels[];
+    static const int   s_ZoomLevelCount;
 };
 
 struct SizeAction final: EditorAction
@@ -1154,11 +1136,9 @@ private:
     enum UserAction { Undetermined, Accepted, Rejected };
 
     void DeleteDeadLinks(NodeId nodeId);
-    void DeleteDeadPins(NodeId nodeId);
 
     bool QueryItem(ObjectId* itemId, IteratorType itemType);
     void RemoveItem(bool deleteDependencies);
-    Object* DropCurrentItem();
 
     vector<Object*> m_ManuallyDeletedObjects;
 
@@ -1325,9 +1305,7 @@ struct EditorContext
     float GetNodeZPosition(NodeId nodeId);
 
     void MarkNodeToRestoreState(Node* node);
-    void UpdateNodeState(Node* node);
-
-    void RemoveSettings(Object* object);
+    void RestoreNodeState(Node* node);
 
     void ClearSelection();
     void SelectObject(Object* object);
@@ -1451,15 +1429,13 @@ struct EditorContext
     NodeId GetDoubleClickedNode()      const { return m_DoubleClickedNode;       }
     PinId  GetDoubleClickedPin()       const { return m_DoubleClickedPin;        }
     LinkId GetDoubleClickedLink()      const { return m_DoubleClickedLink;       }
-    bool   IsBackgroundClicked()                           const { return m_BackgroundClickButtonIndex >= 0; }
-    bool   IsBackgroundDoubleClicked()                     const { return m_BackgroundDoubleClickButtonIndex >= 0; }
-    ImGuiMouseButton GetBackgroundClickButtonIndex()       const { return m_BackgroundClickButtonIndex; }
-    ImGuiMouseButton GetBackgroundDoubleClickButtonIndex() const { return m_BackgroundDoubleClickButtonIndex; }
+    bool   IsBackgroundClicked()       const { return m_BackgroundClicked;       }
+    bool   IsBackgroundDoubleClicked() const { return m_BackgroundDoubleClicked; }
 
     float AlignPointToGrid(float p) const
     {
         if (!ImGui::GetIO().KeyAlt)
-            return p - ImFmod(p, 16.0f);
+            return p - ImFmod(p, m_Style.GridSnap);
         else
             return p;
     }
@@ -1481,9 +1457,6 @@ private:
 
     void UpdateAnimations();
 
-    Config              m_Config;
-
-    ImGuiID             m_EditorActiveId;
     bool                m_IsFirstFrame;
     bool                m_IsFocused;
     bool                m_IsHovered;
@@ -1532,11 +1505,13 @@ private:
     NodeId              m_DoubleClickedNode;
     PinId               m_DoubleClickedPin;
     LinkId              m_DoubleClickedLink;
-    int                 m_BackgroundClickButtonIndex;
-    int                 m_BackgroundDoubleClickButtonIndex;
+    bool                m_BackgroundClicked;
+    bool                m_BackgroundDoubleClicked;
 
     bool                m_IsInitialized;
     Settings            m_Settings;
+
+    Config              m_Config;
 
     ImDrawList*         m_DrawList;
     int                 m_ExternalChannel;

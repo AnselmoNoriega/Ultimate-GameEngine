@@ -49,6 +49,10 @@ Entities:
       AssetID: 10610151712161516910
       MaterialTable:
         0: 0
+        1: 0
+        2: 0
+        3: 0
+        4: 0
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light
@@ -83,8 +87,6 @@ Entities:
       CastShadows: true
       SoftShadows: true
       LightSize: 0.5
-PhysicsLayers:
-  []
 SceneAudio:
   MasterReverb:
     Pre-delay: 50

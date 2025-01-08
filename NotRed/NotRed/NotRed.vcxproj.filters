@@ -97,6 +97,9 @@
     <Filter Include="src\NotRed\Vendor">
       <UniqueIdentifier>{650ACE36-D120-CCCC-1A98-57EE86ED9C54}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Vendor\imgui-node-editor">
+      <UniqueIdentifier>{5690429F-C249-AD49-4BA9-C723B76163B9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="vendor">
       <UniqueIdentifier>{B3738122-9F15-ACF8-88D0-BF4C74113349}</UniqueIdentifier>
     </Filter>
@@ -1318,6 +1321,24 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Util\StringUtils.cpp">
       <Filter>src\NotRed\Util</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\builders.cpp">
+      <Filter>src\NotRed\Vendor\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\crude_json.cpp">
+      <Filter>src\NotRed\Vendor\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_canvas.cpp">
+      <Filter>src\NotRed\Vendor\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_node_editor.cpp">
+      <Filter>src\NotRed\Vendor\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_node_editor_api.cpp">
+      <Filter>src\NotRed\Vendor\imgui-node-editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\widgets.cpp">
+      <Filter>src\NotRed\Vendor\imgui-node-editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp">
       <Filter>src\NotRed\Vendor</Filter>
