@@ -22,7 +22,7 @@ namespace NR
 
 		bool wasOpen = mIsOpen;
 		ImGui::SetNextWindowSizeConstraints(mMinSize, mMaxSize);
-		ImGui::Begin(mTitle.c_str(), &mIsOpen, mFlags);
+		ImGui::Begin(mTitle.c_str(), &mIsOpen, GetWindowFlags());
 		Render();
 		ImGui::End();
 		if (wasOpen && !mIsOpen)
@@ -77,6 +77,7 @@ namespace NR
 		RegisterEditor<MeshViewerPanel>(AssetType::MeshAsset);
 		RegisterEditor<PrefabEditor>(AssetType::Prefab);
 		RegisterEditor<SoundConfigEditor>(AssetType::SoundConfig);
+		//RegisterEditor<DemoNodeGraphEditor>(AssetType::DemoGraph);
 	}
 
 	void AssetEditorPanel::UnregisterAllEditors()

@@ -190,15 +190,15 @@ namespace ImGui
         ////const ImU32 text_col = GetColorU32(ImGuiCol_Text);
         const ImVec4 tintFloat = Colors::ConvertFromSRGB({ 0.32f, 0.30f, 0.20f, 1.0f });
         const ImVec4 colourDark = Colors::BGDarkSeparators;    // 26
-        const ImVec4 textDarker = ImGui::ColorConvertU32ToFloat4(Colors::textDarker);	        // 128
-        const ImVec4 textCol = ImGui::ColorConvertU32ToFloat4(Colors::text);	                // 192
+        const ImU32 textDarker = Colors::textDarker;	        // 128
+        const ImU32 textCol = Colors::text;	                // 192
 
         if ((held && hovered) || pressed)
         {
             ImGui::PushStyleColor(ImGuiCol_Text, colourDark);
         }
 
-        const ImU32 arrow_col = ImGui::GetColorU32(selected ? colourDark : textDarker);
+        const ImU32 arrow_col = selected ? ImGui::ColorConvertFloat4ToU32(colourDark) : textDarker;
 
         ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
         if (display_frame)

@@ -23,6 +23,7 @@ namespace NR
 	private:		
 		virtual void Close() = 0;
 		virtual void Render() = 0;
+		virtual ImGuiWindowFlags GetWindowFlags() { return mFlags; }
 
 	protected:
 		void SetMinSize(uint32_t width, uint32_t height);

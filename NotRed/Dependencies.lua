@@ -5,6 +5,7 @@ FBX_SDK = os.getenv("FBX_SDK_PATH")
 IncludeDir = {}
 IncludeDir["Assimp"] = "%{wks.location}/NotRed/vendor/assimp/include"
 IncludeDir["Box2D"] = "%{wks.location}/NotRed/vendor/box2D/include"
+IncludeDir["Choc"] = "%{wks.location}/NotRed/vendor/choc"
 IncludeDir["Entt"] = "%{wks.location}/NotRed/vendor/Entt/include"
 IncludeDir["FastNoise"] = "%{wks.location}/NotRed/vendor/FastNoise"
 IncludeDir["Farbot"] = "%{wks.location}/NotRed/vendor/farbot/include"

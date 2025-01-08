@@ -12,6 +12,7 @@ namespace NR
         virtual void End() = 0;
 
         void SetDarkThemeColors();
+        void SetDarkThemeV2Colors();
 
         static ImGuiLayer* Create();
     };

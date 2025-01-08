@@ -54,7 +54,7 @@ namespace NR
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
-        SetDarkThemeColors();
+        SetDarkThemeV2Colors();
 
         ImGuiStyle& style = ImGui::GetStyle();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

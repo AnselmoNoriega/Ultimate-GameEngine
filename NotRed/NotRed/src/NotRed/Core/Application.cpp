@@ -11,6 +11,7 @@
 
 #include <imgui/imgui.h>
 #include "imgui/imgui_internal.h"
+#include "NotRed/ImGui/Colors.h"
 
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Framebuffer.h"
@@ -131,80 +132,83 @@ namespace NR
 
 		mImGuiLayer->Begin();
 
-			if (mShowStats)
+		if (mShowStats)
+		{
+			ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Theme::backgroundDark);
+			ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
+
+			ImGui::Begin("Audio Stats");
 			{
+				ImGui::Separator();
+
+				Audio::Stats audioStats = AudioEngine::GetStats();
+				std::string objects = std::to_string(audioStats.AudioObjects);
+				std::string events = std::to_string(audioStats.ActiveEvents);
+				std::string active = std::to_string(audioStats.NumActiveSounds);
+				std::string max = std::to_string(audioStats.TotalSources);
+				std::string numAC = std::to_string(audioStats.NumAudioComps);
+				std::string ramEn = Utils::BytesToString(audioStats.MemEngine);
+				std::string ramRM = Utils::BytesToString(audioStats.MemResManager);
+
+				ImGui::Text("Audio Objects: %s", objects.c_str());
+				ImGui::Text("Active Events: %s", events.c_str());
+				ImGui::Text("Active Sounds: %s", active.c_str());
+				ImGui::Text("Max Sources: %s", max.c_str());
+				ImGui::Text("Audio Components: %s", numAC.c_str());
+				ImGui::Separator();
+
+				ImGui::Text("Frame Time: %.3fms\n", audioStats.FrameTime);
+				ImGui::Text("Used RAM (Engine - backend): %s", ramEn.c_str());
+				ImGui::Text("Used RAM (Resource Manager): %s", ramRM.c_str());
+				ImGui::End();
+			}
+			{
+				ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Theme::backgroundDark);
 				ImGui::Begin("Renderer");
-				{
-					auto& caps = Renderer::GetCapabilities();
-					ImGui::Text("Vendor: %s", caps.Vendor.c_str());
-					ImGui::Text("Renderer: %s", caps.Device.c_str());
-					ImGui::Text("Version: %s", caps.Version.c_str());
-					ImGui::Separator();
+				auto& caps = Renderer::GetCapabilities();
+				ImGui::Text("Vendor: %s", caps.Vendor.c_str());
+				ImGui::Text("Renderer: %s", caps.Device.c_str());
+				ImGui::Text("Version: %s", caps.Version.c_str());
+				ImGui::Separator();
 
-					ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-					if (RendererAPI::Current() == RendererAPIType::Vulkan)
-					{
-						GPUMemoryStats memoryStats = VKAllocator::GetStats();
-						std::string used = Utils::BytesToString(memoryStats.Used);
-						std::string free = Utils::BytesToString(memoryStats.Free);
-						ImGui::Text("Used VRAM: %s", used.c_str());
-						ImGui::Text("Free VRAM: %s", free.c_str());
-						ImGui::Text("Descriptor Allocs: %d", VKRenderer::GetDescriptorAllocationCount(Renderer::GetCurrentFrameIndex()));
-					}
-
-					bool vsync = mWindow->IsVSync();
-					if (ImGui::Checkbox("Vsync", &vsync))
-					{
-						mWindow->SetVSync(vsync);
-					}
-
-					ImGui::End();
-					ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
-				}
-
-				ImGui::Begin("Audio Stats");
-				{
-					ImGui::Separator();
-
-					Audio::Stats audioStats = AudioEngine::GetStats();
-					std::string objects = std::to_string(audioStats.AudioObjects);
-					std::string events = std::to_string(audioStats.ActiveEvents);
-					std::string active = std::to_string(audioStats.NumActiveSounds);
-					std::string max = std::to_string(audioStats.TotalSources);
-					std::string numAC = std::to_string(audioStats.NumAudioComps);
-					std::string ramEn = Utils::BytesToString(audioStats.MemEngine);
-					std::string ramRM = Utils::BytesToString(audioStats.MemResManager);
-
-					ImGui::Text("Audio Objects: %s", objects.c_str());
-					ImGui::Text("Active Events: %s", events.c_str());
-					ImGui::Text("Active Sounds: %s", active.c_str());
-					ImGui::Text("Max Sources: %s", max.c_str());
-					ImGui::Text("Audio Components: %s", numAC.c_str());
-					ImGui::Separator();
-
-					ImGui::Text("Frame Time: %.3fms\n", audioStats.FrameTime);
-					ImGui::Text("Used RAM (Engine - backend): %s", ramEn.c_str());
-					ImGui::Text("Used RAM (Resource Manager): %s", ramRM.c_str());
-					ImGui::End();
-				}
-
-				ImGui::Begin("Performance");
 				ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
-				const auto& perFrameData = mProfiler->GetPerFrameData();
-				for (auto&& [name, time] : perFrameData)
+
+				if (RendererAPI::Current() == RendererAPIType::Vulkan)
 				{
-					ImGui::Text("%s: %.3fms\n", name, time);
+					GPUMemoryStats memoryStats = VKAllocator::GetStats();
+					std::string used = Utils::BytesToString(memoryStats.Used);
+					std::string free = Utils::BytesToString(memoryStats.Free);
+					ImGui::Text("Used VRAM: %s", used.c_str());
+					ImGui::Text("Free VRAM: %s", free.c_str());
+					ImGui::Text("Descriptor Allocs: %d", VKRenderer::GetDescriptorAllocationCount(Renderer::GetCurrentFrameIndex()));
+				}
+
+				bool vsync = mWindow->IsVSync();
+				if (ImGui::Checkbox("Vsync", &vsync))
+				{
+					mWindow->SetVSync(vsync);
 				}
 				ImGui::End();
 			}
 
-			mProfiler->Clear();
-
-
-			for (int i = 0; i < mLayerStack.Size(); i++)
+			ImGui::Begin("Performance");
+			ImGui::Text("Frame Time: %.2fms\n", mTimeFrame.GetMilliseconds());
+			const auto& perFrameData = mProfiler->GetPerFrameData();
+			for (auto&& [name, time] : perFrameData)
 			{
-				mLayerStack[i]->ImGuiRender();
+				ImGui::Text("%s: %.3fms\n", name, time);
 			}
+			ImGui::End();
+			ImGui::PopStyleColor(); // ChildBg
+		}
+		ImGui::PopStyleColor(); // WindowBg
+
+		mProfiler->Clear();
+
+		for (int i = 0; i < mLayerStack.Size(); ++i)
+		{
+			mLayerStack[i]->ImGuiRender();
+		}
 	}
 
 	void Application::PushLayer(Layer* layer)
@@ -388,17 +392,17 @@ namespace NR
 				if (filePath.find(extension) == std::string::npos)
 				{
 					filePath += extension;
-				}
-
-				return filePath;
 			}
 
-			return ofn.lpstrFile;
+				return filePath;
 		}
+
+			return ofn.lpstrFile;
+	}
 		if (GetSaveFileNameA(&ofn) == TRUE)
 		{
 			return ofn.lpstrFile;
-		}
+}
 		return std::string();
 	}
 
@@ -427,5 +431,5 @@ namespace NR
 #else
 #error Undefined platform?
 #endif
-}
+	}
 }
