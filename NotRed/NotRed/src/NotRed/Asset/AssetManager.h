@@ -143,6 +143,8 @@ namespace NR
             return FileSystem::Exists(Project::GetActive()->GetAssetDirectory() / metadata.FilePath);
         }
 
+        static const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() { return sLoadedAssets; }
+
         static void ImGuiRender(bool& open);
 
     private:

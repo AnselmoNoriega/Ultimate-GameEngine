@@ -156,6 +156,7 @@
     <ClInclude Include="src\NotRed\Asset\AssetRegistry.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
     <ClInclude Include="src\NotRed\Asset\AssetTypes.h" />
+    <ClInclude Include="src\NotRed\Asset\GraphSerializer.h" />
     <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
     <ClInclude Include="src\NotRed\Audio\Audio.h" />
     <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
@@ -213,6 +214,10 @@
     <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeEditorModel.h" />
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphAsset.h" />
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.h" />
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\Nodes.h" />
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
@@ -394,6 +399,7 @@
     <ClCompile Include="src\NotRed\Asset\AssetManager.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetRegistry.cpp" />
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp" />
+    <ClCompile Include="src\NotRed\Asset\GraphSerializer.cpp" />
     <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp" />
     <ClCompile Include="src\NotRed\Audio\Audio.cpp" />
     <ClCompile Include="src\NotRed\Audio\AudioComponent.cpp" />
@@ -434,6 +440,10 @@
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorConsolePanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\DemoModel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\NodeEditorModel.cpp" />
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.cpp" />
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\Nodes.cpp" />
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\NotRed\ImGui\Colors.cpp" />

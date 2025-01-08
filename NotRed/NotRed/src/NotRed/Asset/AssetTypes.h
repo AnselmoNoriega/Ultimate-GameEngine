@@ -23,7 +23,8 @@ namespace NR
         Audio,
         PhysicsMat,
         SoundConfig,
-        SpatializationConfig
+        SpatializationConfig,
+        DemoGraph
     };
 
     namespace Utils
@@ -41,6 +42,7 @@ namespace NR
             if (assetType == "Audio")           return AssetType::Audio;
             if (assetType == "PhysicsMat")      return AssetType::PhysicsMat;
             if (assetType == "SoundConfig")     return AssetType::SoundConfig;
+            if (assetType == "DemoGraph")       return AssetType::DemoGraph;
 
             NR_CORE_ASSERT(false, "Unknown Asset Type");
             return AssetType::None;
@@ -61,6 +63,7 @@ namespace NR
             case AssetType::Audio:          return "Audio";
             case AssetType::PhysicsMat:     return "PhysicsMat";
             case AssetType::SoundConfig:    return "SoundConfig";
+            case AssetType::DemoGraph:      return "DemoGraph";
             default:
                 NR_CORE_ASSERT(false, "Unknown Asset Type");
                 return "None";

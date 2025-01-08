@@ -3,6 +3,7 @@
 
 #include "AssetManager.h"
 #include "MeshSerializer.h"
+#include "GraphSerializer.h"
 
 namespace NR
 {
@@ -18,6 +19,7 @@ namespace NR
 		sSerializers[AssetType::Audio] = CreateScope<AudioFileSourceSerializer>();
 		sSerializers[AssetType::SoundConfig] = CreateScope<SoundConfigSerializer>();
 		sSerializers[AssetType::Scene] = CreateScope<SceneAssetSerializer>();
+		sSerializers[AssetType::DemoGraph] = CreateScope<DefaultGraphSerializer>();
 	}
 
 	void AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)

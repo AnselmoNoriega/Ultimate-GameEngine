@@ -23,6 +23,7 @@ namespace NR
 		{ ".jpeg", AssetType::Texture },
 		{ ".hdr", AssetType::EnvMap },
 		{ ".wav", AssetType::Audio },
-		{ ".ogg", AssetType::Audio }
+		{ ".ogg", AssetType::Audio },
+		{ ".demo_graph", AssetType::DemoGraph }
 	};
 }

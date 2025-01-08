@@ -49,6 +49,9 @@
     <Filter Include="src\NotRed\Editor\EditorConsole">
       <UniqueIdentifier>{27588158-933B-9098-9C3E-BED408A156E9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Editor\NodeGraphEditor">
+      <UniqueIdentifier>{AC4EC7DE-18BD-1C5E-61A6-D75DCD5312FA}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\ImGui">
       <UniqueIdentifier>{52988308-3E91-A25A-67C3-87DF531B8266}</UniqueIdentifier>
     </Filter>
@@ -154,6 +157,9 @@
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\AssetTypes.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\GraphSerializer.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\MeshSerializer.h">
@@ -326,6 +332,18 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h">
       <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeEditorModel.h">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphAsset.h">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.h">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\Nodes.h">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h">
       <Filter>src\NotRed\Editor</Filter>
@@ -866,6 +884,9 @@
     <ClCompile Include="src\NotRed\Asset\AssetSerializer.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Asset\GraphSerializer.cpp">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Asset\MeshSerializer.cpp">
       <Filter>src\NotRed\Asset</Filter>
     </ClCompile>
@@ -985,6 +1006,18 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\DemoModel.cpp">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\NodeEditorModel.cpp">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.cpp">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\Nodes.cpp">
+      <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>
