@@ -112,6 +112,16 @@ namespace NR::Utils
 		return result;
 	}
 
+	std::string ToUpper(const std::string& string)
+	{
+		std::string result;
+		for (const auto& character : string)
+		{
+			result += std::toupper(character);
+		}
+		return result;
+	}
+
 	std::string BytesToString(uint64_t bytes)
 	{
 		constexpr uint64_t GB = 1024 * 1024 * 1024;

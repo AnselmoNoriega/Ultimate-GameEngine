@@ -58,7 +58,7 @@ namespace NR
 
 #ifdef NR_DEBUG
 				out << YAML::Key << "DebugOnPlay" << YAML::Value << physicsSettings.DebugOnPlay;
-				out << YAML::Key << "DebugType" << YAML::Value << (int8_t)physicsSettings.DebugType;
+				out << YAML::Key << "DebugType" << YAML::Value << (int)physicsSettings.DebugType;
 #endif
 
 				// > 1 because of the Default layer
@@ -164,7 +164,7 @@ namespace NR
 
 #ifdef NR_DEBUG
 			physicsSettings.DebugOnPlay = physicsNode["DebugOnPlay"] ? physicsNode["DebugOnPlay"].as<bool>() : true;
-			physicsSettings.DebugType = physicsNode["DebugType"] ? (DebugType)physicsNode["DebugType"].as<int8_t>() : DebugType::LiveDebug;
+			physicsSettings.DebugType = physicsNode["DebugType"] ? (DebugType)physicsNode["DebugType"].as<int>() : DebugType::LiveDebug;
 #endif
 			auto physicsLayers = physicsNode["Layers"];
 			if (physicsLayers)

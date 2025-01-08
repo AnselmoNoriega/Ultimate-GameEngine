@@ -171,8 +171,20 @@ namespace NR::Nodes
 
 			auto* node = new Node(0, nodeName.c_str(), ImColor(128, 195, 248));
 			node->Category = "Utility";
-
 			node->Type = NodeType::Simple;
+			node->Outputs.emplace_back(0, "Message", PinType::String);
+
+			return node;
+		}
+
+		static Node* Dummy_Node()
+		{
+			const std::string nodeName = choc::text::replace(__func__, "_", " ");
+
+			auto* node = new Node(0, nodeName.c_str(), ImColor(128, 195, 248));
+			node->Category = "Utility";
+			node->Type = NodeType::Blueprint;
+			node->Inputs.emplace_back(0, "Message", PinType::String);
 			node->Outputs.emplace_back(0, "Message", PinType::String);
 
 			return node;
@@ -203,7 +215,8 @@ namespace NR::Nodes
 	const std::map<std::string, std::map<std::string, std::function<Node* ()>>> DemoFactory::Registry = { {
 			NODE_CATEGORY(Utility),	{
 										DECLARE_NODE(Utility, Comment),
-										DECLARE_NODE(Utility, Message)
+										DECLARE_NODE(Utility, Message),
+										DECLARE_NODE(Utility, Dummy_Node)
 									}}, {
 			NODE_CATEGORY(DemoNodes), {
 										DECLARE_NODE(DemoNodes, Some_Float),

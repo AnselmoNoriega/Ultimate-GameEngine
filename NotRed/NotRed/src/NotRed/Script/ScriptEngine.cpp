@@ -1029,31 +1029,11 @@ namespace NR
 			return;
 		}
 
-		if (Type == FieldType::Asset)
+		else if (Type == FieldType::Asset || Type == FieldType::Entity)
 		{
 			// Create Managed Object
 			void* params[] = { mStoredValueBuffer };
 			MonoObject* obj = ScriptEngine::Construct(TypeName + ":.ctor(ulong)", true, params);
-			if (mMonoProperty)
-			{
-				void* data[] = { obj };
-				mono_property_set_value(mMonoProperty, entityInstance.GetInstance(), data, nullptr);
-			}
-			else
-			{
-				mono_field_set_value(entityInstance.GetInstance(), mMonoClassField, obj);
-			}
-		}
-		else if (Type == FieldType::Entity)
-		{
-			if (GetStoredValue<UUID>() == 0)
-			{
-				return;
-			}
-
-			void* params[] = { mStoredValueBuffer };
-			MonoObject* obj = ScriptEngine::Construct("NR.Entity:.ctor(ulong)", true, params);
-
 			if (mMonoProperty)
 			{
 				void* data[] = { obj };
@@ -1219,14 +1199,33 @@ namespace NR
 	{
 		NR_CORE_ASSERT(entityInstance.GetInstance());
 
-		if (mMonoProperty)
+		if (Type == FieldType::Entity)
 		{
-			MonoObject* result = mono_property_get_value(mMonoProperty, entityInstance.GetInstance(), nullptr, nullptr);
-			memcpy(outValue, mono_object_unbox(result), GetFieldSize(Type));
+			MonoObject* obj;
+			if (mMonoProperty)
+			{
+				obj = mono_property_get_value(mMonoProperty, entityInstance.GetInstance(), nullptr, nullptr);
+			}
+			else
+			{
+				mono_field_get_value(entityInstance.GetInstance(), mMonoClassField, &obj);
+			}
+
+			MonoProperty* idProperty = mono_class_get_property_from_name(entityInstance.ScriptClass->Class, "ID");
+			MonoObject* idObject = mono_property_get_value(idProperty, obj, nullptr, nullptr);
+			memcpy(outValue, mono_object_unbox(idObject), GetFieldSize(Type));
 		}
 		else
 		{
-			mono_field_get_value(entityInstance.GetInstance(), mMonoClassField, outValue);
+			if (mMonoProperty)
+			{
+				MonoObject* result = mono_property_get_value(mMonoProperty, entityInstance.GetInstance(), nullptr, nullptr);
+				memcpy(outValue, mono_object_unbox(result), GetFieldSize(Type));
+			}
+			else
+			{
+				mono_field_get_value(entityInstance.GetInstance(), mMonoClassField, outValue);
+			}
 		}
 	}
 

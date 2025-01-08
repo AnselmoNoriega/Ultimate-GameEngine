@@ -55,7 +55,7 @@ namespace NR
 	};
 
 	//! Set colour for your pin / value types
-	static ImColor GetIconColor(PinType type)
+	inline ImColor GetIconColor(PinType type)
 	{
 		switch (type)
 		{

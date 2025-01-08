@@ -18,7 +18,7 @@ namespace NR
 		TwoDirectional
 	};
 
-	enum class DebugType : int8_t
+	enum class DebugType
 	{
 		DebugToFile,
 		LiveDebug

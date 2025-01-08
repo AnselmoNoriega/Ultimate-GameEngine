@@ -32,6 +32,8 @@ namespace NR
 		case FieldType::Vec2:        return "Vec2";
 		case FieldType::Vec3:        return "Vec3";
 		case FieldType::Vec4:        return "Vec4";
+		case FieldType::Asset:		 return "Asset";
+		case FieldType::Entity:		 return "Entity";
 		}
 		return "Unknown";
 	}

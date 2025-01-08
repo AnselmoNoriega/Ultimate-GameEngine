@@ -164,6 +164,11 @@ namespace NR
 							out << field.GetStoredValue<UUID>();
 							break;
 						}
+						case FieldType::Entity:
+						{
+							out << field.GetStoredValue<UUID>();
+							break;
+						}
 						default:
 						{
 							NR_CORE_ASSERT(false);
@@ -695,6 +700,11 @@ namespace NR
 									publicFields.at(name).SetStoredValue(dataNode.as<UUID>());
 									break;
 								}
+								case FieldType::Entity:
+								{
+									publicFields.at(name).SetStoredValue(dataNode.as<UUID>());
+									break;
+								}
 								}
 							}
 						}
@@ -712,7 +722,7 @@ namespace NR
 				{
 					assetHandle = AssetManager::GetAssetHandleFromFilePath(meshComponent["AssetPath"].as<std::string>());
 				}
-				else
+				else if (meshComponent["AssetID"])
 				{
 					assetHandle = meshComponent["AssetID"].as<uint64_t>();
 				}

@@ -29,6 +29,11 @@ namespace NR
 		physx::PxTransform transform = mRigidActor->getGlobalPose();
 		transform.p = PhysicsUtils::ToPhysicsVector(translation);
 		mRigidActor->setGlobalPose(transform, autowake);
+
+		if (mRigidBodyData.BodyType == RigidBodyComponent::Type::Static)
+		{
+			SynchronizeTransform();
+		}
 	}
 
 	void PhysicsActor::SetRotation(const glm::vec3& rotation, bool autowake)
@@ -36,6 +41,11 @@ namespace NR
 		physx::PxTransform transform = mRigidActor->getGlobalPose();
 		transform.q = PhysicsUtils::ToPhysicsQuat(glm::quat(rotation));
 		mRigidActor->setGlobalPose(transform, autowake);
+
+		if (mRigidBodyData.BodyType == RigidBodyComponent::Type::Static)
+		{
+			SynchronizeTransform();
+		}
 	}
 
 	void PhysicsActor::Rotate(const glm::vec3& rotation, bool autowake)
@@ -45,6 +55,11 @@ namespace NR
 			* physx::PxQuat(glm::radians(rotation.y), { 0.0f, 1.0f, 0.0f })
 			* physx::PxQuat(glm::radians(rotation.z), { 0.0f, 0.0f, 1.0f }));
 		mRigidActor->setGlobalPose(transform, autowake);
+
+		if (mRigidBodyData.BodyType == RigidBodyComponent::Type::Static)
+		{
+			SynchronizeTransform();
+		}
 	}
 
 	void PhysicsActor::WakeUp()

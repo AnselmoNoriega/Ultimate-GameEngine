@@ -30,9 +30,14 @@
 
 namespace NR
 {
+	static Ref<Texture2D> mGearIcon;
+
 	SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
 		: mContext(context)
 	{
+		mPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
+		mPlusIcon = Texture2D::Create("Resources/Editor/plus_icon.png");
+		mGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
 	}
 
 	void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene)
@@ -225,7 +230,10 @@ namespace NR
 
 			ImGui::End();
 
-			ImGui::Begin("Properties");
+			{
+				UI::ScopedStyle windowPadding(ImGuiStyleVar_WindowPadding, ImVec2(2.0, 4.0f));
+				ImGui::Begin("Properties");
+			}
 
 			if (mSelectionContext)
 			{
@@ -343,28 +351,44 @@ namespace NR
 	template<typename T, typename UIFunction>
 	static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, bool canBeRemoved = true)
 	{
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
+			| ImGuiTreeNodeFlags_Framed
+			| ImGuiTreeNodeFlags_SpanAvailWidth
+			| ImGuiTreeNodeFlags_AllowItemOverlap
+			| ImGuiTreeNodeFlags_FramePadding;
+
 		if (entity.HasComponent<T>())
 		{
 			ImGui::PushID((void*)typeid(T).hash_code());
 			auto& component = entity.GetComponent<T>();
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
-			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-			ImGui::Separator();
-			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
-			bool rightClicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
-			ImGui::PopStyleVar();
+			float lineHeight;
+			bool open = false;
+			bool right_clicked = false;
+			const float framePaddingX = 6.0f;
+			const float framePaddingY = 6.0f;
+			{
+				UI::ScopedStyle headerRounding(ImGuiStyleVar_FrameRounding, 0.0f);
+				UI::ScopedStyle headerPaddingAndHeight(ImGuiStyleVar_FramePadding, ImVec2{ framePaddingX, framePaddingY });
+				lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+				open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, Utils::ToUpper(name).c_str());
+				right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+			}
 
 			bool resetValues = false;
 			bool removeComponent = false;
 
-			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
-			if (ImGui::Button("+", ImVec2{ lineHeight, lineHeight }) || rightClicked)
+			ImGui::SameLine(contentRegionAvailable.x - lineHeight);
+			if (ImGui::InvisibleButton("##options", ImVec2{ lineHeight, lineHeight }) || right_clicked)
 			{
 				ImGui::OpenPopup("ComponentSettings");
 			}
+
+			UI::DrawButtonImage(mGearIcon, IM_COL32(160, 160, 160, 200),
+				IM_COL32(160, 160, 160, 255),
+				IM_COL32(160, 160, 160, 150),
+				UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f));
 
 			if (ImGui::BeginPopup("ComponentSettings"))
 			{
@@ -400,6 +424,11 @@ namespace NR
 				entity.AddComponent<T>();
 			}
 
+			if (!open)
+			{
+				UI::ShiftCursorY(-ImGui::GetStyle().ItemSpacing.y);
+			}
+
 			ImGui::PopID();
 		}
 	}
@@ -419,62 +448,74 @@ namespace NR
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+		UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
 
-		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+		const float framePadding = 2.0f;
+		float lineHeight = GImGui->Font->FontSize + framePadding * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 2.0f, lineHeight };
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-		ImGui::PushFont(boldFont);
-		if (ImGui::Button("X", buttonSize))
 		{
-			values.x = resetValue;
-			modified = true;
+			UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
+			UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
+			UI::ScopedColorStack buttonColors(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f },
+				ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f },
+				ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+			UI::ScopedFont buttonFont(boldFont);
+			UI::ShiftCursorY(1.0f);
+			if (ImGui::Button("X", buttonSize))
+			{
+				values.x = resetValue;
+				modified = true;
+			}
 		}
-		ImGui::PopFont();
-		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
+		UI::ShiftCursorY(-1.0f);
 		modified |= ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-		ImGui::PushFont(boldFont);
-		if (ImGui::Button("Y", buttonSize))
 		{
-			values.y = resetValue;
-			modified = true;
+			UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
+			UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
+			UI::ScopedColorStack buttonColors(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f },
+				ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f },
+				ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+			UI::ScopedFont buttonFont(boldFont);
+			UI::ShiftCursorY(1.0f);
+			if (ImGui::Button("Y", buttonSize))
+			{
+				values.y = resetValue;
+				modified = true;
+			}
 		}
-		ImGui::PopFont();
-		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
+		UI::ShiftCursorY(-1.0f);
 		modified |= ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
 		ImGui::PopItemWidth();
 		ImGui::SameLine();
 
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f });
-		ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-		ImGui::PushFont(boldFont);
-		if (ImGui::Button("Z", buttonSize))
 		{
-			values.z = resetValue;
-			modified = true;
+			UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
+			UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
+			UI::ScopedColorStack buttonColors(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f },
+				ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f },
+				ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+			UI::ScopedFont buttonFont(boldFont);
+
+			UI::ShiftCursorY(1.0f);
+			if (ImGui::Button("Z", buttonSize))
+			{
+				values.z = resetValue;
+				modified = true;
+			}
 		}
-		ImGui::PopFont();
-		ImGui::PopStyleColor(3);
 
 		ImGui::SameLine();
+		UI::ShiftCursorY(-1.0f);
 		modified |= ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
 		ImGui::PopItemWidth();
-
-		ImGui::PopStyleVar();
 
 		ImGui::Columns(1);
 
@@ -491,30 +532,80 @@ namespace NR
 
 		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
+		UI::ShiftCursor(4.0f, 4.0f);
+		bool isHoveringID = false;
+
+		if (entity.HasComponent<TagComponent>())
 		{
+			const float iconOffset = 6.0f;
+			UI::ShiftCursor(4.0f, iconOffset);
+			UI::Image(mPencilIcon, ImVec2(mPencilIcon->GetWidth(), mPencilIcon->GetHeight()),
+				ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
+				ImColor(128, 128, 128, 255).Value);
+			ImGui::SameLine(0.0f, 4.0f);
+
+			UI::ShiftCursorY(-iconOffset);
+			
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 			char buffer[256];
 			memset(buffer, 0, 256);
 			memcpy(buffer, tag.c_str(), tag.length());
 			ImGui::PushItemWidth(contentRegionAvailable.x * 0.5f);
+
+			UI::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+			UI::ScopedColor frameColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+			UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
+			
 			if (ImGui::InputText("##Tag", buffer, 256))
 			{
 				tag = std::string(buffer);
 			}
+
+			UI::DrawItemActivityOutline(2.0f, false, Colors::Theme::accent);
+
+			isHoveringID = ImGui::IsItemHovered();
 			ImGui::PopItemWidth();
 		}
 
-		ImGui::SameLine();
-		ImGui::TextDisabled("%llx", id);
+		// ID
+		if (isHoveringID)
+		{
+			ImGui::SameLine();
+			ImGui::TextDisabled("%u", id);
+		}
 
 		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		ImVec2 textSize = ImGui::CalcTextSize("Add Component");
-		ImGui::SameLine(contentRegionAvailable.x - (textSize.x + GImGui->Style.FramePadding.y));
-
-		if (ImGui::Button("Add Component"))
+		ImVec2 textSize = ImGui::CalcTextSize(" ADD        ");
+		textSize.x += GImGui->Style.FramePadding.x * 2.0f;
 		{
-			ImGui::OpenPopup("AddComponentPanel");
+			UI::ScopedColorStack addCompButtonColors(ImGuiCol_Button, IM_COL32(70, 70, 70, 200),
+				ImGuiCol_ButtonHovered, IM_COL32(70, 70, 70, 255),
+				ImGuiCol_ButtonActive, IM_COL32(70, 70, 70, 150));
+
+			ImGui::SameLine(contentRegionAvailable.x - (textSize.x + GImGui->Style.FramePadding.x));
+
+			if (ImGui::Button(" ADD       ", ImVec2(textSize.x + 4.0f, lineHeight + 2.0f)))
+			{
+				ImGui::OpenPopup("AddComponentPanel");
+			}
+			const float pad = 4.0f;
+			const float iconWidth = ImGui::GetFrameHeight() - pad * 2.0f;
+			const float iconHeight = iconWidth;
+
+			ImVec2 iconPos = ImGui::GetItemRectMax();
+			iconPos.x -= iconWidth + pad;
+			iconPos.y -= iconHeight + pad;
+
+			ImGui::SetCursorScreenPos(iconPos);
+			UI::ShiftCursor(-5.0f, -1.0f);
+			UI::Image(mPlusIcon, ImVec2(iconWidth, iconHeight),
+				ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
+				ImColor(160, 160, 160, 255).Value);
 		}
+
+		ImGui::Spacing();
+		ImGui::Spacing();
+		ImGui::Spacing();
 
 		if (ImGui::BeginPopup("AddComponentPanel"))
 		{
@@ -797,7 +888,7 @@ namespace NR
 			{
 				UI::BeginPropertyGrid();
 
-				if (UI::Property("Particle Count", pc.ParticleCount, 0, 100000))
+				if (UI::Property("Particle Count", pc.ParticleCount, 0, INT_MAX))
 				{
 					if (pc.ParticleCount < 1)
 					{
@@ -1124,7 +1215,6 @@ namespace NR
 							case FieldType::Entity:
 							{
 								UUID uuid = isRuntime ? field.GetRuntimeValue<UUID>(entityInstanceData.Instance) : field.GetStoredValue<UUID>();
-								std::string entityName = "";
 								Entity entity = mContext->FindEntityByID(uuid);
 								if (UI::PropertyEntityReference(field.Name.c_str(), entity))
 								{
@@ -1406,19 +1496,10 @@ namespace NR
 						ImGui::NextColumn();
 					};
 
-				auto singleColumnSeparator = []
-					{
-						ImDrawList* draw_list = ImGui::GetWindowDrawList();
-						ImVec2 p = ImGui::GetCursorScreenPos();
-						draw_list->AddLine(ImVec2(p.x - 9999, p.y), ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
-					};
-
 				auto& colors = ImGui::GetStyle().Colors;
 				auto oldSCol = colors[ImGuiCol_Separator];
 				const float brM = 0.6f;
 				colors[ImGuiCol_Separator] = ImVec4{ oldSCol.x * brM, oldSCol.y * brM, oldSCol.z * brM, 1.0f };
-
-				ImGui::Spacing();
 
 				UI::PushID();
 				UI::BeginPropertyGrid();
@@ -1431,8 +1512,6 @@ namespace NR
 				}
 
 				//=====================
-				propertyGridSpacing();
-				propertyGridSpacing();
 
 				if (UI::Property("Volume Multiplier", ac.VolumeMultiplier, 0.01f, 0.0f, 1.0f)) //TODO: switch to dBs in the future ?
 				{
@@ -1442,9 +1521,6 @@ namespace NR
 				{
 					//ac.PitchMultiplier = soundConfig.PitchMultiplier;
 				}
-
-				propertyGridSpacing();
-				propertyGridSpacing();
 
 				UI::Property("Play on Awake", ac.PlayOnAwake);
 				UI::Property("Stop When Entity Is Destroyed", ac.StopIfEntityDestroyed);

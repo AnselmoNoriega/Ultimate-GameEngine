@@ -20,6 +20,7 @@ namespace NR::Utils
 	std::vector<std::string> SplitString(const std::string& string, const char delimiter);
 
 	std::string ToLower(const std::string& string);
+	std::string ToUpper(const std::string& string);
 	std::string BytesToString(uint64_t bytes);
 
 	template<class...Durations, class DurationIn>

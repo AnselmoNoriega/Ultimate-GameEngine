@@ -12,7 +12,7 @@ namespace NR
 {
 	static ContactListener sContactListener;
 
-#define ENABLE_ACTIVE_ACTORS 0
+#define ENABLE_ACTIVE_ACTORS 1
 
 	PhysicsScene::PhysicsScene(const PhysicsSettings& settings)
 		: mSubStepSize(settings.FixedDeltaTime)

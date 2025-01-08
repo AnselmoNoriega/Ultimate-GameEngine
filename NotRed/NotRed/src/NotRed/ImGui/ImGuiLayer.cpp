@@ -81,6 +81,7 @@ namespace NR
 
     void ImGuiLayer::SetDarkThemeV2Colors()
     {
+        auto& style = ImGui::GetStyle();
         auto& colors = ImGui::GetStyle().Colors;
 
         // Headers
@@ -90,7 +91,7 @@ namespace NR
 
         // Buttons
         colors[ImGuiCol_Button] = ImColor(56, 56, 56, 200);
-        colors[ImGuiCol_ButtonHovered] = ImColor(56, 56, 56, 255);
+        colors[ImGuiCol_ButtonHovered] = ImColor(70, 70, 70, 255);
         colors[ImGuiCol_ButtonActive] = ImColor(56, 56, 56, 150);
 
         // Frame BG
@@ -131,6 +132,9 @@ namespace NR
         // Text
         colors[ImGuiCol_Text] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::text);
 
+        // Checkbox
+        colors[ImGuiCol_CheckMark] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::text);
+
         // Separator
         colors[ImGuiCol_Separator] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::backgroundDark);
         colors[ImGuiCol_SeparatorActive] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::highlight);
@@ -141,5 +145,11 @@ namespace NR
         colors[ImGuiCol_ChildBg] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::background);
         colors[ImGuiCol_PopupBg] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::backgroundPopup);
         colors[ImGuiCol_Border] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::backgroundDark);
+
+        //========================================================
+        /// Style
+        style.FrameRounding = 2.5f;
+        style.FrameBorderSize = 1.0f;
+        style.IndentSpacing = 11.0f;
     }
 }

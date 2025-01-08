@@ -3,7 +3,12 @@
 #include <vector>
 #include <string>
 
-#include "NotRed/ImGui/ImGui.h"
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include "imgui_internal.h"
+#include "NotRed/Renderer/Texture.h"
+#include "NotRed/ImGui/Colors.h"
 
 namespace NR::UI
 {
@@ -86,6 +91,33 @@ namespace NR::UI
     private:
         int mCount;
     };
+
+    namespace Draw 
+    {
+        //=========================================================================================
+        /// Lines
+        static void Underline(bool fullWidth = false)
+        {
+            if (fullWidth)
+            {
+                ImGui::PushColumnsBackground();
+            }
+
+            const float width = fullWidth ? ImGui::GetWindowWidth() : ImGui::GetContentRegionMax().x;
+            const float yOffset = 1.0f;
+            const ImVec2 cursor = ImGui::GetCursorScreenPos();
+            ImGui::GetWindowDrawList()->AddLine(
+                ImVec2(cursor.x, cursor.y - yOffset),
+                ImVec2(cursor.x + width, cursor.y - yOffset),
+                Colors::Theme::backgroundDark, 1.0f
+            );
+
+            if (fullWidth)
+            {
+                ImGui::PopColumnsBackground();
+            }
+        }
+    }
 
     class ScopedStyleStack
     {
@@ -232,8 +264,8 @@ namespace NR::UI
         const float alphaTop = alpha; //std::min(0.25f * alphMultiplier, 1.0f);
         const float alphaSides = alpha; //std::min(0.30f * alphMultiplier, 1.0f);
         const float alphaBottom = alpha; //std::min(0.60f * alphMultiplier, 1.0f);
-        const auto p1 = rectMin + ImVec2(radius, radius);
-        const auto p2 = rectMax - ImVec2(radius, radius);
+        const auto p1 = ImVec2(rectMin.x + radius, rectMin.y + radius);
+        const auto p2 = ImVec2(rectMax.x - radius, rectMax.y - radius);
         auto* drawList = ImGui::GetWindowDrawList();
 
         ImTextureID textureID = GetTextureID(shadowImage);
@@ -535,19 +567,20 @@ namespace NR::UI
     static void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80))
     {
         auto* drawList = ImGui::GetWindowDrawList();
+        const ImRect rect = RectExpanded(GetItemRect(), 1.0f, 1.0f);
         if (ImGui::IsItemHovered() && !ImGui::IsItemActive())
         {
-            drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+            drawList->AddRect(rect.Min, rect.Max,
                 ImColor(60, 60, 60), rounding, 0, 1.5f);
         }
         if (ImGui::IsItemActive())
         {
-            drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+            drawList->AddRect(rect.Min, rect.Max,
                 colourWhenActive, rounding, 0, 1.0f);
         }
         else if (!ImGui::IsItemHovered() && drawWhenInactive)
         {
-            drawList->AddRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(),
+            drawList->AddRect(rect.Min, rect.Max,
                 ImColor(50, 50, 50), rounding, 0, 1.0f);
         }
     };
@@ -567,7 +600,7 @@ namespace NR::UI
 
     static void ShiftCursor(float x, float y)
     {
-        ImGui::SetCursorPos(ImGui::GetCursorPos() + ImVec2(x, y));
+        const ImVec2 cursor = ImGui::GetCursorPos();
+        ImGui::SetCursorPos(ImVec2(cursor.x + x, cursor.y + y));
     }
-
 }
