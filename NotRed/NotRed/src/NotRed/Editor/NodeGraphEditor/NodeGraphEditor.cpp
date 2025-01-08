@@ -4,7 +4,6 @@
 #include "NotRed/Asset/AssetManager.h"
 #include "NodeGraphAsset.h"
 #include "NodeEditorModel.h"
-
 #include "imgui-node-editor/imgui_node_editor.h"
 #include "imgui-node-editor/imgui_node_editor_internal.h"
 
@@ -45,7 +44,7 @@ namespace NR
 		editorStyle.FlowDuration = 2.0f;
 		editorStyle.GroupRounding = 0.0f;
 		editorStyle.GroupBorderWidth = 0.0f;
-		// editorStyle.GridSnap = 8.0f;
+		editorStyle.GridSnap = 8.0f;
 
 		// Extra (for now just using defaults)
 		editorStyle.PivotAlignment = ImVec2(0.5f, 0.5f);    // This one is changed in Draw
@@ -148,15 +147,21 @@ namespace NR
 				auto self = static_cast<NodeGraphEditorBase*>(userPointer);
 
 				if (!self->GetModel())
+				{
 					return 0;
+				}
 
 				auto node = self->GetModel()->FindNode(UUID(nodeId.Get()));
 				if (!node)
+				{
 					return 0;
+				}
 
 
 				if (data != nullptr)
+				{
 					memcpy(data, node->State.data(), node->State.size());
+				}
 				return node->State.size();
 			};
 
@@ -242,6 +247,13 @@ namespace NR
 			ed::DeleteLink(mState->ContextLinkId);
 	}
 
+	static AssetHandle sAssetComboSelectedHandle = 0;
+	static Pin* sAssetComboPin = nullptr;
+	static ImVec2 sAssetComboStart;
+	static ImVec2 sAssetComboSize = ImVec2(0.0f, 280.0f);
+	static bool sShouldAssetComboOpen = false;
+	static const char* sAssetComboPopupID = "AssetPinCombo";
+
 	void NodeGraphEditorBase::Render()
 	{
 		if (!GetModel())
@@ -286,6 +298,8 @@ namespace NR
 		// Set to 'true' to prevent editor from creating selection rectangle
 		// when draggin node input field
 		auto& draggingInputField = mState->DraggingInputField;
+
+		static bool sNewNodePopupOpening = false;
 
 		ed::Begin("Node editor");
 		{
@@ -407,6 +421,7 @@ namespace NR
 
 							ed::Suspend();
 							ImGui::OpenPopup("Create New Node");
+							sNewNodePopupOpening = true;
 							ed::Resume();
 						}
 					}
@@ -438,15 +453,23 @@ namespace NR
 			ImGui::SetCursorScreenPos(cursorTopLeft);
 
 			ed::Suspend();
+
 			if (ed::ShowNodeContextMenu(&contextNodeId))
+			{
 				ImGui::OpenPopup("Node Context Menu");
+			}
 			else if (ed::ShowPinContextMenu(&contextPinId))
+			{
 				ImGui::OpenPopup("Pin Context Menu");
+			}
 			else if (ed::ShowLinkContextMenu(&contextLinkId))
+			{
 				ImGui::OpenPopup("Link Context Menu");
+			}
 			else if (ed::ShowBackgroundContextMenu())
 			{
 				ImGui::OpenPopup("Create New Node");
+				sNewNodePopupOpening = true;
 				newNodeLinkPin = nullptr;
 			}
 			ed::Resume();
@@ -509,7 +532,7 @@ namespace NR
 
 					// TODO: This is a bit of a messy hack to grab keyboard focus when popup opens
 					//       unfortunitely it also messes up normal mouse click and keyboard input behavior for the rest of the popup
-					if (!ImGui::IsItemFocused())
+					if (!ImGui::IsItemFocused() && sNewNodePopupOpening)
 					{
 						ImGui::SetKeyboardFocusHere(0);
 					}
@@ -523,6 +546,7 @@ namespace NR
 				}
 
 				searching = searchBuffer[0] != 0;
+				uint32_t nodeItemIndex = 0;
 
 				for (const auto& [categoryName, category] : nodeRegistry)
 				{
@@ -561,7 +585,9 @@ namespace NR
 								{
 									if (ImGui::MenuItem(nameNoUnderscores.c_str()))
 										node = GetModel()->CreateNode(categoryName, nodeName);
+
 								}
+
 							}
 						}
 						else
@@ -570,6 +596,7 @@ namespace NR
 							{
 								if (ImGui::MenuItem(choc::text::replace(nodeName, "_", " ").c_str()))
 									node = GetModel()->CreateNode(categoryName, nodeName);
+								nodeItemIndex++;
 							}
 						}
 
@@ -611,6 +638,8 @@ namespace NR
 				auto* popupWindow = ImGui::GetCurrentWindow();
 				auto shadowRect = ImRect(popupWindow->Pos, popupWindow->Pos + popupWindow->Size);
 
+				sNewNodePopupOpening = false;
+
 				ImGui::EndPopup();
 				UI::DrawShadow(mShadow, 14.0f, shadowRect, 1.3f);
 
@@ -620,6 +649,38 @@ namespace NR
 
 			ed::Resume();
 		}
+
+		if (sAssetComboPin != nullptr)
+		{
+			ed::Suspend();
+
+			if (sShouldAssetComboOpen && !ImGui::IsPopupOpen(sAssetComboPopupID))
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				io.MousePosPrev = io.MousePos;
+				io.MousePos = sAssetComboStart;
+				ImGui::OpenPopup(sAssetComboPopupID);
+				io.MousePos = io.MousePosPrev;
+
+				sShouldAssetComboOpen = false;
+			}
+
+			Ref<AudioFile> asset;
+			if (UI::PropertyAssetDropdown(sAssetComboPopupID, asset, sAssetComboSize, &sAssetComboSelectedHandle))
+			{
+				NR_CORE_INFO("Asset selected");
+				choc::value::Value customValueType = choc::value::createObject("AssetHandle",
+					"TypeName", "AssetHandle",
+					"Value", std::to_string((uint64_t)sAssetComboSelectedHandle));
+				sAssetComboPin->Value = customValueType;
+				sAssetComboPin = nullptr;
+				sAssetComboSelectedHandle = 0;
+				ImGui::CloseCurrentPopup();
+			}
+
+			ed::Resume();
+		}
+
 		ed::End();
 		auto editorMin = ImGui::GetItemRectMin();
 		auto editorMax = ImGui::GetItemRectMax();
@@ -668,6 +729,8 @@ namespace NR
 			ImGui::SetWindowDock(childWindow, mDockIDs[childWindow->ID], ImGuiCond_Always);
 		}
 	}
+
+	//static ed::PinId sCurrentComboPinID;
 
 	void NodeGraphEditorBase::DrawNodes()
 	{
@@ -755,9 +818,7 @@ namespace NR
 					ImGui::Spring(0, ImGui::GetStyle().ItemSpacing.x / 2);
 				}
 				else
-				{
 					ImGui::Spring(0);
-				}
 				builder.EndHeader();
 
 			}
@@ -885,22 +946,45 @@ namespace NR
 						// TODO: the dropdown combobox doesn't work
 						// But this shoud demonstrate how to set pin values with custom types like object reference, vector, etc.
 
-						Ref<AudioFile> asset;
 						AssetHandle selected = 0;
+						Ref<AudioFile> asset;
+
+						static std::string sComboPreview;
 
 						if (input.Value.isObjectWithClassName("AssetHandle"))
 						{
 							auto handleStr = input.Value["Value"].get<std::string>();
 							selected = std::stoull(handleStr);
+
+							if (AssetManager::IsAssetHandleValid(selected))
+							{
+								asset = AssetManager::GetAsset<AudioFile>(selected);
+							}
+
+							if (asset)
+							{
+								if (!asset->IsFlagSet(AssetFlag::Missing))
+									sComboPreview = AssetManager::GetMetadata(asset->Handle).FilePath.stem().string();
+								else
+									sComboPreview = "Missing";
+							}
+							else
+							{
+								sComboPreview = "Null";
+							}
 						}
 
-						if (UI::PropertyAssetDropdown("objectPopup", asset, 100.0f, &selected))
+						if (UI::DrawComboPreview(sComboPreview.c_str()))
 						{
-							NR_CORE_INFO("Asset selected");
-							choc::value::Value customValueType = choc::value::createObject("AssetHandle",
-								"TypeName", "AssetHandle",
-								"Value", std::to_string((uint64_t)selected));
-							input.Value = customValueType;
+							sAssetComboSelectedHandle = selected;
+							sAssetComboPin = &input;
+							ed::NodeId hoveredNode = ed::GetHoveredNode();
+							ImVec2 canvasPosition = ed::GetNodePosition(hoveredNode);
+							canvasPosition.y += ed::GetNodeSize(hoveredNode).y;
+							sAssetComboStart = ed::CanvasToScreen(canvasPosition);
+							// Uncomment this to have the popup scale with the canvas (I don't recommend it since the font size doesn't scale)
+							//sComboNodeSize = ed::GetNodeSize(hoveredNode) / ed::GetCurrentZoom();
+							sShouldAssetComboOpen = true;
 						}
 					}
 				}
@@ -908,7 +992,7 @@ namespace NR
 				builder.EndInput();
 			}
 
-			// Setting color of the Message Node input field to dark
+			// Setting colour of the Message Node input field to dark
 			UI::ScopedColor frameBgColor(ImGuiCol_FrameBg, ImVec4{ 0.08f, 0.08f, 0.08f, 1.0f });
 
 			if (isSimple)
@@ -1091,14 +1175,7 @@ namespace NR
 
 
 		if (pin.Storage == StorageKind::Array)
-		{
-			ax::Widgets::IconGrid(
-				ImVec2(static_cast<float>(pinIconSize), static_cast<float>(pinIconSize)), 
-				connected || acceptingLink, 
-				color, 
-				ImColor(32, 32, 32, alpha)
-			);
-		}
+			ax::Widgets::IconGrid(ImVec2(static_cast<float>(pinIconSize), static_cast<float>(pinIconSize)), connected || acceptingLink, color, ImColor(32, 32, 32, alpha));
 		else
 		{
 			Ref<Texture2D> image;
@@ -1115,14 +1192,7 @@ namespace NR
 
 			const float iconWidth = image->GetWidth();
 			const float iconHeight = image->GetHeight();
-			ax::Widgets::ImageIcon(
-				ImVec2(static_cast<float>(iconWidth), static_cast<float>(iconHeight)), 
-				UI::GetTextureID(image), 
-				connected, 
-				(float)pinIconSize, 
-				color, 
-				ImColor(32, 32, 32, alpha)
-			);
+			ax::Widgets::ImageIcon(ImVec2(static_cast<float>(iconWidth), static_cast<float>(iconHeight)), UI::GetTextureID(image), connected, (float)pinIconSize, color, ImColor(32, 32, 32, alpha));
 		}
 	}
 
@@ -1285,4 +1355,4 @@ namespace NR
 			ImGui::EndListBox();
 		}
 	}
-}
+} // namespace NotRed

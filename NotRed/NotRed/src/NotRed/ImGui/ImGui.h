@@ -788,13 +788,31 @@ namespace NR::UI
 		return modified;
 	}
 
+	static bool DrawComboPreview(const char* preview, float width = 100.0f)
+	{
+		bool pressed = false;
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		ImGui::BeginHorizontal("horizontal_node_layout", ImVec2(width, 0.0f));
+		ImGui::PushItemWidth(90.0f);
+		ImGui::InputText("##selected_asset", (char*)preview, 512, ImGuiInputTextFlags_ReadOnly);
+		pressed = ImGui::IsItemClicked();
+
+		ImGui::PopItemWidth();
+		ImGui::PushItemWidth(10.0f);
+		pressed = ImGui::ArrowButton("combo_preview_button", ImGuiDir_Down) || pressed;
+		ImGui::PopItemWidth();
+
+		ImGui::EndHorizontal();
+		ImGui::PopStyleVar();
+		return pressed;
+	}
+
 	template<typename TAssetType>
-	static bool PropertyAssetDropdown(const char* label, Ref<TAssetType>& object, float width, AssetHandle* selected)
+	static bool PropertyAssetDropdown(const char* label, Ref<TAssetType>& object, const ImVec2& size, AssetHandle* selected)
 	{
 		bool modified = false;
 		std::string preview;
-		float itemHeight = 28.0f;
-		UI::PushID();
+		float itemHeight = size.y / 10.0f;
 
 		if (AssetManager::IsAssetHandleValid(*selected))
 		{
@@ -823,17 +841,18 @@ namespace NR::UI
 			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 		}
 
-		ImGui::PushItemWidth(width);
-		const std::string id = "##" + std::string(label);
-		if (ImGui::BeginCombo(id.c_str(), preview.c_str(), ImGuiComboFlags_PopupAlignLeft))
+		ImGui::SetNextWindowSize(size);
+		if (ImGui::BeginPopup(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 		{
 			ImGui::SetKeyboardFocusHere(0);
 			for (auto& [handle, asset] : assets)
 			{
-				if (typeid(*asset.Raw()) != typeid(TAssetType))
+				if (asset->GetAssetType() != TAssetType::GetStaticType())
+				{
 					continue;
+				}
 				auto& metadata = AssetManager::GetMetadata(handle);
-				const bool is_selected = (current == handle);
+				bool is_selected = (current == handle);
 				if (ImGui::Selectable(metadata.FilePath.string().c_str(), is_selected))
 				{
 					current = handle;
@@ -846,15 +865,13 @@ namespace NR::UI
 					ImGui::SetItemDefaultFocus();
 				}
 			}
-			ImGui::EndCombo();
+			ImGui::EndPopup();
 		}
-		ImGui::PopItemWidth();
 
 		if (IsItemDisabled())
 		{
 			ImGui::PopStyleVar();
 		}
-		UI::PopID();
 
 		return modified;
 	}

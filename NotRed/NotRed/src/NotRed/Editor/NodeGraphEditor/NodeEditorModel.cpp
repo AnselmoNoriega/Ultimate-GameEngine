@@ -1,6 +1,8 @@
 #include <nrpch.h>
 #include "NodeEditorModel.h"
 
+#include <sstream>
+
 #include "NotRed/Asset/AssetManager.h"
 
 #include "choc/text/choc_StringUtilities.h"
