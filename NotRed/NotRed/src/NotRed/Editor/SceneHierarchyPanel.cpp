@@ -424,34 +424,40 @@ namespace NR
 
 		UI::PushID();
 		ImGui::TableSetColumnIndex(0);
-		UI::ShiftCursor(17.0f, 6.0f);
+		UI::ShiftCursor(17.0f, 7.0f);
 		ImGui::Text(label.c_str());
-		UI::Draw::UnderlineColumns();
+		UI::Draw::UnderlineColumns(false, 0.0f, 2.0f);
 
 		ImGui::TableSetColumnIndex(1);
-		UI::ShiftCursor(8.0f, 2.0f);
+		UI::ShiftCursor(7.0f, 0.0f);
 		{
-			UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 8.0f, 2.0f });
-			UI::ScopedStyle padding(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
+			const float spacingX = 8.0f;
+			UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ spacingX, 0.0f });
+			UI::ScopedStyle padding(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 2.0f });
 
 			{
 				// Begin XYZ area
 				UI::ScopedColor padding(ImGuiCol_Border, IM_COL32(0, 0, 0, 0));
 				UI::ScopedStyle frame(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
 				ImGui::BeginChild(ImGui::GetID((label + "fr").c_str()),
-					ImVec2(ImGui::GetColumnWidth() - 8.0f, ImGui::GetFrameHeightWithSpacing()),
-					ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+					ImVec2(ImGui::GetContentRegionAvail().x - spacingX, ImGui::GetFrameHeightWithSpacing() + 8.0f),
+					ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse
+				);
 			}
 
-			const float framePadding = 2.0f;
+			constexpr float framePadding = 2.0f;
+			constexpr float outlineSpacing = 1.0f;
 			const float lineHeight = GImGui->Font->FontSize + framePadding * 2.0f;
+			
 			const ImVec2 buttonSize = { lineHeight + 2.0f, lineHeight };
-			const float inputItemWidth = (ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x) / 3.0f - buttonSize.x;
+			
+			const float inputItemWidth = (ImGui::GetContentRegionAvail().x - spacingX) / 3.0f - buttonSize.x;
+			
+			const ImGuiIO& io = ImGui::GetIO();
+			auto boldFont = io.Fonts->Fonts[0];
+			
 			auto drawControl = [&](const std::string& label, float& value, const ImVec4& colorN, const ImVec4& colorH, const ImVec4& colorP)
 				{
-					const ImGuiIO& io = ImGui::GetIO();
-					auto boldFont = io.Fonts->Fonts[0];
-
 					{
 						UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
 						UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
@@ -469,16 +475,21 @@ namespace NR
 						}
 					}
 
-					ImGui::SameLine(0.0f, 0.0f);
-					UI::ShiftCursorY(-2.0f);
+					ImGui::SameLine(0.0f, outlineSpacing);
 					ImGui::SetNextItemWidth(inputItemWidth);
+					UI::ShiftCursorY(-2.0f);
 					modified |= ImGui::DragFloat(("##" + label).c_str(), &value, 0.1f, 0.0f, 0.0f, "%.2f");
+					
+					if (!UI::IsItemDisabled())
+					{
+						UI::DrawItemActivityOutline(2.0f, true, Colors::Theme::accent);
+					}
 				};
 
 			drawControl("X", values.x, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f }, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f }, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-			ImGui::SameLine(0.0f, 0.0f);
+			ImGui::SameLine(0.0f, outlineSpacing);
 			drawControl("Y", values.y, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f }, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f }, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-			ImGui::SameLine(0.0f, 0.0f);
+			ImGui::SameLine(0.0f, outlineSpacing);
 			drawControl("Z", values.z, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f }, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f }, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
 			ImGui::EndChild();
 		}
@@ -739,9 +750,9 @@ namespace NR
 				UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
 				UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
 
-				ImGui::BeginTable("transformComponent", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV);
+				ImGui::BeginTable("transformComponent", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_NoClip);
 				ImGui::TableSetupColumn("label_column", 0, 100.0f);
-				ImGui::TableSetupColumn("value_column", ImGuiTableColumnFlags_IndentEnable, ImGui::GetContentRegionAvail().x - 100.0f);
+				ImGui::TableSetupColumn("value_column", ImGuiTableColumnFlags_IndentEnable | ImGuiTableColumnFlags_NoClip, ImGui::GetContentRegionAvail().x - 100.0f);
 				ImGui::TableNextRow();
 
 				DrawVec3Control("Translation", component.Translation);
