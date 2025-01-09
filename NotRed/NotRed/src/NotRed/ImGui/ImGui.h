@@ -19,6 +19,7 @@
 //TODO: This shouldn't be here
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Scene/Entity.h"
+#include "NotRed/Util/StringUtils.h"
 
 namespace NR::UI 
 {
@@ -61,6 +62,28 @@ namespace NR::UI
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
 		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
 		ImGui::Columns(2);
+	}
+
+	static bool PropertyGridHeader(const std::string& name)
+	{
+		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
+			| ImGuiTreeNodeFlags_Framed
+			| ImGuiTreeNodeFlags_SpanAvailWidth
+			| ImGuiTreeNodeFlags_AllowItemOverlap
+			| ImGuiTreeNodeFlags_FramePadding;
+
+		bool open = false;
+		const float framePaddingX = 6.0f;
+		const float framePaddingY = 6.0f;
+
+		UI::ScopedStyle headerRounding(ImGuiStyleVar_FrameRounding, 0.0f);
+		UI::ScopedStyle headerPaddingAndHeight(ImGuiStyleVar_FramePadding, ImVec2{ framePaddingX, framePaddingY });
+
+		UI::PushID();
+		open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, Utils::ToUpper(name).c_str());
+		UI::PopID();
+
+		return open;
 	}
 
 	static void Separator()
@@ -124,7 +147,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -153,7 +176,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 	}
 
 	static void Property(const char* label, const char* value)
@@ -179,7 +202,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 	}
 
 	static bool Property(const char* label, char* value, size_t length)
@@ -214,7 +237,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return changed;
 	}
@@ -256,7 +279,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -298,7 +321,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -340,7 +363,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -382,7 +405,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -424,7 +447,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -466,7 +489,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -508,7 +531,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -550,7 +573,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -592,7 +615,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -634,7 +657,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -676,7 +699,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -718,7 +741,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -760,7 +783,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return modified;
 	}
@@ -814,7 +837,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 		return changed;
 	}
 
@@ -864,7 +887,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return changed;
 	}
@@ -918,7 +941,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return changed;
 	}
@@ -1088,7 +1111,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return succeeded;
 	}
@@ -1273,8 +1296,9 @@ namespace NR::UI
 	static void EndPropertyGrid()
 	{
 		ImGui::Columns(1);
-		UI::Draw::Underline();
+		UI::Draw::UnderlineColumns();
 		ImGui::PopStyleVar(2); // ItemSpacing, FramePadding
+		UI::ShiftCursorY(18.0f);
 		PopID();
 	}
 
@@ -1402,7 +1426,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::Underline();
+		Draw::UnderlineColumns();
 
 		return receivedValidEntity;
 	}

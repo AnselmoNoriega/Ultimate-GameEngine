@@ -81,7 +81,7 @@ namespace NR
 		ImGui::PopID();
 
 		ImGui::PushID("Physics");
-		if (ImGui::CollapsingHeader("Physics", ImGuiTreeNodeFlags_Framed))
+		if (UI::PropertyGridHeader("Physics"))
 		{
 			UI::BeginPropertyGrid();
 
@@ -205,10 +205,10 @@ namespace NR
 				}
 			}
 
-			UI::EndPropertyGrid();
+			UI::EndPropertyGrid();			
+			
+			ImGui::TreePop();
 		}
-		ImGui::PopID();
-
 		ImGui::End();
 
 		if (serializeProject)

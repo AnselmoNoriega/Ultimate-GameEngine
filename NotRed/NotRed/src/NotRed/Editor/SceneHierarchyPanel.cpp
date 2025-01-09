@@ -351,30 +351,15 @@ namespace NR
 	template<typename T, typename UIFunction>
 	static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, bool canBeRemoved = true)
 	{
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
-			| ImGuiTreeNodeFlags_Framed
-			| ImGuiTreeNodeFlags_SpanAvailWidth
-			| ImGuiTreeNodeFlags_AllowItemOverlap
-			| ImGuiTreeNodeFlags_FramePadding;
-
 		if (entity.HasComponent<T>())
 		{
 			ImGui::PushID((void*)typeid(T).hash_code());
 			auto& component = entity.GetComponent<T>();
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
-			float lineHeight;
-			bool open = false;
-			bool right_clicked = false;
-			const float framePaddingX = 6.0f;
-			const float framePaddingY = 6.0f;
-			{
-				UI::ScopedStyle headerRounding(ImGuiStyleVar_FrameRounding, 0.0f);
-				UI::ScopedStyle headerPaddingAndHeight(ImGuiStyleVar_FramePadding, ImVec2{ framePaddingX, framePaddingY });
-				lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-				open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, Utils::ToUpper(name).c_str());
-				right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
-			}
+			bool open = UI::PropertyGridHeader(name);
+			bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+			float lineHeight = ImGui::GetItemRectMax().y - ImGui::GetItemRectMin().y;
 
 			bool resetValues = false;
 			bool removeComponent = false;
@@ -437,89 +422,68 @@ namespace NR
 	{
 		bool modified = false;
 
-		const ImGuiIO& io = ImGui::GetIO();
-		auto boldFont = io.Fonts->Fonts[0];
-
-		ImGui::PushID(label.c_str());
-
-		ImGui::Columns(2);
-		ImGui::SetColumnWidth(0, columnWidth);
+		UI::PushID();
+		ImGui::TableSetColumnIndex(0);
+		UI::ShiftCursor(17.0f, 6.0f);
 		ImGui::Text(label.c_str());
-		ImGui::NextColumn();
+		UI::Draw::UnderlineColumns();
 
-		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
-
-		const float framePadding = 2.0f;
-		float lineHeight = GImGui->Font->FontSize + framePadding * 2.0f;
-		ImVec2 buttonSize = { lineHeight + 2.0f, lineHeight };
-
+		ImGui::TableSetColumnIndex(1);
+		UI::ShiftCursor(8.0f, 2.0f);
 		{
-			UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
-			UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
-			UI::ScopedColorStack buttonColors(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f },
-				ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f },
-				ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-			UI::ScopedFont buttonFont(boldFont);
-			UI::ShiftCursorY(1.0f);
-			if (ImGui::Button("X", buttonSize))
+			UI::ScopedStyle itemSpacing(ImGuiStyleVar_ItemSpacing, ImVec2{ 8.0f, 2.0f });
+			UI::ScopedStyle padding(ImGuiStyleVar_WindowPadding, ImVec2{ 0.0f, 0.0f });
+
 			{
-				values.x = resetValue;
-				modified = true;
+				// Begin XYZ area
+				UI::ScopedColor padding(ImGuiCol_Border, IM_COL32(0, 0, 0, 0));
+				UI::ScopedStyle frame(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
+				ImGui::BeginChild(ImGui::GetID((label + "fr").c_str()),
+					ImVec2(ImGui::GetColumnWidth() - 8.0f, ImGui::GetFrameHeightWithSpacing()),
+					ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 			}
+
+			const float framePadding = 2.0f;
+			const float lineHeight = GImGui->Font->FontSize + framePadding * 2.0f;
+			const ImVec2 buttonSize = { lineHeight + 2.0f, lineHeight };
+			const float inputItemWidth = (ImGui::GetItemRectMax().x - ImGui::GetItemRectMin().x) / 3.0f - buttonSize.x;
+			auto drawControl = [&](const std::string& label, float& value, const ImVec4& colorN, const ImVec4& colorH, const ImVec4& colorP)
+				{
+					const ImGuiIO& io = ImGui::GetIO();
+					auto boldFont = io.Fonts->Fonts[0];
+
+					{
+						UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
+						UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
+						UI::ScopedColorStack buttonColors(ImGuiCol_Button, colorN,
+							ImGuiCol_ButtonHovered, colorH,
+							ImGuiCol_ButtonActive, colorP);
+
+						UI::ScopedFont buttonFont(boldFont);
+
+						UI::ShiftCursorY(2.0f);
+						if (ImGui::Button(label.c_str(), buttonSize))
+						{
+							value = resetValue;
+							modified = true;
+						}
+					}
+
+					ImGui::SameLine(0.0f, 0.0f);
+					UI::ShiftCursorY(-2.0f);
+					ImGui::SetNextItemWidth(inputItemWidth);
+					modified |= ImGui::DragFloat(("##" + label).c_str(), &value, 0.1f, 0.0f, 0.0f, "%.2f");
+				};
+
+			drawControl("X", values.x, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f }, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f }, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
+			ImGui::SameLine(0.0f, 0.0f);
+			drawControl("Y", values.y, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f }, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f }, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
+			ImGui::SameLine(0.0f, 0.0f);
+			drawControl("Z", values.z, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f }, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f }, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
+			ImGui::EndChild();
 		}
 
-		ImGui::SameLine();
-		UI::ShiftCursorY(-1.0f);
-		modified |= ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
-		ImGui::PopItemWidth();
-		ImGui::SameLine();
-
-		{
-			UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
-			UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
-			UI::ScopedColorStack buttonColors(ImGuiCol_Button, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f },
-				ImGuiCol_ButtonHovered, ImVec4{ 0.3f, 0.8f, 0.3f, 1.0f },
-				ImGuiCol_ButtonActive, ImVec4{ 0.2f, 0.7f, 0.2f, 1.0f });
-			UI::ScopedFont buttonFont(boldFont);
-			UI::ShiftCursorY(1.0f);
-			if (ImGui::Button("Y", buttonSize))
-			{
-				values.y = resetValue;
-				modified = true;
-			}
-		}
-
-		ImGui::SameLine();
-		UI::ShiftCursorY(-1.0f);
-		modified |= ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
-		ImGui::PopItemWidth();
-		ImGui::SameLine();
-
-		{
-			UI::ScopedStyle buttonFrame(ImGuiStyleVar_FramePadding, ImVec2(framePadding, 0.0f));
-			UI::ScopedStyle buttonRounding(ImGuiStyleVar_FrameRounding, 1.0f);
-			UI::ScopedColorStack buttonColors(ImGuiCol_Button, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f },
-				ImGuiCol_ButtonHovered, ImVec4{ 0.2f, 0.35f, 0.9f, 1.0f },
-				ImGuiCol_ButtonActive, ImVec4{ 0.1f, 0.25f, 0.8f, 1.0f });
-			UI::ScopedFont buttonFont(boldFont);
-
-			UI::ShiftCursorY(1.0f);
-			if (ImGui::Button("Z", buttonSize))
-			{
-				values.z = resetValue;
-				modified = true;
-			}
-		}
-
-		ImGui::SameLine();
-		UI::ShiftCursorY(-1.0f);
-		modified |= ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
-		ImGui::PopItemWidth();
-
-		ImGui::Columns(1);
-
-		ImGui::PopID();
+		UI::PopID();
 
 		return modified;
 	}
@@ -545,7 +509,7 @@ namespace NR
 			ImGui::SameLine(0.0f, 4.0f);
 
 			UI::ShiftCursorY(-iconOffset);
-			
+
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
 			char buffer[256];
 			memset(buffer, 0, 256);
@@ -555,7 +519,7 @@ namespace NR
 			UI::ScopedStyle frameBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
 			UI::ScopedColor frameColor(ImGuiCol_FrameBg, IM_COL32(0, 0, 0, 0));
 			UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
-			
+
 			if (ImGui::InputText("##Tag", buffer, 256))
 			{
 				tag = std::string(buffer);
@@ -772,11 +736,28 @@ namespace NR
 
 		DrawComponent<TransformComponent>("Transform", entity, [](TransformComponent& component)
 			{
+				UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+				UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
+
+				ImGui::BeginTable("transformComponent", 2, ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV);
+				ImGui::TableSetupColumn("label_column", 0, 100.0f);
+				ImGui::TableSetupColumn("value_column", ImGuiTableColumnFlags_IndentEnable, ImGui::GetContentRegionAvail().x - 100.0f);
+				ImGui::TableNextRow();
+
 				DrawVec3Control("Translation", component.Translation);
-				//glm::vec3 rotation = glm::degrees(component.Rotation);
-				DrawVec3Control("Rotation", component.Rotation);
-				//component.Rotation = glm::radians(rotation);
+				ImGui::TableNextRow();
+
+				glm::vec3 rotation = glm::degrees(component.Rotation);
+				DrawVec3Control("Rotation", rotation);
+				component.Rotation = glm::radians(rotation);
+				ImGui::TableNextRow();
+
 				DrawVec3Control("Scale", component.Scale, 1.0f);
+				ImGui::EndTable();
+
+				UI::ShiftCursorY(-8.0f);
+				UI::Draw::UnderlineColumns();
+				UI::ShiftCursorY(18.0f);
 			}, false);
 
 		DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
@@ -1244,7 +1225,7 @@ namespace NR
 					ScriptEngine::OnCreateEntity(entity);
 				}
 #endif
-		});
+			});
 
 		DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
 			{
@@ -1529,5 +1510,5 @@ namespace NR
 				UI::PopID();
 				colors[ImGuiCol_Separator] = oldSCol;
 			});
-	}
-}
+				}
+			}

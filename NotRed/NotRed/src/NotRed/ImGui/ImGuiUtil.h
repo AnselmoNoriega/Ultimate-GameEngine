@@ -96,14 +96,14 @@ namespace NR::UI
     {
         //=========================================================================================
         /// Lines
-        static void Underline(bool fullWidth = false)
+        static void UnderlineColumns(bool fullWidth = false)
         {
             if (fullWidth)
             {
                 ImGui::PushColumnsBackground();
             }
 
-            const float width = fullWidth ? ImGui::GetWindowWidth() : ImGui::GetContentRegionMax().x;
+            const float width = fullWidth ? ImGui::GetWindowWidth() : ImGui::GetContentRegionAvail().x;
             const float yOffset = 1.0f;
             const ImVec2 cursor = ImGui::GetCursorScreenPos();
             ImGui::GetWindowDrawList()->AddLine(
