@@ -303,7 +303,8 @@ project "NotLauncher"
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 	links 
 	{ 
-		"NotRed"
+		"NotRed",
+		"ozz_animation_offline"
 	}
 	
 	files 
@@ -329,11 +330,16 @@ project "NotLauncher"
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.Glad}",
 		"%{IncludeDir.MiniAudio}",
-		"%{IncludeDir.Farbot}"
+		"%{IncludeDir.Farbot}",
+		"%{IncludeDir.Ozz}"
 	}
 	postbuildcommands 
 	{
-		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"'
+		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysX_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCommon_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCooking_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXFoundation_64.dll" "%{cfg.targetdir}"'
 	}
 	
 	filter "system:windows"
