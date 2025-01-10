@@ -193,11 +193,6 @@ namespace ImGui
         const ImU32 textDarker = Colors::textDarker;	        // 128
         const ImU32 textCol = Colors::text;	                // 192
 
-        if ((held && hovered) || pressed)
-        {
-            ImGui::PushStyleColor(ImGuiCol_Text, colourDark);
-        }
-
         const ImU32 arrow_col = selected ? ImGui::ColorConvertFloat4ToU32(colourDark) : textDarker;
 
         ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
@@ -318,11 +313,6 @@ namespace ImGui
             }
 
             RenderText(text_pos, label, label_end, false);
-        }
-
-        if ((held && hovered) || pressed)
-        {
-            ImGui::PopStyleColor();
         }
 
         if (is_open && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))

@@ -9,6 +9,7 @@
 #include "imgui_internal.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/ImGui/Colors.h"
+#include "NotRed/Util/StringUtils.h"
 
 namespace NR::UI
 {
@@ -32,7 +33,7 @@ namespace NR::UI
         ScopedColor(const ScopedColor&) = delete;
         ScopedColor operator=(const ScopedColor&) = delete;
         template<typename T>
-        ScopedColor(ImGuiCol colourId, T colour) { ImGui::PushStyleColor(colourId, colour); }
+        ScopedColor(ImGuiCol colorId, T color) { ImGui::PushStyleColor(colorId, color); }
         ~ScopedColor() { ImGui::PopStyleColor(); }
     };
 
@@ -66,7 +67,7 @@ namespace NR::UI
             : mCount((sizeof... (otherColorPairs) / 2) + 1)
         {
             static_assert ((sizeof... (otherColorPairs) & 1u) == 0,
-                "ScopedColorStack constructor expects a list of pairs of colour IDs and colours as its arguments");
+                "ScopedColorStack constructor expects a list of pairs of color IDs and colors as its arguments");
 
             PushColor(firstColorID, firstColor, std::forward<OtherColors>(otherColorPairs)...);
         }
@@ -75,15 +76,15 @@ namespace NR::UI
 
     private:
         template <typename ColorType, typename... OtherColors>
-        void PushColor(ImGuiCol colourID, ColorType colour, OtherColors&& ... otherColorPairs)
+        void PushColor(ImGuiCol colorID, ColorType color, OtherColors&& ... otherColorPairs)
         {
             if constexpr (sizeof... (otherColorPairs) == 0)
             {
-                ImGui::PushStyleColor(colourID, colour);
+                ImGui::PushStyleColor(colorID, color);
             }
             else
             {
-                ImGui::PushStyleColor(colourID, colour);
+                ImGui::PushStyleColor(colorID, color);
                 PushColor(std::forward<OtherColors>(otherColorPairs)...);
             }
         }
@@ -92,15 +93,72 @@ namespace NR::UI
         int mCount;
     };
 
+    //=========================================================================================
+    /// Colors
+    static ImU32 ColorWithValue(const ImColor& color, float value)
+    {
+        const ImVec4& colRow = color.Value;
+        float hue, sat, val;
+        ImGui::ColorConvertRGBtoHSV(colRow.x, colRow.y, colRow.z, hue, sat, val);
+        return ImColor::HSV(hue, sat, std::min(value, 1.0f));
+    }
+
+    static ImU32 ColorWithSaturation(const ImColor& color, float saturation)
+    {
+        const ImVec4& colRow = color.Value;
+        float hue, sat, val;
+        ImGui::ColorConvertRGBtoHSV(colRow.x, colRow.y, colRow.z, hue, sat, val);
+        return ImColor::HSV(hue, std::min(saturation, 1.0f), val);
+    }
+
+    static ImU32 ColorWithHue(const ImColor& color, float hue)
+    {
+        const ImVec4& colRow = color.Value;
+        float h, s, v;
+        ImGui::ColorConvertRGBtoHSV(colRow.x, colRow.y, colRow.z, h, s, v);
+        return ImColor::HSV(std::min(hue, 1.0f), s, v);
+    }
+
+    static ImU32 ColorWithMultipliedValue(const ImColor& color, float multiplier)
+    {
+        const ImVec4& colRow = color.Value;
+        float hue, sat, val;
+        ImGui::ColorConvertRGBtoHSV(colRow.x, colRow.y, colRow.z, hue, sat, val);
+        return ImColor::HSV(hue, sat, std::min(val * multiplier, 1.0f));
+    }
+
+    static ImU32 ColorWithMultipliedSaturation(const ImColor& color, float multiplier)
+    {
+        const ImVec4& colRow = color.Value;
+        float hue, sat, val;
+        ImGui::ColorConvertRGBtoHSV(colRow.x, colRow.y, colRow.z, hue, sat, val);
+        return ImColor::HSV(hue, std::min(sat * multiplier, 1.0f), val);
+    }
+
+    static ImU32 ColorWithMultipliedHue(const ImColor& color, float multiplier)
+    {
+        const ImVec4& colRow = color.Value;
+        float hue, sat, val;
+        ImGui::ColorConvertRGBtoHSV(colRow.x, colRow.y, colRow.z, hue, sat, val);
+        return ImColor::HSV(std::min(hue * multiplier, 1.0f), sat, val);
+    }
+
     namespace Draw 
     {
         //=========================================================================================
         /// Lines
-        static void UnderlineColumns(bool fullWidth = false, float offsetX = 0.0f, float offsetY = -1.0f)
+        static void Underline(bool fullWidth = false, float offsetX = 0.0f, float offsetY = -1.0f)
         {
             if (fullWidth)
             {
-                ImGui::PushColumnsBackground();
+                if (ImGui::GetCurrentWindow()->DC.CurrentColumns != nullptr)
+                {
+                    ImGui::PushColumnsBackground();
+                }
+                else if (ImGui::GetCurrentTable() != nullptr)
+                {
+                    ImGui::TablePushBackgroundChannel();
+                }
             }
 
             const float width = fullWidth ? ImGui::GetWindowWidth() : ImGui::GetContentRegionAvail().x;
@@ -113,7 +171,14 @@ namespace NR::UI
 
             if (fullWidth)
             {
-                ImGui::PopColumnsBackground();
+                if (ImGui::GetCurrentWindow()->DC.CurrentColumns != nullptr)
+                {
+                    ImGui::PopColumnsBackground();
+                }
+                else if (ImGui::GetCurrentTable() != nullptr)
+                {
+                    ImGui::TablePopBackgroundChannel();
+                }
             }
         }
     }
@@ -129,7 +194,7 @@ namespace NR::UI
             : mCount((sizeof... (otherStylePairs) / 2) + 1)
         {
             static_assert ((sizeof... (otherStylePairs) & 1u) == 0,
-                "ScopedStyleStack constructor expects a list of pairs of colour IDs and colours as its arguments");
+                "ScopedStyleStack constructor expects a list of pairs of color IDs and colors as its arguments");
 
             PushStyle(firstStyleVar, firstValue, std::forward<OtherStylePairs>(otherStylePairs)...);
         }
@@ -173,6 +238,39 @@ namespace NR::UI
         result.Max.y += y;
         return result;
     }
+
+
+    //=========================================================================================
+    /// Window
+    static bool IsMouseCoveredByOtherWindow(const char* currentWindowName)
+    {
+        auto isWindowFocused = [&currentWindowName]
+            {
+                // Note: child name usually starts with "parent window name"/"child name"
+                auto* scenHierarchyWindow = ImGui::FindWindowByName(currentWindowName);
+                if (GImGui->NavWindow)
+                {
+                    return GImGui->NavWindow == scenHierarchyWindow || 
+                        Utils::StartsWith(GImGui->NavWindow->Name, currentWindowName);
+                }
+                else
+                {
+                    return false;
+                }
+            };
+        if (!isWindowFocused())
+        {
+            if (GImGui->NavWindow)
+            {
+                const ImRect otherWindowRect = UI::RectExpanded(GImGui->NavWindow->Rect(), 0.0f, 0.0f);
+                if (ImGui::IsMouseHoveringRect(otherWindowRect.Min, otherWindowRect.Max))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
 
     //=========================================================================================
     /// Shadows
@@ -520,9 +618,9 @@ namespace NR::UI
         max.y += thickness;
 
         auto* drawList = ImGui::GetWindowDrawList();
-        const auto colour = ImGui::ColorConvertFloat4ToU32(borderColor);
-        drawList->AddLine(min, ImVec2(max.x, min.y), colour, thickness);
-        drawList->AddLine(ImVec2(min.x, max.y), max, colour, thickness);
+        const auto color = ImGui::ColorConvertFloat4ToU32(borderColor);
+        drawList->AddLine(min, ImVec2(max.x, min.y), color, thickness);
+        drawList->AddLine(ImVec2(min.x, max.y), max, color, thickness);
     };
 
     static void DrawBorderHorizontal(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f)
@@ -548,9 +646,9 @@ namespace NR::UI
         max.x += thickness;
 
         auto* drawList = ImGui::GetWindowDrawList();
-        const auto colour = ImGui::ColorConvertFloat4ToU32(borderColor);
-        drawList->AddLine(min, ImVec2(min.x, max.y), colour, thickness);
-        drawList->AddLine(ImVec2(max.x, min.y), max, colour, thickness);
+        const auto color = ImGui::ColorConvertFloat4ToU32(borderColor);
+        drawList->AddLine(min, ImVec2(min.x, max.y), color, thickness);
+        drawList->AddLine(ImVec2(max.x, min.y), max, color, thickness);
     };
 
     static void DrawBorderVertical(const ImVec4& borderColor, float thickness = 1.0f)
@@ -563,7 +661,7 @@ namespace NR::UI
         DrawBorderVertical(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness);
     };
 
-    static void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colourWhenActive = ImColor(80, 80, 80))
+    static void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colorWhenActive = ImColor(80, 80, 80))
     {
         auto* drawList = ImGui::GetWindowDrawList();
         const ImRect rect = RectExpanded(GetItemRect(), 1.0f, 1.0f);
@@ -575,7 +673,7 @@ namespace NR::UI
         if (ImGui::IsItemActive())
         {
             drawList->AddRect(rect.Min, rect.Max,
-                colourWhenActive, rounding, 0, 1.0f);
+                colorWhenActive, rounding, 0, 1.0f);
         }
         else if (!ImGui::IsItemHovered() && drawWhenInactive)
         {

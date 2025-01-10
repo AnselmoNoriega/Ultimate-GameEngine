@@ -23,7 +23,7 @@ namespace NR
 		void ImGuiRender(bool window = true);
 
 	private:
-		void DrawEntityNode(Entity entity);
+		void DrawEntityNode(Entity entity, const std::string& searchFilter = {});
 		void DrawComponents(Entity entity);
 
 	private:

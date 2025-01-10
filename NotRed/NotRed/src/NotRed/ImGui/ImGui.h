@@ -16,6 +16,8 @@
 #include "NotRed/ImGui/Colors.h"
 #include "NotRed/ImGui/ImGuiUtil.h"
 
+#include "choc/text/choc_StringUtilities.h"
+
 //TODO: This shouldn't be here
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Scene/Entity.h"
@@ -26,6 +28,15 @@ namespace NR::UI
 	static int sUIContextID = 0;
 	static uint32_t sCounter = 0;
 	static char sIDBuffer[16];
+
+	static const char* GenerateID()
+	{
+		sIDBuffer[0] = '#';
+		sIDBuffer[1] = '#';
+		memset(sIDBuffer + 2, 0, 14);
+		sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+		return &sIDBuffer[0];
+	}
 
 	static bool IsMouseEnabled()
 	{
@@ -151,7 +162,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -180,7 +191,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 	}
 
 	static void Property(const char* label, const char* value)
@@ -206,7 +217,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 	}
 
 	static bool Property(const char* label, char* value, size_t length)
@@ -241,7 +252,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return changed;
 	}
@@ -283,7 +294,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -325,7 +336,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -367,7 +378,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -409,7 +420,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -451,7 +462,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -493,7 +504,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -535,7 +546,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -577,7 +588,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -619,7 +630,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -661,7 +672,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -703,7 +714,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -745,7 +756,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -787,7 +798,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return modified;
 	}
@@ -841,7 +852,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 		return changed;
 	}
 
@@ -891,7 +902,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return changed;
 	}
@@ -945,7 +956,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return changed;
 	}
@@ -1115,7 +1126,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return succeeded;
 	}
@@ -1300,7 +1311,7 @@ namespace NR::UI
 	static void EndPropertyGrid()
 	{
 		ImGui::Columns(1);
-		UI::Draw::UnderlineColumns();
+		UI::Draw::Underline();
 		ImGui::PopStyleVar(2); // ItemSpacing, FramePadding
 		UI::ShiftCursorY(18.0f);
 		PopID();
@@ -1430,7 +1441,7 @@ namespace NR::UI
 
 		ImGui::PopItemWidth();
 		ImGui::NextColumn();
-		Draw::UnderlineColumns();
+		Draw::Underline();
 
 		return receivedValidEntity;
 	}
@@ -1443,4 +1454,111 @@ namespace NR::UI
 	bool ImageButton(const char* stringID, const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 	bool ImageButton(const Ref<Texture2D>& texture, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
 	bool ImageButton(const char* stringID, const Ref<Texture2D>& texture, const ImVec2& size, const ImVec2& uv0 = ImVec2(0, 0), const ImVec2& uv1 = ImVec2(1, 1), int frame_padding = -1, const ImVec4& bg_col = ImVec4(0, 0, 0, 0), const ImVec4& tint_col = ImVec4(1, 1, 1, 1));
+
+	static bool SearchWidget(std::string& searchString, const char* hint = "Search...")
+	{
+		UI::PushID();
+
+		bool modified = false;
+		const float areaPosX = ImGui::GetCursorPosX();
+		const float areaPosY = ImGui::GetCursorPosY();
+		const float spacingY = 3.0f;
+
+		UI::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 3.0f);
+		UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(28.0f, spacingY));
+
+		char searchBuffer[256]{};
+		strcpy_s<256>(searchBuffer, searchString.c_str());
+		if (ImGui::InputText(GenerateID(), searchBuffer, 256))
+		{
+			searchString = searchBuffer;
+			modified = true;
+		}
+		UI::DrawItemActivityOutline(3.0f, true, Colors::Theme::accent);
+		ImGui::SetItemAllowOverlap();
+
+		static Ref<Texture2D> s_SearchIcon = Texture2D::Create("Resources/Editor/search.png");
+		static Ref<Texture2D> s_ClearIcon = Texture2D::Create("Resources/Editor/close.png");
+		
+		const ImVec2 iconSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
+		const ImVec2 areaMax = ImGui::GetItemRectMax();
+
+		const bool searching = searchBuffer[0] != 0;
+
+		// Search icon
+		{
+			ImGui::SameLine(areaPosX + 5.0f);
+			UI::ShiftCursorY(spacingY);
+			UI::Image(s_SearchIcon, iconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+			if (!searching)
+			{
+				ImGui::SameLine();
+				UI::ShiftCursorY(-spacingY);
+				UI::ScopedColor text(ImGuiCol_Text, Colors::Theme::textDarker);
+				UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, spacingY));
+				ImGui::TextUnformatted(hint);
+			}
+		}
+
+		// Clear icon
+		if (searching)
+		{
+			const float spacingX = 4.0f;
+			const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+			const float clearIconRightOffset = lineHeight + spacingX;
+
+			ImGui::SetCursorPos({ areaMax.x - clearIconRightOffset, areaPosY + 1.0f });
+			UI::ShiftCursorX(2.0f);
+
+			if (ImGui::InvisibleButton(GenerateID(), ImVec2{ lineHeight, lineHeight }))
+			{
+				searchString.clear();
+				modified = true;
+			}
+
+			if (ImGui::IsMouseHoveringRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax()))
+			{
+				ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
+			}
+
+			UI::DrawButtonImage(s_ClearIcon, IM_COL32(160, 160, 160, 200),
+				IM_COL32(170, 170, 170, 255),
+				IM_COL32(160, 160, 160, 150),
+				UI::RectExpanded(UI::GetItemRect(), -2.0f, -2.0f));
+			UI::ShiftCursorY(1.0f);
+		}
+
+		UI::PopID();
+	
+		return modified;
+	}
+
+	static bool IsMatchingSearch(const std::string& item, const std::string& searchQuery, bool caseSensitive = false, bool stripWhiteSpaces = true, bool stripUnderscores = true)
+	{
+		if (searchQuery.empty())
+		{
+			return true;
+		}
+
+		if (item.empty())
+		{
+			return false;
+		}
+
+		std::string nameSanitized = stripUnderscores ? choc::text::replace(item, "_", " ") : item;
+
+		if (stripWhiteSpaces)
+		{
+			nameSanitized = choc::text::replace(nameSanitized, " ", "");
+		}
+
+		std::string searchString = stripWhiteSpaces ? choc::text::replace(searchQuery, " ", "") : searchQuery;
+		if (!caseSensitive)
+		{
+			nameSanitized = Utils::String::ToLower(nameSanitized);
+			searchString = Utils::String::ToLower(searchString);
+		}
+
+		return choc::text::contains(nameSanitized, searchString);
+	}
 }
