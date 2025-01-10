@@ -64,13 +64,17 @@ namespace NR::UI
 		ImGui::Columns(2);
 	}
 
-	static bool PropertyGridHeader(const std::string& name)
+	static bool PropertyGridHeader(const std::string& name, bool openByDefault = true)
 	{
-		const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen
-			| ImGuiTreeNodeFlags_Framed
+		ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_Framed
 			| ImGuiTreeNodeFlags_SpanAvailWidth
 			| ImGuiTreeNodeFlags_AllowItemOverlap
 			| ImGuiTreeNodeFlags_FramePadding;
+		
+		if (openByDefault)
+		{
+			treeNodeFlags |= ImGuiTreeNodeFlags_DefaultOpen;
+		}
 
 		bool open = false;
 		const float framePaddingX = 6.0f;
@@ -79,9 +83,9 @@ namespace NR::UI
 		UI::ScopedStyle headerRounding(ImGuiStyleVar_FrameRounding, 0.0f);
 		UI::ScopedStyle headerPaddingAndHeight(ImGuiStyleVar_FramePadding, ImVec2{ framePaddingX, framePaddingY });
 
-		UI::PushID();
+		ImGui::PushID(name.c_str());
 		open = ImGui::TreeNodeEx("##dummy_id", treeNodeFlags, Utils::ToUpper(name).c_str());
-		UI::PopID();
+		ImGui::PopID();
 
 		return open;
 	}

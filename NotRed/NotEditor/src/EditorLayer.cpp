@@ -1155,6 +1155,8 @@ namespace NR
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
+            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+
             if (UI::ImageButton(mSelectToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == -1 ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
             {
                 mGizmoType = -1;
@@ -1178,6 +1180,7 @@ namespace NR
                 mGizmoType = ImGuizmo::OPERATION::SCALE;
             }
 
+            ImGui::PopStyleVar();
             ImGui::PopStyleColor(3);
             ImGui::End();
             ImGui::PopStyleVar(2);

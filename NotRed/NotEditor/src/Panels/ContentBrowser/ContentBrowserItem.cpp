@@ -34,7 +34,14 @@ namespace NR
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 0.75f));
 		}
 
-		UI::ImageButton(mName.c_str(), mIcon, { thumbnailSize, thumbnailSize });
+		//UI::ImageButton(m_Name.c_str(), m_Icon, { thumbnailSize, thumbnailSize });
+		ImGui::PushID(mName.c_str());
+		ImGui::InvisibleButton("##options", ImVec2{ thumbnailSize, thumbnailSize });
+		UI::DrawButtonImage(mIcon, IM_COL32(255, 255, 255, 225),
+			IM_COL32(255, 255, 255, 255),
+			IM_COL32(255, 255, 255, 150),
+			UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f));
+
 		if (mIsSelected)
 		{
 			ImGui::PopStyleColor();
@@ -110,6 +117,7 @@ namespace NR
 
 		if (!mIsRenaming)
 		{
+			UI::ShiftCursor(20.0f, -25.0f);
 			ImGui::TextWrapped(mName.c_str());
 			if (Input::IsKeyPressed(KeyCode::F2) && mIsSelected)
 			{
@@ -126,6 +134,8 @@ namespace NR
 				result.Modify(ContentBrowserAction::Renamed, true);
 			}
 		}
+
+		ImGui::PopID();
 
 		mIsDragging = dragging;
 

@@ -62,6 +62,14 @@ namespace NR
 		RemoveIfExists<PhysicsLayer>(sLayers, [&](const PhysicsLayer& layer) { return layer.ID == layerId; });
 	}
 
+	void PhysicsLayerManager::UpdateLayerName(uint32_t layerId, const std::string& newName)
+	{
+		PhysicsLayer& layer = GetLayer(layerId);
+		RemoveIfExists<std::string>(sLayerNames, [&](const std::string& name) { return name == layer.Name; });
+		sLayerNames.insert(sLayerNames.begin() + layerId, newName);
+		layer.Name = newName;
+	}
+
 	void PhysicsLayerManager::SetLayerCollision(uint32_t layerId, uint32_t otherLayer, bool shouldCollide)
 	{
 		if (ShouldCollide(layerId, otherLayer) && shouldCollide)

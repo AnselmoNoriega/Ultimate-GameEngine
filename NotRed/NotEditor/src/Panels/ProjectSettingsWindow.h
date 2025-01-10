@@ -15,6 +15,11 @@ namespace NR
 		void ImGuiRender(bool& show);
 
 	private:
+		void RenderGeneralSettings();
+		void RenderScriptingSettings();
+		void RenderPhysicsSettings();
+
+	private:
 		Ref<Project> mProject;
 		Ref<Asset> mDefaultScene;
 		int32_t mSelectedLayer = -1;

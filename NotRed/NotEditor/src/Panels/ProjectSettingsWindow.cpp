@@ -6,215 +6,351 @@
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Core/Input.h"
 
 namespace NR
 {
-	ImFont* gBoldFont = nullptr;
+    ImFont* gBoldFont = nullptr;
 
-	ProjectSettingsWindow::ProjectSettingsWindow(const Ref<Project>& project)
-		: mProject(project)
-	{
-		mDefaultScene = AssetManager::GetAsset<Asset>(project->GetConfig().StartScene);
-		memset(mNewLayerNameBuffer, 0, 255);
-	}
+    static bool sSerializeProject = false;
 
-	ProjectSettingsWindow::~ProjectSettingsWindow()
-	{
-	}
+    ProjectSettingsWindow::ProjectSettingsWindow(const Ref<Project>& project)
+        : mProject(project)
+    {
+        mDefaultScene = AssetManager::GetAsset<Asset>(project->GetConfig().StartScene);
+        memset(mNewLayerNameBuffer, 0, 255);
+    }
 
-	void ProjectSettingsWindow::ImGuiRender(bool& show)
-	{
-		if (!show)
-		{
-			return;
-		}
+    ProjectSettingsWindow::~ProjectSettingsWindow()
+    {
+    }
 
-		bool serializeProject = false;
+    void ProjectSettingsWindow::ImGuiRender(bool& show)
+    {
+        if (!show)
+        {
+            return;
+        }
 
-		ImGui::Begin("Project Settings", &show);
+        ImGui::Begin("Project Settings", &show);
+        RenderGeneralSettings();
+        RenderScriptingSettings();
+        RenderPhysicsSettings();
+        ImGui::End();
 
-		ImGui::PushID("General");
-		if (ImGui::CollapsingHeader("General", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed))
-		{
-			UI::BeginPropertyGrid();
-			UI::PushItemDisabled();
+        if (sSerializeProject)
+        {
+            ProjectSerializer serializer(mProject);
+            serializer.Serialize(mProject->mConfig.ProjectDirectory + "/" + mProject->mConfig.ProjectFileName);
+            sSerializeProject = false;
+        }
+    }
 
-			UI::Property("Name", mProject->mConfig.Name);
-			UI::Property("Asset Directory", mProject->mConfig.AssetDirectory);
-			UI::Property("Asset Registry Path", mProject->mConfig.AssetRegistryPath);
-			UI::Property("Audio Commands Registry Path", mProject->mConfig.AudioCommandsRegistryPath);
-			UI::Property("Mesh Path", mProject->mConfig.MeshPath);
-			UI::Property("Mesh Source Path", mProject->mConfig.MeshSourcePath);
-			UI::Property("Script Module Path", mProject->mConfig.ScriptModulePath);
-			UI::Property("Project Directory", mProject->mConfig.ProjectDirectory);
+    void ProjectSettingsWindow::RenderGeneralSettings()
+    {
+        ImGui::PushID("GeneralSettings");
+        if (UI::PropertyGridHeader("General"))
+        {
+            UI::BeginPropertyGrid();
+            UI::PushItemDisabled();
 
-			UI::PopItemDisabled();
+            UI::Property("Name", mProject->mConfig.Name);
+            UI::Property("Asset Directory", mProject->mConfig.AssetDirectory);
+            UI::Property("Asset Registry Path", mProject->mConfig.AssetRegistryPath);
+            UI::Property("Audio Commands Registry Path", mProject->mConfig.AudioCommandsRegistryPath);
+            UI::Property("Mesh Path", mProject->mConfig.MeshPath);
+            UI::Property("Mesh Source Path", mProject->mConfig.MeshSourcePath);
+            UI::Property("Script Module Path", mProject->mConfig.ScriptModulePath);
+            UI::Property("Project Directory", mProject->mConfig.ProjectDirectory);
 
-			if (UI::PropertyAssetReference("Startup Scene", mDefaultScene))
-			{
-				const auto& metadata = AssetManager::GetMetadata(mDefaultScene);
-				if (metadata.IsValid())
-				{
-					mProject->mConfig.StartScene = metadata.FilePath.string();
-					serializeProject = true;
-				}
-			}
+            UI::PopItemDisabled();
 
-			UI::EndPropertyGrid();
-		}
-		ImGui::PopID();
+            if (UI::PropertyAssetReference("Startup Scene", mDefaultScene))
+            {
+                const auto& metadata = AssetManager::GetMetadata(mDefaultScene);
+                if (metadata.IsValid())
+                {
+                    mProject->mConfig.StartScene = metadata.FilePath.string();
+                    sSerializeProject = true;
+                }
+            }
 
-		ImGui::PushID("Scripting");
-		if (ImGui::CollapsingHeader("Scripting", ImGuiTreeNodeFlags_Framed))
-		{
-			UI::BeginPropertyGrid();
-			if (UI::Property("Default Namespace", mProject->mConfig.DefaultNamespace))
-			{
-				serializeProject = true;
-			}
-			if (UI::Property("Reload Assembly On Play", mProject->mConfig.ReloadAssemblyOnPlay))
-			{
-				serializeProject = true;
-			}
-			UI::EndPropertyGrid();
-		}
-		ImGui::PopID();
+            UI::EndPropertyGrid();
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
 
-		ImGui::PushID("Physics");
-		if (UI::PropertyGridHeader("Physics"))
-		{
-			UI::BeginPropertyGrid();
+    void ProjectSettingsWindow::RenderScriptingSettings()
+    {
+        ImGui::PushID("ScriptingSettings");
+        if (UI::PropertyGridHeader("Scripting", false))
+        {
+            UI::BeginPropertyGrid();
+            if (UI::Property("Default Namespace", mProject->mConfig.DefaultNamespace))
+            {
+                sSerializeProject = true;
+            }
+            if (UI::Property("Reload Assembly On Play", mProject->mConfig.ReloadAssemblyOnPlay))
+            {
+                sSerializeProject = true;
+            }
+            UI::EndPropertyGrid();
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
 
-			{
-				PhysicsSettings& settings = PhysicsManager::GetSettings();
+    void ProjectSettingsWindow::RenderPhysicsSettings()
+    {
+        ImGui::PushID("PhysicsSettings");
+        if (UI::PropertyGridHeader("Physics", false))
+        {
+            UI::BeginPropertyGrid();
 
-				UI::Property("Fixed Timestep (Default: 0.02)", settings.FixedDeltaTime);
-				UI::Property("Gravity (Default: -9.81)", settings.Gravity.y);
+            {
+                PhysicsSettings& settings = PhysicsManager::GetSettings();
 
-				static const char* broadphaseTypeStrings[] = { "Sweep And Prune", "Multi Box Pruning", "Automatic Box Pruning" };
-				UI::PropertyDropdown("Broadphase Type", broadphaseTypeStrings, 3, (int*)&settings.BroadphaseAlgorithm);
+                UI::Property("Fixed Timestep (Default: 0.02)", settings.FixedDeltaTime);
+                UI::Property("Gravity (Default: -9.81)", settings.Gravity.y);
 
-				if (settings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
-				{
-					UI::Property("World Bounds (Min)", settings.WorldBoundsMin);
-					UI::Property("World Bounds (Max)", settings.WorldBoundsMax);
-					UI::PropertySlider("Grid Subdivisions", (int&)settings.WorldBoundsSubdivisions, 1, 10000);
-				}
+                static const char* broadphaseTypeStrings[] = { "Sweep And Prune", "Multi Box Pruning", "Automatic Box Pruning" };
+                UI::PropertyDropdown("Broadphase Type", broadphaseTypeStrings, 3, (int*)&settings.BroadphaseAlgorithm);
 
-				static const char* frictionTypeStrings[] = { "Patch", "One Directional", "Two Directional" };
-				UI::PropertyDropdown("Friction Model", frictionTypeStrings, 3, (int*)&settings.FrictionModel);
+                if (settings.BroadphaseAlgorithm != BroadphaseType::AutomaticBoxPrune)
+                {
+                    UI::Property("World Bounds (Min)", settings.WorldBoundsMin);
+                    UI::Property("World Bounds (Max)", settings.WorldBoundsMax);
+                    UI::PropertySlider("Grid Subdivisions", (int&)settings.WorldBoundsSubdivisions, 1, 10000);
+                }
 
-				UI::PropertySlider("Solver Iterations", (int&)settings.SolverIterations, 1, 512);
-				UI::PropertySlider("Solver Velocity Iterations", (int&)settings.SolverVelocityIterations, 1, 512);
+                static const char* frictionTypeStrings[] = { "Patch", "One Directional", "Two Directional" };
+                UI::PropertyDropdown("Friction Model", frictionTypeStrings, 3, (int*)&settings.FrictionModel);
+
+                UI::PropertySlider("Solver Iterations", (int&)settings.SolverIterations, 1, 512);
+                UI::PropertySlider("Solver Velocity Iterations", (int&)settings.SolverVelocityIterations, 1, 512);
 
 #ifdef NR_DEBUG
-				UI::Property("Debug On Play", settings.DebugOnPlay);
+                UI::Property("Debug On Play", settings.DebugOnPlay);
 
-				static const char* debugTypeStrings[] = { "Debug To File", "Live Debug" };
-				UI::PropertyDropdown("Debug Type", debugTypeStrings, 2, (int*)&settings.DebugType);
+                static const char* debugTypeStrings[] = { "Debug To File", "Live Debug" };
+                UI::PropertyDropdown("Debug Type", debugTypeStrings, 2, (int*)&settings.DebugType);
 #endif
-			}
 
-			// Layer List
-			{
-				if (ImGui::Button("New Layer"))
-				{
-					ImGui::OpenPopup("NewLayerNamePopup");
-				}
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::BGDarkSeparators);
+                ImGui::PushStyleColor(ImGuiCol_Border, Colors::BGDarkSeparators);
+                auto singleColumnSeparator = []
+                    {
+                        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                        ImVec2 p = ImGui::GetCursorScreenPos();
+                        draw_list->AddLine(ImVec2(p.x - 9999, p.y), ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
+                    };
 
-				if (ImGui::BeginPopup("NewLayerNamePopup"))
-				{
-					ImGui::InputText("##LayerNameID", mNewLayerNameBuffer, 255);
+                auto drawBorder = [](const ImVec4& borderColor)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
+                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+                        auto min = ImGui::GetItemRectMin();
+                        min.x -= 1.0f;
+                        min.y -= 1.0f;
+                        auto max = ImGui::GetItemRectMax();
+                        max.x += 1.0f;
+                        max.y += 1.0f;
+                        ImGui::RenderFrameBorder(min, max);
+                        ImGui::PopStyleColor();
+                        ImGui::PopStyleVar();
+                    };
+                ImGui::Spacing();
+                auto GetUniqueName = []()
+                    {
+                        int counter = 0;
+                        auto checkID = [&counter](auto checkID) -> std::string
+                            {
+                                ++counter;
+                                const std::string counterStr = [&counter] {
+                                    if (counter < 10)
+                                        return "0" + std::to_string(counter);
+                                    else
+                                        return std::to_string(counter);
+                                    }();
+                                std::string idstr = "NewLayer_" + counterStr;
+                                if (PhysicsLayerManager::GetLayer(idstr).IsValid())
+                                    return checkID(checkID);
+                                else
+                                    return idstr;
+                            };
+                        return checkID(checkID);
+                    };
+                bool renameSelectedLayer = false;
 
-					if (ImGui::Button("Add"))
-					{
-						PhysicsLayerManager::AddLayer(std::string(mNewLayerNameBuffer));
-						memset(mNewLayerNameBuffer, 0, 50);
-						ImGui::CloseCurrentPopup();
-					}
+                if (ImGui::Button("New Layer", { 80.0f, 28.0f }))
+                {
+                    std::string name = GetUniqueName();
+                    mSelectedLayer = PhysicsLayerManager::AddLayer(name);
+                    renameSelectedLayer = true;
+                    sSerializeProject = true;
+                }
 
-					ImGui::EndPopup();
-				}
+                drawBorder(Colors::BGDarkSeparators);
+                ImGui::BeginChild("LayersList");
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 8.0f, 0.0f });
 
-				uint32_t buttonId = 1024;
-				for (const auto& layer : PhysicsLayerManager::GetLayers())
-				{
-					if (ImGui::Button(layer.Name.c_str()))
-					{
-						mSelectedLayer = layer.ID;
-					}
+                for (const auto& layer : PhysicsLayerManager::GetLayers())
+                {
+                    ImGui::PushID(layer.Name.c_str());
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
+                    bool selected = mSelectedLayer == layer.ID;
+                    if (selected)
+                    {
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::BGDarkSeparators);
+                        flags |= ImGuiTreeNodeFlags_Selected;
+                    }
 
-					if (layer.Name != "Default")
-					{
-						ImGui::SameLine();
-						ImGui::PushID(buttonId++);
-						if (ImGui::Button("X"))
-						{
-							PhysicsLayerManager::RemoveLayer(layer.ID);
-							serializeProject = true;
-						}
-						ImGui::PopID();
-					}
-				}
-			}
+                    if (ImGui::TreeNodeEx(layer.Name.c_str(), flags))
+                    {
+                        ImGui::TreePop();
+                    }
 
-			ImGui::NextColumn();
-			ImGui::Dummy(ImVec2(0, ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f));
-			ImGui::SeparatorEx(ImGuiSeparatorFlags_Horizontal);
+                    bool itemClicked = ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None) &&
+                        ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 1.0f).x == 0.0f &&
+                        ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 1.0f).y == 0.0f;
+                    
+                    if (itemClicked)
+                    {
+                        mSelectedLayer = layer.ID;
+                    }
 
-			// Selected Layer
-			{
-				static std::string s_IDString = "##";
+                    if (selected)
+                    {
+                        ImGui::PopStyleColor();
+                    }
 
-				if (mSelectedLayer != -1)
-				{
-					const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(mSelectedLayer);
+                    if (layer.Name != "Default" && ImGui::BeginPopupContextItem())
+                    {
+                        if (ImGui::MenuItem("Rename", "F2"))
+                        {
+                            mSelectedLayer = layer.ID;
+                            renameSelectedLayer = true;
+                        }
+                        if (ImGui::MenuItem("Delete", "Delete"))
+                        {
+                            if (selected)
+                            {
+                                mSelectedLayer = -1;
+                            }
 
-					for (const auto& layer : PhysicsLayerManager::GetLayers())
-					{
-						if (layer.ID == mSelectedLayer)
-						{
-							continue;
-						}
+                            PhysicsLayerManager::RemoveLayer(layer.ID);
+                            sSerializeProject = true;
+                        }
+                        ImGui::EndPopup();
+                    }
+                    ImGui::PopID();
+                }
 
-						const PhysicsLayer& otherLayerInfo = PhysicsLayerManager::GetLayer(layer.ID);
-						bool shouldCollide;
+                if (Input::IsKeyPressed(KeyCode::F2) && mSelectedLayer != -1)
+                {
+                    renameSelectedLayer = true;
+                }
 
-						if (layerInfo.CollidesWith == 0 || otherLayerInfo.CollidesWith == 0)
-						{
-							shouldCollide = false;
-						}
-						else
-						{
-							shouldCollide = layerInfo.CollidesWith & otherLayerInfo.BitValue;
-						}
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
+                {
+                    mSelectedLayer = -1;
+                }
 
-						ImGui::TextUnformatted(otherLayerInfo.Name.c_str());
-						ImGui::SameLine();
-						if (ImGui::Checkbox((s_IDString + otherLayerInfo.Name).c_str(), &shouldCollide))
-						{
-							PhysicsLayerManager::SetLayerCollision(mSelectedLayer, layer.ID, shouldCollide);
-							serializeProject = true;
-						}
-					}
+                ImGui::PopStyleVar();
+                ImGui::EndChild();
+                ImGui::PopStyleColor(2);
+                ImGui::NextColumn();
 
-					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
-					{
-						mSelectedLayer = -1;
-					}
-				}
-			}
+                if (mSelectedLayer != -1)
+                {
+                    PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(mSelectedLayer);
+                    auto propertyGridSpacing = []
+                        {
+                            ImGui::Spacing();
+                            ImGui::NextColumn();
+                            ImGui::NextColumn();
+                        };
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+                    ImGui::Spacing();
+                    ImGui::Spacing();
 
-			UI::EndPropertyGrid();			
-			
-			ImGui::TreePop();
-		}
-		ImGui::End();
+                    singleColumnSeparator();
+                    ImGui::Spacing();
+                    ImGui::Spacing();
 
-		if (serializeProject)
-		{
-			ProjectSerializer serializer(mProject);
-			serializer.Serialize(mProject->mConfig.ProjectDirectory + "/" + mProject->mConfig.ProjectFileName);
-		}
-	}
+                    static char buffer[256];
+                    strcpy_s(buffer, layerInfo.Name.c_str());
+                    ImGui::Text("Layer Name: ");
+                    ImGui::SameLine();
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.08f,0.08f,0.08f,1.0f });
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 3.0f);
+                    
+                    ImGuiInputTextFlags text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
+                    
+                    if (layerInfo.Name == "Default")
+                    {
+                        text_flags |= ImGuiInputTextFlags_ReadOnly;
+                    }
+
+                    ImGui::PushID("selected_layer_name");
+                    
+                    if (renameSelectedLayer)
+                    {
+                        ImGui::SetKeyboardFocusHere();
+                    }
+
+                    if (ImGui::InputText("##selected_layer_name", buffer, 256, text_flags))
+                    {
+                        PhysicsLayerManager::UpdateLayerName(layerInfo.ID, buffer);
+                        sSerializeProject = true;
+                    }
+
+                    ImGui::PopID();
+                    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
+                    ImGui::PopStyleColor();
+                    
+                    const float width = ImGui::GetColumnWidth();
+                    const float borderOffset = 7.0f;
+                    const float bottomAreaHeight = 50.0f;
+                    
+                    auto layersBounds = ImGui::GetContentRegionAvail();
+                    layersBounds.x = width - borderOffset;
+                    layersBounds.y -= bottomAreaHeight;
+
+                    ImGui::BeginChild("Collides With", layersBounds, false);
+                    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 0.0f, 1.0f });
+                    ImGui::Dummy({ width, 0.0f }); // 1px space offset
+
+                    UI::BeginPropertyGrid();
+                    for (const auto& layer : PhysicsLayerManager::GetLayers())
+                    {
+                        if (layer.ID == mSelectedLayer)
+                        {
+                            continue;
+                        }
+
+                        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 1.0f); // adding 1px "border"
+
+                        bool shouldCollide = layerInfo.CollidesWith & layer.BitValue;
+                        if (UI::Property(layer.Name.c_str(), shouldCollide))
+                        {
+                            PhysicsLayerManager::SetLayerCollision(mSelectedLayer, layer.ID, shouldCollide);
+                            sSerializeProject = true;
+                        }
+                    }
+
+                    UI::EndPropertyGrid();
+                    ImGui::PopStyleVar();
+                    ImGui::EndChild();
+                }
+            }
+            UI::EndPropertyGrid();
+
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
 }

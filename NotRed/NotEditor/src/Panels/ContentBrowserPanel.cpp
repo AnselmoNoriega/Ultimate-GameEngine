@@ -176,7 +176,9 @@ namespace NR
 
 			ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - 65));
 			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 				RenderTopBar();
+				ImGui::PopStyleVar();
 
 				ImGui::Separator();
 
@@ -259,7 +261,9 @@ namespace NR
 					}
 					ImGui::Columns(columnCount, 0, false);
 
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 					RenderItems();
+					ImGui::PopStyleVar();
 
 					if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 					{
