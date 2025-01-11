@@ -24,6 +24,10 @@ NotEditor/Resources/Scripts/Not-ScriptCore.pdb
 **.DotSettings
 **.user
 
+# LFS Folders
+lfs/
+hooks/
+
 **.meta
 **.log
 

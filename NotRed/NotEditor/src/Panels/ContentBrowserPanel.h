@@ -209,6 +209,7 @@ namespace NR
         Ref<Texture2D> mBackbtnTex;
         Ref<Texture2D> mFwrdbtnTex;
         Ref<Texture2D> mRefreshIcon;
+        Ref<Texture2D> mShadow;
 
         std::map<std::string, Ref<Texture2D>> mAssetIconMap;
 

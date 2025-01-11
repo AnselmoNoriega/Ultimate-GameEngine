@@ -157,7 +157,7 @@ namespace NR
 	void AudioEventsEditor::Init()
 	{
 		AudioCommandRegistry::onRegistryChange = [] { OnRegistryChanged(); };
-		sFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
+		sFolderIcon = Texture2D::Create("Resources/Editor/folder_closed.png");
 		sMoveIcon = Texture2D::Create("Resources/Editor/move.png");
 		sDeleteIcon = Texture2D::Create("Resources/Editor/close.png");
 	}
@@ -311,7 +311,7 @@ namespace NR
 		// ImGui item height tweaks
 		auto* window = ImGui::GetCurrentWindow();
 		window->DC.CurrLineSize.y = 20.0f;
-		window->DC.CurrLineTextBaseOffset = 0.0f;
+		window->DC.CurrLineTextBaseOffset = 3.0f;
 		//---------------------------------------------
 
 		const bool isFolder = !treeNode->Value.has_value();
@@ -324,12 +324,16 @@ namespace NR
 				if (isFolder)
 				{
 					if (s == treeNode)
+					{
 						return true;
+					}
 				}
 				else if (s->Value)
 				{
 					if (*s->Value == *treeNode->Value)
+					{
 						return true;
+					}
 				}
 			}
 			return false;
@@ -445,11 +449,11 @@ namespace NR
 				{
 					ImGui::SetNextItemOpen(true);
 				}
-				opened = ImGui::TreeNodeWithIcon(sFolderIcon, name, flags, name);
+				opened = ImGui::TreeNodeWithIcon(sFolderIcon, name, flags/*, name*/);
 			}
 			else
 			{
-				opened = ImGui::TreeNodeWithIcon(nullptr, (void*)(uint32_t)*treeNode->Value, flags, name);
+				opened = ImGui::TreeNodeWithIcon(nullptr, (void*)(uint32_t)*treeNode->Value, flags, IM_COL32(255, 255, 255, 255), name);
 			}
 
 

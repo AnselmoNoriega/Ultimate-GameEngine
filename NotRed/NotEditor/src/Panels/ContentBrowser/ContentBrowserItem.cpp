@@ -29,24 +29,185 @@ namespace NR
 	{
 		CBItemActionResult result;
 
-		if (mIsSelected)
+		const bool displayType = true;
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+		
+		const float edgeOffset = 4.0f;
+		const float textLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + edgeOffset * 2.0f;
+		const float infoPanelHeight = std::max(displayType ? thumbnailSize * 0.5f : textLineHeight, textLineHeight);
+		
+		const ImVec2 topLeft = ImGui::GetCursorScreenPos();
+		const ImVec2 thumbBottomRight = { topLeft.x + thumbnailSize, topLeft.y + thumbnailSize };
+		const ImVec2 infoTopLeft = { topLeft.x,				 topLeft.y + thumbnailSize };
+		const ImVec2 bottomRight = { topLeft.x + thumbnailSize, topLeft.y + thumbnailSize + infoPanelHeight };
+		
+		auto drawShadow = [](const ImVec2& topLeft, const ImVec2& bottomRight, bool directory)
+			{
+				auto* drawList = ImGui::GetWindowDrawList();
+				const ImRect itemRect = UI::RectOffset(ImRect(topLeft, bottomRight), 1.0f, 1.0f);
+				drawList->AddRect(itemRect.Min, itemRect.Max, Colors::Theme::propertyField, 6.0f, directory ? 0 : ImDrawFlags_RoundCornersBottom, 2.0f);
+			};
+
+		// Fill background
+		//----------------
+		if (mType != ItemType::Directory)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 0.75f));
+			const ImRect expandedArea = UI::RectExpanded(ImRect(topLeft, bottomRight), 2.0f, 2.0f);
+			ImGui::PushClipRect(expandedArea.Min, expandedArea.Max, false);
+			auto* drawList = ImGui::GetWindowDrawList();
+
+			// Draw shadow
+			drawShadow(topLeft, bottomRight, false);
+
+			// Draw background
+			drawList->AddRectFilled(topLeft, thumbBottomRight, Colors::Theme::backgroundDark);
+			drawList->AddRectFilled(infoTopLeft, bottomRight, Colors::Theme::groupHeader, 6.0f, ImDrawFlags_RoundCornersBottom);
+			ImGui::PopClipRect();
+		}
+		else if (ImGui::ItemHoverable(ImRect(topLeft, bottomRight), ImGui::GetID(&mID)) || mIsSelected)
+		{
+			// If hovered or selected directory
+			const ImRect expandedArea = UI::RectExpanded(ImRect(topLeft, bottomRight), 2.0f, 2.0f);
+			ImGui::PushClipRect(expandedArea.Min, expandedArea.Max, false);
+
+			// Draw shadow
+			drawShadow(topLeft, bottomRight, true);
+			auto* drawList = ImGui::GetWindowDrawList();
+			drawList->AddRectFilled(topLeft, bottomRight, Colors::Theme::groupHeader, 6.0f);
+			ImGui::PopClipRect();
 		}
 
-		//UI::ImageButton(m_Name.c_str(), m_Icon, { thumbnailSize, thumbnailSize });
+		// Thumbnail
+		//==========
 		ImGui::PushID(mName.c_str());
-		ImGui::InvisibleButton("##options", ImVec2{ thumbnailSize, thumbnailSize });
+		ImGui::InvisibleButton("##thumbnailButton", ImVec2{ thumbnailSize, thumbnailSize });
 		UI::DrawButtonImage(mIcon, IM_COL32(255, 255, 255, 225),
 			IM_COL32(255, 255, 255, 255),
-			IM_COL32(255, 255, 255, 150),
+			IM_COL32(255, 255, 255, 255),
 			UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f));
 
-		if (mIsSelected)
+		// Info Panel
+		//-----------
+		auto renamingWidget = [&]
+			{
+				ImGui::SetKeyboardFocusHere();
+				if (ImGui::InputText("##rename", sRenameBuffer, MAX_INPUT_BUFFER_LENGTH, ImGuiInputTextFlags_EnterReturnsTrue))
+				{
+					Rename(sRenameBuffer);
+					mIsRenaming = false;
+					result.Modify(ContentBrowserAction::Renamed, true);
+				}
+			};
+
+		UI::ShiftCursor(edgeOffset, edgeOffset);
+		
+		if (mType == ItemType::Directory)
 		{
-			ImGui::PopStyleColor();
+			ImGui::BeginVertical((std::string("InfoPanel") + mName).c_str(), ImVec2(thumbnailSize - edgeOffset * 2.0f, infoPanelHeight - edgeOffset));
+			{
+				// Centre directory name
+				ImGui::BeginHorizontal(mName.c_str(), ImVec2(thumbnailSize - 2.0f, 0.0f));
+				ImGui::Spring();
+				{
+					const float textWidth = std::min(ImGui::CalcTextSize(mName.c_str()).x, thumbnailSize);
+					ImGui::SetNextItemWidth(textWidth);
+					if (mIsRenaming)
+					{
+						renamingWidget();
+					}
+					else
+					{
+						ImGui::TextWrapped(mName.c_str());
+					}
+				}
+
+				ImGui::Spring();
+				ImGui::EndHorizontal();
+				ImGui::Spring();
+			}
+
+			ImGui::EndVertical();
+		}
+		else
+		{
+			ImGui::BeginVertical((std::string("InfoPanel") + mName).c_str(), ImVec2(thumbnailSize - edgeOffset * 3.0f, infoPanelHeight - edgeOffset));
+			{
+				ImGui::BeginHorizontal("label", ImVec2(0.0f, 0.0f));
+				if (mIsRenaming)
+				{
+					renamingWidget();
+				}
+				else
+				{
+					ImGui::TextWrapped(mName.c_str());
+				}
+
+				ImGui::Spring();
+				ImGui::EndHorizontal();
+			}
+			ImGui::Spring();
+
+			if (displayType)
+			{
+				ImGui::BeginHorizontal("assetType", ImVec2(0.0f, 0.0f));
+				ImGui::Spring();
+				{
+					AssetMetadata& metadata = AssetManager::GetMetadata(mID);
+					const std::string& assetType = Utils::ToUpper(Utils::AssetTypeToString(metadata.Type));
+					UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::textDarker);
+					ImGui::TextUnformatted(assetType.c_str());
+				}
+				ImGui::EndHorizontal();
+				ImGui::Spring(-1.0f, edgeOffset);
+			}
+			ImGui::EndVertical();
 		}
 
+		UI::ShiftCursor(-edgeOffset, -edgeOffset);
+		if (!mIsRenaming)
+		{
+			if (Input::IsKeyPressed(KeyCode::F2) && mIsSelected)
+			{
+				StartRenaming();
+			}
+		}
+
+		ImGui::PopStyleVar(); // ItemSpacing
+
+		// End of the Item Group
+		//======================
+		ImGui::EndGroup();
+
+		// Draw outline
+		//-------------
+		if (mIsSelected || ImGui::IsItemHovered())
+		{
+			ImRect itemRect = UI::GetItemRect();
+			const ImRect expandedArea = UI::RectExpanded(itemRect, 2.0f, 2.0f);
+			auto* drawList = ImGui::GetWindowDrawList();
+			ImGui::PushClipRect(expandedArea.Min, expandedArea.Max, false);
+			if (mIsSelected)
+			{
+				const bool mouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsItemHovered();
+				auto colTransition = UI::ColorWithMultipliedValue(Colors::Theme::selection, 0.8f);
+				drawList->AddRect(itemRect.Min, itemRect.Max,
+					mouseDown ? colTransition : Colors::Theme::selection, 6.0f,
+					mType == ItemType::Directory ? 0 : ImDrawFlags_RoundCornersBottom, 1.0f);
+			}
+			else // isHovered
+			{
+				if (mType != ItemType::Directory)
+				{
+					drawList->AddRect(itemRect.Min, itemRect.Max,
+						Colors::Theme::muted, 6.0f,
+						ImDrawFlags_RoundCornersBottom, 1.0f);
+				}
+			}
+			ImGui::PopClipRect();
+		}
+
+		// Mouse Events handling
+		//======================
 		UpdateDrop(result);
 		bool dragging = false;
 		if (dragging = ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
@@ -111,28 +272,19 @@ namespace NR
 		if (ImGui::BeginPopupContextItem("CBItemContextMenu"))
 		{
 			result.Modify(ContentBrowserAction::Selected, true);
+
+			if (!Input::IsKeyPressed(KeyCode::LeftControl) && !Input::IsKeyPressed(KeyCode::LeftShift))
+			{
+				result.Modify(ContentBrowserAction::ClearSelections, true);
+			}
+
+			if (Input::IsKeyPressed(KeyCode::LeftShift))
+			{
+				result.Modify(ContentBrowserAction::SelectToHere, true);
+			}
+
 			ContextMenuOpen(result);
 			ImGui::EndPopup();
-		}
-
-		if (!mIsRenaming)
-		{
-			UI::ShiftCursor(20.0f, -25.0f);
-			ImGui::TextWrapped(mName.c_str());
-			if (Input::IsKeyPressed(KeyCode::F2) && mIsSelected)
-			{
-				StartRenaming();
-			}
-		}
-		else
-		{
-			ImGui::SetKeyboardFocusHere();
-			if (ImGui::InputText("##rename", sRenameBuffer, MAX_INPUT_BUFFER_LENGTH, ImGuiInputTextFlags_EnterReturnsTrue))
-			{
-				Rename(sRenameBuffer);
-				mIsRenaming = false;
-				result.Modify(ContentBrowserAction::Renamed, true);
-			}
 		}
 
 		ImGui::PopID();
@@ -200,7 +352,6 @@ namespace NR
 
 	void ContentBrowserItem::RenderEnd()
 	{
-		ImGui::EndGroup();
 		ImGui::PopID();
 		ImGui::NextColumn();
 	}

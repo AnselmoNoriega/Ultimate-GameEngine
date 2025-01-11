@@ -239,6 +239,20 @@ namespace NR::UI
         return result;
     }
 
+    static inline ImRect RectOffset(const ImRect& rect, float x, float y)
+    {
+        ImRect result = rect;
+        result.Min.x += x;
+        result.Min.y += y;
+        result.Max.x += x;
+        result.Max.y += y;
+        return result;
+    }
+
+    static inline ImRect RectOffset(const ImRect& rect, ImVec2 xy)
+    {
+        return RectOffset(rect, xy.x, xy.y);
+    }
 
     //=========================================================================================
     /// Window
@@ -582,40 +596,48 @@ namespace NR::UI
     //=========================================================================================
     /// Border
 
-    static void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f)
+    static void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
         auto min = rectMin;
         min.x -= thickness;
         min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
         auto max = rectMax;
         max.x += thickness;
         max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
 
         auto* drawList = ImGui::GetWindowDrawList();
         drawList->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(borderColor), 0.0f, 0, thickness);
     };
 
-    static void DrawBorder(const ImVec4& borderColor, float thickness = 1.0f)
+    static void DrawBorder(const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorder(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColor, thickness);
+        DrawBorder(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColor, thickness, offsetX, offsetY);
     };
 
-    static void DrawBorder(float thickness = 1.0f)
+    static void DrawBorder(float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorder(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness);
+        DrawBorder(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
     };
 
-    static void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f)
+    static void DrawBorder(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorder(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness);
+        DrawBorder(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
     };
 
-    static void DrawBorderHorizontal(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f)
+    static void DrawBorderHorizontal(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
         auto min = rectMin;
         min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
         auto max = rectMax;
         max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
 
         auto* drawList = ImGui::GetWindowDrawList();
         const auto color = ImGui::ColorConvertFloat4ToU32(borderColor);
@@ -623,27 +645,31 @@ namespace NR::UI
         drawList->AddLine(ImVec2(min.x, max.y), max, color, thickness);
     };
 
-    static void DrawBorderHorizontal(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f)
+    static void DrawBorderHorizontal(ImVec2 rectMin, ImVec2 rectMax, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorderHorizontal(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness);
+        DrawBorderHorizontal(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
     };
 
-    static void DrawBorderHorizontal(const ImVec4& borderColor, float thickness = 1.0f)
+    static void DrawBorderHorizontal(const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorderHorizontal(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColor, thickness);
+        DrawBorderHorizontal(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColor, thickness, offsetX, offsetY);
     };
 
-    static void DrawBorderHorizontal(float thickness = 1.0f)
+    static void DrawBorderHorizontal(float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorderHorizontal(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness);
+        DrawBorderHorizontal(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
     };
 
-    static void DrawBorderVertical(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f)
+    static void DrawBorderVertical(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
         auto min = rectMin;
         min.x -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
         auto max = rectMax;
         max.x += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
 
         auto* drawList = ImGui::GetWindowDrawList();
         const auto color = ImGui::ColorConvertFloat4ToU32(borderColor);
@@ -651,14 +677,14 @@ namespace NR::UI
         drawList->AddLine(ImVec2(max.x, min.y), max, color, thickness);
     };
 
-    static void DrawBorderVertical(const ImVec4& borderColor, float thickness = 1.0f)
+    static void DrawBorderVertical(const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorderVertical(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColor, thickness);
+        DrawBorderVertical(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), borderColor, thickness, offsetX, offsetY);
     };
 
-    static void DrawBorderVertical(float thickness = 1.0f)
+    static void DrawBorderVertical(float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
-        DrawBorderVertical(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness);
+        DrawBorderVertical(ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
     };
 
     static void DrawItemActivityOutline(float rounding = 0.0f, bool drawWhenInactive = false, ImColor colorWhenActive = ImColor(80, 80, 80))

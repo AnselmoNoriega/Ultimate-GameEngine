@@ -10,6 +10,8 @@
 #include "NotRed/Core/Application.h"
 #include "NotRed/Core/Input.h"
 
+#include "NotRed/ImGui/CustomTreeNode.h"
+
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Scene/Prefab.h"
 
@@ -29,8 +31,11 @@ namespace NR
 
 		AssetManager::SetAssetChangeCallback(NR_BIND_EVENT_FN(ContentBrowserPanel::FileSystemChanged));
 
+		TextureProperties clampProps;
+		clampProps.SamplerWrap = TextureWrap::Clamp;
+		mFolderIcon = Texture2D::Create("Resources/Editor/folder_closed.png", clampProps);
+		mShadow = Texture2D::Create("Resources/Editor/NodeGraphEditor/shadow line_top.png", clampProps);
 		mFileTex = Texture2D::Create("Resources/Editor/file.png");
-		mFolderIcon = Texture2D::Create("Resources/Editor/folder.png");
 
 		mAssetIconMap[".fbx"] = Texture2D::Create("Resources/Editor/fbx.png");
 		mAssetIconMap[".obj"] = Texture2D::Create("Resources/Editor/obj.png");
@@ -164,11 +169,21 @@ namespace NR
 			{
 				if (ImGui::CollapsingHeader("Content", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
 				{
+					UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+					UI::ScopedColorStack itemBg(ImGuiCol_Header, IM_COL32_DISABLE,
+						ImGuiCol_HeaderActive, IM_COL32_DISABLE);
+
 					for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
 					{
 						RenderDirectoryHierarchy(directory);
 					}
 				}
+
+				// Draw side shadow
+				ImRect windowRect = UI::RectExpanded(ImGui::GetCurrentWindow()->Rect(), 0.0f, 10.0f);
+				ImGui::PushClipRect(windowRect.Min, windowRect.Max, false);
+				UI::DrawShadowInner(mShadow, 20.0f, windowRect, 1.0f, windowRect.GetHeight() / 4.0f, false, true, false, false);
+				ImGui::PopClipRect();
 			}
 			ImGui::EndChild();
 
@@ -252,18 +267,23 @@ namespace NR
 						ImGui::EndPopup();
 					}
 
+					const float scrollBarrOffset = 20.0f + ImGui::GetStyle().ScrollbarSize;
+					float panelWidth = ImGui::GetContentRegionAvail().x - scrollBarrOffset;
 					float cellSize = sThumbnailSize + sPadding;
-					float panelWidth = ImGui::GetContentRegionAvail().x;
 					int columnCount = (int)(panelWidth / cellSize);
 					if (columnCount < 1)
 					{
 						columnCount = 1;
 					}
-					ImGui::Columns(columnCount, 0, false);
+					{
+						const float rowSpacing = 12.0f;
+						UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, rowSpacing));
+						ImGui::Columns(columnCount, 0, false);
 
-					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-					RenderItems();
-					ImGui::PopStyleVar();
+						UI::ScopedStyle border(ImGuiStyleVar_FrameBorderSize, 0.0f);
+						UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+						RenderItems();
+					}
 
 					if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 					{
@@ -384,7 +404,7 @@ namespace NR
 
 	namespace UI
 	{
-		static bool TreeNode(const std::string& id, const std::string& label, ImGuiTreeNodeFlags flags = 0)
+		static bool TreeNode(const std::string& id, const std::string& label, ImGuiTreeNodeFlags flags = 0, const Ref<Texture2D>& icon = nullptr)
 		{
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
 			if (window->SkipItems)
@@ -392,7 +412,7 @@ namespace NR
 				return false;
 			}
 
-			return ImGui::TreeNodeBehavior(window->GetID(id.c_str()), flags, label.c_str(), NULL);
+			return ImGui::TreeNodeWithIcon(icon, window->GetID(id.c_str()), flags, label.c_str(), NULL);
 		}
 	}
 
@@ -401,8 +421,89 @@ namespace NR
 		std::string name = directory->FilePath.filename().string();
 		std::string id = name + "_TreeNode";
 		bool previousState = ImGui::TreeNodeBehaviorIsOpen(ImGui::GetID(id.c_str()));
-		bool open = UI::TreeNode(id, name, ImGuiTreeNodeFlags_SpanAvailWidth);
 
+		// ImGui item height hack
+		auto* window = ImGui::GetCurrentWindow();
+		window->DC.CurrLineSize.y = 20.0f;
+		window->DC.CurrLineTextBaseOffset = 3.0f;
+
+		//---------------------------------------------
+
+		const ImRect itemRect = { window->WorkRect.Min.x, window->DC.CursorPos.y,
+								  window->WorkRect.Max.x, window->DC.CursorPos.y + window->DC.CurrLineSize.y };
+		
+		const bool isItemClicked = [&itemRect, &id]
+			{
+				if (ImGui::ItemHoverable(itemRect, ImGui::GetID(id.c_str())))
+				{
+					return ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+				}
+				return false;
+			}();
+
+		auto fillWithColor = [&](const ImColor& color)
+			{
+				const ImU32 bgColor = ImGui::ColorConvertFloat4ToU32(color);
+				ImGui::GetWindowDrawList()->AddRectFilled(itemRect.Min, itemRect.Max, bgColor);
+			};
+
+		// Fill with light selection color if any of the child entities selected
+		auto checkIfAnyDescendantSelected = [&](Ref<DirectoryInfo>& directory, auto isAnyDescendantSelected) -> bool
+			{
+				if (directory->Handle == mCurrentDirectory->Handle)
+				{
+					return true;
+				}
+
+				if (!directory->SubDirectories.empty())
+				{
+					for (auto& [childHandle, childDir] : directory->SubDirectories)
+					{
+						if (isAnyDescendantSelected(childDir, isAnyDescendantSelected))
+						{
+							return true;
+						}
+					}
+				}
+
+				return false;
+			};
+		const bool isAnyDescendantSelected = checkIfAnyDescendantSelected(directory, checkIfAnyDescendantSelected);
+		const bool isActiveDirectory = directory->Handle == mCurrentDirectory->Handle;
+		ImGuiTreeNodeFlags flags = (isActiveDirectory ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_SpanFullWidth;
+
+		// Fill background
+		//----------------
+		if (isActiveDirectory || isItemClicked)
+		{
+			if (GImGui->NavWindow && GImGui->NavWindow == ImGui::GetCurrentWindow())
+				fillWithColor(Colors::Theme::selection);
+			else
+			{
+				const ImColor col = UI::ColorWithMultipliedValue(Colors::Theme::selection, 0.8f);
+				fillWithColor(UI::ColorWithMultipliedSaturation(col, 0.7f));
+			}
+			ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
+		}
+		else if (isAnyDescendantSelected)
+		{
+			fillWithColor(Colors::Theme::selectionMuted);
+		}
+
+		// Tree Node
+		//----------
+		bool open = UI::TreeNode(id, name, flags, mFolderIcon);
+
+		if (isActiveDirectory || isItemClicked)
+		{
+			ImGui::PopStyleColor();
+		}
+
+		// Fixing slight overlap
+		UI::ShiftCursorY(3.0f);
+		
+		// Draw children
+		//--------------
 		if (open)
 		{
 			for (auto& [handle, child] : directory->SubDirectories)
@@ -413,7 +514,7 @@ namespace NR
 
 		UpdateDropArea(directory);
 
-		if (open != previousState && directory->Handle != mCurrentDirectory->Handle)
+		if (open != previousState && !isActiveDirectory)
 		{
 			if (!ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.01f))
 			{
@@ -429,7 +530,7 @@ namespace NR
 
 	void ContentBrowserPanel::RenderTopBar()
 	{
-		ImGui::BeginChild("##top_bar", ImVec2(0, 30));
+		ImGui::BeginChild("##top_bar", ImVec2(0, 32));
 		{
 			if (UI::ImageButton(mBackbtnTex->GetImage(), ImVec2(25, 25)) && mCurrentDirectory->Handle != mBaseDirectory->Handle)
 			{
@@ -455,8 +556,8 @@ namespace NR
 			ImGui::SameLine();
 
 			{
-				ImGui::PushItemWidth(200);
-				if (ImGui::InputTextWithHint("##", "Search...", mSearchBuffer, MAX_INPUT_BUFFER_LENGTH))
+				ImGui::SetNextItemWidth(200);
+				if (UI::SearchWidget<MAX_INPUT_BUFFER_LENGTH>(mSearchBuffer))
 				{
 					if (strlen(mSearchBuffer) == 0)
 					{
@@ -468,8 +569,6 @@ namespace NR
 						SortItemList();
 					}
 				}
-
-				ImGui::PopItemWidth();
 			}
 
 			ImGui::SameLine();

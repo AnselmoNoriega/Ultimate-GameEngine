@@ -37,67 +37,76 @@ namespace NR
 
 	void ContactListener::onContact(const physx::PxContactPairHeader& pairHeader, const physx::PxContactPair* pairs, physx::PxU32 nbPairs)
 	{
+		if (!ScriptEngine::GetCurrentSceneContext()->IsPlaying())
+		{
+			return;
+		}
+
 		auto removedActorA = pairHeader.flags & physx::PxContactPairHeaderFlag::eREMOVED_ACTOR_0;
 		auto removedActorB = pairHeader.flags & physx::PxContactPairHeaderFlag::eREMOVED_ACTOR_1;
 
-		Ref<PhysicsActor> actorA, actorB;
-		if (!removedActorA)
+		if (removedActorA || removedActorB)
 		{
-			actorA = (PhysicsActor*)pairHeader.actors[0]->userData;
-		}
-		if (!removedActorB)
-		{
-			actorB = (PhysicsActor*)pairHeader.actors[1]->userData;
+			return;
 		}
 
-		Ref<PhysicsActor> validActor = actorA ? actorA : actorB;
-		if (!validActor || !Scene::GetScene(validActor->GetEntity().GetSceneID())->IsPlaying())
+		Ref<PhysicsActor> actorA = (PhysicsActor*)pairHeader.actors[0]->userData;
+		Ref<PhysicsActor> actorB = (PhysicsActor*)pairHeader.actors[1]->userData;
+
+		if (!ScriptEngine::IsEntityModuleValid(actorA->GetEntity()) || !ScriptEngine::IsEntityModuleValid(actorB->GetEntity()))
 		{
 			return;
 		}
 
 		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
 		{
-			if (!removedActorA && !removedActorB && ScriptEngine::IsEntityModuleValid(actorA->GetEntity()) && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionBegin(actorA->GetEntity(), actorB->GetEntity());
-			if (!removedActorB && !removedActorA && ScriptEngine::IsEntityModuleValid(actorB->GetEntity()) && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionBegin(actorB->GetEntity(), actorA->GetEntity());
+			ScriptEngine::CollisionBegin(actorA->GetEntity(), actorB->GetEntity());
+			ScriptEngine::CollisionBegin(actorB->GetEntity(), actorA->GetEntity());
 		}
 		else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
 		{
-			if (!removedActorA && !removedActorB && ScriptEngine::IsEntityModuleValid(actorA->GetEntity())) ScriptEngine::CollisionEnd(actorA->GetEntity(), actorB->GetEntity());
-			if (!removedActorB && !removedActorA && ScriptEngine::IsEntityModuleValid(actorB->GetEntity())) ScriptEngine::CollisionEnd(actorB->GetEntity(), actorA->GetEntity());
+			ScriptEngine::CollisionEnd(actorA->GetEntity(), actorB->GetEntity());
+			ScriptEngine::CollisionEnd(actorB->GetEntity(), actorA->GetEntity());
 		}
 	}
 
 	void ContactListener::onTrigger(physx::PxTriggerPair* pairs, physx::PxU32 count)
 	{
-		auto removedTrigger = pairs->flags & physx::PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER;
-		auto removedOther = pairs->flags & physx::PxTriggerPairFlag::eREMOVED_SHAPE_OTHER;
-
-		Ref<PhysicsActor> triggerActor, otherActor;
-		if (!removedTrigger)
-		{
-			triggerActor = (PhysicsActor*)pairs->triggerActor->userData;
-		}
-		if (!removedOther)
-		{
-			otherActor = (PhysicsActor*)pairs->otherActor->userData;
-		}
-
-		Ref<PhysicsActor> validActor = triggerActor ? triggerActor : otherActor;
-		if (!validActor || !Scene::GetScene(validActor->GetEntity().GetSceneID())->IsPlaying())
+		if (!ScriptEngine::GetCurrentSceneContext()->IsPlaying())
 		{
 			return;
 		}
 
-		if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+		for (uint32_t i = 0; i < count; i++)
 		{
-			if (triggerActor && otherActor && ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity()) && ScriptEngine::IsEntityModuleValid(otherActor->GetEntity())) ScriptEngine::TriggerBegin(triggerActor->GetEntity(), otherActor->GetEntity());
-			if (otherActor && triggerActor && ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity()) && ScriptEngine::IsEntityModuleValid(otherActor->GetEntity())) ScriptEngine::TriggerBegin(otherActor->GetEntity(), triggerActor->GetEntity());
-		}
-		else if (pairs->status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
-		{
-			if (triggerActor && otherActor && ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity()) && ScriptEngine::IsEntityModuleValid(otherActor->GetEntity())) ScriptEngine::TriggerEnd(triggerActor->GetEntity(), otherActor->GetEntity());
-			if (otherActor && triggerActor && ScriptEngine::IsEntityModuleValid(otherActor->GetEntity()) && ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity())) ScriptEngine::TriggerEnd(otherActor->GetEntity(), triggerActor->GetEntity());
+			if (pairs[i].flags & (physx::PxTriggerPairFlag::eREMOVED_SHAPE_TRIGGER | physx::PxTriggerPairFlag::eREMOVED_SHAPE_OTHER))
+			{
+				continue;
+			}
+
+			Ref<PhysicsActor> triggerActor = (PhysicsActor*)pairs[i].triggerActor->userData;
+			Ref<PhysicsActor> otherActor = (PhysicsActor*)pairs[i].otherActor->userData;
+			
+			if (!triggerActor || !otherActor)
+			{
+				continue;
+			}
+
+			if (!ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity()) || !ScriptEngine::IsEntityModuleValid(otherActor->GetEntity()))
+			{
+				continue;
+			}
+
+			if (pairs[i].status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
+			{
+				ScriptEngine::TriggerBegin(triggerActor->GetEntity(), otherActor->GetEntity());
+				ScriptEngine::TriggerBegin(otherActor->GetEntity(), triggerActor->GetEntity());
+			}
+			else if (pairs[i].status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
+			{
+				ScriptEngine::TriggerEnd(triggerActor->GetEntity(), otherActor->GetEntity());
+				ScriptEngine::TriggerEnd(otherActor->GetEntity(), triggerActor->GetEntity());
+			}
 		}
 	}
 

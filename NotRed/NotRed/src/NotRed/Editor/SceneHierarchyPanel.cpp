@@ -405,6 +405,11 @@ namespace NR
         // Fill with light selection color if any of the child entities selected
         auto isAnyDescendantSelected = [&](Entity ent, auto isAnyDescendantSelected) -> bool
             {
+                if (ent == mSelectionContext)
+                {
+                    return true;
+                }
+
                 if (!ent.Children().empty())
                 {
                     for (auto& childEntityID : ent.Children())
@@ -415,10 +420,6 @@ namespace NR
                             return true;
                         }
                     }
-                }
-                else
-                {
-                    return ent == mSelectionContext;
                 }
 
                 return false;
@@ -433,7 +434,15 @@ namespace NR
 
         if (isSelected)
         {
-            fillRowWithColor(Colors::Theme::selection);
+            if (GImGui->NavWindow && GImGui->NavWindow == ImGui::GetCurrentWindow())
+            {
+                fillRowWithColor(Colors::Theme::selection);
+            }
+            else
+            {
+                const ImColor col = UI::ColorWithMultipliedValue(Colors::Theme::selection, 0.9f);
+                fillRowWithColor(UI::ColorWithMultipliedSaturation(col, 0.7f));
+            }
         }
         else if (isRowHovered)
         {
@@ -470,7 +479,7 @@ namespace NR
 
         // Tree node
         //----------
-        const bool opened = ImGui::TreeNodeWithIcon(nullptr, (void*)(uint64_t)(uint32_t)entity, flags, name);
+        const bool opened = ImGui::TreeNodeWithIcon(nullptr, (void*)(uint64_t)(uint32_t)entity, flags, IM_COL32_WHITE, name);
 
         // Type column
         //------------

@@ -1,11 +1,12 @@
 #include <nrpch.h>
 #include "CustomTreeNode.h"
 
-#include "Colors.h"
+#include "NotRed/ImGui/Colors.h"
+#include "NotRed/ImGui/ImGuiUtil.h"
 
 namespace ImGui
 {
-    bool TreeNodeWithIcon(NR::Ref<NR::Texture2D> icon, ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end)
+    bool TreeNodeWithIcon(NR::Ref<NR::Texture2D> icon, ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, ImColor iconTint/* = IM_COL32_WHITE*/)
     {
         ImGuiWindow* window = GetCurrentWindow();
         if (window->SkipItems)
@@ -187,13 +188,7 @@ namespace ImGui
         }
 
         // Render
-        ////const ImU32 text_col = GetColorU32(ImGuiCol_Text);
-        const ImVec4 tintFloat = Colors::ConvertFromSRGB({ 0.32f, 0.30f, 0.20f, 1.0f });
-        const ImVec4 colourDark = Colors::BGDarkSeparators;    // 26
-        const ImU32 textDarker = Colors::textDarker;	        // 128
-        const ImU32 textCol = Colors::text;	                // 192
-
-        const ImU32 arrow_col = selected ? ImGui::ColorConvertFloat4ToU32(colourDark) : textDarker;
+        const ImU32 arrow_col = selected ? Colors::Theme::backgroundDark : Colors::Theme::muted;
 
         ImGuiNavHighlightFlags nav_highlight_flags = ImGuiNavHighlightFlags_TypeThin;
         if (display_frame)
@@ -231,11 +226,12 @@ namespace ImGui
                 auto itemRect = lastItem.Rect;
 
                 // Draw icon image which messes up last item data
+                const float pad = 3.0f;
                 const float arrowWidth = 20.0f + 1.0f;
                 auto cursorPos = ImGui::GetCursorPos();
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() - frame_height - 1.0f);
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + arrowWidth);
-                NR::UI::Image(icon, { frame_height, frame_height }, ImVec2(0, 0), ImVec2(1, 1), selected ? colourDark : tintFloat);
+                NR::UI::ShiftCursorY(-frame_height + pad);
+                NR::UI::ShiftCursorX(arrowWidth);
+                NR::UI::Image(icon, { frame_height - pad * 2.0f, frame_height - pad * 2.0f }, ImVec2(0, 0), ImVec2(1, 1), iconTint /*selected ? colourDark : tintFloat*/);
 
                 // Restore itme data
                 ImGui::SetLastItemData(itemId, itemFlags, itemStatusFlags, itemRect);
@@ -292,11 +288,12 @@ namespace ImGui
                 auto itemRect = lastItem.Rect;
 
                 // Draw icon image which messes up last item data
+                const float pad = 3.0f;
                 const float arrowWidth = 20.0f + 1.0f;
                 auto cursorPos = ImGui::GetCursorPos();
-                ImGui::SetCursorPosY(ImGui::GetCursorPosY() - frame_height - 1.0f);
-                ImGui::SetCursorPosX(ImGui::GetCursorPosX() + arrowWidth);
-                NR::UI::Image(icon, { frame_height, frame_height }, ImVec2(0, 0), ImVec2(1, 1), selected ? colourDark : tintFloat);
+                NR::UI::ShiftCursorY(-frame_height + pad);
+                NR::UI::ShiftCursorX(arrowWidth);
+                NR::UI::Image(icon, { frame_height - pad * 2.0f, frame_height - pad * 2.0f }, ImVec2(0, 0), ImVec2(1, 1), iconTint /*selected ? colourDark : tintFloat*/);
 
                 // Restore itme data
                 ImGui::SetLastItemData(itemId, itemFlags, itemStatusFlags, itemRect);
@@ -324,7 +321,7 @@ namespace ImGui
         return is_open;
     }
 
-    bool TreeNodeWithIcon(NR::Ref<NR::Texture2D> icon, const void* ptr_id, ImGuiTreeNodeFlags flags, const char* fmt, ...)
+    bool TreeNodeWithIcon(NR::Ref<NR::Texture2D> icon, const void* ptr_id, ImGuiTreeNodeFlags flags, ImColor iconTint, const char* fmt, ...)
     {
         va_list args;
         va_start(args, fmt);
@@ -337,13 +334,13 @@ namespace ImGui
         ImGuiContext& g = *GImGui;
         const char* label_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
 
-        bool is_open = TreeNodeWithIcon(icon, window->GetID(ptr_id), flags, g.TempBuffer.Data, label_end);
+        bool is_open = TreeNodeWithIcon(icon, window->GetID(ptr_id), flags, g.TempBuffer.Data, label_end, iconTint);
 
         va_end(args);
         return is_open;
     }
 
-    bool TreeNodeWithIcon(NR::Ref<NR::Texture2D> icon, const char* label, ImGuiTreeNodeFlags flags)
+    bool TreeNodeWithIcon(NR::Ref<NR::Texture2D> icon, const char* label, ImGuiTreeNodeFlags flags, ImColor iconTint /*= IM_COL32_WHITE*/)
     {
         ImGuiWindow* window = GetCurrentWindow();
         if (window->SkipItems)
@@ -351,7 +348,7 @@ namespace ImGui
             return false;
         }
 
-        return TreeNodeWithIcon(icon, window->GetID(label), flags, label, NULL);
+        return TreeNodeWithIcon(icon, window->GetID(label), flags, label, NULL, iconTint);
     }
 
 } // namespace ImGui
