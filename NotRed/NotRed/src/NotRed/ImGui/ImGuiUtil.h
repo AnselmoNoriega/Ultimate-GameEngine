@@ -108,6 +108,13 @@ namespace NR::UI
         }
     }
 
+    // Check if navigated to current item, e.g. with arrow keys
+    static bool NavigatedTo()
+    {
+        ImGuiContext& g = *GImGui;
+        return g.NavJustMovedToId == g.LastItemData.ID;
+    }
+
     //=========================================================================================
     /// Colors
     static ImU32 ColorWithValue(const ImColor& color, float value)
@@ -268,38 +275,6 @@ namespace NR::UI
     {
         return RectOffset(rect, xy.x, xy.y);
     }
-
-    //=========================================================================================
-    /// Window
-    static bool IsMouseCoveredByOtherWindow(const char* currentWindowName)
-    {
-        auto isWindowFocused = [&currentWindowName]
-            {
-                // Note: child name usually starts with "parent window name"/"child name"
-                auto* scenHierarchyWindow = ImGui::FindWindowByName(currentWindowName);
-                if (GImGui->NavWindow)
-                {
-                    return GImGui->NavWindow == scenHierarchyWindow || 
-                        Utils::StartsWith(GImGui->NavWindow->Name, currentWindowName);
-                }
-                else
-                {
-                    return false;
-                }
-            };
-        if (!isWindowFocused())
-        {
-            if (GImGui->NavWindow)
-            {
-                const ImRect otherWindowRect = UI::RectExpanded(GImGui->NavWindow->Rect(), 0.0f, 0.0f);
-                if (ImGui::IsMouseHoveringRect(otherWindowRect.Min, otherWindowRect.Max))
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    };
 
     //=========================================================================================
     /// Shadows

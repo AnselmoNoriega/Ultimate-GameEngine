@@ -252,17 +252,14 @@ namespace NR
 		}
 
 		if (!sopen)
+		{
 			OnOpennesChange(true);
+		}
 		sopen = true;
-
 
 		ImGui::SetNextWindowSizeConstraints({ 600.0f, 400.0f }, ImGui::GetWindowContentRegionMax());
 
-		ImGui::PushStyleColor(ImGuiCol_Text, Colors::text);
-
-		ImGui::PushStyleColor(ImGuiCol_Header, Colors::selected);
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, Colors::clicked);
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, Colors::BG);
+		ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::text);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, { 0.5f, 0.0f });
 		ImGui::Begin("Audio Events Editor", &show, ImGuiWindowFlags_NoCollapse);
@@ -274,10 +271,10 @@ namespace NR
 		ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::BGDarkSeparators);
 		ImGui::PushStyleColor(ImGuiCol_Border, Colors::BGDarkSeparators);
 
-		//? ImGui is weird with Separator colour, it doesn't work with PushStyleColor()
-		auto& colours = ImGui::GetStyle().Colors;
-		auto oldSeparatorCol = colours[ImGuiCol_Separator];
-		colours[ImGuiCol_Separator] = Colors::BGDarkSeparators;
+		//? ImGui is weird with Separator color, it doesn't work with PushStyleColor()
+		auto& colors = ImGui::GetStyle().Colors;
+		auto oldSeparatorCol = colors[ImGuiCol_Separator];
+		colors[ImGuiCol_Separator] = Colors::BGDarkSeparators;
 
 		ImGui::PushID(0); // Columns
 		ImGui::Columns(2);
@@ -295,11 +292,11 @@ namespace NR
 
 		DrawSelectionDetails();
 
-		ImGui::PopStyleColor(6);
+		ImGui::PopStyleColor(3);
 		ImGui::EndColumns();
 		ImGui::PopID(); // Columns
 
-		colours[ImGuiCol_Separator] = oldSeparatorCol;
+		colors[ImGuiCol_Separator] = oldSeparatorCol;
 
 		ImGui::End(); // Audio Evnets Editor
 
@@ -363,37 +360,49 @@ namespace NR
 					return command.DebugName.c_str();
 				}();
 
-			// TODO: refactor sSelection to take Selectable interface
-
-			ImGuiTreeNodeFlags flags = (selected ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_SpanAvailWidth |
-				(isFolder ? ImGuiTreeNodeFlags_OpenOnArrow : ImGuiTreeNodeFlags_Leaf);
-
-			//if (sRenamingEntry == commandID)
-				//flags |= ImGuiTreeNodeFlags_AllowItemOverlap;
-
-			//if(!Event.IsValid())
-				//ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
-
-			if (selected)
-				ImGui::PushStyleColor(ImGuiCol_Text, Colors::BGDarkSeparators);
-
-
-			auto fillWithColour = [&](const ImVec4 colour)
+			const ImRect itemRect = { window->WorkRect.Min.x, window->DC.CursorPos.y,
+									  window->WorkRect.Max.x, window->DC.CursorPos.y + window->DC.CurrLineSize.y };
+			const bool isHovering = ImGui::ItemHoverable(itemRect, ImGui::GetID(name));
+			
+			const bool isItemClicked = [&itemRect, &name, isHovering]
 				{
-					const ImU32 bgColour = ImGui::ColorConvertFloat4ToU32(colour);
-					ImRect frame;
+					if (isHovering)
+					{
+						return ImGui::IsMouseDown(ImGuiMouseButton_Left) || ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+					}
 
-					// starting from WorkRect.Min.x starts from the very left, 
-					// which can be used later when can fill selection and hover rect from the very left as well
-					frame.Min.x = /*window->WorkRect.Min.x;*/ window->DC.CursorPos.x;
-					frame.Min.y = window->DC.CursorPos.y;
-					frame.Max.x = window->WorkRect.Max.x;
-					frame.Max.y = window->DC.CursorPos.y + window->DC.CurrLineSize.y;
-					ImGui::GetWindowDrawList()->AddRectFilled(frame.Min, frame.Max, bgColour);
+					return false;
+				}();
+			
+			const bool isWindowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+
+			ImGuiTreeNodeFlags flags = (selected ? ImGuiTreeNodeFlags_Selected : 0)
+				| ImGuiTreeNodeFlags_SpanFullWidth
+				| (isFolder ? 0 : ImGuiTreeNodeFlags_Leaf);
+
+			// Fill background
+			//----------------
+
+			auto fillWithColor = [&](const ImColor& color)
+				{
+					ImGui::GetWindowDrawList()->AddRectFilled(itemRect.Min, itemRect.Max, color);
 				};
 
-			// If any descendant node selected, fill this folder with light colour
-			if (isFolder && !selected)
+			// If any descendant node selected, fill this folder with light color
+			if (selected || isItemClicked)
+			{
+				if (isWindowFocused)
+				{
+					fillWithColor(Colors::Theme::selection);
+				}
+				else
+				{
+					const ImColor col = UI::ColorWithMultipliedValue(Colors::Theme::selection, 0.8f);
+					fillWithColor(UI::ColorWithMultipliedSaturation(col, 0.7f));
+				}
+				ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
+			}
+			else if (isFolder && !selected)
 			{
 				auto isAnyDescendantSelected = [](CommandsTree::Node* treeNode, auto isAnyDescendantSelected) -> bool
 					{
@@ -402,7 +411,9 @@ namespace NR
 							for (auto& [name, childNode] : treeNode->Children)
 							{
 								if (isAnyDescendantSelected(childNode.Raw(), isAnyDescendantSelected))
+								{
 									return true;
+								}
 							}
 						}
 						else
@@ -415,10 +426,12 @@ namespace NR
 
 				if (isAnyDescendantSelected(treeNode, isAnyDescendantSelected))
 				{
-					fillWithColour(Colors::selectionMuted);
+					fillWithColor(Colors::Theme::selectionMuted);
 				}
 			}
 
+			// Tree Node
+			//----------
 			auto isDescendant = [](CommandsTree::Node* descendant, CommandsTree::Node* treeNode, auto isDescendant) -> bool
 				{
 					const bool isFolder = !treeNode->Value.has_value();
@@ -429,12 +442,16 @@ namespace NR
 					else
 					{
 						if (treeNode->Children.find(descendant->Name) != treeNode->Children.end())
+						{
 							return true;
+						}
 
 						for (auto& [name, childNode] : treeNode->Children)
 						{
 							if (isDescendant(descendant, childNode.Raw(), isDescendant))
+							{
 								return true;
+							}
 						}
 					}
 
@@ -443,42 +460,47 @@ namespace NR
 
 			if (isFolder)
 			{
-				// If we just created node inside of this folder, need to open the folder to activate renaming for the new node
-
 				if (sNewlyCreatedNode != nullptr && isDescendant(sNewlyCreatedNode, treeNode, isDescendant))
 				{
 					ImGui::SetNextItemOpen(true);
 				}
-				opened = ImGui::TreeNodeWithIcon(sFolderIcon, name, flags/*, name*/);
+				opened = ImGui::TreeNodeWithIcon(sFolderIcon, ImGui::GetID(name), flags, name, nullptr);
 			}
 			else
 			{
-				opened = ImGui::TreeNodeWithIcon(nullptr, (void*)(uint32_t)*treeNode->Value, flags, IM_COL32(255, 255, 255, 255), name);
+				opened = ImGui::TreeNodeWithIcon(nullptr, ImGui::GetID(name), flags, name, nullptr);
 			}
 
-
 			// Draw an outline around the last selected item which details are now displayed
-			if (selected && sSelection.GetLast() == treeNode)
+			if (selected && sSelection.GetLast() == treeNode && isWindowFocused)
 			{
-				const ImU32 frameColour = Colors::text;
-				ImGui::PushStyleColor(ImGuiCol_Border, frameColour);
+				const ImU32 frameColor = Colors::text;
+				ImGui::PushStyleColor(ImGuiCol_Border, frameColor);
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
 				ImGui::RenderFrameBorder(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), 0.0f);
 				ImGui::PopStyleColor();
 				ImGui::PopStyleVar();
 			}
 
-			if (selected)
+			if (selected || isItemClicked)
+			{
 				ImGui::PopStyleColor();
+			}
 
-			const bool itemClicked = ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None) &&
-				ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 1.0f).x == 0.0f &&
-				ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 1.0f).y == 0.0f;
+			// Handle selection
+			//-----------------
+			const bool itemClicked = ImGui::IsMouseReleased(ImGuiMouseButton_Left)
+				&& ImGui::IsItemHovered()
+				&& !ImGui::IsMouseDragging(ImGuiMouseButton_Left, 0.01f);
 
 			// Activate newly created item and its name text input
 			const bool entryWasJustCreated = sNewlyCreatedNode == treeNode;
-
-			if (entryWasJustCreated || itemClicked || ImGui::IsItemFocused())
+			if (entryWasJustCreated)
+			{
+				sSelection.Clear();
+				sSelection.PushBack(treeNode);
+			}
+			else if (itemClicked || UI::NavigatedTo())
 			{
 				if (Input::IsKeyPressed(KeyCode::LeftControl))
 				{
@@ -490,12 +512,10 @@ namespace NR
 				else if (Input::IsKeyPressed(KeyCode::LeftShift))
 				{
 					// Select all items between the first one selected and this one (within this parent folder?)
-
 					auto& siblings = treeNode->Parent->Children;
 					auto selectionStart = siblings.find(sSelection.GetFirst()->Name);
 
 					// Only allowing Shift select within the same folder
-
 					if (selectionStart != siblings.end())
 					{
 						const auto& thisNode = siblings.find(treeNode->Name);
@@ -533,11 +553,10 @@ namespace NR
 					sSelection.Clear();
 					sSelection.PushBack(treeNode);
 				}
-				// TODO: multiselect with Shift
-
-				//OnSelectionChanged(commandID); //? not used
 			}
 
+			// Context menu
+			//-------------
 			if (ImGui::BeginPopupContextItem())
 			{
 				// TODO: add "add event", "add folder" options
@@ -548,23 +567,27 @@ namespace NR
 					if (Input::IsKeyPressed(KeyCode::LeftControl))
 					{
 						if (!sSelection.Contains(treeNode))
+						{
 							sSelection.PushBack(treeNode);
+						}
 					}
 
 					ActivateRename(treeNode);
 				}
 
 				if (ImGui::MenuItem("Delete", "Delete"))
+				{
 					deleteNode = true;
+				}
 
 				ImGui::EndPopup();
 			}
 
-
-
+			// Drag & Drop
+			//------------
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
 			{
-				ImGui::Text(name); // TODO: draw children names, or number of as well?
+				ImGui::Text(name);
 
 				auto& map = treeNode->Parent->Children;
 				auto it = map.find(treeNode->Name);
@@ -761,21 +784,6 @@ namespace NR
 				draw_list->AddLine(ImVec2(p.x - 9999, p.y), ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
 			};
 
-		auto drawBorder = [](const ImVec4& borderColour)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Border, borderColour);
-				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-				auto min = ImGui::GetItemRectMin();
-				min.x -= 1.0f;
-				min.y -= 1.0f;
-				auto max = ImGui::GetItemRectMax();
-				max.x += 1.0f;
-				max.y += 1.0f;
-				ImGui::RenderFrameBorder(min, max);
-				ImGui::PopStyleColor();
-				ImGui::PopStyleVar();
-			};
-
 		if (ImGui::Button("New Event", { 80.0, 28.0f }))
 		{
 			const std::string name = GetUniqueName();
@@ -814,7 +822,6 @@ namespace NR
 
 			ActivateRename(newNode.Raw());
 		}
-		drawBorder(Colors::BGDarkSeparators);
 
 		ImGui::SameLine();
 		if (ImGui::Button("Add Folder", { 80.0, 28.0f }))
@@ -848,10 +855,7 @@ namespace NR
 				newFolderNode->Name = GetUniqueFolderName(&sTree.RootNode, "New Folder");
 				sTree.RootNode.Children.emplace(newFolderNode->Name, newFolderNode);
 			}
-
-			// TODO: activate renaming of the folder
 		}
-		drawBorder(Colors::BGDarkSeparators);
 
 		//--- Handle items deletion ---
 		//-----------------------------
@@ -891,8 +895,11 @@ namespace NR
 
 		//--- Draw the events Tree ---
 		//----------------------------
-
-		DrawTreeNode(&sTree.RootNode, true);
+		{
+			UI::ScopedColorStack itemBg(ImGuiCol_Header, IM_COL32_DISABLE,
+				ImGuiCol_HeaderActive, IM_COL32_DISABLE);
+			DrawTreeNode(&sTree.RootNode, true);
+		}
 
 		//--- Handle items reorder ---
 		//----------------------------
@@ -1158,20 +1165,6 @@ namespace NR
 				ImVec2 p = ImGui::GetCursorScreenPos();
 				draw_list->AddLine(p/*ImVec2(p.x - 9999, p.y)*/, ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
 			};
-		auto drawBorder = [](const ImVec4& borderColour)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Border, borderColour);
-				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-				auto min = ImGui::GetItemRectMin();
-				min.x -= 1.0f;
-				min.y -= 1.0f;
-				auto max = ImGui::GetItemRectMax();
-				max.x += 1.0f;
-				max.y += 1.0f;
-				ImGui::RenderFrameBorder(min, max);
-				ImGui::PopStyleColor();
-				ImGui::PopStyleVar();
-			};
 
 		auto* selectedNode = sSelection.GetLast();
 		auto& trigger = AudioCommandRegistry::GetCommand<TriggerCommand>(*selectedNode->Value);
@@ -1417,7 +1410,6 @@ namespace NR
 		{
 			ImGui::OpenPopup("AddActionsPopup");
 		}
-		drawBorder(Colors::BGDarkSeparators);
 
 		if (ImGui::BeginPopup("AddActionsPopup"))
 		{
@@ -1633,29 +1625,29 @@ namespace NR
 				const bool isFolder = node["Children"].IsDefined();
 				if (isFolder)
 				{
-					CommandsTree::Node folder;
+					auto folder = Ref<CommandsTree::Node>::Create();
 
-					folder.Tree = &sTree;
-					NR_DESERIALIZE_PROPERTY(Name, folder.Name, node, std::string(""));
-					folder.Parent = parentFolder;
+					folder->Tree = &sTree;
+					NR_DESERIALIZE_PROPERTY(Name, folder->Name, node, std::string(""));
+					folder->Parent = parentFolder;
 
-					for (const auto& childNode : node["Children"])
+					for (auto& childNode : node["Children"])
 					{
-						deserializeNode(childNode, &folder, deserializeNode);
+						deserializeNode(childNode, folder.Raw(), deserializeNode);
 					}
 
-					parentFolder->Children.emplace(std::make_pair(folder.Name, Ref<CommandsTree::Node>::Create(folder)));
+					parentFolder->Children.try_emplace(folder->Name, folder);
 				}
 				else
 				{
-					CommandsTree::Node trigger;
+					auto trigger = Ref<CommandsTree::Node>::Create();
 
-					trigger.Tree = &sTree;
-					NR_DESERIALIZE_PROPERTY(Name, trigger.Name, node, std::string(""));
-					trigger.Value = node["CommandID"] ? CommandID::FromUnsignedInt(node["CommandID"].as<uint32_t>()) : CommandID::InvalidID();
-					trigger.Parent = parentFolder;
+					trigger->Tree = &sTree;
+					NR_DESERIALIZE_PROPERTY(Name, trigger->Name, node, std::string(""));
+					trigger->Value = node["CommandID"] ? CommandID::FromUnsignedInt(node["CommandID"].as<uint32_t>()) : CommandID::InvalidID();
+					trigger->Parent = parentFolder;
 
-					parentFolder->Children.emplace(std::make_pair(trigger.Name, Ref<CommandsTree::Node>::Create(trigger)));
+					parentFolder->Children.try_emplace(trigger->Name, trigger);
 				}
 			};
 

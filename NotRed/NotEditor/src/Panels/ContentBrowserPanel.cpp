@@ -463,6 +463,8 @@ namespace NR
 				return false;
 			}();
 
+		const bool isWindowFocused = ImGui::IsWindowFocused();
+
 		auto fillWithColor = [&](const ImColor& color)
 			{
 				const ImU32 bgColor = ImGui::ColorConvertFloat4ToU32(color);
@@ -498,8 +500,10 @@ namespace NR
 		//----------------
 		if (isActiveDirectory || isItemClicked)
 		{
-			if (GImGui->NavWindow && GImGui->NavWindow == ImGui::GetCurrentWindow())
+			if (isWindowFocused)
+			{
 				fillWithColor(Colors::Theme::selection);
+			}
 			else
 			{
 				const ImColor col = UI::ColorWithMultipliedValue(Colors::Theme::selection, 0.8f);

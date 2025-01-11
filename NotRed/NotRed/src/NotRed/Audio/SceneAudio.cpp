@@ -12,7 +12,7 @@ namespace NR
 	void SceneAudio::ImGuiRender()
 	{
 		ImGui::Begin("Scene Audio");
-		if (UI::BeginTreeNode("Master Reverb"))
+		if (UI::PropertyGridHeader("Master Reverb"))
 		{
 			if (auto* masterReverb = AudioEngine::Get().GetMasterReverb())
 			{
@@ -41,7 +41,7 @@ namespace NR
 				}
 				UI::EndPropertyGrid();
 			}
-			UI::EndTreeNode();
+			ImGui::TreePop();
 		}
 		ImGui::End();
 	}

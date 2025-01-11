@@ -78,6 +78,11 @@ namespace NR
             UI::EndPropertyGrid();
             ImGui::TreePop();
         }
+        else
+        {
+            UI::ShiftCursorY(-(ImGui::GetStyle().ItemSpacing.y + 1.0f));
+        }
+
         ImGui::PopID();
     }
 
@@ -98,6 +103,11 @@ namespace NR
             UI::EndPropertyGrid();
             ImGui::TreePop();
         }
+        else
+        {
+            UI::ShiftCursorY(-(ImGui::GetStyle().ItemSpacing.y + 1.0f));
+        }
+
         ImGui::PopID();
     }
 
@@ -146,20 +156,6 @@ namespace NR
                         draw_list->AddLine(ImVec2(p.x - 9999, p.y), ImVec2(p.x + 9999, p.y), ImGui::GetColorU32(ImGuiCol_Border));
                     };
 
-                auto drawBorder = [](const ImVec4& borderColor)
-                    {
-                        ImGui::PushStyleColor(ImGuiCol_Border, borderColor);
-                        ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
-                        auto min = ImGui::GetItemRectMin();
-                        min.x -= 1.0f;
-                        min.y -= 1.0f;
-                        auto max = ImGui::GetItemRectMax();
-                        max.x += 1.0f;
-                        max.y += 1.0f;
-                        ImGui::RenderFrameBorder(min, max);
-                        ImGui::PopStyleColor();
-                        ImGui::PopStyleVar();
-                    };
                 ImGui::Spacing();
                 auto GetUniqueName = []()
                     {
@@ -191,7 +187,6 @@ namespace NR
                     sSerializeProject = true;
                 }
 
-                drawBorder(Colors::BGDarkSeparators);
                 ImGui::BeginChild("LayersList");
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 8.0f, 0.0f });
 
@@ -214,7 +209,7 @@ namespace NR
                     bool itemClicked = ImGui::IsMouseReleased(ImGuiMouseButton_Left) && ImGui::IsItemHovered(ImGuiHoveredFlags_None) &&
                         ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 1.0f).x == 0.0f &&
                         ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 1.0f).y == 0.0f;
-                    
+
                     if (itemClicked)
                     {
                         mSelectedLayer = layer.ID;
@@ -287,16 +282,16 @@ namespace NR
                     ImGui::SameLine();
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, { 0.08f,0.08f,0.08f,1.0f });
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 3.0f);
-                    
+
                     ImGuiInputTextFlags text_flags = ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
-                    
+
                     if (layerInfo.Name == "Default")
                     {
                         text_flags |= ImGuiInputTextFlags_ReadOnly;
                     }
 
                     ImGui::PushID("selected_layer_name");
-                    
+
                     if (renameSelectedLayer)
                     {
                         ImGui::SetKeyboardFocusHere();
@@ -311,11 +306,11 @@ namespace NR
                     ImGui::PopID();
                     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 3.0f);
                     ImGui::PopStyleColor();
-                    
+
                     const float width = ImGui::GetColumnWidth();
                     const float borderOffset = 7.0f;
                     const float bottomAreaHeight = 50.0f;
-                    
+
                     auto layersBounds = ImGui::GetContentRegionAvail();
                     layersBounds.x = width - borderOffset;
                     layersBounds.y -= bottomAreaHeight;
@@ -351,6 +346,11 @@ namespace NR
 
             ImGui::TreePop();
         }
+        else
+        {
+            UI::ShiftCursorY(-(ImGui::GetStyle().ItemSpacing.y + 1.0f));
+        }
+
         ImGui::PopID();
     }
 }

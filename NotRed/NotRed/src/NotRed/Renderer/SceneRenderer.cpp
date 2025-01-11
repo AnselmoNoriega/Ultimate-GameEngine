@@ -1841,8 +1841,10 @@ namespace NR
 
 		ImGui::Begin("Scene Renderer");
 
-		if (UI::BeginTreeNode("Shaders", false))
+		const float headerSpacingOffset = -(ImGui::GetStyle().ItemSpacing.y + 1.0f);
+		if (UI::PropertyGridHeader("Shaders", false))
 		{
+			ImGui::Indent();
 			auto& shaders = Shader::sAllShaders;
 			for (auto& shader : shaders)
 			{
@@ -1858,10 +1860,16 @@ namespace NR
 				ImGui::Columns(1);
 			}
 
+			ImGui::Unindent();
 			UI::EndTreeNode();
+			UI::ShiftCursorY(18.0f);
+		}
+		else
+		{
+			UI::ShiftCursorY(headerSpacingOffset);
 		}
 
-		if (UI::BeginTreeNode("Visualization"))
+		if (UI::PropertyGridHeader("Visualization"))
 		{
 			UI::BeginPropertyGrid();
 			UI::Property("Show Light Complexity", RendererDataUB.ShowLightComplexity);
@@ -1872,8 +1880,12 @@ namespace NR
 			UI::EndPropertyGrid();
 			UI::EndTreeNode();
 		}
+		else
+		{
+			UI::ShiftCursorY(headerSpacingOffset);
+		}
 
-		if (UI::BeginTreeNode("Bloom Settings"))
+		if (UI::PropertyGridHeader("Bloom Settings"))
 		{
 			UI::BeginPropertyGrid();
 			UI::Property("Bloom Enabled", mBloomSettings.Enabled);
@@ -1897,8 +1909,12 @@ namespace NR
 			UI::EndPropertyGrid();
 			UI::EndTreeNode();
 		}
+		else
+		{
+			UI::ShiftCursorY(headerSpacingOffset);
+		}
 
-		if (UI::BeginTreeNode("Horizon-Based Ambient Occlusion"))
+		if (UI::PropertyGridHeader("Horizon-Based Ambient Occlusion"))
 		{
 			UI::BeginPropertyGrid();
 			UI::Property("Enable", mOptions.EnableHBAO);
@@ -1909,8 +1925,12 @@ namespace NR
 			UI::EndPropertyGrid();
 			UI::EndTreeNode();
 		}
+		else
+		{
+			UI::ShiftCursorY(headerSpacingOffset);
+		}
 
-		if (UI::BeginTreeNode("Shadows"))
+		if (UI::PropertyGridHeader("Shadows"))
 		{
 			UI::BeginPropertyGrid();
 			UI::Property("Soft Shadows", RendererDataUB.SoftShadows);
@@ -1948,8 +1968,12 @@ namespace NR
 
 			UI::EndTreeNode();
 		}
+		else
+		{
+			UI::ShiftCursorY(headerSpacingOffset);
+		}
 
-		if (UI::BeginTreeNode("Render Statistics", false))
+		if (UI::PropertyGridHeader("Render Statistics", false))
 		{
 			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
 
@@ -1977,6 +2001,10 @@ namespace NR
 			}
 
 			UI::EndTreeNode();
+		}
+		else
+		{
+			UI::ShiftCursorY(headerSpacingOffset);
 		}
 #if 0
 		if (UI::BeginTreeNode("Compute Bloom"))

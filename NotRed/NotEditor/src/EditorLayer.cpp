@@ -1033,13 +1033,25 @@ namespace NR
             }
             UI::EndPropertyGrid();
 
+            ImGui::Text("Selection mode");
+            ImGui::SameLine();
+            UI::ShiftCursorY(-3.0f);
+
             const char* label = mSelectionMode == SelectionMode::Entity ? "Entity" : "Mesh";
             if (ImGui::Button(label))
             {
                 mSelectionMode = mSelectionMode == SelectionMode::Entity ? SelectionMode::SubMesh : SelectionMode::Entity;
             }
 
+            ImGui::Spacing();
+            ImGui::Spacing();
             ImGui::Separator();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Spacing();
+
             ImGui::PushFont(boldFont);
             ImGui::Text("Renderer Settings");
             ImGui::PopFont();
@@ -1067,23 +1079,42 @@ namespace NR
         }
         ImGui::End();
 
+        mConsolePanel->ImGuiRender(&mShowConsolePanel);
         mContentBrowserPanel->ImGuiRender();
         mProjectSettingsPanel->ImGuiRender(mShowProjectSettings);
         mObjectsPanel->ImGuiRender();
-        mConsolePanel->ImGuiRender(&mShowConsolePanel);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.305f, 0.31f, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.15f, 0.1505f, 0.151f, 0.5f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
-        ImGui::Begin("##tool_bar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        ImGui::Begin("Toolbar", NULL, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         {
-            float size = ImGui::GetWindowHeight() - 4.0F;
-            ImGui::SameLine((ImGui::GetWindowContentRegionMax().x / 2.0f) - (1.5f * (ImGui::GetFontSize() + ImGui::GetStyle().ItemSpacing.x)) - (size / 2.0f));
+            UI::PushID();
+            
+            ImGui::BeginVertical("##tool_barV", ImGui::GetWindowSize());
+            ImGui::Spring();
+            ImGui::BeginHorizontal("##tool_barH", ImGui::GetContentRegionMax());
+            ImGui::Spring();
+            UI::ScopedStyle disableBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+            
+            auto playbackButton = [](const Ref<Texture2D>& icon, const ImColor& tint)
+                {
+                    const float size = std::min((float)icon->GetHeight(), ImGui::GetWindowHeight() - 4.0f);
+                    const float iconPadding = 0.0f;
+                    const bool clicked = ImGui::InvisibleButton(UI::GenerateID(), ImVec2(size, size));
+                    
+                    UI::DrawButtonImage(icon, tint,
+                        UI::ColorWithMultipliedValue(tint, 1.3f),
+                        UI::ColorWithMultipliedValue(tint, 0.8f),
+                        UI::RectExpanded(UI::GetItemRect(), -iconPadding, -iconPadding));
+                    
+                    return clicked;
+                };
+
+            const ImColor buttonTint = UI::ColorWithValue(UI::ColorWithSaturation(Colors::Theme::niceBlue, 0.3f), 0.65f);
             Ref<Texture2D> buttonTex = mSceneState == SceneState::Play ? mStopButtonTex : mPlayButtonTex;
-            if (UI::ImageButton(buttonTex, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+            
+            if (playbackButton(buttonTex, buttonTint))
             {
                 if (mSceneState == SceneState::Edit)
                 {
@@ -1095,9 +1126,7 @@ namespace NR
                 }
             }
 
-            ImGui::SameLine();
-
-            if (UI::ImageButton(mPauseButtonTex, ImVec2(size, size), ImVec2(0, 0), ImVec2(1, 1), 0))
+            if (playbackButton(mPauseButtonTex, buttonTint))
             {
                 if (mSceneState == SceneState::Play)
                 {
@@ -1108,9 +1137,14 @@ namespace NR
                     mSceneState = SceneState::Play;
                 }
             }
+
+            ImGui::Spring();
+            ImGui::EndHorizontal();
+            ImGui::Spring(1.0f, 8.0f);
+            ImGui::EndVertical();
+            UI::PopID();
         }
-        ImGui
-            ::PopStyleColor(3);
+
         ImGui::PopStyleVar(2);
         ImGui::End();
 

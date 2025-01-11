@@ -388,17 +388,14 @@ namespace NR
         }
 
         ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
-        const bool isRowHovered = [&rowAreaMin, &rowAreaMax]
+        const bool isRowHovered = [&rowAreaMin, &rowAreaMax, &name]
             {
-                if (ImGui::IsMouseHoveringRect(rowAreaMin, rowAreaMax))
-                {
-                    return !UI::IsMouseCoveredByOtherWindow("Scene Hierarchy");
-                }
-
-                return false;
+                return ImGui::ItemHoverable(ImRect(rowAreaMin, rowAreaMax), ImGui::GetID(name));
             }();
 
         ImGui::PopClipRect();
+
+        const bool isWindowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
         // Row coloring
         //--------------
@@ -434,7 +431,7 @@ namespace NR
 
         if (isSelected)
         {
-            if (GImGui->NavWindow && GImGui->NavWindow == ImGui::GetCurrentWindow())
+            if (isWindowFocused || UI::NavigatedTo())
             {
                 fillRowWithColor(Colors::Theme::selection);
             }
@@ -495,9 +492,9 @@ namespace NR
         }
 
         ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
-        const bool isRowClicked = [&rowAreaMin, &rowAreaMax]
+        const bool isRowClicked = [&rowAreaMin, &rowAreaMax, isRowHovered]
             {
-                if (UI::IsMouseCoveredByOtherWindow("Scene Hierarchy"))
+                if (!isRowHovered)
                 {
                     return false;
                 }
@@ -510,7 +507,8 @@ namespace NR
                     if (ImGui::GetHoveredID() == resizerID)
                         hoveringResizer = true;
                 }
-                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsMouseHoveringRect(rowAreaMin, rowAreaMax) && !hoveringResizer)
+
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !hoveringResizer)
                 {
                     return true;
                 }
@@ -527,6 +525,8 @@ namespace NR
             {
                 mSelectionChangedCallback(mSelectionContext);
             }
+
+            ImGui::FocusWindow(ImGui::GetCurrentWindow());
         }
 
         if (missingMesh)
