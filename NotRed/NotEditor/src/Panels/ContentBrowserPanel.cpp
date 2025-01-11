@@ -46,8 +46,8 @@ namespace NR
 		mAssetIconMap[".nrsc"] = Texture2D::Create("Resources/Editor/notred.png");
 		mAssetIconMap[".nrprefab"] = Texture2D::Create("Resources/Editor/Icons/ContentBrowser/PrefabIcon.png");
 
-		mBackbtnTex = Texture2D::Create("Resources/Editor/btn_back.png");
-		mFwrdbtnTex = Texture2D::Create("Resources/Editor/btn_fwrd.png");
+		mBackbtnTex = Texture2D::Create("Resources/Editor/icon_back.png");
+		mFwrdbtnTex = Texture2D::Create("Resources/Editor/icon_fwrd.png");
 		mRefreshIcon = Texture2D::Create("Resources/Editor/refresh.png");
 
 		AssetHandle baseDirectoryHandle = ProcessDirectory(project->GetAssetDirectory().string(), nullptr);
@@ -162,156 +162,178 @@ namespace NR
 		mIsContentBrowserFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
 		{
-			UI::BeginPropertyGrid();
-			ImGui::SetColumnOffset(1, 300.0f);
+			//UI::BeginPropertyGrid();
+			UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 8.0f));
+			UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 4.0f));
+			UI::ScopedStyle cellPadding(ImGuiStyleVar_CellPadding, ImVec2(10.0f, 2.0f));
+			ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable
+				| ImGuiTableFlags_SizingFixedFit
+				| ImGuiTableFlags_BordersInnerV;
 
-			ImGui::BeginChild("##folders_common");
+			UI::PushID();
+
+			if (ImGui::BeginTable(UI::GenerateID(), 2, tableFlags, ImVec2(0.0f, 0.0f)))
 			{
-				if (ImGui::CollapsingHeader("Content", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
+				ImGui::TableSetupColumn("Outliner", 0, 300.0f);
+				ImGui::TableSetupColumn("Directory Structure", ImGuiTableColumnFlags_WidthStretch);
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+			
+				// Content Outliner
+				ImGui::BeginChild("##folders_common");
 				{
-					UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-					UI::ScopedColorStack itemBg(ImGuiCol_Header, IM_COL32_DISABLE,
-						ImGuiCol_HeaderActive, IM_COL32_DISABLE);
-
-					for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
+					if (ImGui::CollapsingHeader("Content", nullptr, ImGuiTreeNodeFlags_DefaultOpen))
 					{
-						RenderDirectoryHierarchy(directory);
-					}
-				}
+						UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+						UI::ScopedColorStack itemBg(ImGuiCol_Header, IM_COL32_DISABLE,
+							ImGuiCol_HeaderActive, IM_COL32_DISABLE);
 
-				// Draw side shadow
-				ImRect windowRect = UI::RectExpanded(ImGui::GetCurrentWindow()->Rect(), 0.0f, 10.0f);
-				ImGui::PushClipRect(windowRect.Min, windowRect.Max, false);
-				UI::DrawShadowInner(mShadow, 20.0f, windowRect, 1.0f, windowRect.GetHeight() / 4.0f, false, true, false, false);
-				ImGui::PopClipRect();
-			}
-			ImGui::EndChild();
-
-			ImGui::NextColumn();
-
-			ImGui::BeginChild("##directory_structure", ImVec2(0, ImGui::GetWindowHeight() - 65));
-			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-				RenderTopBar();
-				ImGui::PopStyleVar();
-
-				ImGui::Separator();
-
-				ImGui::BeginChild("Scrolling");
-				{
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-					ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 0.35f));
-
-					if (ImGui::BeginPopupContextWindow(0, 1))
-					{
-						if (ImGui::BeginMenu("New"))
+						for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
 						{
-							if (ImGui::MenuItem("Folder"))
+							RenderDirectoryHierarchy(directory);
+						}
+					}
+					// Draw side shadow
+					ImRect windowRect = UI::RectExpanded(ImGui::GetCurrentWindow()->Rect(), 0.0f, 10.0f);
+					ImGui::PushClipRect(windowRect.Min, windowRect.Max, false);
+					UI::DrawShadowInner(mShadow, 20.0f, windowRect, 1.0f, windowRect.GetHeight() / 4.0f, false, true, false, false);
+					ImGui::PopClipRect();
+				}
+				ImGui::EndChild();
+
+				ImGui::TableSetColumnIndex(1);
+
+				// Directory Content
+				const float topBarHeight = 26.0f;
+				const float bottomBarHeight = 52.0f;
+				ImGui::BeginChild("##directory_structure", ImVec2(ImGui::GetContentRegionAvail().x, ImGui::GetWindowHeight() - topBarHeight - bottomBarHeight));
+				{
+					ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+					RenderTopBar(topBarHeight);
+					ImGui::PopStyleVar();
+					ImGui::Separator();
+
+					ImGui::BeginChild("Scrolling");
+					{
+						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+						ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 0.35f));
+						if (ImGui::BeginPopupContextWindow(0, 1))
+						{
+							if (ImGui::BeginMenu("New"))
 							{
-								bool created = FileSystem::CreateDirectory(Project::GetAssetDirectory() / mCurrentDirectory->FilePath / "New Folder");
-								if (created)
+								if (ImGui::MenuItem("Folder"))
 								{
-									Refresh();
-									const auto& directoryInfo = GetDirectory(mCurrentDirectory->FilePath / "New Folder");
-									size_t index = mCurrentItems.FindItem(directoryInfo->Handle);
-									if (index != ContentBrowserItemList::InvalidItem)
+									bool created = FileSystem::CreateDirectory(Project::GetAssetDirectory() / mCurrentDirectory->FilePath / "New Folder");
+									if (created)
 									{
-										mCurrentItems[index]->StartRenaming();
+										Refresh();
+
+										const auto& directoryInfo = GetDirectory(mCurrentDirectory->FilePath / "New Folder");
+										size_t index = mCurrentItems.FindItem(directoryInfo->Handle);
+										if (index != ContentBrowserItemList::InvalidItem)
+										{
+											mCurrentItems[index]->StartRenaming();
+										}
 									}
+								}
+
+								if (ImGui::MenuItem("Scene"))
+								{
+									CreateAsset<Scene>("Scene.nrscene");
+								}
+
+								if (ImGui::MenuItem("Material"))
+								{
+									CreateAsset<MaterialAsset>("Material.nrmaterial");
+								}
+
+								if (ImGui::MenuItem("Physics Material"))
+								{
+									CreateAsset<PhysicsMaterial>("PhysicsMaterial.nrpm", 0.6f, 0.6f, 0.0f);
+								}
+
+								if (ImGui::MenuItem("Sound Config"))
+								{
+									CreateAsset<SoundConfig>("SoundConfig.nrsoundc");
+								}
+
+								ImGui::EndMenu();
+							}
+
+							if (ImGui::MenuItem("Import"))
+							{
+								std::string filepath = Application::Get().OpenFile();
+								if (!filepath.empty())
+								{
+									FileSystem::MoveFile(filepath, mCurrentDirectory->FilePath);
 								}
 							}
 
-							if (ImGui::MenuItem("Scene"))
+							if (ImGui::MenuItem("Refresh"))
 							{
-								CreateAsset<Scene>("New Scene.nrscene");
+								Refresh();
 							}
 
-							if (ImGui::MenuItem("Material"))
+							ImGui::Separator();
+
+							if (ImGui::MenuItem("Show in Explorer"))
 							{
-								CreateAsset<MaterialAsset>("New Material.nrmaterial");
+								FileSystem::OpenDirectoryInExplorer(Project::GetAssetDirectory() / mCurrentDirectory->FilePath);
 							}
 
-							if (ImGui::MenuItem("Physics Material"))
-							{
-								CreateAsset<PhysicsMaterial>("New Physics Material.nrpm", 0.6f, 0.6f, 0.0f);
-							}
-
-							if (ImGui::MenuItem("Sound Config"))
-							{
-								CreateAsset<SoundConfig>("New Sound Config.nrsoundc");
-							}
-
-							ImGui::EndMenu();
+							ImGui::EndPopup();
 						}
 
-						if (ImGui::MenuItem("Import"))
+						const float scrollBarrOffset = 20.0f + ImGui::GetStyle().ScrollbarSize;
+						float panelWidth = ImGui::GetContentRegionAvail().x - scrollBarrOffset;
+						float cellSize = sThumbnailSize + sPadding;
+
+						int columnCount = (int)(panelWidth / cellSize);
+						if (columnCount < 1) 
 						{
-							std::string filepath = Application::Get().OpenFile();
-							if (!filepath.empty())
-							{
-								FileSystem::MoveFile(filepath, mCurrentDirectory->FilePath);
-							}
+							columnCount = 1;
 						}
 
-						if (ImGui::MenuItem("Refresh"))
 						{
-							Refresh();
+							const float rowSpacing = 12.0f;
+							UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, rowSpacing));
+							ImGui::Columns(columnCount, 0, false);
+
+							UI::ScopedStyle border(ImGuiStyleVar_FrameBorderSize, 0.0f);
+							UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+							RenderItems();
 						}
 
-						ImGui::Separator();
-						if (ImGui::MenuItem("Show in Explorer"))
+						if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 						{
-							FileSystem::OpenDirectoryInExplorer(Project::GetAssetDirectory() / mCurrentDirectory->FilePath);
+							UpdateInput();
 						}
 
-						ImGui::EndPopup();
+						ImGui::PopStyleColor(2);
+
+						RenderDeleteDialogue();
 					}
-
-					const float scrollBarrOffset = 20.0f + ImGui::GetStyle().ScrollbarSize;
-					float panelWidth = ImGui::GetContentRegionAvail().x - scrollBarrOffset;
-					float cellSize = sThumbnailSize + sPadding;
-					int columnCount = (int)(panelWidth / cellSize);
-					if (columnCount < 1)
-					{
-						columnCount = 1;
-					}
-					{
-						const float rowSpacing = 12.0f;
-						UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, rowSpacing));
-						ImGui::Columns(columnCount, 0, false);
-
-						UI::ScopedStyle border(ImGuiStyleVar_FrameBorderSize, 0.0f);
-						UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
-						RenderItems();
-					}
-
-					if (ImGui::IsWindowFocused() && !ImGui::IsMouseDragging(ImGuiMouseButton_Left))
-					{
-						UpdateInput();
-					}
-
-					ImGui::PopStyleColor(2);
-
-					RenderDeleteDialogue();
+					ImGui::EndChild();
 				}
 				ImGui::EndChild();
-			}
-			ImGui::EndChild();
 
-			if (ImGui::BeginDragDropTarget())
-			{
-				auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
-				if (data)
+				if (ImGui::BeginDragDropTarget())
 				{
-					Entity& e = *(Entity*)data->Data;
-					CreateAsset<Prefab>("New Prefab.nrprefab", e);
+					auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
+					if (data)
+					{
+						Entity& e = *(Entity*)data->Data;
+						CreateAsset<Prefab>("New Prefab.hprefab", e);
+
+					}
+					ImGui::EndDragDropTarget();
 				}
-				ImGui::EndDragDropTarget();
+
+				RenderBottomBar(bottomBarHeight);
+
+				ImGui::EndTable();
 			}
-
-			RenderBottomBar();
-
-			UI::EndPropertyGrid();
+			UI::PopID();
 		}
 		ImGui::End();
 	}
@@ -528,35 +550,71 @@ namespace NR
 		}
 	}
 
-	void ContentBrowserPanel::RenderTopBar()
+	void ContentBrowserPanel::RenderTopBar(float height)
 	{
-		ImGui::BeginChild("##top_bar", ImVec2(0, 32));
+		ImGui::BeginChild("##top_bar", ImVec2(0, height));
+		ImGui::BeginHorizontal("##top_bar", ImGui::GetWindowSize());
 		{
-			if (UI::ImageButton(mBackbtnTex->GetImage(), ImVec2(25, 25)) && mCurrentDirectory->Handle != mBaseDirectory->Handle)
+			const float edgeOffset = 4.0f;
+	
+			// Navigation buttons
 			{
-				mNextDirectory = mCurrentDirectory;
-				mPreviousDirectory = mCurrentDirectory->Parent;
-				ChangeDirectory(mPreviousDirectory);
+				UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f, 0.0f));
+
+				auto contenBrowserButton = [height](const char* labelId, const Ref<Texture2D>& icon)
+					{
+						const ImU32 buttonCol = Colors::Theme::backgroundDark;
+						const ImU32 buttonColP = UI::ColorWithMultipliedValue(Colors::Theme::backgroundDark, 0.8f);
+						
+						UI::ScopedColorStack buttonColors(ImGuiCol_Button, buttonCol,
+							ImGuiCol_ButtonHovered, buttonCol,
+							ImGuiCol_ButtonActive, buttonColP);
+						
+						const float iconSize = std::min(24.0f, height);
+						const float iconPadding = 3.0f;
+						const bool clicked = ImGui::Button(labelId, ImVec2(iconSize, iconSize));
+						
+						UI::DrawButtonImage(icon, Colors::Theme::textDarker,
+							UI::ColorWithMultipliedValue(Colors::Theme::textDarker, 1.2f),
+							UI::ColorWithMultipliedValue(Colors::Theme::textDarker, 0.8f),
+							UI::RectExpanded(UI::GetItemRect(), -iconPadding, -iconPadding));
+
+						return clicked;
+					};
+
+				if (contenBrowserButton("##back", mBackbtnTex))
+				{
+					mNextDirectory = mCurrentDirectory;
+					mPreviousDirectory = mCurrentDirectory->Parent;
+					ChangeDirectory(mPreviousDirectory);
+				}
+
+				UI::SetTooltip("Previous directory");
+
+				ImGui::Spring(-1.0f, edgeOffset);
+
+				if (contenBrowserButton("##forward", mFwrdbtnTex))
+				{
+					ChangeDirectory(mNextDirectory);
+				}
+
+				UI::SetTooltip("Next directory");
+
+				ImGui::Spring(-1.0f, edgeOffset * 2.0f);
+
+				if (contenBrowserButton("##refresh", mRefreshIcon))
+				{
+					Refresh();
+				}
+
+				UI::SetTooltip("Refresh");
+
+				ImGui::Spring(-1.0f, edgeOffset * 2.0f);
 			}
 
-			ImGui::SameLine();
-
-			if (UI::ImageButton(mFwrdbtnTex->GetImage(), ImVec2(25, 25)))
+			// Search
 			{
-				ChangeDirectory(mNextDirectory);
-			}
-
-			ImGui::SameLine();
-
-			if (UI::ImageButton(mRefreshIcon, ImVec2(25, 25)))
-			{
-				Refresh();
-			}
-
-			ImGui::SameLine();
-
-			{
-				ImGui::SetNextItemWidth(200);
+				UI::ShiftCursorY(2.0f);
 				if (UI::SearchWidget<MAX_INPUT_BUFFER_LENGTH>(mSearchBuffer))
 				{
 					if (strlen(mSearchBuffer) == 0)
@@ -569,9 +627,9 @@ namespace NR
 						SortItemList();
 					}
 				}
-			}
 
-			ImGui::SameLine();
+				UI::ShiftCursorY(-2.0f);
+			}
 
 			if (mUpdateNavigationPath)
 			{
@@ -589,35 +647,56 @@ namespace NR
 				mUpdateNavigationPath = false;
 			}
 
-			const std::string& assetsDirectoryName = mProject->GetConfig().AssetDirectory;
-			ImVec2 textSize = ImGui::CalcTextSize(assetsDirectoryName.c_str());
-			if (ImGui::Selectable(assetsDirectoryName.c_str(), false, 0, ImVec2(textSize.x, 22)))
+			// Breadcrumbs
 			{
-				ChangeDirectory(mBaseDirectory);
-			}
-			UpdateDropArea(mBaseDirectory);
-			ImGui::SameLine();
+				UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
+				UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::textDarker);
+			
+				const std::string& assetsDirectoryName = mProject->GetConfig().AssetDirectory;
+				ImVec2 textSize = ImGui::CalcTextSize(assetsDirectoryName.c_str());
+				const float textPadding = ImGui::GetStyle().FramePadding.y;
 
-			for (auto& directory : mBreadCrumbData)
-			{
-				ImGui::Text("/");
-
-				ImGui::SameLine();
-
-				std::string directoryName = directory->FilePath.filename().string();
-				ImVec2 textSize = ImGui::CalcTextSize(directoryName.c_str());
-				if (ImGui::Selectable(directoryName.c_str(), false, 0, ImVec2(textSize.x, 22)))
+				if (ImGui::Selectable(assetsDirectoryName.c_str(), false, 0, ImVec2(textSize.x, textSize.y + textPadding)))
 				{
-					ChangeDirectory(directory);
+					ChangeDirectory(mBaseDirectory);
 				}
 
-				UpdateDropArea(directory);
+				UpdateDropArea(mBaseDirectory);
+				
+				for (auto& directory : mBreadCrumbData)
+				{
+					ImGui::Text("/");
+					std::string directoryName = directory->FilePath.filename().string();
+					ImVec2 textSize = ImGui::CalcTextSize(directoryName.c_str());
+					
+					if (ImGui::Selectable(directoryName.c_str(), false, 0, ImVec2(textSize.x, textSize.y + textPadding)))
+					{
+						ChangeDirectory(directory);
+					}
 
-				ImGui::SameLine();
+					UpdateDropArea(directory);
+				}
+			}
+
+			// Settings button
+			ImGui::Spring();
+			if (UI::Buttons::Options())
+			{
+				ImGui::OpenPopup("ContentBrowserSettings");
+			}
+			UI::SetTooltip("Content Browser settings");
+
+			if (ImGui::BeginPopup("ContentBrowserSettings"))
+			{
+				if (ImGui::MenuItem("Show asset type", nullptr, &mShowAssetType))
+				{
+				}
+
+				ImGui::EndPopup();
 			}
 
 		}
-
+		ImGui::EndHorizontal();
 		ImGui::EndChild();
 	}
 
@@ -632,7 +711,7 @@ namespace NR
 		for (auto& item : mCurrentItems)
 		{
 			item->RenderBegin();
-			CBItemActionResult result = item->Render(sThumbnailSize);
+			CBItemActionResult result = item->Render(sThumbnailSize, mShowAssetType);
 
 			if (result.IsSet(ContentBrowserAction::ClearSelections))
 			{
@@ -734,9 +813,9 @@ namespace NR
 		}
 	}
 
-	void ContentBrowserPanel::RenderBottomBar()
+	void ContentBrowserPanel::RenderBottomBar(float height)
 	{
-		ImGui::BeginChild("##panel_controls", ImVec2(ImGui::GetColumnWidth() - 12, 30), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+		ImGui::BeginChild("##panel_controls", ImVec2(ImGui::GetColumnWidth() - 12, height), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 		{
 			ImGui::Separator();
 
@@ -767,7 +846,8 @@ namespace NR
 			ImGui::NextColumn();
 			ImGui::NextColumn();
 			ImGui::SetNextItemWidth(ImGui::GetColumnWidth());
-			ImGui::SliderFloat("##thumbnail_size", &sThumbnailSize, 96.0f, 512.0f);
+			ImGui::SliderFloat("##thumbnail_size", &sThumbnailSize, 96.0f, 512.0f, "%.0f");
+			UI::SetTooltip("Thumbnail size");
 		}
 
 		ImGui::EndChild();

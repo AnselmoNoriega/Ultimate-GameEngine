@@ -1254,8 +1254,7 @@ namespace NR
 				IM_COL32(235, 165, 36, 255),
 				IM_COL32(235, 165, 36, 120));
 
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Compile");
+			UI::SetTooltip("Compile");
 		}
 
 		ImGui::SameLine(0, 10.0f);
@@ -1278,8 +1277,7 @@ namespace NR
 				IM_COL32(102, 204, 163, 255),
 				IM_COL32(102, 204, 163, 120), iconRect);
 
-			if (ImGui::IsItemHovered())
-				ImGui::SetTooltip("Save graph");
+			UI::SetTooltip("Save graph");
 		}
 	}
 
@@ -1331,16 +1329,11 @@ namespace NR
 
 					ed::NavigateToSelection();
 				}
-				if (ImGui::IsItemHovered() && !node.State.empty())
+
+				if (UI::IsItemHovered() && !node.State.empty())
+				{
 					ImGui::SetTooltip("State: %s", node.State.c_str());
-
-				//? Display node IDs
-				/*auto id = std::string("(") + std::to_string(node.ID) + ")";
-				auto textSize = ImGui::CalcTextSize(id.c_str(), nullptr);
-
-				ImGui::SameLine();
-				ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - textSize.x);
-				ImGui::Text(id.c_str());*/
+				}
 			}
 
 			ImGui::EndListBox();

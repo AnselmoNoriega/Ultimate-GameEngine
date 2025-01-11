@@ -25,22 +25,21 @@ namespace NR
 		ImGui::BeginGroup();
 	}
 
-	CBItemActionResult ContentBrowserItem::Render(float thumbnailSize)
+	CBItemActionResult ContentBrowserItem::Render(float thumbnailSize, bool displayAssetType)
 	{
 		CBItemActionResult result;
 
-		const bool displayType = true;
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 		
 		const float edgeOffset = 4.0f;
 		const float textLineHeight = ImGui::GetTextLineHeightWithSpacing() * 2.0f + edgeOffset * 2.0f;
-		const float infoPanelHeight = std::max(displayType ? thumbnailSize * 0.5f : textLineHeight, textLineHeight);
-		
+		const float infoPanelHeight = std::max(displayAssetType ? thumbnailSize * 0.5f : textLineHeight, textLineHeight);
+
 		const ImVec2 topLeft = ImGui::GetCursorScreenPos();
 		const ImVec2 thumbBottomRight = { topLeft.x + thumbnailSize, topLeft.y + thumbnailSize };
 		const ImVec2 infoTopLeft = { topLeft.x,				 topLeft.y + thumbnailSize };
 		const ImVec2 bottomRight = { topLeft.x + thumbnailSize, topLeft.y + thumbnailSize + infoPanelHeight };
-		
+
 		auto drawShadow = [](const ImVec2& topLeft, const ImVec2& bottomRight, bool directory)
 			{
 				auto* drawList = ImGui::GetWindowDrawList();
@@ -105,20 +104,26 @@ namespace NR
 		{
 			ImGui::BeginVertical((std::string("InfoPanel") + mName).c_str(), ImVec2(thumbnailSize - edgeOffset * 2.0f, infoPanelHeight - edgeOffset));
 			{
-				// Centre directory name
+				// Centre align directory name
 				ImGui::BeginHorizontal(mName.c_str(), ImVec2(thumbnailSize - 2.0f, 0.0f));
 				ImGui::Spring();
 				{
+					ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + (thumbnailSize - edgeOffset * 3.0f));
+
 					const float textWidth = std::min(ImGui::CalcTextSize(mName.c_str()).x, thumbnailSize);
 					ImGui::SetNextItemWidth(textWidth);
 					if (mIsRenaming)
 					{
+						ImGui::SetNextItemWidth(thumbnailSize - edgeOffset * 3.0f);
 						renamingWidget();
 					}
 					else
 					{
-						ImGui::TextWrapped(mName.c_str());
+						ImGui::SetNextItemWidth(textWidth);
+						ImGui::Text(mName.c_str());
 					}
+
+					ImGui::PopTextWrapPos();
 				}
 
 				ImGui::Spring();
@@ -132,22 +137,29 @@ namespace NR
 		{
 			ImGui::BeginVertical((std::string("InfoPanel") + mName).c_str(), ImVec2(thumbnailSize - edgeOffset * 3.0f, infoPanelHeight - edgeOffset));
 			{
-				ImGui::BeginHorizontal("label", ImVec2(0.0f, 0.0f));
+				ImGui::BeginHorizontal("label", ImVec2(0.0f, 0.0f));				
+				ImGui::SuspendLayout();
+				ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + (thumbnailSize - edgeOffset * 2.0f));
+
 				if (mIsRenaming)
 				{
+					ImGui::SetNextItemWidth(thumbnailSize - edgeOffset * 3.0f);
 					renamingWidget();
 				}
 				else
 				{
-					ImGui::TextWrapped(mName.c_str());
+					ImGui::Text(mName.c_str());
 				}
+
+				ImGui::PopTextWrapPos();
+				ImGui::ResumeLayout();
 
 				ImGui::Spring();
 				ImGui::EndHorizontal();
 			}
 			ImGui::Spring();
 
-			if (displayType)
+			if (displayAssetType)
 			{
 				ImGui::BeginHorizontal("assetType", ImVec2(0.0f, 0.0f));
 				ImGui::Spring();

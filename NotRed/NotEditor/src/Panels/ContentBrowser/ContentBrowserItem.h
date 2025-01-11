@@ -60,7 +60,7 @@ namespace NR
 		virtual ~ContentBrowserItem() = default;
 
 		void RenderBegin();
-		CBItemActionResult Render(float thumbnailSize);
+		CBItemActionResult Render(float thumbnailSize, bool displayAssetType);
 		void RenderEnd();
 
 		virtual void Delete() {}

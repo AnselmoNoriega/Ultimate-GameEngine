@@ -146,9 +146,9 @@ namespace NR
 
         void ChangeDirectory(Ref<DirectoryInfo>& directory);
         void RenderDirectoryHierarchy(Ref<DirectoryInfo>& directory);
-        void RenderTopBar();
+        void RenderTopBar(float height);
         void RenderItems();
-        void RenderBottomBar();
+        void RenderBottomBar(float height);
 
         void Refresh();
 
@@ -232,6 +232,8 @@ namespace NR
 
         bool mIsContentBrowserHovered = false;
         bool mIsContentBrowserFocused = false;
+
+        bool mShowAssetType = true;
 
     private:
         static ContentBrowserPanel* sInstance;

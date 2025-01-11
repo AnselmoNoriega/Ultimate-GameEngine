@@ -93,6 +93,21 @@ namespace NR::UI
         int mCount;
     };
 
+    // The delay won't work on texts, because the timer isn't tracked for them.
+    static bool IsItemHovered(float delayInSeconds = 0.1f, ImGuiHoveredFlags flags = 0)
+    {
+        return ImGui::IsItemHovered() && GImGui->HoveredIdTimer > delayInSeconds; /*HoveredIdNotActiveTimer*/
+    }
+
+    static void SetTooltip(std::string_view text, float delayInSeconds = 0.1f, bool allowWhenDisabled = true)
+    {
+        if (IsItemHovered(delayInSeconds, allowWhenDisabled ? ImGuiHoveredFlags_AllowWhenDisabled : 0))
+        {
+            UI::ScopedColor textCol(ImGuiCol_Text, Colors::Theme::textBrighter);
+            ImGui::SetTooltip(text.data());
+        }
+    }
+
     //=========================================================================================
     /// Colors
     static ImU32 ColorWithValue(const ImColor& color, float value)

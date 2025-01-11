@@ -1461,16 +1461,25 @@ namespace NR::UI
         UI::PushID();
         UI::ShiftCursorY(1.0f);
 
+        const bool layoutSuspended = []
+            {
+                ImGuiWindow* window = ImGui::GetCurrentWindow();
+                if (window->DC.CurrentLayout)
+                {
+                    ImGui::SuspendLayout();
+                    return true;
+                }
+                return false;
+            }();
+
         bool modified = false;
         bool searching = false;
 
         const float areaPosX = ImGui::GetCursorPosX();
-        const float areaPosY = ImGui::GetCursorPosY();
-        const ImVec2 areaMax = ImGui::GetItemRectMax();
-        const float spacingY = 3.0f;
+        const float framePaddingY = ImGui::GetStyle().FramePadding.y;
 
         UI::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 3.0f);
-        UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(28.0f, spacingY));
+        UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(28.0f, framePaddingY));
 
         if constexpr (std::is_same<StringType, std::string>::value)
         {
@@ -1489,39 +1498,49 @@ namespace NR::UI
             static_assert(std::is_same<decltype(&searchString[0]), char*>::value,
                 "searchString paramenter must be std::string& or char*");
             if (ImGui::InputText(GenerateID(), searchString, BuffSize))
+            {
                 modified = true;
+            }
             searching = searchString[0] != 0;
         }
         UI::DrawItemActivityOutline(3.0f, true, Colors::Theme::accent);
         ImGui::SetItemAllowOverlap();
 
         ImGui::SameLine(areaPosX + 5.0f);
+        
+        if (layoutSuspended)
+        {
+            ImGui::ResumeLayout();
+        }
+
         ImGui::BeginHorizontal(GenerateID(), ImGui::GetItemRectSize());
         
-        static Ref<Texture2D> s_SearchIcon = Texture2D::Create("Resources/Editor/search.png");
-        static Ref<Texture2D> s_ClearIcon = Texture2D::Create("Resources/Editor/close.png");
+        static Ref<Texture2D> sSearchIcon = Texture2D::Create("Resources/Editor/search.png");
+        static Ref<Texture2D> sClearIcon = Texture2D::Create("Resources/Editor/close.png");
         const ImVec2 iconSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
 
         // Search icon
         {
-            UI::ShiftCursorY(spacingY - 2.0f);
-            UI::Image(s_SearchIcon, iconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+            const float iconYOffset = framePaddingY - 2.0f;
+            UI::ShiftCursorY(iconYOffset);
+            UI::Image(sSearchIcon, iconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+            UI::ShiftCursorY(-iconYOffset);
 
             if (!searching)
             {
-                UI::ShiftCursorY(-spacingY);
+                UI::ShiftCursorY(-framePaddingY + 1.0f);
                 UI::ScopedColor text(ImGuiCol_Text, Colors::Theme::textDarker);
-                UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, spacingY));
+                UI::ScopedStyle padding(ImGuiStyleVar_FramePadding, ImVec2(0.0f, framePaddingY));
                 ImGui::TextUnformatted(hint);
+                UI::ShiftCursorY(-1.0f);
             }
-            UI::ShiftCursorY(2.0f);
         }
 
         ImGui::Spring();
         if (searching)
         {
-            const float spacingX = 4.0f;
-            const float lineHeight = ImGui::GetItemRectSize().y - spacingY / 2.0f;
+            const float spacingX = 4.0f;			
+            const float lineHeight = ImGui::GetItemRectSize().y - framePaddingY / 2.0f;
 
             if (ImGui::InvisibleButton(GenerateID(), ImVec2{ lineHeight, lineHeight }))
             {
@@ -1542,7 +1561,7 @@ namespace NR::UI
                 ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
             }
 
-            UI::DrawButtonImage(s_ClearIcon, IM_COL32(160, 160, 160, 200),
+            UI::DrawButtonImage(sClearIcon, IM_COL32(160, 160, 160, 200),
                 IM_COL32(170, 170, 170, 255),
                 IM_COL32(160, 160, 160, 150),
                 UI::RectExpanded(UI::GetItemRect(), -2.0f, -2.0f));
@@ -1584,5 +1603,28 @@ namespace NR::UI
         }
 
         return choc::text::contains(nameSanitized, searchString);
+    }
+
+    namespace Buttons
+    {
+        static bool Options()
+        {
+            const bool clicked = ImGui::InvisibleButton("##options", ImVec2{ ImGui::GetFrameHeight(), ImGui::GetFrameHeight() });
+            
+            static Ref<Texture2D> sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
+            const float spaceAvail = std::min(ImGui::GetItemRectSize().x, ImGui::GetItemRectSize().y);
+            constexpr float desiredIconSize = 15.0f;
+            const float padding = std::max((spaceAvail - desiredIconSize) / 2.0f, 0.0f);
+            constexpr auto buttonColor = Colors::Theme::text;
+            const uint8_t value = uint8_t(ImColor(buttonColor).Value.x * 255);
+            
+            UI::DrawButtonImage(
+                sGearIcon, IM_COL32(value, value, value, 200),
+                IM_COL32(value, value, value, 255),
+                IM_COL32(value, value, value, 150),
+                UI::RectExpanded(UI::GetItemRect(), -padding, -padding));
+            
+            return clicked;
+        }
     }
 }
