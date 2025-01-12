@@ -359,7 +359,7 @@ namespace NR
         static int moveOffsetX;
         static int moveOffsetY;
         const float w = ImGui::GetContentRegionAvail().x;
-        const float buttonsAreaWidth = 94;
+        const float buttonsAreaWidth = 165;
         
         // Title bar drag area
         if (ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight), ImGuiButtonFlags_PressedOnClick))
@@ -411,8 +411,8 @@ namespace NR
         const ImU32 buttonColN = UI::ColorWithMultipliedValue(Colors::Theme::text, 0.9f);
         const ImU32 buttonColH = UI::ColorWithMultipliedValue(Colors::Theme::text, 1.2f);
         const ImU32 buttonColP = Colors::Theme::textDarker;
-        const float buttonWidth = 14.0f;
-        const float buttonHeight = 14.0f;
+        const float buttonWidth = 34.0f;
+        const float buttonHeight = 34.0f;
 
         // Minimize Button
         ImGui::Spring();
@@ -422,7 +422,7 @@ namespace NR
             const int iconHeight = mIconMinimize->GetHeight();
 
             const float padY = (buttonHeight - (float)iconHeight) / 2.0f;
-            if (ImGui::InvisibleButton("Minimize", ImVec2(buttonWidth, buttonHeight)))
+            if (ImGui::InvisibleButton("Minimize", ImVec2(buttonWidth * 1.2f, buttonHeight * 1.2f)))
             {
                 if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
                 {
@@ -441,7 +441,7 @@ namespace NR
 
             auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
             bool isMaximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
-            if (ImGui::InvisibleButton("Maximize", ImVec2(buttonWidth, buttonHeight)))
+            if (ImGui::InvisibleButton("Maximize", ImVec2(buttonWidth, buttonHeight * 0.8f)))
             {
                 if (isMaximized)
                 {
@@ -462,7 +462,7 @@ namespace NR
         {
             const int iconWidth = mIconClose->GetWidth();
             const int iconHeight = mIconClose->GetHeight();
-            if (ImGui::InvisibleButton("Close", ImVec2(buttonWidth, buttonHeight)))
+            if (ImGui::InvisibleButton("Close", ImVec2(buttonWidth * 1.2f, buttonHeight * 0.8f)))
             {
                 Application::Get().Close();
             }
