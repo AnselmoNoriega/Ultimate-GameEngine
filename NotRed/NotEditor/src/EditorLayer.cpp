@@ -81,6 +81,7 @@ namespace NR
         mLogoTex = Texture2D::Create("Resources/Editor/NR_logo.png", clampProps);
         mIconMinimize = Texture2D::Create("Resources/Editor/window_minimize.png", clampProps);
         mIconMaximize = Texture2D::Create("Resources/Editor/window_maximize.png", clampProps);
+        mIconRestore = Texture2D::Create("Resources/Editor/window_restore.png", clampProps);
         mIconClose = Texture2D::Create("Resources/Editor/window_close.png", clampProps);
 
         mPointLightIcon = Texture2D::Create("Resources/Editor/Icons/PointLight.png");
@@ -369,11 +370,11 @@ namespace NR
             RECT rect;
             GetCursorPos(&point);
             GetWindowRect(winW, &rect);
-#endif
 
             // Calculate the difference between the cursor pos and window pos
             moveOffsetX = point.x - rect.left;
             moveOffsetY = point.y - rect.top;
+#endif
         }
 
         if (ImGui::IsItemActive())
@@ -384,7 +385,7 @@ namespace NR
                 int maximized = glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
                 if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
                 {
-                    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)/* && !maximized*/)
+                    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && !maximized)
                     {
                         //HWND winW = GetActiveWindow();
                         POINT point;
@@ -404,8 +405,15 @@ namespace NR
             ImGui::SetCursorPos(ImVec2(logoOffset, 4.0f));
             DrawMenubar();
         }
-
         ImGui::ResumeLayout();
+
+        // Window buttons
+        const ImU32 buttonColN = UI::ColorWithMultipliedValue(Colors::Theme::text, 0.9f);
+        const ImU32 buttonColH = UI::ColorWithMultipliedValue(Colors::Theme::text, 1.2f);
+        const ImU32 buttonColP = Colors::Theme::textDarker;
+        const float buttonWidth = 14.0f;
+        const float buttonHeight = 14.0f;
+
         // Minimize Button
         ImGui::Spring();
         UI::ShiftCursorY(8.0f);
@@ -413,17 +421,15 @@ namespace NR
             const int iconWidth = mIconMinimize->GetWidth();
             const int iconHeight = mIconMinimize->GetHeight();
 
-            if (ImGui::InvisibleButton("Minimize", ImVec2(iconWidth, iconHeight)))
+            const float padY = (buttonHeight - (float)iconHeight) / 2.0f;
+            if (ImGui::InvisibleButton("Minimize", ImVec2(buttonWidth, buttonHeight)))
             {
-#if defined(NR_PLATFORM_WINDOWS)
-                // TODO: move this stuff to a better place, like Window class
                 if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
                 {
                     glfwIconifyWindow(window);
                 }
-#endif
             }
-            UI::DrawButtonImage(mIconMinimize, IM_COL32(192, 192, 192, 255), IM_COL32(255, 255, 255, 255), IM_COL32(100, 100, 100, 255));
+            UI::DrawButtonImage(mIconMinimize, buttonColN, buttonColH, buttonColP, UI::RectExpanded(UI::GetItemRect(), 0.0f, -padY));
         }
 
         // Maximize Button
@@ -432,25 +438,22 @@ namespace NR
         {
             const int iconWidth = mIconMaximize->GetWidth();
             const int iconHeight = mIconMaximize->GetHeight();
-            if (ImGui::InvisibleButton("Maximize", ImVec2(iconWidth, iconHeight)))
+
+            auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+            bool isMaximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+            if (ImGui::InvisibleButton("Maximize", ImVec2(buttonWidth, buttonHeight)))
             {
-#if defined(NR_PLATFORM_WINDOWS)
-                // TODO: move this stuff to a better place, like Window class
-                if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+                if (isMaximized)
                 {
-                    int maximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
-                    if (maximized)
-                    {
-                        glfwRestoreWindow(window);
-                    }
-                    else
-                    {
-                        Application::Get().GetWindow().Maximize();
-                    }
+                    glfwRestoreWindow(window);
                 }
-#endif
+                else
+                {
+                    Application::Get().GetWindow().Maximize();
+                }
             }
-            UI::DrawButtonImage(mIconMaximize, IM_COL32(180, 180, 180, 255), IM_COL32(255, 255, 255, 255), IM_COL32(100, 100, 100, 255));
+
+            UI::DrawButtonImage(isMaximized ? mIconRestore : mIconMaximize, buttonColN, buttonColH, buttonColP);
         }
 
         // Close Button
@@ -459,11 +462,12 @@ namespace NR
         {
             const int iconWidth = mIconClose->GetWidth();
             const int iconHeight = mIconClose->GetHeight();
-            if (ImGui::InvisibleButton("Close", ImVec2(iconWidth, iconHeight)))
+            if (ImGui::InvisibleButton("Close", ImVec2(buttonWidth, buttonHeight)))
             {
                 Application::Get().Close();
             }
-            UI::DrawButtonImage(mIconClose, IM_COL32(180, 180, 180, 255), IM_COL32(255, 255, 255, 255), IM_COL32(100, 100, 100, 255));
+
+            UI::DrawButtonImage(mIconClose, Colors::Theme::text, UI::ColorWithMultipliedValue(Colors::Theme::text, 1.4f), buttonColP);
         }
 
         ImGui::Spring(-1.0f, 18.0f);

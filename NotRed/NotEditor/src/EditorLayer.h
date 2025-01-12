@@ -155,7 +155,7 @@ namespace NR
 		Ref<Texture2D> mCheckerboardTex;
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
 		Ref<Texture2D> mSelectToolTex, mMoveToolTex, mRotateToolTex, mScaleToolTex;
-		Ref<Texture2D> mIconMinimize, mIconMaximize, mIconClose;
+		Ref<Texture2D> mIconMinimize, mIconMaximize, mIconRestore, mIconClose;
 		Ref<Texture2D> mLogoTex;
 		
 		// Icons

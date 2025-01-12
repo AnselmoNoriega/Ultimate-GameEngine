@@ -91,19 +91,22 @@ namespace NR
 	NodeGraphEditorBase::NodeGraphEditorBase()
 		: AssetEditor("Node Editor")
 	{
+		TextureProperties clampProps;
+		clampProps.SamplerWrap = TextureWrap::Clamp;
+
 		mHeaderBackground = Texture2D::Create("Resources/Editor/NodeGraphEditor/translucency_2_hor.png");
-		mShadow = Texture2D::Create("Resources/Editor/NodeGraphEditor/shadow line_top.png");
-		mSaveIcon = Texture2D::Create("Resources/Editor/ic_save_white_24dp.png");
-		mCompileIcon = Texture2D::Create("Resources/Editor/NodeGraphEditor/compile_38px.png");
+		mShadow = Texture2D::Create("Resources/Editor/NodeGraphEditor/shadow line_top.png", clampProps);
+		mSaveIcon = Texture2D::Create("Resources/Editor/ic_save_white_24dp.png", clampProps);
+		mCompileIcon = Texture2D::Create("Resources/Editor/NodeGraphEditor/compile_38px.png", clampProps);
 
-		mSearchIcon = Texture2D::Create("Resources/Editor/search.png");
+		mSearchIcon = Texture2D::Create("Resources/Editor/search.png", clampProps);
 
-		mIconPin_V_C = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_value_con.png");
-		mIconPin_V_D = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_value_disc.png");
-		mIconPin_F_C = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_func_con.png");
-		mIconPin_F_D = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_func_disc.png");
-		mIconPin_A_C = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_audio_con.png");
-		mIconPin_A_D = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_audio_disc.png");
+		mIconPin_V_C = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_value_con.png", clampProps);
+		mIconPin_V_D = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_value_disc.png", clampProps);
+		mIconPin_F_C = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_func_con.png", clampProps);
+		mIconPin_F_D = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_func_disc.png", clampProps);
+		mIconPin_A_C = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_audio_con.png", clampProps);
+		mIconPin_A_D = Texture2D::Create("Resources/Editor/NodeGraphEditor/pin_audio_disc.png", clampProps);
 
 		mState = std::make_unique<ContextState>();
 	}
@@ -476,9 +479,10 @@ namespace NR
 			ed::Suspend();
 
 			UI::ScopedStyle windowPadding(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
-			UI::ScopedColorStack popupColors(ImGuiCol_HeaderHovered, IM_COL32(45, 46, 51, 255),
+			UI::ScopedStyle disableBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
+			UI::ScopedColorStack popupColours(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80),
 				ImGuiCol_Separator, IM_COL32(90, 90, 90, 255),
-				ImGuiCol_Text, IM_COL32(210, 210, 210, 255));
+				ImGuiCol_Text, Colors::Theme::textBrighter);
 
 			if (UI::BeginPopup("Node Context Menu"))
 			{
@@ -541,8 +545,8 @@ namespace NR
 				for (const auto& [categoryName, category] : nodeRegistry)
 				{
 					UI::ScopedColorStack headerColors(ImGuiCol_Header, IM_COL32(255, 255, 255, 0),
-						ImGuiCol_HeaderActive, IM_COL32(45, 46, 51, 255),
-						ImGuiCol_HeaderHovered, IM_COL32(45, 46, 51, 255));
+						ImGuiCol_HeaderActive, IM_COL32(45, 46, 51, 255), 
+						ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80));
 
 					// Can use this instead of the collapsing header
 					//UI::PopupMenuHeader(categoryName, true, false);
