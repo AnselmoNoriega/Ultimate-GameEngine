@@ -625,7 +625,7 @@ namespace NR
                 IM_COL32(160, 160, 160, 150),
                 UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f));
 
-            if (ImGui::BeginPopup("ComponentSettings"))
+            if (UI::BeginPopup("ComponentSettings"))
             {
                 if (ImGui::MenuItem("Reset"))
                 {
@@ -640,7 +640,7 @@ namespace NR
                     }
                 }
 
-                ImGui::EndPopup();
+                UI::EndPopup();
             }
 
             if (open)
@@ -832,167 +832,171 @@ namespace NR
         ImGui::Spacing();
         ImGui::Spacing();
 
-        if (ImGui::BeginPopup("AddComponentPanel"))
         {
-            if (!mSelectionContext.HasComponent<CameraComponent>())
+            UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
+            if (UI::BeginPopup("AddComponentPanel"))
             {
-                if (ImGui::Button("Camera"))
+                if (!mSelectionContext.HasComponent<CameraComponent>())
                 {
-                    mSelectionContext.AddComponent<CameraComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<MeshComponent>())
-            {
-                if (ImGui::Button("Mesh"))
-                {
-                    mSelectionContext.AddComponent<MeshComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<ParticleComponent>())
-            {
-                if (ImGui::Button("Particle"))
-                {
-                    mSelectionContext.AddComponent<ParticleComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<DirectionalLightComponent>())
-            {
-                if (ImGui::Button("Directional Light"))
-                {
-                    mSelectionContext.AddComponent<DirectionalLightComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<PointLightComponent>())
-            {
-                if (ImGui::Button("Point Light"))
-                {
-                    mSelectionContext.AddComponent<PointLightComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<SkyLightComponent>())
-            {
-                if (ImGui::Button("Sky Light"))
-                {
-                    mSelectionContext.AddComponent<SkyLightComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<ScriptComponent>())
-            {
-                if (ImGui::Button("Script"))
-                {
-                    mSelectionContext.AddComponent<ScriptComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<SpriteRendererComponent>())
-            {
-                if (ImGui::Button("Sprite Renderer"))
-                {
-                    mSelectionContext.AddComponent<SpriteRendererComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<RigidBody2DComponent>())
-            {
-                if (ImGui::Button("Rigidbody 2D"))
-                {
-                    mSelectionContext.AddComponent<RigidBody2DComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<BoxCollider2DComponent>())
-            {
-                if (ImGui::Button("Box Collider 2D"))
-                {
-                    mSelectionContext.AddComponent<BoxCollider2DComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<CircleCollider2DComponent>())
-            {
-                if (ImGui::Button("Circle Collider 2D"))
-                {
-                    mSelectionContext.AddComponent<CircleCollider2DComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<RigidBodyComponent>())
-            {
-                if (ImGui::Button("Rigidbody"))
-                {
-                    mSelectionContext.AddComponent<RigidBodyComponent>();
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<BoxColliderComponent>())
-            {
-                if (ImGui::Button("Box Collider"))
-                {
-                    auto& bcc = mSelectionContext.AddComponent<BoxColliderComponent>();
-                    bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<SphereColliderComponent>())
-            {
-                if (ImGui::Button("Sphere Collider"))
-                {
-                    auto& scc = mSelectionContext.AddComponent<SphereColliderComponent>();
-                    scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<SphereColliderComponent>())
-            {
-                if (ImGui::Button("Capsule Collider"))
-                {
-                    auto& ccc = mSelectionContext.AddComponent<CapsuleColliderComponent>();
-                    ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
-                    ImGui::CloseCurrentPopup();
-                }
-            }
-            if (!mSelectionContext.HasComponent<MeshColliderComponent>())
-            {
-                if (ImGui::Button("Mesh Collider"))
-                {
-                    MeshColliderComponent& component = mSelectionContext.AddComponent<MeshColliderComponent>();
-                    if (mSelectionContext.HasComponent<MeshComponent>())
+                    if (ImGui::MenuItem("Camera"))
                     {
-                        component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
-                        CookingFactory::CookMesh(component);
+                        mSelectionContext.AddComponent<CameraComponent>();
+                        ImGui::CloseCurrentPopup();
                     }
-
-                    ImGui::CloseCurrentPopup();
                 }
-            }
-            if (!mSelectionContext.HasComponent<AudioComponent>())
-            {
-                if (ImGui::Button("Audio"))
+                if (!mSelectionContext.HasComponent<MeshComponent>())
                 {
-                    mSelectionContext.AddComponent<AudioComponent>();
-                    ImGui::CloseCurrentPopup();
+                    if (ImGui::MenuItem("Mesh"))
+                    {
+                        mSelectionContext.AddComponent<MeshComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
                 }
-            }
-            if (!mSelectionContext.HasComponent<AudioListenerComponent>())
-            {
-                if (ImGui::Button("Audio Listener"))
+                if (!mSelectionContext.HasComponent<DirectionalLightComponent>())
                 {
-                    auto view = mContext->GetAllEntitiesWith<AudioListenerComponent>();
-                    bool listenerExists = !view.empty();
-                    auto& listenerComponent = mSelectionContext.AddComponent<AudioListenerComponent>();
-
-                    listenerComponent.Active = !listenerExists;
-                    AudioEngine::Get().RegisterNewListener(listenerComponent);
-                    ImGui::CloseCurrentPopup();
+                    if (ImGui::MenuItem("Directional Light"))
+                    {
+                        mSelectionContext.AddComponent<DirectionalLightComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
                 }
+                if (!mSelectionContext.HasComponent<PointLightComponent>())
+                {
+                    if (ImGui::MenuItem("Point Light"))
+                    {
+                        mSelectionContext.AddComponent<PointLightComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<SkyLightComponent>())
+                {
+                    if (ImGui::MenuItem("Sky Light"))
+                    {
+                        mSelectionContext.AddComponent<SkyLightComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<ScriptComponent>())
+                {
+                    if (ImGui::MenuItem("Script"))
+                    {
+                        mSelectionContext.AddComponent<ScriptComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<SpriteRendererComponent>())
+                {
+                    if (ImGui::MenuItem("Sprite Renderer"))
+                    {
+                        mSelectionContext.AddComponent<SpriteRendererComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<RigidBody2DComponent>())
+                {
+                    if (ImGui::MenuItem("Rigidbody 2D"))
+                    {
+                        mSelectionContext.AddComponent<RigidBody2DComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<BoxCollider2DComponent>())
+                {
+                    if (ImGui::MenuItem("Box Collider 2D"))
+                    {
+                        mSelectionContext.AddComponent<BoxCollider2DComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<CircleCollider2DComponent>())
+                {
+                    if (ImGui::MenuItem("Circle Collider 2D"))
+                    {
+                        mSelectionContext.AddComponent<CircleCollider2DComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<RigidBodyComponent>())
+                {
+                    if (ImGui::MenuItem("Rigidbody"))
+                    {
+                        mSelectionContext.AddComponent<RigidBodyComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<BoxColliderComponent>())
+                {
+                    if (ImGui::MenuItem("Box Collider"))
+                    {
+                        auto& bcc = mSelectionContext.AddComponent<BoxColliderComponent>();
+                        bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<SphereColliderComponent>())
+                {
+                    if (ImGui::MenuItem("Sphere Collider"))
+                    {
+                        auto& scc = mSelectionContext.AddComponent<SphereColliderComponent>();
+                        scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<CapsuleColliderComponent>())
+                {
+                    if (ImGui::MenuItem("Capsule Collider"))
+                    {
+                        auto& ccc = mSelectionContext.AddComponent<CapsuleColliderComponent>();
+                        ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<MeshColliderComponent>())
+                {
+                    if (ImGui::MenuItem("Mesh Collider"))
+                    {
+                        MeshColliderComponent& component = mSelectionContext.AddComponent<MeshColliderComponent>();
+                        if (mSelectionContext.HasComponent<MeshComponent>())
+                        {
+                            component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshObj;
+                            CookingFactory::CookMesh(component);
+                        }
+
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<AudioComponent>())
+                {
+                    if (ImGui::MenuItem("Audio"))
+                    {
+                        mSelectionContext.AddComponent<AudioComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<AudioListenerComponent>())
+                {
+                    if (ImGui::MenuItem("Audio Listener"))
+                    {
+                        auto view = mContext->GetAllEntitiesWith<AudioListenerComponent>();
+                        bool listenerExists = !view.empty();
+                        auto& listenerComponent = mSelectionContext.AddComponent<AudioListenerComponent>();
+                        // If this is the only listener, make it Active (only affects Runtime)
+                        listenerComponent.Active = !listenerExists;
+                        AudioEngine::Get().RegisterNewListener(listenerComponent);
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<ParticleComponent>())
+                {
+                    if (ImGui::MenuItem("Particle"))
+                    {
+                        mSelectionContext.AddComponent<ParticleComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+
+                UI::EndPopup();
             }
-            ImGui::EndPopup();
         }
 
         DrawComponent<TransformComponent>("Transform", entity, [](TransformComponent& component)

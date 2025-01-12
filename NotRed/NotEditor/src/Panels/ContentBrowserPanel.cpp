@@ -217,6 +217,8 @@ namespace NR
 					{
 						ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 						ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 0.35f));
+						ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
+
 						if (ImGui::BeginPopupContextWindow(0, 1))
 						{
 							if (ImGui::BeginMenu("New"))
@@ -283,6 +285,7 @@ namespace NR
 
 							ImGui::EndPopup();
 						}
+						ImGui::PopStyleVar(); // ItemSpacing
 
 						const float scrollBarrOffset = 20.0f + ImGui::GetStyle().ScrollbarSize;
 						float panelWidth = ImGui::GetContentRegionAvail().x - scrollBarrOffset;
@@ -690,13 +693,13 @@ namespace NR
 			}
 			UI::SetTooltip("Content Browser settings");
 
-			if (ImGui::BeginPopup("ContentBrowserSettings"))
+			if (UI::BeginPopup("ContentBrowserSettings"))
 			{
 				if (ImGui::MenuItem("Show asset type", nullptr, &mShowAssetType))
 				{
 				}
 
-				ImGui::EndPopup();
+				UI::EndPopup();
 			}
 
 		}

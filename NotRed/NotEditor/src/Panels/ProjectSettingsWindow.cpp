@@ -147,8 +147,8 @@ namespace NR
                 UI::PropertyDropdown("Debug Type", debugTypeStrings, 2, (int*)&settings.DebugType);
 #endif
 
-                ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::BGDarkSeparators);
-                ImGui::PushStyleColor(ImGuiCol_Border, Colors::BGDarkSeparators);
+                ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Theme::backgroundDark);
+                ImGui::PushStyleColor(ImGuiCol_Border, Colors::Theme::backgroundDark);
                 auto singleColumnSeparator = []
                     {
                         ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -197,7 +197,7 @@ namespace NR
                     bool selected = mSelectedLayer == layer.ID;
                     if (selected)
                     {
-                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::BGDarkSeparators);
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
                         flags |= ImGuiTreeNodeFlags_Selected;
                     }
 

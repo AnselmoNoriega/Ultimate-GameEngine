@@ -262,41 +262,49 @@ namespace NR
 		ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::text);
 
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowTitleAlign, { 0.5f, 0.0f });
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, { 0.0f, 8.0f });
 		ImGui::Begin("Audio Events Editor", &show, ImGuiWindowFlags_NoCollapse);
 		sWindowHandle = ImGui::GetCurrentWindow();
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(2);
 
 		const auto width = ImGui::GetContentRegionAvail().x;
 
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::BGDarkSeparators);
-		ImGui::PushStyleColor(ImGuiCol_Border, Colors::BGDarkSeparators);
+		ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Theme::backgroundDark);
+		ImGui::PushStyleColor(ImGuiCol_Border, Colors::Theme::backgroundDark);
 
-		//? ImGui is weird with Separator color, it doesn't work with PushStyleColor()
-		auto& colors = ImGui::GetStyle().Colors;
-		auto oldSeparatorCol = colors[ImGuiCol_Separator];
-		colors[ImGuiCol_Separator] = Colors::BGDarkSeparators;
+		ImGuiTableFlags tableFlags = ImGuiTableFlags_Resizable
+			| ImGuiTableFlags_SizingFixedFit
+			| ImGuiTableFlags_PadOuterX
+			| ImGuiTableFlags_NoHostExtendY
+			| ImGuiTableFlags_BordersInnerV;
 
-		ImGui::PushID(0); // Columns
-		ImGui::Columns(2);
+		UI::ScopedStyle cellPadding(ImGuiStyleVar_CellPadding, ImVec2(8.0f, 8.0f));
 
-		static bool sSetInitialWidth = true;
-		if (sSetInitialWidth)
+		UI::ShiftCursorX(4.0f);
+
+		UI::PushID();
+
+		if (ImGui::BeginTable(
+			UI::GenerateID(), 2, tableFlags, 
+			ImVec2(ImGui::GetContentRegionAvail().x,
+			ImGui::GetContentRegionAvail().y - 8.0f)))
 		{
-			ImGui::SetColumnWidth(0, width / 3.0f);
-			sSetInitialWidth = false;
+			ImGui::TableSetupColumn("Events", 0, 300.0f);
+			ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+
+			DrawEventsList();
+
+			ImGui::TableSetColumnIndex(1);
+
+			DrawSelectionDetails();
+			ImGui::EndTable();
 		}
 
-		DrawEventsList();
-
-		ImGui::NextColumn();
-
-		DrawSelectionDetails();
-
+		UI::PopID();
 		ImGui::PopStyleColor(3);
-		ImGui::EndColumns();
-		ImGui::PopID(); // Columns
-
-		colors[ImGuiCol_Separator] = oldSeparatorCol;
 
 		ImGui::End(); // Audio Evnets Editor
 
@@ -474,7 +482,7 @@ namespace NR
 			// Draw an outline around the last selected item which details are now displayed
 			if (selected && sSelection.GetLast() == treeNode && isWindowFocused)
 			{
-				const ImU32 frameColor = Colors::text;
+				const ImU32 frameColor = Colors::Theme::text;
 				ImGui::PushStyleColor(ImGuiCol_Border, frameColor);
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
 				ImGui::RenderFrameBorder(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), 0.0f);
@@ -1266,7 +1274,7 @@ namespace NR
 
 			ImGui::PushID(std::string("MoveAction" + std::to_string(i)).c_str());
 			UI::ImageButton(sMoveIcon, ImVec2(ImGui::GetFrameHeight() - 12.0f, ImGui::GetFrameHeight() - 12.0f),
-				ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 6, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), ImGui::ColorConvertU32ToFloat4(Colors::text));
+				ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 6, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), ImGui::ColorConvertU32ToFloat4(Colors::Theme::text));
 			ImGui::PopID();
 
 			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
@@ -1297,7 +1305,7 @@ namespace NR
 				|| action.Type == EActionType::StopAll || action.Type == EActionType::SeekAll)
 			{
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::PushStyleColor(ImGuiCol_Text, Colors::muted);
+				ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::muted);
 				targetDisabled = true;
 			}
 
@@ -1327,7 +1335,7 @@ namespace NR
 			if (action.Type == EActionType::Play || action.Type == EActionType::PostTrigger) // TODO: disable also for SetSwitch
 			{
 				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::PushStyleColor(ImGuiCol_Text, Colors::muted);
+				ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::muted);
 				contextDisabled = true;
 			}
 
@@ -1349,7 +1357,7 @@ namespace NR
 			ImGui::SameLine(0.0f, spacing);
 			ImGui::PushID(std::string("DeleteAction" + std::to_string(i)).c_str());
 			UI::ImageButton(sDeleteIcon, ImVec2(ImGui::GetFrameHeight() - 6.0f, ImGui::GetFrameHeight() - 6.0f),
-				ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 3, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), ImGui::ColorConvertU32ToFloat4(Colors::textDarker));
+				ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f), 3, ImVec4(0.0f, 0.0f, 0.0f, 0.0f), ImGui::ColorConvertU32ToFloat4(Colors::Theme::textDarker));
 			/*{
 				// TODO: this should cause issues with itereation, somehow it doesn't
 				trigger.Actions.ErasePosition(i);
@@ -1411,7 +1419,7 @@ namespace NR
 			ImGui::OpenPopup("AddActionsPopup");
 		}
 
-		if (ImGui::BeginPopup("AddActionsPopup"))
+		if (UI::BeginPopup("AddActionsPopup"))
 		{
 			if (ImGui::MenuItem("Play", nullptr, false))
 			{
@@ -1437,7 +1445,7 @@ namespace NR
 				trigger.Actions.PushBack(triggerAction);
 				ImGui::CloseCurrentPopup();
 			}
-			ImGui::EndPopup();
+			UI::EndPopup();
 		}
 	}
 

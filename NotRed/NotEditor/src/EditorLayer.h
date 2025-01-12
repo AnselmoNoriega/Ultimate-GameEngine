@@ -92,6 +92,8 @@ namespace NR
 		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
 
 		void UpdateWindowTitle(const std::string& sceneName);
+		void DrawMenubar();
+		float DrawTitlebar();
 
 		float GetSnapValue();
 
@@ -153,6 +155,8 @@ namespace NR
 		Ref<Texture2D> mCheckerboardTex;
 		Ref<Texture2D> mPlayButtonTex, mStopButtonTex, mPauseButtonTex;
 		Ref<Texture2D> mSelectToolTex, mMoveToolTex, mRotateToolTex, mScaleToolTex;
+		Ref<Texture2D> mIconMinimize, mIconMaximize, mIconClose;
+		Ref<Texture2D> mLogoTex;
 		
 		// Icons
 		Ref<Texture2D> mPointLightIcon;

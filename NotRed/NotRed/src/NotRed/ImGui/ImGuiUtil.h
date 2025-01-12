@@ -277,6 +277,123 @@ namespace NR::UI
     }
 
     //=========================================================================================
+    /// Window
+
+    static bool BeginPopup(const char* str_id, ImGuiWindowFlags flags = 0)
+    {
+        bool opened = false;
+        if (ImGui::BeginPopup(str_id, flags))
+        {
+            opened = true;
+
+            // Fill background wiht nice gradient
+            const float padding = ImGui::GetStyle().WindowBorderSize;
+            const ImRect windowRect = UI::RectExpanded(ImGui::GetCurrentWindow()->Rect(), -padding, -padding);
+            
+            ImGui::PushClipRect(windowRect.Min, windowRect.Max, false);
+            
+            const ImColor col1 = Colors::Theme::backgroundPopup;
+            const ImColor col2 = UI::ColorWithMultipliedValue(col1, 0.8f);
+            
+            ImGui::GetWindowDrawList()->AddRectFilledMultiColor(windowRect.Min, windowRect.Max, col1, col1, col2, col2);
+            ImGui::PopClipRect();
+            
+            // Popped in EndPopup()
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80));
+        }
+
+        return opened;
+    }
+
+    static void EndPopup()
+    {
+        ImGui::PopStyleColor(); // HeaderHovered;
+        ImGui::EndPopup();
+    }
+
+    // MenuBar which allows you to specify its rectangle
+    static bool BeginMenuBar(const ImRect& barRectangle)
+    {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems)
+        {
+            return false;
+        }
+
+        IM_ASSERT(!window->DC.MenuBarAppending);
+        ImGui::BeginGroup(); // Backup position on layer 0 // FIXME: Misleading to use a group for that backup/restore
+        ImGui::PushID("##menubar");
+        
+        // We don't clip with current window clipping rectangle as it is already set to the area below. However we clip with window full rect.
+        // We remove 1 worth of rounding to Max.x to that text in long menus and small windows don't tend to display over the lower-right rounded area, which looks particularly glitchy.
+        ImRect bar_rect = barRectangle;
+        ImRect clip_rect(IM_ROUND(bar_rect.Min.x + window->WindowBorderSize), IM_ROUND(bar_rect.Min.y + window->WindowBorderSize), IM_ROUND(ImMax(bar_rect.Min.x, bar_rect.Max.x - ImMax(window->WindowRounding, window->WindowBorderSize))), IM_ROUND(bar_rect.Max.y));
+        clip_rect.ClipWith(window->OuterRectClipped);
+        ImGui::PushClipRect(clip_rect.Min, clip_rect.Max, false);
+
+        // We overwrite CursorMaxPos because BeginGroup sets it to CursorPos (essentially the .EmitItem hack in EndMenuBar() would need something analogous here, maybe a BeginGroupEx() with flags).
+        window->DC.CursorPos = window->DC.CursorMaxPos = ImVec2(bar_rect.Min.x, bar_rect.Min.y);
+        window->DC.LayoutType = ImGuiLayoutType_Horizontal;
+        window->DC.NavLayerCurrent = ImGuiNavLayer_Menu;
+        window->DC.MenuBarAppending = true;
+
+        ImGui::AlignTextToFramePadding();
+        
+        return true;
+    }
+
+    static void EndMenuBar()
+    {
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems)
+        {
+            return;
+        }
+
+        ImGuiContext& g = *GImGui;
+
+        // Nav: When a move request within one of our child menu failed, capture the request to navigate among our siblings.
+        if (ImGui::NavMoveRequestButNoResultYet() && (g.NavMoveDir == ImGuiDir_Left || g.NavMoveDir == ImGuiDir_Right) && (g.NavWindow->Flags & ImGuiWindowFlags_ChildMenu))
+        {
+            ImGuiWindow* nav_earliest_child = g.NavWindow;
+            while (nav_earliest_child->ParentWindow && (nav_earliest_child->ParentWindow->Flags & ImGuiWindowFlags_ChildMenu))
+            {
+                nav_earliest_child = nav_earliest_child->ParentWindow;
+            }
+
+            if (nav_earliest_child->ParentWindow == window && nav_earliest_child->DC.ParentLayoutType == ImGuiLayoutType_Horizontal)
+            {
+                // To do so we claim focus back, restore NavId and then process the movement request for yet another frame.
+                // This involve a one-frame delay which isn't very problematic in this situation. We could remove it by scoring in advance for multiple window (probably not worth the hassle/cost)
+                const ImGuiNavLayer layer = ImGuiNavLayer_Menu;
+                IM_ASSERT(window->DC.NavLayersActiveMaskNext & (1 << layer)); // Sanity check
+            
+                ImGui::FocusWindow(window);
+                ImGui::SetNavID(window->NavLastIds[layer], layer, 0, window->NavRectRel[layer]);
+                
+                g.NavDisableHighlight = true; // Hide highlight for the current frame so we don't see the intermediary selection.
+                g.NavDisableMouseHover = g.NavMousePosDirty = true;
+                
+                ImGui::NavMoveRequestCancel();
+            }
+        }
+
+        IM_MSVC_WARNING_SUPPRESS(6011);
+        IM_ASSERT(window->DC.MenuBarAppending);
+        
+        ImGui::PopClipRect();
+        ImGui::PopID();
+
+        window->DC.MenuBarOffset.x = window->DC.CursorPos.x - window->Pos.x; // Save horizontal position so next append can reuse it. This is kinda equivalent to a per-layer CursorPos.
+        g.GroupStack.back().EmitItem = false;
+        ImGui::EndGroup(); // Restore position on layer 0
+        
+        window->DC.LayoutType = ImGuiLayoutType_Vertical;
+        window->DC.NavLayerCurrent = ImGuiNavLayer_Main;
+        window->DC.MenuBarAppending = false;
+    }
+
+    //=========================================================================================
     /// Shadows
 
     static void DrawShadow(

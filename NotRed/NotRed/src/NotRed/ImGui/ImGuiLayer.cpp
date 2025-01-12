@@ -150,7 +150,11 @@ namespace NR
         colors[ImGuiCol_TableHeaderBg] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::groupHeader);
         colors[ImGuiCol_TableBorderLight] = ImGui::ColorConvertU32ToFloat4(Colors::Theme::backgroundDark);
 
+        // Menubar
+        colors[ImGuiCol_MenuBarBg] = ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f };
+        
         //========================================================
+        
         /// Style
         style.FrameRounding = 2.5f;
         style.FrameBorderSize = 1.0f;

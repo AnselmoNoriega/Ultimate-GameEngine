@@ -480,31 +480,31 @@ namespace NR
 				ImGuiCol_Separator, IM_COL32(90, 90, 90, 255),
 				ImGuiCol_Text, IM_COL32(210, 210, 210, 255));
 
-			if (ImGui::BeginPopup("Node Context Menu"))
+			if (UI::BeginPopup("Node Context Menu"))
 			{
 				auto node = GetModel()->FindNode(contextNodeId.Get());
 				DrawNodeContextMenu(node);
 
-				ImGui::EndPopup();
+				UI::EndPopup();
 			}
 
-			if (ImGui::BeginPopup("Pin Context Menu"))
+			if (UI::BeginPopup("Pin Context Menu"))
 			{
 				auto pin = GetModel()->FindPin(contextPinId.Get());
 				DrawPinContextMenu(pin);
 
-				ImGui::EndPopup();
+				UI::EndPopup();
 			}
 
-			if (ImGui::BeginPopup("Link Context Menu"))
+			if (UI::BeginPopup("Link Context Menu"))
 			{
 				auto link = GetModel()->FindLink(contextLinkId.Get());
 				DrawLinkContextMenu(link);
 
-				ImGui::EndPopup();
+				UI::EndPopup();
 			}
 
-			if (ImGui::BeginPopup("Create New Node"))
+			if (UI::BeginPopup("Create New Node"))
 			{
 				auto newNodePostion = ed::ScreenToCanvas(ImGui::GetMousePosOnOpeningCurrentPopup());
 
@@ -631,7 +631,7 @@ namespace NR
 
 				sNewNodePopupOpening = false;
 
-				ImGui::EndPopup();
+				UI::EndPopup();
 				UI::DrawShadow(mShadow, 14.0f, shadowRect, 1.3f);
 
 			}

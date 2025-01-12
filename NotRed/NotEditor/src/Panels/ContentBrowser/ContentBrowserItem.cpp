@@ -281,6 +281,7 @@ namespace NR
 			}
 		}
 
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4.0f, 4.0f));
 		if (ImGui::BeginPopupContextItem("CBItemContextMenu"))
 		{
 			result.Modify(ContentBrowserAction::Selected, true);
@@ -298,6 +299,7 @@ namespace NR
 			ContextMenuOpen(result);
 			ImGui::EndPopup();
 		}
+		ImGui::PopStyleVar();
 
 		ImGui::PopID();
 

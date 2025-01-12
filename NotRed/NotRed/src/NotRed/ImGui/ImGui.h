@@ -1271,7 +1271,7 @@ namespace NR::UI
         }
 
         ImGui::SetNextWindowSize(size);
-        if (ImGui::BeginPopup(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+        if (UI::BeginPopup(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
         {
             ImGui::SetKeyboardFocusHere(0);
 
@@ -1297,7 +1297,7 @@ namespace NR::UI
                 }
             }
 
-            ImGui::EndPopup();
+            UI::EndPopup();
         }
 
         if (IsItemDisabled())
@@ -1514,14 +1514,17 @@ namespace NR::UI
         }
 
         ImGui::BeginHorizontal(GenerateID(), ImGui::GetItemRectSize());
-        
-        static Ref<Texture2D> sSearchIcon = Texture2D::Create("Resources/Editor/search.png");
-        static Ref<Texture2D> sClearIcon = Texture2D::Create("Resources/Editor/close.png");
+
+        TextureProperties clampProps;
+        clampProps.SamplerWrap = TextureWrap::Clamp;
+
+        static Ref<Texture2D> sSearchIcon = Texture2D::Create("Resources/Editor/icon_search_24px.png", clampProps);
+        static Ref<Texture2D> sClearIcon = Texture2D::Create("Resources/Editor/close.png", clampProps);
         const ImVec2 iconSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
 
         // Search icon
         {
-            const float iconYOffset = framePaddingY - 2.0f;
+            const float iconYOffset = framePaddingY - 3.0f;
             UI::ShiftCursorY(iconYOffset);
             UI::Image(sSearchIcon, iconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
             UI::ShiftCursorY(-iconYOffset);

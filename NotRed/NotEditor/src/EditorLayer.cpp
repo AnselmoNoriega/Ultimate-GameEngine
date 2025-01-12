@@ -7,6 +7,8 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "GLFW/include/GLFW/glfw3.h"
+
 #include "imgui_internal.h"
 #include "NotRed/ImGui/ImGui.h"
 
@@ -63,14 +65,23 @@ namespace NR
         using namespace glm;
 
         // Editor
+		// Editor
+        TextureProperties clampProps;
+        clampProps.SamplerWrap = TextureWrap::Clamp;
+
         mCheckerboardTex = Texture2D::Create("Resources/Editor/Checkerboard.tga");
         mPlayButtonTex = Texture2D::Create("Resources/Editor/PlayButton.png");
         mPauseButtonTex = Texture2D::Create("Resources/Editor/PauseButton.png");
         mStopButtonTex = Texture2D::Create("Resources/Editor/StopButton.png");
-        mSelectToolTex = Texture2D::Create("Resources/Editor/SelectTool.png");
+        mSelectToolTex = Texture2D::Create("Resources/Editor/icon_pointer.png", clampProps);
         mMoveToolTex = Texture2D::Create("Resources/Editor/MoveTool.png");
-        mRotateToolTex = Texture2D::Create("Resources/Editor/RotateTool.png");
-        mScaleToolTex = Texture2D::Create("Resources/Editor/ScaleTool.png");
+        mRotateToolTex = Texture2D::Create("Resources/Editor/icon_rotate.png");
+        mScaleToolTex = Texture2D::Create("Resources/Editor/ScaleTool.png", clampProps);
+
+        mLogoTex = Texture2D::Create("Resources/Editor/NR_logo.png", clampProps);
+        mIconMinimize = Texture2D::Create("Resources/Editor/window_minimize.png", clampProps);
+        mIconMaximize = Texture2D::Create("Resources/Editor/window_maximize.png", clampProps);
+        mIconClose = Texture2D::Create("Resources/Editor/window_close.png", clampProps);
 
         mPointLightIcon = Texture2D::Create("Resources/Editor/Icons/PointLight.png");
 
@@ -160,6 +171,305 @@ namespace NR
         std::string rendererAPI = RendererAPI::Current() == RendererAPIType::Vulkan ? "Vulkan" : "OpenGL";
         std::string title = fmt::format("{0} ({1}) - NotEditor - {2} ({3}) Renderer: {4}", sceneName, Project::GetActive()->GetConfig().Name, Application::GetPlatformName(), Application::GetConfigurationName(), rendererAPI);
         Application::Get().GetWindow().SetTitle(title);
+    }
+
+    void EditorLayer::DrawMenubar()
+    {
+        const ImRect menuBarRect = { ImGui::GetCursorPos(), {ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeightWithSpacing()} };
+        if (UI::BeginMenuBar(menuBarRect))
+        {
+            bool menuOpen = ImGui::IsPopupOpen("##menubar", ImGuiPopupFlags_AnyPopupId);
+
+            if (menuOpen)
+            {
+                const ImU32 colActive = UI::ColorWithSaturation(Colors::Theme::accent, 0.5f);
+                ImGui::PushStyleColor(ImGuiCol_Header, colActive);
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colActive);
+            }
+            auto popItemHighlight = [&menuOpen]
+                {
+                    if (menuOpen)
+                    {
+                        ImGui::PopStyleColor(3);
+                        menuOpen = false;
+                    }
+                };
+            auto pushDarkTextIfActive = [](const char* menuName)
+                {
+                    if (ImGui::IsPopupOpen(menuName))
+                        ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
+                };
+            const ImU32 colHovered = IM_COL32(0, 0, 0, 80);
+
+            pushDarkTextIfActive("File");
+            if (ImGui::BeginMenu("File"))
+            {
+                popItemHighlight();
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                if (ImGui::MenuItem("Create Project..."))
+                {
+                    mShowCreateNewProjectPopup = true;
+                }
+                if (ImGui::MenuItem("Save Project"))
+                {
+                    SaveProject();
+                }
+                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+                {
+                    OpenProject();
+                }
+
+                if (ImGui::BeginMenu("Open Recent"))
+                {
+                    size_t i = 0;
+                    for (auto it = mUserPreferences->RecentProjects.begin(); it != mUserPreferences->RecentProjects.end(); it++)
+                    {
+                        if (i > 10)
+                        {
+                            break;
+                        }
+                        if (ImGui::MenuItem(it->second.Name.c_str()))
+                        {
+                            OpenProject(it->second.FilePath);
+                            RecentProject projectEntry;
+                            projectEntry.Name = it->second.Name;
+                            projectEntry.FilePath = it->second.FilePath;
+                            projectEntry.LastOpened = time(NULL);
+                            it = mUserPreferences->RecentProjects.erase(it);
+                            mUserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
+                            UserPreferencesSerializer preferencesSerializer(mUserPreferences);
+                            preferencesSerializer.Serialize(mUserPreferences->FilePath);
+                            break;
+                        }
+                        i++;
+                    }
+                    ImGui::EndMenu();
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+                    NewScene();
+                if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+                    SaveScene();
+                if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+                    SaveSceneAs();
+                ImGui::Separator();
+                std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
+                std::string label = std::string("Restart with ") + otherRenderer;
+                if (ImGui::MenuItem(label.c_str()))
+                {
+                    RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
+                    Application::Get().Close();
+                }
+                ImGui::Separator();
+                if (ImGui::MenuItem("Exit", "Alt + F4"))
+                    Application::Get().Close();
+                ImGui::PopStyleColor();
+                ImGui::EndMenu();
+            }
+            pushDarkTextIfActive("Edit");
+            if (ImGui::BeginMenu("Edit"))
+            {
+                popItemHighlight();
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
+                ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
+                if (ImGui::MenuItem("Reload C# Assembly"))
+                    ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
+                ImGui::PopStyleColor();
+                ImGui::EndMenu();
+            }
+            pushDarkTextIfActive("View");
+            if (ImGui::BeginPopup("View"))
+            {
+                popItemHighlight();
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
+                ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
+                ImGui::PopStyleColor();
+                ImGui::EndMenu();
+            }
+#ifdef NR_DEBUG
+            pushDarkTextIfActive("Debug");
+            if (ImGui::BeginMenu("Debug"))
+            {
+                popItemHighlight();
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                if (PhysicsDebugger::IsDebugging())
+                {
+                    if (ImGui::MenuItem("Stop Physics Debugging"))
+                    {
+                        PhysicsDebugger::StopDebugging();
+                    }
+                }
+                else
+                {
+                    if (ImGui::MenuItem("Start Physics Debugging"))
+                    {
+                        PhysicsDebugger::StartDebugging((Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug);
+                    }
+                }
+                ImGui::PopStyleColor();
+                ImGui::EndMenu();
+            }
+#endif
+            pushDarkTextIfActive("Help");
+            if (ImGui::BeginMenu("Help"))
+            {
+                popItemHighlight();
+                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                if (ImGui::MenuItem("About"))
+                {
+                    mShowAboutPopup = true;
+                }
+
+                ImGui::PopStyleColor();
+                ImGui::EndMenu();
+            }
+            if (menuOpen)
+                ImGui::PopStyleColor(2);
+        }
+        UI::EndMenuBar();
+    }
+
+    float EditorLayer::DrawTitlebar()
+    {
+        const float titlebarHeight = 57.0f;
+        ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
+    
+        const ImVec2 titlebarMin = ImGui::GetCursorScreenPos();
+        const ImVec2 titlebarMax = { ImGui::GetCursorScreenPos().x + ImGui::GetWindowWidth(),
+                                     ImGui::GetCursorScreenPos().y + titlebarHeight };
+        
+        auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRectFilled(titlebarMin, titlebarMax, Colors::Theme::titlebar);
+        // Logo
+        {
+            const int logoWidth = mLogoTex->GetWidth();
+            const int logoHeight = mLogoTex->GetHeight();
+
+            const ImVec2 logoOffset(16.0f, 8.0f);
+            const ImVec2 logoRectStart = { ImGui::GetItemRectMin().x + logoOffset.x, ImGui::GetItemRectMin().y + logoOffset.y };
+            const ImVec2 logoRectMax = { logoRectStart.x + logoWidth, logoRectStart.y + logoHeight };
+            
+            drawList->AddImage(UI::GetTextureID(mLogoTex), logoRectStart, logoRectMax);
+        }
+
+        ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth(), ImGui::GetFrameHeightWithSpacing() });
+        static int moveOffsetX;
+        static int moveOffsetY;
+        const float w = ImGui::GetContentRegionAvail().x;
+        const float buttonsAreaWidth = 94;
+        
+        // Title bar drag area
+        if (ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight), ImGuiButtonFlags_PressedOnClick))
+        {
+#if defined(NR_PLATFORM_WINDOWS)
+            HWND winW = GetActiveWindow();
+            POINT point;
+            RECT rect;
+            GetCursorPos(&point);
+            GetWindowRect(winW, &rect);
+#endif
+
+            // Calculate the difference between the cursor pos and window pos
+            moveOffsetX = point.x - rect.left;
+            moveOffsetY = point.y - rect.top;
+        }
+
+        if (ImGui::IsItemActive())
+        {
+#if defined(NR_PLATFORM_WINDOWS)
+            if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+            {
+                int maximized = glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+                // TODO: move this stuff to a better place, like Window class
+                if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+                {
+                    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)/* && !maximized*/)
+                    {
+                        //HWND winW = GetActiveWindow();
+                        POINT point;
+                        GetCursorPos(&point);
+                        //SetWindowPos(winW, nullptr, point.x - moveOffsetX, point.y - moveOffsetY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+                        glfwSetWindowPos(window, point.x - moveOffsetX, point.y - moveOffsetY);
+                    }
+                }
+            }
+#endif
+        }
+
+        ImGui::SuspendLayout();
+        {
+            ImGui::SetItemAllowOverlap();
+            const float logoOffset = 16.0f * 2.0f + 41.0f;
+            ImGui::SetCursorPos(ImVec2(logoOffset, 4.0f));
+            DrawMenubar();
+        }
+
+        ImGui::ResumeLayout();
+        // Minimize Button
+        ImGui::Spring();
+        UI::ShiftCursorY(8.0f);
+        {
+            const int iconWidth = mIconMinimize->GetWidth();
+            const int iconHeight = mIconMinimize->GetHeight();
+
+            if (ImGui::InvisibleButton("Minimize", ImVec2(iconWidth, iconHeight)))
+            {
+#if defined(NR_PLATFORM_WINDOWS)
+                // TODO: move this stuff to a better place, like Window class
+                if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+                {
+                    glfwIconifyWindow(window);
+                }
+#endif
+            }
+            UI::DrawButtonImage(mIconMinimize, IM_COL32(192, 192, 192, 255), IM_COL32(255, 255, 255, 255), IM_COL32(100, 100, 100, 255));
+        }
+
+        // Maximize Button
+        ImGui::Spring(-1.0f, 17.0f);
+        UI::ShiftCursorY(8.0f);
+        {
+            const int iconWidth = mIconMaximize->GetWidth();
+            const int iconHeight = mIconMaximize->GetHeight();
+            if (ImGui::InvisibleButton("Maximize", ImVec2(iconWidth, iconHeight)))
+            {
+#if defined(NR_PLATFORM_WINDOWS)
+                // TODO: move this stuff to a better place, like Window class
+                if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+                {
+                    int maximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+                    if (maximized)
+                    {
+                        glfwRestoreWindow(window);
+                    }
+                    else
+                    {
+                        Application::Get().GetWindow().Maximize();
+                    }
+                }
+#endif
+            }
+            UI::DrawButtonImage(mIconMaximize, IM_COL32(180, 180, 180, 255), IM_COL32(255, 255, 255, 255), IM_COL32(100, 100, 100, 255));
+        }
+
+        // Close Button
+        ImGui::Spring(-1.0f, 15.0f);
+        UI::ShiftCursorY(8.0f);
+        {
+            const int iconWidth = mIconClose->GetWidth();
+            const int iconHeight = mIconClose->GetHeight();
+            if (ImGui::InvisibleButton("Close", ImVec2(iconWidth, iconHeight)))
+            {
+                Application::Get().Close();
+            }
+            UI::DrawButtonImage(mIconClose, IM_COL32(180, 180, 180, 255), IM_COL32(255, 255, 255, 255), IM_COL32(100, 100, 100, 255));
+        }
+
+        ImGui::Spring(-1.0f, 18.0f);
+        ImGui::EndHorizontal();
+        return titlebarHeight;
     }
 
     void EditorLayer::UpdateSceneRendererSettings()
@@ -934,7 +1244,7 @@ namespace NR
         auto boldFont = io.Fonts->Fonts[0];
         auto largeFont = io.Fonts->Fonts[1];
 
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
         if (opt_fullscreen)
         {
             ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -948,13 +1258,18 @@ namespace NR
         }
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
         ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+        ImGui::PopStyleColor();
         ImGui::PopStyleVar();
 
         if (opt_fullscreen)
         {
             ImGui::PopStyleVar(2);
         }
+
+        const float titlebarHeight = DrawTitlebar();
+        ImGui::SetCursorPosY(titlebarHeight);
 
         // Dockspace
         float minWinSizeX = style.WindowMinSize.x;
@@ -1111,7 +1426,7 @@ namespace NR
                     return clicked;
                 };
 
-            const ImColor buttonTint = UI::ColorWithValue(UI::ColorWithSaturation(Colors::Theme::niceBlue, 0.3f), 0.65f);
+            const ImColor buttonTint = UI::ColorWithValue(UI::ColorWithSaturation(Colors::Theme::niceBlue, 0.40f), 0.70f);
             Ref<Texture2D> buttonTex = mSceneState == SceneState::Play ? mStopButtonTex : mPlayButtonTex;
             
             if (playbackButton(buttonTex, buttonTint))
@@ -1173,51 +1488,83 @@ namespace NR
 
         // Gizmo Toolbar
         {
+            UI::ScopedStyle disableSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+            UI::ScopedStyle disableWindowBorder(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            UI::ScopedStyle windowRounding(ImGuiStyleVar_WindowRounding, 4.0f);
+            UI::ScopedStyle disablePadding(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
             auto viewportStart = ImGui::GetItemRectMin();
 
-            ImGui::SetNextWindowPos(ImVec2(viewportStart.x + 10, viewportStart.y + 5));
-            ImGui::SetNextWindowSize(ImVec2(128, 28));
-
-            ImGui::SetNextWindowBgAlpha(0.75f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 7.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 4));
+            const float buttonSize = 18.0f;
+            const float edgeOffset = 4.0f;
+            const float windowHeight = 32.0f; // annoying limitation of ImGui, window can't be smaller than 32 pixels
+            const float numberOfButtons = 4.0f;
+            const float windowWidth = edgeOffset * 6.0f + buttonSize * numberOfButtons + edgeOffset * (numberOfButtons - 1.0f) * 2.0f;
+            ImGui::SetNextWindowPos(ImVec2(viewportStart.x + 14, viewportStart.y + edgeOffset));
+            ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+            ImGui::SetNextWindowBgAlpha(0.0f);
             ImGui::Begin("##viewport_tools", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoDocking);
 
-            const ImVec4 cSelectedGizmoButtonColor = ImVec4(0.925490196f, 0.619607843f, 0.141176471f, 1.0f);
-            const ImVec4 cUnselectedGizmoButtonColor = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+            // A hack to make icon panel appear smaller than minimum allowed by ImGui size
+            // Filling the background for the desired 26px height
+            const float desiredHeight = 26.0f;
+            ImRect background = UI::RectExpanded(ImGui::GetCurrentWindow()->Rect(), 0.0f, -(windowHeight - desiredHeight) / 2.0f);
+            ImGui::GetWindowDrawList()->AddRectFilled(background.Min, background.Max, IM_COL32(15, 15, 15, 127), 4.0f);
 
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0, 0, 0, 0));
-            ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-
-            if (UI::ImageButton(mSelectToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == -1 ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
+            ImGui::BeginVertical("##gizmosV", ImGui::GetContentRegionAvail());
+            ImGui::Spring();
+            ImGui::BeginHorizontal("##gizmosH", { ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y });
+            ImGui::Spring();
             {
-                mGizmoType = -1;
-            }
-            ImGui::SameLine();
+                UI::ScopedStyle enableSpacing(ImGuiStyleVar_ItemSpacing, ImVec2(edgeOffset * 2.0f, 0));
 
-            if (UI::ImageButton(mMoveToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == ImGuizmo::OPERATION::TRANSLATE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
-            {
-                mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
-            }
-            ImGui::SameLine();
+                const ImColor cSelectedGizmoButtonColor = Colors::Theme::accent;
+                const ImColor cUnselectedGizmoButtonColor = Colors::Theme::textBrighter;
 
-            if (UI::ImageButton(mRotateToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == ImGuizmo::OPERATION::ROTATE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
-            {
-                mGizmoType = ImGuizmo::OPERATION::ROTATE;
-            }
-            ImGui::SameLine();
+                auto gizmoButton = [&cSelectedGizmoButtonColor, buttonSize](const Ref<Texture2D>& icon, const ImColor& tint, float paddingY = 0.0f)
+                    {
+                        const float height = std::min((float)icon->GetHeight(), buttonSize) - paddingY * 2.0f;
+                        const float width = (float)icon->GetWidth() / (float)icon->GetHeight() * height;
+                        const bool clicked = ImGui::InvisibleButton(UI::GenerateID(), ImVec2(width, height));
+                        UI::DrawButtonImage(icon,
+                            tint,
+                            tint,
+                            tint,
+                            UI::RectOffset(UI::GetItemRect(), 0.0f, paddingY));
+                        return clicked;
+                    };
 
-            if (UI::ImageButton(mScaleToolTex, ImVec2(24, 24), ImVec2(0, 0), ImVec2(1, 1), -1, ImVec4(0, 0, 0, 0), mGizmoType == ImGuizmo::OPERATION::SCALE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor))
-            {
-                mGizmoType = ImGuizmo::OPERATION::SCALE;
-            }
+                ImColor buttonTint = mGizmoType == -1 ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor;
+                if (gizmoButton(mSelectToolTex, buttonTint, mGizmoType != -1))
+                {
+                    mGizmoType = -1;
+                }
 
-            ImGui::PopStyleVar();
-            ImGui::PopStyleColor(3);
+                buttonTint = mGizmoType == ImGuizmo::OPERATION::TRANSLATE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor;
+                if (gizmoButton(mMoveToolTex, buttonTint))
+                {
+                    mGizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                }
+
+                buttonTint = mGizmoType == ImGuizmo::OPERATION::ROTATE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor;
+                if (gizmoButton(mRotateToolTex, buttonTint))
+                {
+                    mGizmoType = ImGuizmo::OPERATION::ROTATE;
+                }
+
+                buttonTint = mGizmoType == ImGuizmo::OPERATION::SCALE ? cSelectedGizmoButtonColor : cUnselectedGizmoButtonColor;
+                if (gizmoButton(mScaleToolTex, buttonTint))
+                {
+                    mGizmoType = ImGuizmo::OPERATION::SCALE;
+                }
+
+            }
+            ImGui::Spring();
+            ImGui::EndHorizontal();
+            ImGui::Spring();
+            ImGui::EndVertical();
+
             ImGui::End();
-            ImGui::PopStyleVar(2);
         }
 
         static int counter = 0;
@@ -1491,137 +1838,6 @@ namespace NR
             }
             ImGui::End();
             ImGui::PopStyleVar();
-        }
-
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Create Project..."))
-                {
-                    mShowCreateNewProjectPopup = true;
-                }
-                if (ImGui::MenuItem("Save Project"))
-                {
-                    SaveProject();
-                }
-                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
-                    OpenProject();
-                if (ImGui::BeginMenu("Open Recent"))
-                {
-                    size_t i = 0;
-                    for (auto it = mUserPreferences->RecentProjects.begin(); it != mUserPreferences->RecentProjects.end(); ++it)
-                    {
-                        if (i > 10)
-                            break;
-                        if (ImGui::MenuItem(it->second.Name.c_str()))
-                        {
-                            OpenProject(it->second.FilePath);
-                            RecentProject projectEntry;
-                            projectEntry.Name = it->second.Name;
-                            projectEntry.FilePath = it->second.FilePath;
-                            projectEntry.LastOpened = time(NULL);
-                            it = mUserPreferences->RecentProjects.erase(it);
-                            mUserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
-                            UserPreferencesSerializer preferencesSerializer(mUserPreferences);
-                            preferencesSerializer.Serialize(mUserPreferences->FilePath);
-                            break;
-                        }
-                        ++i;
-                    }
-                    ImGui::EndMenu();
-                }
-                
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-                {
-                    NewScene();
-                }
-                if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-                {
-                    SaveScene();
-                }
-                if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-                {
-                    SaveSceneAs();
-                }
-
-                ImGui::Separator();
-
-                std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
-                std::string label = std::string("Restart with ") + otherRenderer;
-
-                if (ImGui::MenuItem(label.c_str()))
-                {
-                    RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
-                    Application::Get().Close();
-                }
-
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Exit", "Alt + F4"))
-                {
-                    Application::Get().Close();
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Edit"))
-            {
-                ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
-                ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
-                if (ImGui::MenuItem("Reload C# Assembly"))
-                {
-                    ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
-                }
-
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("View"))
-            {
-                ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
-
-                ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
-                ImGui::EndMenu();
-            }
-
-#ifdef NR_DEBUG
-            if (ImGui::BeginMenu("Debug"))
-            {
-                if (PhysicsDebugger::IsDebugging())
-                {
-                    if (ImGui::MenuItem("Stop Physics Debugging"))
-                    {
-                        PhysicsDebugger::StopDebugging();
-                    }
-                }
-                else
-                {
-                    if (ImGui::MenuItem("Start Physics Debugging"))
-                    {
-                        PhysicsDebugger::StartDebugging(
-                            (Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
-                            PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
-                        );
-                    }
-                }
-                ImGui::EndMenu();
-            }
-#endif
-
-            if (ImGui::BeginMenu("Help"))
-            {
-                if (ImGui::MenuItem("About"))
-                {
-                    mShowAboutPopup = true;
-                }
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
         }
 
         mSceneHierarchyPanel->ImGuiRender();
