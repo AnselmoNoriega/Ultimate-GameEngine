@@ -279,7 +279,7 @@ static void CreateOrResizeBuffer(VkBuffer& buffer, VkDeviceMemory& buffer_memory
 
     err = vkBindBufferMemory(v->Device, buffer, buffer_memory, 0);
     check_vk_result(err);
-    p_buffer_size = req.size;
+    p_buffer_size = new_size;
 }
 
 static void ImGui_ImplVulkan_SetupRenderState(ImDrawData* draw_data, VkCommandBuffer command_buffer, ImGui_ImplVulkanH_FrameRenderBuffers* rb, int fb_width, int fb_height)
@@ -364,9 +364,9 @@ void ImGui_ImplVulkan_RenderDrawData(ImDrawData* draw_data, VkCommandBuffer comm
         // Upload vertex/index data into a single contiguous GPU buffer
         ImDrawVert* vtx_dst = NULL;
         ImDrawIdx* idx_dst = NULL;
-        VkResult err = vkMapMemory(v->Device, rb->VertexBufferMemory, 0, rb->VertexBufferSize, 0, (void**)(&vtx_dst));
+        VkResult err = vkMapMemory(v->Device, rb->VertexBufferMemory, 0, vertex_size, 0, (void**)(&vtx_dst));
         check_vk_result(err);
-        err = vkMapMemory(v->Device, rb->IndexBufferMemory, 0, rb->IndexBufferSize, 0, (void**)(&idx_dst));
+        err = vkMapMemory(v->Device, rb->IndexBufferMemory, 0, index_size, 0, (void**)(&idx_dst));
         check_vk_result(err);
         for (int n = 0; n < draw_data->CmdListsCount; n++)
         {
@@ -1253,36 +1253,18 @@ struct VkDetails
 
 static std::unordered_map<void*, VkDetails> s_VulkanCache;
 
-ImTextureID ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout) {
-    VkResult err;
+ImTextureID ImGui_ImplVulkan_AddTexture(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
+{
+    ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
 
-    if (s_VulkanCache.find((void*)image_view) == s_VulkanCache.end())
-    {
-        VkDetails& vulkanDetails = s_VulkanCache[(void*)image_view];
-        vulkanDetails.sampler = sampler;
-        vulkanDetails.image_view = image_view;
-        vulkanDetails.image_layout = image_layout;
+    VkDescriptorSetAllocateInfo alloc_info = {};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorSetCount = 1;
+    alloc_info.pSetLayouts = &g_DescriptorSetLayout;
 
-        ImGui_ImplVulkan_InitInfo* v = &g_VulkanInitInfo;
-        VkDescriptorSet descriptor_set;
-        // Create Descriptor Set:
-        {
-            VkDescriptorSetAllocateInfo alloc_info = {};
-            alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            alloc_info.descriptorPool = v->DescriptorPool;
-            alloc_info.descriptorSetCount = 1;
-            alloc_info.pSetLayouts = &g_DescriptorSetLayout;
-            err = vkAllocateDescriptorSets(v->Device, &alloc_info, &descriptor_set);
-            check_vk_result(err);
-        }
-
-        vulkanDetails.descriptor_set = descriptor_set;
-    }
-
-    VkDetails& vulkanDetails = s_VulkanCache.at((void*)image_view);
-    ImGui_ImplVulkan_UpdateTextureInfo(vulkanDetails.descriptor_set, vulkanDetails.sampler, vulkanDetails.image_view, vulkanDetails.image_layout);
-
-    return (ImTextureID)vulkanDetails.descriptor_set;
+    VkDescriptorSet descriptor_set = NR::VKRenderer::RT_AllocateDescriptorSet(alloc_info);
+    ImGui_ImplVulkan_UpdateTextureInfo(descriptor_set, sampler, image_view, image_layout);
+    return (ImTextureID)descriptor_set;
 }
 
 ImTextureID ImGui_ImplVulkan_AddTexture_Internal(VkSampler sampler, VkImageView image_view, VkImageLayout image_layout)
@@ -1495,20 +1477,7 @@ static void ImGui_ImplVulkan_SwapBuffers(ImGuiViewport* viewport, void*)
     info.pSwapchains = &wd->Swapchain;
     info.pImageIndices = &present_index;
     err = vkQueuePresentKHR(v->Queue, &info);
-    //check_vk_result(err);
-    if (err != VK_SUCCESS || err == VK_SUBOPTIMAL_KHR)
-    {
-        if (err == VK_ERROR_OUT_OF_DATE_KHR)
-        {
-            // Swap chain is no longer compatible with the surface and needs to be recreated
-            ImGui_ImplVulkanH_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device, wd, v->QueueFamily, v->Allocator, (int)viewport->Size.x, (int)viewport->Size.y, v->MinImageCount);
-            return;
-        }
-        else
-        {
-            check_vk_result(err);
-        }
-    }
+    check_vk_result(err);
 
     wd->FrameIndex = (wd->FrameIndex + 1) % wd->ImageCount;         // This is for the next vkWaitForFences()
     wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->ImageCount; // Now we can use the next set of semaphores

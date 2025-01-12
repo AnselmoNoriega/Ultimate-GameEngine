@@ -332,9 +332,9 @@ namespace ImGui
         }
 
         ImGuiContext& g = *GImGui;
-        const char* label_end = g.TempBuffer.Data + ImFormatStringV(g.TempBuffer.Data, g.TempBuffer.Size, fmt, args);
+        const char* label_end = g.TempBuffer + ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
 
-        bool is_open = TreeNodeWithIcon(icon, window->GetID(ptr_id), flags, g.TempBuffer.Data, label_end, iconTint);
+        bool is_open = TreeNodeWithIcon(icon, window->GetID(ptr_id), flags, g.TempBuffer, label_end, iconTint);
 
         va_end(args);
         return is_open;

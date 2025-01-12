@@ -13,7 +13,7 @@
 
 namespace ImGui 
 {
-	extern bool ImageButtonEx(ImGuiID id, ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& bg_col, const ImVec4& tint_col, ImGuiButtonFlags flags);
+	extern bool ImageButtonEx(ImGuiID id, ImTextureID texture_id, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec2& padding, const ImVec4& bg_col, const ImVec4& tint_col);
 }
 
 namespace NR::UI 
@@ -124,7 +124,7 @@ namespace NR::UI
 				const ImGuiID strID = ImGui::GetID(stringID);
 				id = id ^ strID;
 			}
-			return ImGui::ImageButtonEx(id, textureID, size, uv0, uv1, bg_col, tint_col, 0);
+			return ImGui::ImageButtonEx(id, textureID, size, uv0, uv1, ImVec2{ (float)frame_padding, (float)frame_padding }, bg_col, tint_col);
 		}
 	}
 
@@ -165,8 +165,8 @@ namespace NR::UI
 				const ImGuiID strID = ImGui::GetID(stringID);
 				id = id ^ strID;
 			}
-			
-			return ImGui::ImageButtonEx(id, textureID, size, uv0, uv1, bg_col, tint_col, 0);
+
+			return ImGui::ImageButtonEx(id, textureID, size, uv0, uv1, ImVec2{ (float)frame_padding, (float)frame_padding }, bg_col, tint_col);
 		}
 	}
 }

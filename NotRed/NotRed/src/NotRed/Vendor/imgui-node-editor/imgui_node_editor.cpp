@@ -47,30 +47,30 @@ namespace Detail {
     struct KeyTester_ ## Key                                                                        \
     {                                                                                               \
         template <typename T>                                                                       \
-        static int Get(typename std::enable_if<has_nested_ ## Key<ImGuiKey>::value, T>::type*)     \
+        static int Get(typename std::enable_if<has_nested_ ## Key<ImGuiKey_>::value, T>::type*)     \
         {                                                                                           \
             return ImGui::GetKeyIndex(T::Key);                                                      \
         }                                                                                           \
                                                                                                     \
         template <typename T>                                                                       \
-        static int Get(typename std::enable_if<!has_nested_ ## Key<ImGuiKey>::value, T>::type*)    \
+        static int Get(typename std::enable_if<!has_nested_ ## Key<ImGuiKey_>::value, T>::type*)    \
         {                                                                                           \
             return -1;                                                                              \
         }                                                                                           \
     }
 
-DECLARE_KEY_TESTER(ImGuiKey_F);
-DECLARE_KEY_TESTER(ImGuiKey_D);
+    DECLARE_KEY_TESTER(ImGuiKey_F);
+    DECLARE_KEY_TESTER(ImGuiKey_D);
 
-static inline ImGuiKey GetKeyIndexForF()
-{
-    return ImGuiKey_F;
-}
+    static inline int GetKeyIndexForF()
+    {
+        return KeyTester_ImGuiKey_F::Get<ImGuiKey_>(nullptr);
+    }
 
-static inline ImGuiKey GetKeyIndexForD()
-{
-    return ImGuiKey_D;
-}
+    static inline int GetKeyIndexForD()
+    {
+        return KeyTester_ImGuiKey_D::Get<ImGuiKey_>(nullptr);
+    }
 
 } // namespace Detail
 } // namespace NodeEditor
