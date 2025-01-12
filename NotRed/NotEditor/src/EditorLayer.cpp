@@ -1429,7 +1429,7 @@ namespace NR
                     return clicked;
                 };
 
-            const ImColor buttonTint = UI::ColorWithValue(UI::ColorWithSaturation(Colors::Theme::niceBlue, 0.40f), 0.70f);
+            const ImColor buttonTint = IM_COL32(160, 160, 160, 255);
             Ref<Texture2D> buttonTex = mSceneState == SceneState::Play ? mStopButtonTex : mPlayButtonTex;
             
             if (playbackButton(buttonTex, buttonTint))

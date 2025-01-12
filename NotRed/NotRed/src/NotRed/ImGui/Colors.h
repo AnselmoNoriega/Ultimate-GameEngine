@@ -23,8 +23,8 @@ namespace Colors
 		constexpr auto textDarker = IM_COL32(128, 128, 128, 255);
 		constexpr auto muted = IM_COL32(77, 77, 77, 255);
 		constexpr auto groupHeader = IM_COL32(47, 47, 47, 255);
-		constexpr auto selection = IM_COL32(237, 192, 119, 255);
-		constexpr auto selectionMuted = IM_COL32(237, 201, 142, 23);
+		constexpr auto selection = IM_COL32(102, 178, 178, 255);
+		constexpr auto selectionMuted = IM_COL32(128, 190, 190, 23);
 
 		constexpr auto backgroundPopup = IM_COL32(63, 70, 77, 255);
 	}
