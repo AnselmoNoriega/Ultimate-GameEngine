@@ -382,7 +382,6 @@ namespace NR
             if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
             {
                 int maximized = glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
-                // TODO: move this stuff to a better place, like Window class
                 if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
                 {
                     if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)/* && !maximized*/)
