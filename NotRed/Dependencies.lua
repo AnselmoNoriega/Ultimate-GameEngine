@@ -21,6 +21,7 @@ IncludeDir["NsightAftermath"] = "%{wks.location}/NotRed/vendor/NsightAftermath/i
 IncludeDir["MiniAudio"] = "%{wks.location}/NotRed/vendor/MiniAudio/include"
 IncludeDir["Optick"] = "%{wks.location}/NotRed/vendor/Optick/src"
 IncludeDir["Ozz"] = "%{wks.location}/NotRed/vendor/ozz-animation/include"
+IncludeDir["Nlohmann"] = "%{wks.location}/NotRed/vendor/nlohmann-json"
 
 LibraryDir = {}
 LibraryDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/lib/%{cfg.buildcfg}"

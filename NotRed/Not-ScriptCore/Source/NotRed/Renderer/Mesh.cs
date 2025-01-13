@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NR
 {
@@ -18,6 +21,28 @@ namespace NR
         ~Mesh()
         {
             Destructor_Native(_unmanagedInstance);
+        }
+
+        public Vector3[] Vertices 
+        {  
+            get
+            {
+                var data = GetVertices_Native(_unmanagedInstance);
+                using (var ms = new MemoryStream(data))
+                {
+                    var formatter = new BinaryFormatter();
+                    return (Vector3[])formatter.Deserialize(ms);
+                }
+            }
+            set
+            {
+                using (var ms = new MemoryStream())
+                {
+                    var formatter = new BinaryFormatter();
+                    formatter.Serialize(ms, value);
+                    SetVertices_Native(_unmanagedInstance, ms.ToArray());
+                }
+            }
         }
 
         public Material BaseMaterial
@@ -52,6 +77,10 @@ namespace NR
         public static extern void Destructor_Native(IntPtr unmanagedInstance);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern IntPtr GetMaterial_Native(IntPtr unmanagedInstance);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern byte[] GetVertices_Native(IntPtr unmanagedInstance);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void SetVertices_Native(IntPtr unmanagedInstance, byte[] data);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern IntPtr GetMaterialByIndex_Native(IntPtr unmanagedInstance, int index);
         [MethodImpl(MethodImplOptions.InternalCall)]

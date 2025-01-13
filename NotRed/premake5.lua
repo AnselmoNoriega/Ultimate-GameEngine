@@ -78,6 +78,7 @@ project "NotRed"
 		"%{IncludeDir.Mono}",
 		"%{IncludeDir.Optick}",
 		"%{IncludeDir.Ozz}",
+		"%{IncludeDir.Nlohmann}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
 		"%{IncludeDir.Vulkan}",

@@ -90,7 +90,7 @@ public static class ChunkManager
     {
         MeshData meshData = new MeshData(true);
 
-        LoopThroughTheBlocks(chunkData, (x, y, z) => meshData = BlockHelper.GetMeshData(chunkData, x, y, z, meshData, chunkData.blocks[GetIndexFromPosition(chunkData, x, y, z)]));
+        LoopThroughTheVoxels(chunkData, (x, y, z) => meshData = BlockHelper.GetMeshData(chunkData, x, y, z, meshData, chunkData.blocks[GetIndexFromPosition(chunkData, x, y, z)]));
 
         return meshData;
     }

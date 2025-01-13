@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace NR
 {
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential), Serializable]
     public struct Vector3 : IEquatable<Vector3>
     {
         public static Vector3 zero = new Vector3(0, 0, 0);

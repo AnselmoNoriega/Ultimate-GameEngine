@@ -4,9 +4,9 @@ using System.Linq;
 public class ChunkRenderer : Entity
 {
     //TODO
-    MeshFilter _meshFilter;
-    MeshCollider _meshCollider;
-    Mesh _mesh;
+    //MeshFilter _meshFilter;
+    //MeshCollider _meshCollider;
+    MeshComponent _mesh;
 
     public Chunk ChunkData { get; private set; }
 
@@ -25,9 +25,7 @@ public class ChunkRenderer : Entity
     private void Init()
     {
         //TODO
-        MeshFilter = GetComponent<MeshFilter>();
-        MeshCollider = GetComponent<MeshCollider>(); // does not inherit from component
-        Mesh = MeshFilter.mesh;
+        _mesh = GetComponent<MeshComponent>();
     }
 
     public void InitializeChunk(Chunk data)
@@ -39,8 +37,8 @@ public class ChunkRenderer : Entity
     {
         _mesh.Clear();
 
-        _mesh.subMeshCount = 2;
-        _mesh.vertices = meshData.Vertices.Concat(meshData.WaterMesh.Vertices).ToArray();
+        _mesh.SubMeshCount = 2;
+        _mesh.Mesh.Vertices = meshData.Vertices.Concat(meshData.WaterMesh.Vertices).ToArray();
 
         _mesh.SetTriangles(meshData.Triangles.ToArray(), 0);
         _mesh.SetTriangles(meshData.WaterMesh.Triangles.Select(val => val + meshData.Vertices.Count).ToArray(), 1);
@@ -48,13 +46,13 @@ public class ChunkRenderer : Entity
         _mesh.uv = meshData.TextureCoords.Concat(meshData.WaterMesh.TextureCoords).ToArray();
         _mesh.RecalculateNormals();
 
-        _meshCollider.sharedMesh = null;
+        //_meshCollider.sharedMesh = null;
         
-        Mesh collisionMesh = new Mesh();
-        collisionMesh.vertices = meshData.ColliderVertices.ToArray();
-        collisionMesh.triangles = meshData.ColliderTriangles.ToArray();
-        collisionMesh.RecalculateNormals();
-        _meshCollider.sharedMesh = collisionMesh;
+        //Mesh collisionMesh = new Mesh();
+        //collisionMesh.vertices = meshData.ColliderVertices.ToArray();
+        //collisionMesh.triangles = meshData.ColliderTriangles.ToArray();
+        //collisionMesh.RecalculateNormals();
+        //_meshCollider.sharedMesh = collisionMesh;
     }
     public void UpdateChunk()
     {
