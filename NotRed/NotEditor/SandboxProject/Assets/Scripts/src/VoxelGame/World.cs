@@ -8,7 +8,7 @@ public class World : Entity
     public int chunkSize = 16, chunkHeight = 100;
     public int waterThreshold = 50;
     public float noiseScale = 0.03f;
-    public Entity chunkPrefab;
+    public Prefab chunkPrefab;
 
     Dictionary<Vector3, Chunk> chunkDataDictionary = new Dictionary<Vector3, Chunk>();
     Dictionary<Vector3, ChunkRenderer> chunkDictionary = new Dictionary<Vector3, ChunkRenderer>();
@@ -40,10 +40,11 @@ public class World : Entity
         foreach (Chunk data in chunkDataDictionary.Values)
         {
             MeshData meshData = ChunkManager.GetChunkMeshData(data);
-            Entity chunkObject = Instantiate(/*chunkPrefab,*/data.WorldPosition);
-            ChunkRenderer chunkRenderer = chunkObject.GetComponent<ChunkRenderer>();
+            Entity chunkObject = Instantiate(chunkPrefab, data.WorldPosition);
+            ChunkRenderer chunkRenderer = new ChunkRenderer();
+
             chunkDictionary.Add(data.WorldPosition, chunkRenderer);
-            chunkRenderer.InitializeChunk(data);
+            chunkRenderer.InitializeChunk(data, chunkObject.GetComponent<MeshComponent>());
             chunkRenderer.UpdateChunk(meshData);
         }
     }

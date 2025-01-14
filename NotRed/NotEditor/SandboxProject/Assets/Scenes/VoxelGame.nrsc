@@ -1,29 +1,61 @@
 Scene: Demo
 Environment:
-  AssetHandle: 13745948106637564345
+  AssetHandle: 13565342376710645757
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 2034799111348673663
+  - Entity: 4349438521487218923
     TagComponent:
-      Tag: Chunk
+      Tag: Entity
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    ScriptComponent:
+      ModuleName: World
+      StoredFields:
+        - Name: noiseScale
+          Type: 1
+          Data: 0.0299999993
+        - Name: mapSizeInChunks
+          Type: 2
+          Data: 6
+        - Name: waterThreshold
+          Type: 2
+          Data: 50
+        - Name: chunkSize
+          Type: 2
+          Data: 16
+        - Name: chunkHeight
+          Type: 2
+          Data: 100
+        - Name: chunkPrefab
+          Type: 9
+          Data: 0
+  - Entity: 2034799111348673663
+    TagComponent:
+      Tag: Chunk
     Parent: 0
     Children:
       []
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 0
+      AssetID: 3710826685493070576
+      MaterialTable:
+        0: 0
     MeshColliderComponent:
       IsConvex: false
       IsTrigger: false
+      OverrideMesh: false
       Material: 0
-PhysicsLayers:
-  []
 SceneAudio:
   MasterReverb:
     Pre-delay: 50

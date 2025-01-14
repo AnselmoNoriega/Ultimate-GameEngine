@@ -1,7 +1,7 @@
 ﻿using NR;
 using System.Linq;
 
-public class ChunkRenderer : Entity
+public class ChunkRenderer
 {
     //TODO
     //MeshFilter _meshFilter;
@@ -22,14 +22,9 @@ public class ChunkRenderer : Entity
         }
     }
 
-    private void Init()
+    public void InitializeChunk(Chunk data, MeshComponent mesh)
     {
-        //TODO
-        _mesh = GetComponent<MeshComponent>();
-    }
-
-    public void InitializeChunk(Chunk data)
-    {
+        _mesh = mesh;
         ChunkData = data;
     }
 
@@ -61,6 +56,7 @@ public class ChunkRenderer : Entity
         //collisionMesh.RecalculateNormals();
         //_meshCollider.sharedMesh = collisionMesh;
     }
+
     public void UpdateChunk()
     {
         RenderMesh(ChunkManager.GetChunkMeshData(ChunkData));

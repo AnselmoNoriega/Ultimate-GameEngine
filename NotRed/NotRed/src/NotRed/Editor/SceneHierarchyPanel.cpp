@@ -154,6 +154,120 @@ namespace NR
                             }
                         }
 
+                        if (ImGui::BeginPopupContextWindow())
+                        {
+                            if (ImGui::BeginMenu("Create"))
+                            {
+                                if (ImGui::MenuItem("Empty Entity"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Entity");
+                                    SetSelected(newEntity);
+                                }
+                                if (ImGui::MenuItem("Camera"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Camera");
+                                    newEntity.AddComponent<CameraComponent>();
+                                    SetSelected(newEntity);
+                                }
+                                if (ImGui::BeginMenu("3D"))
+                                {
+                                    if (ImGui::MenuItem("Cube"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Cube");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cube.hmesh");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
+                                        bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
+                                        SetSelected(newEntity);
+                                    }
+                                    if (ImGui::MenuItem("Sphere"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Sphere");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Sphere.hmesh");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        auto& scc = newEntity.AddComponent<SphereColliderComponent>();
+                                        scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
+                                        SetSelected(newEntity);
+                                    }
+                                    if (ImGui::MenuItem("Capsule"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Capsule");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Capsule.hmesh");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
+                                        ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
+                                        SetSelected(newEntity);
+                                    }
+                                    if (ImGui::MenuItem("Cylinder"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Cylinder");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cylinder.hmesh");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+                                        CookingFactory::CookMesh(collider);
+                                        SetSelected(newEntity);
+                                    }
+                                    if (ImGui::MenuItem("Torus"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Torus");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Torus.hmesh");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+                                        CookingFactory::CookMesh(collider);
+                                        SetSelected(newEntity);
+                                    }
+                                    if (ImGui::MenuItem("Plane"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Plane");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Plane.hmesh");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+                                        CookingFactory::CookMesh(collider);
+                                        SetSelected(newEntity);
+                                    }
+                                    if (ImGui::MenuItem("Cone"))
+                                    {
+                                        auto newEntity = mContext->CreateEntity("Cone");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cone.fbx");
+                                        newEntity.AddComponent<MeshComponent>(mesh);
+                                        auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
+                                        CookingFactory::CookMesh(collider);
+                                        SetSelected(newEntity);
+                                    }
+                                    ImGui::EndMenu();
+                                }
+                                ImGui::Separator();
+                                if (ImGui::MenuItem("Directional Light"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Directional Light");
+                                    newEntity.AddComponent<DirectionalLightComponent>();
+                                    newEntity.GetComponent<TransformComponent>().Rotation = glm::radians(glm::vec3{ 80.0f, 10.0f, 0.0f });
+                                    SetSelected(newEntity);
+                                }
+                                if (ImGui::MenuItem("Point Light"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Point Light");
+                                    newEntity.AddComponent<PointLightComponent>();
+                                    newEntity.GetComponent<TransformComponent>().Translation = glm::vec3{ 0 };
+                                    SetSelected(newEntity);
+                                }
+                                if (ImGui::MenuItem("Sky Light"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Sky Light");
+                                    newEntity.AddComponent<SkyLightComponent>();
+                                    SetSelected(newEntity);
+                                }
+                                if (ImGui::MenuItem("Particles"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Galxy Particles");
+                                    newEntity.AddComponent<ParticleComponent>();
+                                    SetSelected(newEntity);
+                                }
+                                ImGui::EndMenu();
+                            }
+                            ImGui::EndPopup();
+                        }
+
                         ImGui::EndTable();
                     }
                 }
@@ -170,136 +284,6 @@ namespace NR
                 }
 
                 ImGui::EndDragDropTarget();
-            }
-
-            if (ImGui::BeginPopupContextWindow(0, 1))
-            {
-                if (ImGui::BeginMenu("Create"))
-                {
-                    if (ImGui::MenuItem("Entity"))
-                    {
-                        auto newEntity = mContext->CreateEntity("Entity");
-                        SetSelected(newEntity);
-                    }
-                    if (ImGui::MenuItem("Camera"))
-                    {
-                        auto newEntity = mContext->CreateEntity("Camera");
-                        newEntity.AddComponent<CameraComponent>();
-                        SetSelected(newEntity);
-                    }
-                    if (ImGui::BeginMenu("3D"))
-                    {
-                        if (ImGui::MenuItem("Cube"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Cube");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cube.nrmesh");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
-                            bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Sphere"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Sphere");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Sphere.nrmesh");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& scc = newEntity.AddComponent<SphereColliderComponent>();
-                            scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Capsule"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Capsule");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Capsule.nrmesh");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
-                            ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Cylinder"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Cylinder");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cylinder.nrmesh");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Torus"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Torus");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Torus.nrmesh");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Plane"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Plane");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Plane.nrmesh");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Cone"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Cone");
-                            Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cone.fbx");
-
-                            newEntity.AddComponent<MeshComponent>(mesh);
-                            auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
-
-                            SetSelected(newEntity);
-                        }
-                        if (ImGui::MenuItem("Particles"))
-                        {
-                            auto newEntity = mContext->CreateEntity("Particles");
-                            newEntity.AddComponent<ParticleComponent>();
-                            SetSelected(newEntity);
-                        }
-                        ImGui::EndMenu();
-                    }
-
-                    ImGui::Separator();
-
-                    if (ImGui::MenuItem("Directional Light"))
-                    {
-                        auto newEntity = mContext->CreateEntity("Directional Light");
-                        newEntity.AddComponent<DirectionalLightComponent>();
-                        newEntity.GetComponent<TransformComponent>().GetTransform() = glm::toMat4(glm::quat(glm::radians(glm::vec3{ 80.0f, 10.0f, 0.0f })));
-                        SetSelected(newEntity);
-                    }
-                    if (ImGui::MenuItem("Point Light"))
-                    {
-                        auto newEntity = mContext->CreateEntity("Point Light");
-                        newEntity.AddComponent<PointLightComponent>();
-                        newEntity.GetComponent<TransformComponent>().Translation = glm::vec3{ 0 };
-                        SetSelected(newEntity);
-                    }
-                    if (ImGui::MenuItem("Sky Light"))
-                    {
-                        auto newEntity = mContext->CreateEntity("Sky Light");
-                        newEntity.AddComponent<SkyLightComponent>();
-                        SetSelected(newEntity);
-                    }
-                    ImGui::EndMenu();
-                }
-                ImGui::EndPopup();
             }
 
             ImGui::End();

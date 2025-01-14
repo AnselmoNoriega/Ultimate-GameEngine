@@ -11,7 +11,7 @@ public class Script : Entity
         Console.WriteLine("Script.OnCreate");
         for (int i = 0; i < 10000; i++)
         {
-            Instantiate();
+            //Instantiate();
         }
     }
 
