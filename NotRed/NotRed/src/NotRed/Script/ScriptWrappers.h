@@ -171,8 +171,10 @@ namespace NR::Script
     Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath);
     void NR_Mesh_Destructor(Ref<Mesh>* _this);
     Ref<MaterialAsset>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
-    MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh);
-    void NR_Mesh_SetVertices(Ref<Mesh>* inMesh, MonoArray* byteArray);
+    MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh, int index);
+    void NR_Mesh_SetVertices(Ref<Mesh>* inMesh, MonoArray* byteArray, int index);
+    int NR_Mesh_GetSubMeshCount(Ref<Mesh>* inMesh);
+    void NR_Mesh_SetSubMeshCount(Ref<Mesh>* inMesh, int count);
     Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
     uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 

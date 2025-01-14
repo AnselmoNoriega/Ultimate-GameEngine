@@ -19,9 +19,9 @@ public static class DirectionExtensions
             case Direction.up:            return Vector3.Up;
             case Direction.down:          return Vector3.Down;
             case Direction.right:         return Vector3.Right;
-            case Direction.left:          return Vector3.Left;
+            case Direction.left:          return -Vector3.Right;
             case Direction.foreward:      return Vector3.Forward;
-            case Direction.backwards:     return Vector3.Back;
+            case Direction.backwards:     return -Vector3.Forward;
         }
 
         return Vector3.Zero;

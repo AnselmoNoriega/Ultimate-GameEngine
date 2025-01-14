@@ -575,6 +575,7 @@ namespace NR
 		submesh.BaseVertex = 0;
 		submesh.BaseIndex = 0;
 		submesh.IndexCount = (uint32_t)indices.size() * 3u;
+		submesh.VertexCount = (uint32_t)vertices.size();
 		submesh.Transform = transform;
 		mSubmeshes.push_back(submesh);
 
@@ -803,6 +804,41 @@ namespace NR
 			{
 				mSubmeshes[i] = i;
 			}
+		}
+	}
+
+	void Mesh::AddVertices(const std::vector<Vertex>& vertices, uint32_t index)
+	{
+		Submesh& submesh = mMeshAsset->mSubmeshes[index];
+		if (submesh.BaseVertex == 0 && index != 0)
+		{
+			submesh.BaseVertex = mMeshAsset->mStaticVertices.size();
+		}
+		submesh.VertexCount += (uint32_t)vertices.size();
+
+		uint32_t startIndex = submesh.BaseVertex + submesh.VertexCount;
+
+		mMeshAsset->mStaticVertices.insert(
+			mMeshAsset->mStaticVertices.begin() + startIndex,
+			vertices.begin(),
+			vertices.end()
+		);
+
+		mMeshAsset->mVertexBuffer = VertexBuffer::Create(
+			mMeshAsset->mStaticVertices.data(), 
+			(uint32_t)(mMeshAsset->mStaticVertices.size() * sizeof(Vertex))
+		);
+	}
+
+	void Mesh::SetSubmeshesCount(int count)
+	{
+		mMeshAsset->mSubmeshes.clear();
+		mSubmeshes.clear();
+
+		for (int i = 0; i < count; ++i)
+		{
+			mMeshAsset->mSubmeshes.emplace_back();
+			mSubmeshes.push_back(i);
 		}
 	}
 

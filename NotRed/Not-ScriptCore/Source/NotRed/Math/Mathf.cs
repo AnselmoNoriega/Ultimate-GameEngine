@@ -79,5 +79,10 @@ namespace NR
         {
             return a - b * (float)Math.Floor(a / b);
         }
+
+        public static int FloorToInt(float value)
+        {
+            return (int)Math.Floor(value);
+        }
     }
 }

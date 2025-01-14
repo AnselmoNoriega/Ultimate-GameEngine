@@ -126,11 +126,11 @@ namespace NR
 	class Submesh
 	{
 	public:
-		uint32_t BaseVertex;
-		uint32_t BaseIndex;
-		uint32_t IndexCount;
-		uint32_t VertexCount;
-		uint32_t MaterialIndex;
+		uint32_t BaseVertex{};
+		uint32_t BaseIndex{};
+		uint32_t IndexCount{};
+		uint32_t VertexCount{};
+		uint32_t MaterialIndex{};
 
 		glm::mat4 Transform{ 1.0f };
 		AABB BoundingBox;
@@ -140,13 +140,11 @@ namespace NR
 
 	class MeshAsset : public Asset
 	{
-	private:		
-		friend class Mesh;
-
 	public:
 		MeshAsset(const std::string& filename);
 		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
 		MeshAsset(int particleCount);
+		MeshAsset() = default;
 		virtual ~MeshAsset() = default;
 
 		void DumpVertexBuffer();
@@ -214,6 +212,7 @@ namespace NR
 		friend class GLRenderer;
 		friend class SceneHierarchyPanel;
 		friend class MeshViewerPanel;
+		friend class Mesh;
 	};
 
 	class Mesh : public Asset
@@ -242,6 +241,9 @@ namespace NR
 
 		static AssetType GetStaticType() { return AssetType::Mesh; }
 		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
+
+		void AddVertices(const std::vector<Vertex>& vertices, uint32_t index);
+		void SetSubmeshesCount(int count);
 
 	private:
 		void BoneTransform(float time);

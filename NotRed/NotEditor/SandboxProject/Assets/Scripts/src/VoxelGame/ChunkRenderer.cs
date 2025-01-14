@@ -35,16 +35,23 @@ public class ChunkRenderer : Entity
 
     private void RenderMesh(MeshData meshData)
     {
-        _mesh.Clear();
+        _mesh.Mesh.Clear();
+        var combinedPositions = meshData.Positions.Concat(meshData.WaterMesh.Positions);
+        var combinedUVs = meshData.TextureCoords.Concat(meshData.WaterMesh.TextureCoords);
 
-        _mesh.SubMeshCount = 2;
-        _mesh.Mesh.Vertices = meshData.Vertices.Concat(meshData.WaterMesh.Vertices).ToArray();
+        _mesh.Mesh.SubMeshCount = 2;
 
-        _mesh.SetTriangles(meshData.Triangles.ToArray(), 0);
-        _mesh.SetTriangles(meshData.WaterMesh.Triangles.Select(val => val + meshData.Vertices.Count).ToArray(), 1);
+        _mesh.Mesh.SetVertices(meshData.Positions.Zip(
+            meshData.TextureCoords, (position, uv) => new Vertex{ Position = position, Texcoord = uv })
+            .ToArray(), 0);
+        _mesh.Mesh.SetVertices(meshData.WaterMesh.Positions.Zip(
+            meshData.WaterMesh.TextureCoords, (position, uv) => new Vertex{ Position = position, Texcoord = uv })
+            .ToArray(), 1);
+
+        _mesh.Mesh.SetIndices(meshData.Indices.ToArray(), 0);
+        _mesh.Mesh.SetIndices(meshData.WaterMesh.Indices.Select(val => val + meshData.Positions.Count).ToArray(), 1);
         
-        _mesh.uv = meshData.TextureCoords.Concat(meshData.WaterMesh.TextureCoords).ToArray();
-        _mesh.RecalculateNormals();
+        //_mesh.RecalculateNormals(); Maybe?
 
         //_meshCollider.sharedMesh = null;
         

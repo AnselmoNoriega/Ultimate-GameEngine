@@ -1,7 +1,7 @@
 ﻿using NR;
 using System.Collections.Generic;
 
-public class World : MonoBehaviour
+public class World
 {
     public int mapSizeInChunks = 6;
     public int chunkSize = 16, chunkHeight = 100;
@@ -21,9 +21,9 @@ public class World : MonoBehaviour
         }
 
         chunkDictionary.Clear();
-        for (int x = 0; x < mapSizeInChunks; x++)
+        for (int x = 0; x < mapSizeInChunks; ++x)
         {
-            for (int z = 0; z < mapSizeInChunks; z++)
+            for (int z = 0; z < mapSizeInChunks; ++z)
             {
                 Chunk data = new Chunk(chunkSize, chunkHeight, this, new Vector3(x * chunkSize, 0, z * chunkSize));
                 GenerateVoxels(data);
@@ -44,13 +44,13 @@ public class World : MonoBehaviour
 
     private void GenerateVoxels(Chunk data)
     {
-        for (int x = 0; x < data.Size; x++)
+        for (int x = 0; x < data.Size; ++x)
         {
             for (int z = 0; z < data.Size; z++)
             {
                 float noiseValue = Mathf.PerlinNoise((data.WorldPosition.x + x) * noiseScale, (data.WorldPosition.z + z) * noiseScale);
                 int groundPosition = Mathf.RoundToInt(noiseValue * chunkHeight);
-                for (int y = 0; y < chunkHeight; y++)
+                for (int y = 0; y < chunkHeight; ++y)
                 {
                     VoxelType voxelType = VoxelType.Dirt;
                     if (y > groundPosition)

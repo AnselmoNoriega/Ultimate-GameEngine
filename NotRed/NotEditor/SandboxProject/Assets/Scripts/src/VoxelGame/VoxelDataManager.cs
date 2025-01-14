@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public class VoxelDataManager : MonoBehaviour
+public class VoxelDataManager
 {
     public static float textureOffset = 0.001f;
     public static float tileSizeX, tileSizeY;

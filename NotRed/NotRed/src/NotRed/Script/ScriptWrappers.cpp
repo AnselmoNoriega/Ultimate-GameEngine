@@ -40,6 +40,47 @@
 
 #include <json.hpp>
 using json = nlohmann::json;
+namespace nlohmann::json_abi_v3_11_3::detail
+{
+    void to_json(json& j, const NR::Vertex& vertex)
+    {
+        j = json{
+            {"Position", vertex.Position},
+            {"Normal", vertex.Normal},
+            {"Tangent", vertex.Tangent},
+            {"Binormal", vertex.Binormal},
+            {"Texcoord", vertex.Texcoord}
+        };
+    }
+
+    void from_json(const json& j, NR::Vertex& vertex)
+    {
+        j.at("Position").get_to(vertex.Position);
+        j.at("Normal").get_to(vertex.Normal);
+        j.at("Tangent").get_to(vertex.Tangent);
+        j.at("Binormal").get_to(vertex.Binormal);
+        j.at("Texcoord").get_to(vertex.Texcoord);
+    }
+
+    // Implement to_json and from_json for std::vector<Vertex>
+    void to_json(json& j, const std::vector<NR::Vertex>& vertices)
+    {
+        j = json::array();
+        for (const auto& vertex : vertices)
+        {
+            j.push_back(vertex);
+        }
+    }
+
+    void from_json(const json& j, std::vector<NR::Vertex>& vertices)
+    {
+        vertices.clear();
+        for (const auto& item : j)
+        {
+            vertices.push_back(item.get<NR::Vertex>());
+        }
+    }
+}
 
 namespace NR
 {
@@ -1488,19 +1529,12 @@ namespace NR::Script
         return new Ref<MaterialAsset>(materialTable->GetMaterial(0));
     }
 
-    MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh)
+    MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh) // TODO: Add index
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
         const auto& staticVertices = mesh->GetMeshAsset()->GetStaticVertices();
 
-        std::vector<glm::vec3> positions;
-        positions.reserve(staticVertices.size());
-        for (const auto& position : staticVertices)
-        {
-            positions.push_back(position.Position);
-        }
-
-        json j = positions;
+        json j = staticVertices;
         std::string serialized = j.dump();
         std::vector<byte> serializedData = std::vector<byte>(serialized.begin(), serialized.end());
 
@@ -1515,7 +1549,7 @@ namespace NR::Script
         return result;
     }
 
-    void NR_Mesh_SetVertices(Ref<Mesh>* inMesh, MonoArray* byteArray)
+    void NR_Mesh_SetVertices(Ref<Mesh>* inMesh, MonoArray* byteArray, int index)
     {
         int length = mono_array_length(byteArray);
         std::vector<byte> data(length);
@@ -1529,11 +1563,20 @@ namespace NR::Script
         json j = json::parse(serialized);
 
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
-        auto& staticVertices = mesh->GetMeshAsset()->GetStaticVertices();
-        // TODO
-        staticVertices.empty();
-        staticVertices.reserve(staticVertices.size());
-        staticVertices = j.get<std::vector<int>>();
+
+        mesh->AddVertices(j.get<std::vector<Vertex>>(), index);
+    }
+
+    int NR_Mesh_GetSubMeshCount(Ref<Mesh>* inMesh) // TODO: Add index
+    {
+        Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
+        return mesh->GetSubmeshes().size();
+    }
+
+    void NR_Mesh_SetSubMeshCount(Ref<Mesh>* inMesh, int count)
+    {
+        Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
+        mesh->SetSubmeshesCount(count);
     }
 
     Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index)
