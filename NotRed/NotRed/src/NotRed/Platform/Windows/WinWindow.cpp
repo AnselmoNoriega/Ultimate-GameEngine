@@ -4,6 +4,11 @@
 #include <glad/glad.h>
 #include <imgui.h>
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+#include "stb_image.h"
+
 #include "NotRed/Core/Events/ApplicationEvent.h"
 
 #include "NotRed/Core/Events/KeyEvent.h"
@@ -176,11 +181,11 @@ namespace NR
 
         mImGuiMouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         mImGuiMouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
-        mImGuiMouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);  
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeAll] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         mImGuiMouseCursors[ImGuiMouseCursor_ResizeNS] = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
         mImGuiMouseCursors[ImGuiMouseCursor_ResizeEW] = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
-        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
-        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR); 
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNESW] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+        mImGuiMouseCursors[ImGuiMouseCursor_ResizeNWSE] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         mImGuiMouseCursors[ImGuiMouseCursor_Hand] = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
         {
@@ -188,6 +193,46 @@ namespace NR
             glfwGetWindowSize(mWindow, &width, &height);
             mData.Width = width;
             mData.Height = height;
+        }
+
+        // Set window icon
+        {
+            GLFWimage icon;
+            int channels;
+            icon.pixels = stbi_load(
+                "Resources/Editor/NR_logo_square.png",
+                &icon.width, &icon.height, &channels, 4
+            );
+            glfwSetWindowIcon(mWindow, 1, &icon);
+
+            /*{
+                HICON hIcon = CreateIcon(
+                    nullptr,                      // No specific instance handle
+                    icon.width,                 // Icon width
+                    icon.height,                // Icon height
+                    1,                            // Color planes
+                    32,                           // Bits per pixel
+                    nullptr,                      // AND mask (null for full transparency)
+                    icon.pixels                 // XOR mask (image data in RGBA format)
+                );
+
+                if (!hIcon)
+                {
+                    stbi_image_free(icon.pixels);
+                    return;
+                }
+
+                // Get the native HWND from the GLFW window
+                HWND hwnd = glfwGetWin32Window(mWindow);
+
+                // Set the large taskbar icon
+                SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+                // Optionally, set the small title bar icon
+                SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+            }*/ 
+
+            stbi_image_free(icon.pixels);
         }
     }
 
