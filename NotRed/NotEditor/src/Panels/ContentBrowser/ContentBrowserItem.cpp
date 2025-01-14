@@ -51,8 +51,6 @@ namespace NR
 		//----------------
 		if (mType != ItemType::Directory)
 		{
-			const ImRect expandedArea = UI::RectExpanded(ImRect(topLeft, bottomRight), 2.0f, 2.0f);
-			ImGui::PushClipRect(expandedArea.Min, expandedArea.Max, false);
 			auto* drawList = ImGui::GetWindowDrawList();
 
 			// Draw shadow
@@ -61,19 +59,13 @@ namespace NR
 			// Draw background
 			drawList->AddRectFilled(topLeft, thumbBottomRight, Colors::Theme::backgroundDark);
 			drawList->AddRectFilled(infoTopLeft, bottomRight, Colors::Theme::groupHeader, 6.0f, ImDrawFlags_RoundCornersBottom);
-			ImGui::PopClipRect();
 		}
 		else if (ImGui::ItemHoverable(ImRect(topLeft, bottomRight), ImGui::GetID(&mID)) || mIsSelected)
 		{
-			// If hovered or selected directory
-			const ImRect expandedArea = UI::RectExpanded(ImRect(topLeft, bottomRight), 2.0f, 2.0f);
-			ImGui::PushClipRect(expandedArea.Min, expandedArea.Max, false);
-
 			// Draw shadow
 			drawShadow(topLeft, bottomRight, true);
 			auto* drawList = ImGui::GetWindowDrawList();
 			drawList->AddRectFilled(topLeft, bottomRight, Colors::Theme::groupHeader, 6.0f);
-			ImGui::PopClipRect();
 		}
 
 		// Thumbnail
@@ -195,9 +187,7 @@ namespace NR
 		if (mIsSelected || ImGui::IsItemHovered())
 		{
 			ImRect itemRect = UI::GetItemRect();
-			const ImRect expandedArea = UI::RectExpanded(itemRect, 2.0f, 2.0f);
 			auto* drawList = ImGui::GetWindowDrawList();
-			ImGui::PushClipRect(expandedArea.Min, expandedArea.Max, false);
 			if (mIsSelected)
 			{
 				const bool mouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsItemHovered();
@@ -215,7 +205,6 @@ namespace NR
 						ImDrawFlags_RoundCornersBottom, 1.0f);
 				}
 			}
-			ImGui::PopClipRect();
 		}
 
 		// Mouse Events handling

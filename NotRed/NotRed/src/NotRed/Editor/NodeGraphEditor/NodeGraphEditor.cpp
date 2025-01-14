@@ -251,6 +251,7 @@ namespace NR
 	}
 
 	static AssetHandle sAssetComboSelectedHandle = 0;
+	static Node* sAssetComboNode = nullptr;
 	static Pin* sAssetComboPin = nullptr;
 	static ImVec2 sAssetComboStart;
 	static ImVec2 sAssetComboSize = ImVec2(0.0f, 280.0f);
@@ -260,7 +261,9 @@ namespace NR
 	void NodeGraphEditorBase::Render()
 	{
 		if (!GetModel())
+		{
 			return;
+		}
 
 		if (!mEditor || !mInitialized)
 		{
@@ -668,6 +671,13 @@ namespace NR
 					"TypeName", "AssetHandle",
 					"Value", std::to_string((uint64_t)sAssetComboSelectedHandle));
 				sAssetComboPin->Value = customValueType;
+				
+				if (GetModel()->onPinValueChanged)
+				{
+					GetModel()->onPinValueChanged(sAssetComboNode->ID, sAssetComboPin->ID);
+				}
+
+				sAssetComboNode = nullptr;
 				sAssetComboPin = nullptr;
 				sAssetComboSelectedHandle = 0;
 				ImGui::CloseCurrentPopup();
@@ -820,6 +830,8 @@ namespace NR
 
 			for (auto& input : node.Inputs)
 			{
+				bool pinValueChanged = false;
+
 				auto alpha = ImGui::GetStyle().Alpha;
 				if (mState->NewLinkPin && !GetModel()->CanCreateLink(mState->NewLinkPin, &input) && &input != mState->NewLinkPin)
 				{
@@ -866,7 +878,10 @@ namespace NR
 						UI::ScopedStyle frameRounding(ImGuiStyleVar_FrameRounding, 2.5f);
 						bool pinValue = !input.Value.isVoid() ? input.Value.get<bool>() : false;
 						if (ImGui::Checkbox("##bool", &pinValue))
+						{
 							input.Value = choc::value::Value(pinValue);
+							pinValueChanged = true;
+						}
 
 						drawItemActivityOutline(2.5f);
 						deactivateInputIfDragging(wasActive);
@@ -890,7 +905,10 @@ namespace NR
 							ImGui::PushItemWidth(40.0f);
 							float pinValue = !input.Value.isVoid() ? input.Value.get<float>() : 0.0f;
 							if (ImGui::DragFloat("##floatIn", &pinValue, 0.01f, 0.0f, 0.0f, "%.2f"))
+							{
 								input.Value = choc::value::Value(pinValue);
+								pinValueChanged = true;
+							}
 
 							deactivateInputIfDragging(wasActive);
 						}
@@ -901,7 +919,10 @@ namespace NR
 							ImGui::PushItemWidth(30.0f);
 							int pinValue = !input.Value.isVoid() ? input.Value.get<int>() : 0;
 							if (ImGui::DragInt("##int", &pinValue, 0.1f))
+							{
 								input.Value = choc::value::Value(pinValue);
+								pinValueChanged = true;
+							}
 
 							deactivateInputIfDragging(wasActive);
 						}
@@ -922,6 +943,7 @@ namespace NR
 							if (ImGui::IsItemDeactivatedAfterEdit())
 							{
 								input.Value = choc::value::Value(std::string(buffer));
+								pinValueChanged = true;
 							}
 
 							deactivateInputIfDragging(wasActive);
@@ -972,6 +994,7 @@ namespace NR
 						if (UI::DrawComboPreview(sComboPreview.c_str()))
 						{
 							sAssetComboSelectedHandle = selected;
+							sAssetComboNode = &node;
 							sAssetComboPin = &input;
 							ed::NodeId hoveredNode = ed::GetHoveredNode();
 							ImVec2 canvasPosition = ed::GetNodePosition(hoveredNode);
@@ -982,6 +1005,11 @@ namespace NR
 							sShouldAssetComboOpen = true;
 						}
 					}
+				}
+
+				if (pinValueChanged && GetModel()->onPinValueChanged)
+				{
+					GetModel()->onPinValueChanged(node.ID, input.ID);
 				}
 
 				builder.EndInput();
@@ -1071,6 +1099,7 @@ namespace NR
 
 			ed::PushStyleColor(ed::StyleColor_NodeBg, ImColor(255, 255, 255, 60));
 			ed::PushStyleColor(ed::StyleColor_NodeBorder, ImColor(255, 255, 255, 64));
+			ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32_DISABLE);
 			ed::BeginNode(ed::NodeId(node.ID));
 			{
 				UI::ScopedStyle(ImGuiStyleVar_Alpha, commentAlpha);
@@ -1111,6 +1140,7 @@ namespace NR
 				ImGui::EndVertical();
 			}
 			ed::EndNode();
+			ImGui::PopStyleColor();
 			ed::PopStyleColor(2);
 
 			// Pupup hint when zoomed out

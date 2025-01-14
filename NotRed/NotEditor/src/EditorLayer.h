@@ -95,6 +95,8 @@ namespace NR
 		void DrawMenubar();
 		float DrawTitlebar();
 
+		void HandleManualWindowResize();
+
 		float GetSnapValue();
 
 		void DeleteEntity(Entity entity);

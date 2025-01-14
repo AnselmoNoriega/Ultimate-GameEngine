@@ -92,8 +92,13 @@ namespace NR
         //==================================================================================
         /// Graph Model Interface
     public:
+        using NodeID = UUID;
+        using PinID = UUID;
+
         std::function<void()> onNodeCreated = nullptr, onNodeDeleted = nullptr;
         std::function<void()> onLinkCreated = nullptr, onLinkDeleted = nullptr;
+
+        std::function<void(NodeID, PinID)> onPinValueChanged = nullptr;
 
         std::function<bool(const Ref<Asset>& graphAsset)> onCompile = nullptr;
         std::function<void()> onPlay = nullptr, onStop = nullptr;

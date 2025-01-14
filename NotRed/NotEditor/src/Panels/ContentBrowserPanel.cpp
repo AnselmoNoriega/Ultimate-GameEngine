@@ -287,19 +287,20 @@ namespace NR
 						}
 						ImGui::PopStyleVar(); // ItemSpacing
 
+						const float paddingForOutline = 2.0f;
 						const float scrollBarrOffset = 20.0f + ImGui::GetStyle().ScrollbarSize;
 						float panelWidth = ImGui::GetContentRegionAvail().x - scrollBarrOffset;
-						float cellSize = sThumbnailSize + sPadding;
 
+						float cellSize = sThumbnailSize + sPadding + paddingForOutline;
 						int columnCount = (int)(panelWidth / cellSize);
-						if (columnCount < 1) 
+						if (columnCount < 1)
 						{
 							columnCount = 1;
 						}
 
 						{
 							const float rowSpacing = 12.0f;
-							UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, rowSpacing));
+							UI::ScopedStyle spacing(ImGuiStyleVar_ItemSpacing, ImVec2(paddingForOutline, rowSpacing));
 							ImGui::Columns(columnCount, 0, false);
 
 							UI::ScopedStyle border(ImGuiStyleVar_FrameBorderSize, 0.0f);

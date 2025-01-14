@@ -198,147 +198,234 @@ namespace NR
             auto pushDarkTextIfActive = [](const char* menuName)
                 {
                     if (ImGui::IsPopupOpen(menuName))
+                    {
                         ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
+                        return true;
+                    }
+                    return false;
                 };
             const ImU32 colHovered = IM_COL32(0, 0, 0, 80);
 
-            pushDarkTextIfActive("File");
-            if (ImGui::BeginMenu("File"))
-            {
-                popItemHighlight();
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
-                if (ImGui::MenuItem("Create Project..."))
-                {
-                    mShowCreateNewProjectPopup = true;
-                }
-                if (ImGui::MenuItem("Save Project"))
-                {
-                    SaveProject();
-                }
-                if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
-                {
-                    OpenProject();
-                }
 
-                if (ImGui::BeginMenu("Open Recent"))
+            {
+                bool colourPushed = pushDarkTextIfActive("File");
+
+                if (ImGui::BeginMenu("File"))
                 {
-                    size_t i = 0;
-                    for (auto it = mUserPreferences->RecentProjects.begin(); it != mUserPreferences->RecentProjects.end(); it++)
+                    popItemHighlight();
+                    colourPushed = false;
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                    
+                    if (ImGui::MenuItem("Create Project..."))
                     {
-                        if (i > 10)
-                        {
-                            break;
-                        }
-                        if (ImGui::MenuItem(it->second.Name.c_str()))
-                        {
-                            OpenProject(it->second.FilePath);
-                            RecentProject projectEntry;
-                            projectEntry.Name = it->second.Name;
-                            projectEntry.FilePath = it->second.FilePath;
-                            projectEntry.LastOpened = time(NULL);
-                            it = mUserPreferences->RecentProjects.erase(it);
-                            mUserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
-                            UserPreferencesSerializer preferencesSerializer(mUserPreferences);
-                            preferencesSerializer.Serialize(mUserPreferences->FilePath);
-                            break;
-                        }
-                        i++;
+                        mShowCreateNewProjectPopup = true;
                     }
+                    if (ImGui::MenuItem("Save Project"))
+                    {
+                        SaveProject();
+                    }
+                    if (ImGui::MenuItem("Open Project...", "Ctrl+O"))
+                    {
+                        OpenProject();
+                    }
+
+                    if (ImGui::BeginMenu("Open Recent"))
+                    {
+                        size_t i = 0;
+                        for (auto it = mUserPreferences->RecentProjects.begin(); it != mUserPreferences->RecentProjects.end(); it++)
+                        {
+                            if (i > 10)
+                            {
+                                break;
+                            }
+
+                            if (ImGui::MenuItem(it->second.Name.c_str()))
+                            {
+                                OpenProject(it->second.FilePath);
+
+                                RecentProject projectEntry;
+                                projectEntry.Name = it->second.Name;
+                                projectEntry.FilePath = it->second.FilePath;
+                                projectEntry.LastOpened = time(NULL);
+
+                                it = mUserPreferences->RecentProjects.erase(it);
+
+                                mUserPreferences->RecentProjects[projectEntry.LastOpened] = projectEntry;
+
+                                UserPreferencesSerializer preferencesSerializer(mUserPreferences);
+                                preferencesSerializer.Serialize(mUserPreferences->FilePath);
+                                break;
+                            }
+                            ++i;
+                        }
+
+                        ImGui::EndMenu();
+                    }
+
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("New Scene", "Ctrl+N"))
+                    {
+                        NewScene();
+                    }
+                    if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
+                    {
+                        SaveScene();
+                    }
+                    if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
+                    {
+                        SaveSceneAs();
+                    }
+
+                    ImGui::Separator();
+                    std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
+                    std::string label = std::string("Restart with ") + otherRenderer;
+                    if (ImGui::MenuItem(label.c_str()))
+                    {
+                        RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
+                        Application::Get().Close();
+                    }
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Exit", "Alt + F4"))
+                    {
+                        Application::Get().Close();
+                    }
+                    ImGui::PopStyleColor();
                     ImGui::EndMenu();
                 }
-                ImGui::Separator();
-                if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-                    NewScene();
-                if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-                    SaveScene();
-                if (ImGui::MenuItem("Save Scene As...", "Ctrl+Shift+S"))
-                    SaveSceneAs();
-                ImGui::Separator();
-                std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
-                std::string label = std::string("Restart with ") + otherRenderer;
-                if (ImGui::MenuItem(label.c_str()))
+
+                if (colourPushed)
                 {
-                    RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
-                    Application::Get().Close();
+                    ImGui::PopStyleColor();
                 }
-                ImGui::Separator();
-                if (ImGui::MenuItem("Exit", "Alt + F4"))
-                    Application::Get().Close();
-                ImGui::PopStyleColor();
-                ImGui::EndMenu();
             }
-            pushDarkTextIfActive("Edit");
-            if (ImGui::BeginMenu("Edit"))
             {
-                popItemHighlight();
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
-                ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
-                ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
-                if (ImGui::MenuItem("Reload C# Assembly"))
-                    ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
-                ImGui::PopStyleColor();
-                ImGui::EndMenu();
-            }
-            pushDarkTextIfActive("View");
-            if (ImGui::BeginPopup("View"))
-            {
-                popItemHighlight();
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
-                ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
-                ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
-                ImGui::PopStyleColor();
-                ImGui::EndMenu();
-            }
-#ifdef NR_DEBUG
-            pushDarkTextIfActive("Debug");
-            if (ImGui::BeginMenu("Debug"))
-            {
-                popItemHighlight();
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
-                if (PhysicsDebugger::IsDebugging())
+                bool colourPushed = pushDarkTextIfActive("Edit");
+                if (ImGui::BeginMenu("Edit"))
                 {
-                    if (ImGui::MenuItem("Stop Physics Debugging"))
+                    popItemHighlight();
+                    colourPushed = false;
+                    
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                    ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
+                    ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
+                    
+                    if (ImGui::MenuItem("Reload C# Assembly"))
                     {
-                        PhysicsDebugger::StopDebugging();
+                        ScriptEngine::ReloadAssembly((Project::GetScriptModuleFilePath()).string());
                     }
-                }
-                else
-                {
-                    if (ImGui::MenuItem("Start Physics Debugging"))
-                    {
-                        PhysicsDebugger::StartDebugging((Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug);
-                    }
-                }
-                ImGui::PopStyleColor();
-                ImGui::EndMenu();
-            }
-#endif
-            pushDarkTextIfActive("Help");
-            if (ImGui::BeginMenu("Help"))
-            {
-                popItemHighlight();
-                ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
-                if (ImGui::MenuItem("About"))
-                {
-                    mShowAboutPopup = true;
+
+                    ImGui::PopStyleColor();
+                    NR_CORE_WARN("Edit CLOSED");
+                    ImGui::EndMenu();
                 }
 
-                ImGui::PopStyleColor();
-                ImGui::EndMenu();
+                if (colourPushed)
+                {
+                    ImGui::PopStyleColor();
+                }
             }
+
+            {
+                bool colourPushed = pushDarkTextIfActive("View");
+
+                if (ImGui::BeginPopup("View"))
+                {
+                    popItemHighlight();
+                    colourPushed = false;
+
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+
+                    ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
+                    ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
+
+                    ImGui::PopStyleColor();
+                    ImGui::EndMenu();
+                }
+
+                if (colourPushed)
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+
+#ifdef NR_DEBUG
+            {
+                bool colourPushed = pushDarkTextIfActive("Debug");
+
+                if (ImGui::BeginMenu("Debug"))
+                {
+                    popItemHighlight();
+                    colourPushed = false;
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+                    if (PhysicsDebugger::IsDebugging())
+                    {
+                        if (ImGui::MenuItem("Stop Physics Debugging"))
+                        {
+                            PhysicsDebugger::StopDebugging();
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui::MenuItem("Start Physics Debugging"))
+                        {
+                            PhysicsDebugger::StartDebugging(
+                                (Project::GetActive()->GetProjectDirectory() / "PhysicsDebugInfo").string(), 
+                                PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
+                            );
+                        }
+                    }
+
+                    ImGui::PopStyleColor();
+                    ImGui::EndMenu();
+                }
+
+                if (colourPushed)
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+#endif
+            {
+                bool colourPushed = pushDarkTextIfActive("Help");
+                if (ImGui::BeginMenu("Help"))
+                {
+                    popItemHighlight();
+                    colourPushed = false;
+                    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
+
+                    if (ImGui::MenuItem("About"))
+                    {
+                        mShowAboutPopup = true;
+                    }
+
+                    ImGui::PopStyleColor();
+                    ImGui::EndMenu();
+                }
+
+                if (colourPushed)
+                {
+                    ImGui::PopStyleColor();
+                }
+            }
+
             if (menuOpen)
+            {
                 ImGui::PopStyleColor(2);
+            }
         }
+
         UI::EndMenuBar();
     }
 
     float EditorLayer::DrawTitlebar()
     {
         const float titlebarHeight = 57.0f;
-        ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
+        const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
+
+        ImGui::SetCursorPos(ImVec2(windowPadding.x, windowPadding.y));
     
         const ImVec2 titlebarMin = ImGui::GetCursorScreenPos();
-        const ImVec2 titlebarMax = { ImGui::GetCursorScreenPos().x + ImGui::GetWindowWidth(),
+        const ImVec2 titlebarMax = { ImGui::GetCursorScreenPos().x + ImGui::GetWindowWidth() - windowPadding.y * 2.0f,
                                      ImGui::GetCursorScreenPos().y + titlebarHeight };
         
         auto* drawList = ImGui::GetWindowDrawList();
@@ -348,63 +435,81 @@ namespace NR
             const int logoWidth = mLogoTex->GetWidth();
             const int logoHeight = mLogoTex->GetHeight();
 
-            const ImVec2 logoOffset(16.0f, 8.0f);
+            const ImVec2 logoOffset(16.0f + windowPadding.x, 8.0f + windowPadding.y);
             const ImVec2 logoRectStart = { ImGui::GetItemRectMin().x + logoOffset.x, ImGui::GetItemRectMin().y + logoOffset.y };
             const ImVec2 logoRectMax = { logoRectStart.x + logoWidth, logoRectStart.y + logoHeight };
             
             drawList->AddImage(UI::GetTextureID(mLogoTex), logoRectStart, logoRectMax);
         }
 
-        ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth(), ImGui::GetFrameHeightWithSpacing() });
-        static int moveOffsetX;
-        static int moveOffsetY;
+        ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - windowPadding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
+        static float moveOffsetX;
+        static float moveOffsetY;
         const float w = ImGui::GetContentRegionAvail().x;
         const float buttonsAreaWidth = 165;
         
         // Title bar drag area
+        auto* rootWindow = ImGui::GetCurrentWindow()->RootWindow;
+        const float windowWidth = (int)rootWindow->RootWindow->Size.x;
+
         if (ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight), ImGuiButtonFlags_PressedOnClick))
         {
-#if defined(NR_PLATFORM_WINDOWS)
-            HWND winW = GetActiveWindow();
-            POINT point;
-            RECT rect;
-            GetCursorPos(&point);
-            GetWindowRect(winW, &rect);
-
+            ImVec2 point = ImGui::GetMousePos();
+            ImRect rect = rootWindow->Rect();
             // Calculate the difference between the cursor pos and window pos
-            moveOffsetX = point.x - rect.left;
-            moveOffsetY = point.y - rect.top;
-#endif
+            moveOffsetX = point.x - rect.Min.x;
+            moveOffsetY = point.y - rect.Min.y;
         }
-
-        if (ImGui::IsItemActive())
+        if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered())
         {
-#if defined(NR_PLATFORM_WINDOWS)
-            if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+            auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+            bool maximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+            if (maximized)
             {
+                glfwRestoreWindow(window);
+            }
+            else
+            {
+                Application::Get().GetWindow().Maximize();
+            }
+        }
+        else if (ImGui::IsItemActive())
+        {
+            if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+            {
+                auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
                 int maximized = glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
-                if (auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow()))
+
+                if (maximized)
                 {
-                    if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) && !maximized)
+                    glfwRestoreWindow(window);
+
+                    int newWidth, newHeight;
+                    glfwGetWindowSize(window, &newWidth, &newHeight);
+
+                    // Offset position proportionally to mouse position on titlebar
+                    // This ensures we dragging window relatively to cursor position on titlebar
+                    // correctly when window size changes
+                    if (windowWidth - (float)newWidth > 0.0f)
                     {
-                        //HWND winW = GetActiveWindow();
-                        POINT point;
-                        GetCursorPos(&point);
-                        //SetWindowPos(winW, nullptr, point.x - moveOffsetX, point.y - moveOffsetY, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-                        glfwSetWindowPos(window, point.x - moveOffsetX, point.y - moveOffsetY);
+                        moveOffsetX *= (float)newWidth / windowWidth;
                     }
                 }
+
+                ImVec2 point = ImGui::GetMousePos();
+                glfwSetWindowPos(window, point.x - moveOffsetX, point.y - moveOffsetY);
             }
-#endif
         }
 
+        // Draw Menubar
         ImGui::SuspendLayout();
         {
             ImGui::SetItemAllowOverlap();
-            const float logoOffset = 16.0f * 2.0f + 41.0f;
+            const float logoOffset = 16.0f * 2.0f + 41.0f + windowPadding.x;
             ImGui::SetCursorPos(ImVec2(logoOffset, 4.0f));
             DrawMenubar();
         }
+
         ImGui::ResumeLayout();
 
         // Window buttons
@@ -473,6 +578,17 @@ namespace NR
         ImGui::Spring(-1.0f, 18.0f);
         ImGui::EndHorizontal();
         return titlebarHeight;
+    }
+
+    void EditorLayer::HandleManualWindowResize()
+    {
+        ImVec2 newSize, newPosition;
+        if (UI::UpdateWindowManualResize(ImGui::GetCurrentWindow(), newSize, newPosition))
+        {
+            auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+            glfwSetWindowPos(window, newPosition.x, newPosition.y);
+            glfwSetWindowSize(window, newSize.x, newSize.y);
+        }
     }
 
     void EditorLayer::UpdateSceneRendererSettings()
@@ -1247,6 +1363,8 @@ namespace NR
         auto boldFont = io.Fonts->Fonts[0];
         auto largeFont = io.Fonts->Fonts[1];
 
+        io.ConfigWindowsResizeFromEdges = io.BackendFlags & ImGuiBackendFlags_HasMouseCursors;
+
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking;
         if (opt_fullscreen)
         {
@@ -1260,19 +1378,34 @@ namespace NR
             window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
         }
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
         ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
         ImGui::Begin("DockSpace Demo", nullptr, window_flags);
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar();
+        ImGui::PopStyleColor(); // MenuBarBg
+        ImGui::PopStyleVar(2);
 
         if (opt_fullscreen)
         {
             ImGui::PopStyleVar(2);
         }
 
+        {
+            UI::ScopedColor windowBorder(ImGuiCol_Border, IM_COL32(50, 50, 50, 255));
+
+            // Draw window border if the window is not maximized
+            auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+            bool isMaximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+            if (!isMaximized)
+            {
+                UI::RenderWindowOuterBorders(ImGui::GetCurrentWindow());
+            }
+        }
+
+        HandleManualWindowResize();
+
         const float titlebarHeight = DrawTitlebar();
-        ImGui::SetCursorPosY(titlebarHeight);
+        ImGui::SetCursorPosY(titlebarHeight + ImGui::GetCurrentWindow()->WindowPadding.y);
 
         // Dockspace
         float minWinSizeX = style.WindowMinSize.x;
