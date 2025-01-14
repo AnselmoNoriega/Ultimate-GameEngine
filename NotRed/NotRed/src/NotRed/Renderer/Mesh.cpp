@@ -830,6 +830,31 @@ namespace NR
 		);
 	}
 
+	void Mesh::AddIndices(const std::vector<int>& indices, uint32_t subMeshIndex)
+	{
+		Submesh& submesh = mMeshAsset->mSubmeshes[subMeshIndex];
+		if (submesh.BaseIndex == 0 && subMeshIndex != 0)
+		{
+			submesh.BaseIndex = mMeshAsset->mIndices.size();
+		}
+		submesh.IndexCount += indices.size();
+
+		for (int i = 0; i < indices.size(); i += 3)
+		{
+			Index index = { 
+				(uint32_t)indices[i + 0], 
+				(uint32_t)indices[i + 1], 
+				(uint32_t)indices[i + 2] 
+			};
+			mMeshAsset->mIndices.push_back(index);
+			mMeshAsset->mTriangleCache[subMeshIndex].emplace_back(
+				mMeshAsset->mStaticVertices[index.V1],
+				mMeshAsset->mStaticVertices[index.V2],
+				mMeshAsset->mStaticVertices[index.V3]
+			);
+		}
+	}
+
 	void Mesh::SetSubmeshesCount(int count)
 	{
 		mMeshAsset->mSubmeshes.clear();

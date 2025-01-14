@@ -129,6 +129,8 @@ namespace NR
 		mono_add_internal_call("NR.Mesh::GetMaterial_Native", NR::Script::NR_Mesh_GetMaterial);
 		mono_add_internal_call("NR.Mesh::GetVertices_Native", NR::Script::NR_Mesh_GetVertices);
 		mono_add_internal_call("NR.Mesh::SetVertices_Native", NR::Script::NR_Mesh_SetVertices);
+		mono_add_internal_call("NR.Mesh::GetVertices_Native", NR::Script::NR_Mesh_GetIndices);
+		mono_add_internal_call("NR.Mesh::SetVertices_Native", NR::Script::NR_Mesh_SetIndices);
 		mono_add_internal_call("NR.Mesh::GetSubMeshCount_Native", NR::Script::NR_Mesh_GetSubMeshCount);
 		mono_add_internal_call("NR.Mesh::SetSubMeshCount_Native", NR::Script::NR_Mesh_SetSubMeshCount);
 		mono_add_internal_call("NR.Mesh::GetMaterialByIndex_Native", NR::Script::NR_Mesh_GetMaterialByIndex);

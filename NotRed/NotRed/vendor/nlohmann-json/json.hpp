@@ -178,11 +178,6 @@
 // SPDX-FileCopyrightText: 2013-2023 Niels Lohmann <https://nlohmann.me>
 // SPDX-License-Identifier: MIT
 
-#include <glm/vec3.hpp>
-#include <glm/vec2.hpp>
-namespace NR { struct Vertex; }
-#include <vector>
-
 #include <cstddef> // nullptr_t
 #include <exception> // exception
 #if JSON_DIAGNOSTICS
@@ -5703,63 +5698,6 @@ inline void to_json(BasicJsonType& j, EnumType e) noexcept
     external_constructor<value_t::number_integer>::construct(j, static_cast<underlying_type>(e));
 }
 #endif  // JSON_DISABLE_ENUM_SERIALIZATION
-
-// ======================== GLM MATH=========================
-
-static void to_json(json& j, const glm::vec3& vec) {
-    j = json{ {"x", vec.x}, {"y", vec.y}, {"z", vec.z} };
-}
-
-static void from_json(const json& j, glm::vec3& vec) {
-    j.at("x").get_to(vec.x);
-    j.at("y").get_to(vec.y);
-    j.at("z").get_to(vec.z);
-}
-
-static void to_json(json& j, const std::vector<glm::vec3>& vec) {
-    j = json::array();
-    for (const auto& v : vec) {
-        j.push_back(v);
-    }
-}
-
-static void from_json(const json& j, std::vector<glm::vec3>& vec) {
-    vec.clear();
-    for (const auto& item : j) {
-        vec.push_back(item.get<glm::vec3>());
-    }
-}
-
-static void to_json(json& j, const glm::vec2& vec) {
-    j = json{ {"x", vec.x}, {"y", vec.y} };
-}
-
-static void from_json(const json& j, glm::vec2& vec) {
-    j.at("x").get_to(vec.x);
-    j.at("y").get_to(vec.y);
-}
-
-static void to_json(json& j, const std::vector<glm::vec2>& vec) {
-    j = json::array();
-    for (const auto& v : vec) {
-        j.push_back(v);
-    }
-}
-
-static void from_json(const json& j, std::vector<glm::vec2>& vec) {
-    vec.clear();
-    for (const auto& item : j) {
-        vec.push_back(item.get<glm::vec2>());
-    }
-}
-
-void to_json(json& j, const NR::Vertex& vertex);
-void from_json(const json& j, NR::Vertex& vertex);
-
-void to_json(json& j, const std::vector<NR::Vertex>& vertices);
-void from_json(const json& j, std::vector<NR::Vertex>& vertices);
-
-// ======================== End GLM MATH=========================
 
 template<typename BasicJsonType>
 inline void to_json(BasicJsonType& j, const std::vector<bool>& e)

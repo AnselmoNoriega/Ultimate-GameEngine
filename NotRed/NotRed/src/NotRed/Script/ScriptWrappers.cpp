@@ -38,7 +38,8 @@
 
 #include "NotRed/Debug/Profiler.h"
 
-#include <json.hpp>
+#include <NotRed/Vendor/glm_vec3_json.hpp>
+
 using json = nlohmann::json;
 namespace nlohmann::json_abi_v3_11_3::detail
 {
@@ -1529,7 +1530,7 @@ namespace NR::Script
         return new Ref<MaterialAsset>(materialTable->GetMaterial(0));
     }
 
-    MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh) // TODO: Add index
+    MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
         const auto& staticVertices = mesh->GetMeshAsset()->GetStaticVertices();
@@ -1556,7 +1557,7 @@ namespace NR::Script
 
         for (int i = 0; i < length; ++i)
         {
-            data[i] = mono_array_get(byteArray, byte, i);
+            data.push_back(mono_array_get(byteArray, byte, i));
         }
 
         std::string serialized(data.begin(), data.end());
@@ -1567,7 +1568,39 @@ namespace NR::Script
         mesh->AddVertices(j.get<std::vector<Vertex>>(), index);
     }
 
-    int NR_Mesh_GetSubMeshCount(Ref<Mesh>* inMesh) // TODO: Add index
+    MonoArray* NR_Mesh_GetIndices(Ref<Mesh>* inMesh)
+    {
+        Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
+        const auto& indices = mesh->GetMeshAsset()->GetIndices();
+        MonoArray* array = mono_array_new(mono_domain_get(), mono_get_int32_class(), indices.size() * 3);
+
+        size_t idx = 0;
+        for (const auto& indexSet : indices)
+        {
+            mono_array_set(array, int32_t, idx++, indexSet.V1);
+            mono_array_set(array, int32_t, idx++, indexSet.V2);
+            mono_array_set(array, int32_t, idx++, indexSet.V3);
+        }
+
+        return array;
+    }
+
+    void NR_Mesh_SetIndices(Ref<Mesh>* inMesh, MonoArray* intArray, int index)
+    {
+        int length = mono_array_length(intArray);
+        std::vector<int> data(length);
+
+        for (int i = 0; i < length; ++i)
+        {
+            // Get each element as an integer
+            data.push_back(*(int*)mono_array_addr_with_size(intArray, sizeof(int), i));
+        }
+
+        Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
+        mesh->AddIndices(data, index);
+    }
+
+    int NR_Mesh_GetSubMeshCount(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
         return mesh->GetSubmeshes().size();

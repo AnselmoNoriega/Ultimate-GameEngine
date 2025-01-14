@@ -332,6 +332,7 @@
     <ClInclude Include="src\NotRed\Util\SerializationMacros.h" />
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />
     <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h" />
+    <ClInclude Include="src\NotRed\Vendor\glm_vec3_json.hpp" />
     <ClInclude Include="src\nrpch.h" />
     <ClInclude Include="vendor\VulkanMemoryAllocator\vk_mem_alloc.h" />
     <ClInclude Include="vendor\yaml-cpp\include\yaml-cpp\anchor.h" />

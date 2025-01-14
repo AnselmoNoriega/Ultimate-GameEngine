@@ -243,6 +243,7 @@ namespace NR
 		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
 
 		void AddVertices(const std::vector<Vertex>& vertices, uint32_t index);
+		void AddIndices(const std::vector<int>& indices, uint32_t index);
 		void SetSubmeshesCount(int count);
 
 	private:
