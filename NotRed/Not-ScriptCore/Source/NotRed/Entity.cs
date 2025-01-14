@@ -159,9 +159,9 @@ namespace NR
             return new Entity(entityID);
         }
 
-        public Entity Instantiate()
+        public Entity Instantiate(Vector3 position)
         {
-            ulong entityID = InstantiateEntity_Native();
+            ulong entityID = InstantiateEntity_Native(position);
             return new Entity(entityID);
         }
 

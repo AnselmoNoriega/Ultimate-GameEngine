@@ -144,7 +144,7 @@ namespace NR
 		MeshAsset(const std::string& filename);
 		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
 		MeshAsset(int particleCount);
-		MeshAsset() = default;
+		MeshAsset();
 		virtual ~MeshAsset() = default;
 
 		void DumpVertexBuffer();

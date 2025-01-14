@@ -1592,7 +1592,6 @@ namespace NR::Script
 
         for (int i = 0; i < length; ++i)
         {
-            // Get each element as an integer
             data.push_back(*(int*)mono_array_addr_with_size(intArray, sizeof(int), i));
         }
 

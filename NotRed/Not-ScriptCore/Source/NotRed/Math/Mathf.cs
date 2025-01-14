@@ -84,5 +84,10 @@ namespace NR
         {
             return (int)Math.Floor(value);
         }
+
+        public static int RoundToInt(float value)
+        {
+            return (int)Math.Round(value);
+        }
     }
 }

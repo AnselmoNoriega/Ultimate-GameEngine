@@ -41,6 +41,9 @@ Assets:
   - Handle: 2856502281337498133
     FilePath: Meshes/Default/Sphere.nrmesh
     Type: Mesh
+  - Handle: 2942335404720847576
+    FilePath: Textures/Materials/WorldVoxelMat.nrpm
+    Type: PhysicsMat
   - Handle: 3078466047646632934
     FilePath: Models/Sphere1m.fbx
     Type: MeshAsset

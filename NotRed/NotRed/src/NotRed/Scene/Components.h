@@ -85,7 +85,10 @@ namespace NR
 
         bool IsFractured = false;
 
-        MeshComponent() = default;
+        MeshComponent()
+        {
+            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create());
+        }
         MeshComponent(const MeshComponent& other)
             : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.Materials)), IsFractured(other.IsFractured) { }
         MeshComponent(const Ref<Mesh>& mesh)

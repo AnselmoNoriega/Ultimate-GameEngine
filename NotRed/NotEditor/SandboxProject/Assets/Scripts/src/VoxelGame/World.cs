@@ -1,24 +1,30 @@
 ﻿using NR;
+using System;
 using System.Collections.Generic;
 
-public class World
+public class World : Entity
 {
     public int mapSizeInChunks = 6;
     public int chunkSize = 16, chunkHeight = 100;
     public int waterThreshold = 50;
     public float noiseScale = 0.03f;
-    public GameObject chunkPrefab;
+    public Entity chunkPrefab;
 
     Dictionary<Vector3, Chunk> chunkDataDictionary = new Dictionary<Vector3, Chunk>();
     Dictionary<Vector3, ChunkRenderer> chunkDictionary = new Dictionary<Vector3, ChunkRenderer>();
 
+    public void Init()
+    {
+        GenerateWorld();
+    }
+
     public void GenerateWorld()
     {
         chunkDataDictionary.Clear();
-        foreach (ChunkRenderer chunk in chunkDictionary.Values)
-        {
-            Destroy(chunk.gameObject);
-        }
+        //foreach (ChunkRenderer chunk in chunkDictionary.Values)
+        //{
+        //    Destroy(chunk.gameObject);
+        //}
 
         chunkDictionary.Clear();
         for (int x = 0; x < mapSizeInChunks; ++x)
@@ -34,7 +40,7 @@ public class World
         foreach (Chunk data in chunkDataDictionary.Values)
         {
             MeshData meshData = ChunkManager.GetChunkMeshData(data);
-            GameObject chunkObject = Instantiate(chunkPrefab, data.WorldPosition, Quaternion.identity);
+            Entity chunkObject = Instantiate(/*chunkPrefab,*/data.WorldPosition);
             ChunkRenderer chunkRenderer = chunkObject.GetComponent<ChunkRenderer>();
             chunkDictionary.Add(data.WorldPosition, chunkRenderer);
             chunkRenderer.InitializeChunk(data);
@@ -48,7 +54,7 @@ public class World
         {
             for (int z = 0; z < data.Size; z++)
             {
-                float noiseValue = Mathf.PerlinNoise((data.WorldPosition.x + x) * noiseScale, (data.WorldPosition.z + z) * noiseScale);
+                float noiseValue = Noise.PerlinNoise((data.WorldPosition.x + x) * noiseScale, (data.WorldPosition.z + z) * noiseScale);
                 int groundPosition = Mathf.RoundToInt(noiseValue * chunkHeight);
                 for (int y = 0; y < chunkHeight; ++y)
                 {

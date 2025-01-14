@@ -5,7 +5,7 @@ public class VoxelDataManager
     public static float textureOffset = 0.001f;
     public static float tileSizeX, tileSizeY;
     public static Dictionary<VoxelType, TextureData> blockTextureDataDictionary = new Dictionary<VoxelType, TextureData>();
-    public VoxelData textureData;
+    public VoxelData textureData; // Do it myself
 
     private void Init()
     {

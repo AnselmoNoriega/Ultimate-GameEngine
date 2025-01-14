@@ -5,7 +5,6 @@ using System.Collections.Generic;
 public class VoxelData
 {
     public float textureSizeX, textureSizeY;
-    // Should be a list
     public List<TextureData> textureDataList;
 }
 
