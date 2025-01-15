@@ -154,7 +154,7 @@ namespace NR
                             }
                         }
 
-                        if (ImGui::BeginPopupContextWindow())
+                        if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
                         {
                             if (ImGui::BeginMenu("Create"))
                             {
@@ -174,7 +174,7 @@ namespace NR
                                     if (ImGui::MenuItem("Cube"))
                                     {
                                         auto newEntity = mContext->CreateEntity("Cube");
-                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cube.hmesh");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cube.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
                                         bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
@@ -183,7 +183,7 @@ namespace NR
                                     if (ImGui::MenuItem("Sphere"))
                                     {
                                         auto newEntity = mContext->CreateEntity("Sphere");
-                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Sphere.hmesh");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Sphere.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& scc = newEntity.AddComponent<SphereColliderComponent>();
                                         scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
@@ -192,7 +192,7 @@ namespace NR
                                     if (ImGui::MenuItem("Capsule"))
                                     {
                                         auto newEntity = mContext->CreateEntity("Capsule");
-                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Capsule.hmesh");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Capsule.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
                                         ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
@@ -201,7 +201,7 @@ namespace NR
                                     if (ImGui::MenuItem("Cylinder"))
                                     {
                                         auto newEntity = mContext->CreateEntity("Cylinder");
-                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cylinder.hmesh");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Cylinder.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
                                         CookingFactory::CookMesh(collider);
@@ -210,7 +210,7 @@ namespace NR
                                     if (ImGui::MenuItem("Torus"))
                                     {
                                         auto newEntity = mContext->CreateEntity("Torus");
-                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Torus.hmesh");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Torus.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
                                         CookingFactory::CookMesh(collider);
@@ -219,7 +219,7 @@ namespace NR
                                     if (ImGui::MenuItem("Plane"))
                                     {
                                         auto newEntity = mContext->CreateEntity("Plane");
-                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Plane.hmesh");
+                                        Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>("Meshes/Default/Plane.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
                                         CookingFactory::CookMesh(collider);
@@ -462,19 +462,43 @@ namespace NR
         //----------
         const bool opened = ImGui::TreeNodeWithIcon(nullptr, (void*)(uint64_t)(uint32_t)entity, flags, IM_COL32_WHITE, name);
 
-        // Type column
-        //------------
-        ImGui::TableNextColumn();
-        if (isPrefab)
+        bool entityDeleted = false;
+        if (ImGui::BeginPopupContextItem())
         {
-            UI::ShiftCursorX(edgeOffset * 3.0f);
-            ImGui::TextUnformatted("Prefab");
-            if (!isSelected)
             {
-                ImGui::PopStyleColor();
+                UI::ScopedColor colText(ImGuiCol_Text, Colors::Theme::text);
+                UI::ScopedColorStack entitySelection(ImGuiCol_Header, Colors::Theme::groupHeader,
+                    ImGuiCol_HeaderHovered, Colors::Theme::groupHeader,
+                    ImGuiCol_HeaderActive, Colors::Theme::groupHeader);
+
+                if (isPrefab)
+                {
+                    if (ImGui::MenuItem("Update Prefab"))
+                    {
+                        AssetHandle prefabAssetHandle = entity.GetComponent<PrefabComponent>().PrefabID;
+                        Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabAssetHandle);
+                        if (prefab)
+                        {
+                            prefab->Create(entity);
+                        }
+                        else
+                        {
+                            NR_ERROR("Prefab has invalid asset handle: {0}", prefabAssetHandle);
+                        }
+                    }
+                }
+
+                if (ImGui::MenuItem("Delete"))
+                {
+                    entityDeleted = true;
+                }
             }
+
+            ImGui::EndPopup();
         }
 
+        // Type column
+        //------------
         ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
         const bool isRowClicked = [&rowAreaMin, &rowAreaMax, isRowHovered]
             {
@@ -523,17 +547,6 @@ namespace NR
             ImGui::PopStyleColor();
         }
 
-        bool entityDeleted = false;
-        if (ImGui::BeginPopupContextItem(UI::GenerateID()))
-        {
-            if (ImGui::MenuItem("Delete"))
-            {
-                entityDeleted = true;
-            }
-
-            ImGui::EndPopup();
-        }
-
         // Drag & Drop
         //------------
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
@@ -554,6 +567,19 @@ namespace NR
             }
 
             ImGui::EndDragDropTarget();
+        }
+
+        ImGui::TableNextColumn();
+        if (isPrefab)
+        {
+            UI::ShiftCursorX(edgeOffset * 3.0f);
+            if (isSelected)
+            {
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
+            }
+
+            ImGui::TextUnformatted("Prefab");
+            ImGui::PopStyleColor();
         }
 
         // Draw children

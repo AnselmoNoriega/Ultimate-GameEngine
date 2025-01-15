@@ -327,8 +327,8 @@ namespace NR
 					if (data)
 					{
 						Entity& e = *(Entity*)data->Data;
-						CreateAsset<Prefab>("New Prefab.hprefab", e);
-
+						Ref<Prefab> prefab = CreateAsset<Prefab>("New Prefab.nrprefab");
+						prefab->Create(e);
 					}
 					ImGui::EndDragDropTarget();
 				}

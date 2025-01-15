@@ -1,0 +1,23 @@
+Prefab:
+  - Entity: 3869519183859127431
+    TagComponent:
+      Tag: Chunk
+    Parent: 0
+    Children:
+      []
+    PrefabComponent:
+      Prefab: 3869519183859127431
+      Entity: 1739687759990777301
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      AssetID: 0
+      MaterialTable:
+        0: 0
+    MeshColliderComponent:
+      IsConvex: false
+      IsTrigger: false
+      OverrideMesh: false
+      Material: 0

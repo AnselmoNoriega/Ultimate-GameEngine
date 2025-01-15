@@ -29,6 +29,9 @@ Assets:
   - Handle: 1611408416186189859
     FilePath: Models/Source/Sponza/6151467286084645207.jpg
     Type: Texture
+  - Handle: 1739687759990777301
+    FilePath: VoxelGame/ChunkPrefab.nrprefab
+    Type: Prefab
   - Handle: 2482100059896760119
     FilePath: Models/Source/Sponza/10388182081421875623.jpg
     Type: Texture
@@ -41,9 +44,6 @@ Assets:
   - Handle: 2856502281337498133
     FilePath: Meshes/Default/Sphere.nrmesh
     Type: Mesh
-  - Handle: 2942335404720847576
-    FilePath: Textures/Materials/WorldVoxelMat.nrpm
-    Type: PhysicsMat
   - Handle: 3078466047646632934
     FilePath: Models/Sphere1m.fbx
     Type: MeshAsset
@@ -158,6 +158,9 @@ Assets:
   - Handle: 6969697910087914694
     FilePath: Models/Source/Sponza/1219024358953944284.jpg
     Type: Texture
+  - Handle: 7177039559866099242
+    FilePath: Textures/Materials/VoxelMat.nrmaterial
+    Type: Material
   - Handle: 7398374036105599942
     FilePath: Scenes/VoxelGame.nrsc
     Type: Scene

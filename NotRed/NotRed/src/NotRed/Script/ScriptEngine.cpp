@@ -187,6 +187,8 @@ namespace NR
 
 	static uint32_t Instantiate(EntityScriptClass& scriptClass)
 	{
+		NR_PROFILE_FUNC();
+
 		MonoObject* instance = mono_object_new(sCurrentMonoDomain, scriptClass.Class);
 		if (!instance)
 		{
@@ -693,6 +695,8 @@ namespace NR
 
 	void ScriptEngine::InitScriptEntity(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		Scene* scene = entity.mScene;
 		UUID id = entity.GetComponent<IDComponent>().ID;
 		NR_CORE_TRACE("InitScriptEntity {0} ({1})", id, (uint64_t)entity.mEntityHandle);
@@ -879,6 +883,8 @@ namespace NR
 
 	void ScriptEngine::InstantiateEntityClass(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		Scene* scene = entity.mScene;
 		UUID id = entity.GetComponent<IDComponent>().ID;
 		NR_CORE_TRACE("InstantiateEntityClass {0} ({1})", id, (uint64_t)entity.mEntityHandle);

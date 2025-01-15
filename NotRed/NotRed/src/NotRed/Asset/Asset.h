@@ -11,7 +11,7 @@ namespace NR
 	class Asset : public RefCounted
 	{
 	public:
-		AssetHandle Handle;
+		AssetHandle Handle = 0;
 		uint16_t Flags = (uint16_t)AssetFlag::None;
 
 		virtual ~Asset() = default;

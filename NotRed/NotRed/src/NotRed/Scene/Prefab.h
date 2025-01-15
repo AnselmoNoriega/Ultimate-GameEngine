@@ -11,9 +11,11 @@ namespace NR
 	{
 	public:
 		Prefab();
-		Prefab(Entity e);
 
 		~Prefab();
+
+		// Replaces existing entity if present
+		void Create(Entity entity, bool serialize = true);
 
 		static AssetType GetStaticType() { return AssetType::Prefab; }
 		AssetType GetAssetType() const override { return GetStaticType(); }

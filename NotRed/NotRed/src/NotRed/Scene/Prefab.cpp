@@ -4,6 +4,8 @@
 #include "Scene.h"
 #include "NotRed/Audio/AudioComponent.h"
 
+#include "NotRed/Asset/AssetImporter.h"
+
 namespace NR
 {
 	template<typename T>
@@ -18,6 +20,8 @@ namespace NR
 
 	Entity Prefab::CreatePrefabFromEntity(Entity entity)
 	{
+		NR_CORE_ASSERT(Handle);
+
 		Entity newEntity = mScene->CreateEntity();
 
 		// Add PrefabComponent
@@ -65,15 +69,19 @@ namespace NR
 		mScene->mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(mScene);
 	}
 
-	Prefab::Prefab(Entity e)
-	{
-		mScene = Scene::CreateEmpty();
-		mEntity = CreatePrefabFromEntity(e);
-	}
-
 	Prefab::~Prefab()
 	{
 		mScene->mRegistry.on_construct<ScriptComponent>().disconnect(this);
 		mScene->mRegistry.on_destroy<ScriptComponent>().disconnect(this);
+	}
+
+	void Prefab::Create(Entity entity, bool serialize)
+	{
+		mScene = Scene::CreateEmpty();
+		mEntity = CreatePrefabFromEntity(entity);
+		if (serialize)
+		{
+			AssetImporter::Serialize(this);
+		}
 	}
 }
