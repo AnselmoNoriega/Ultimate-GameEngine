@@ -33,6 +33,13 @@ namespace NR
 {
     static Ref<Texture2D> mGearIcon;
 
+    SceneHierarchyPanel::SceneHierarchyPanel()
+    {
+        mPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
+        mPlusIcon = Texture2D::Create("Resources/Editor/plus_icon.png");
+        mGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
+    }
+
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
         : mContext(context)
     {

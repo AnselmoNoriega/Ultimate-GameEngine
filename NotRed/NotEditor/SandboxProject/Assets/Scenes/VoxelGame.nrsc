@@ -1,6 +1,6 @@
 Scene: Demo
 Environment:
-  AssetHandle: 13565342376710645757
+  AssetHandle: 0
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
@@ -36,7 +36,7 @@ Entities:
           Data: 100
         - Name: chunkPrefab
           Type: 9
-          Data: 0
+          Data: 1739687759990777301
   - Entity: 2034799111348673663
     TagComponent:
       Tag: Chunk
@@ -48,7 +48,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 3710826685493070576
+      AssetID: 0
       MaterialTable:
         0: 0
     MeshColliderComponent:
