@@ -53,7 +53,7 @@ public class World : Entity
     {
         for (int x = 0; x < data.Size; ++x)
         {
-            for (int z = 0; z < data.Size; z++)
+            for (int z = 0; z < data.Size; ++z)
             {
                 float noiseValue = Noise.PerlinNoise((data.WorldPosition.x + x) * noiseScale, (data.WorldPosition.z + z) * noiseScale);
                 int groundPosition = Mathf.RoundToInt(noiseValue * chunkHeight);

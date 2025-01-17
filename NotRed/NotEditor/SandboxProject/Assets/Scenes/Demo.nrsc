@@ -48,7 +48,7 @@ Entities:
     MeshComponent:
       AssetID: 10610151712161516910
       MaterialTable:
-        0: 0
+        0: 6411278664513587213
         1: 0
         2: 0
         3: 0
@@ -80,7 +80,7 @@ Entities:
       []
     TransformComponent:
       Position: [0, 4.19999981, 0]
-      Rotation: [0, 3.29999995, -189.5]
+      Rotation: [0, 3.29999995, -189.500015]
       Scale: [1, 1, 1]
     DirectionalLightComponent:
       Radiance: [1, 1, 1]

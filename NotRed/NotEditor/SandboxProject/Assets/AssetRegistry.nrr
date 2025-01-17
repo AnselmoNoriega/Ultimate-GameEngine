@@ -146,6 +146,9 @@ Assets:
   - Handle: 6249827114591471084
     FilePath: Models/Source/Sponza/5061699253647017043.png
     Type: Texture
+  - Handle: 6411278664513587213
+    FilePath: Textures/Materials/TestingMat.nrmaterial
+    Type: Material
   - Handle: 6447245779541325488
     FilePath: Models/Source/Sponza/14650633544276105767.jpg
     Type: Texture
