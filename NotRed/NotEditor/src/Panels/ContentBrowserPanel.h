@@ -114,9 +114,21 @@ namespace NR
 
         size_t FindItem(AssetHandle handle) const
         {
-            for (size_t i = 0; i < Items.size(); i++)
+            for (size_t i = 0; i < Items.size(); ++i)
             {
                 if (Items[i]->GetID() == handle)
+                {
+                    return i;
+                }
+            }
+            return InvalidItem;
+        }
+
+        size_t FindItem(const std::string& assetName) const
+        {
+            for (size_t i = 0; i < Items.size(); ++i)
+            {
+                if (Items[i]->GetName() == assetName)
                 {
                     return i;
                 }
