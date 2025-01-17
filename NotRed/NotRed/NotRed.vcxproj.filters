@@ -690,6 +690,9 @@
     <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Vendor\glm_vec3_json.hpp">
+      <Filter>src\NotRed\Vendor</Filter>
+    </ClInclude>
     <ClInclude Include="src\nrpch.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -873,7 +876,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Vendor\glm_vec3_json.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

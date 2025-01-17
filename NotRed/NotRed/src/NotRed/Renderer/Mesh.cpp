@@ -636,24 +636,6 @@ namespace NR
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
 	}
 
-	MeshAsset::MeshAsset()
-		: mIsAnimated(false)
-	{
-		auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), "NotRed-Default");
-		mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f));
-		mi->Set("uMaterialUniforms.Emission", 0.0f);
-		mi->Set("uMaterialUniforms.Metalness", 0.0f);
-		mi->Set("uMaterialUniforms.Roughness", 0.8f);
-		mi->Set("uMaterialUniforms.UseNormalMap", false);
-
-		Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
-		mi->Set("uAlbedoTexture", whiteTexture);
-		mi->Set("uMetalnessTexture", whiteTexture);
-		mi->Set("uRoughnessTexture", whiteTexture);
-
-		mMaterials.push_back(mi);
-	}
-
 	void MeshAsset::DumpVertexBuffer()
 	{
 		NR_MESH_LOG("------------------------------------------------------");
