@@ -196,6 +196,7 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetMaxAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxAngularVelocity);
 
 		mono_add_internal_call("NR.MeshFactory::CreatePlane_Native", NR::Script::NR_MeshFactory_CreatePlane);
+		mono_add_internal_call("NR.MeshFactory::CreateCustomMesh_Native", NR::Script::NR_MeshFactory_CreateCustomMesh);
 
 		mono_add_internal_call("NR.AudioComponent::IsPlaying_Native", Script::NR_AudioComponent_IsPlaying);
 		mono_add_internal_call("NR.AudioComponent::Play_Native", Script::NR_AudioComponent_Play);

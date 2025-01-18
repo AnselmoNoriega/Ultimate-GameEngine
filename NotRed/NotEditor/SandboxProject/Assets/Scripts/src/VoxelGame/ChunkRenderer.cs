@@ -30,21 +30,26 @@ public class ChunkRenderer
 
     private void RenderMesh(MeshData meshData)
     {
-        _mesh.Mesh.Clear();
-        var combinedPositions = meshData.Positions.Concat(meshData.WaterMesh.Positions);
-        var combinedUVs = meshData.TextureCoords.Concat(meshData.WaterMesh.TextureCoords);
+        Vertex[][] vertices = new Vertex[2][];
 
-        _mesh.Mesh.SubMeshCount = 2;
+        vertices[0] = meshData.Positions.Zip(
+            meshData.TextureCoords, (position, uv) => new Vertex { Position = position, Texcoord = uv })
+            .ToArray();
+        vertices[1] = meshData.WaterMesh.Positions.Zip(
+            meshData.WaterMesh.TextureCoords, (position, uv) => new Vertex { Position = position, Texcoord = uv })
+            .ToArray();
 
-        _mesh.Mesh.SetVertices(meshData.Positions.Zip(
-            meshData.TextureCoords, (position, uv) => new Vertex{ Position = position, Texcoord = uv })
-            .ToArray(), 0);
-        _mesh.Mesh.SetVertices(meshData.WaterMesh.Positions.Zip(
-            meshData.WaterMesh.TextureCoords, (position, uv) => new Vertex{ Position = position, Texcoord = uv })
-            .ToArray(), 1);
+        int[][] indices = new int[2][];
+        indices[0] = meshData.Indices.ToArray();
+        indices[1] = meshData.WaterMesh.Indices.Select(val => val + meshData.Positions.Count).ToArray();
 
-        _mesh.Mesh.SetIndices(meshData.Indices.ToArray(), 0);
-        _mesh.Mesh.SetIndices(meshData.WaterMesh.Indices.Select(val => val + meshData.Positions.Count).ToArray(), 1);
+        string[] meshNames = new string[2];
+
+        _mesh.Mesh = MeshFactory.CreateCustomMesh(
+            vertices,
+            indices,
+            meshNames
+            );
         
         //_mesh.RecalculateNormals(); Maybe?
 

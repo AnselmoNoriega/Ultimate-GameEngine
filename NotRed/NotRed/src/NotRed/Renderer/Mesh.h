@@ -143,6 +143,11 @@ namespace NR
 	public:
 		MeshAsset(const std::string& filename);
 		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		MeshAsset(
+			const std::vector<std::vector<Vertex>>& vertices, 
+			const std::vector<std::vector<Index>>& indices,
+			const std::vector<std::string>& matNames
+		);
 		MeshAsset(int particleCount);
 		virtual ~MeshAsset() = default;
 

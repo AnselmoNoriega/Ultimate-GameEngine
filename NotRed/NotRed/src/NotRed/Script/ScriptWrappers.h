@@ -181,6 +181,13 @@ namespace NR::Script
     uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 
     void* NR_MeshFactory_CreatePlane(float width, float height);
+    void* NR_MeshFactory_CreateCustomMesh(
+        MonoArray* verticesInByte, 
+        MonoArray* vertexOffsets, 
+        MonoArray* indicesArray, 
+        MonoArray* indexOffsets, 
+        MonoArray* matNames
+    );
 
     // Audio
     bool NR_AudioComponent_IsPlaying(uint64_t entityID);

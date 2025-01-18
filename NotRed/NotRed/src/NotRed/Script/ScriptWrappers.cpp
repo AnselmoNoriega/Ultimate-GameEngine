@@ -1735,6 +1735,77 @@ namespace NR::Script
         return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create("Assets/Models/Plane1m.obj")));
     }
 
+    void* NR_MeshFactory_CreateCustomMesh(
+        MonoArray* verticesInByte,
+        MonoArray* vertexOffsets,
+        MonoArray* indicesArray,
+        MonoArray* indexOffsets,
+        MonoArray* matNames
+    )
+    {
+        // Get the length of each MonoArray
+        int vertexDataSize = mono_array_length(verticesInByte);
+        int vertexOffsetsCount = mono_array_length(vertexOffsets);
+        int indicesCount = mono_array_length(indicesArray);
+        int indexOffsetsCount = mono_array_length(indexOffsets);
+        int matNamesCount = mono_array_length(matNames);
+
+        // Get raw pointers from MonoArrays
+        unsigned char* verticesDataPtr = (byte*)mono_array_addr_with_size(verticesInByte, sizeof(byte), 0);
+        int* vertexOffsetsPtr = (int*)mono_array_addr_with_size(vertexOffsets, sizeof(int), 0);
+        int* indicesDataPtr = (int*)mono_array_addr_with_size(indicesArray, sizeof(int), 0);
+        int* indexOffsetsPtr = (int*)mono_array_addr_with_size(indexOffsets, sizeof(int), 0);
+        char** matNamesPtr = (char**)mono_array_addr_with_size(matNames, sizeof(char*), 0);
+
+        // Create vectors for offsets
+        std::vector<int> vertexOffsetsVec(vertexOffsetsPtr, vertexOffsetsPtr + vertexOffsetsCount);
+        std::vector<int> indexOffsetsVec(indexOffsetsPtr, indexOffsetsPtr + indexOffsetsCount);
+
+        // Deserialize the vertex data and indices
+        std::vector<std::vector<Vertex>> verticesForSubmeshes;
+        verticesForSubmeshes.reserve(vertexOffsetsVec.size());
+        {
+            std::vector<Vertex> vertices;
+            vertices.resize(vertexDataSize / sizeof(Vertex));
+            std::memcpy(vertices.data(), verticesDataPtr, vertexDataSize);
+
+            int endOffset = 0;
+            for (int offset : vertexOffsetsVec)
+            {
+                verticesForSubmeshes.emplace_back(vertices.begin() + endOffset, vertices.begin() + offset);
+                endOffset += offset;
+            }
+        }
+
+        std::vector<std::vector<Index>> indicesForSubmeshes;
+        indicesForSubmeshes.reserve(indexOffsetsVec.size());
+        {
+            std::vector<int> indices;
+            indices.resize(indicesCount / 3);
+            std::memcpy(indices.data(), indicesDataPtr, indicesCount * sizeof(uint32_t));
+
+            int endOffset = 0;
+            for (int offset : indexOffsetsVec)
+            {
+                indicesForSubmeshes.emplace_back(indices.begin() + endOffset, indices.begin() + offset);
+                endOffset += offset;
+            }
+        }
+
+        // Create vector for material names
+        std::vector<std::string> materialNames;
+        for (int i = 0; i < matNamesCount; ++i)
+        {
+            materialNames.push_back(std::string(matNamesPtr[i]));
+        }
+
+        return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create(
+            verticesForSubmeshes,
+            indicesForSubmeshes,
+            materialNames
+        )));
+    }
+
     const auto CheckActiveScene = [] { return ScriptEngine::GetCurrentSceneContext(); };
 
     static inline Entity GetEntityFromScene(uint64_t entityID)
