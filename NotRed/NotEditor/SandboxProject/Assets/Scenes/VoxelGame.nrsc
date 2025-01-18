@@ -37,25 +37,6 @@ Entities:
         - Name: chunkPrefab
           Type: 9
           Data: 1739687759990777301
-  - Entity: 2034799111348673663
-    TagComponent:
-      Tag: Chunk
-    Parent: 0
-    Children:
-      []
-    TransformComponent:
-      Position: [0, 0, 0]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    MeshComponent:
-      AssetID: 0
-      MaterialTable:
-        0: 0
-    MeshColliderComponent:
-      IsConvex: false
-      IsTrigger: false
-      OverrideMesh: false
-      Material: 0
 SceneAudio:
   MasterReverb:
     Pre-delay: 50

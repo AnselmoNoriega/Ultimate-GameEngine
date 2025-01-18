@@ -44,6 +44,8 @@ public class ChunkRenderer
         indices[1] = meshData.WaterMesh.Indices.Select(val => val + meshData.Positions.Count).ToArray();
 
         string[] meshNames = new string[2];
+        meshNames[0] = "VoxelMat";
+        meshNames[1] = "WaterVoxelMat";
 
         _mesh.Mesh = MeshFactory.CreateCustomMesh(
             vertices,

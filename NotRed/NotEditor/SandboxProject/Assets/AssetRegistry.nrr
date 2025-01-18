@@ -398,6 +398,9 @@ Assets:
   - Handle: 16946254640843248582
     FilePath: Meshes/Default/Cylinder.nrmesh
     Type: Mesh
+  - Handle: 17044792105072577609
+    FilePath: Textures/Materials/WaterVoxelMat.nrmaterial
+    Type: Material
   - Handle: 17368199773201413024
     FilePath: Env/HDR_blue_nebulae-1.hdr
     Type: EnvMap
