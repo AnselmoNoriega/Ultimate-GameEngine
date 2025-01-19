@@ -231,7 +231,7 @@ namespace NR
 		return string != nullptr ? std::string(mono_string_to_utf8(string)) : "";
 	}
 
-	static MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params = nullptr)
+	static MonoObject* CallMethod(MonoObject* object, MonoMethod* method, void** params = nullptr) noexcept
 	{
 		MonoObject* pException = nullptr;
 		MonoObject* result = mono_runtime_invoke(method, object, params, &pException);
@@ -444,7 +444,9 @@ namespace NR
 	{
 		EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
 		if (entityInstance.ScriptClass->CreateMethod)
+		{
 			CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->CreateMethod);
+		}
 	}
 
 	void ScriptEngine::UpdateEntity(Entity entity, float dt)

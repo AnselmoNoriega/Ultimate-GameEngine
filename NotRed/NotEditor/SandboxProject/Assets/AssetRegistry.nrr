@@ -272,6 +272,9 @@ Assets:
   - Handle: 11123385323720282070
     FilePath: Meshes/Demo/TestScene.nrmesh
     Type: Mesh
+  - Handle: 11141525366160165086
+    FilePath: Textures/voxelWorld.png
+    Type: Texture
   - Handle: 11369867067491543923
     FilePath: Models/Source/Sponza/11968150294050148237.jpg
     Type: Texture
