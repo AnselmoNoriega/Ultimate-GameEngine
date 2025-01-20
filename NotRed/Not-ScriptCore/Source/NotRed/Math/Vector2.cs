@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace NR
 {
-    [StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential), Serializable]
     public struct Vector2
     {
         public float x;

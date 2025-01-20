@@ -1,13 +1,9 @@
-﻿using NR;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NR
 {
@@ -40,16 +36,8 @@ namespace NR
                 indexOffsets[i] = indicesList.Count;
             }
 
-            byte[] vertexBuffer;
-            using (var ms = new MemoryStream())
-            {
-                var formatter = new BinaryFormatter();
-                formatter.Serialize(ms, verticesList.ToArray());
-                vertexBuffer = ms.ToArray();
-            }
-
             return new Mesh(CreateCustomMesh_Native(
-                vertexBuffer, vertexOffsets, 
+                verticesList.ToArray(), vertexOffsets, 
                 indicesList.ToArray(), indexOffsets, 
                 materialNames)
                 );
@@ -60,7 +48,7 @@ namespace NR
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern IntPtr CreateCustomMesh_Native(
-            byte[] verticesData, int[] vertexOffsets, 
+            object verticesData, int[] vertexOffsets, 
             int[] indicesData, int[] indexOffsets, 
             string[] matNames
             );

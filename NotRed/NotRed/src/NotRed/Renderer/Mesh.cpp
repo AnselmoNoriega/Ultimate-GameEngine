@@ -608,16 +608,26 @@ namespace NR
             baseIndex += indices[i].size();
         }
 
+        for (auto& innerVec : vertices) 
+        {
+            mStaticVertices.reserve(mStaticVertices.size() + innerVec.size());
+            mStaticVertices.insert(mStaticVertices.end(), innerVec.begin(), innerVec.end());
+        }
+        for (auto& innerVec : indices) 
+        {
+            mIndices.reserve(mIndices.size() + innerVec.size());
+            mIndices.insert(mIndices.end(), innerVec.begin(), innerVec.end());
+        }
+
         mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
 
         Ref<Texture2D> whiteTexture = Renderer::GetWhiteTexture();
 
-        auto& currentItems = ContentBrowserPanel::Get().GetCurrentItems();
         for (int i = 0; i < matNames.size(); ++i)
         {
-            size_t index = currentItems.FindItem(matNames[i]);
-            if (index == ContentBrowserItemList::InvalidItem)
+            AssetHandle matAsset = AssetManager::GetAssetHandleFromFilePath(matNames[i]);
+            if (matAsset == 0)
             {
                 auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), "NotRed-Default");
                 mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f));
@@ -634,7 +644,7 @@ namespace NR
             }
             else
             {
-                auto materialAsset = AssetManager::GetAsset<MaterialAsset>(index);
+                auto materialAsset = AssetManager::GetAsset<MaterialAsset>(matAsset);
                 mMaterials.push_back(materialAsset->GetMaterial());
             }
         }

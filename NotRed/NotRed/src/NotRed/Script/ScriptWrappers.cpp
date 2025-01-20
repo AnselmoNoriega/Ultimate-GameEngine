@@ -1736,7 +1736,7 @@ namespace NR::Script
     }
 
     void* NR_MeshFactory_CreateCustomMesh(
-        MonoArray* verticesInByte,
+        MonoArray* verticesArray,
         MonoArray* vertexOffsets,
         MonoArray* indicesArray,
         MonoArray* indexOffsets,
@@ -1744,18 +1744,17 @@ namespace NR::Script
     )
     {
         // Get the length of each MonoArray
-        int vertexDataSize = mono_array_length(verticesInByte);
+        int vertexDataCount = mono_array_length(verticesArray);
         int vertexOffsetsCount = mono_array_length(vertexOffsets);
         int indicesCount = mono_array_length(indicesArray);
         int indexOffsetsCount = mono_array_length(indexOffsets);
         int matNamesCount = mono_array_length(matNames);
 
         // Get raw pointers from MonoArrays
-        unsigned char* verticesDataPtr = (byte*)mono_array_addr_with_size(verticesInByte, sizeof(byte), 0);
+        Vertex* verticesDataPtr = (Vertex*)(mono_array_addr_with_size(verticesArray, sizeof(Vertex), 0));
         int* vertexOffsetsPtr = (int*)mono_array_addr_with_size(vertexOffsets, sizeof(int), 0);
         int* indicesDataPtr = (int*)mono_array_addr_with_size(indicesArray, sizeof(int), 0);
         int* indexOffsetsPtr = (int*)mono_array_addr_with_size(indexOffsets, sizeof(int), 0);
-        char** matNamesPtr = (char**)mono_array_addr_with_size(matNames, sizeof(char*), 0);
 
         // Create vectors for offsets
         std::vector<int> vertexOffsetsVec(vertexOffsetsPtr, vertexOffsetsPtr + vertexOffsetsCount);
@@ -1765,10 +1764,7 @@ namespace NR::Script
         std::vector<std::vector<Vertex>> verticesForSubmeshes;
         verticesForSubmeshes.reserve(vertexOffsetsVec.size());
         {
-            std::vector<Vertex> vertices;
-            vertices.resize(vertexDataSize / sizeof(Vertex));
-            std::memcpy(vertices.data(), verticesDataPtr, vertexDataSize);
-
+            std::vector<Vertex> vertices(verticesDataPtr, verticesDataPtr + vertexDataCount);
             int endOffset = 0;
             for (int offset : vertexOffsetsVec)
             {
@@ -1780,15 +1776,15 @@ namespace NR::Script
         std::vector<std::vector<Index>> indicesForSubmeshes;
         indicesForSubmeshes.reserve(indexOffsetsVec.size());
         {
-            std::vector<int> indices;
+            std::vector<Index> indices;
             indices.resize(indicesCount / 3);
             std::memcpy(indices.data(), indicesDataPtr, indicesCount * sizeof(uint32_t));
 
             int endOffset = 0;
             for (int offset : indexOffsetsVec)
             {
-                indicesForSubmeshes.emplace_back(indices.begin() + endOffset, indices.begin() + offset);
-                endOffset += offset;
+                indicesForSubmeshes.emplace_back(indices.begin() + endOffset, indices.begin() + (offset / 3));
+                endOffset += offset / 3;
             }
         }
 
@@ -1796,7 +1792,12 @@ namespace NR::Script
         std::vector<std::string> materialNames;
         for (int i = 0; i < matNamesCount; ++i)
         {
-            materialNames.push_back(std::string(matNamesPtr[i]));
+            MonoString* monoStr = (MonoString*)mono_array_get(matNames, MonoString*, i);
+            const char* cStr = mono_string_to_utf8(monoStr);
+
+            materialNames.emplace_back(cStr);
+
+            mono_free((void*)cStr);
         }
 
         return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create(

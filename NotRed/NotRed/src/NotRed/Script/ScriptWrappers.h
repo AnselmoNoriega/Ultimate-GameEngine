@@ -182,7 +182,7 @@ namespace NR::Script
 
     void* NR_MeshFactory_CreatePlane(float width, float height);
     void* NR_MeshFactory_CreateCustomMesh(
-        MonoArray* verticesInByte, 
+        MonoArray* verticesArray,
         MonoArray* vertexOffsets, 
         MonoArray* indicesArray, 
         MonoArray* indexOffsets, 

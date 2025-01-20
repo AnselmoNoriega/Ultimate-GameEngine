@@ -8,10 +8,10 @@ namespace NR
     {
         public static readonly Vector3 Zero = new Vector3(0, 0, 0);
 
-        public static Vector3 Forward = new Vector3(0, 0, -1);
-        public static Vector3 Right = new Vector3(1, 0, 0);
-        public static Vector3 Up = new Vector3(0, 1, 0);
-        public static Vector3 Down = new Vector3(0, -1, 0);
+        public static readonly Vector3 Forward = new Vector3(0, 0, -1);
+        public static readonly Vector3 Right = new Vector3(1, 0, 0);
+        public static readonly Vector3 Up = new Vector3(0, 1, 0);
+        public static readonly Vector3 Down = new Vector3(0, -1, 0);
 
         public float x;
         public float y;

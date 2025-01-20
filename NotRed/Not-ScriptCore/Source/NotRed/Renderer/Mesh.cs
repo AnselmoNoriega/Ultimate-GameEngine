@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 
 namespace NR
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct Vertex
     {
         public Vector3 Position;

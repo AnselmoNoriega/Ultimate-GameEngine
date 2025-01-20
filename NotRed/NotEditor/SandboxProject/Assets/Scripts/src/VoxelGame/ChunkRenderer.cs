@@ -1,5 +1,4 @@
 ﻿using NR;
-using System.Linq;
 
 public class ChunkRenderer
 {
@@ -32,20 +31,42 @@ public class ChunkRenderer
     {
         Vertex[][] vertices = new Vertex[2][];
 
-        vertices[0] = meshData.Positions.Zip(
-            meshData.TextureCoords, (position, uv) => new Vertex { Position = position, Texcoord = uv })
-            .ToArray();
-        vertices[1] = meshData.WaterMesh.Positions.Zip(
-            meshData.WaterMesh.TextureCoords, (position, uv) => new Vertex { Position = position, Texcoord = uv })
-            .ToArray();
+        vertices[0] = new Vertex[meshData.Positions.Count];
+        for (int i = 0; i < meshData.Positions.Count; ++i)
+        {
+            vertices[0][i] = new Vertex
+            {
+                Position = meshData.Positions[i],
+                Texcoord = meshData.TextureCoords[i]
+            };
+        }
+        vertices[1] = new Vertex[meshData.WaterMesh.Positions.Count];
+        for (int i = 0; i < meshData.WaterMesh.Positions.Count; ++i)
+        {
+            vertices[1][i] = new Vertex
+            {
+                Position = meshData.WaterMesh.Positions[i],
+                Texcoord = meshData.WaterMesh.TextureCoords[i]
+            };
+        }
 
         int[][] indices = new int[2][];
-        indices[0] = meshData.Indices.ToArray();
-        indices[1] = meshData.WaterMesh.Indices.Select(val => val + meshData.Positions.Count).ToArray();
+
+        indices[0] = new int[meshData.Indices.Count]; 
+        for (int i = 0; i < meshData.Indices.Count; i++)
+        {
+            indices[0][i] = meshData.Indices[i];
+        }
+
+        indices[1] = new int[meshData.WaterMesh.Indices.Count]; 
+        for (int i = 0; i < meshData.WaterMesh.Indices.Count; ++i)
+        {
+            indices[1][i] = meshData.WaterMesh.Indices[i] + meshData.Positions.Count; 
+        }
 
         string[] meshNames = new string[2];
-        meshNames[0] = "VoxelMat";
-        meshNames[1] = "WaterVoxelMat";
+        meshNames[0] = "Textures/Materials/VoxelMat.nrmaterial";
+        meshNames[1] = "Textures/Materials/WaterVoxelMat.nrmaterial";
 
         _mesh.Mesh = MeshFactory.CreateCustomMesh(
             vertices,

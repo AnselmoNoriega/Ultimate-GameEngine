@@ -6,7 +6,7 @@ Project:
   MeshPath: Assets/Meshes
   MeshSourcePath: Assets/Meshes/Source
   ScriptModulePath: Assets/Scripts/Binaries
-  StartScene: Scenes/Demo.nrsc
+  StartScene: Scenes/VoxelGame.nrsc
   ReloadAssemblyOnPlay: true
   Physics:
     FixedTimestep: 0.00999999978
