@@ -1029,9 +1029,7 @@ namespace NR
                 DrawVec3Control("Translation", component.Translation);
                 ImGui::TableNextRow();
 
-                glm::vec3 rotation = glm::degrees(component.Rotation);
-                DrawVec3Control("Rotation", rotation);
-                component.Rotation = glm::radians(rotation);
+                DrawVec3Control("Rotation", component.Rotation);
                 ImGui::TableNextRow();
 
                 DrawVec3Control("Scale", component.Scale, 1.0f);

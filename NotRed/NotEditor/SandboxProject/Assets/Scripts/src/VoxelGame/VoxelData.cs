@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class VoxelData
 {
-    public float textureSizeX, textureSizeY;
+    public float textureSizeX = 0.111111f, textureSizeY = 0.1f;
     public List<TextureData> textureDataList = new List<TextureData>();
 
     public VoxelData()

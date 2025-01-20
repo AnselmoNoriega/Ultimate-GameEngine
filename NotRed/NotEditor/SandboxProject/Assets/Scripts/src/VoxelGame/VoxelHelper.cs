@@ -117,6 +117,9 @@ public static class BlockHelper
         textureCoords[0] = new Vector2(
             VoxelDataManager.tileSizeX * tilePos.x + VoxelDataManager.tileSizeX - VoxelDataManager.textureOffset,
             VoxelDataManager.tileSizeY * tilePos.y + VoxelDataManager.textureOffset);
+        Log.Info("One: " + textureCoords[0].x + " " + textureCoords[0].y);
+        Log.Info("================================");
+        Log.Info("Two: " + VoxelDataManager.tileSizeX + " " + VoxelDataManager.tileSizeY);
 
         textureCoords[1] = new Vector2(
             VoxelDataManager.tileSizeX * tilePos.x + VoxelDataManager.tileSizeX - VoxelDataManager.textureOffset,
@@ -136,7 +139,6 @@ public static class BlockHelper
     public static Vector2 TexturePosition(Direction direction, VoxelType blockType)
     {
         var blockTextureData = VoxelDataManager.blockTextureDataDictionary[blockType];
-
         switch (direction)
         {
             case Direction.up:
