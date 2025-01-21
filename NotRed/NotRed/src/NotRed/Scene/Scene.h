@@ -71,14 +71,11 @@ namespace NR
 		void Update(float dt);
 		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
 		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
-		void RenderSimulation(Ref<SceneRenderer> renderer, float ts, const EditorCamera& editorCamera);
 		void OnEvent(Event& e);
 
 		// Runtime
 		void RuntimeStart();
 		void RuntimeStop();
-		void SimulationStart();
-		void SimulationEnd();
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 

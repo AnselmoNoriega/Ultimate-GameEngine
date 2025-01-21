@@ -149,11 +149,11 @@ namespace NR
         float speed = mNormalSpeed;
         if (Input::IsKeyPressed(KeyCode::LeftControl))
         {
-            speed /= 2 - glm::log(mNormalSpeed);
+            speed /= 3 - glm::log(mNormalSpeed);
         }
         if (Input::IsKeyPressed(KeyCode::LeftShift))
         {
-            speed *= 2 - glm::log(mNormalSpeed);
+            speed *= 3 - glm::log(mNormalSpeed);
         }
 
         return glm::clamp(speed, MIN_SPEED, MAX_SPEED);

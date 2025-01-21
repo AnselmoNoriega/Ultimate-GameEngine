@@ -653,8 +653,8 @@ namespace NR
         }
         case SceneState::Play:
         {
-            mEditorCamera.SetActive(false);
-            UI::SetMouseEnabled(true);
+            //mEditorCamera.SetActive(false);
+            //UI::SetMouseEnabled(true);
 
             mRuntimeScene->Update(dt);
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);

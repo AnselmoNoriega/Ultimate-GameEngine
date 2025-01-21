@@ -75,7 +75,7 @@ namespace NR
         glm::vec3 mInitialFocalPoint, mInitialRotation;
 
         float mDistance;
-        float mNormalSpeed{ 0.002f };
+        float mNormalSpeed{ 2.0f };
 
         float mPitch, mYaw;
         float mPitchDelta{}, mYawDelta{};
@@ -88,7 +88,7 @@ namespace NR
 
         uint32_t mViewportWidth{ 1280 }, mViewportHeight{ 720 };
 
-        constexpr static float MIN_SPEED{ 0.0005f }, MAX_SPEED{ 2.0f };
+        constexpr static float MIN_SPEED{ 0.005f }, MAX_SPEED{ 6.0f };
 
     private:
         friend class EditorLayer;
