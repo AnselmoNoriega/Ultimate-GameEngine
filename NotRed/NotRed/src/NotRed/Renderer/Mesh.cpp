@@ -601,19 +601,19 @@ namespace NR
             submesh.BaseVertex = baseVertex;
             submesh.BaseIndex = baseIndex;
             submesh.VertexCount = vertices[i].size();
-            submesh.IndexCount = indices[i].size();
+            submesh.IndexCount = indices[i].size() * 3;
             submesh.MaterialIndex = i;
 
             baseVertex += vertices[i].size();
-            baseIndex += indices[i].size();
+            baseIndex += indices[i].size() * 3;
         }
 
-        for (auto& innerVec : vertices) 
+        for (auto& innerVec : vertices)
         {
             mStaticVertices.reserve(mStaticVertices.size() + innerVec.size());
             mStaticVertices.insert(mStaticVertices.end(), innerVec.begin(), innerVec.end());
         }
-        for (auto& innerVec : indices) 
+        for (auto& innerVec : indices)
         {
             mIndices.reserve(mIndices.size() + innerVec.size());
             mIndices.insert(mIndices.end(), innerVec.begin(), innerVec.end());

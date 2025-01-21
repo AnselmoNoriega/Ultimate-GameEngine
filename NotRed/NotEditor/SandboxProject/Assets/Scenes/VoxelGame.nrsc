@@ -43,7 +43,7 @@ Entities:
       LightSize: 0.5
   - Entity: 4349438521487218923
     TagComponent:
-      Tag: Entity
+      Tag: World
     Parent: 0
     Children:
       []

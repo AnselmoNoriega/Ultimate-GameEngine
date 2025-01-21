@@ -2,9 +2,6 @@
 
 public class ChunkRenderer
 {
-    //TODO
-    //MeshFilter _meshFilter;
-    //MeshCollider _meshCollider;
     MeshComponent _mesh;
 
     public Chunk ChunkData { get; private set; }

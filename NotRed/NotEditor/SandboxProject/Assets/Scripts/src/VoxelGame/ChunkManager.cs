@@ -67,13 +67,14 @@ public static class ChunkManager
         }
         else
         {
+            Log.Info("Need to ask World for appropiate chunk");
             throw new Exception("Need to ask World for appropiate chunk");
         }
     }
 
     private static float GetIndexFromPosition(Chunk Chunk, float x, float y, float z)
     {
-        return x + Chunk.Size * y + Chunk.Size * Chunk.Height * z;
+        return x + (Chunk.Size * y) + (Chunk.Size * Chunk.Height * z);
     }
 
     public static Vector3 GetBlockInChunkCoordinates(Chunk chunkData, Vector3 pos)
