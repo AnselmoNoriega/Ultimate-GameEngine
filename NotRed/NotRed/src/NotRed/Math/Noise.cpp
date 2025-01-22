@@ -13,7 +13,7 @@ namespace NR
 	{
 		sFastNoise.SetNoiseType(FastNoise::Perlin);
 		float result = sFastNoise.GetNoise(x, y); // This returns a value between -1 and 1
-		return result;
+		return (result * 0.5) + 0.5;
 	}
 
 	std::array<glm::vec4, 16> Noise::HBAOJitter()

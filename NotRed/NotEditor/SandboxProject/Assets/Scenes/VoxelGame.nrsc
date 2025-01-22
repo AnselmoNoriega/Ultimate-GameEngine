@@ -56,7 +56,7 @@ Entities:
       StoredFields:
         - Name: noiseScale
           Type: 1
-          Data: 0.0299999993
+          Data: 1.89999998
         - Name: mapSizeInChunks
           Type: 2
           Data: 6

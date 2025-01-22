@@ -21,11 +21,6 @@ public class World : Entity
     public void GenerateWorld()
     {
         chunkDataDictionary.Clear();
-        //foreach (ChunkRenderer chunk in chunkDictionary.Values)
-        //{
-        //    Destroy(chunk.gameObject);
-        //}
-
         chunkDictionary.Clear();
         for (int x = 0; x < mapSizeInChunks; ++x)
         {
@@ -56,7 +51,7 @@ public class World : Entity
             for (int z = 0; z < data.Size; ++z)
             {
                 float noiseValue = Noise.PerlinNoise((data.WorldPosition.x + x) * noiseScale, (data.WorldPosition.z + z) * noiseScale);
-                int groundPosition = 48;// Mathf.RoundToInt(noiseValue * chunkHeight);
+                int groundPosition = Mathf.RoundToInt(noiseValue * chunkHeight);
                 for (int y = 0; y < chunkHeight; ++y)
                 {
                     VoxelType voxelType = VoxelType.Dirt;
