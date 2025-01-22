@@ -58,7 +58,7 @@ public class ChunkRenderer
         indices[1] = new int[meshData.WaterMesh.Indices.Count]; 
         for (int i = 0; i < meshData.WaterMesh.Indices.Count; ++i)
         {
-            indices[1][i] = meshData.WaterMesh.Indices[i] + meshData.Positions.Count; 
+            indices[1][i] = meshData.WaterMesh.Indices[i]; 
         }
 
         string[] meshNames = new string[2];
