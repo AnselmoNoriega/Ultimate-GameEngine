@@ -7,5 +7,5 @@ public enum VoxelType
     Wood,
     LeafTransparent, LeafSolid,
     Water,
-    Sans
+    Sand
 }

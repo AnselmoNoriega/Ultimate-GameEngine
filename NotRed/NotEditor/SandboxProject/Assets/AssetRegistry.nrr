@@ -188,6 +188,9 @@ Assets:
   - Handle: 8130581881994747795
     FilePath: Meshes/Default/Cube.nrmesh
     Type: Mesh
+  - Handle: 8148748321047846456
+    FilePath: Textures/VoxelImagesTransparency.png
+    Type: Texture
   - Handle: 8215656201482004355
     FilePath: Models/Source/Sponza/12501374198249454378.jpg
     Type: Texture

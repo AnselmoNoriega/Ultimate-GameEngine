@@ -69,7 +69,7 @@ public class VoxelData
             ));
 
         textureDataList.Add(new TextureData(
-            VoxelType.Sans,
+            VoxelType.Sand,
             new Vector2(3, 3),
             new Vector2(3, 3),
             new Vector2(3, 3)
