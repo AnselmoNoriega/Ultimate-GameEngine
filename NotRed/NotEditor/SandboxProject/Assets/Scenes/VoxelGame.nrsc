@@ -1,11 +1,26 @@
 Scene: Demo
 Environment:
-  AssetHandle: 0
+  AssetHandle: 10191359667784106151
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 10495747637021943448
+    TagComponent:
+      Tag: Sky Light
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SkyLightComponent:
+      EnvironmentMap: 10191359667784106151
+      Intensity: 1
+      Lod: 0
+      DynamicSky: false
   - Entity: 12627942439506381896
     TagComponent:
       Tag: Camera
@@ -13,8 +28,8 @@ Entities:
     Children:
       []
     TransformComponent:
-      Position: [-19.7426376, 18.7990875, 19.0929585]
-      Rotation: [-10.5077, -52.1644936, 2.78375728e-06]
+      Position: [-19.7426376, 56, 19.0929585]
+      Rotation: [-18, -104, 2.78375728e-06]
       Scale: [1, 0.999999523, 1]
     CameraComponent:
       Camera:
@@ -69,6 +84,9 @@ Entities:
         - Name: chunkHeight
           Type: 2
           Data: 100
+        - Name: mapSeed
+          Type: 5
+          Data: [0, 0]
         - Name: chunkPrefab
           Type: 9
           Data: 1739687759990777301

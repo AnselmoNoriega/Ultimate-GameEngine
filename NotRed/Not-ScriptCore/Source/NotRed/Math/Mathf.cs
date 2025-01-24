@@ -52,6 +52,16 @@ namespace NR
             return (float)Math.Sqrt(value);
         }
 
+        public static float Pow(float baseValue, float exponent)
+        {
+            if (exponent == 0)
+            {
+                return 1.0f;
+            }
+
+            return (float)Math.Exp(exponent * Math.Log(baseValue));
+        }
+
         public static float Abs(float value)
         {
             return Math.Abs(value);

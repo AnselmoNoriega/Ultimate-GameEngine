@@ -1,6 +1,6 @@
 Material:
   AlbedoColor: [0.999989986, 0.999998569, 1]
-  Emission: 0.899999976
+  Emission: 0
   UseNormalMap: false
   Metalness: 0
   Roughness: 0.400000006
