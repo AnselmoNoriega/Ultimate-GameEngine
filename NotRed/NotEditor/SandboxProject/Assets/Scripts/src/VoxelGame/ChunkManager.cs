@@ -58,7 +58,7 @@ public static class ChunkManager
         return chunkData.WorldRef.GetBlockFromChunkCoordinates(chunkData, chunkData.WorldPosition.x + x, chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
     }
 
-    public static void SetBlock(Chunk chunkData, Vector3 localPosition, VoxelType block)
+    public static void SetVoxel(Chunk chunkData, Vector3 localPosition, VoxelType block)
     {
         if (InRange(chunkData, localPosition.x) && InRangeHeight(chunkData, localPosition.y) && InRange(chunkData, localPosition.z))
         {

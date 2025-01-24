@@ -10,6 +10,8 @@ public class BiomeGenerator
 
     public NoiseSettings biomeNoiseSettings;
 
+    public VoxelLayerHandler startLayerHandler;
+
     public BiomeGenerator(int waterThreshold, float noiseScale)
     {
         biomeNoiseSettings = new NoiseSettings();
@@ -20,6 +22,8 @@ public class BiomeGenerator
         biomeNoiseSettings.Persistance = 2.3f;
         biomeNoiseSettings.RedistributionModifier = 0.9f;
         biomeNoiseSettings.Exponent = 1.0f;
+
+        startLayerHandler = new WaterLayerHandler(waterThreshold);
 
         this.waterThreshold = waterThreshold;
         this.noiseScale = noiseScale;
@@ -32,28 +36,7 @@ public class BiomeGenerator
 
         for (int y = 0; y < data.Height; ++y)
         {
-            VoxelType voxelType = VoxelType.Dirt;
-            if (y > groundPosition)
-            {
-                if (y < waterThreshold)
-                {
-                    voxelType = VoxelType.Water;
-                }
-                else
-                {
-                    voxelType = VoxelType.Air;
-                }
-            }
-            else if (y == groundPosition && y < waterThreshold)
-            {
-                voxelType = VoxelType.Sand;
-            }
-            else if (y == groundPosition)
-            {
-                voxelType = VoxelType.Grass;
-            }
-
-            ChunkManager.SetBlock(data, new Vector3(x, y, z), voxelType);
+            startLayerHandler.Handle(data, x, y, z, groundPosition, mapSeedOffset);
         }
         return data;
     }

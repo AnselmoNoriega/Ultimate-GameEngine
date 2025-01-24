@@ -77,7 +77,7 @@ Entities:
           Data: 6
         - Name: waterThreshold
           Type: 2
-          Data: 50
+          Data: 43
         - Name: chunkSize
           Type: 2
           Data: 16
