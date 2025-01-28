@@ -147,14 +147,32 @@ namespace NR
             return null;
         }
 
+        /// <summary>
+        /// Returns true if it possbile to treat this entity as if it were of type T,
+        /// returns false otherwise.
+        /// <returns></returns>
+        public bool Is<T>() where T : Entity, new()
+        {
+            ScriptComponent sc = GetComponent<ScriptComponent>();
+            object instance = sc != null ? sc.Instance : null;
+            return instance is T ? true : false;
+        }
+
+        /// <summary>
+        /// Returns this entity cast to type T if that is possible, otherwise returns null.
+        /// <returns></returns>
+        public T As<T>() where T : Entity, new()
+        {
+            ScriptComponent sc = GetComponent<ScriptComponent>();
+            object instance = sc != null ? sc.Instance : null;
+            return instance is T ? instance as T : null;
+        }
+
         public Entity FindEntityByTag(string tag)
         {
             ulong entityID = FindEntityByTag_Native(tag);
-            
             if (entityID == 0)
-            {
                 return null;
-            }
 
             return new Entity(entityID);
         }

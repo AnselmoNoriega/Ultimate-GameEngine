@@ -8,6 +8,7 @@
 #include "NotRed/Audio/Sound.h"
 
 extern "C" {
+    typedef struct _MonoObject MonoObject;
     typedef struct _MonoString MonoString;
     typedef struct _MonoArray MonoArray;
 }
@@ -85,6 +86,8 @@ namespace NR::Script
     bool NR_MeshComponent_GetIsAnimated(uint64_t entityID);
     bool NR_MeshComponent_GetIsAnimationPlaying(uint64_t entityID);
     void NR_MeshComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
+
+    MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID);
 
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
     void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);

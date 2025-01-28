@@ -189,7 +189,13 @@ namespace NR
 
     public class ScriptComponent : Component
     {
-        // TODO
+        public object Instance
+        {
+            get => GetInstance_Native(Entity.ID);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern object GetInstance_Native(ulong entityID);
     }
 
     public class SpriteRendererComponent : Component

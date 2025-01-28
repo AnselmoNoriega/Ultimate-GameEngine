@@ -817,6 +817,13 @@ namespace NR::Script
         return new Ref<MaterialAsset>(materialTable->GetMaterial(index));
     }
 
+    MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        return ScriptEngine::GetEntityInstanceData(scene->GetID(), entityID).Instance.GetInstance();
+    }
+
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* outType)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
