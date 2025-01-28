@@ -28,8 +28,8 @@ Entities:
     Children:
       []
     TransformComponent:
-      Position: [-19.7426376, 56, 19.0929585]
-      Rotation: [-18, -104, 2.78375728e-06]
+      Position: [-19.7426376, 71, 19.0929585]
+      Rotation: [-18, -111, 2.78375728e-06]
       Scale: [1, 0.999999523, 1]
     CameraComponent:
       Camera:

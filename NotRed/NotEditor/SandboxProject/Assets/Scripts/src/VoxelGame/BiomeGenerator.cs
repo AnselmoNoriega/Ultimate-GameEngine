@@ -8,9 +8,14 @@ public class BiomeGenerator
     public int waterThreshold;
     public float noiseScale;
 
+    public DomainWarping domainWarping;
+    public bool useDomainWarping = true;
+
     public NoiseSettings biomeNoiseSettings;
 
     public VoxelLayerHandler startLayerHandler;
+
+    public List<VoxelLayerHandler> additionalLayerHandlers = new List<VoxelLayerHandler>();
 
     public BiomeGenerator(int waterThreshold, float noiseScale)
     {
@@ -24,6 +29,9 @@ public class BiomeGenerator
         biomeNoiseSettings.Exponent = 1.0f;
 
         startLayerHandler = new WaterLayerHandler(waterThreshold);
+        domainWarping = new DomainWarping();
+
+        additionalLayerHandlers.Add(new StoneLayerHandler());
 
         this.waterThreshold = waterThreshold;
         this.noiseScale = noiseScale;
@@ -38,12 +46,26 @@ public class BiomeGenerator
         {
             startLayerHandler.Handle(data, x, y, z, groundPosition, mapSeedOffset);
         }
+
+        foreach (var layer in additionalLayerHandlers)
+        {
+            layer.Handle(data, x, data.WorldPosition.y, z, groundPosition, mapSeedOffset);
+        }
         return data;
     }
 
     private int GetSurfaceHeightNoise(float x, float z, int chunkHeight)
     {
-        float terrainHeight = Noise.OctavePerlin(x, z, biomeNoiseSettings);
+        float terrainHeight;
+        if (useDomainWarping == false)
+        {
+            terrainHeight = Noise.OctavePerlin(x, z, biomeNoiseSettings);
+        }
+        else
+        {
+            terrainHeight = domainWarping.GenerateDomainNoise(x, z, biomeNoiseSettings);
+        }
+
         terrainHeight = Noise.Redistribution(terrainHeight, biomeNoiseSettings);
 
         int surfaceHeight = Noise.RemapValueToInt(terrainHeight, 0, chunkHeight);
