@@ -11,6 +11,7 @@ namespace NR
 	public:
 		SceneHierarchyPanel();
 		SceneHierarchyPanel(const Ref<Scene>& scene);
+		~SceneHierarchyPanel();
 
 		void SetContext(const Ref<Scene>& scene);
 		void SetSelected(Entity entity);

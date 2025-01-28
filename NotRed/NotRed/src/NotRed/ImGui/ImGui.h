@@ -1517,8 +1517,8 @@ namespace NR::UI
         TextureProperties clampProps;
         clampProps.SamplerWrap = TextureWrap::Clamp;
 
-        static Ref<Texture2D> sSearchIcon = Texture2D::Create("Resources/Editor/icon_search_24px.png", clampProps);
-        static Ref<Texture2D> sClearIcon = Texture2D::Create("Resources/Editor/close.png", clampProps);
+        Ref<Texture2D> sSearchIcon = Texture2D::Create("Resources/Editor/icon_search_24px.png", clampProps);
+        Ref<Texture2D> sClearIcon = Texture2D::Create("Resources/Editor/close.png", clampProps);
         const ImVec2 iconSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
 
         // Search icon
@@ -1613,7 +1613,7 @@ namespace NR::UI
         {
             const bool clicked = ImGui::InvisibleButton("##options", ImVec2{ ImGui::GetFrameHeight(), ImGui::GetFrameHeight() });
             
-            static Ref<Texture2D> sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
+            Ref<Texture2D> sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
             const float spaceAvail = std::min(ImGui::GetItemRectSize().x, ImGui::GetItemRectSize().y);
             constexpr float desiredIconSize = 15.0f;
             const float padding = std::max((spaceAvail - desiredIconSize) / 2.0f, 0.0f);

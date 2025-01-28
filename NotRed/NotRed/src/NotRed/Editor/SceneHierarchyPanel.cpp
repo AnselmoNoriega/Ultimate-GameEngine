@@ -48,6 +48,11 @@ namespace NR
         mGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
     }
 
+    SceneHierarchyPanel::~SceneHierarchyPanel()
+    {
+        mGearIcon.~Ref();
+    }
+
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene)
     {
         mContext = scene;

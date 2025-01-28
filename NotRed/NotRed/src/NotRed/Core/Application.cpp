@@ -88,6 +88,8 @@ namespace NR
 
     Application::~Application()
     {
+        mWindow->SetEventCallback([](Event& e) {});
+
         for (Layer* layer : mLayerStack)
         {
             layer->Detach();
