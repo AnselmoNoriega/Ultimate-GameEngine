@@ -99,6 +99,7 @@ namespace NR
 		mono_add_internal_call("NR.MeshComponent::GetIsAnimated_Native", NR::Script::NR_MeshComponent_GetIsAnimated);
 		mono_add_internal_call("NR.MeshComponent::GetIsAnimationPlaying_Native", NR::Script::NR_MeshComponent_GetIsAnimationPlaying);
 		mono_add_internal_call("NR.MeshComponent::SetIsAnimationPlaying_Native", NR::Script::NR_MeshComponent_SetIsAnimationPlaying);
+		mono_add_internal_call("NR.MeshComponent::ReloadMeshCollider_Native", NR::Script::NR_MeshComponent_ReloadMeshCollider);
 		mono_add_internal_call("NR.MeshComponent::HasMaterial_Native", NR::Script::NR_MeshComponent_HasMaterial);
 		mono_add_internal_call("NR.MeshComponent::GetMaterial_Native", NR::Script::NR_MeshComponent_GetMaterial);
 

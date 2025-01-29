@@ -787,6 +787,26 @@ namespace NR::Script
         meshComponent.MeshObj->SetAnimationPlaying(value);
     }
 
+    void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID); 
+        if (!entity.HasComponent<MeshColliderComponent>())
+        {
+            return;
+        }
+
+        auto& meshComponent = entity.GetComponent<MeshComponent>();
+        auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
+        meshColliderComponent.CollisionMesh = meshComponent.MeshObj;
+        CookingFactory::CookMesh(meshColliderComponent);
+    }
+
     bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

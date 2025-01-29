@@ -81,6 +81,8 @@ public class ChunkRenderer
             meshNames
             );
 
+        _mesh.ReloadMeshCollider();
+
         //_mesh.RecalculateNormals(); Maybe?
 
         //_meshCollider.sharedMesh = null;

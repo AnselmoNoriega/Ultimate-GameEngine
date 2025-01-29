@@ -86,6 +86,7 @@ namespace NR::Script
     bool NR_MeshComponent_GetIsAnimated(uint64_t entityID);
     bool NR_MeshComponent_GetIsAnimationPlaying(uint64_t entityID);
     void NR_MeshComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
+    void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID);
 
     MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID);
 
@@ -191,6 +192,8 @@ namespace NR::Script
         MonoArray* indexOffsets, 
         MonoArray* matNames
     );
+
+    void NR_ReloadCollider();
 
     // Audio
     bool NR_AudioComponent_IsPlaying(uint64_t entityID);

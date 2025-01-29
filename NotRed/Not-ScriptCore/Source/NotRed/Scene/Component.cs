@@ -163,6 +163,11 @@ namespace NR
             }
         }
 
+        public void ReloadMeshCollider()
+        {
+            ReloadMeshCollider_Native(Entity.ID);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern IntPtr GetMesh_Native(ulong entityID);
 
@@ -179,6 +184,8 @@ namespace NR
         public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetIsAnimationPlaying_Native(ulong entityID, bool value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void ReloadMeshCollider_Native(ulong entityID);
 
     }
 
