@@ -1,33 +1,45 @@
 ﻿using NR;
 
-public class PlayerController
+public class PlayerController : Entity
 {
-    public Entity Camera; 
+    public Entity Camera;
     public Entity Player;
+    private RigidBodyComponent rb;
 
-    private Vector3 velocity = Vector3.Zero;
     private float speed = 5.0f;
     private float jumpForce = 5.0f;
-    private float gravity = 9.81f;
     private bool isGrounded = true;
 
-    public void Update(float dt)
+    public void Init()
     {
-        Vector3 direction = Vector3.Zero;
+        AddCollisionBeginCallback(CollisionStart);
+        rb = Player.GetComponent<RigidBodyComponent>();
+    }
 
-        if (Input.IsKeyPressed(KeyCode.W)) direction += GetCameraForward();
-        if (Input.IsKeyPressed(KeyCode.S)) direction -= GetCameraForward();
-        if (Input.IsKeyPressed(KeyCode.A)) direction -= GetCameraRight();
-        if (Input.IsKeyPressed(KeyCode.D)) direction += GetCameraRight();
+    public void Update(float deltaTime)
+    {
+        Vector3 moveDirection = Vector3.Zero;
 
-        // Normalize direction to maintain consistent speed.
-        if (direction.Length() > 0)
+        if (Input.IsKeyPressed(KeyCode.W)) moveDirection += GetCameraForward();
+        if (Input.IsKeyPressed(KeyCode.S)) moveDirection -= GetCameraForward();
+        if (Input.IsKeyPressed(KeyCode.A)) moveDirection -= GetCameraRight();
+        if (Input.IsKeyPressed(KeyCode.D)) moveDirection += GetCameraRight();
+
+        if (moveDirection.Length() > 0)
         {
-            direction = direction.Normalized();
+            moveDirection = moveDirection.Normalized();
         }
 
-        // Apply movement
-        Player.Translation += direction * speed * dt;
+        // Apply movement using Rigidbody
+        Vector3 velocity = rb.Velocity;
+        velocity.x = moveDirection.x * speed;
+        velocity.z = moveDirection.z * speed;
+
+        // Simple ground check based on Y position
+        if (rb.Velocity.y <= -0.1)
+        {
+            isGrounded = false;
+        }
 
         // Jumping
         if (Input.IsKeyPressed(KeyCode.Space) && isGrounded)
@@ -36,36 +48,32 @@ public class PlayerController
             isGrounded = false;
         }
 
-        // Apply gravity
-        velocity.y -= gravity * dt;
-        Player.Translation += velocity * dt;
-
-        // Check if grounded (simplified, depends on your physics system)
-        if (Player.Translation.y <= 0.0f)
-        {
-            Player.Translation.y = 0.0f;
-            isGrounded = true;
-            velocity.y = 0;
-        }
+        rb.Velocity = velocity;
     }
 
     private Vector3 GetCameraForward()
     {
-        Vector3 forward = new Vector3(
+        return new Vector3(
             Mathf.Sin(Camera.Rotation.y),
-        0,
+            0,
             Mathf.Cos(Camera.Rotation.y)
-        );
-        return forward.Normalized();
+        ).Normalized();
     }
 
     private Vector3 GetCameraRight()
     {
-        Vector3 right = new Vector3(
+        return new Vector3(
             Mathf.Cos(Camera.Rotation.y),
-        0,
+            0,
             -Mathf.Sin(Camera.Rotation.y)
-        );
-        return right.Normalized();
+        ).Normalized();
+    }
+
+    private void CollisionStart(Entity other)
+    {
+        if (other.Tag == "Terrain")
+        {
+            isGrounded = true;
+        }
     }
 }
