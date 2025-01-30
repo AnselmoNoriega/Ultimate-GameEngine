@@ -3,7 +3,6 @@
 public class PlayerController : Entity
 {
     public Entity Camera;
-    public Entity Player;
     private RigidBodyComponent rb;
 
     private float speed = 5.0f;
@@ -13,7 +12,7 @@ public class PlayerController : Entity
     public void Init()
     {
         AddCollisionBeginCallback(CollisionStart);
-        rb = Player.GetComponent<RigidBodyComponent>();
+        rb = GetComponent<RigidBodyComponent>();
     }
 
     public void Update(float deltaTime)

@@ -51,6 +51,12 @@ namespace NR
         {
             return new Vector2(-vector.x, -vector.y);
         }
+
+        public static Vector2 operator *(Vector2 left, float right)
+        {
+            return new Vector2(left.x * right, left.y * right);
+        }
+
         public override string ToString()
         {
             return "(" + x + ", " + y + ")";

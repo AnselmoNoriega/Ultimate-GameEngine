@@ -16,6 +16,12 @@ Entities:
       Position: [38.7999992, 64.840065, 19.2106647]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    ScriptComponent:
+      ModuleName: PlayerController
+      StoredFields:
+        - Name: Camera
+          Type: 10
+          Data: 12627942439506381896
     MeshComponent:
       AssetID: 8130581881994747795
       MaterialTable:
@@ -66,6 +72,12 @@ Entities:
       Position: [-19.7426376, 71, 19.0929585]
       Rotation: [-18, -111, 2.78375728e-06]
       Scale: [1, 0.999999523, 1]
+    ScriptComponent:
+      ModuleName: VoxelGameCamera
+      StoredFields:
+        - Name: player
+          Type: 10
+          Data: 5628048338334500583
     CameraComponent:
       Camera:
         ProjectionType: 0

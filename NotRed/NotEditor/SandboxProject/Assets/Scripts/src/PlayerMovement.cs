@@ -1,7 +1,7 @@
 ﻿using System;
 using NR;
 
-public class CameraController : Entity
+public class CameraControllerOld : Entity
 {
     public float MoveSpeed = 8.0f;
     public float MouseSensitivity = 1.0f;
