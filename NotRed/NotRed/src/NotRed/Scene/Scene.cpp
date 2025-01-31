@@ -512,6 +512,20 @@ namespace NR
             }
         }
 
+        {
+            auto view = mRegistry.view<MeshColliderComponent>();
+            for (auto entity : view)
+            {
+                Entity e = { entity, this };
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+                auto& collider = e.GetComponent<MeshColliderComponent>();
+                for (const auto& debugMesh : collider.ProcessedMeshes)
+                {
+                    renderer->SubmitPhysicsDebugMesh(debugMesh, transform);
+                }
+            }
+        }
+
         renderer->EndScene();
         /////////////////////////////////////////////////////////////////////
 

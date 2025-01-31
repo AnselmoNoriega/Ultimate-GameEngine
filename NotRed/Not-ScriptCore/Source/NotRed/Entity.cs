@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace NR
 {
@@ -16,6 +19,9 @@ namespace NR
 
         private Action<Entity> _triggerBeginCallbacks;
         private Action<Entity> _triggerEndCallbacks;
+
+        private List<IEnumerator> coroutines = new List<IEnumerator>();
+        private bool isRunning = false;
 
         protected Entity() { ID = 0; }
 
@@ -241,8 +247,8 @@ namespace NR
         private void TriggerBegin(ulong id)
         {
             if (_triggerBeginCallbacks != null)
-            { 
-                _triggerBeginCallbacks.Invoke(new Entity(id)); 
+            {
+                _triggerBeginCallbacks.Invoke(new Entity(id));
             }
         }
 
@@ -252,6 +258,39 @@ namespace NR
             {
                 _triggerEndCallbacks.Invoke(new Entity(id));
             }
+        }
+
+        public void StartCoroutine(IEnumerator coroutine)
+        {
+            coroutines.Add(coroutine);
+            if (!isRunning)
+            {
+                isRunning = true;
+                Task.Run(UpdateCoroutines);
+            }
+        }
+
+        public void StopAllCoroutines()
+        {
+            coroutines.Clear();
+            isRunning = false;
+        }
+
+        private async Task UpdateCoroutines()
+        {
+            while (coroutines.Count > 0)
+            {
+                for (int i = coroutines.Count - 1; i >= 0; i--)
+                {
+                    if (!coroutines[i].MoveNext())
+                    {
+                        coroutines.RemoveAt(i);
+                    }
+                }
+                float millisecondsToWait = Time.DeltaTime * 1000f;
+                await Task.Delay((int)millisecondsToWait);
+            }
+            isRunning = false;
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -277,5 +316,25 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong DestroyEntity_Native(ulong entityID);
 
+    }
+
+    public class WaitForSeconds : IEnumerator
+    {
+        private float waitTime;
+        private float elapsedTime = 0.0f;
+
+        public WaitForSeconds(float seconds)
+        {
+            waitTime = seconds;
+        }
+
+        public bool MoveNext()
+        {
+            elapsedTime += Time.DeltaTime; // Uses static deltaTime
+            return elapsedTime < waitTime;
+        }
+
+        public void Reset() { elapsedTime = 0f; }
+        public object Current => null;
     }
 }

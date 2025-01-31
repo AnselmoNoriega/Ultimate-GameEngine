@@ -6,6 +6,41 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 12767488213016648131
+    TagComponent:
+      Tag: Plane
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [38.5931015, 64.1029968, 19.1554966]
+      Rotation: [0, 0, 0]
+      Scale: [919.125183, 1, 946.756775]
+    MeshComponent:
+      AssetID: 4517023518274335626
+      MaterialTable:
+        0: 0
+    RigidBodyComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDrag: 0.00999999978
+      AngularDrag: 0.0500000007
+      DisableGravity: false
+      IsKinematic: false
+      Layer: 0
+      CollisionDetection: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+    MeshColliderComponent:
+      IsConvex: false
+      IsTrigger: false
+      OverrideMesh: false
+      Material: 0
   - Entity: 5628048338334500583
     TagComponent:
       Tag: Player
@@ -72,12 +107,6 @@ Entities:
       Position: [-19.7426376, 71, 19.0929585]
       Rotation: [-18, -111, 2.78375728e-06]
       Scale: [1, 0.999999523, 1]
-    ScriptComponent:
-      ModuleName: VoxelGameCamera
-      StoredFields:
-        - Name: player
-          Type: 10
-          Data: 5628048338334500583
     CameraComponent:
       Camera:
         ProjectionType: 0

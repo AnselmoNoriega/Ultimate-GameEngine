@@ -500,7 +500,9 @@ namespace NR::Script
                     const char* parentClassName = mono_class_get_name(parentClass);
                     const char* parentNamespace = mono_class_get_namespace(parentClass);
                     if (strstr(parentClassName, "Component") == nullptr || strstr(parentNamespace, "NR") == nullptr)
+                    {
                         validComponentFilter = false;
+                    }
                 }
                 if (!validComponentFilter)
                 {
@@ -804,7 +806,7 @@ namespace NR::Script
         auto& meshComponent = entity.GetComponent<MeshComponent>();
         auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
         meshColliderComponent.CollisionMesh = meshComponent.MeshObj;
-        CookingFactory::CookMesh(meshColliderComponent);
+        CookingFactory::ForceCookMesh(meshColliderComponent, "ReloadedMesh", true);
     }
 
     bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index)

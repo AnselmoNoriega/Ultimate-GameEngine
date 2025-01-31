@@ -147,6 +147,92 @@ namespace NR
 		return result;
 	}
 
+	CookingResult CookingFactory::ForceCookMesh(MeshColliderComponent& component, const std::string& name, bool invalidateOld, std::vector<MeshColliderData>& outData)
+	{
+		NR_SCOPE_TIMER("CookingFactory::CookMesh");
+
+		Utils::CreateCacheDirectoryIfNeeded();
+
+		CookingResult result = CookingResult::Failure;
+		std::filesystem::path filepath = Utils::GetCacheDirectory() / (name + (component.IsConvex ? "_convex.pxm" : "_tri.pxm"));
+		if (invalidateOld)
+		{
+			component.ProcessedMeshes.clear();
+			bool removedCached = std::filesystem::remove(filepath);
+			if (!removedCached)
+			{
+				NR_CORE_WARN("Couldn't delete cached collider data for {0}", filepath);
+			}
+		}
+
+		if (!std::filesystem::exists(filepath))
+		{
+			result = component.IsConvex ? CookConvexMesh(component.CollisionMesh, outData) : CookTriangleMesh(component.CollisionMesh, outData);
+
+			if (result == CookingResult::Success)
+			{
+				// Serialize Collider Data
+				uint32_t bufferSize = 0;
+				uint32_t offset = 0;
+				for (auto& colliderData : outData)
+				{
+					bufferSize += sizeof(uint32_t);
+					bufferSize += colliderData.Size;
+				}
+
+				Buffer colliderBuffer;
+				colliderBuffer.Allocate(bufferSize);
+				for (auto& colliderData : outData)
+				{
+					colliderBuffer.Write((void*)&colliderData.Size, sizeof(uint32_t), offset);
+					offset += sizeof(uint32_t);
+					colliderBuffer.Write(colliderData.Data, colliderData.Size, offset);
+					offset += colliderData.Size;
+				}
+
+				bool success = FileSystem::WriteBytes(filepath, colliderBuffer);
+				colliderBuffer.Release();
+				if (!success)
+				{
+					NR_CORE_ERROR("Failed to write collider to {0}", filepath.string());
+					return CookingResult::Failure;
+				}
+			}
+		}
+		else
+		{
+			Buffer colliderBuffer = FileSystem::ReadBytes(filepath);
+			if (colliderBuffer.Size > 0)
+			{
+				uint32_t offset = 0;
+				const auto& meshAsset = component.CollisionMesh->GetMeshAsset();
+				const auto& submeshes = meshAsset->GetSubmeshes();
+				for (const auto& submesh : component.CollisionMesh->GetSubmeshes())
+				{
+					MeshColliderData& data = outData.emplace_back();
+					data.Size = colliderBuffer.Read<uint32_t>(offset);
+					offset += sizeof(uint32_t);
+					data.Data = colliderBuffer.ReadBytes(data.Size, offset);
+					offset += data.Size;
+					data.Transform = submeshes[submesh].Transform;
+				}
+
+				colliderBuffer.Release();
+				result = CookingResult::Success;
+			}
+		}
+
+		if (result == CookingResult::Success && component.ProcessedMeshes.size() == 0)
+		{
+			for (const auto& colliderData : outData)
+			{
+				GenerateDebugMesh(component, colliderData);
+			}
+		}
+
+		return result;
+	}
+
 	CookingResult CookingFactory::CookConvexMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData)
 	{
 		const auto& vertices = mesh->GetMeshAsset()->GetStaticVertices();

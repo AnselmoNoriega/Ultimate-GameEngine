@@ -85,7 +85,7 @@ namespace NR
 
 	void PhysicsActor::SetMass(float mass)
 	{
-		if (!IsDynamic())
+		if (IsKinematic())
 		{
 			return;
 		}

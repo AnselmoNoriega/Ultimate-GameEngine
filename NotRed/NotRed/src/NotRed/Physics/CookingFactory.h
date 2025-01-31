@@ -23,6 +23,7 @@ namespace NR
 		static void Shutdown();
 
 		static CookingResult CookMesh(MeshColliderComponent& component, bool invalidateOld = false, std::vector<MeshColliderData>& outData = mDefaultOutData);
+		static CookingResult ForceCookMesh(MeshColliderComponent& component, const std::string& name, bool invalidateOld = false, std::vector<MeshColliderData>& outData = mDefaultOutData);
 
 		static CookingResult CookConvexMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData);
 		static CookingResult CookTriangleMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData);
