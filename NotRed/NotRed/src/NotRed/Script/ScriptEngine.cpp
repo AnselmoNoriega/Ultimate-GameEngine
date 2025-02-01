@@ -139,6 +139,7 @@ namespace NR
 	static void InitMono()
 	{
 		NR_CORE_ASSERT(!sCurrentMonoDomain, "Mono has already been initialised!");
+		mono_set_dirs("mono/lib", "mono/etc");
 		mono_set_assemblies_path("mono/lib");
 		auto domain = mono_jit_init("NotRed");
 	}
@@ -316,7 +317,7 @@ namespace NR
 
 		sCoreAssemblyImage = GetAssemblyImage(sCoreAssembly);
 
-		sExceptionMethod = GetMethod(sCoreAssemblyImage, "NR.RuntimeException:OnException(object)");
+		sExceptionMethod = GetMethod(sCoreAssemblyImage, "NR.RuntimeException:Exception(object)");
 		sEntityClass = mono_class_from_name(sCoreAssemblyImage, "NR", "Entity");
 
 		return true;
