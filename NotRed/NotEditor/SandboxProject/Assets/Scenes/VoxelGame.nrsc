@@ -41,47 +41,34 @@ Entities:
       IsTrigger: false
       OverrideMesh: false
       Material: 0
-  - Entity: 5628048338334500583
+  - Entity: 14537346586216403078
     TagComponent:
-      Tag: Player
+      Tag: GameManager
     Parent: 0
     Children:
       []
     TransformComponent:
-      Position: [38.7999992, 64.840065, 19.2106647]
+      Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     ScriptComponent:
-      ModuleName: PlayerController
+      ModuleName: GameManager
       StoredFields:
-        - Name: Camera
+        - Name: playerPrefab
+          Type: 9
+          Data: 4364513237643754488
+        - Name: coroutineTimer
+          Type: 1
+          Data: 0
+        - Name: currentPlayerChunkPosition
+          Type: 6
+          Data: [0, 0, 0]
+        - Name: world
           Type: 10
-          Data: 12627942439506381896
-    MeshComponent:
-      AssetID: 8130581881994747795
-      MaterialTable:
-        0: 0
-    RigidBodyComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDrag: 0.00999999978
-      AngularDrag: 0.0500000007
-      DisableGravity: false
-      IsKinematic: false
-      Layer: 0
-      CollisionDetection: 0
-      Constraints:
-        LockPositionX: false
-        LockPositionY: false
-        LockPositionZ: false
-        LockRotationX: false
-        LockRotationY: false
-        LockRotationZ: false
-    BoxColliderComponent:
-      Offset: [0, 0, 0]
-      Size: [1, 1, 1]
-      IsTrigger: false
-      Material: 0
+          Data: 4349438521487218923
+        - Name: detectionTime
+          Type: 1
+          Data: 1
   - Entity: 10495747637021943448
     TagComponent:
       Tag: Sky Light
@@ -157,15 +144,21 @@ Entities:
         - Name: chunkSize
           Type: 2
           Data: 16
+        - Name: chunkDrawingRange
+          Type: 2
+          Data: 0
         - Name: chunkHeight
           Type: 2
           Data: 100
-        - Name: mapSeed
-          Type: 5
-          Data: [0, 0]
         - Name: chunkPrefab
           Type: 9
           Data: 1739687759990777301
+        - Name: mapSeed
+          Type: 5
+          Data: [0, 0]
+        - Name: gameManagerEntity
+          Type: 10
+          Data: 14537346586216403078
 SceneAudio:
   MasterReverb:
     Pre-delay: 50

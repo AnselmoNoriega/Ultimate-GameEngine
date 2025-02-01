@@ -89,6 +89,9 @@ Assets:
   - Handle: 4314465531874424457
     FilePath: Models/Source/Sponza/7441062115984513793.jpg
     Type: Texture
+  - Handle: 4364513237643754488
+    FilePath: VoxelGame/Player.nrprefab
+    Type: Prefab
   - Handle: 4472115398838612294
     FilePath: Models/Source/stormtrooper/silly_dancing.fbx
     Type: MeshAsset

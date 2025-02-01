@@ -23,7 +23,7 @@ public class World : Entity
     // Extras
     public event Action OnWorldCreated, OnNewChunksGenerated;
 
-    public WorldData worldData { get; private set; }
+    private WorldData worldData;
 
     public void Init()
     {

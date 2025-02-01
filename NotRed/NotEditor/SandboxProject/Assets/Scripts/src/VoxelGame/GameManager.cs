@@ -14,8 +14,6 @@ public class GameManager : Entity
 
     public float detectionTime = 1.0f;
 
-    public float coroutineTimer;
-
     public void SpawnPlayer()
     {
         if (player != null)
