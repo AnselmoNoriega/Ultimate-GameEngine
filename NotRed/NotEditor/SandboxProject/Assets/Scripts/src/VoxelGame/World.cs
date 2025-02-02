@@ -24,7 +24,7 @@ public class World : Entity
     // Extras
     public event Action OnWorldCreated, OnNewChunksGenerated;
 
-    private WorldData worldData;
+    public WorldData worldData;
 
     public void Init()
     {
@@ -46,7 +46,21 @@ public class World : Entity
 
     public void GenerateWorld()
     {
-        WorldGenerationData worldGenerationData = GetPosisionsThatPlayerSees(Vector3.Zero);
+        GenerateWorld(Vector3.Zero);
+    }
+
+    private void GenerateWorld(Vector3 position)
+    {
+
+        WorldGenerationData worldGenerationData = GetPositionsThatPlayerSees(position);
+        foreach (Vector3 pos in worldGenerationData.chunkPositionsToRemove)
+        {
+            WorldDataHelper.RemoveChunk(this, pos);
+        }
+        foreach (Vector3 pos in worldGenerationData.chunkDataToRemove)
+        {
+            WorldDataHelper.RemoveChunkData(this, pos);
+        }
 
         foreach (var pos in worldGenerationData.chunkDataPositionsToCreate)
         {
@@ -70,19 +84,28 @@ public class World : Entity
         OnWorldCreated?.Invoke();
     }
 
-    private WorldGenerationData GetPosisionsThatPlayerSees(Vector3 playerPosition)
+    internal void RemoveChunk(ChunkRenderer chunk)
+    {
+        //TODO
+        //chunk.gameObject.SetActive(false);
+    }
+
+    private WorldGenerationData GetPositionsThatPlayerSees(Vector3 playerPosition)
     {
         List<Vector3> allChunkPositionsNeeded = WorldDataHelper.GetChunkPositionsAroundPlayer(this, playerPosition);
         List<Vector3> allChunkDataPositionsNeeded = WorldDataHelper.GetDataPositionsAroundPlayer(this, playerPosition);
         List<Vector3> chunkPositionsToCreate = WorldDataHelper.SelectPositonsToCreate(worldData, allChunkPositionsNeeded, playerPosition);
         List<Vector3> chunkDataPositionsToCreate = WorldDataHelper.SelectDataPositonsToCreate(worldData, allChunkDataPositionsNeeded, playerPosition);
 
+        List<Vector3> chunkPositionsToRemove = WorldDataHelper.GetUnnededChunks(worldData, allChunkPositionsNeeded);
+        List<Vector3> chunkDataToRemove = WorldDataHelper.GetUnnededData(worldData, allChunkDataPositionsNeeded);
+
         WorldGenerationData data = new WorldGenerationData
         {
             chunkPositionsToCreate = chunkPositionsToCreate,
             chunkDataPositionsToCreate = chunkDataPositionsToCreate,
-            chunkPositionsToRemove = new List<Vector3>(),
-            chunkDataToRemove = new List<Vector3>(),
+            chunkPositionsToRemove = chunkPositionsToRemove,
+            chunkDataToRemove = chunkDataToRemove,
             chunkPositionsToUpdate = new List<Vector3>()
         };
         return data;
@@ -90,13 +113,8 @@ public class World : Entity
 
     internal void LoadAdditionalChunksRequest(Entity player)
     {
-        Log.Info("Load more chunks");
+        GenerateWorld(new Vector3((int)player.Translation.x, (int)player.Translation.y, (int)player.Translation.z));
         OnNewChunksGenerated?.Invoke();
-    }
-
-    private void GenerateVoxels(Chunk data)
-    {
-
     }
 
     internal VoxelType GetBlockFromChunkCoordinates(Chunk chunkData, float x, float y, float z)
@@ -123,7 +141,7 @@ public class World : Entity
         public List<Vector3> chunkPositionsToUpdate;
     }
 
-    public struct WorldData
+    public class WorldData
     {
         public Dictionary<Vector3, Chunk> chunkDataDictionary;
         public Dictionary<Vector3, ChunkRenderer> chunkDictionary;

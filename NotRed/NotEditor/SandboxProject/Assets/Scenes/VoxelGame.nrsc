@@ -6,41 +6,6 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 12767488213016648131
-    TagComponent:
-      Tag: Plane
-    Parent: 0
-    Children:
-      []
-    TransformComponent:
-      Position: [38.5931015, 64.1029968, 19.1554966]
-      Rotation: [0, 0, 0]
-      Scale: [919.125183, 1, 946.756775]
-    MeshComponent:
-      AssetID: 4517023518274335626
-      MaterialTable:
-        0: 0
-    RigidBodyComponent:
-      BodyType: 1
-      Mass: 1
-      LinearDrag: 0.00999999978
-      AngularDrag: 0.0500000007
-      DisableGravity: false
-      IsKinematic: false
-      Layer: 0
-      CollisionDetection: 0
-      Constraints:
-        LockPositionX: false
-        LockPositionY: false
-        LockPositionZ: false
-        LockRotationX: false
-        LockRotationY: false
-        LockRotationZ: false
-    MeshColliderComponent:
-      IsConvex: false
-      IsTrigger: false
-      OverrideMesh: false
-      Material: 0
   - Entity: 14537346586216403078
     TagComponent:
       Tag: GameManager
@@ -56,7 +21,7 @@ Entities:
       StoredFields:
         - Name: playerPrefab
           Type: 9
-          Data: 4364513237643754488
+          Data: 13102739336966907731
         - Name: world
           Type: 10
           Data: 4349438521487218923

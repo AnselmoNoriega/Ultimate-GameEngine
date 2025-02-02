@@ -17,6 +17,7 @@ public class PlayerController : Entity
 
     public void Update(float deltaTime)
     {
+        return;
         Vector3 moveDirection = Vector3.Zero;
 
         if (Input.IsKeyPressed(KeyCode.W)) moveDirection += GetCameraForward();

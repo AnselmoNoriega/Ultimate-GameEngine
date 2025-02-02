@@ -1,0 +1,29 @@
+Prefab:
+  - Entity: 12240313186871724777
+    TagComponent:
+      Tag: Player
+    Parent: 0
+    Children:
+      []
+    PrefabComponent:
+      Prefab: 12240313186871724777
+      Entity: 13102739336966907731
+    TransformComponent:
+      Position: [38.7999992, 64.840065, 19.2106647]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ScriptComponent:
+      ModuleName: PlayerController
+      StoredFields:
+        - Name: Camera
+          Type: 10
+          Data: 12627942439506381896
+    MeshComponent:
+      AssetID: 8130581881994747795
+      MaterialTable:
+        0: 0
+    BoxColliderComponent:
+      Offset: [0, 0, 0]
+      Size: [1, 1, 1]
+      IsTrigger: false
+      Material: 0

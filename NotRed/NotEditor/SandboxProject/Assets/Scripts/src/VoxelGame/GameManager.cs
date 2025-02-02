@@ -30,6 +30,11 @@ public class GameManager : Entity
             player = Instantiate(playerPrefab, hit.Position + Vector3.Up);
             StartCheckingTheMap();
         }
+        else
+        {
+            player = Instantiate(playerPrefab,Vector3.Zero);
+            StartCheckingTheMap();
+        }
     }
 
     public void StartCheckingTheMap()

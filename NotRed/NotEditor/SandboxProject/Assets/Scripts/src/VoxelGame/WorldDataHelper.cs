@@ -45,6 +45,21 @@ public static class WorldDataHelper
         return chunkPositionsToCreate;
     }
 
+    internal static void RemoveChunkData(World world, Vector3 pos)
+    {
+        world.worldData.chunkDataDictionary.Remove(pos);
+    }
+
+    internal static void RemoveChunk(World world, Vector3 pos)
+    {
+        ChunkRenderer chunk = null;
+        if (world.worldData.chunkDictionary.TryGetValue(pos, out chunk))
+        {
+            world.RemoveChunk(chunk);
+            world.worldData.chunkDictionary.Remove(pos);
+        }
+    }
+
     internal static List<Vector3> GetDataPositionsAroundPlayer(World world, Vector3 playerPosition)
     {
         float startX = playerPosition.x - (world.chunkDrawingRange + 1) * world.chunkSize;
@@ -72,6 +87,27 @@ public static class WorldDataHelper
             }
         }
         return chunkDataPositionsToCreate;
+    }
+
+    internal static List<Vector3> GetUnnededData(World.WorldData worldData, List<Vector3> allChunkDataPositionsNeeded)
+    {
+        return worldData.chunkDataDictionary.Keys
+            .Where(pos => allChunkDataPositionsNeeded.Contains(pos) == false && worldData.chunkDataDictionary[pos].IsModied == false)
+            .ToList();
+    }
+
+    internal static List<Vector3> GetUnnededChunks(World.WorldData worldData, List<Vector3> allChunkPositionsNeeded)
+    {
+        List<Vector3> positionToRemove = new List<Vector3>();
+        foreach (var pos in worldData.chunkDictionary.Keys
+            .Where(pos => allChunkPositionsNeeded.Contains(pos) == false))
+        {
+            if (worldData.chunkDictionary.ContainsKey(pos))
+            {
+                positionToRemove.Add(pos);
+            }
+        }
+        return positionToRemove;
     }
 
     internal static List<Vector3> SelectPositonsToCreate(World.WorldData worldData, List<Vector3> allChunkPositionsNeeded, Vector3 playerPosition)

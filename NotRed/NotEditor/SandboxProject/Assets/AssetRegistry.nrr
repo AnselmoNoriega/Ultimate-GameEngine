@@ -320,6 +320,9 @@ Assets:
   - Handle: 13071173255421381503
     FilePath: Models/Source/Sponza/2374361008830720677.jpg
     Type: Texture
+  - Handle: 13102739336966907731
+    FilePath: VoxelGame/PlayerRBNull.nrprefab
+    Type: Prefab
   - Handle: 13138197014243923700
     FilePath: Models/Source/Sponza/10381718147657362067.jpg
     Type: Texture

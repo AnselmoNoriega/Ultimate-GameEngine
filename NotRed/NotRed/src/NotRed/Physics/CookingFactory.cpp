@@ -261,7 +261,6 @@ namespace NR
             data.Transform = submesh.Transform;
             memcpy(data.Data, buf.getData(), data.Size);
         }
-            NR_CORE_INFO(outData[0].Size);
 
         return CookingResult::Success;
     }
