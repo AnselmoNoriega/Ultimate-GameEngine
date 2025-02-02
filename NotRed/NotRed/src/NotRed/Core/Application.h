@@ -58,6 +58,7 @@ namespace NR
         static inline Application& Get() { return *sInstance; }
 
         float GetTime() const;
+        float GetTimeFrame() const;
 
         static const char* GetConfigurationName();
         static const char* GetPlatformName();

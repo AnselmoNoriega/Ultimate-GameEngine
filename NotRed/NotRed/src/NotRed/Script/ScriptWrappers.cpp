@@ -262,6 +262,11 @@ namespace NR::Script
         return result;
     }
 
+    float NR_GetDeltaTime()
+    {
+        return Application::Get().GetTimeFrame();
+    }
+
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -806,7 +811,7 @@ namespace NR::Script
         auto& meshComponent = entity.GetComponent<MeshComponent>();
         auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
         meshColliderComponent.CollisionMesh = meshComponent.MeshObj;
-        CookingFactory::ForceCookMesh(meshColliderComponent, "ReloadedMesh", true);
+        CookingFactory::ForceCookMesh(meshColliderComponent);
     }
 
     bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index)

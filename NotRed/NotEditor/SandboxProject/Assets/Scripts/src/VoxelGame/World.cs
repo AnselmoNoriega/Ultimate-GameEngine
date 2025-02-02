@@ -1,6 +1,7 @@
 ﻿using NR;
 using System;
 using System.Collections.Generic;
+using static World;
 
 public class World : Entity
 {

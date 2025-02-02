@@ -413,6 +413,11 @@ namespace NR
         return (float)glfwGetTime();
     }
 
+    float Application::GetTimeFrame() const
+    {
+        return mTimeFrame.GetSeconds();
+    }
+
     const char* Application::GetConfigurationName()
     {
 #if defined(NR_DEBUG)

@@ -84,6 +84,8 @@ namespace NR
 		mono_add_internal_call("NR.Entity::InstantiateWithTranslation_Native", NR::Script::NR_Entity_InstantiateWithTranslation);
 		mono_add_internal_call("NR.Entity::DestroyEntity_Native", NR::Script::NR_Entity_DestroyEntity);
 		mono_add_internal_call("NR.Entity::HasComponent_Native", NR::Script::NR_Entity_HasComponent);
+		
+		mono_add_internal_call("NR.Time::GetDeltaTime_Native", NR::Script::NR_GetDeltaTime);
 
 		mono_add_internal_call("NR.TransformComponent::GetTransform_Native", NR::Script::NR_TransformComponent_GetTransform);
 		mono_add_internal_call("NR.TransformComponent::SetTransform_Native", NR::Script::NR_TransformComponent_SetTransform);

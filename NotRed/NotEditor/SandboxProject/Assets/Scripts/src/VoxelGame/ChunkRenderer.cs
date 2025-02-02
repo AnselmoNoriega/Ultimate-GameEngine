@@ -81,6 +81,7 @@ public class ChunkRenderer
             meshNames
             );
 
+        Log.Info((vertices[0].Length + vertices[1].Length) + ", " + (indices[0].Length + indices[1].Length));
         _mesh.ReloadMeshCollider();
 
         //_mesh.RecalculateNormals(); Maybe?

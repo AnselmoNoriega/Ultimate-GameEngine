@@ -57,15 +57,12 @@ Entities:
         - Name: playerPrefab
           Type: 9
           Data: 4364513237643754488
-        - Name: coroutineTimer
-          Type: 1
-          Data: 0
-        - Name: currentPlayerChunkPosition
-          Type: 6
-          Data: [0, 0, 0]
         - Name: world
           Type: 10
           Data: 4349438521487218923
+        - Name: currentPlayerChunkPosition
+          Type: 6
+          Data: [0, 0, 0]
         - Name: detectionTime
           Type: 1
           Data: 1
@@ -132,30 +129,30 @@ Entities:
     ScriptComponent:
       ModuleName: World
       StoredFields:
-        - Name: noiseScale
-          Type: 1
-          Data: 1.89999998
         - Name: mapSizeInChunks
           Type: 2
           Data: 6
-        - Name: waterThreshold
-          Type: 2
-          Data: 43
         - Name: chunkSize
           Type: 2
           Data: 16
-        - Name: chunkDrawingRange
-          Type: 2
-          Data: 0
         - Name: chunkHeight
           Type: 2
           Data: 100
-        - Name: chunkPrefab
-          Type: 9
-          Data: 1739687759990777301
         - Name: mapSeed
           Type: 5
           Data: [0, 0]
+        - Name: chunkDrawingRange
+          Type: 2
+          Data: 1
+        - Name: waterThreshold
+          Type: 2
+          Data: 43
+        - Name: noiseScale
+          Type: 1
+          Data: 1.89999998
+        - Name: chunkPrefab
+          Type: 9
+          Data: 1739687759990777301
         - Name: gameManagerEntity
           Type: 10
           Data: 14537346586216403078

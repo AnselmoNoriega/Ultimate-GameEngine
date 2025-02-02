@@ -66,6 +66,8 @@ namespace NR::Script
     uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
     uint64_t NR_Entity_InstantiateEntity();
 
+    float NR_GetDeltaTime();
+
     void NR_TransformComponent_GetTransform(uint64_t entityID, TransformComponent* outTransform);
     void NR_TransformComponent_SetTransform(uint64_t entityID, TransformComponent* inTransform);
     void NR_TransformComponent_GetTranslation(uint64_t entityID, glm::vec3* outTranslation);
