@@ -20,7 +20,8 @@ namespace NR
         private Action<Entity> _triggerBeginCallbacks;
         private Action<Entity> _triggerEndCallbacks;
 
-        private List<IEnumerator> coroutines = new List<IEnumerator>();
+        private List<IEnumerator> coroutines = new List<IEnumerator>(); 
+        private readonly object coroutineLock = new object();
         private bool isRunning = false;
 
         protected Entity() { ID = 0; }
@@ -262,7 +263,11 @@ namespace NR
 
         public void StartCoroutine(IEnumerator coroutine)
         {
-            coroutines.Add(coroutine);
+            lock (coroutineLock)
+            {
+                coroutines.Add(coroutine);
+            }
+
             if (!isRunning)
             {
                 isRunning = true;
@@ -272,24 +277,46 @@ namespace NR
 
         public void StopAllCoroutines()
         {
-            coroutines.Clear();
+            lock (coroutineLock)
+            {
+                coroutines.Clear();
+            }
+
             isRunning = false;
         }
 
         private async Task UpdateCoroutines()
         {
-            while (coroutines.Count > 0)
+            while (true)
             {
-                for (int i = coroutines.Count - 1; i >= 0; i--)
+                List<IEnumerator> coroutinesSnapshot;
+
+                lock (coroutineLock)
                 {
-                    if (!coroutines[i].MoveNext())
+                    if (coroutines.Count == 0)
                     {
-                        coroutines.RemoveAt(i);
+                        break;
+                    }
+                    
+                    coroutinesSnapshot = new List<IEnumerator>(coroutines);
+                }
+
+                for (int i = coroutinesSnapshot.Count - 1; i >= 0; i--)
+                {
+                    var coroutine = coroutinesSnapshot[i];
+                    if (!coroutine.MoveNext())
+                    {
+                        lock (coroutineLock)
+                        {
+                            coroutines.Remove(coroutine);
+                        }
                     }
                 }
+
                 float millisecondsToWait = Time.DeltaTime * 1000f;
                 await Task.Delay((int)millisecondsToWait);
             }
+
             isRunning = false;
         }
 

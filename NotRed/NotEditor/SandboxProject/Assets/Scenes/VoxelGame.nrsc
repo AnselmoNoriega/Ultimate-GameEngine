@@ -53,8 +53,8 @@ Entities:
     Children:
       []
     TransformComponent:
-      Position: [-19.7426376, 71, 19.0929585]
-      Rotation: [-18, -111, 2.78375728e-06]
+      Position: [-19.7426376, 100, 19.0929585]
+      Rotation: [-70, -90.3000031, 2.78375728e-06]
       Scale: [1, 0.999999523, 1]
     CameraComponent:
       Camera:
@@ -94,30 +94,30 @@ Entities:
     ScriptComponent:
       ModuleName: World
       StoredFields:
-        - Name: mapSizeInChunks
-          Type: 2
-          Data: 6
-        - Name: chunkSize
-          Type: 2
-          Data: 16
-        - Name: chunkHeight
-          Type: 2
-          Data: 100
-        - Name: mapSeed
-          Type: 5
-          Data: [0, 0]
-        - Name: chunkDrawingRange
-          Type: 2
-          Data: 1
-        - Name: waterThreshold
-          Type: 2
-          Data: 43
         - Name: noiseScale
           Type: 1
           Data: 1.89999998
+        - Name: mapSizeInChunks
+          Type: 2
+          Data: 6
+        - Name: waterThreshold
+          Type: 2
+          Data: 43
+        - Name: chunkSize
+          Type: 2
+          Data: 16
+        - Name: chunkDrawingRange
+          Type: 2
+          Data: 1
+        - Name: chunkHeight
+          Type: 2
+          Data: 100
         - Name: chunkPrefab
           Type: 9
           Data: 1739687759990777301
+        - Name: mapSeed
+          Type: 5
+          Data: [0, 0]
         - Name: gameManagerEntity
           Type: 10
           Data: 14537346586216403078

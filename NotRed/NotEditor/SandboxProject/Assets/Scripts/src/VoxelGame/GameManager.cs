@@ -47,11 +47,12 @@ public class GameManager : Entity
     IEnumerator CheckIfShouldLoadNextPosition()
     {
         yield return new WaitForSeconds(detectionTime);
-        if (
-            Mathf.Abs(currentChunkCenter.x - player.Translation.x) > world.As<World>().chunkSize ||
-            Mathf.Abs(currentChunkCenter.z - player.Translation.z) > world.As<World>().chunkSize ||
-            (Mathf.Abs(currentPlayerChunkPosition.y - player.Translation.y) > world.As<World>().chunkHeight)
-            )
+
+        bool checkSides = Mathf.Abs(currentChunkCenter.x - player.Translation.x) > world.As<World>().chunkSize;
+        bool checkFronts = Mathf.Abs(currentChunkCenter.z - player.Translation.z) > world.As<World>().chunkSize;
+        bool checkTops = Mathf.Abs(currentPlayerChunkPosition.y - player.Translation.y) > world.As<World>().chunkHeight;
+
+        if (checkSides || checkFronts || checkTops )
         {
             world.As<World>().LoadAdditionalChunksRequest(player);
         }
