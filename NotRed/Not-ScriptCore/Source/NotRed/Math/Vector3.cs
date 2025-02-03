@@ -184,6 +184,15 @@ namespace NR
             return new Vector3((float)Math.Sin(vector.x), (float)Math.Sin(vector.y), (float)Math.Sin(vector.z));
         }
 
+        public static Vector3 Cross(Vector3 a, Vector3 b)
+        {
+            return new Vector3(
+                a.y * b.z - a.z * b.y,
+                a.z * b.x - a.x * b.z,
+                a.x * b.y - a.y * b.x
+            );
+        }
+
         public override string ToString()
         {
             return "Vector3[" + x + ", " + y + ", " + z + "]";
