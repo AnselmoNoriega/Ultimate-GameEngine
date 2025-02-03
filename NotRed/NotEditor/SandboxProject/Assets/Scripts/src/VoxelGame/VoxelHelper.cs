@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public static class BlockHelper
+public static class VoxelHelper
 {
     private static Direction[] directions =
     {
@@ -23,8 +23,8 @@ public static class BlockHelper
 
         foreach (Direction direction in directions)
         {
-            var neighbourBlockCoordinates = new Vector3(x, y, z) + direction.GetVector();
-            var neighbourVoxelType = ChunkManager.GetBlockFromChunkCoordinates(chunk, neighbourBlockCoordinates);
+            var neighbourVoxelCoordinates = new Vector3(x, y, z) + direction.GetVector();
+            var neighbourVoxelType = ChunkManager.GetVoxelFromChunkCoordinates(chunk, neighbourVoxelCoordinates);
             if (neighbourVoxelType != VoxelType.Nothing && VoxelDataManager.blockTextureDataDictionary[neighbourVoxelType].IsSolid == false)
             {
                 if (blockType == VoxelType.Water)

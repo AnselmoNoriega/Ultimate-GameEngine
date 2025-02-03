@@ -2,27 +2,25 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class ChunkRenderer
+public class ChunkRenderer : Entity
 {
-    MeshComponent _mesh;
+    private MeshComponent _mesh;
 
     public Chunk ChunkData { get; private set; }
 
-    public bool ModifiedChunk
+    public void SetIsModified(bool modified)
     {
-        get
-        {
-            return ChunkData.IsModied;
-        }
-        set
-        {
-            ChunkData.IsModied = value;
-        }
+        ChunkData.IsModied = modified;
     }
 
-    public void InitializeChunk(Chunk data, MeshComponent mesh)
+    public bool IsModified()
     {
-        _mesh = mesh;
+        return ChunkData.IsModied;
+    }
+
+    public void InitializeChunk(Chunk data)
+    {
+        _mesh = GetComponent<MeshComponent>();
         ChunkData = data;
     }
 

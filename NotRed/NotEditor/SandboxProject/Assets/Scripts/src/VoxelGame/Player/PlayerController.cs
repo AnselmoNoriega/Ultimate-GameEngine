@@ -9,10 +9,13 @@ public class PlayerController : Entity
     private float jumpForce = 5.0f;
     private bool isGrounded = true;
 
+    public World world;
+
     public void Init()
     {
         AddCollisionBeginCallback(CollisionStart);
         rb = GetComponent<RigidBodyComponent>();
+        world = FindEntityByTag("World").As<World>();
     }
 
     public void Update(float deltaTime)
@@ -75,5 +78,19 @@ public class PlayerController : Entity
         {
             isGrounded = true;
         }
+    }
+
+    private void HandleMouseClick()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(Camera.Translation, Camera.Forward, 5.0f, out hit))
+        {
+            ModifyTerrain(hit);
+        }
+    }
+
+    private void ModifyTerrain(RaycastHit hit)
+    {
+        world.SetVoxel(hit, VoxelType.Air);
     }
 }

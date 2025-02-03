@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class WorldDataHelper
 {
-    public static Vector3 ChunkPositionFromBlockCoords(World world, Vector3 position)
+    public static Vector3 ChunkPositionFromVoxelCoords(World world, Vector3 position)
     {
         return new Vector3
         {
@@ -27,7 +27,7 @@ public static class WorldDataHelper
         {
             for (int z = (int)startZ; z <= endZ; z += world.chunkSize)
             {
-                Vector3 chunkPos = ChunkPositionFromBlockCoords(world, new Vector3(x, 0, z));
+                Vector3 chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, 0, z));
                 chunkPositionsToCreate.Add(chunkPos);
                 //if (x >= playerPosition.x - world.chunkSize
                 //    && x <= playerPosition.x + world.chunkSize
@@ -36,7 +36,7 @@ public static class WorldDataHelper
                 //{
                 //    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
                 //    {
-                //        chunkPos = ChunkPositionFromBlockCoords(world, new Vector3(x, y, z));
+                //        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
                 //        chunkPositionsToCreate.Add(chunkPos);
                 //    }
                 //}
@@ -71,7 +71,7 @@ public static class WorldDataHelper
         {
             for (int z = (int)startZ; z <= endZ; z += world.chunkSize)
             {
-                Vector3 chunkPos = ChunkPositionFromBlockCoords(world, new Vector3(x, 0, z));
+                Vector3 chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, 0, z));
                 chunkDataPositionsToCreate.Add(chunkPos);
                 //if (x >= playerPosition.x - world.chunkSize
                 //    && x <= playerPosition.x + world.chunkSize
@@ -80,13 +80,31 @@ public static class WorldDataHelper
                 //{
                 //    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
                 //    {
-                //        chunkPos = ChunkPositionFromBlockCoords(world, new Vector3(x, y, z));
+                //        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
                 //        chunkDataPositionsToCreate.Add(chunkPos);
                 //    }
                 //}
             }
         }
         return chunkDataPositionsToCreate;
+    }
+
+    internal static void SetVoxel(World worldReference, Vector3 pos, VoxelType VoxelType)
+    {
+        Chunk chunkData = GetChunkData(worldReference, pos);
+        if (chunkData != null)
+        {
+            Vector3 localPosition = ChunkManager.GetVoxelInChunkCoordinates(chunkData, pos);
+            ChunkManager.SetVoxel(chunkData, localPosition, VoxelType);
+        }
+    }
+
+    private static Chunk GetChunkData(World worldReference, Vector3 pos)
+    {
+        Vector3 chunkPosition = ChunkPositionFromVoxelCoords(worldReference, pos);
+        Chunk containerChunk = null;
+        worldReference.worldData.chunkDataDictionary.TryGetValue(chunkPosition, out containerChunk);
+        return containerChunk;
     }
 
     internal static List<Vector3> GetUnnededData(World.WorldData worldData, List<Vector3> allChunkDataPositionsNeeded)

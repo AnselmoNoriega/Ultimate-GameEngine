@@ -52,8 +52,8 @@ public class World : Entity
 
     private void GenerateWorld(Vector3 position)
     {
-
         WorldGenerationData worldGenerationData = GetPositionsThatPlayerSees(position);
+
         foreach (Vector3 pos in worldGenerationData.chunkPositionsToRemove)
         {
             WorldDataHelper.RemoveChunk(this, pos);
@@ -75,14 +75,49 @@ public class World : Entity
             Chunk data = worldData.chunkDataDictionary[pos];
             MeshData meshData = ChunkManager.GetChunkMeshData(data);
             Entity chunkObject = Instantiate(chunkPrefab, data.WorldPosition);
-            ChunkRenderer chunkRenderer = new ChunkRenderer();
+            ChunkRenderer chunkRenderer = chunkObject.As<ChunkRenderer>();
 
             worldData.chunkDictionary.Add(data.WorldPosition, chunkRenderer);
-            chunkRenderer.InitializeChunk(data, chunkObject.GetComponent<MeshComponent>());
+            chunkRenderer.InitializeChunk(data);
             chunkRenderer.UpdateChunk(meshData);
         }
 
         OnWorldCreated?.Invoke();
+    }
+
+    internal bool SetVoxel(RaycastHit hit, VoxelType VoxelType)
+    {
+        ChunkRenderer chunk = FindEntityByID(hit.EntityID).As<ChunkRenderer>();
+        if (chunk == null)
+        {
+            return false;
+        }
+
+        Vector3 pos = GetVoxelPos(hit);
+        WorldDataHelper.SetVoxel(chunk.ChunkData.WorldRef, pos, VoxelType);
+        chunk.SetIsModified(true);
+        chunk.UpdateChunk();
+        return true;
+    }
+
+    private Vector3 GetVoxelPos(RaycastHit hit)
+    {
+        Vector3 pos = new Vector3(
+             GetVoxelPositionIn(hit.Position.x, hit.Normal.x),
+             GetVoxelPositionIn(hit.Position.y, hit.Normal.y),
+             GetVoxelPositionIn(hit.Position.z, hit.Normal.z)
+             );
+
+        return new Vector3((int)pos.x, (int)pos.y, (int)pos.z);
+    }
+
+    private float GetVoxelPositionIn(float pos, float normal)
+    {
+        if (Mathf.Abs(pos % 1) == 0.5f)
+        {
+            pos -= (normal / 2);
+        }
+        return (float)pos;
     }
 
     internal void RemoveChunk(ChunkRenderer chunk)
@@ -118,9 +153,9 @@ public class World : Entity
         OnNewChunksGenerated?.Invoke();
     }
 
-    internal VoxelType GetBlockFromChunkCoordinates(Chunk chunkData, float x, float y, float z)
+    internal VoxelType GetVoxelFromChunkCoordinates(Chunk chunkData, float x, float y, float z)
     {
-        Vector3 pos = ChunkManager.ChunkPositionFromBlockCoords(this, x, y, z);
+        Vector3 pos = ChunkManager.ChunkPositionFromVoxelCoords(this, x, y, z);
         Chunk containerChunk = null;
         worldData.chunkDataDictionary.TryGetValue(pos, out containerChunk);
         if (containerChunk == null)
@@ -128,9 +163,9 @@ public class World : Entity
             return VoxelType.Nothing;
         }
 
-        Vector3 blockInCHunkCoordinates = ChunkManager.GetBlockInChunkCoordinates(containerChunk, new Vector3(x, y, z));
+        Vector3 VoxelInCHunkCoordinates = ChunkManager.GetVoxelInChunkCoordinates(containerChunk, new Vector3(x, y, z));
 
-        return ChunkManager.GetBlockFromChunkCoordinates(containerChunk, blockInCHunkCoordinates);
+        return ChunkManager.GetVoxelFromChunkCoordinates(containerChunk, VoxelInCHunkCoordinates);
     }
 
     public struct WorldGenerationData

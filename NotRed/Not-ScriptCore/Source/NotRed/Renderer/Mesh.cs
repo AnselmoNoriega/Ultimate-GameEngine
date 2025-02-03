@@ -17,11 +17,6 @@ namespace NR
         public Vector2 Texcoord;
     }
 
-    public struct Index
-    {
-        uint V1, V2, V3;
-    };
-
     public class Mesh
     {
         public Mesh(string filepath)

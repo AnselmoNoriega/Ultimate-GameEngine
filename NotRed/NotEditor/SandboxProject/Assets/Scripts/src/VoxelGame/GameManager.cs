@@ -64,7 +64,7 @@ public class GameManager : Entity
 
     private void SetCurrentChunkCoordinates()
     {
-        currentPlayerChunkPosition = WorldDataHelper.ChunkPositionFromBlockCoords(world.As<World>(), player.Translation);
+        currentPlayerChunkPosition = WorldDataHelper.ChunkPositionFromVoxelCoords(world.As<World>(), player.Translation);
         currentChunkCenter.x = currentPlayerChunkPosition.x + world.As<World>().chunkSize / 2;
         currentChunkCenter.z = currentPlayerChunkPosition.z + world.As<World>().chunkSize / 2;
     }

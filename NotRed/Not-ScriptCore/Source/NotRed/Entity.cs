@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -76,6 +77,22 @@ namespace NR
         public void Destroy(Entity entity)
         {
             DestroyEntity_Native(entity.ID);
+        }
+
+        public Vector3 Forward
+        {
+            get
+            {
+                float radX = Rotation.x * (Mathf.PI / 180f);
+                float radY = Rotation.y * (Mathf.PI / 180f);
+
+                float cosPitch = Mathf.Cos(radX);
+                float sinPitch = Mathf.Sin(radX);
+                float cosYaw = Mathf.Cos(radY);
+                float sinYaw = Mathf.Sin(radY);
+
+                return new Vector3(cosYaw * cosPitch, sinPitch, sinYaw * cosPitch);
+            }
         }
 
         public Vector3 Translation

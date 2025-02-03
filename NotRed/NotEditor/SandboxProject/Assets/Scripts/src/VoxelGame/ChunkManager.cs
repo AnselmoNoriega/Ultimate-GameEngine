@@ -42,12 +42,12 @@ public static class ChunkManager
         return true;
     }
 
-    public static VoxelType GetBlockFromChunkCoordinates(Chunk chunkData, Vector3 chunkCoordinates)
+    public static VoxelType GetVoxelFromChunkCoordinates(Chunk chunkData, Vector3 chunkCoordinates)
     {
-        return GetBlockFromChunkCoordinates(chunkData, chunkCoordinates.x, chunkCoordinates.y, chunkCoordinates.z);
+        return GetVoxelFromChunkCoordinates(chunkData, chunkCoordinates.x, chunkCoordinates.y, chunkCoordinates.z);
     }
 
-    public static VoxelType GetBlockFromChunkCoordinates(Chunk chunkData, float x, float y, float z)
+    public static VoxelType GetVoxelFromChunkCoordinates(Chunk chunkData, float x, float y, float z)
     {
         if (InRange(chunkData, x) && InRangeHeight(chunkData, y) && InRange(chunkData, z))
         {
@@ -55,7 +55,7 @@ public static class ChunkManager
             return chunkData.Voxels[(int)index];
         }
 
-        return chunkData.WorldRef.GetBlockFromChunkCoordinates(chunkData, chunkData.WorldPosition.x + x, chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
+        return chunkData.WorldRef.GetVoxelFromChunkCoordinates(chunkData, chunkData.WorldPosition.x + x, chunkData.WorldPosition.y + y, chunkData.WorldPosition.z + z);
     }
 
     public static void SetVoxel(Chunk chunkData, Vector3 localPosition, VoxelType block)
@@ -77,7 +77,7 @@ public static class ChunkManager
         return x + (Chunk.Size * y) + (Chunk.Size * Chunk.Height * z);
     }
 
-    public static Vector3 GetBlockInChunkCoordinates(Chunk chunkData, Vector3 pos)
+    public static Vector3 GetVoxelInChunkCoordinates(Chunk chunkData, Vector3 pos)
     {
         return new Vector3
         {
@@ -91,12 +91,12 @@ public static class ChunkManager
     {
         MeshData meshData = new MeshData(true);
 
-        LoopThroughTheVoxels(chunkData, (x, y, z) => meshData = BlockHelper.GetMeshData(chunkData, x, y, z, meshData, chunkData.Voxels[(int)GetIndexFromPosition(chunkData, x, y, z)]));
+        LoopThroughTheVoxels(chunkData, (x, y, z) => meshData = VoxelHelper.GetMeshData(chunkData, x, y, z, meshData, chunkData.Voxels[(int)GetIndexFromPosition(chunkData, x, y, z)]));
 
         return meshData;
     }
 
-    internal static Vector3 ChunkPositionFromBlockCoords(World world, float x, float y, float z)
+    internal static Vector3 ChunkPositionFromVoxelCoords(World world, float x, float y, float z)
     {
         Vector3 pos = new Vector3
         {

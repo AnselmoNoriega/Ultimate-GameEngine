@@ -29,9 +29,6 @@ Assets:
   - Handle: 1611408416186189859
     FilePath: Models/Source/Sponza/6151467286084645207.jpg
     Type: Texture
-  - Handle: 1739687759990777301
-    FilePath: VoxelGame/ChunkPrefab.nrprefab
-    Type: Prefab
   - Handle: 2482100059896760119
     FilePath: Models/Source/Sponza/10388182081421875623.jpg
     Type: Texture
@@ -353,6 +350,9 @@ Assets:
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
     Type: MeshAsset
+  - Handle: 14693710350519985485
+    FilePath: VoxelGame/Chunk.nrprefab
+    Type: Prefab
   - Handle: 14718903182659248199
     FilePath: Models/Source/Sponza/466164707995436622.jpg
     Type: Texture
