@@ -23,23 +23,24 @@ public static class WorldDataHelper
         float endX = playerPosition.x + (world.chunkDrawingRange) * world.chunkSize;
         float endZ = playerPosition.z + (world.chunkDrawingRange) * world.chunkSize;
         List<Vector3> chunkPositionsToCreate = new List<Vector3>();
+
         for (int x = (int)startX; x <= endX; x += world.chunkSize)
         {
             for (int z = (int)startZ; z <= endZ; z += world.chunkSize)
             {
                 Vector3 chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, 0, z));
                 chunkPositionsToCreate.Add(chunkPos);
-                //if (x >= playerPosition.x - world.chunkSize
-                //    && x <= playerPosition.x + world.chunkSize
-                //    && z >= playerPosition.z - world.chunkSize
-                //    && z <= playerPosition.z + world.chunkSize)
-                //{
-                //    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
-                //    {
-                //        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
-                //        chunkPositionsToCreate.Add(chunkPos);
-                //    }
-                //}
+                if (x >= playerPosition.x - world.chunkSize && 
+                    x <= playerPosition.x + world.chunkSize && 
+                    z >= playerPosition.z - world.chunkSize && 
+                    z <= playerPosition.z + world.chunkSize)
+                {
+                    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
+                    {
+                        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
+                        chunkPositionsToCreate.Add(chunkPos);
+                    }
+                }
             }
         }
         return chunkPositionsToCreate;
@@ -73,20 +74,30 @@ public static class WorldDataHelper
             {
                 Vector3 chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, 0, z));
                 chunkDataPositionsToCreate.Add(chunkPos);
-                //if (x >= playerPosition.x - world.chunkSize
-                //    && x <= playerPosition.x + world.chunkSize
-                //    && z >= playerPosition.z - world.chunkSize
-                //    && z <= playerPosition.z + world.chunkSize)
-                //{
-                //    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
-                //    {
-                //        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
-                //        chunkDataPositionsToCreate.Add(chunkPos);
-                //    }
-                //}
+                if (x >= playerPosition.x - world.chunkSize && 
+                    x <= playerPosition.x + world.chunkSize && 
+                    z >= playerPosition.z - world.chunkSize && 
+                    z <= playerPosition.z + world.chunkSize)
+                {
+                    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
+                    {
+                        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
+                        chunkDataPositionsToCreate.Add(chunkPos);
+                    }
+                }
             }
         }
         return chunkDataPositionsToCreate;
+    }
+
+    internal static ChunkRenderer GetChunk(World worldReference, Vector3 worldPosition)
+    {
+        if (worldReference.worldData.chunkDictionary.ContainsKey(worldPosition))
+        {
+            return worldReference.worldData.chunkDictionary[worldPosition];
+        }
+
+        return null;
     }
 
     internal static void SetVoxel(World worldReference, Vector3 pos, VoxelType VoxelType)
@@ -99,7 +110,7 @@ public static class WorldDataHelper
         }
     }
 
-    private static Chunk GetChunkData(World worldReference, Vector3 pos)
+    public static Chunk GetChunkData(World worldReference, Vector3 pos)
     {
         Vector3 chunkPosition = ChunkPositionFromVoxelCoords(worldReference, pos);
         Chunk containerChunk = null;

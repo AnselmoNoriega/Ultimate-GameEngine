@@ -96,6 +96,19 @@ public class World : Entity
         Vector3 pos = GetVoxelPos(hit);
         WorldDataHelper.SetVoxel(chunk.ChunkData.WorldRef, pos, VoxelType);
         chunk.SetIsModified(true);
+
+        if (ChunkManager.IsOnEdge(chunk.ChunkData, pos))
+        {
+            List<Chunk> neighbourDataList = ChunkManager.GetEdgeNeighbourChunk(chunk.ChunkData, pos);
+            foreach (Chunk neighbourData in neighbourDataList)
+            {
+                //neighbourData.modifiedByThePlayer = true;
+                ChunkRenderer chunkToUpdate = WorldDataHelper.GetChunk(neighbourData.WorldRef, neighbourData.WorldPosition);
+                if (chunkToUpdate != null)
+                    chunkToUpdate.UpdateChunk();
+            }
+        }
+
         chunk.UpdateChunk();
         return true;
     }

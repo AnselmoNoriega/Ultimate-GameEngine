@@ -1,5 +1,6 @@
 ﻿using NR;
 using System;
+using System.Collections.Generic;
 
 public static class ChunkManager
 {
@@ -67,8 +68,7 @@ public static class ChunkManager
         }
         else
         {
-            Log.Info("Need to ask World for appropiate chunk");
-            throw new Exception("Need to ask World for appropiate chunk");
+            WorldDataHelper.SetVoxel(chunkData.WorldRef, localPosition, block);
         }
     }
 
@@ -105,5 +105,49 @@ public static class ChunkManager
             z = (float)Mathf.FloorToInt(z / (float)world.chunkSize) * world.chunkSize
         };
         return pos;
+    }
+
+    internal static List<Chunk> GetEdgeNeighbourChunk(Chunk chunkData, Vector3 worldPosition)
+    {
+        Vector3 chunkPosition = GetVoxelInChunkCoordinates(chunkData, worldPosition);
+        List<Chunk> neighboursToUpdate = new List<Chunk>();
+        if (chunkPosition.x == 0)
+        {
+            neighboursToUpdate.Add(WorldDataHelper.GetChunkData(chunkData.WorldRef, worldPosition - Vector3.Right));
+        }
+        if (chunkPosition.x == chunkData.Size - 1)
+        {
+            neighboursToUpdate.Add(WorldDataHelper.GetChunkData(chunkData.WorldRef, worldPosition + Vector3.Right));
+        }
+        if (chunkPosition.y == 0)
+        {
+            neighboursToUpdate.Add(WorldDataHelper.GetChunkData(chunkData.WorldRef, worldPosition - Vector3.Up));
+        }
+        if (chunkPosition.y == chunkData.Height - 1)
+        {
+            neighboursToUpdate.Add(WorldDataHelper.GetChunkData(chunkData.WorldRef, worldPosition + Vector3.Up));
+        }
+        if (chunkPosition.z == 0)
+        {
+            neighboursToUpdate.Add(WorldDataHelper.GetChunkData(chunkData.WorldRef, worldPosition - Vector3.Forward));
+        }
+        if (chunkPosition.z == chunkData.Size - 1)
+        {
+            neighboursToUpdate.Add(WorldDataHelper.GetChunkData(chunkData.WorldRef, worldPosition + Vector3.Forward));
+        }
+        return neighboursToUpdate;
+    }
+    internal static bool IsOnEdge(Chunk chunkData, Vector3 worldPosition)
+    {
+        Vector3 chunkPosition = GetVoxelInChunkCoordinates(chunkData, worldPosition);
+
+        if (chunkPosition.x == 0 || chunkPosition.x == chunkData.Size - 1 ||
+            chunkPosition.y == 0 || chunkPosition.y == chunkData.Height - 1 ||
+            chunkPosition.z == 0 || chunkPosition.z == chunkData.Size - 1)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
