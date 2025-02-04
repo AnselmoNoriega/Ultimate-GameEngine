@@ -99,7 +99,6 @@ namespace NR
 				}
 
 				auto& rigidbody = e.AddComponent<RigidBodyComponent>();
-				rigidbody.BodyType = RigidBodyComponent::Type::Static;
 
 				CreateActor(e);
 			}

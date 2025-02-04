@@ -30,17 +30,17 @@ public static class WorldDataHelper
             {
                 Vector3 chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, 0, z));
                 chunkPositionsToCreate.Add(chunkPos);
-                if (x >= playerPosition.x - world.chunkSize && 
-                    x <= playerPosition.x + world.chunkSize && 
-                    z >= playerPosition.z - world.chunkSize && 
-                    z <= playerPosition.z + world.chunkSize)
-                {
-                    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
-                    {
-                        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
-                        chunkPositionsToCreate.Add(chunkPos);
-                    }
-                }
+                //if (x >= playerPosition.x - world.chunkSize && 
+                //    x <= playerPosition.x + world.chunkSize && 
+                //    z >= playerPosition.z - world.chunkSize && 
+                //    z <= playerPosition.z + world.chunkSize)
+                //{
+                //    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
+                //    {
+                //        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
+                //        chunkPositionsToCreate.Add(chunkPos);
+                //    }
+                //}
             }
         }
         return chunkPositionsToCreate;
@@ -74,17 +74,17 @@ public static class WorldDataHelper
             {
                 Vector3 chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, 0, z));
                 chunkDataPositionsToCreate.Add(chunkPos);
-                if (x >= playerPosition.x - world.chunkSize && 
-                    x <= playerPosition.x + world.chunkSize && 
-                    z >= playerPosition.z - world.chunkSize && 
-                    z <= playerPosition.z + world.chunkSize)
-                {
-                    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
-                    {
-                        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
-                        chunkDataPositionsToCreate.Add(chunkPos);
-                    }
-                }
+                //if (x >= playerPosition.x - world.chunkSize && 
+                //    x <= playerPosition.x + world.chunkSize && 
+                //    z >= playerPosition.z - world.chunkSize && 
+                //    z <= playerPosition.z + world.chunkSize)
+                //{
+                //    for (int y = -world.chunkHeight; y >= playerPosition.y - world.chunkHeight * 2; y -= world.chunkHeight)
+                //    {
+                //        chunkPos = ChunkPositionFromVoxelCoords(world, new Vector3(x, y, z));
+                //        chunkDataPositionsToCreate.Add(chunkPos);
+                //    }
+                //}
             }
         }
         return chunkDataPositionsToCreate;

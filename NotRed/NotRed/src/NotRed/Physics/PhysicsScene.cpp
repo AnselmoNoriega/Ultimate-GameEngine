@@ -110,7 +110,9 @@ namespace NR
 	void PhysicsScene::RemoveActor(Ref<PhysicsActor> actor)
 	{
 		if (!actor)
+		{
 			return;
+		}
 
 		for (auto& collider : actor->mColliders)
 		{
