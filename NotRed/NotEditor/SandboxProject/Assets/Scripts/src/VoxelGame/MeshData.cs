@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public class MeshData
 {
     public List<Vector3> Positions = new List<Vector3>();
+    public List<Vector3> Normals = new List<Vector3>();
     public List<Vector2> TextureCoords = new List<Vector2>();
     public List<int> Indices = new List<int>();
 
@@ -33,5 +34,14 @@ public class MeshData
         Indices.Add(Positions.Count - 4);
         Indices.Add(Positions.Count - 2);
         Indices.Add(Positions.Count - 1);
+
+        //Normals
+        Vector3 dirA = Positions[Positions.Count - 1] - Positions[Positions.Count - 2];
+        Vector3 dirB = Positions[Positions.Count - 2] - Positions[Positions.Count - 3];
+
+        Normals.Add(Vector3.Cross(dirB, dirA).Normalized());
+        Normals.Add(Vector3.Cross(dirB, dirA).Normalized());
+        Normals.Add(Vector3.Cross(dirB, dirA).Normalized());
+        Normals.Add(Vector3.Cross(dirB, dirA).Normalized());
     }
 }

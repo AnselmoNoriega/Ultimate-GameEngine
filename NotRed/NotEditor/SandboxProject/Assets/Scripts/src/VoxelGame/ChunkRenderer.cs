@@ -1,6 +1,7 @@
 ﻿using NR;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -35,49 +36,21 @@ public class ChunkRenderer : Entity
         {
             vertices[0][i] = new Vertex
             {
-                Position = new Vector3(
-                    meshData.Positions[i].x,
-                    meshData.Positions[i].y,
-                    meshData.Positions[i].z
-                    ),
-                Texcoord = meshData.TextureCoords[i]
+                Position = meshData.Positions[i],
+                Texcoord = meshData.TextureCoords[i],
+                Normal = meshData.Normals[i]
             };
         });
-        Parallel.ForEach(System.Linq.Enumerable.Range(
-            0, meshData.Positions.Count / 3).Select(i => i * 3), i =>
-            {
-                Vector3 dirA = vertices[0][i + 0].Position - vertices[0][i + 1].Position;
-                Vector3 dirB = vertices[0][i + 1].Position - vertices[0][i + 2].Position;
-
-                vertices[0][i + 0].Normal = Vector3.Cross(dirA, dirB).Normalized();
-                vertices[0][i + 1].Normal = Vector3.Cross(dirA, dirB).Normalized();
-                vertices[0][i + 2].Normal = Vector3.Cross(dirA, dirB).Normalized();
-            });
-
 
         vertices[1] = new Vertex[meshData.WaterMesh.Positions.Count];
         Parallel.For(0, meshData.WaterMesh.Positions.Count, i =>
         {
             vertices[1][i] = new Vertex
             {
-                Position = new Vector3(
-                    meshData.WaterMesh.Positions[i].x,
-                    meshData.WaterMesh.Positions[i].y,
-                    meshData.WaterMesh.Positions[i].z
-                    ),
+                Position = meshData.WaterMesh.Positions[i],
                 Texcoord = meshData.WaterMesh.TextureCoords[i]
             };
         });
-        Parallel.ForEach(System.Linq.Enumerable.Range(
-            0, meshData.WaterMesh.Positions.Count / 3).Select(i => i * 3), i =>
-            {
-                Vector3 dirA = vertices[1][i + 0].Position - vertices[1][i + 1].Position;
-                Vector3 dirB = vertices[1][i + 1].Position - vertices[1][i + 2].Position;
-
-                vertices[1][i + 0].Normal = Vector3.Cross(dirA, dirB).Normalized();
-                vertices[1][i + 1].Normal = Vector3.Cross(dirA, dirB).Normalized();
-                vertices[1][i + 2].Normal = Vector3.Cross(dirA, dirB).Normalized();
-            });
 
         int[][] indices = new int[2][];
 
