@@ -1,4 +1,7 @@
 Assets:
+  - Handle: 562127339932013354
+    FilePath: Music/BackgroundMusic.nrsoundc
+    Type: SoundConfig
   - Handle: 719714631069953925
     FilePath: Models/Source/Sponza/4910669866631290573.jpg
     Type: Texture
@@ -284,6 +287,9 @@ Assets:
   - Handle: 11378497880036335834
     FilePath: Models/Source/Default/Plane.fbx
     Type: MeshAsset
+  - Handle: 11482752742825677721
+    FilePath: Music/MinecraftThing.wav
+    Type: Audio
   - Handle: 11486095108012541376
     FilePath: Meshes/Default/Capsule.nrmesh
     Type: Mesh

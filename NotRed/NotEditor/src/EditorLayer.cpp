@@ -331,7 +331,7 @@ namespace NR
             {
                 bool colourPushed = pushDarkTextIfActive("View");
 
-                if (ImGui::BeginPopup("View"))
+                if (ImGui::BeginMenu("View"))
                 {
                     popItemHighlight();
                     colourPushed = false;

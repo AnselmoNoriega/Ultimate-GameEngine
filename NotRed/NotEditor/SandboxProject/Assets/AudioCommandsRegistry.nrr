@@ -1,7 +1,12 @@
 Triggers:
-  []
+  - DebugName: start_background
+    Actions:
+      - Type: Play
+        Target: 562127339932013354
+        Context: GameObject
 ---
 TriggersTreeView:
   - Name: RootNode
     Children:
-      []
+      - Name: start_background
+        CommandID: 3467058094

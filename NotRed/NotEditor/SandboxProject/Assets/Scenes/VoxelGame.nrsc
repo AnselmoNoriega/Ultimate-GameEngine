@@ -6,6 +6,24 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 17538785525315617679
+    TagComponent:
+      Tag: Music
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    AudioComponent:
+      StartEvent: start_background
+      StartCommandID: 3467058094
+      PlayOnAwake: true
+      StopIfEntityDestroyed: true
+      VolumeMultiplier: 1
+      PitchMultiplier: 1
+      AutoDestroy: false
   - Entity: 14537346586216403078
     TagComponent:
       Tag: GameManager
