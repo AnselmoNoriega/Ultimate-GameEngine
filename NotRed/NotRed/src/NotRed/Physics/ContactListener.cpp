@@ -53,20 +53,35 @@ namespace NR
 		Ref<PhysicsActor> actorA = (PhysicsActor*)pairHeader.actors[0]->userData;
 		Ref<PhysicsActor> actorB = (PhysicsActor*)pairHeader.actors[1]->userData;
 
-		if (!ScriptEngine::IsEntityModuleValid(actorA->GetEntity()) || !ScriptEngine::IsEntityModuleValid(actorB->GetEntity()))
+		if (!actorA || !actorB)
 		{
 			return;
 		}
 
+		bool actorAScriptModuleValid = ScriptEngine::IsEntityModuleValid(actorA->GetEntity());
+		bool actorBScriptModuleValid = ScriptEngine::IsEntityModuleValid(actorB->GetEntity());
+
 		if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_HAS_FIRST_TOUCH)
 		{
-			ScriptEngine::CollisionBegin(actorA->GetEntity(), actorB->GetEntity());
-			ScriptEngine::CollisionBegin(actorB->GetEntity(), actorA->GetEntity());
+			if (actorAScriptModuleValid)
+			{
+				ScriptEngine::CollisionBegin(actorA->GetEntity(), actorB->GetEntity());
+			}
+			if (actorBScriptModuleValid)
+			{
+				ScriptEngine::CollisionBegin(actorB->GetEntity(), actorA->GetEntity());
+			}
 		}
 		else if (pairs->flags == physx::PxContactPairFlag::eACTOR_PAIR_LOST_TOUCH)
 		{
-			ScriptEngine::CollisionEnd(actorA->GetEntity(), actorB->GetEntity());
-			ScriptEngine::CollisionEnd(actorB->GetEntity(), actorA->GetEntity());
+			if (actorAScriptModuleValid)
+			{
+				ScriptEngine::CollisionEnd(actorA->GetEntity(), actorB->GetEntity());
+			}
+			if (actorBScriptModuleValid)
+			{
+				ScriptEngine::CollisionEnd(actorB->GetEntity(), actorA->GetEntity());
+			}
 		}
 	}
 
@@ -92,20 +107,30 @@ namespace NR
 				continue;
 			}
 
-			if (!ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity()) || !ScriptEngine::IsEntityModuleValid(otherActor->GetEntity()))
-			{
-				continue;
-			}
+			bool actorAScriptModuleValid = ScriptEngine::IsEntityModuleValid(triggerActor->GetEntity());
+			bool actorBScriptModuleValid = ScriptEngine::IsEntityModuleValid(otherActor->GetEntity());
 
 			if (pairs[i].status == physx::PxPairFlag::eNOTIFY_TOUCH_FOUND)
 			{
-				ScriptEngine::TriggerBegin(triggerActor->GetEntity(), otherActor->GetEntity());
-				ScriptEngine::TriggerBegin(otherActor->GetEntity(), triggerActor->GetEntity());
+				if (actorAScriptModuleValid)
+				{
+					ScriptEngine::TriggerBegin(triggerActor->GetEntity(), otherActor->GetEntity());
+				}
+				if (actorBScriptModuleValid)
+				{
+					ScriptEngine::TriggerBegin(otherActor->GetEntity(), triggerActor->GetEntity());
+				}
 			}
 			else if (pairs[i].status == physx::PxPairFlag::eNOTIFY_TOUCH_LOST)
 			{
-				ScriptEngine::TriggerEnd(triggerActor->GetEntity(), otherActor->GetEntity());
-				ScriptEngine::TriggerEnd(otherActor->GetEntity(), triggerActor->GetEntity());
+				if (actorAScriptModuleValid)
+				{
+					ScriptEngine::TriggerEnd(triggerActor->GetEntity(), otherActor->GetEntity());
+				}
+				if (actorBScriptModuleValid)
+				{
+					ScriptEngine::TriggerEnd(otherActor->GetEntity(), triggerActor->GetEntity());
+				}
 			}
 		}
 	}

@@ -12,6 +12,8 @@
 #include "Prefab.h"
 #include "Components.h"
 
+#include "NotRed/Asset/AssetManager.h"
+
 #include "NotRed/Renderer/SceneRenderer.h"
 #include "NotRed/Script/ScriptEngine.h"
 
@@ -1154,6 +1156,27 @@ namespace NR
     {
         NR_PROFILE_FUNC();
 
+        auto parentNewEntity = [&entity, scene = this](Entity newEntity)
+            {
+                if (entity.HasParent())
+                {
+                    Entity parent = scene->FindEntityByID(entity.GetParentID());
+                    NR_CORE_ASSERT(parent, "Failed to find parent entity");
+                    newEntity.SetParentID(entity.GetParentID());
+                    parent.Children().push_back(newEntity.GetID());
+                }
+            };
+
+        if (entity.HasComponent<PrefabComponent>())
+        {
+            auto prefabID = entity.GetComponent<PrefabComponent>().PrefabID;
+            NR_CORE_VERIFY(AssetManager::IsAssetHandleValid(prefabID));
+            const auto& entityTransform = entity.GetComponent<TransformComponent>();
+            Entity prefabInstance = Instantiate(AssetManager::GetAsset<Prefab>(prefabID), &entityTransform.Translation);
+            parentNewEntity(prefabInstance);
+            return prefabInstance;
+        }
+
         Entity newEntity;
         if (entity.HasComponent<TagComponent>())
         {
@@ -1224,13 +1247,7 @@ namespace NR
             }
         }
 
-        if (entity.HasParent())
-        {
-            Entity parent = FindEntityByID(entity.GetParentID());
-            NR_CORE_ASSERT(parent, "Failed to find parent entity");
-            newEntity.SetParentID(entity.GetParentID());
-            parent.Children().push_back(newEntity.GetID());
-        }
+        parentNewEntity(newEntity);
 
         return newEntity;
     }

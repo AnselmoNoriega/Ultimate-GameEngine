@@ -43,6 +43,11 @@ public:
 			else
 			{
 				serializer.Deserialize(mPersistentStoragePath / "UserPreferences.yaml");
+			}	
+			
+			if (!mUserPreferences->StartupProject.empty())
+			{
+				mProjectPath = mUserPreferences->StartupProject;
 			}
 
 			if (!mProjectPath.empty())
@@ -57,11 +62,6 @@ public:
 
 		NR::EditorLayer* editorLayer = new NR::EditorLayer(mUserPreferences);
 		PushLayer(editorLayer);
-
-		if (std::filesystem::exists(mProjectPath))
-		{
-			editorLayer->OpenProject(mProjectPath);
-		}
 	}
 
 private:

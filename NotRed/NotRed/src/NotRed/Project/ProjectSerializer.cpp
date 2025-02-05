@@ -64,7 +64,7 @@ namespace NR
 				// > 1 because of the Default layer
 				if (PhysicsLayerManager::GetLayerCount() > 1)
 				{
-					out << YAML::Key << "PhysicsLayers";
+					out << YAML::Key << "Layers";
 					out << YAML::Value << YAML::BeginSeq;
 					for (const auto& layer : PhysicsLayerManager::GetLayers())
 					{
@@ -166,7 +166,13 @@ namespace NR
 			physicsSettings.DebugOnPlay = physicsNode["DebugOnPlay"] ? physicsNode["DebugOnPlay"].as<bool>() : true;
 			physicsSettings.DebugType = physicsNode["DebugType"] ? (DebugType)physicsNode["DebugType"].as<int>() : DebugType::LiveDebug;
 #endif
-			auto physicsLayers = physicsNode["Layers"];
+			auto physicsLayers = physicsNode["Layers"];		
+			
+			if (!physicsLayers)
+			{
+				physicsLayers = physicsNode["PhysicsLayers"];
+			}
+
 			if (physicsLayers)
 			{
 				for (auto layer : physicsLayers)
