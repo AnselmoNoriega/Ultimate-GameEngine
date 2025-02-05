@@ -6,7 +6,6 @@ using System.Diagnostics;
 
 public class GameManager : Entity
 {
-    public Prefab playerPrefab;
     private Entity player;
     public Vector3 currentPlayerChunkPosition;
     private Vector3 currentChunkCenter = Vector3.Zero;
@@ -27,12 +26,16 @@ public class GameManager : Entity
 
         if (Physics.Raycast(raycastStartposition, Vector3.Down, 120.0f, out hit))
         {
-            player = Instantiate(playerPrefab, hit.Position + Vector3.Up);
+            player = FindEntityByTag("Camera");
+            Log.Debug($"Found Player Initial Position{player == null}");
+            //player = Instantiate(playerPrefab, hit.Position + Vector3.Up);
             StartCheckingTheMap();
         }
         else
         {
-            player = Instantiate(playerPrefab,Vector3.Zero);
+            player = FindEntityByTag("Camera");
+            Log.Debug($"Could not find player initial position: {player == null}");
+            //player = Instantiate(playerPrefab,Vector3.Zero);
             StartCheckingTheMap();
         }
     }
