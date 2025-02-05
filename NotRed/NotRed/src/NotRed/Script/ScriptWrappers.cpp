@@ -254,7 +254,11 @@ namespace NR::Script
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
         const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        if (entityMap.find(entityID) == entityMap.end())
+        {
+            return false;
+        }
+        //NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
         Entity entity = entityMap.at(entityID);
         MonoType* monoType = mono_reflection_type_get_type((MonoReflectionType*)type);

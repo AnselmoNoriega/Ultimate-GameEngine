@@ -137,6 +137,7 @@ public class World : Entity
     {
         //TODO
         //chunk.gameObject.SetActive(false);
+        Destroy(chunk);
     }
 
     private WorldGenerationData GetPositionsThatPlayerSees(Vector3 playerPosition)

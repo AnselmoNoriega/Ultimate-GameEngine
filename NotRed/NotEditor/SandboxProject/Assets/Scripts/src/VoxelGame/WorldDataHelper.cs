@@ -131,6 +131,7 @@ public static class WorldDataHelper
         foreach (var pos in worldData.chunkDictionary.Keys
             .Where(pos => allChunkPositionsNeeded.Contains(pos) == false))
         {
+            Log.Info($"Delete: {pos}");
             if (worldData.chunkDictionary.ContainsKey(pos))
             {
                 positionToRemove.Add(pos);

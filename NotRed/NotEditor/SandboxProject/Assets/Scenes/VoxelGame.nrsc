@@ -20,16 +20,16 @@ Entities:
       ModuleName: GameManager
       StoredFields:
         - Name: playerPrefab
-          Type: 9
+          Type: 10
           Data: 13102739336966907731
         - Name: world
-          Type: 10
+          Type: 11
           Data: 4349438521487218923
         - Name: currentPlayerChunkPosition
-          Type: 6
+          Type: 7
           Data: [0, 0, 0]
         - Name: detectionTime
-          Type: 1
+          Type: 2
           Data: 1
   - Entity: 10495747637021943448
     TagComponent:
@@ -95,31 +95,31 @@ Entities:
       ModuleName: World
       StoredFields:
         - Name: noiseScale
-          Type: 1
+          Type: 2
           Data: 1.89999998
         - Name: mapSizeInChunks
-          Type: 2
+          Type: 3
           Data: 6
         - Name: waterThreshold
-          Type: 2
+          Type: 3
           Data: 43
         - Name: chunkSize
-          Type: 2
+          Type: 3
           Data: 16
         - Name: chunkDrawingRange
-          Type: 2
-          Data: 1
+          Type: 3
+          Data: 4
         - Name: chunkHeight
-          Type: 2
+          Type: 3
           Data: 100
         - Name: chunkPrefab
-          Type: 9
+          Type: 10
           Data: 14693710350519985485
         - Name: mapSeed
-          Type: 5
+          Type: 6
           Data: [0, 0]
         - Name: gameManagerEntity
-          Type: 10
+          Type: 11
           Data: 14537346586216403078
 SceneAudio:
   MasterReverb:

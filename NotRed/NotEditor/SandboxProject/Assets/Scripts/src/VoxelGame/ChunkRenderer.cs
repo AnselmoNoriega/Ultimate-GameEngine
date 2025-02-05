@@ -103,7 +103,7 @@ public class ChunkRenderer : Entity
             meshNames
             );
 
-        _mesh.ReloadMeshCollider();
+        //_mesh.ReloadMeshCollider();
 
         //_mesh.RecalculateNormals(); Maybe?
 
