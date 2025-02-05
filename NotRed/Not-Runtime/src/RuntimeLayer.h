@@ -17,7 +17,6 @@
 #include "NotRed/Editor/EditorCamera.h"
 
 #include "NotRed/Editor/SceneHierarchyPanel.h"
-#include "NotRed/Editor/ObjectsPanel.h"
 
 namespace NR
 {

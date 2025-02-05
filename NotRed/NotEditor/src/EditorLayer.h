@@ -18,7 +18,6 @@
 #include "NotRed/Editor/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/ProjectSettingsWindow.h"
-#include "NotRed/Editor/ObjectsPanel.h"
 #include "NotRed/Editor/EditorConsolePanel.h"
 
 #include "NotRed/Project/UserPreferences.h"
@@ -53,7 +52,7 @@ namespace NR
 
 		void SelectEntity(Entity entity);
 
-		void NewScene();
+		void NewScene(const std::string& name = "UntitledScene");
 		void OpenProject();
 		void OpenProject(const std::string& filepath);
 		void CreateProject(std::filesystem::path projectPath);
@@ -88,6 +87,9 @@ namespace NR
 
 		void UI_CreateNewMeshPopup();
 		void UI_InvalidAssetMetadataPopup();
+
+		void UI_NewScene();
+
 		void CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset);
 		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
 
@@ -108,7 +110,6 @@ namespace NR
 		Scope<SceneHierarchyPanel> mSceneHierarchyPanel, mPrefabHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ProjectSettingsWindow> mProjectSettingsPanel;
-		Scope<ObjectsPanel> mObjectsPanel;
 		Scope<EditorConsolePanel> mConsolePanel;
 
 		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
@@ -200,6 +201,8 @@ namespace NR
 		bool mShowWelcomePopup = true;
 		bool mShowAboutPopup = false;
 		bool mShowCreateNewProjectPopup = false;
+
+		bool mShowNewScenePopup = false;
 
 		bool mShowCreateNewMeshPopup = false;
 

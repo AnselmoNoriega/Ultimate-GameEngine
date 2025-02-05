@@ -674,6 +674,7 @@ namespace NR
 		int type = mono_type_get_type(monoType);
 		switch (type)
 		{
+		case MONO_TYPE_BOOLEAN: return FieldType::Bool;
 		case MONO_TYPE_R4: return FieldType::Float;
 		case MONO_TYPE_I4: return FieldType::Int;
 		case MONO_TYPE_U4: return FieldType::UnsignedInt;
@@ -777,7 +778,7 @@ namespace NR
 					continue;
 				}
 
-				if (notRedFieldType == FieldType::ClassReference)
+				if (notRedFieldType == FieldType::None || notRedFieldType == FieldType::ClassReference)
 				{
 					continue;
 				}
@@ -824,16 +825,11 @@ namespace NR
 					isReadOnly = (setterFlags & MONO_METHOD_ATTR_PRIVATE) != 0;
 					monoType = mono_signature_get_params(sig, &i);
 				}
-
-				if (propertyGetter)
+				else if (propertyGetter)
 				{
 					MonoMethodSignature* sig = mono_method_signature(propertyGetter);
 					getterFlags = mono_method_get_flags(propertyGetter, nullptr);
-
-					if (monoType != nullptr)
-					{
-						monoType = mono_signature_get_return_type(sig);
-					}
+					monoType = mono_signature_get_return_type(sig);
 
 					if ((getterFlags & MONO_METHOD_ATTR_PRIVATE) != 0)
 					{
@@ -842,12 +838,24 @@ namespace NR
 				}
 
 				if ((setterFlags & MONO_METHOD_ATTR_STATIC) != 0)
+				{
 					continue;
+				}
+
+				if (monoType == nullptr)
+				{
+					continue;
+				}
 
 				FieldType type = GetNotRedFieldType(monoType);
 				if (type == FieldType::ClassReference)
 				{
 					continue;
+				}
+
+				if (propertySetter == nullptr)
+				{
+					isReadOnly = true;
 				}
 
 				char* typeName = mono_type_get_name(monoType);
@@ -936,6 +944,7 @@ namespace NR
 	{
 		switch (type)
 		{
+		case FieldType::Bool:		 return 1;
 		case FieldType::Float:       return 4;
 		case FieldType::Int:         return 4;
 		case FieldType::UnsignedInt: return 4;

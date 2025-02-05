@@ -276,6 +276,22 @@ namespace NR
 								Refresh();
 							}
 
+							if (ImGui::MenuItem("Copy", "Ctrl+C", nullptr, mSelectionStack.SelectionCount() > 0))
+							{
+								mCopiedAssets.CopyFrom(mSelectionStack);
+							}							
+							
+							if (ImGui::MenuItem("Paste", "Ctrl+V", nullptr, mCopiedAssets.SelectionCount() > 0))
+							{
+								PasteCopiedAssets();
+							}
+
+							if (ImGui::MenuItem("Duplicate", "Ctrl+D", nullptr, mSelectionStack.SelectionCount() > 0))
+							{
+								mCopiedAssets.CopyFrom(mSelectionStack);
+								PasteCopiedAssets();
+							}
+
 							ImGui::Separator();
 
 							if (ImGui::MenuItem("Show in Explorer"))
@@ -333,8 +349,6 @@ namespace NR
 					ImGui::EndDragDropTarget();
 				}
 
-				RenderBottomBar(bottomBarHeight);
-
 				ImGui::EndTable();
 			}
 			UI::PopID();
@@ -390,24 +404,62 @@ namespace NR
 			return;
 		}
 
+		auto GetUniquePath = [](const std::filesystem::path& fp)
+			{
+				int counter = 0;
+				auto checkFileName = [&counter, &fp](auto checkFileName) -> std::filesystem::path
+					{
+						++counter;
+						const std::string counterStr = [&counter] {
+							if (counter < 10)
+							{
+								return "0" + std::to_string(counter);
+							}
+							else
+							{
+								return std::to_string(counter);
+							}
+							}();
+
+						std::string basePath = Utils::RemoveExtension(fp.string()) + "_" + counterStr + fp.extension().string();
+						if (std::filesystem::exists(basePath))
+						{
+							return checkFileName(checkFileName);
+						}
+						else
+						{
+							return std::filesystem::path(basePath);
+						}
+					};
+
+				return checkFileName(checkFileName);
+			};
+
+		FileSystem::SkipNextFileSystemChange();
 		for (AssetHandle copiedAsset : mCopiedAssets)
 		{
 			const auto& item = mCurrentItems[mCurrentItems.FindItem(copiedAsset)];
-			std::string filename;
-			bool isDirectory;
+			auto originalFilePath = Project::GetAssetDirectory();
+
 			if (item->GetType() == ContentBrowserItem::ItemType::Asset)
 			{
-				filename = item.As<ContentBrowserAsset>()->GetAssetInfo().FilePath.stem().string();
-				isDirectory = false;
+				originalFilePath /= item.As<ContentBrowserAsset>()->GetAssetInfo().FilePath;
+				auto filepath = GetUniquePath(originalFilePath);
+				NR_CORE_VERIFY(!std::filesystem::exists(filepath));
+				std::filesystem::copy_file(originalFilePath, filepath);
 			}
 			else
 			{
-				filename = item.As<ContentBrowserDirectory>()->GetDirectoryInfo()->FilePath.string();
-				isDirectory = true;
+				originalFilePath /= item.As<ContentBrowserDirectory>()->GetDirectoryInfo()->FilePath;
+				auto filepath = GetUniquePath(originalFilePath);
+				NR_CORE_VERIFY(!std::filesystem::exists(filepath));
+				std::filesystem::copy(originalFilePath, filepath, std::filesystem::copy_options::recursive);
 			}
-			
-			NR_CONSOLE_LOG_INFO("Pasting Item: {0}, Is Directory: {1}", filename, isDirectory);
 		}
+
+		Refresh();
+		mSelectionStack.Clear();
+		mCopiedAssets.Clear();
 	}
 
 	Ref<DirectoryInfo> ContentBrowserPanel::GetDirectory(const std::filesystem::path& filepath) const
@@ -700,6 +752,9 @@ namespace NR
 				{
 				}
 
+				ImGui::SliderFloat("##thumbnail_size", &sThumbnailSize, 96.0f, 512.0f, "%.0f");
+				UI::SetTooltip("Thumnail Size");
+
 				UI::EndPopup();
 			}
 
@@ -732,12 +787,6 @@ namespace NR
 				item->SetSelected(true);
 			}
 
-			if (result.IsSet(ContentBrowserAction::DeSelected) && mSelectionStack.IsSelected(item->GetID()))
-			{
-				mSelectionStack.Deselect(item->GetID());
-				item->SetSelected(false);
-			}
-
 			if (result.IsSet(ContentBrowserAction::SelectToHere) && mSelectionStack.SelectionCount() == 2)
 			{
 				size_t firstIndex = mCurrentItems.FindItem(mSelectionStack[0]);
@@ -756,6 +805,16 @@ namespace NR
 					toSelect->SetSelected(true);
 					mSelectionStack.Select(toSelect->GetID());
 				}
+			}
+
+			if (result.IsSet(ContentBrowserAction::StartRenaming))
+			{
+				item->StartRenaming();
+			}
+
+			if (result.IsSet(ContentBrowserAction::Copy))
+			{
+				mCopiedAssets.Select(item->GetID());
 			}
 
 			if (result.IsSet(ContentBrowserAction::Reload))
@@ -821,46 +880,6 @@ namespace NR
 		}
 	}
 
-	void ContentBrowserPanel::RenderBottomBar(float height)
-	{
-		ImGui::BeginChild("##panel_controls", ImVec2(ImGui::GetColumnWidth() - 12, height), false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-		{
-			ImGui::Separator();
-
-			ImGui::Columns(4, 0, false);
-			if (mSelectionStack.SelectionCount() == 1)
-			{
-				const AssetMetadata& asset = AssetManager::GetMetadata(mSelectionStack[0]);
-
-				std::string filepath;
-				if (asset.IsValid())
-				{
-					filepath = asset.FilePath.string();
-				}
-				else if (mDirectories.find(mSelectionStack[0]) != mDirectories.end())
-				{
-					filepath = mDirectories[mSelectionStack[0]]->FilePath.string();
-					std::replace(filepath.begin(), filepath.end(), '\\', '/');
-				}
-
-				ImGui::Text(filepath.c_str());
-			}
-			else if (mSelectionStack.SelectionCount() > 1)
-			{
-				ImGui::Text("%d items selected", mSelectionStack.SelectionCount());
-			}
-
-			ImGui::NextColumn();
-			ImGui::NextColumn();
-			ImGui::NextColumn();
-			ImGui::SetNextItemWidth(ImGui::GetColumnWidth());
-			ImGui::SliderFloat("##thumbnail_size", &sThumbnailSize, 96.0f, 512.0f, "%.0f");
-			UI::SetTooltip("Thumbnail size");
-		}
-
-		ImGui::EndChild();
-	}
-
 	void ContentBrowserPanel::Refresh()
 	{
 		for (auto entry : std::filesystem::directory_iterator(Project::GetAssetDirectory() / mCurrentDirectory->FilePath))
@@ -898,12 +917,12 @@ namespace NR
 			return;
 		}
 
-		if ((!mIsAnyItemHovered && ImGui::IsAnyMouseDown()) || Input::IsKeyPressed(KeyCode::Escape))
+		if ((!mIsAnyItemHovered && ImGui::IsMouseDown(ImGuiMouseButton_Left)) || Input::IsKeyPressed(KeyCode::Escape))
 		{
 			ClearSelections();
 		}
 
-		if (Input::IsKeyPressed(KeyCode::Delete))
+		if (Input::IsKeyPressed(KeyCode::Delete) && mSelectionStack.SelectionCount() > 0)
 		{
 			ImGui::OpenPopup("Delete");
 		}
@@ -916,14 +935,12 @@ namespace NR
 
 	void ContentBrowserPanel::ClearSelections()
 	{
-		for (auto selectedHandle : mSelectionStack)
+		for (auto& item : mCurrentItems)
 		{
-			for (auto& item : mCurrentItems)
+			item->SetSelected(false);
+			if (item->IsRenaming())
 			{
-				if (item->GetID() == selectedHandle)
-				{
-					item->SetSelected(false);
-				}
+				item->StopRenaming();
 			}
 		}
 
@@ -934,6 +951,11 @@ namespace NR
 	{
 		if (ImGui::BeginPopupModal("Delete", NULL, ImGuiWindowFlags_AlwaysAutoResize))
 		{
+			if (mSelectionStack.SelectionCount() == 0)
+			{
+				ImGui::CloseCurrentPopup();
+			}
+
 			ImGui::Text("Are you sure you want to delete %d items?", mSelectionStack.SelectionCount());
 
 			float columnWidth = ImGui::GetContentRegionAvail().x / 4;

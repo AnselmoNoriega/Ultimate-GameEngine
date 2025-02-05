@@ -124,6 +124,11 @@ namespace NR
 						out << YAML::Key << "Data" << YAML::Value;
 						switch (field.Type)
 						{
+						case FieldType::Bool:
+						{
+							out << field.GetStoredValue<bool>();
+							break;
+						}
 						case FieldType::Int:
 						{
 							out << field.GetStoredValue<int>();
@@ -660,6 +665,11 @@ namespace NR
 								auto dataNode = field["Data"];
 								switch (publicField.Type)
 								{
+								case FieldType::Bool:
+								{
+									publicField.SetStoredValue(dataNode.as<bool>());
+									break;
+								}
 								case FieldType::Float:
 								{
 									publicFields.at(name).SetStoredValue(dataNode.as<float>());
@@ -1171,6 +1181,11 @@ namespace NR
 
 		std::string sceneName = data["Scene"].as<std::string>();
 		NR_CORE_INFO("Deserializing scene '{0}'", sceneName);
+		if (sceneName == "UntitledScene")
+		{
+			std::filesystem::path path = filepath;
+			sceneName = path.stem().string();
+		}
 		mScene->SetName(sceneName);
 
 		auto entities = data["Entities"];

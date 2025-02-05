@@ -44,6 +44,15 @@ public:
 			{
 				serializer.Deserialize(mPersistentStoragePath / "UserPreferences.yaml");
 			}
+
+			if (!mProjectPath.empty())
+			{
+				mUserPreferences->StartupProject = mProjectPath;
+			}
+			else if (!mUserPreferences->StartupProject.empty())
+			{
+				mProjectPath = mUserPreferences->StartupProject;
+			}
 		}
 
 		NR::EditorLayer* editorLayer = new NR::EditorLayer(mUserPreferences);

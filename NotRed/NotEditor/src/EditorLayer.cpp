@@ -100,8 +100,11 @@ namespace NR
         {
             OpenProject(mUserPreferences->StartupProject);
         }
+        else
+        {
+            NR_CORE_VERIFY(false, "No project provided!");
+        }
 
-        mObjectsPanel = CreateScope<ObjectsPanel>();
         mConsolePanel = CreateScope<EditorConsolePanel>();
 
         mViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
@@ -265,7 +268,7 @@ namespace NR
                     ImGui::Separator();
                     if (ImGui::MenuItem("New Scene", "Ctrl+N"))
                     {
-                        NewScene();
+                        mShowNewScenePopup = true;
                     }
                     if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
                     {
@@ -1046,15 +1049,15 @@ namespace NR
         }
     }
 
-    void EditorLayer::NewScene()
+    void EditorLayer::NewScene(const std::string& name)
     {
         mSelectionContext = {};
 
-        mEditorScene = Ref<Scene>::Create("Scene", true);
+        mEditorScene = Ref<Scene>::Create(name, true);
         mSceneHierarchyPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
         AudioEngine::SetSceneContext(mEditorScene);
-        UpdateWindowTitle("Scene");
+        UpdateWindowTitle(name);
         mSceneFilePath = std::string();
 
         mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
@@ -1339,6 +1342,43 @@ namespace NR
             ImGui::EndPopup();
         }
     }
+
+    void EditorLayer::UI_NewScene()
+    {
+        static char sNewSceneName[128];
+        if (mShowNewScenePopup)
+        {
+            ImGui::OpenPopup("New Scene");
+            memset(sNewSceneName, 0, 128);
+            mShowNewScenePopup = false;
+        }
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2{ 400,0 });
+        
+        if (ImGui::BeginPopupModal("New Scene", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            ImGui::BeginVertical("NewSceneVertical");
+            ImGui::InputTextWithHint("##scene_name_input", "Name", sNewSceneName, 128);
+            ImGui::BeginHorizontal("NewSceneHorizontal");
+            if (ImGui::Button("Create"))
+            {
+                NewScene(sNewSceneName);
+                ImGui::CloseCurrentPopup();
+            }
+        
+            if (ImGui::Button("Cancel"))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndHorizontal();
+            ImGui::EndVertical();
+            ImGui::EndPopup();
+        }
+    }
+
     void EditorLayer::CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset)
     {
         mShowCreateNewMeshPopup = true;
@@ -1533,7 +1573,6 @@ namespace NR
         mConsolePanel->ImGuiRender(&mShowConsolePanel);
         mContentBrowserPanel->ImGuiRender();
         mProjectSettingsPanel->ImGuiRender(mShowProjectSettings);
-        mObjectsPanel->ImGuiRender();
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -2427,6 +2466,8 @@ namespace NR
 
         UI_CreateNewMeshPopup();
         UI_InvalidAssetMetadataPopup();
+
+        UI_NewScene();
 
         AssetEditorPanel::ImGuiRender();
         AssetManager::ImGuiRender(mAssetManagerPanelOpen);

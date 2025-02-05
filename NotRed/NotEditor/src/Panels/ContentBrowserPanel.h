@@ -160,7 +160,6 @@ namespace NR
         void RenderDirectoryHierarchy(Ref<DirectoryInfo>& directory);
         void RenderTopBar(float height);
         void RenderItems();
-        void RenderBottomBar(float height);
 
         void Refresh();
 

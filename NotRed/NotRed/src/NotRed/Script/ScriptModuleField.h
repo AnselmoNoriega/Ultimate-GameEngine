@@ -13,7 +13,8 @@ namespace NR
 {
 	enum class FieldType
 	{
-		None, 
+		None,
+		Bool,
 		Float, Int, UnsignedInt, 
 		String, 
 		Vec2, Vec3, Vec4, 
@@ -25,6 +26,7 @@ namespace NR
 	{
 		switch (type)
 		{
+		case FieldType::Bool:		 return "Bool";
 		case FieldType::Float:       return "Float";
 		case FieldType::Int:         return "Int";
 		case FieldType::UnsignedInt: return "UnsignedInt";

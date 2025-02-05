@@ -348,9 +348,6 @@
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\Nodes.h">
       <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h">
-      <Filter>src\NotRed\Editor</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -1024,9 +1021,6 @@
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\Nodes.cpp">
       <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp">
-      <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp">
       <Filter>src\NotRed\Editor</Filter>

@@ -16,16 +16,18 @@ namespace NR
 		Refresh = 1 << 0,
 		ClearSelections = 1 << 1,
 		Selected = 1 << 2,
-		DeSelected = 1 << 3,
-		Hovered = 1 << 4,
-		Renamed = 1 << 5,
-		NavigateToThis = 1 << 6,
-		OpenDeleteDialogue = 1 << 7,
-		SelectToHere = 1 << 8,
-		Moved = 1 << 9,
-		ShowInExplorer = 1 << 10,
-		OpenExternal = 1 << 11,
-		Reload = 1 << 12
+		Hovered = 1 << 3,
+		Renamed = 1 << 4,
+		NavigateToThis = 1 << 5,
+		OpenDeleteDialogue = 1 << 6,
+		SelectToHere = 1 << 7,
+		Moved = 1 << 8,
+		ShowInExplorer = 1 << 9,
+		OpenExternal = 1 << 10,
+		Reload = 1 << 11,
+		Copy = 1 << 12,
+		Duplicate = 1 << 13,
+		StartRenaming = 1 << 14
 	};
 
 	struct CBItemActionResult
@@ -76,6 +78,8 @@ namespace NR
 
 		virtual void Activate(CBItemActionResult& actionResult) {}
 		void StartRenaming();
+		void StopRenaming();
+		bool IsRenaming() const { return mIsRenaming; }
 
 		void SetSelected(bool value);
 

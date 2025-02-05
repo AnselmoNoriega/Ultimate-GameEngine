@@ -1206,7 +1206,6 @@ namespace NR
                     {
                         cc.CameraObj.SetPerspectiveNearClip(nearClip);
                     }
-                    ImGui::SameLine();
                     float farClip = cc.CameraObj.GetPerspectiveFarClip();
                     if (UI::Property("Far Clip", farClip))
                     {
@@ -1226,7 +1225,6 @@ namespace NR
                     {
                         cc.CameraObj.SetOrthographicNearClip(nearClip);
                     }
-                    ImGui::SameLine();
                     float farClip = cc.CameraObj.GetOrthographicFarClip();
                     if (UI::Property("Far Clip", farClip))
                     {
@@ -1362,6 +1360,22 @@ namespace NR
 
                             switch (field.Type)
                             {
+                            case FieldType::Bool:
+                            {
+                                bool value = isRuntime ? field.GetRuntimeValue<bool>(entityInstanceData.Instance) : field.GetStoredValue<bool>();
+                                if (UI::Property(field.Name.c_str(), value))
+                                {
+                                    if (isRuntime)
+                                    {
+                                        field.SetRuntimeValue(entityInstanceData.Instance, value);
+                                    }
+                                    else
+                                    {
+                                        field.SetStoredValue(value);
+                                    }
+                                }
+                                break;
+                            }
                             case FieldType::Int:
                             {
                                 int value = isRuntime ? field.GetRuntimeValue<int>(entityInstanceData.Instance) : field.GetStoredValue<int>();

@@ -218,7 +218,6 @@
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphAsset.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\Nodes.h" />
-    <ClInclude Include="src\NotRed\Editor\ObjectsPanel.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\ImGui\Colors.h" />
@@ -445,7 +444,6 @@
     <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\NodeEditorModel.cpp" />
     <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.cpp" />
     <ClCompile Include="src\NotRed\Editor\NodeGraphEditor\Nodes.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ObjectsPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="src\NotRed\ImGui\Colors.cpp" />
     <ClCompile Include="src\NotRed\ImGui\CustomTreeNode.cpp" />

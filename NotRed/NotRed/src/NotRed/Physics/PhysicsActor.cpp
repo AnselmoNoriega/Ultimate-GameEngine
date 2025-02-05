@@ -146,7 +146,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
-		if (!IsDynamic())
+		if (!IsDynamic() || IsKinematic())
 		{
 			NR_CORE_WARN("Trying to add force to non-dynamic PhysicsActor.");
 			return;
@@ -159,7 +159,7 @@ namespace NR
 
 	void PhysicsActor::AddTorque(const glm::vec3& torque, ForceMode forceMode)
 	{
-		if (!IsDynamic())
+		if (!IsDynamic() || IsKinematic())
 		{
 			NR_CORE_WARN("Trying to add torque to non-dynamic PhysicsActor.");
 			return;

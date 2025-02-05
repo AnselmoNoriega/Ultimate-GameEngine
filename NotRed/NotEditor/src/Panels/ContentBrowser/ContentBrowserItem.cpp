@@ -308,14 +308,15 @@ namespace NR
 		mIsRenaming = true;
 	}
 
+	void ContentBrowserItem::StopRenaming()
+	{
+		mIsRenaming = false;
+		memset(sRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
+	}
+
 	void ContentBrowserItem::SetSelected(bool value)
 	{
 		mIsSelected = value;
-		if (!mIsSelected)
-		{
-			mIsRenaming = false;
-			memset(sRenameBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
-		}
 	}
 
 	void ContentBrowserItem::Rename(const std::string& newName, bool fromCallback)
@@ -332,7 +333,7 @@ namespace NR
 
 		if (ImGui::MenuItem("Rename"))
 		{
-			StartRenaming();
+			actionResult.Modify(ContentBrowserAction::StartRenaming, true);
 		}
 		if (ImGui::MenuItem("Delete"))
 		{

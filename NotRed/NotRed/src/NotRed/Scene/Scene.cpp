@@ -149,8 +149,8 @@ namespace NR
         }
     }
 
-    Scene::Scene(const std::string& debugName, bool isEditorScene, bool construct)
-        : mDebugName(debugName), mIsEditorScene(isEditorScene)
+    Scene::Scene(const std::string& name, bool isEditorScene, bool construct)
+        : mName(name), mIsEditorScene(isEditorScene)
     {
         if (construct)
         {

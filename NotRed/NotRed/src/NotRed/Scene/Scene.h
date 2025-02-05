@@ -63,7 +63,7 @@ namespace NR
 	class Scene : public Asset
 	{
 	public:
-		Scene(const std::string& debugName = "Scene", bool isEditorScene = false, bool construct = true);
+		Scene(const std::string& name = "UntitledScene", bool isEditorScene = false, bool construct = true);
 		~Scene();
 
 		void Init();
@@ -160,8 +160,7 @@ namespace NR
 		entt::entity mSceneEntity = entt::null;
 		entt::registry mRegistry;
 
-		std::string mName = "UntitledScene";
-		std::string mDebugName;
+		std::string mName;
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 
 		EntityMap mEntityIDMap;
