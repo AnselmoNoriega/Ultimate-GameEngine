@@ -80,7 +80,7 @@ namespace NR
 		mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
 		if (!project->GetConfig().StartScene.empty())
 		{
-			OpenScene((Project::GetProjectDirectory() / project->GetConfig().StartScene).string());
+			OpenScene((Project::GetAssetDirectory() / project->GetConfig().StartScene).string());
 		}
 	}
 
