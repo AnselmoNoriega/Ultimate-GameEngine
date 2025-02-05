@@ -120,7 +120,7 @@ Entities:
           Data: 1.89999998
         - Name: mapSizeInChunks
           Type: 3
-          Data: 6
+          Data: 4
         - Name: waterThreshold
           Type: 3
           Data: 43

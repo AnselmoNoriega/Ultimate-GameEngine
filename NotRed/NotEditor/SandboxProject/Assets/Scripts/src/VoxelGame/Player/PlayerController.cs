@@ -2,7 +2,7 @@
 
 public class PlayerController : Entity
 {
-    public Entity Camera;
+    //public Entity Camera;
     //private RigidBodyComponent rb;
 
     private float speed = 5.0f;
@@ -27,7 +27,7 @@ public class PlayerController : Entity
         if (Input.IsKeyPressed(KeyCode.A)) moveDirection.z -= speed * deltaTime;
         if (Input.IsKeyPressed(KeyCode.D)) moveDirection.z += speed * deltaTime;
 
-        Log.Debug($"X: {moveDirection.x}, Y: {moveDirection.y}, Z: {moveDirection.z}");
+        moveDirection.Normalize();
 
         Translation += moveDirection;
 
