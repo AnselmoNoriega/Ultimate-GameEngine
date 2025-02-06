@@ -156,6 +156,7 @@
     <ClInclude Include="src\NotRed\Asset\AssetRegistry.h" />
     <ClInclude Include="src\NotRed\Asset\AssetSerializer.h" />
     <ClInclude Include="src\NotRed\Asset\AssetTypes.h" />
+    <ClInclude Include="src\NotRed\Asset\AssimpLog.h" />
     <ClInclude Include="src\NotRed\Asset\GraphSerializer.h" />
     <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
     <ClInclude Include="src\NotRed\Audio\Audio.h" />
@@ -286,6 +287,7 @@
     <ClInclude Include="src\NotRed\Project\Project.h" />
     <ClInclude Include="src\NotRed\Project\ProjectSerializer.h" />
     <ClInclude Include="src\NotRed\Project\UserPreferences.h" />
+    <ClInclude Include="src\NotRed\Renderer\Animation.h" />
     <ClInclude Include="src\NotRed\Renderer\Camera.h" />
     <ClInclude Include="src\NotRed\Renderer\FrameBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\Image.h" />
@@ -294,7 +296,7 @@
     <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
-    <ClInclude Include="src\NotRed\Renderer\OZZImporterAssimp.h" />
+    <ClInclude Include="src\NotRed\Asset\OZZImporterAssimp.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
@@ -507,6 +509,7 @@
     <ClCompile Include="src\NotRed\Project\Project.cpp" />
     <ClCompile Include="src\NotRed\Project\ProjectSerializer.cpp" />
     <ClCompile Include="src\NotRed\Project\UserPreferences.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\Animation.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp" />
     <ClCompile Include="src\NotRed\Renderer\FrameBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Image.cpp" />

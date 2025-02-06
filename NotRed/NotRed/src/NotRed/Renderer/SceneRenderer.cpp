@@ -996,7 +996,7 @@ namespace NR
 			const Buffer cascade(&i, sizeof(uint32_t));
 			for (auto& dc : mShadowPassDrawList)
 			{
-				if (dc.Mesh->IsAnimated())
+				if (dc.Mesh->IsRigged())
 				{
 					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
 				}
@@ -1018,7 +1018,7 @@ namespace NR
 		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
 		for (auto& dc : mDrawList)
 		{
-			if (dc.Mesh->IsAnimated())
+			if (dc.Mesh->IsRigged())
 			{
 				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
 			}
@@ -1029,7 +1029,7 @@ namespace NR
 		}
 		for (auto& dc : mSelectedMeshDrawList)
 		{
-			if (dc.Mesh->IsAnimated())
+			if (dc.Mesh->IsRigged())
 			{
 				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
 			}
@@ -1082,7 +1082,7 @@ namespace NR
 		Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
 		for (auto& dc : mSelectedMeshDrawList)
 		{
-			if (dc.Mesh->IsAnimated())
+			if (dc.Mesh->IsRigged())
 			{
 				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
 			}
@@ -1105,15 +1105,15 @@ namespace NR
 		// Render entities
 		for (auto& dc : mDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
+			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
 		}
 
 		for (auto& dc : mSelectedMeshDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsAnimated() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
+			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
 			if (mOptions.ShowSelectedInWireframe)
 			{
-				if (dc.Mesh->IsAnimated())
+				if (dc.Mesh->IsRigged())
 				{
 					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
 				}
@@ -1626,7 +1626,7 @@ namespace NR
 			mColliderMaterial->Set("uMaterialUniforms.Color", mOptions.PhysicsCollidersColor);
 			for (DrawCommand& dc : mColliderDrawList)
 			{
-				if (dc.Mesh->IsAnimated())
+				if (dc.Mesh->IsRigged())
 				{
 					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
 				}

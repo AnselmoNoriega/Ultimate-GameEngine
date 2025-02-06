@@ -759,7 +759,7 @@ namespace NR::Script
         meshComponent.MeshObj = inMesh ? *inMesh : nullptr;
     }
 
-    bool NR_MeshComponent_GetIsAnimated(uint64_t entityID)
+    bool NR_MeshComponent_GetIsRigged(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -769,10 +769,10 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         auto& meshComponent = entity.GetComponent<MeshComponent>();
-        return meshComponent.MeshObj->IsAnimated();
+        return meshComponent.MeshObj->IsRigged();
     }
 
-    bool NR_MeshComponent_GetIsAnimationPlaying(uint64_t entityID)
+    bool NR_AnimationComponent_GetIsAnimationPlaying(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -781,11 +781,11 @@ namespace NR::Script
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
         Entity entity = entityMap.at(entityID);
-        auto& meshComponent = entity.GetComponent<MeshComponent>();
-        return meshComponent.MeshObj->IsAnimationPlaying();
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        return animationComponent.AnimationController->IsAnimationPlaying();
     }
 
-    void NR_MeshComponent_SetIsAnimationPlaying(uint64_t entityID, bool value)
+    void NR_AnimationComponent_SetIsAnimationPlaying(uint64_t entityID, bool value)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -794,8 +794,8 @@ namespace NR::Script
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
         Entity entity = entityMap.at(entityID);
-        auto& meshComponent = entity.GetComponent<MeshComponent>();
-        meshComponent.MeshObj->SetAnimationPlaying(value);
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        animationComponent.AnimationController->SetAnimationPlaying(value);
     }
 
     void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID)

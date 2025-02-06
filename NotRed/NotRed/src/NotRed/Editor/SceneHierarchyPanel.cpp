@@ -997,6 +997,14 @@ namespace NR
                         ImGui::CloseCurrentPopup();
                     }
                 }
+                if (!mSelectionContext.HasComponent<AnimationComponent>())
+                {
+                    if (ImGui::Button("Animation"))
+                    {
+                        mSelectionContext.AddComponent<AnimationComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
                 if (!mSelectionContext.HasComponent<DirectionalLightComponent>())
                 {
                     if (ImGui::MenuItem("Directional Light"))
@@ -1302,6 +1310,38 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
+            });
+
+        DrawComponent<AnimationComponent>("Animation", entity, [&](AnimationComponent& anim)
+            {
+                UI::BeginPropertyGrid();
+                UI::PropertyAssetReferenceError error;
+
+                UI::PropertyAssetReference<AnimationController>("Animation Controller", anim.AnimationController, &error);
+                if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
+                {
+                    if (mInvalidMetadataCallback)
+                    {
+                        mInvalidMetadataCallback(entity, UI::sPropertyAssetReferenceAssetHandle);
+                    }
+                }
+                UI::EndPropertyGrid();
+
+                if (entity.HasComponent<MeshComponent>())
+                {
+                    auto mc = entity.GetComponent<MeshComponent>();
+                    if (!mc.MeshObj || !mc.MeshObj->IsValid() || !mc.MeshObj->IsRigged()) {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+                        ImGui::Text("Mesh is not rigged for animation!");
+                        ImGui::PopStyleColor();
+                    }
+                }
+                else
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
+                    ImGui::Text("Please add a Mesh component!");
+                    ImGui::PopStyleColor();
+                }
             });
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)

@@ -85,9 +85,9 @@ namespace NR::Script
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
     bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index);
     Ref<MaterialAsset>* NR_MeshComponent_GetMaterial(uint64_t entityID, int index);
-    bool NR_MeshComponent_GetIsAnimated(uint64_t entityID);
-    bool NR_MeshComponent_GetIsAnimationPlaying(uint64_t entityID);
-    void NR_MeshComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
+    bool NR_MeshComponent_GetIsRigged(uint64_t entityID);
+    bool NR_AnimationComponent_GetIsAnimationPlaying(uint64_t entityID);
+    void NR_AnimationComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
     void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID);
 
     MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID);

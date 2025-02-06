@@ -194,7 +194,7 @@ namespace NR
 			out << YAML::Key << "MeshComponent";
 			out << YAML::BeginMap; // MeshComponent
 
-			MeshComponent& mc = entity.GetComponent<MeshComponent>();
+			auto& mc = entity.GetComponent<MeshComponent>();
 			if (mc.MeshObj)
 			{
 				out << YAML::Key << "AssetID" << YAML::Value << (mc.MeshObj ? mc.MeshObj->Handle : (AssetHandle)0);
@@ -232,6 +232,18 @@ namespace NR
 			out << YAML::Key << "h2RegionColor" << YAML::Value << particleComponent.h2RegionColor;
 
 			out << YAML::EndMap; // ParticleComponent
+		}
+
+		if (entity.HasComponent<AnimationComponent>())
+		{
+			out << YAML::Key << "AnimationComponent";
+			out << YAML::BeginMap; // AnimationComponent
+			auto& anim = entity.GetComponent<AnimationComponent>();
+			if (anim.AnimationController)
+			{
+				out << YAML::Key << "AnimationController" << YAML::Value << anim.AnimationController->Handle;
+			}
+			out << YAML::EndMap; // AnimationComponent
 		}
 
 		if (entity.HasComponent<CameraComponent>())
@@ -806,6 +818,24 @@ namespace NR
 				mat->Set("uGalaxySpecs.StarColor", component.StarColor);
 				mat->Set("uGalaxySpecs.DustColor", component.DustColor);
 				mat->Set("uGalaxySpecs.h2RegionColor", component.h2RegionColor);
+			}
+
+			auto animationComponent = entity["AnimationComponent"];
+			if (animationComponent)
+			{
+				auto& component = deserializedEntity.AddComponent<AnimationComponent>();
+				if (animationComponent["AnimationController"])
+				{
+					AssetHandle animationControllerHandle = animationComponent["AnimationController"].as<uint64_t>();
+					if (AssetManager::IsAssetHandleValid(animationControllerHandle))
+					{
+						const AssetMetadata& metadata = AssetManager::GetMetadata(animationControllerHandle);
+						if (metadata.Type == AssetType::AnimationController)
+						{
+							component.AnimationController = AssetManager::GetAsset<AnimationController>(animationControllerHandle);
+						}
+					}
+				}
 			}
 
 			auto cameraComponent = entity["CameraComponent"];

@@ -36,6 +36,7 @@ namespace NR
 		Component_RegisterType(TagComponent);
 		Component_RegisterType(TransformComponent);
 		Component_RegisterType(MeshComponent);
+		Component_RegisterType(AnimationComponent);
 		Component_RegisterType(ParticleComponent);
 		Component_RegisterType(ScriptComponent);
 		Component_RegisterType(CameraComponent);
@@ -98,9 +99,9 @@ namespace NR
 
 		mono_add_internal_call("NR.MeshComponent::GetMesh_Native", NR::Script::NR_MeshComponent_GetMesh);
 		mono_add_internal_call("NR.MeshComponent::SetMesh_Native", NR::Script::NR_MeshComponent_SetMesh);
-		mono_add_internal_call("NR.MeshComponent::GetIsAnimated_Native", NR::Script::NR_MeshComponent_GetIsAnimated);
-		mono_add_internal_call("NR.MeshComponent::GetIsAnimationPlaying_Native", NR::Script::NR_MeshComponent_GetIsAnimationPlaying);
-		mono_add_internal_call("NR.MeshComponent::SetIsAnimationPlaying_Native", NR::Script::NR_MeshComponent_SetIsAnimationPlaying);
+		mono_add_internal_call("NR.MeshComponent::GetIsRigged_Native", NR::Script::NR_MeshComponent_GetIsRigged);
+		mono_add_internal_call("NR.AnimationComponent::GetIsAnimationPlaying_Native", NR::Script::NR_AnimationComponent_GetIsAnimationPlaying);
+		mono_add_internal_call("NR.AnimationComponent::SetIsAnimationPlaying_Native", NR::Script::NR_AnimationComponent_SetIsAnimationPlaying);
 		mono_add_internal_call("NR.MeshComponent::ReloadMeshCollider_Native", NR::Script::NR_MeshComponent_ReloadMeshCollider);
 		mono_add_internal_call("NR.MeshComponent::HasMaterial_Native", NR::Script::NR_MeshComponent_HasMaterial);
 		mono_add_internal_call("NR.MeshComponent::GetMaterial_Native", NR::Script::NR_MeshComponent_GetMaterial);

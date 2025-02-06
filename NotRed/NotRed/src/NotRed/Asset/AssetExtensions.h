@@ -14,6 +14,7 @@ namespace NR
 		{ ".nrmesh", AssetType::Mesh },
 		{ ".nrsound", AssetType::SoundConfig },
 		{ ".nrpm", AssetType::PhysicsMat },
+		{ ".nranim", AssetType::AnimationController },
 		{ ".fbx", AssetType::MeshAsset },
 		{ ".gltf", AssetType::MeshAsset },
 		{ ".glb", AssetType::MeshAsset },

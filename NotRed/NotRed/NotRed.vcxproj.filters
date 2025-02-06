@@ -576,7 +576,7 @@
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\OZZImporterAssimp.h">
+    <ClInclude Include="src\NotRed\Asset\OZZImporterAssimp.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
@@ -873,6 +873,8 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssimpLog.h" />
+    <ClInclude Include="src\NotRed\Renderer\Animation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1442,5 +1444,6 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Animation.cpp" />
   </ItemGroup>
 </Project>

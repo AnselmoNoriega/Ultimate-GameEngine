@@ -83,11 +83,9 @@ namespace NR
         Ref<Mesh> MeshObj;
         Ref<MaterialTable> Materials = Ref<MaterialTable>::Create();
 
-        bool IsFractured = false;
-
         MeshComponent() = default;
         MeshComponent(const MeshComponent& other)
-            : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.Materials)), IsFractured(other.IsFractured) { }
+            : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.Materials)) { }
         MeshComponent(const Ref<Mesh>& mesh)
             : MeshObj(mesh) {}
 
@@ -153,6 +151,11 @@ namespace NR
 
         bool DynamicSky = false;
         glm::vec3 TurbidityAzimuthInclination = { 2.0, 0.0, 0.0 };
+    };
+
+    struct AnimationComponent
+    {
+        Ref<NR::AnimationController> AnimationController;
     };
 
     struct ScriptComponent

@@ -11,6 +11,7 @@
 
 #include "NotRed/Scene/Prefab.h"
 
+#include "NotRed/Renderer/Animation.h"
 #include "NotRed/Audio/AudioFileUtils.h"
 #include "NotRed/Audio/Sound.h"
 #include "NotRed/Util/SerializationMacros.h"
@@ -391,6 +392,82 @@ namespace NR
 	{
 		asset = Ref<Asset>::Create();
 		asset->Handle = metadata.Handle;
+		return true;
+	}
+
+	bool AnimationAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		Ref<Asset> temp = asset;
+		asset = Ref<AnimationAsset>::Create(AssetManager::GetFileSystemPathString(metadata));
+		asset->Handle = metadata.Handle;
+		return (asset.As<AnimationAsset>())->IsValid();
+	}
+
+	void AnimationControllerSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+	{
+		Ref<AnimationController> animationController = asset.As<AnimationController>();
+		YAML::Emitter out;
+		out << YAML::BeginMap;
+		out << YAML::Key << "AnimationController" << YAML::Value;
+		{
+			out << YAML::BeginMap;
+			out << YAML::Key << "AssetHandle" << YAML::Value << animationController->Handle;
+			out << YAML::Key << "IsPlaying" << YAML::Value << animationController->IsAnimationPlaying();
+			out << YAML::Key << "States" << YAML::Value;
+			out << YAML::BeginSeq;
+			{
+				out << YAML::BeginMap;
+				{
+					out << YAML::Key << "State" << YAML::Value << "default";
+					out << YAML::Key << "AnimationAsset" << YAML::Value << animationController->GetAnimationAsset()->Handle;
+				}
+				out << YAML::EndMap;
+			}
+			out << YAML::EndSeq;
+		}
+		out << YAML::EndMap;
+		std::ofstream fout(AssetManager::GetFileSystemPath(metadata));
+		fout << out.c_str();
+	}
+
+	bool AnimationControllerSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		std::ifstream stream(AssetManager::GetFileSystemPath(metadata));
+		if (!stream.is_open())
+		{
+			return false;
+		}
+
+		std::stringstream strStream;
+		strStream << stream.rdbuf();
+		YAML::Node data = YAML::Load(strStream.str());
+		if (!data["AnimationController"])
+		{
+			return false;
+		}
+
+		YAML::Node animationControllerNode = data["AnimationController"];
+		YAML::Node states = animationControllerNode["States"];
+		Ref<AnimationAsset> animationAsset;
+
+		for (const auto& state : states) {
+			if (!state.IsMap())
+			{
+				continue;
+			}
+			if (!state["AnimationAsset"])
+			{
+				continue;
+			}
+			AssetHandle animationAssetHandle = state["AnimationAsset"].as<uint64_t>();
+			animationAsset = AssetManager::GetAsset<AnimationAsset>(animationAssetHandle);
+			break; // only one state for now...
+		}
+
+		Ref<AnimationController> animationController = Ref<AnimationController>::Create(animationAsset);
+		animationController->SetAnimationPlaying(animationControllerNode["IsPlaying"].as<bool>());
+		animationController->Handle = metadata.Handle;
+		asset = animationController;
 		return true;
 	}
 }

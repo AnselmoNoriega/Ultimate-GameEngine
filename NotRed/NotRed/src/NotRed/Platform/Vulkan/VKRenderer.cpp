@@ -341,7 +341,7 @@ namespace NR
 
                 VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
 
-                if (mesh->IsAnimated())
+                if (mesh->IsRigged())
                 {
                     auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(2); // Hard coding 2 = animation data
 
@@ -550,7 +550,7 @@ namespace NR
                 vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
                 VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
-                if (mesh->IsAnimated())
+                if (mesh->IsRigged())
                 {
                     auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(1); // Hard coding 1 = animation data
 

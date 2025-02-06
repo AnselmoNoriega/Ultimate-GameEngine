@@ -480,21 +480,34 @@ namespace NR
 
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
-        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
         renderer->SetScene(this);
         renderer->BeginScene({ camera, cameraViewMatrix, 0.1f, 1000.0f, 45.0f }, dt);
+
+        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
         for (auto entity : group)
         {
             auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
             if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
-                meshComponent.MeshObj->Update(dt);
                 Entity e = Entity(entity, this);
-                glm::mat4 transform = GetTransformRelativeToParent(e);
 
-                if (e.HasComponent<RigidBodyComponent>())
+                glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
+                if (e.HasComponent<AnimationComponent>()) {
+
+                    auto& anim = e.GetComponent<AnimationComponent>();
+                    if (anim.AnimationController)
+                    {
+                        anim.AnimationController->Update(dt);
+                        meshComponent.MeshObj->UpdateBoneTransforms(anim.AnimationController->GetModelSpaceTransforms());
+                    }
+                    else
+                    {
+                        meshComponent.MeshObj->UpdateBoneTransforms({});
+                    }
+                }
+                else if (meshComponent.MeshObj->IsRigged())
                 {
-                    transform = e.Transform().GetTransform();
+                    meshComponent.MeshObj->UpdateBoneTransforms({});
                 }
 
                 renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
@@ -507,7 +520,6 @@ namespace NR
             auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
             if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
-                particleComponent.MeshObj->Update(dt);
                 glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
 
                 renderer->SubmitParticles(particleComponent, transform);
@@ -629,9 +641,27 @@ namespace NR
             auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
             if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
-                meshComponent.MeshObj->Update(dt);
+                Entity e = Entity(entity, this);
 
-                glm::mat4 transform = GetTransformRelativeToParent(Entity{ entity, this });
+                glm::mat4 transform = GetTransformRelativeToParent(e);
+                if (e.HasComponent<AnimationComponent>()) 
+                {
+                    auto& anim = e.GetComponent<AnimationComponent>();
+                    if (anim.AnimationController)
+                    {
+                        // TODO: Fix this.  It is problematic if the same AnimationController is shared by multiple entities.
+                        anim.AnimationController->Update(dt);
+                        meshComponent.MeshObj->UpdateBoneTransforms(anim.AnimationController->GetModelSpaceTransforms());
+                    }
+                    else
+                    {
+                        meshComponent.MeshObj->UpdateBoneTransforms({});
+                    }
+                }
+                else if (meshComponent.MeshObj->IsRigged())
+                {
+                    meshComponent.MeshObj->UpdateBoneTransforms({});
+                }
 
                 if (mSelectedEntity == entity)
                 {
@@ -650,7 +680,6 @@ namespace NR
             auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
             if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
-                particleComponent.MeshObj->Update(dt);
                 glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
 
                 renderer->SubmitParticles(particleComponent, transform);
@@ -1190,6 +1219,7 @@ namespace NR
         CopyComponentIfExists<TransformComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         //CopyComponentIfExists<RelationshipComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<MeshComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<AnimationComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ParticleComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1293,9 +1323,12 @@ namespace NR
         // Check that nothing has been forgotten...
         bool foundAll = true;
         mRegistry.visit(entity, [&](entt::id_type type) {
-            bool foundOne = false;
-            mRegistry.visit(newEntity, [type, &foundOne](entt::id_type newType) {if (newType == type) foundOne = true; });
-            foundAll = foundAll && foundOne;
+            if (type != entt::type_index<RelationshipComponent>().value())
+            {
+                bool foundOne = false;
+                mRegistry.visit(newEntity, [type, &foundOne](entt::id_type newType) {if (newType == type) foundOne = true; });
+                foundAll = foundAll && foundOne;
+            }
             });
         NR_CORE_ASSERT(foundAll, "At least one component was not duplicated - have you missed a 'CopyComponentIfExists<>...'?");
 #endif
@@ -1555,6 +1588,7 @@ namespace NR
         CopyComponent<TransformComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<RelationshipComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<MeshComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<AnimationComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<ParticleComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<DirectionalLightComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<PointLightComponent>(target->mRegistry, mRegistry, enttMap);

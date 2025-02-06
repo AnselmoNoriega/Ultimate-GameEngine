@@ -143,23 +143,11 @@ namespace NR
             return new Material(GetMaterial_Native(Entity.ID, index));
         }
 
-        public bool IsAnimated
+        public bool IsRigged
         {
             get
             {
-                return GetIsAnimated_Native(Entity.ID);
-            }
-        }
-
-        public bool IsAnimationPlaying
-        {
-            get
-            {
-                return GetIsAnimationPlaying_Native(Entity.ID);
-            }
-            set
-            {
-                SetIsAnimationPlaying_Native(Entity.ID, value);
+                return GetIsRigged_Native(Entity.ID);
             }
         }
 
@@ -173,13 +161,14 @@ namespace NR
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetMesh_Native(ulong entityID, IntPtr unmanagedInstance);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool GetIsRigged_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool HasMaterial_Native(ulong entityID, int index);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern IntPtr GetMaterial_Native(ulong entityID, int index);
 
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern bool GetIsAnimated_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -187,6 +176,26 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void ReloadMeshCollider_Native(ulong entityID);
 
+    }
+
+    public class AnimationComponent : Component
+    {
+        public bool IsAnimationPlaying
+        {
+            get
+            {
+                return GetIsAnimationPlaying_Native(Entity.ID);
+            }
+            set
+            {
+                SetIsAnimationPlaying_Native(Entity.ID, value);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void SetIsAnimationPlaying_Native(ulong entityID, bool value);
     }
 
     public class CameraComponent : Component

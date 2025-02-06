@@ -15,20 +15,12 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
-#include <assimp/DefaultLogger.hpp>
-#include <assimp/LogStream.hpp>
 
-#include <ozz/base/maths/math_ex.h>                 
-#include <ozz/base/span.h>
-#include <ozz/animation/runtime/animation.h>     
-#include <ozz/animation/runtime/local_to_model_job.h>
-#include <ozz/animation/runtime/sampling_job.h>
 #include <ozz/animation/offline/raw_skeleton.h>
 #include <ozz/animation/offline/skeleton_builder.h>
-#include <ozz/animation/offline/raw_animation.h>
-#include <ozz/animation/offline/animation_builder.h>
 
-#include "OZZImporterAssimp.h"
+#include "NotRed/Asset/AssimpLog.h"
+#include "NotRed/Asset/OZZImporterAssimp.h"
 
 #include "imgui/imgui.h"
 
@@ -69,23 +61,6 @@ namespace NR
         aiProcess_JoinIdenticalVertices |   // Remove vertices that are identical
         aiProcess_LimitBoneWeights |        // If more than 4 bone weights, discard least influencing ones and renormalize sum to 1
         aiProcess_ValidateDataStructure;    // Validation
-
-    struct LogStream : public Assimp::LogStream
-    {
-        static void Initialize()
-        {
-            if (Assimp::DefaultLogger::isNullLogger())
-            {
-                Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
-                Assimp::DefaultLogger::get()->attachStream(new LogStream, Assimp::Logger::Err | Assimp::Logger::Warn);
-            }
-        }
-
-        virtual void write(const char* message) override
-        {
-            NR_CORE_ERROR("Assimp error: {0}", message);
-        }
-    };
 
     static std::string LevelToSpaces(uint32_t level)
     {
@@ -130,7 +105,20 @@ namespace NR
 
         mScene = scene;
 
-        mIsAnimated = scene->mAnimations != nullptr;
+        ozz::animation::offline::RawSkeleton rawSkeleton;
+        if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton))
+        {
+            ozz::animation::offline::SkeletonBuilder builder;
+            mSkeleton = builder(rawSkeleton);
+            if (!mSkeleton)
+            {
+                NR_CORE_ERROR("Failed to build runtime skeleton from mesh file '{0}'", filename);
+            }
+        }
+        else
+        {
+            NR_CORE_INFO("No skeleton found in mesh file '{0}'", filename);
+        }
 
         uint32_t vertexCount = 0;
         uint32_t indexCount = 0;
@@ -183,10 +171,10 @@ namespace NR
                     vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
                 }
 
-                if (mIsAnimated)
+                if (IsRigged())
                 {
-                    mStaticVertices.push_back(vertex);
-                    mAnimatedVertices.push_back(vertex);
+                    mStaticVertices.push_back(vertex);  
+                    mSkinnedVertices.push_back(vertex); 
                 }
                 else
                 {
@@ -219,58 +207,8 @@ namespace NR
             mBoundingBox.Max.z = glm::max(mBoundingBox.Max.z, max.z);
         }
 
-        auto animationNames = OZZImporterAssimp::GetAnimationNames(scene);
-        ozz::animation::offline::RawSkeleton rawSkeleton;
-        if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton)) {
-            ozz::animation::offline::SkeletonBuilder builder;
-            mSkeleton = builder(rawSkeleton);
-            if (!mSkeleton)
-            {
-                NR_CORE_ERROR("Failed to build runtime skeleton from mesh file '{0}'", filename);
-            }
-        }
-        else
-        {
-            if (!animationNames.empty())
-            {
-                NR_CORE_ERROR("Animations found, but no skeleton in mesh file '{0}'", filename);
-            }
-            else
-            {
-                NR_CORE_INFO("No skeleton found in mesh file '{0}'", filename);
-            }
-        }
-
-        if (!animationNames.empty() && mSkeleton)
-        {
-            ozz::animation::offline::RawAnimation rawAnimation;
-            aiString animationName;
-            if (OZZImporterAssimp::ExtractRawAnimation(animationNames.front(), scene, *mSkeleton, 0.0f, rawAnimation))
-            {
-                if (rawAnimation.Validate())
-                {
-                    // build runtime animation from raw
-                    ozz::animation::offline::AnimationBuilder builder;
-                    mAnimation = builder(rawAnimation);
-                    if (!mAnimation)
-                    {
-                        NR_CORE_ERROR("Failed to build runtime animation for '{}' from mesh file '{}'", animationNames.front(), filename);
-                    }
-                    // later, add support for "user tracks" here.  User tracks are animations of things other than joint transforms.
-                }
-                else
-                {
-                    NR_CORE_ERROR("Validation failed for animation '{}' from mesh file '{}'", animationNames.front(), filename);
-                }
-            }
-            else
-            {
-                NR_CORE_ERROR("Failed to extract animation '{}' from mesh file '{}'", animationNames.front(), filename);
-            }
-        }
-
         // Bones
-        if (mIsAnimated)
+        if (IsRigged())
         {
             for (size_t m = 0; m < scene->mNumMeshes; ++m)
             {
@@ -321,7 +259,7 @@ namespace NR
                     {
                         int VertexID = submesh.BaseVertex + bone->mWeights[j].mVertexId;
                         float Weight = bone->mWeights[j].mWeight;
-                        mAnimatedVertices[VertexID].AddBoneData(boneIndex, Weight);
+                        mSkinnedVertices[VertexID].AddBoneData(boneIndex, Weight);
                     }
                 }
             }
@@ -558,9 +496,9 @@ namespace NR
             mMaterials.push_back(mi);
         }
 
-        if (mIsAnimated)
+        if (IsRigged())
         {
-            mVertexBuffer = VertexBuffer::Create(mAnimatedVertices.data(), (uint32_t)(mAnimatedVertices.size() * sizeof(AnimatedVertex)));
+            mVertexBuffer = VertexBuffer::Create(mSkinnedVertices.data(), (uint32_t)(mSkinnedVertices.size() * sizeof(SkinnedVertex)));
         }
         else
         {
@@ -571,7 +509,7 @@ namespace NR
     }
 
     MeshAsset::MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
-        : mStaticVertices(vertices), mIndices(indices), mIsAnimated(false)
+        : mStaticVertices(vertices), mIndices(indices)
     {
         Submesh submesh;
         submesh.BaseVertex = 0;
@@ -590,7 +528,6 @@ namespace NR
         const std::vector<std::vector<Index>>& indices,
         const std::vector<std::string>& matNames
     )
-        : mIsAnimated(false)
     {
         mSubmeshes.reserve(vertices.size());
         uint32_t baseVertex = 0;
@@ -670,7 +607,6 @@ namespace NR
     }
 
     MeshAsset::MeshAsset(int particleCount)
-        : mIsAnimated(false)
     {
         {
             for (uint32_t i = 0; i < particleCount; ++i)
@@ -727,11 +663,11 @@ namespace NR
         NR_MESH_LOG("------------------------------------------------------");
         NR_MESH_LOG("Vertex Buffer Dump");
         NR_MESH_LOG("Mesh: {0}", mFilePath);
-        if (mIsAnimated)
+        if (IsRigged())
         {
-            for (size_t i = 0; i < mAnimatedVertices.size(); ++i)
+            for (size_t i = 0; i < mSkinnedVertices.size(); ++i)
             {
-                auto& vertex = mAnimatedVertices[i];
+                auto& vertex = mSkinnedVertices[i];
                 NR_MESH_LOG("Vertex: {0}", i);
                 NR_MESH_LOG("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
                 NR_MESH_LOG("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
@@ -790,12 +726,8 @@ namespace NR
             mMaterials->SetMaterial(static_cast<uint32_t>(i), Ref<MaterialAsset>::Create(meshMaterials[i]));
         }
 
-        if (mMeshAsset->IsAnimated())
+        if (mMeshAsset->IsRigged())
         {
-            // ozz animation
-            mSamplingContext.Resize(mMeshAsset->mSkeleton->num_joints());
-            mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
-            mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
             mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
             mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
             for (auto& ub : mBoneTransformUBs)
@@ -817,12 +749,8 @@ namespace NR
             mMaterials->SetMaterial(static_cast<uint32_t>(i), Ref<MaterialAsset>::Create(meshMaterials[static_cast<uint32_t>(i)]));
         }
 
-        if (mMeshAsset->IsAnimated())
+        if (mMeshAsset->IsRigged())
         {
-            // ozz animation
-            mSamplingContext.Resize(mMeshAsset->mSkeleton->num_joints());
-            mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
-            mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
             mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
             mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
             for (auto& ub : mBoneTransformUBs)
@@ -837,12 +765,8 @@ namespace NR
     {
         SetSubmeshes(other->mSubmeshes);
 
-        if (mMeshAsset->IsAnimated())
+        if (mMeshAsset->IsRigged())
         {
-            // ozz animation
-            mSamplingContext.Resize(mMeshAsset->mSkeleton->num_joints());
-            mLocalSpaceTransforms.resize(mMeshAsset->mSkeleton->num_soa_joints());
-            mModelSpaceTransforms.resize(mMeshAsset->mSkeleton->num_joints());
             mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
             mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
             for (auto& ub : mBoneTransformUBs)
@@ -852,28 +776,28 @@ namespace NR
         }
     }
 
-    void Mesh::Update(float dt)
+    void Mesh::UpdateBoneTransforms(const ozz::vector<ozz::math::Float4x4>& modelSpaceTransforms)
     {
-        if (IsAnimated())
+        NR_PROFILE_FUNC();
+        if (modelSpaceTransforms.empty())
         {
-            if (mAnimationPlaying)
+            for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
             {
-                constexpr bool loop = true;
-
-                mAnimationTime = mAnimationTime + dt * mTimeMultiplier / mMeshAsset->mAnimation->duration();
-                if (loop)
-                {
-                    // Wraps the unit interval [0-1], even for negative values (the reason for using floorf)
-                    mAnimationTime = mAnimationTime - floorf(mAnimationTime);
-                }
-                else
-                {
-                    // Clamps in the unit interval [0-1].
-                    mAnimationTime = ozz::math::Clamp(0.0f, mAnimationTime, 1.0f);
-                }
+                mBoneTransforms[i] = ozz::math::Float4x4::identity();
             }
-            BoneTransform(mAnimationTime);
         }
+        else
+        {
+            for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
+            {
+                mBoneTransforms[i] = modelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
+            }
+        }
+        Ref<Mesh> instance = this;
+
+        Renderer::Submit([instance]() mutable {
+            instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransforms.data(), static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(ozz::math::Float4x4)));
+            });
     }
 
     void Mesh::SetSubmeshes(const std::vector<uint32_t>& submeshes)
@@ -950,51 +874,6 @@ namespace NR
         {
             mMeshAsset->mSubmeshes.emplace_back();
             mSubmeshes.push_back(i);
-        }
-    }
-
-    void Mesh::BoneTransform(float time)
-    {
-        NR_PROFILE_FUNC();
-        {
-            NR_PROFILE_SCOPE_DYNAMIC("Sample animation");
-
-            ozz::animation::SamplingJob sampling_job;
-            sampling_job.animation = mMeshAsset->mAnimation.get();
-            sampling_job.context = &mSamplingContext;
-            sampling_job.ratio = mAnimationTime;
-            sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
-
-            if (!sampling_job.Run())
-            {
-                NR_CORE_ERROR("ozz animation sampling job failed!");
-            }
-
-            ozz::animation::LocalToModelJob ltm_job;
-            ltm_job.skeleton = mMeshAsset->mSkeleton.get();
-            ltm_job.input = ozz::make_span(mLocalSpaceTransforms);
-            ltm_job.output = ozz::make_span(mModelSpaceTransforms);
-
-            if (!ltm_job.Run())
-            {
-                NR_CORE_ERROR("ozz animation convertion to model space failed!");
-            }
-
-            for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
-            {
-                mBoneTransforms[i] = mModelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
-            }
-        }
-        {
-            NR_PROFILE_SCOPE_DYNAMIC("Upload bone transform UB");
-            // upload to GPU
-            Ref<Mesh> instance = this;
-            Renderer::Submit([instance]() mutable {
-                instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(
-                    instance->mBoneTransforms.data(),
-                    static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(glm::mat4))
-                );
-                });
         }
     }
 }

@@ -3,23 +3,19 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-#include <ozz/base/containers/vector.h>
-#include <ozz/base/maths/soa_transform.h>
-#include <ozz/base/memory/unique_ptr.h>
-#include <ozz/animation/runtime/skeleton.h>
-#include <ozz/animation/runtime/sampling_job.h>
-#include <ozz/animation/runtime/animation.h>
-
 #include "NotRed/Asset/Asset.h"
 
-#include "NotRed/Renderer/Pipeline.h"
-#include "NotRed/Renderer/VertexBuffer.h"
-#include "NotRed/Renderer/IndexBuffer.h"
-#include "NotRed/Renderer/Shader.h"
-#include "NotRed/Renderer/MaterialAsset.h"
-#include "NotRed/Renderer/UniformBuffer.h"
-
 #include "NotRed/Math/AABB.h"
+#include "NotRed/Renderer/Animation.h"
+
+#include "NotRed/Renderer/IndexBuffer.h"
+#include "NotRed/Renderer/MaterialAsset.h"
+#include "NotRed/Renderer/Pipeline.h"
+#include "NotRed/Renderer/Shader.h"
+#include "NotRed/Renderer/UniformBuffer.h"
+#include "NotRed/Renderer/VertexBuffer.h"
+
+#include <ozz/base/maths/simd_math.h>
 
 struct aiNode;
 struct aiAnimation;
@@ -48,12 +44,12 @@ namespace NR
 		glm::vec2 Texcoord;
 	};
 
-	struct AnimatedVertex : public Vertex
+	struct SkinnedVertex : public Vertex
 	{
 		uint32_t IDs[4] = { 0, 0,0, 0 };
 		float Weights[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
 
-		AnimatedVertex(const Vertex& vertex) : Vertex(vertex) {}
+		SkinnedVertex(const Vertex& vertex) : Vertex(vertex) {}
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
@@ -156,9 +152,9 @@ namespace NR
 		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
-		bool IsAnimated() const { return mIsAnimated; }
+		bool IsRigged() const { return (bool)mSkeleton; }
 		const std::vector<Vertex>& GetStaticVertices() const { return mStaticVertices; }
-		const std::vector<AnimatedVertex>& GetAnimatedVertices() const { return mAnimatedVertices; }
+		const std::vector<SkinnedVertex>& GetAnimatedVertices() const { return mSkinnedVertices; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
 
 		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
@@ -195,18 +191,14 @@ namespace NR
 		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
 		const aiScene* mScene;
 
-		std::vector<AnimatedVertex> mAnimatedVertices;
+		std::vector<SkinnedVertex> mSkinnedVertices;
 		std::vector<BoneInfo> mBoneInfo;
 		ozz::unique_ptr<ozz::animation::Skeleton> mSkeleton;
-		ozz::unique_ptr<ozz::animation::Animation> mAnimation;
 
 		// Materials
 		std::vector<Ref<Material>> mMaterials;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> mTriangleCache;
-
-		// Animation
-		bool mIsAnimated = false;
 
 		std::string mFilePath;
 
@@ -227,11 +219,10 @@ namespace NR
 		Mesh(const Ref<Mesh>& other);
 		virtual ~Mesh() = default;
 
-		void Update(float dt);
+		void UpdateBoneTransforms(const ozz::vector<ozz::math::Float4x4>& modelSpaceTransforms);
 
-		bool IsAnimated() { return mMeshAsset && mMeshAsset->IsAnimated(); }
-		bool IsAnimationPlaying() { return mAnimationPlaying; }
-		void SetAnimationPlaying(bool value) { mAnimationPlaying = value; }
+		bool IsRigged() { return mMeshAsset && mMeshAsset->IsRigged(); }
+
 		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
@@ -260,15 +251,7 @@ namespace NR
 		// Materials
 		Ref<MaterialTable> mMaterials;
 
-		// Animation
-		float mAnimationTime = 0.0f;
-		float mTimeMultiplier = 1.0f;
-		bool mAnimationPlaying = true;
-
-		// OZZ Animation
-		ozz::animation::SamplingJob::Context mSamplingContext;
-		ozz::vector<ozz::math::SoaTransform> mLocalSpaceTransforms;
-		ozz::vector<ozz::math::Float4x4> mModelSpaceTransforms;
+		// Skinning
 		ozz::vector<ozz::math::Float4x4> mBoneTransforms;
 		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
