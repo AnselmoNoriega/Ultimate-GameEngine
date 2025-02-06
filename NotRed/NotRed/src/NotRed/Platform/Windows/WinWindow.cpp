@@ -255,18 +255,6 @@ namespace NR
 
     void WinWindow::SetVSync(bool enabled)
     {
-        if (RendererAPI::Current() == RendererAPIType::OpenGL)
-        {
-            if (enabled)
-            {
-                glfwSwapInterval(1);
-            }
-            else
-            {
-                glfwSwapInterval(0);
-            }
-        }
-
         mData.VSync = enabled;
     }
 

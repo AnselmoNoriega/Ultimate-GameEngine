@@ -3,7 +3,6 @@
 
 #include "Renderer.h"
 
-#include "NotRed/Platform/OpenGL/GLPipeline.h"
 #include "NotRed/Platform/Vulkan/VKPipeline.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
@@ -15,7 +14,6 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None:    return nullptr;
-        case RendererAPIType::OpenGL:  return Ref<GLPipeline>::Create(spec);
         case RendererAPIType::Vulkan:  return Ref<VKPipeline>::Create(spec);
         default:
         {

@@ -3,7 +3,6 @@
 
 #include "NotRed/Renderer/RendererAPI.h"
 
-#include "NotRed/Platform/OpenGL/GLContext.h"
 #include "NotRed/Platform/Vulkan/VKContext.h"
 
 namespace NR
@@ -13,7 +12,6 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None:    return nullptr;
-        case RendererAPIType::OpenGL:  return Ref<GLContext>::Create();
         case RendererAPIType::Vulkan:  return Ref<VKContext>::Create();
         default:
         {

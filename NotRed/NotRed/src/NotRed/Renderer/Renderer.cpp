@@ -12,7 +12,6 @@
 #include "Shader.h"
 
 #include "NotRed/Project/Project.h"
-#include "NotRed/Platform/OpenGL/GLRenderer.h"
 #include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 #include "NotRed/Platform/Vulkan/VkRenderer.h"
 

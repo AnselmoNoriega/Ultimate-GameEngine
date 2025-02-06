@@ -21,7 +21,6 @@ namespace NR
 	enum class RendererAPIType
 	{
 		None,
-		OpenGL,
 		Vulkan
 	};
 

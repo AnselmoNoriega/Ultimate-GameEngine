@@ -3,7 +3,6 @@
 
 #include <utility>
 
-#include "NotRed/Platform/OpenGL/GLShader.h"
 #include "NotRed/Platform/Vulkan/VKShader.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
@@ -19,9 +18,6 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL:
-            result = Ref<GLShader>::Create(filepath, forceCompile);
-            break;
         case RendererAPIType::Vulkan:
             result = Ref<VKShader>::Create(filepath, forceCompile);
             break;
@@ -38,7 +34,6 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-        case RendererAPIType::OpenGL: result = GLShader::CreateFromString(vertSrc, fragSrc, computeSrc);
         }
 
         sAllShaders.push_back(result);

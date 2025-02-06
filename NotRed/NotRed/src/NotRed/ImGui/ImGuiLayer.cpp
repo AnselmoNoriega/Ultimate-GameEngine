@@ -8,7 +8,6 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/RendererAPI.h"
 
-#include "NotRed/Platform/OpenGL/GLImGuiLayer.h"
 #include "NotRed/Platform/Vulkan/VKImGuiLayer.h"
 
 namespace NR
@@ -18,7 +17,6 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None:    return nullptr;
-        case RendererAPIType::OpenGL:  return new GLImGuiLayer();
         case RendererAPIType::Vulkan:  return new VKImGuiLayer();
         default:
         {

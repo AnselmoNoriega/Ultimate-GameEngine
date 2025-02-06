@@ -1,7 +1,6 @@
 #include "nrpch.h"
 #include "FrameBuffer.h"
 
-#include "NotRed/Platform/OpenGL/GLFrameBuffer.h"
 #include "NotRed/Platform/Vulkan/VKFrameBuffer.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
@@ -15,7 +14,6 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None:		return nullptr;			
-		case RendererAPIType::OpenGL:	result = Ref<GLFrameBuffer>::Create(spec); break;
 		case RendererAPIType::Vulkan:	result = Ref<VKFrameBuffer>::Create(spec); break;
 		}
 		FrameBufferPool::GetGlobal()->Add(result);

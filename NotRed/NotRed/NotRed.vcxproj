@@ -243,20 +243,6 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsSettings.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsShapes.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsUtils.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLContext.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLImage.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLMaterial.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderer.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h" />
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.h" />
@@ -467,19 +453,6 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsScene.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsShapes.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsUtils.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLContext.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLMaterial.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.cpp" />
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\VKAllocator.cpp" />
@@ -553,6 +526,7 @@
     <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\imgui_node_editor_api.cpp" />
     <ClCompile Include="src\NotRed\Vendor\imgui-node-editor\widgets.cpp" />
     <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\stb_image.cpp" />
     <ClCompile Include="src\nrpch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

@@ -420,48 +420,6 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsUtils.h">
       <Filter>src\NotRed\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLContext.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLImage.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLMaterial.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLPipeline.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderPass.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLRenderer.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLShader.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLTexture.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLUniformBufferSet.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.h">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h">
       <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
     </ClInclude>
@@ -1087,45 +1045,6 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsUtils.cpp">
       <Filter>src\NotRed\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLContext.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLFrameBuffer.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImGuiLayer.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLImage.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLIndexBuffer.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLMaterial.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLPipeline.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderPass.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLRenderer.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLShader.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLTexture.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLUniformBuffer.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
-    <ClCompile Include="src\NotRed\Platform\OpenGL\GLVertexBuffer.cpp">
-      <Filter>src\NotRed\Platform\OpenGL</Filter>
-    </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp">
       <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
     </ClCompile>
@@ -1445,5 +1364,6 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Animation.cpp" />
+    <ClCompile Include="src\NotRed\Vendor\stb_image.cpp" />
   </ItemGroup>
 </Project>

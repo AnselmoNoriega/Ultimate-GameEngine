@@ -2,7 +2,6 @@
 #include "Texture.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
-#include "NotRed/Platform/OpenGL/GLTexture.h"
 #include "NotRed/Platform/Vulkan/VKTexture.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
@@ -14,7 +13,6 @@ namespace NR
         switch (RendererAPI::Current())
         {
         case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(format, width, height, data, properties);
 		case RendererAPIType::Vulkan: return Ref<VKTexture2D>::Create(format, width, height, data, properties);
         default:
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -27,7 +25,6 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTexture2D>::Create(path, properties);
 		case RendererAPIType::Vulkan: return Ref<VKTexture2D>::Create(path, properties);
 		default:
 		{
@@ -41,7 +38,6 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(format, width, height, data, properties);
 		case RendererAPIType::Vulkan: return Ref<VKTextureCube>::Create(format, width, height, data, properties);
 		default:
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");
@@ -54,7 +50,6 @@ namespace NR
 		switch (RendererAPI::Current())
 		{
 		case RendererAPIType::None: return nullptr;
-		case RendererAPIType::OpenGL: return Ref<GLTextureCube>::Create(path, properties);
 		case RendererAPIType::Vulkan: return Ref<VKTextureCube>::Create(path, properties);
 		default:
 			NR_CORE_ASSERT(false, "Unknown RendererAPI");

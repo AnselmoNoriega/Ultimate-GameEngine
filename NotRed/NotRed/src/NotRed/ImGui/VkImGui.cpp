@@ -6,9 +6,6 @@
 #include "NotRed/Platform/Vulkan/VkTexture.h"
 #include "NotRed/Platform/Vulkan/VkImage.h"
 
-#include "NotRed/Platform/OpenGL/GLTexture.h"
-#include "NotRed/Platform/OpenGL/GLImage.h"
-
 #include "imgui/examples/imgui_impl_vulkan_with_textures.h"
 
 namespace ImGui 
@@ -20,12 +17,7 @@ namespace NR::UI
 {
 	void Image(const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
 	{
-		if (RendererAPI::Current() == RendererAPIType::OpenGL)
-		{
-			Ref<GLImage2D> glImage = image.As<GLImage2D>();
-			ImGui::Image((ImTextureID)(size_t)glImage->GetRendererID(), size, uv0, uv1, tint_col, border_col);
-		}
-		else
+		if (RendererAPI::Current() == RendererAPIType::Vulkan)
 		{
 			Ref<VKImage2D> vkImage = image.As<VKImage2D>();
 			const auto& imageInfo = vkImage->GetImageInfo();
@@ -41,12 +33,7 @@ namespace NR::UI
 
 	void Image(const Ref<Image2D>& image, uint32_t imageLayer, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
 	{
-		if (RendererAPI::Current() == RendererAPIType::OpenGL)
-		{
-			Ref<GLImage2D> glImage = image.As<GLImage2D>();
-			ImGui::Image((ImTextureID)(size_t)glImage->GetRendererID(), size, uv0, uv1, tint_col, border_col);
-		}
-		else
+		if (RendererAPI::Current() == RendererAPIType::Vulkan)
 		{
 			Ref<VKImage2D> vulkanImage = image.As<VKImage2D>();
 			auto imageInfo = vulkanImage->GetImageInfo();
@@ -63,12 +50,7 @@ namespace NR::UI
 
 	void Image(const Ref<Texture2D>& texture, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, const ImVec4& border_col)
 	{
-		if (RendererAPI::Current() == RendererAPIType::OpenGL)
-		{
-			Ref<GLImage2D> image = texture->GetImage().As<GLImage2D>();
-			ImGui::Image((ImTextureID)(size_t)image->GetRendererID(), size, uv0, uv1, tint_col, border_col);
-		}
-		else
+		if (RendererAPI::Current() == RendererAPIType::Vulkan)
 		{
 			Ref<VKTexture2D> VkTexture = texture.As<VKTexture2D>();
 			const VkDescriptorImageInfo& imageInfo = VkTexture->GetVulkanDescriptorInfo();
@@ -104,12 +86,7 @@ namespace NR::UI
 
 	bool ImageButton(const char* stringID, const Ref<Image2D>& image, const ImVec2& size, const ImVec2& uv0, const ImVec2& uv1, int frame_padding, const ImVec4& bg_col, const ImVec4& tint_col)
 	{
-		if (RendererAPI::Current() == RendererAPIType::OpenGL)
-		{
-			Ref<GLImage2D> glImage = image.As<GLImage2D>();
-			return ImGui::ImageButton((ImTextureID)(size_t)glImage->GetRendererID(), size, uv0, uv1, frame_padding, bg_col, tint_col);
-		}
-		else
+		if (RendererAPI::Current() == RendererAPIType::Vulkan)
 		{
 			Ref<VKImage2D> VkImage = image.As<VKImage2D>();
 			const auto& imageInfo = VkImage->GetImageInfo();
@@ -141,12 +118,7 @@ namespace NR::UI
 			return false;
 		}
 
-		if (RendererAPI::Current() == RendererAPIType::OpenGL)
-		{
-			Ref<GLImage2D> image = texture->GetImage().As<GLImage2D>();
-			return ImGui::ImageButton((ImTextureID)(size_t)image->GetRendererID(), size, uv0, uv1, frame_padding, bg_col, tint_col);
-		}
-		else
+		if (RendererAPI::Current() == RendererAPIType::Vulkan)
 		{
 			Ref<VKTexture2D> vkTexture = texture.As<VKTexture2D>();
 

@@ -280,14 +280,6 @@ namespace NR
                     }
 
                     ImGui::Separator();
-                    std::string otherRenderer = RendererAPI::Current() == RendererAPIType::Vulkan ? "OpenGL" : "Vulkan";
-                    std::string label = std::string("Restart with ") + otherRenderer;
-                    if (ImGui::MenuItem(label.c_str()))
-                    {
-                        RendererAPI::SetAPI(RendererAPI::Current() == RendererAPIType::Vulkan ? RendererAPIType::OpenGL : RendererAPIType::Vulkan);
-                        Application::Get().Close();
-                    }
-                    ImGui::Separator();
                     if (ImGui::MenuItem("Exit", "Alt + F4"))
                     {
                         Application::Get().Close();
