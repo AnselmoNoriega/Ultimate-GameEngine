@@ -33,4 +33,8 @@
       <Filter>Panels</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Shaders\Renderer2D_Text\Renderer2D_Text.vert" />
+    <None Include="Resources\Shaders\Renderer2D_Text\Renderer2D_Text.frag" />
+  </ItemGroup>
 </Project>

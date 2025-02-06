@@ -22,6 +22,8 @@ IncludeDir["MiniAudio"] = "%{wks.location}/NotRed/vendor/MiniAudio/include"
 IncludeDir["Optick"] = "%{wks.location}/NotRed/vendor/Optick/src"
 IncludeDir["Ozz"] = "%{wks.location}/NotRed/vendor/ozz-animation/include"
 IncludeDir["Nlohmann"] = "%{wks.location}/NotRed/vendor/nlohmann-json"
+IncludeDir["Msdf_atlas_gen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdf-atlas-gen"
+IncludeDir["Msdfgen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdfgen"
 
 LibraryDir = {}
 LibraryDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/lib/%{cfg.buildcfg}"

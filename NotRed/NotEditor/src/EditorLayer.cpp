@@ -1,4 +1,4 @@
-#include "EditorLayer.h"
+﻿#include "EditorLayer.h"
 
 #include <filesystem>
 
@@ -121,6 +121,10 @@ namespace NR
         AudioEventsEditor::Init();
 
         sNotRedInstallPath = FileSystem::GetEnvironmentVariable("NOTRED_DIR");
+
+        memset(mTextBuffer, 0, 250 * 1000);
+        strcpy(mTextBuffer, "Hello World");
+        mMSGothic = Ref<Font>::Create("Resources/Fonts/Roboto/Roboto-Regular.ttf");
     }
 
     void EditorLayer::Detach()
@@ -705,6 +709,11 @@ namespace NR
 
         Renderer2D::BeginScene(mEditorCamera.GetViewProjection(), mEditorCamera.GetViewMatrix());
         Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
+
+        std::u32string yan = U"Привет русск!";
+        std::u32string japanese = U"こんにちは世";
+        Renderer2D::DrawString(yan, mTextPosition, mLayoutWidth, mTextColor);
+        Renderer2D::DrawString(japanese, mMSGothic, mTextPosition + glm::vec3(0, -1.0f, 0.0f), mLayoutWidth, mTextColor);
 
         if (mDrawOnTopBoundingBoxes)
         {
@@ -1449,6 +1458,13 @@ namespace NR
         }
 
         style.WindowMinSize.x = minWinSizeX;
+
+        ImGui::Begin("Font Testing");
+        ImGui::DragFloat3("Position", glm::value_ptr(mTextPosition));
+        ImGui::ColorEdit4("Text Color", glm::value_ptr(mTextColor));
+        ImGui::DragFloat("Layout Width", &mLayoutWidth);
+        ImGui::InputTextMultiline("Text", mTextBuffer, 250 * 1000);
+        ImGui::End();
 
         // Editor Panel ------------------------------------------------------------------------------
         ImGui::Begin("Settings");

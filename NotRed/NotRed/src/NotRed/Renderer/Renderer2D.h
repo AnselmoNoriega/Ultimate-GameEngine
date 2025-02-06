@@ -8,6 +8,8 @@
 
 #include "NotRed/Renderer/Texture.h"
 
+#include "UI/Font.h"
+
 namespace NR
 {
 	class Renderer2D
@@ -51,6 +53,10 @@ namespace NR
 
 		static void DrawAABB(const AABB& aabb, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
 		static void DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color = glm::vec4(1.0f));
+
+		static void DrawString(const std::u32string& string, const glm::vec3& position, float maxWidth, const glm::vec4& color = glm::vec4(1.0f));
+		static void DrawString(const std::u32string& string, const Ref<Font>& font, const glm::vec3& position, float maxWidth, const glm::vec4& color = glm::vec4(1.0f));
+
 		static void SetLineWidth(float lineWidth);
 
 		struct Statistics

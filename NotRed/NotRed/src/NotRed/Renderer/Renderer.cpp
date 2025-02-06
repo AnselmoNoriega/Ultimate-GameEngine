@@ -160,6 +160,7 @@ namespace NR
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Line");
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Circle");
+        Renderer::GetShaderLibrary()->Load("Resources/Shaders/Renderer2D_Text");
 
         // Jump Flood Shaders
         Renderer::GetShaderLibrary()->Load("Resources/Shaders/JumpFlood_Init");

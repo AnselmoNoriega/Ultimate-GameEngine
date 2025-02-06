@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\choc;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\imgui-node-editor;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\nlohmann-json;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;vendor\farbot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\choc;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\imgui-node-editor;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\nlohmann-json;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;vendor\farbot\include;vendor\msdf-atlas-gen\msdf-atlas-gen;vendor\msdf-atlas-gen\msdfgen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -100,7 +100,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\choc;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\imgui-node-editor;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\nlohmann-json;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;vendor\farbot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\choc;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\imgui-node-editor;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\nlohmann-json;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;vendor\farbot\include;vendor\msdf-atlas-gen\msdf-atlas-gen;vendor\msdf-atlas-gen\msdfgen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -126,7 +126,7 @@
       <PrecompiledHeaderFile>nrpch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>PX_PHYSX_STATIC_LIB;NR_PLATFORM_WINDOWS;NR_BUILD_DLL;NR_DIST;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\choc;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\imgui-node-editor;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\nlohmann-json;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;vendor\farbot\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendor;..;vendor\assimp\include;vendor\box2D\include;vendor\choc;vendor\GLFW\include;vendor\glad\include;vendor\glm;vendor\yaml-cpp\include;vendor\stb_image;vendor\imgui;vendor\imgui-node-editor;vendor\Entt\include;vendor\mono\include;vendor\Optick\src;vendor\ozz-animation\include;vendor\nlohmann-json;vendor\PhysX\include;vendor\FastNoise;vendor\Vulkan\Include;vendor\NsightAftermath\include;vendor\MiniAudio\include;vendor\farbot\include;vendor\msdf-atlas-gen\msdf-atlas-gen;vendor\msdf-atlas-gen\msdfgen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -159,6 +159,7 @@
     <ClInclude Include="src\NotRed\Asset\AssimpLog.h" />
     <ClInclude Include="src\NotRed\Asset\GraphSerializer.h" />
     <ClInclude Include="src\NotRed\Asset\MeshSerializer.h" />
+    <ClInclude Include="src\NotRed\Asset\OZZImporterAssimp.h" />
     <ClInclude Include="src\NotRed\Audio\Audio.h" />
     <ClInclude Include="src\NotRed\Audio\AudioComponent.h" />
     <ClInclude Include="src\NotRed\Audio\AudioEngine.h" />
@@ -282,7 +283,6 @@
     <ClInclude Include="src\NotRed\Renderer\MaterialAsset.h" />
     <ClInclude Include="src\NotRed\Renderer\Mesh.h" />
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h" />
-    <ClInclude Include="src\NotRed\Asset\OZZImporterAssimp.h" />
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h" />
     <ClInclude Include="src\NotRed\Renderer\PipelineCompute.h" />
     <ClInclude Include="src\NotRed\Renderer\RenderCommandBuffer.h" />
@@ -302,6 +302,8 @@
     <ClInclude Include="src\NotRed\Renderer\StorageBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\StorageBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\Texture.h" />
+    <ClInclude Include="src\NotRed\Renderer\UI\Font.h" />
+    <ClInclude Include="src\NotRed\Renderer\UI\MSDFData.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h" />
     <ClInclude Include="src\NotRed\Renderer\UniformBufferSet.h" />
     <ClInclude Include="src\NotRed\Renderer\VertexBuffer.h" />
@@ -506,6 +508,7 @@
     <ClCompile Include="src\NotRed\Renderer\StorageBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\StorageBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UI\Font.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp" />
     <ClCompile Include="src\NotRed\Renderer\UniformBufferSet.cpp" />
     <ClCompile Include="src\NotRed\Renderer\VertexBuffer.cpp" />
@@ -640,6 +643,9 @@
     </ProjectReference>
     <ProjectReference Include="vendor\Optick\Optick.vcxproj">
       <Project>{AFAE52C8-9B50-7D9E-840B-91F2704C04EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendor\msdf-atlas-gen\msdf-atlas-gen.vcxproj">
+      <Project>{38BD587B-248B-4C81-0D1F-BDA7F98B28E6}</Project>
     </ProjectReference>
     <ProjectReference Include="vendor\ImGui\ImGui.vcxproj">
       <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>

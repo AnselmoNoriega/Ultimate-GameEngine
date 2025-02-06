@@ -67,9 +67,6 @@
     <Filter Include="src\NotRed\Platform">
       <UniqueIdentifier>{7C6E9096-E8CF-6DA4-713D-B456DD9DA463}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\NotRed\Platform\OpenGL">
-      <UniqueIdentifier>{30744830-1C84-F400-853D-591F716CE399}</UniqueIdentifier>
-    </Filter>
     <Filter Include="src\NotRed\Platform\Vulkan">
       <UniqueIdentifier>{7CD8FA40-68E8-A611-D1A1-0B30BDD095AA}</UniqueIdentifier>
     </Filter>
@@ -162,10 +159,16 @@
     <ClInclude Include="src\NotRed\Asset\AssetTypes.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\AssimpLog.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Asset\GraphSerializer.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Asset\MeshSerializer.h">
+      <Filter>src\NotRed\Asset</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Asset\OZZImporterAssimp.h">
       <Filter>src\NotRed\Asset</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Audio\Audio.h">
@@ -510,6 +513,9 @@
     <ClInclude Include="src\NotRed\Project\UserPreferences.h">
       <Filter>src\NotRed\Project</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\Animation.h">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Camera.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -532,9 +538,6 @@
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\MeshFactory.h">
-      <Filter>src\NotRed\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\NotRed\Asset\OZZImporterAssimp.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\Pipeline.h">
@@ -831,8 +834,8 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Asset\AssimpLog.h" />
-    <ClInclude Include="src\NotRed\Renderer\Animation.h" />
+    <ClInclude Include="src\NotRed\Renderer\UI\Font.h" />
+    <ClInclude Include="src\NotRed\Renderer\UI\MSDFData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1132,6 +1135,9 @@
     <ClCompile Include="src\NotRed\Project\UserPreferences.cpp">
       <Filter>src\NotRed\Project</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\Animation.cpp">
+      <Filter>src\NotRed\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\Camera.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1261,6 +1267,9 @@
     <ClCompile Include="src\NotRed\Vendor\miniaudio.cpp">
       <Filter>src\NotRed\Vendor</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Vendor\stb_image.cpp">
+      <Filter>src\NotRed\Vendor</Filter>
+    </ClCompile>
     <ClCompile Include="src\nrpch.cpp">
       <Filter>src</Filter>
     </ClCompile>
@@ -1363,7 +1372,6 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\Animation.cpp" />
-    <ClCompile Include="src\NotRed\Vendor\stb_image.cpp" />
+    <ClCompile Include="src\NotRed\Renderer\UI\Font.cpp" />
   </ItemGroup>
 </Project>

@@ -22,6 +22,8 @@
 
 #include "NotRed/Project/UserPreferences.h"
 
+#include "NotRed/Renderer/UI/Font.h"
+
 namespace NR
 {
 	class EditorLayer : public Layer
@@ -245,6 +247,12 @@ namespace NR
 		std::vector<SelectedSubmesh> mSelectionContext;
 		glm::mat4* mRelativeTransform = nullptr;
 		glm::mat4* mCurrentlySelectedTransform = nullptr;
+
+		Ref<Font> mMSGothic;
+		char* mTextBuffer = new char[250 * 1000];
+		glm::vec4 mTextColor = glm::vec4(1.0f);
+		float mLayoutWidth = 20.0f;
+		glm::vec3 mTextPosition = { 10.0f, 10.0f, 0.0f };
 	};
 
 }

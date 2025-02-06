@@ -189,6 +189,10 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <Project>{694CCA4B-D5B8-8546-9EAC-1DA40AD8A7AE}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Shaders\Renderer2D_Text\Renderer2D_Text.frag" />
+    <None Include="Resources\Shaders\Renderer2D_Text\Renderer2D_Text.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -27,6 +27,9 @@ include "NotRed/vendor/ImGui"
 include "NotRed/vendor/Box2D"
 include "NotRed/vendor/Optick"
 include "NotRed/vendor/ozz-animation"
+
+group "Dependencies/msdf"
+include "NotRed/vendor/msdf-atlas-gen"
 group ""
 
 group "Core"
@@ -84,7 +87,9 @@ project "NotRed"
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.NsightAftermath}",
 		"%{IncludeDir.MiniAudio}",
-		"%{IncludeDir.Farbot}"
+		"%{IncludeDir.Farbot}",
+		"%{IncludeDir.Msdf_atlas_gen}",
+		"%{IncludeDir.Msdfgen}"
 	}
 	
 	links 
@@ -93,6 +98,7 @@ project "NotRed"
 		"GLFW",
 		"Glad",
 		"Optick",
+		"msdf-atlas-gen",
 		"ImGui",
 		"opengl32.lib",
 		"ozz_base",

@@ -166,16 +166,22 @@ namespace NR
 						{
 							blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 							blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+							blendAttachmentStates[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+							blendAttachmentStates[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 						}
 						else if (blendMode == FrameBufferBlendMode::OneZero)
 						{
 							blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
 							blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+							blendAttachmentStates[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+							blendAttachmentStates[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 						}
 						else if (blendMode == FrameBufferBlendMode::Zero_SrcColor)
 						{
 							blendAttachmentStates[i].srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
 							blendAttachmentStates[i].dstColorBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
+							blendAttachmentStates[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+							blendAttachmentStates[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_SRC_COLOR;
 						}
 						else
 						{
@@ -183,8 +189,6 @@ namespace NR
 						}
 						blendAttachmentStates[i].colorBlendOp = VK_BLEND_OP_ADD;
 						blendAttachmentStates[i].alphaBlendOp = VK_BLEND_OP_ADD;
-						blendAttachmentStates[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-						blendAttachmentStates[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 					}
 				}
 
