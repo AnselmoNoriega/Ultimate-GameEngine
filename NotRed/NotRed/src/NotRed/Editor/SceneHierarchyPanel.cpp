@@ -1323,7 +1323,11 @@ namespace NR
                 if (entity.HasComponent<MeshComponent>())
                 {
                     auto mc = entity.GetComponent<MeshComponent>();
-                    if (!mc.MeshObj || !mc.MeshObj->IsValid() || !mc.MeshObj->IsRigged()) {
+                    if (mc.MeshObj && mc.MeshObj->IsValid() && mc.MeshObj->IsRigged())
+                    {
+                    }
+                    else
+                    {
                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
                         ImGui::Text("Mesh is not rigged for animation!");
                         ImGui::PopStyleColor();

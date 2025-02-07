@@ -11,6 +11,28 @@
 
 namespace NR
 {
+	// A skeleton to which an animation clip can be applied
+	// Sometimes called "Armature"
+	class SkeletonAsset : public Asset
+	{
+	public:
+		SkeletonAsset(const std::string& filename);
+		virtual ~SkeletonAsset() = default;
+
+		const std::string& GetFilePath() const { return mFilePath; }
+		static AssetType GetStaticType() { return AssetType::Skeleton; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+		
+		const ozz::animation::Skeleton& GetSkeleton() const { NR_CORE_ASSERT(mSkeleton, "Attempted to access null skeleton!"); return *mSkeleton; }
+	
+	public:
+		static bool AreSameSkeleton(const ozz::animation::Skeleton& a, const ozz::animation::Skeleton& b);
+	
+	private:
+		ozz::unique_ptr<ozz::animation::Skeleton> mSkeleton;
+		std::string mFilePath;
+	};
+
 	// A single animation clip
 	class AnimationAsset : public Asset
 	{
@@ -23,7 +45,9 @@ namespace NR
 		static AssetType GetStaticType() { return AssetType::Animation; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
-		const ozz::animation::Skeleton& GetSkeleton() const { NR_CORE_ASSERT(mSkeleton, "Attempted to access null skeleton!"); return *mSkeleton; }
+		bool IsLoaded() { return mIsLoaded; }
+		void Load(Ref<SkeletonAsset> skeleton);
+
 		const ozz::animation::Animation& GetAnimation() const { NR_CORE_ASSERT(mAnimation, "Attempted to access null animation!"); return *mAnimation; }
 
 	private:
@@ -31,39 +55,44 @@ namespace NR
 		ozz::unique_ptr<ozz::animation::Animation> mAnimation;
 
 		std::string mFilePath;
+		bool mIsLoaded = false;
 	};
-
 
 	// Controls which animation (or animations) is playing on a mesh
 	class AnimationController : public Asset
 	{
 	public:
-		AnimationController(Ref<AnimationAsset> animationAsset);
-		AnimationController(const Ref<AnimationController>& other);
 		virtual ~AnimationController() = default;
 
 		void Update(float dt);
 
-		bool IsAnimationPlaying() { return mAnimationPlaying; }
-		void SetAnimationPlaying(bool value) { mAnimationPlaying = value; }
+		bool IsAnimationPlaying() const { return mAnimationPlaying; }
+		void SetAnimationPlaying(const bool value) { mAnimationPlaying = value; }
+		uint32_t GetStateIndex() { return static_cast<uint32_t>(mStateIndex); }
+		void SetStateIndex(const uint32_t stateIndex) { mStateIndex = stateIndex; }
+		Ref<SkeletonAsset> GetSkeletonAsset() { return mSkeletonAsset; }
+		Ref<SkeletonAsset> GetSkeletonAsset() const { return mSkeletonAsset; }
+		void SetSkeletonAsset(Ref<SkeletonAsset> skeletonAsset);
 
-		Ref<AnimationAsset> GetAnimationAsset() { return mAnimationAsset; }
-		Ref<AnimationAsset> GetAnimationAsset() const { return mAnimationAsset; }
-		void SetAnimationAsset(Ref<AnimationAsset> animationAsset);
+		size_t GetNumStates() const { return mStateNames.size(); }
+		const std::string& GetStateName(const size_t stateIndex) { return mStateNames[stateIndex]; }
+		Ref<AnimationAsset> GetAnimationAsset(const size_t stateIndex) { return mAnimationAssets[stateIndex]; }
+		Ref<AnimationAsset> GetAnimationAsset(const size_t stateIndex) const { return mAnimationAssets[stateIndex]; }
+		void SetAnimationAsset(const std::string_view stateName, Ref<AnimationAsset> animationAsset);
 
 		static AssetType GetStaticType() { return AssetType::AnimationController; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
-		ozz::span<const char* const> GetJointNames() { return mAnimationAsset ? mAnimationAsset->GetSkeleton().joint_names() : ozz::span<const char* const>(); }
-
 		const ozz::vector<ozz::math::Float4x4>& GetModelSpaceTransforms() { return mModelSpaceTransforms; }
 
 	private:
-		Ref<AnimationAsset> mAnimationAsset;  // Only one animation for now.  Later there will be a bunch of different ones, comprising the "states" of the animation controller
+		ozz::vector<std::string> mStateNames;
+		ozz::vector<Ref<AnimationAsset>> mAnimationAssets;
+		Ref<SkeletonAsset> mSkeletonAsset;
 
-		// Animation
 		float mAnimationTime = 0.0f;
 		float mTimeMultiplier = 1.0f;
+		size_t mStateIndex = 0;
 		bool mAnimationPlaying = true;
 
 		ozz::animation::SamplingJob::Context mSamplingContext;

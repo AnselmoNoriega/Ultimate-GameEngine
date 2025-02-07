@@ -81,6 +81,13 @@ namespace NR
         bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
     };
 
+    class SkeletonAssetSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
+        bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+    };
+
     class AnimationAssetSerializer : public AssetSerializer
     {
     public:

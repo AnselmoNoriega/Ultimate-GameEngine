@@ -168,11 +168,6 @@ namespace NR
         internal static extern bool HasMaterial_Native(ulong entityID, int index);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern IntPtr GetMaterial_Native(ulong entityID, int index);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void SetIsAnimationPlaying_Native(ulong entityID, bool value);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void ReloadMeshCollider_Native(ulong entityID);
 
@@ -191,11 +186,26 @@ namespace NR
                 SetIsAnimationPlaying_Native(Entity.ID, value);
             }
         }
+        public uint StateIndex
+        {
+            get
+            {
+                return GetStateIndex_Native(Entity.ID);
+            }
+            set
+            {
+                SetStateIndex_Native(Entity.ID, value);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetIsAnimationPlaying_Native(ulong entityID, bool value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern uint GetStateIndex_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void SetStateIndex_Native(ulong entityID, uint value);
     }
 
     public class CameraComponent : Component

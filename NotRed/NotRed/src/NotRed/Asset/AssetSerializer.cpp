@@ -402,6 +402,14 @@ namespace NR
 		return true;
 	}
 
+	bool SkeletonAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		Ref<Asset> temp = asset;
+		asset = Ref<SkeletonAsset>::Create(AssetManager::GetFileSystemPathString(metadata));
+		asset->Handle = metadata.Handle;
+		return (asset.As<SkeletonAsset>())->IsValid();
+	}
+
 	bool AnimationAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		Ref<Asset> temp = asset;
@@ -420,15 +428,19 @@ namespace NR
 			out << YAML::BeginMap;
 			out << YAML::Key << "AssetHandle" << YAML::Value << animationController->Handle;
 			out << YAML::Key << "IsPlaying" << YAML::Value << animationController->IsAnimationPlaying();
+			out << YAML::Key << "SkeletonAsset" << YAML::Value << animationController->GetSkeletonAsset()->Handle;
 			out << YAML::Key << "States" << YAML::Value;
 			out << YAML::BeginSeq;
 			{
-				out << YAML::BeginMap;
+				for (size_t i = 0; i < animationController->GetNumStates(); ++i)
 				{
-					out << YAML::Key << "State" << YAML::Value << "default";
-					out << YAML::Key << "AnimationAsset" << YAML::Value << animationController->GetAnimationAsset()->Handle;
+					out << YAML::BeginMap;
+					{
+						out << YAML::Key << "State" << YAML::Value << animationController->GetStateName(i);
+						out << YAML::Key << "AnimationAsset" << YAML::Value << animationController->GetAnimationAsset(i)->Handle;
+					}
+					out << YAML::EndMap;
 				}
-				out << YAML::EndMap;
 			}
 			out << YAML::EndSeq;
 		}
@@ -454,25 +466,31 @@ namespace NR
 		}
 
 		YAML::Node animationControllerNode = data["AnimationController"];
-		YAML::Node states = animationControllerNode["States"];
 		Ref<AnimationAsset> animationAsset;
 
-		for (const auto& state : states) {
-			if (!state.IsMap())
+		Ref<AnimationController> animationController = Ref<AnimationController>::Create();
+		if (animationControllerNode["IsPlaying"])
+		{
+			animationController->SetAnimationPlaying(animationControllerNode["IsPlaying"].as<bool>());
+		}
+		if (animationControllerNode["SkeletonAsset"])
+		{
+			animationController->SetSkeletonAsset(AssetManager::GetAsset<SkeletonAsset>(animationControllerNode["SkeletonAsset"].as<uint64_t>()));
+		}
+		else
+		{
+			return false;
+		}
+		for (const auto& state : animationControllerNode["States"]) 
+		{
+			if (!state.IsMap() || !state["AnimationAsset"] || !state["Name"])
 			{
 				continue;
 			}
-			if (!state["AnimationAsset"])
-			{
-				continue;
-			}
-			AssetHandle animationAssetHandle = state["AnimationAsset"].as<uint64_t>();
-			animationAsset = AssetManager::GetAsset<AnimationAsset>(animationAssetHandle);
-			break; // only one state for now...
+
+			animationController->SetAnimationAsset(state["Name"].as<std::string>(), AssetManager::GetAsset<AnimationAsset>(state["AnimationAsset"].as<uint64_t>()));
 		}
 
-		Ref<AnimationController> animationController = Ref<AnimationController>::Create(animationAsset);
-		animationController->SetAnimationPlaying(animationControllerNode["IsPlaying"].as<bool>());
 		animationController->Handle = metadata.Handle;
 		asset = animationController;
 		return true;

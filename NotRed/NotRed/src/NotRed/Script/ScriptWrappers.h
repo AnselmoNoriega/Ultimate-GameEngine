@@ -88,6 +88,8 @@ namespace NR::Script
     bool NR_MeshComponent_GetIsRigged(uint64_t entityID);
     bool NR_AnimationComponent_GetIsAnimationPlaying(uint64_t entityID);
     void NR_AnimationComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
+    uint32_t NR_AnimationComponent_GetStateIndex(uint64_t entityID);
+    void NR_AnimationComponent_SetStateIndex(uint64_t entityID, uint32_t value);
     void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID);
 
     MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID);

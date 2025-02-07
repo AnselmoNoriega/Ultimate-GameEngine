@@ -24,6 +24,7 @@ namespace NR
         PhysicsMat,
         SoundConfig,
         SpatializationConfig,
+        Skeleton,
         Animation,
         AnimationController,
         Font,
@@ -45,6 +46,7 @@ namespace NR
             if (assetType == "Audio")                   return AssetType::Audio;
             if (assetType == "PhysicsMat")              return AssetType::PhysicsMat;
             if (assetType == "SoundConfig")             return AssetType::SoundConfig;
+            if (assetType == "Skeleton")                return AssetType::Skeleton;
             if (assetType == "Animation")               return AssetType::Animation;
             if (assetType == "AnimationController")     return AssetType::AnimationController;
             if (assetType == "Font")                    return AssetType::Font;
@@ -69,6 +71,7 @@ namespace NR
             case AssetType::Audio:                      return "Audio";
             case AssetType::PhysicsMat:                 return "PhysicsMat";
             case AssetType::SoundConfig:                return "SoundConfig";
+            case AssetType::Skeleton:                   return "Skeleton";
             case AssetType::DemoGraph:                  return "DemoGraph";
             case AssetType::Animation:                  return "Animation";
             case AssetType::AnimationController:        return "AnimationController";

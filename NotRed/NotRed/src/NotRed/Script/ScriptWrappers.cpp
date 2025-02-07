@@ -798,6 +798,28 @@ namespace NR::Script
         animationComponent.AnimationController->SetAnimationPlaying(value);
     }
 
+    uint32_t NR_AnimationComponent_GetStateIndex(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        Entity entity = entityMap.at(entityID);
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        return animationComponent.AnimationController->GetStateIndex();
+    }
+
+    void NR_AnimationComponent_SetStateIndex(uint64_t entityID, uint32_t value)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        Entity entity = entityMap.at(entityID);
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        animationComponent.AnimationController->SetStateIndex(value);
+    }
+
     void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
