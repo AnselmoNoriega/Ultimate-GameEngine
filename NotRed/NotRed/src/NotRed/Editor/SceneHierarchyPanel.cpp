@@ -9,6 +9,9 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <codecvt>
+#include <locale>
+
 #include "NotRed/Core/Application.h"
 #include "NotRed/Scene/Prefab.h"
 #include "NotRed/Math/Math.h"
@@ -1418,11 +1421,8 @@ namespace NR
         DrawComponent<TextComponent>("Text", entity, [](TextComponent& tc)
             {
                 UI::BeginPropertyGrid();
-                std::string normalString(tc.TextString.begin(), tc.TextString.end());
-                if (UI::Property("Text String", normalString))
-                {
-                    tc.TextString = std::u32string(normalString.begin(), normalString.end());
-                }
+
+                UI::PropertyMultiline("Text String", tc.TextString);
 
                 UI::PropertyAssetReferenceSettings settings;
                 bool customFont = tc.FontAsset->Handle != Font::GetDefaultFont()->Handle;
@@ -1449,7 +1449,7 @@ namespace NR
                 UI::Property("Kerning", tc.Kerning, 0.01f);
                 UI::Separator();
                 UI::Property("Max Width", tc.MaxWidth);
-                
+
                 UI::EndPropertyGrid();
             });
 
@@ -1728,9 +1728,9 @@ namespace NR
                             {
                                 UI::PopItemDisabled();
                             }
-                                    }
-                                }
-                            }
+                        }
+                    }
+                }
 
                 UI::EndPropertyGrid();
 #if TODO
@@ -1739,7 +1739,7 @@ namespace NR
                     ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-                            });
+            });
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
@@ -2024,5 +2024,5 @@ namespace NR
                 UI::PopID();
                 colors[ImGuiCol_Separator] = oldSCol;
             });
-                        }
-                    }
+                }
+            }

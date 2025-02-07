@@ -340,7 +340,7 @@ namespace NR
 			out << YAML::Key << "TextComponent";
 			out << YAML::BeginMap; // TextComponent
 			auto& textComponent = entity.GetComponent<TextComponent>();
-			out << YAML::Key << "TextString" << YAML::Value << std::string(textComponent.TextString.begin(), textComponent.TextString.end());
+			out << YAML::Key << "TextString" << YAML::Value << textComponent.TextString;
 			out << YAML::Key << "FontHandle" << YAML::Value << textComponent.FontAsset->Handle;
 			out << YAML::Key << "Color" << YAML::Value << textComponent.Color;
 			out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.LineSpacing;
@@ -985,8 +985,7 @@ namespace NR
 			if (textComponent)
 			{
 				auto& component = deserializedEntity.AddComponent<TextComponent>();
-				std::string textString = textComponent["TextString"].as<std::string>();
-				component.TextString = std::u32string(textString.begin(), textString.end());
+				component.TextString = textComponent["TextString"].as<std::string>();
 				
 				AssetHandle fontHandle = textComponent["FontHandle"].as<uint64_t>();
 				if (AssetManager::IsAssetHandleValid(fontHandle))

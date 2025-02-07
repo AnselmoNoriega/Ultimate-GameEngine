@@ -28,6 +28,7 @@ namespace NR::UI
     static int sUIContextID = 0;
     static uint32_t sCounter = 0;
     static char sIDBuffer[16];
+    static char* sMultilineBuffer = nullptr;
 
     static const char* GenerateID()
     {
@@ -164,6 +165,43 @@ namespace NR::UI
         ImGui::NextColumn();
         Draw::Underline();
 
+        return modified;
+    }
+
+    static bool PropertyMultiline(const char* label, std::string& value)
+    {
+        bool modified = false;
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+        if (!sMultilineBuffer)
+        {
+            sMultilineBuffer = new char[1024 * 1024]; // 1KB
+            memset(sMultilineBuffer, 0, 1024 * 1024);
+        }
+
+        strcpy(sMultilineBuffer, value.c_str());
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+        if (IsItemDisabled())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
+
+        if (ImGui::InputTextMultiline(sIDBuffer, sMultilineBuffer, 1024 * 1024))
+        {
+            value = sMultilineBuffer;
+            modified = true;
+        }
+        if (IsItemDisabled())
+        {
+            ImGui::PopStyleVar();
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
         return modified;
     }
 

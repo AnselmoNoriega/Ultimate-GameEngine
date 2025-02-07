@@ -161,7 +161,7 @@ namespace NR
 
     struct TextComponent
     {
-        std::u32string TextString = U"Text";
+        std::string TextString = "Text";
 
         // Font
         Ref<Font> FontAsset = Font::GetDefaultFont();

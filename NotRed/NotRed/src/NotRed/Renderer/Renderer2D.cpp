@@ -8,6 +8,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <codecvt>
+
 // TEMP
 #include "NotRed/Platform/Vulkan/VKRenderCommandBuffer.h"
 
@@ -931,18 +933,24 @@ namespace NR
 		return false;
 	}
 
-	void Renderer2D::DrawString(const std::u32string& string, const glm::vec3& position, float maxWidth, const glm::vec4& color)
+	void Renderer2D::DrawString(const std::string& string, const glm::vec3& position, float maxWidth, const glm::vec4& color)
 	{
 		// Use default font
 		DrawString(string, Font::GetDefaultFont(), position, maxWidth, color);
 	}
 
-	void Renderer2D::DrawString(const std::u32string& string, const Ref<Font>& font, const glm::vec3& position, float maxWidth, const glm::vec4& color)
+	void Renderer2D::DrawString(const std::string& string, const Ref<Font>& font, const glm::vec3& position, float maxWidth, const glm::vec4& color)
 	{
 		DrawString(string, font, glm::translate(glm::mat4(1.0f), position), maxWidth, color);
 	}
 
-	void Renderer2D::DrawString(const std::u32string& string, const Ref<Font>& font, const glm::mat4& transform, float maxWidth, const glm::vec4& color, float lineHeightOffset, float kerningOffset)
+	static std::u32string To_UTF32(const std::string& s)
+	{
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv;
+		return conv.from_bytes(s);
+	}
+
+	void Renderer2D::DrawString(const std::string& string, const Ref<Font>& font, const glm::mat4& transform, float maxWidth, const glm::vec4& color, float lineHeightOffset, float kerningOffset)
 	{
 		if (string.empty())
 		{
@@ -950,6 +958,8 @@ namespace NR
 		}
 
 		float textureIndex = 0.0f;
+
+		std::u32string utf32string = To_UTF32(string);
 
 		Ref<Texture2D> fontAtlas = font->GetFontAtlas();
 		NR_CORE_ASSERT(fontAtlas);
@@ -979,9 +989,9 @@ namespace NR
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
 			double y = -fsScale * metrics.ascenderY;
 			int lastSpace = -1;
-			for (int i = 0; i < string.size(); ++i)
+			for (int i = 0; i < utf32string.size(); ++i)
 			{
-				char32_t character = string[i];
+				char32_t character = utf32string[i];
 				if (character == '\n')
 				{
 					x = 0;
@@ -1027,7 +1037,7 @@ namespace NR
 				}
 
 				double advance = glyph->getAdvance();
-				fontGeometry.getAdvance(advance, string[i], string[i + 1]);
+				fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
 				x += fsScale * advance + kerningOffset;
 			}
 		}
@@ -1036,16 +1046,17 @@ namespace NR
 			double x = 0.0;
 			double fsScale = 1 / (metrics.ascenderY - metrics.descenderY);
 			double y = 0.0;// -fsScale * metrics.ascenderY;
-			for (int i = 0; i < string.size(); ++i)
+			for (int i = 0; i < utf32string.size(); ++i)
 			{
-				if (string[i] == '\n' || NextLine(i, nextLines))
+				char32_t character = utf32string[i];
+				if (character == '\n' || NextLine(i, nextLines))
 				{
 					x = 0;
 					y -= fsScale * metrics.lineHeight + lineHeightOffset;
 					continue;
 				}
 
-				auto glyph = fontGeometry.getGlyph(string[i]);
+				auto glyph = fontGeometry.getGlyph(character);
 				if (!glyph)
 				{
 					glyph = fontGeometry.getGlyph('?');
@@ -1100,7 +1111,7 @@ namespace NR
 				mTextIndexCount += 6;
 
 				double advance = glyph->getAdvance();
-				fontGeometry.getAdvance(advance, string[i], string[i + 1]);
+				fontGeometry.getAdvance(advance, character, utf32string[i + 1]);
 				x += fsScale * advance + kerningOffset;
 
 				mStats.QuadCount++;

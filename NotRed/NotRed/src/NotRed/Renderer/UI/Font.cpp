@@ -144,17 +144,25 @@ namespace NR
 
 
 			// Load character set
+			fontInput.glyphIdentifierType = GlyphIdentifierType::UNICODE_CODEPOINT;
 			Charset charset;
-			if (fontInput.charsetFilename) {
-				if (!charset.load(fontInput.charsetFilename, fontInput.glyphIdentifierType != GlyphIdentifierType::UNICODE_CODEPOINT))
-				{
-					NR_CORE_ASSERT(false);
-				}
-			}
-			else 
+
+			// From ImGui
+			static const uint32_t charsetRanges[] =
 			{
-				charset = Charset::ASCII;
-				fontInput.glyphIdentifierType = GlyphIdentifierType::UNICODE_CODEPOINT;
+				0x0020, 0x00FF, // Basic Latin + Latin Supplement
+				0x0400, 0x052F, // Cyrillic + Cyrillic Supplement
+				0x2DE0, 0x2DFF, // Cyrillic Extended-A
+				0xA640, 0xA69F, // Cyrillic Extended-B
+				0,
+			};
+
+			for (int range = 0; range < 8; range += 2)
+			{
+				for (int c = charsetRanges[range]; c <= charsetRanges[range + 1]; ++c)
+				{
+					charset.add(c);
+				}
 			}
 
 			// Load glyphs

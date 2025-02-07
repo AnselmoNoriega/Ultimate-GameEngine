@@ -49,9 +49,9 @@ namespace NR
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 
-        io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Bold.ttf", 21.0f);
-        io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Regular.ttf", 26.0f);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Regular.ttf", 21.0f);
+        io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Bold.ttf", 21.0f, nullptr, io.Fonts->GetGlyphRangesCyrillic());
+        io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Regular.ttf", 26.0f, nullptr, io.Fonts->GetGlyphRangesCyrillic());
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("Resources/Fonts/Roboto/Roboto-Regular.ttf", 21.0f, nullptr, io.Fonts->GetGlyphRangesCyrillic());
 
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
