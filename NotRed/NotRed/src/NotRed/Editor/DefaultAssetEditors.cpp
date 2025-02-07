@@ -443,7 +443,7 @@ namespace NR
 	void AudioFileViewer::SetAsset(const Ref<Asset>& asset)
 	{
 		mAsset = (Ref<AudioFile>)asset;
-		AssetMetadata& metadata = AssetManager::GetMetadata(mAsset.As<AudioFile>()->Handle);
+		const AssetMetadata& metadata = AssetManager::GetMetadata(mAsset.As<AudioFile>()->Handle);
 		SetTitle(metadata.FilePath.stem().string());
 	}
 
@@ -505,7 +505,7 @@ namespace NR
 	void SoundConfigEditor::SetAsset(const Ref<Asset>& asset)
 	{
 		mAsset = (Ref<SoundConfig>)asset;
-		AssetMetadata& metadata = AssetManager::GetMetadata(mAsset.As<SoundConfig>()->Handle);
+		const AssetMetadata& metadata = AssetManager::GetMetadata(mAsset.As<SoundConfig>()->Handle);
 		SetTitle(metadata.FilePath.stem().string());
 	}
 

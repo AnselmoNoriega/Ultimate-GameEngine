@@ -83,10 +83,10 @@ namespace NR
 
 		void SetSelected(bool value);
 
-		void Rename(const std::string& newName, bool fromCallback = false);
+		void Rename(const std::string& newName);
 
 	private:
-		virtual void Renamed(const std::string& newName, bool fromCallback = false) { mName = newName; }
+		virtual void OnRenamed(const std::string& newName) { mName = newName; }
 		virtual void RenderCustomContextItems() {}
 		virtual void UpdateDrop(CBItemActionResult& actionResult) {}
 
@@ -130,7 +130,7 @@ namespace NR
 
 	private:
 		void Activate(CBItemActionResult& actionResult) override;
-		void Renamed(const std::string& newName, bool fromCallback) override;
+		void OnRenamed(const std::string& newName) override;
 		void UpdateDrop(CBItemActionResult& actionResult) override;
 
 		void UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath, const std::filesystem::path& newName);
@@ -152,7 +152,7 @@ namespace NR
 
 	private:
 		void Activate(CBItemActionResult& actionResult) override;
-		void Renamed(const std::string& newName, bool fromCallback) override;
+		void OnRenamed(const std::string& newName) override;
 
 	private:
 		AssetMetadata mAssetInfo;

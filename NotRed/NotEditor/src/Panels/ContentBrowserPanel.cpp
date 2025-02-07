@@ -92,7 +92,7 @@ namespace NR
 				continue;
 			}
 
-			auto& metadata = AssetManager::GetMetadata(std::filesystem::relative(entry.path(), mProject->GetAssetDirectory()));
+			auto metadata = AssetManager::GetMetadata(std::filesystem::relative(entry.path(), mProject->GetAssetDirectory()));
 			if (!metadata.IsValid())
 			{
 				AssetType type = AssetManager::GetAssetTypeFromPath(entry.path());
@@ -133,19 +133,10 @@ namespace NR
 		for (auto assetHandle : directory->Assets)
 		{
 			AssetMetadata metadata = AssetManager::GetMetadata(assetHandle);
-			if (!metadata.IsValid())
-			{
-				invalidAssets.emplace_back(metadata.Handle);
-			}
-			else
+			if (metadata.IsValid())
 			{
 				mCurrentItems.Items.push_back(Ref<ContentBrowserAsset>::Create(metadata, mAssetIconMap.find(metadata.FilePath.extension().string()) != mAssetIconMap.end() ? mAssetIconMap[metadata.FilePath.extension().string()] : mFileTex));
 			}
-		}
-
-		for (auto invalidHandle : invalidAssets)
-		{
-			directory->Assets.erase(std::remove(directory->Assets.begin(), directory->Assets.end(), invalidHandle), directory->Assets.end());
 		}
 
 		SortItemList();
@@ -887,14 +878,16 @@ namespace NR
 
 	void ContentBrowserPanel::Refresh()
 	{
+		std::lock_guard<std::mutex> lock(sLockMutex);
+
 		mCurrentItems.Clear();
 		mDirectories.clear();
-		
+
 		Ref<DirectoryInfo> currentDirectory = mCurrentDirectory;
 		AssetHandle baseDirectoryHandle = ProcessDirectory(mProject->GetAssetDirectory().string(), nullptr);
-		
 		mBaseDirectory = mDirectories[baseDirectoryHandle];
 		mCurrentDirectory = GetDirectory(currentDirectory->FilePath);
+
 		if (!mCurrentDirectory)
 		{
 			mCurrentDirectory = mBaseDirectory;
@@ -1098,241 +1091,9 @@ namespace NR
 		return results;
 	}
 
-	void ContentBrowserPanel::FileSystemChanged(FileSystemChangedEvent event)
+	void ContentBrowserPanel::FileSystemChanged(const std::vector<FileSystemChangedEvent>& e)
 	{
-		std::lock_guard<std::mutex> lock(sLockMutex);
-		switch (event.Action)
-		{
-		case FileSystemAction::Added:
-		{
-			if (event.IsDirectory)
-			{
-				DirectoryAdded(event);
-			}
-			else
-			{
-				AssetAdded(event);
-			}
-			break;
-		}
-		case FileSystemAction::Delete:
-		{
-			if (event.IsDirectory)
-			{
-				DirectoryDeleted(event);
-			}
-			else
-			{
-				AssetDeleted(event);
-			}
-			break;
-		}
-		case FileSystemAction::Modified:
-		{
-			break;
-		}
-		case FileSystemAction::Rename:
-		{
-			if (event.IsDirectory)
-			{
-				DirectoryRenamed(event);
-			}
-			else
-			{
-				AssetRenamed(event);
-			}
-			break;
-		}
-		}
-	}
-
-	void ContentBrowserPanel::AssetAdded(FileSystemChangedEvent event)
-	{
-		const auto& assetMetadata = AssetManager::GetMetadata(event.FilePath.string());
-		if (!assetMetadata.IsValid())
-		{
-			return;
-		}
-
-		auto directory = GetDirectory(event.FilePath.parent_path());
-
-		if (!directory)
-		{
-			NR_CORE_ASSERT(false, "How did this even happen?");
-		}
-		directory->Assets.push_back(assetMetadata.Handle);
-
-		ChangeDirectory(mCurrentDirectory);
-	}
-
-	void ContentBrowserPanel::DirectoryAdded(FileSystemChangedEvent event)
-	{
-		std::filesystem::path directoryPath = Project::GetActive()->GetAssetDirectory() / event.FilePath;
-		auto parentDirectory = GetDirectory(directoryPath.parent_path().string());
-		if (!parentDirectory)
-		{
-			NR_CORE_ASSERT(false, "How did this even happen?");
-		}
-
-		AssetHandle directoryHandle = ProcessDirectory(directoryPath.string(), parentDirectory);
-		if (directoryHandle == 0)
-		{
-			return;
-		}
-
-		parentDirectory->SubDirectories[directoryHandle] = mDirectories[directoryHandle];
-
-		ChangeDirectory(mCurrentDirectory);
-
-		if (ImGui::IsWindowFocused(ImGuiFocusedFlags_AnyWindow))
-		{
-			size_t directoryIndex = mCurrentItems.FindItem(directoryHandle);
-			if (directoryIndex == ContentBrowserItemList::InvalidItem)
-			{
-				return;
-			}
-
-			auto& item = mCurrentItems[directoryIndex];
-			mSelectionStack.Select(directoryHandle);
-
-			item->SetSelected(true);
-			item->StartRenaming();
-		}
-	}
-
-	void ContentBrowserPanel::AssetDeleted(FileSystemChangedEvent event)
-	{
-		std::filesystem::path directoryPath = Project::GetActive()->GetAssetDirectory() / event.FilePath;
-		AssetMetadata metadata;
-		Ref<DirectoryInfo> directory;
-		for (const auto& item : mCurrentItems.Items)
-		{
-			if (item->GetType() == ContentBrowserItem::ItemType::Asset)
-			{
-				const auto& assetInfo = item.As<ContentBrowserAsset>()->GetAssetInfo();
-
-				if (assetInfo.FilePath == event.FilePath)
-				{
-					metadata = assetInfo;
-					std::string parentDirectory = directoryPath.parent_path().string();
-					directory = GetDirectory(parentDirectory);
-					break;
-				}
-			}
-		}
-
-		AssetDeleted(metadata, directory);
-		ChangeDirectory(mCurrentDirectory);
-	}
-
-	void ContentBrowserPanel::AssetDeleted(AssetMetadata metadata, Ref<DirectoryInfo> directory)
-	{
-		if (!metadata.IsValid() || !directory)
-		{
-			return;
-		}
-
-		if (AssetManager::IsAssetHandleValid(metadata.Handle))
-		{
-			AssetManager::AssetDeleted(metadata.Handle);
-		}
-
-		directory->Assets.erase(std::remove(directory->Assets.begin(), directory->Assets.end(), metadata.Handle), directory->Assets.end());
-		mCurrentItems.erase(metadata.Handle);
-	}
-
-	void ContentBrowserPanel::AssetRenamed(FileSystemChangedEvent event)
-	{
-		if (!event.WasTracking)
-		{
-			auto& assetInfo = AssetManager::GetMetadata(event.FilePath.string());
-			auto directory = GetDirectory(event.FilePath.parent_path());
-			directory->Assets.push_back(assetInfo.Handle);
-			ChangeDirectory(mCurrentDirectory);
-		}
-		else
-		{
-			auto& assetInfo = AssetManager::GetMetadata(event.FilePath.string());
-			if (!assetInfo.IsValid())
-			{
-				return;
-			}
-
-			size_t index = mCurrentItems.FindItem(assetInfo.Handle);
-			if (index != ContentBrowserItemList::InvalidItem)
-			{
-				mCurrentItems[index]->Rename(event.NewName, true);
-			}
-		}
-	}
-
-	void ContentBrowserPanel::DirectoryDeleted(FileSystemChangedEvent event)
-	{
-		DirectoryDeleted(GetDirectory(event.FilePath));
-	}
-
-	void ContentBrowserPanel::DirectoryDeleted(Ref<DirectoryInfo> directory, uint32_t depth)
-	{
-		if (!directory)
-		{
-			return;
-		}
-
-		for (auto asset : directory->Assets)
-		{
-			AssetDeleted(AssetManager::GetMetadata(asset), directory);
-		}
-
-		for (auto [subdirHandle, subdir] : directory->SubDirectories)
-		{
-			DirectoryDeleted(subdir, depth + 1);
-		}
-
-		directory->Assets.clear();
-		directory->SubDirectories.clear();
-
-		if (depth == 0 && directory->Parent)
-		{
-			directory->Parent->SubDirectories.erase(directory->Handle);
-		}
-
-		mCurrentItems.erase(directory->Handle);
-		mDirectories.erase(directory->Handle);
-
-		ChangeDirectory(mCurrentDirectory);
-	}
-
-	void ContentBrowserPanel::DirectoryRenamed(FileSystemChangedEvent event)
-	{
-		auto directory = GetDirectory(event.FilePath.parent_path() / event.OldName);
-
-		size_t itemIndex = mCurrentItems.FindItem(directory->Handle);
-		if (itemIndex != ContentBrowserItemList::InvalidItem)
-		{
-			mCurrentItems[itemIndex]->Rename(event.NewName, true);
-		}
-		else
-		{
-			UpdateDirectoryPath(directory, event.FilePath.parent_path(), event.NewName);
-		}
-
-		ChangeDirectory(mCurrentDirectory);
-	}
-
-	void ContentBrowserPanel::UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath, const std::string& newName)
-	{
-		directoryInfo->FilePath = newParentPath / newName;
-
-		for (auto& assetHandle : directoryInfo->Assets)
-		{
-			auto& metadata = AssetManager::GetMetadata(assetHandle);
-			metadata.FilePath = directoryInfo->FilePath / metadata.FilePath.filename();
-		}
-
-		for (auto& [handle, subdirectory] : directoryInfo->SubDirectories)
-		{
-			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath, subdirectory->FilePath.filename().string());
-		}
+		Refresh();
 	}
 
 	ContentBrowserPanel* ContentBrowserPanel::sInstance;

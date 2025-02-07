@@ -183,19 +183,7 @@ namespace NR
 
         ContentBrowserItemList Search(const std::string& query, const Ref<DirectoryInfo>& directoryInfo);
 
-        void FileSystemChanged(FileSystemChangedEvent event);
-        
-        void DirectoryAdded(FileSystemChangedEvent event);
-        void DirectoryDeleted(FileSystemChangedEvent event);
-        void DirectoryDeleted(Ref<DirectoryInfo> directory, uint32_t depth = 0);
-        void DirectoryRenamed(FileSystemChangedEvent event);
-        
-        void AssetAdded(FileSystemChangedEvent event);
-        void AssetDeleted(FileSystemChangedEvent event);
-        void AssetDeleted(AssetMetadata metadata, Ref<DirectoryInfo> directory);
-        void AssetRenamed(FileSystemChangedEvent event);
-
-        void UpdateDirectoryPath(Ref<DirectoryInfo>& directoryInfo, const std::filesystem::path& newParentPath, const std::string& newName);
+        void FileSystemChanged(const std::vector<FileSystemChangedEvent>& e);
 
     private:
         template<typename T, typename... Args>

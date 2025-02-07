@@ -20,17 +20,15 @@ namespace NR
 		FileSystemAction Action;
 		std::filesystem::path FilePath;
 
-		std::string OldName;
-		std::string NewName;
-
 		bool IsDirectory;
-		bool WasTracking = false;
+
+		std::wstring OldName = L"";
 	};
 
 	class FileSystem
 	{
 	public:
-		using FileSystemChangedCallbackFn = std::function<void(FileSystemChangedEvent)>;
+		using FileSystemChangedCallbackFn = std::function<void(const std::vector<FileSystemChangedEvent>&)>;
 
 	public:
 		static bool CreateDirectory(const std::filesystem::path& directory);

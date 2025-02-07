@@ -24,7 +24,7 @@ namespace NR
     class AssetManager
     {
     public:
-        using AssetsChangeEventFn = std::function<void(FileSystemChangedEvent)>;
+        using AssetsChangeEventFn = std::function<void(const std::vector<FileSystemChangedEvent>&)>;
 
     public:
         static void Init();
@@ -32,9 +32,9 @@ namespace NR
 
         static void SetAssetChangeCallback(const AssetsChangeEventFn& callback);
 
-        static AssetMetadata& GetMetadata(AssetHandle handle);
-        static AssetMetadata& GetMetadata(const std::filesystem::path& filepath);
-        static AssetMetadata& GetMetadata(const Ref<Asset>& asset) { return GetMetadata(asset->Handle); }
+        static const AssetMetadata& GetMetadata(AssetHandle handle);
+        static const AssetMetadata& GetMetadata(const std::filesystem::path& filepath);
+        static const AssetMetadata& GetMetadata(const Ref<Asset>& asset) { return GetMetadata(asset->Handle); }
 
         static AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& filepath);
         static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
@@ -111,7 +111,7 @@ namespace NR
         template<typename T>
         static Ref<T> GetAsset(AssetHandle assetHandle)
         {
-            auto& metadata = GetMetadata(assetHandle);
+            auto& metadata = GetMetadataInternal(assetHandle);
 
             Ref<Asset> asset = nullptr;
             if (!metadata.IsDataLoaded)
@@ -153,7 +153,9 @@ namespace NR
         static void ReloadAssets();
         static void WriteRegistryToFile();
 
-        static void FileSystemChanged(FileSystemChangedEvent e);
+        static AssetMetadata& GetMetadataInternal(AssetHandle handle);
+
+        static void FileSystemChanged(const std::vector<FileSystemChangedEvent>& events);
 
         static void AssetRenamed(AssetHandle assetHandle, const std::filesystem::path& newFilePath);
         static void AssetMoved(AssetHandle assetHandle, const std::filesystem::path& destinationPath);

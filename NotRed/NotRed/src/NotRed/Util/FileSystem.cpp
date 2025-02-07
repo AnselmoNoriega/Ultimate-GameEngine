@@ -69,7 +69,7 @@ namespace NR
 
 	bool FileSystem::IsDirectory(const std::filesystem::path& filepath)
 	{
-		return std::filesystem::is_directory(filepath) || Utils::GetExtension(filepath.string()).empty();
+		return std::filesystem::is_directory(filepath);
 	}
 
 	bool FileSystem::ShowFileInExplorer(const std::filesystem::path& path)

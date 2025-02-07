@@ -36,58 +36,53 @@ namespace NR
         sAssetsChangeCallback = callback;
     }
 
-    void AssetManager::FileSystemChanged(FileSystemChangedEvent e)
+    void AssetManager::FileSystemChanged(const std::vector<FileSystemChangedEvent>& events)
     {
-        e.FilePath = (Project::GetAssetDirectory() / e.FilePath).string();
-        std::string temp = e.FilePath.string();
-        std::replace(temp.begin(), temp.end(), '\\', '/');
-        e.FilePath = temp;
-
-        e.NewName = Utils::RemoveExtension(e.NewName);
-
-        if (!e.IsDirectory)
+        for (const auto& e : events)
         {
-            switch (e.Action)
+            if (!e.IsDirectory)
             {
-            case FileSystemAction::Added:
-            {
-                ImportAsset(e.FilePath.string());
-                break;
-            }
-            case FileSystemAction::Delete:
-            {
-                AssetDeleted(GetAssetHandleFromFilePath(e.FilePath.string()));
-                break;
-            }
-            case FileSystemAction::Modified:
-            {
-                break;
-            }
-            case FileSystemAction::Rename:
-            {
-                AssetType previousType = GetAssetTypeFromPath(e.OldName);
-                AssetType newType = GetAssetTypeFromPath(e.FilePath);
-
-                if (previousType == AssetType::None && newType != AssetType::None)
+                switch (e.Action)
                 {
-                    ImportAsset(e.FilePath.string());
-                }
-                else
+                case FileSystemAction::Modified:
                 {
-                    AssetRenamed(GetAssetHandleFromFilePath((e.FilePath.parent_path() / e.OldName).string()), e.FilePath.string());
-                    e.WasTracking = true;
+                    AssetHandle handle = GetAssetHandleFromFilePath(e.FilePath);
+                    const auto& metadata = GetMetadata(handle);
+                    if (metadata.IsValid() && metadata.IsDataLoaded)
+                    {
+                        ReloadData(handle);
+                    }
+                    break;
                 }
-                break;
-            }
+                case FileSystemAction::Rename:
+                {
+                    AssetType previousType = GetAssetTypeFromPath(e.OldName);
+                    AssetType newType = GetAssetTypeFromPath(e.FilePath);
+                    if (previousType == AssetType::None && newType != AssetType::None)
+                    {
+                        ImportAsset(e.FilePath);
+                    }
+                    else
+                    {
+                        AssetRenamed(GetAssetHandleFromFilePath(e.FilePath.parent_path() / e.OldName), e.FilePath);
+                    }
+                    break;
+                }
+                case FileSystemAction::Delete:
+                {
+                    AssetDeleted(GetAssetHandleFromFilePath(e.FilePath));
+                    break;
+                }
+                }
             }
         }
 
-        sAssetsChangeCallback(e);
+        sAssetsChangeCallback(events);
     }
 
     static AssetMetadata sNullMetadata;
 
-    AssetMetadata& AssetManager::GetMetadata(AssetHandle handle)
+    AssetMetadata& AssetManager::GetMetadataInternal(AssetHandle handle)
     {
         for (auto& [filepath, metadata] : sAssetRegistry)
         {
@@ -100,7 +95,12 @@ namespace NR
         return sNullMetadata;
     }
 
-    AssetMetadata& AssetManager::GetMetadata(const std::filesystem::path& filepath)
+    const AssetMetadata& AssetManager::GetMetadata(AssetHandle handle)
+    {
+        return GetMetadataInternal(handle);
+    }
+
+    const AssetMetadata& AssetManager::GetMetadata(const std::filesystem::path& filepath)
     {
         if (sAssetRegistry.Contains(filepath))
         {
@@ -128,7 +128,11 @@ namespace NR
 
     void AssetManager::AssetRenamed(AssetHandle assetHandle, const std::filesystem::path& newFilePath)
     {
-        AssetMetadata metadata = GetMetadata(assetHandle);
+        auto& metadata = GetMetadataInternal(assetHandle);
+        if (!metadata.IsValid())
+        {
+            return;
+        }
 
         sAssetRegistry.Remove(metadata.FilePath);
         metadata.FilePath = newFilePath;
@@ -139,11 +143,15 @@ namespace NR
 
     void AssetManager::AssetMoved(AssetHandle assetHandle, const std::filesystem::path& destinationPath)
     {
-        AssetMetadata assetInfo = GetMetadata(assetHandle);
+        AssetMetadata metadata = GetMetadata(assetHandle);
+        if (!metadata.IsValid())
+        {
+            return;
+        }
 
-        sAssetRegistry.Remove(assetInfo.FilePath);
-        assetInfo.FilePath = destinationPath / assetInfo.FilePath.filename();
-        sAssetRegistry[assetInfo.FilePath] = assetInfo;
+        sAssetRegistry.Remove(metadata.FilePath);
+        metadata.FilePath = destinationPath / metadata.FilePath.filename();
+        sAssetRegistry[metadata.FilePath] = metadata;
 
         WriteRegistryToFile();
     }
@@ -151,6 +159,10 @@ namespace NR
     void AssetManager::AssetDeleted(AssetHandle assetHandle)
     {
         AssetMetadata metadata = GetMetadata(assetHandle);
+        if (!metadata.IsValid())
+        {
+            return;
+        }
 
         sAssetRegistry.Remove(metadata.FilePath);
         sLoadedAssets.erase(assetHandle);
@@ -306,7 +318,7 @@ namespace NR
 
     bool AssetManager::ReloadData(AssetHandle assetHandle)
     {
-        auto& metadata = GetMetadata(assetHandle);
+        auto& metadata = GetMetadataInternal(assetHandle);
         if (!metadata.IsDataLoaded)
         {
             NR_CORE_WARN("Trying to reload asset that was never loaded");
@@ -384,6 +396,8 @@ namespace NR
 
         out << YAML::EndSeq;
         out << YAML::EndMap;
+
+        FileSystem::SkipNextFileSystemChange();
 
         const std::string& assetRegistryPath = Project::GetAssetRegistryPath().string();
         std::ofstream fout(assetRegistryPath);

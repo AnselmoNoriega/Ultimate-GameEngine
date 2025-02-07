@@ -22,7 +22,7 @@ namespace NR
 
 	void FileSystem::StartWatching()
 	{
-		sWatching = false;
+		sWatching = true;
 		DWORD threadId;
 		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadId);
 		NR_CORE_ASSERT(sWatcherThread != NULL);
@@ -46,11 +46,6 @@ namespace NR
 		CloseHandle(sWatcherThread);
 	}
 
-	static std::string wchar_to_string(wchar_t* input)
-	{
-		return std::filesystem::path(input).string();
-	}
-
 	void FileSystem::SkipNextFileSystemChange()
 	{
 		sIgnoreNextChange = true;
@@ -58,16 +53,16 @@ namespace NR
 
 	unsigned long FileSystem::Watch(void* param)
 	{
-		std::string assetDirectory = Project::GetActive()->GetAssetDirectory().string();
-		std::vector<BYTE> buffer;
-		buffer.resize(10 * 1024);
-		OVERLAPPED overlapped = { 0 };
-		HANDLE handle = NULL;
-		DWORD bytesReturned = 0;
+		auto assetDirectory = Project::GetActive()->GetAssetDirectory();
+		std::wstring dirStr = assetDirectory.wstring();
 
-		handle = CreateFileA(
-			assetDirectory.c_str(),
-			FILE_LIST_DIRECTORY,
+		char buf[2048];
+		DWORD bytesReturned;
+		std::filesystem::path filepath;
+		BOOL result = TRUE;
+		HANDLE directoryHandle = CreateFile(
+			dirStr.c_str(),
+			GENERIC_READ | FILE_LIST_DIRECTORY,
 			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
 			NULL,
 			OPEN_EXISTING,
@@ -75,44 +70,36 @@ namespace NR
 			NULL
 		);
 
-		ZeroMemory(&overlapped, sizeof(overlapped));
-
-		if (handle == INVALID_HANDLE_VALUE)
+		if (directoryHandle == INVALID_HANDLE_VALUE)
 		{
-			NR_CORE_ERROR("Unable to accquire directory handle: {0}", GetLastError());
-		}
-
-		overlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-
-		if (overlapped.hEvent == NULL)
-		{
-			NR_CORE_ERROR("CreateEvent failed!");
+			NR_CORE_VERIFY(false, "Failed to open directory!");
 			return 0;
 		}
 
-		while (sWatching & false)
+
+		OVERLAPPED pollingOverlap;
+		pollingOverlap.OffsetHigh = 0;
+		pollingOverlap.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+		
+		std::vector<FileSystemChangedEvent> eventBatch;
+		eventBatch.reserve(10);
+
+		while (sWatching && result)
 		{
-			const DWORD status = ReadDirectoryChangesW(
-				handle,
-				&buffer[0],
-				(uint32_t)buffer.size(),
+			result = ReadDirectoryChangesW(
+				directoryHandle,
+				&buf,
+				sizeof(buf),
 				TRUE,
-				FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME,
+				FILE_NOTIFY_CHANGE_FILE_NAME |
+				FILE_NOTIFY_CHANGE_DIR_NAME |
+				FILE_NOTIFY_CHANGE_SIZE,
 				&bytesReturned,
-				&overlapped,
+				&pollingOverlap,
 				NULL
 			);
 
-			if (!status)
-			{
-				NR_CORE_ERROR(GetLastError());
-			}
-
-			DWORD waitOperation = WaitForSingleObject(overlapped.hEvent, 5000);
-			if (waitOperation != WAIT_OBJECT_0)
-			{
-				continue;
-			}
+			WaitForSingleObject(pollingOverlap.hEvent, INFINITE);
 
 			if (sIgnoreNextChange)
 			{
@@ -120,65 +107,66 @@ namespace NR
 				continue;
 			}
 
-			std::string oldName;
-			char fileName[MAX_PATH * 10] = "";
+			FILE_NOTIFY_INFORMATION* pNotify;
+			int offset = 0;
+			std::wstring oldName;
 
-			BYTE* buf = buffer.data();
-			for (;;)
+			do
 			{
-				FILE_NOTIFY_INFORMATION& fni = *(FILE_NOTIFY_INFORMATION*)buf;
-				ZeroMemory(fileName, sizeof(fileName));
-				WideCharToMultiByte(CP_ACP, 0, fni.FileName, fni.FileNameLength / sizeof(WCHAR), fileName, sizeof(fileName), NULL, NULL);
-				std::filesystem::path filepath = std::string(fileName);
+				pNotify = (FILE_NOTIFY_INFORMATION*)((char*)buf + offset);
+				size_t filenameLength = pNotify->FileNameLength / sizeof(wchar_t);
 
 				FileSystemChangedEvent e;
-				e.FilePath = filepath;
-				e.NewName = filepath.filename().string();
-				e.OldName = filepath.filename().string();
-				e.IsDirectory = IsDirectory(e.FilePath.string());
+				e.FilePath = std::filesystem::path(std::wstring(pNotify->FileName, filenameLength));
+				e.IsDirectory = IsDirectory(e.FilePath);
 
-				switch (fni.Action)
+				switch (pNotify->Action)
 				{
 				case FILE_ACTION_ADDED:
 				{
 					e.Action = FileSystemAction::Added;
-					sCallback(e);
 					break;
 				}
 				case FILE_ACTION_REMOVED:
 				{
 					e.Action = FileSystemAction::Delete;
-					sCallback(e);
 					break;
 				}
 				case FILE_ACTION_MODIFIED:
 				{
 					e.Action = FileSystemAction::Modified;
-					sCallback(e);
 					break;
 				}
 				case FILE_ACTION_RENAMED_OLD_NAME:
 				{
-					oldName = filepath.filename().string();
+					oldName = e.FilePath.filename();
 					break;
 				}
 				case FILE_ACTION_RENAMED_NEW_NAME:
 				{
 					e.OldName = oldName;
 					e.Action = FileSystemAction::Rename;
-					sCallback(e);
 					break;
 				}
 				}
 
-				if (!fni.NextEntryOffset)
+				if (pNotify->Action != FILE_ACTION_RENAMED_OLD_NAME)
 				{
-					break;
+					eventBatch.push_back(e);
 				}
 
-				buf += fni.NextEntryOffset;
+				offset += pNotify->NextEntryOffset;
+			} 
+			while (pNotify->NextEntryOffset);
+
+			if (eventBatch.size() > 0)
+			{
+				sCallback(eventBatch);
+				eventBatch.clear();
 			}
 		}
+
+		CloseHandle(directoryHandle);
 
 		return 0;
 	}

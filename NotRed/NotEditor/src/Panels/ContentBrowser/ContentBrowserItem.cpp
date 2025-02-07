@@ -70,7 +70,6 @@ namespace NR
 
 		// Thumbnail
 		//==========
-		ImGui::PushID(mName.c_str());
 		ImGui::InvisibleButton("##thumbnailButton", ImVec2{ thumbnailSize, thumbnailSize });
 		UI::DrawButtonImage(mIcon, IM_COL32(255, 255, 255, 225),
 			IM_COL32(255, 255, 255, 255),
@@ -156,7 +155,7 @@ namespace NR
 				ImGui::BeginHorizontal("assetType", ImVec2(0.0f, 0.0f));
 				ImGui::Spring();
 				{
-					AssetMetadata& metadata = AssetManager::GetMetadata(mID);
+					const AssetMetadata& metadata = AssetManager::GetMetadata(mID);
 					const std::string& assetType = Utils::ToUpper(Utils::AssetTypeToString(metadata.Type));
 					UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::textDarker);
 					ImGui::TextUnformatted(assetType.c_str());
@@ -290,11 +289,15 @@ namespace NR
 		}
 		ImGui::PopStyleVar();
 
-		ImGui::PopID();
-
 		mIsDragging = dragging;
 
 		return result;
+	}
+
+	void ContentBrowserItem::RenderEnd()
+	{
+		ImGui::PopID();
+		ImGui::NextColumn();
 	}
 
 	void ContentBrowserItem::StartRenaming()
@@ -319,9 +322,9 @@ namespace NR
 		mIsSelected = value;
 	}
 
-	void ContentBrowserItem::Rename(const std::string& newName, bool fromCallback)
+	void ContentBrowserItem::Rename(const std::string& newName)
 	{
-		Renamed(newName, fromCallback);
+		OnRenamed(newName);
 	}
 
 	void ContentBrowserItem::ContextMenuOpen(CBItemActionResult& actionResult)
@@ -334,6 +337,10 @@ namespace NR
 		if (ImGui::MenuItem("Rename"))
 		{
 			actionResult.Modify(ContentBrowserAction::StartRenaming, true);
+		}
+		if (ImGui::MenuItem("Copy"))
+		{
+			actionResult.Modify(ContentBrowserAction::Copy, true);
 		}
 		if (ImGui::MenuItem("Delete"))
 		{
@@ -354,12 +361,6 @@ namespace NR
 		RenderCustomContextItems();
 	}
 
-	void ContentBrowserItem::RenderEnd()
-	{
-		ImGui::PopID();
-		ImGui::NextColumn();
-	}
-
 	ContentBrowserDirectory::ContentBrowserDirectory(const Ref<DirectoryInfo>& directoryInfo, const Ref<Texture2D>& icon)
 		: ContentBrowserItem(ContentBrowserItem::ItemType::Directory, directoryInfo->Handle, directoryInfo->FilePath.filename().string(), icon), mDirectoryInfo(directoryInfo)
 	{
@@ -370,20 +371,15 @@ namespace NR
 		actionResult.Modify(ContentBrowserAction::NavigateToThis, true);
 	}
 
-	void ContentBrowserDirectory::Renamed(const std::string& newName, bool fromCallback)
+	void ContentBrowserDirectory::OnRenamed(const std::string& newName)
 	{
-		if (!fromCallback)
+		if (FileSystem::Exists(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath.parent_path() / newName))
 		{
-			if (FileSystem::Exists(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath.parent_path() / newName))
-			{
-				NR_CORE_ERROR("A directory with that name already exists!");
-				return;
-			}
-
-			FileSystem::Rename(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath, Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath.parent_path() / newName);
+			NR_CORE_ERROR("A directory with that name already exists!");
+			return;
 		}
-		mName = newName;
-		UpdateDirectoryPath(mDirectoryInfo, mDirectoryInfo->FilePath.parent_path(), newName);
+
+		FileSystem::Rename(Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath, Project::GetActive()->GetAssetDirectory() / mDirectoryInfo->FilePath.parent_path() / newName);
 	}
 
 	void ContentBrowserDirectory::UpdateDrop(CBItemActionResult& actionResult)
@@ -441,31 +437,7 @@ namespace NR
 			return false;
 		}
 
-		UpdateDirectoryPath(mDirectoryInfo, destination, mDirectoryInfo->FilePath.filename());
-
-		auto& parentSubdirs = mDirectoryInfo->Parent->SubDirectories;
-		parentSubdirs.erase(parentSubdirs.find(mDirectoryInfo->Handle));
-
-		auto newParent = ContentBrowserPanel::Get().GetDirectory(destination);
-		newParent->SubDirectories[mDirectoryInfo->Handle] = mDirectoryInfo;
-		mDirectoryInfo->Parent = newParent;
-
 		return true;
-	}
-
-	void ContentBrowserDirectory::UpdateDirectoryPath(Ref<DirectoryInfo> directoryInfo, const std::filesystem::path& newParentPath, const std::filesystem::path& newName)
-	{
-		directoryInfo->FilePath = newParentPath / newName;
-		for (auto assetHandle : directoryInfo->Assets)
-		{
-			auto& metadata = AssetManager::GetMetadata(assetHandle);
-			metadata.FilePath = directoryInfo->FilePath / metadata.FilePath.filename();
-		}
-
-		for (auto [handle, subdirectory] : directoryInfo->SubDirectories)
-		{
-			UpdateDirectoryPath(subdirectory, directoryInfo->FilePath, subdirectory->FilePath.filename());
-		}
 	}
 
 	ContentBrowserAsset::ContentBrowserAsset(const AssetMetadata& assetInfo, const Ref<Texture2D>& icon)
@@ -499,11 +471,6 @@ namespace NR
 			return false;
 		}
 
-		auto currentDirectory = ContentBrowserPanel::Get().GetDirectory(mAssetInfo.FilePath.parent_path());
-		currentDirectory->Assets.erase(std::remove(currentDirectory->Assets.begin(), currentDirectory->Assets.end(), mAssetInfo.Handle), currentDirectory->Assets.end());
-
-		auto destinationDirectory = ContentBrowserPanel::Get().GetDirectory(destination);
-		destinationDirectory->Assets.push_back(mAssetInfo.Handle);
 		AssetManager::AssetMoved(mAssetInfo.Handle, destination);
 
 		return true;
@@ -520,23 +487,14 @@ namespace NR
 		}
 	}
 
-	void ContentBrowserAsset::Renamed(const std::string& newName, bool fromCallback)
+	void ContentBrowserAsset::OnRenamed(const std::string& newName)
 	{
 		auto filepath = AssetManager::GetFileSystemPath(mAssetInfo);
 		std::filesystem::path newFilepath = fmt::format("{0}\\{1}{2}", filepath.parent_path().string(), newName, filepath.extension().string());
 
-		if (!fromCallback)
+		if (!FileSystem::Rename(filepath, newFilepath))
 		{
-			if (!FileSystem::Rename(filepath, newFilepath))
-			{
-				NR_CORE_ERROR("A file with that name already exists!");
-				return;
-			}
-
-			AssetManager::AssetRenamed(mAssetInfo.Handle, AssetManager::GetRelativePath(newFilepath));
+			NR_CORE_ERROR("A file with that name already exists!");
 		}
-
-		mName = newName;
-		mAssetInfo.FilePath = AssetManager::GetRelativePath(newFilepath);
 	}
 }
