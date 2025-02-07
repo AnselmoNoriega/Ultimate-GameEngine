@@ -191,9 +191,10 @@ namespace NR
         auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
         mSkyboxMaterial = Material::Create(skyboxShader);
         mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
+        
+        mSceneRenderer2D = Ref<Renderer2D>::Create();
     }
 
-    // Merge OnUpdate/Render into one function?
     void Scene::Update(float dt)
     {
         NR_PROFILE_FUNC();
@@ -529,27 +530,33 @@ namespace NR
         renderer->EndScene();
         /////////////////////////////////////////////////////////////////////
 
-#if 0
-        // Render all sprites
-        Renderer2D::BeginScene(*camera);
+        // Render 2D
+        if (renderer->GetFinalPassImage())
         {
-            auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);
-            for (auto entity : group)
+            mSceneRenderer2D->BeginScene(camera.GetProjectionMatrix() * cameraViewMatrix, cameraViewMatrix);
+            mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
             {
-                auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
-                if (spriteRendererComponent.Texture)
+#if TODO_SPRITES
+                auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRenderer>);
+                for (auto entity : group)
                 {
-                    Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Texture, spriteRendererComponent.TilingFactor);
+                    auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
+                    if (spriteRendererComponent.Texture)
+                        Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Texture, spriteRendererComponent.TilingFactor);
+                    else
+                        Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Color);
                 }
-                else
+#endif
+                auto group = mRegistry.group<TransformComponent>(entt::get<TextComponent>);
+                for (auto entity : group)
                 {
-                    Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Color);
+                    auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
+                    mSceneRenderer2D->DrawString(textComponent.TextString, textComponent.FontAsset, transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
                 }
             }
-        }
 
-        Renderer2D::EndScene();
-#endif
+            mSceneRenderer2D->EndScene();
+        }
     }
 
     void Scene::RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera)
@@ -788,27 +795,37 @@ namespace NR
             }
         }
 
-#if 0
-        // Render all sprites
-        Renderer2D::BeginScene(*camera);
+        // Render 2D
+        if (renderer->GetFinalPassImage())
         {
-            auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);
-            for (auto entity : group)
+            mSceneRenderer2D->BeginScene(editorCamera.GetViewProjection(), editorCamera.GetViewMatrix());
+            mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
             {
-                auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
-                if (spriteRendererComponent.Texture)
+#if TODO_SPRITES
+                auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRenderer>);
+                for (auto entity : group)
                 {
-                    Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Texture, spriteRendererComponent.TilingFactor);
+                    auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
+                    if (spriteRendererComponent.Texture)
+                    {
+                        Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Texture, spriteRendererComponent.TilingFactor);
+                    }
+                    else
+                    {
+                        Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Color);
+                    }
                 }
-                else
+#endif
+                auto group = mRegistry.group<TransformComponent>(entt::get<TextComponent>);
+                for (auto entity : group)
                 {
-                    Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Color);
+                    auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
+                    mSceneRenderer2D->DrawString(textComponent.TextString, textComponent.FontAsset, transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
                 }
             }
-        }
 
-        Renderer2D::EndScene();
-#endif
+            mSceneRenderer2D->EndScene();
+        }
     }
 
     void Scene::OnEvent(Event& e)
@@ -1224,6 +1241,7 @@ namespace NR
         CopyComponentIfExists<ScriptComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<TextComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<RigidBody2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1303,6 +1321,7 @@ namespace NR
         CopyComponentIfExists<ScriptComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<CameraComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<SpriteRendererComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+        CopyComponentIfExists<TextComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<RigidBody2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
@@ -1596,6 +1615,7 @@ namespace NR
         CopyComponent<ScriptComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CameraComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SpriteRendererComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<TextComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<RigidBody2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(target->mRegistry, mRegistry, enttMap);

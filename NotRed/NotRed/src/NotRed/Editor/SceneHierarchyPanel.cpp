@@ -181,6 +181,12 @@ namespace NR
                                     newEntity.AddComponent<CameraComponent>();
                                     SetSelected(newEntity);
                                 }
+                                if (ImGui::MenuItem("Text"))
+                                {
+                                    auto newEntity = mContext->CreateEntity("Text");
+                                    newEntity.AddComponent<TextComponent>();
+                                    SetSelected(newEntity);
+                                }
                                 if (ImGui::BeginMenu("3D"))
                                 {
                                     if (ImGui::MenuItem("Cube"))
@@ -1045,6 +1051,14 @@ namespace NR
                         ImGui::CloseCurrentPopup();
                     }
                 }
+                if (!mSelectionContext.HasComponent<TextComponent>())
+                {
+                    if (ImGui::Button("Text"))
+                    {
+                        mSelectionContext.AddComponent<TextComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
                 if (!mSelectionContext.HasComponent<RigidBody2DComponent>())
                 {
                     if (ImGui::MenuItem("Rigidbody 2D"))
@@ -1399,6 +1413,44 @@ namespace NR
 
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& mc)
             {
+            });
+
+        DrawComponent<TextComponent>("Text", entity, [](TextComponent& tc)
+            {
+                UI::BeginPropertyGrid();
+                std::string normalString(tc.TextString.begin(), tc.TextString.end());
+                if (UI::Property("Text String", normalString))
+                {
+                    tc.TextString = std::u32string(normalString.begin(), normalString.end());
+                }
+
+                UI::PropertyAssetReferenceSettings settings;
+                bool customFont = tc.FontAsset->Handle != Font::GetDefaultFont()->Handle;
+                if (customFont)
+                {
+                    settings.AdvanceToNextColumn = false;
+                    settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
+                }
+                UI::PropertyAssetReference("Font", tc.FontAsset, nullptr, settings);
+                if (customFont)
+                {
+                    ImGui::SameLine();
+                    float prevItemHeight = ImGui::GetItemRectSize().y;
+                    if (ImGui::Button("X", { prevItemHeight, prevItemHeight }))
+                    {
+                        tc.FontAsset = Font::GetDefaultFont();
+                    }
+
+                    ImGui::NextColumn();
+                }
+
+                UI::PropertyColor("Color", tc.Color);
+                UI::Property("Line Spacing", tc.LineSpacing, 0.01f);
+                UI::Property("Kerning", tc.Kerning, 0.01f);
+                UI::Separator();
+                UI::Property("Max Width", tc.MaxWidth);
+                
+                UI::EndPropertyGrid();
             });
 
         DrawComponent<DirectionalLightComponent>("Directional Light", entity, [](DirectionalLightComponent& dlc)

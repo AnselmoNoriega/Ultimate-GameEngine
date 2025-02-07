@@ -14,6 +14,8 @@ namespace NR
         void SetDarkThemeColors();
         void SetDarkThemeV2Colors();
 
+        void AllowInputEvents(bool allowEvents);
+
         static ImGuiLayer* Create();
     };
 }

@@ -719,6 +719,38 @@ namespace NR::UI
         return modified;
     }
 
+    static bool PropertyColor(const char* label, glm::vec4& value)
+    {
+        bool modified = false;
+
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ImGui::PushItemWidth(-1);
+
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+        if (IsItemDisabled())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
+
+        if (ImGui::ColorEdit4(sIDBuffer, glm::value_ptr(value)))
+        {
+            modified = true;
+        }
+
+        if (IsItemDisabled())
+        {
+            ImGui::PopStyleVar();
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        return modified;
+    }
+
     static bool Property(const char* label, glm::vec3& value, float delta = 0.1f)
     {
         bool modified = false;

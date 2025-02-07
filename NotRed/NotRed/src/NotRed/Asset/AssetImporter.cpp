@@ -22,6 +22,7 @@ namespace NR
 		sSerializers[AssetType::DemoGraph] = CreateScope<DefaultGraphSerializer>();
 		sSerializers[AssetType::Animation] = CreateScope<AnimationAssetSerializer>();
 		sSerializers[AssetType::AnimationController] = CreateScope<AnimationControllerSerializer>();
+		sSerializers[AssetType::Font] = CreateScope<FontSerializer>();
 	}
 
 	void AssetImporter::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset)

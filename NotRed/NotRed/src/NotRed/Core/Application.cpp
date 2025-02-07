@@ -28,6 +28,8 @@
 
 #include "NotRed/Util/StringUtils.h"
 
+#include "NotRed/Renderer/UI/Font.h"
+
 #include "NotRed/Debug/Profiler.h"
 
 extern bool gApplicationRunning;
@@ -83,6 +85,7 @@ namespace NR
 
         ScriptEngine::Init("Resources/Scripts/Not-ScriptCore.dll");
         PhysicsManager::Init();
+        Font::StaticInit();
         AudioEngine::Init();
     }
 

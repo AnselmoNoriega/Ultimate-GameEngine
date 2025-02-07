@@ -34,13 +34,14 @@ namespace NR
 #define DEFAULT_MITER_LIMIT 1.0
 #define LCG_MULTIPLIER 6364136223846793005ull
 #define LCG_INCREMENT 1442695040888963407ull
+#define THREADS 8
 
 	template <typename T, typename S, int N, GeneratorFunction<S, N> GEN_FN>
 	static Ref<Texture2D> makeAtlas(const std::vector<GlyphGeometry>& glyphs, const FontGeometry& fontGeometry, const Configuration& config)
 	{
 		ImmediateAtlasGenerator<S, N, GEN_FN, BitmapAtlasStorage<T, N> > generator(config.width, config.height);
 		generator.setAttributes(config.generatorAttributes);
-		generator.setThreadCount(1);
+		generator.setThreadCount(THREADS);
 		generator.generate(glyphs.data(), glyphs.size());
 
 		msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>) generator.atlasStorage();
@@ -156,18 +157,6 @@ namespace NR
 				fontInput.glyphIdentifierType = GlyphIdentifierType::UNICODE_CODEPOINT;
 			}
 
-			std::u32string textOne = U"Привет русский";
-			std::u32string textTwo = U"こんにちは世界";
-
-			for (int i = 0; i < textOne.size(); ++i)
-			{
-				charset.add(textOne[i]);
-			}
-			for (int i = 0; i < textTwo.size(); ++i)
-			{
-				charset.add(textTwo[i]);
-			}
-
 			// Load glyphs
 			mMSDFData->FontGeometry = FontGeometry(&mMSDFData->Glyphs);
 			int glyphsLoaded = -1;
@@ -272,7 +261,7 @@ namespace NR
 						unsigned long long glyphSeed = (LCG_MULTIPLIER * (config.coloringSeed ^ i) + LCG_INCREMENT) * !!config.coloringSeed;
 						glyphs[i].edgeColoring(config.edgeColoring, config.angleThreshold, glyphSeed);
 						return true;
-					}, mMSDFData->Glyphs.size()).finish(1);
+					}, mMSDFData->Glyphs.size()).finish(THREADS);
 			}
 			else
 			{
@@ -321,5 +310,17 @@ namespace NR
 	Font::~Font()
 	{
 		delete mMSDFData;
+	}
+
+	static Ref<Font> sDefaultFont;
+
+	void Font::StaticInit()
+	{
+		sDefaultFont = Ref<Font>::Create("Resources/Fonts/Roboto/Roboto-Regular.ttf");
+	}
+
+	Ref<Font> Font::GetDefaultFont()
+	{
+		return sDefaultFont;
 	}
 }

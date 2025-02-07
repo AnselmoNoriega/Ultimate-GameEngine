@@ -192,13 +192,10 @@ namespace NR
         sData->EmptyEnvironment = Ref<Environment>::Create(sData->BlackCubeTexture, sData->BlackCubeTexture);
 
         sRendererAPI->Init();
-        Renderer2D::Init();
     }
 
     void Renderer::Shutdown()
     {
-        Renderer2D::Shutdown();
-
         sShaderDependencies.clear();
         sRendererAPI->Shutdown();
 

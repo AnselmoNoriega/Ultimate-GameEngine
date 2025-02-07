@@ -26,6 +26,7 @@ namespace NR
         SpatializationConfig,
         Animation,
         AnimationController,
+        Font,
         DemoGraph
     };
 
@@ -46,6 +47,7 @@ namespace NR
             if (assetType == "SoundConfig")             return AssetType::SoundConfig;
             if (assetType == "Animation")               return AssetType::Animation;
             if (assetType == "AnimationController")     return AssetType::AnimationController;
+            if (assetType == "Font")                    return AssetType::Font;
             if (assetType == "DemoGraph")               return AssetType::DemoGraph;
 
             NR_CORE_ASSERT(false, "Unknown Asset Type");
@@ -70,6 +72,7 @@ namespace NR
             case AssetType::DemoGraph:                  return "DemoGraph";
             case AssetType::Animation:                  return "Animation";
             case AssetType::AnimationController:        return "AnimationController";
+            case AssetType::Font:                       return "Font";
             default:
                 NR_CORE_ASSERT(false, "Unknown Asset Type");
                 return "None";

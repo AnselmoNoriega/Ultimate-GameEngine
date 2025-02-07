@@ -65,7 +65,9 @@ namespace NR
 
         const ApplicationSpecification& GetSpecification() const { return mSpecification; }
 
-        PerformanceProfiler* GetPerformanceProfiler() { return mProfiler; }
+        PerformanceProfiler* GetPerformanceProfiler() { return mProfiler; }		
+        
+        ImGuiLayer* GetImGuiLayer() { return mImGuiLayer; }
 
     private:
         bool OnWindowResize(WindowResizeEvent& e);

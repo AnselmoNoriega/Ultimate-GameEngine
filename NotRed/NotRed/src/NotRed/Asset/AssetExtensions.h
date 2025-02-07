@@ -8,6 +8,7 @@ namespace NR
 {
 	inline static std::unordered_map<std::string, AssetType> sAssetExtensionMap =
 	{
+		// NotRed types
 		{ ".nrsc", AssetType::Scene },
 		{ ".nrmaterial", AssetType::Material },
 		{ ".nrprefab", AssetType::Prefab },
@@ -15,16 +16,29 @@ namespace NR
 		{ ".nrsound", AssetType::SoundConfig },
 		{ ".nrpm", AssetType::PhysicsMat },
 		{ ".nranim", AssetType::AnimationController },
+		
+		// Meshes
 		{ ".fbx", AssetType::MeshAsset },
 		{ ".gltf", AssetType::MeshAsset },
 		{ ".glb", AssetType::MeshAsset },
 		{ ".obj", AssetType::MeshAsset },
+
+		// Textures
 		{ ".png", AssetType::Texture },
 		{ ".jpg", AssetType::Texture },
 		{ ".jpeg", AssetType::Texture },
 		{ ".hdr", AssetType::EnvMap },
+
+		// Audio
 		{ ".wav", AssetType::Audio },
 		{ ".ogg", AssetType::Audio },
+
+		// Fonts
+		{ ".ttf", AssetType::Font },
+		{ ".ttc", AssetType::Font },
+		{ ".otf", AssetType::Font },
+
+		// Graphs
 		{ ".demo_graph", AssetType::DemoGraph }
 	};
 }

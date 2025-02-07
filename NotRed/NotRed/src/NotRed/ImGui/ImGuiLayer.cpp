@@ -77,6 +77,13 @@ namespace NR
         colors[ImGuiCol_SliderGrabActive] = ImVec4(0.66f, 0.66f, 0.66f, 1.0f);
     }
 
+    void ImGuiLayer::AllowInputEvents(bool allowEvents)
+    {
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags = allowEvents ? io.ConfigFlags & ~ImGuiConfigFlags_NoMouse
+            : io.ConfigFlags | ImGuiConfigFlags_NoMouse;
+    }
+
     void ImGuiLayer::SetDarkThemeV2Colors()
     {
         auto& style = ImGui::GetStyle();

@@ -12,6 +12,7 @@
 #include "NotRed/Scene/SceneCamera.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 #include "NotRed/Asset/Asset.h"
+#include "NotRed/Renderer/UI/Font.h"
 
 #include "NotRed/Script/ScriptModuleField.h"
 
@@ -156,6 +157,22 @@ namespace NR
     struct AnimationComponent
     {
         Ref<NR::AnimationController> AnimationController;
+    };
+
+    struct TextComponent
+    {
+        std::u32string TextString = U"Text";
+
+        // Font
+        Ref<Font> FontAsset = Font::GetDefaultFont();
+        glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        float LineSpacing = 0.0f;
+        float Kerning = 0.0f;
+        
+        // Layout
+        float MaxWidth = 10.0f;
+        TextComponent() = default;
+        TextComponent(const TextComponent& other) = default;
     };
 
     struct ScriptComponent

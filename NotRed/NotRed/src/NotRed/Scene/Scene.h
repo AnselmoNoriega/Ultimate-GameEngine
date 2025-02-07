@@ -8,6 +8,9 @@
 #include "NotRed/Renderer/Material.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 
+#include "NotRed/Renderer/RenderCommandBuffer.h"
+#include "NotRed/Renderer/Renderer2D.h"
+
 #include "Entt/include/entt.hpp"
 
 #include "SceneCamera.h"
@@ -180,6 +183,8 @@ namespace NR
 		Entity* mPhysics2DBodyEntityBuffer = nullptr;
 
 		std::vector<std::function<void()>> mPostUpdateQueue;
+		
+		Ref<Renderer2D> mSceneRenderer2D;
 
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;

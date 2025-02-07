@@ -46,6 +46,10 @@ namespace NR
 		mAssetIconMap[".nrsc"] = Texture2D::Create("Resources/Editor/notred.png");
 		mAssetIconMap[".nrprefab"] = Texture2D::Create("Resources/Editor/Icons/ContentBrowser/PrefabIcon.png");
 
+		mAssetIconMap[".ttf"] = Texture2D::Create("Resources/Editor/Icons/ContentBrowser/FontIcon.png");
+		mAssetIconMap[".ttc"] = mAssetIconMap.at(".ttf");
+		mAssetIconMap[".otf"] = mAssetIconMap.at(".ttf");
+
 		mBackbtnTex = Texture2D::Create("Resources/Editor/icon_back.png");
 		mFwrdbtnTex = Texture2D::Create("Resources/Editor/icon_fwrd.png");
 		mRefreshIcon = Texture2D::Create("Resources/Editor/refresh.png");

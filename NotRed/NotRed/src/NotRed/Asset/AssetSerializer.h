@@ -18,6 +18,13 @@ namespace NR
         bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
     };
 
+    class FontSerializer : public AssetSerializer
+    {
+    public:
+        void Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const override {}
+        bool TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const override;
+    };
+
     class MeshAssetSerializer : public AssetSerializer
     {
     public:

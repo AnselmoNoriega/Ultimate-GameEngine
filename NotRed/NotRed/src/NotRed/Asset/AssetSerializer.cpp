@@ -37,6 +37,14 @@ namespace NR
 		return result;
 	}
 
+	bool FontSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+	{
+		asset = Ref<Font>::Create(AssetManager::GetFileSystemPathString(metadata));
+		asset->Handle = metadata.Handle;
+
+		return true;
+	}
+
 	bool MeshAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
 		Ref<Asset> temp = asset;

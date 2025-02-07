@@ -94,7 +94,7 @@ namespace NR
 
         mPrefabHierarchyPanel = CreateScope<SceneHierarchyPanel>();
 
-        Renderer2D::SetLineWidth(mLineWidth);
+        mRenderer2D = Ref<Renderer2D>::Create();
 
         if (!mUserPreferences->StartupProject.empty())
         {
@@ -114,7 +114,7 @@ namespace NR
         AssetEditorPanel::RegisterDefaultEditors();
         //FileSystem::StartWatching();
 
-        Renderer2D::SetLineWidth(mLineWidth);
+        mRenderer2D->SetLineWidth(mLineWidth);
         mViewportRenderer->SetLineWidth(mLineWidth);
 
         UpdateSceneRendererSettings();
@@ -707,13 +707,11 @@ namespace NR
             return;
         }
 
-        Renderer2D::BeginScene(mEditorCamera.GetViewProjection(), mEditorCamera.GetViewMatrix());
-        Renderer2D::SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
+        mRenderer2D->BeginScene(mEditorCamera.GetViewProjection(), mEditorCamera.GetViewMatrix());
+        mRenderer2D->SetTargetRenderPass(mViewportRenderer->GetExternalCompositeRenderPass());
 
         std::u32string yan = U"Привет русск!";
         std::u32string japanese = U"こんにちは世";
-        Renderer2D::DrawString(yan, mTextPosition, mLayoutWidth, mTextColor);
-        Renderer2D::DrawString(japanese, mMSGothic, mTextPosition + glm::vec3(0, -1.0f, 0.0f), mLayoutWidth, mTextColor);
 
         if (mDrawOnTopBoundingBoxes)
         {
@@ -738,7 +736,7 @@ namespace NR
                                     {
                                         glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
                                         const AABB& aabb = submeshes[submeshIndex].BoundingBox;
-                                        Renderer2D::DrawAABB(aabb, transform * submeshes[submeshIndex].Transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                                        mRenderer2D->DrawAABB(aabb, transform * submeshes[submeshIndex].Transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                                     }
                                 }
                             }
@@ -749,7 +747,7 @@ namespace NR
                                 {
                                     glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
                                     const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
-                                    Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                                    mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                                 }
                             }
                         }
@@ -763,7 +761,7 @@ namespace NR
                         Entity entity = { e, mCurrentScene.Raw() };
                         glm::mat4 transform = entity.GetComponent<TransformComponent>().GetTransform();
                         const AABB& aabb = entity.GetComponent<MeshComponent>().MeshObj->GetMeshAsset()->GetBoundingBox();
-                        Renderer2D::DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                        mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                     }
                 }
             }
@@ -774,10 +772,10 @@ namespace NR
             {
                 Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
                 auto viewProj = mEditorCamera.GetViewProjection();
-                Renderer2D::BeginScene(viewProj, false);
+                mRenderer2D->BeginScene(viewProj, false);
                 glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
                 Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.Transform().GetTransform() * selection.Mesh->Transform, color);
-                Renderer2D::EndScene();
+                mRenderer2D->EndScene();
                 Renderer::EndRenderPass();
             }
         }
@@ -792,10 +790,10 @@ namespace NR
                 {
                     Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
                     auto viewProj = mEditorCamera.GetViewProjection();
-                    Renderer2D::BeginScene(viewProj, false);
+                    mRenderer2D->BeginScene(viewProj, false);
                     glm::vec4 color = (mSelectionMode == SelectionMode::Entity) ? glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f } : glm::vec4{ 0.2f, 0.9f, 0.2f, 1.0f };
                     Renderer::DrawAABB(selection.Mesh->BoundingBox, selection.Entity.Transform().GetTransform() * selection.Mesh->Transform, color);
-                    Renderer2D::EndScene();
+                    mRenderer2D->EndScene();
                     Renderer::EndRenderPass();
                 }
             }
@@ -810,9 +808,9 @@ namespace NR
 
                     Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
                     auto viewProj = mEditorCamera.GetViewProjection();
-                    Renderer2D::BeginScene(viewProj, false);
-                    Renderer2D::DrawRotatedRect({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 0.0f, 1.0f, 1.0f, 1.0f });
-                    Renderer2D::EndScene();
+                    mRenderer2D->BeginScene(viewProj, false);
+                    mRenderer2D->DrawRotatedRect({ transform.Translation.x, transform.Translation.y }, size * 2.0f, transform.Rotation.z, { 0.0f, 1.0f, 1.0f, 1.0f });
+                    mRenderer2D->EndScene();
                     Renderer::EndRenderPass();
                 }
 
@@ -823,17 +821,17 @@ namespace NR
 
                     Renderer::BeginRenderPass(mViewportRenderer->GetFinalRenderPass(), false);
                     auto viewProj = mEditorCamera.GetViewProjection();
-                    Renderer2D::BeginScene(viewProj, false);
-                    Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
-                    Renderer2D::EndScene();
+                    mRenderer2D->BeginScene(viewProj, false);
+                    mRenderer2D->DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
+                    mRenderer2D->EndScene();
                     Renderer::EndRenderPass();
                 }
 
                 Renderer::BeginRenderPass(SceneRenderer::GetFinalRenderPass(), false);
                 auto viewProj = mEditorCamera.GetViewProjection();
-                Renderer2D::BeginScene(viewProj, false);
-                Renderer2D::DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
-                Renderer2D::EndScene();
+                mRenderer2D->BeginScene(viewProj, false);
+                mRenderer2D->DrawCircle({ transform.Translation.x, transform.Translation.y }, size, { 0.0f, 1.0f, 1.0f, 1.0f });
+                mRenderer2D->EndScene();
                 Renderer::EndRenderPass();
             }
 #endif
@@ -847,7 +845,7 @@ namespace NR
                 Entity entity = { e, mCurrentScene.Raw() };
                 auto& tc = entity.GetComponent<TransformComponent>();
                 auto& plc = entity.GetComponent<PointLightComponent>();
-                Renderer2D::DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
+                mRenderer2D->DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
             }
         }
 
@@ -858,13 +856,13 @@ namespace NR
             {
                 auto& tc = selection.EntityObj.GetComponent<TransformComponent>();
                 auto& plc = selection.EntityObj.GetComponent<PointLightComponent>();
-                Renderer2D::DrawCircle(tc.Translation, { 0.0f, 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
-                Renderer2D::DrawCircle(tc.Translation, { glm::radians(90.0f), 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
-                Renderer2D::DrawCircle(tc.Translation, { 0.0f, glm::radians(90.0f), 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                mRenderer2D->DrawCircle(tc.Translation, { 0.0f, 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                mRenderer2D->DrawCircle(tc.Translation, { glm::radians(90.0f), 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                mRenderer2D->DrawCircle(tc.Translation, { 0.0f, glm::radians(90.0f), 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
             }
         }
 
-        Renderer2D::EndScene();
+        mRenderer2D->EndScene();
     }
 
     static void ReplaceProjectName(std::string& str, const std::string& projectName)
@@ -1459,13 +1457,6 @@ namespace NR
 
         style.WindowMinSize.x = minWinSizeX;
 
-        ImGui::Begin("Font Testing");
-        ImGui::DragFloat3("Position", glm::value_ptr(mTextPosition));
-        ImGui::ColorEdit4("Text Color", glm::value_ptr(mTextColor));
-        ImGui::DragFloat("Layout Width", &mLayoutWidth);
-        ImGui::InputTextMultiline("Text", mTextBuffer, 250 * 1000);
-        ImGui::End();
-
         // Editor Panel ------------------------------------------------------------------------------
         ImGui::Begin("Settings");
         {
@@ -1500,7 +1491,7 @@ namespace NR
 
             if (UI::Property("Line Width", mLineWidth, 0.5f, 1.0f, 10.0f))
             {
-                Renderer2D::SetLineWidth(mLineWidth);
+                mRenderer2D->SetLineWidth(mLineWidth);
             }
 
             UI::Property("Show Icons", mShowIcons);
@@ -1651,6 +1642,8 @@ namespace NR
 
         mViewportPanelMouseOver = ImGui::IsWindowHovered();
         mViewportPanelFocused = ImGui::IsWindowFocused();
+
+        Application::Get().GetImGuiLayer()->AllowInputEvents(!(mViewportPanelMouseOver&& Input::IsMouseButtonPressed(MouseButton::Right)));
 
         auto viewportOffset = ImGui::GetCursorPos(); // includes tab bar
         auto viewportSize = ImGui::GetContentRegionAvail();

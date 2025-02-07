@@ -118,6 +118,7 @@ namespace NR
 		Ref<SceneRenderer> mViewportRenderer;
 		Ref<SceneRenderer> mSecondViewportRenderer;
 		Ref<SceneRenderer> mFocusedRenderer;
+		Ref<Renderer2D> mRenderer2D;
 		std::string mSceneFilePath;
 
 		EditorCamera mEditorCamera;

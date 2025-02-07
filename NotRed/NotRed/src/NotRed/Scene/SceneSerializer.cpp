@@ -335,6 +335,20 @@ namespace NR
 			out << YAML::EndMap; // SpriteRendererComponent
 		}
 
+		if (entity.HasComponent<TextComponent>())
+		{
+			out << YAML::Key << "TextComponent";
+			out << YAML::BeginMap; // TextComponent
+			auto& textComponent = entity.GetComponent<TextComponent>();
+			out << YAML::Key << "TextString" << YAML::Value << std::string(textComponent.TextString.begin(), textComponent.TextString.end());
+			out << YAML::Key << "FontHandle" << YAML::Value << textComponent.FontAsset->Handle;
+			out << YAML::Key << "Color" << YAML::Value << textComponent.Color;
+			out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.LineSpacing;
+			out << YAML::Key << "Kerning" << YAML::Value << textComponent.Kerning;
+			out << YAML::Key << "MaxWidth" << YAML::Value << textComponent.MaxWidth;
+			out << YAML::EndMap; // TextComponent
+		}
+
 		if (entity.HasComponent<RigidBody2DComponent>())
 		{
 			out << YAML::Key << "RigidBody2DComponent";
@@ -965,6 +979,25 @@ namespace NR
 				auto& component = deserializedEntity.AddComponent<SpriteRendererComponent>();
 				component.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 				component.TilingFactor = spriteRendererComponent["TilingFactor"].as<float>();
+			}
+
+			auto textComponent = entity["TextComponent"];
+			if (textComponent)
+			{
+				auto& component = deserializedEntity.AddComponent<TextComponent>();
+				std::string textString = textComponent["TextString"].as<std::string>();
+				component.TextString = std::u32string(textString.begin(), textString.end());
+				
+				AssetHandle fontHandle = textComponent["FontHandle"].as<uint64_t>();
+				if (AssetManager::IsAssetHandleValid(fontHandle))
+				{
+					component.FontAsset = AssetManager::GetAsset<Font>(fontHandle);
+				}
+
+				component.Color = textComponent["Color"].as<glm::vec4>();
+				component.LineSpacing = textComponent["LineSpacing"].as<float>();
+				component.Kerning = textComponent["Kerning"].as<float>();
+				component.MaxWidth = textComponent["MaxWidth"].as<float>();
 			}
 
 			auto rigidBody2DComponent = entity["RigidBody2DComponent"];

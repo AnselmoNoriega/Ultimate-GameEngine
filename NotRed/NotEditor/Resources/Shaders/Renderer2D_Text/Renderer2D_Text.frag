@@ -36,4 +36,9 @@ void main()
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
 
     color = mix(bgColor, fgColor, opacity);
+	
+	if (opacity == 0.0)
+	{
+		discard;
+	}
 }
