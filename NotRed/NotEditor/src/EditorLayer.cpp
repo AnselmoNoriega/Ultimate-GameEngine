@@ -215,12 +215,12 @@ namespace NR
 
 
             {
-                bool colourPushed = pushDarkTextIfActive("File");
+                bool colorPushed = pushDarkTextIfActive("File");
 
                 if (ImGui::BeginMenu("File"))
                 {
                     popItemHighlight();
-                    colourPushed = false;
+                    colorPushed = false;
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
                     
                     if (ImGui::MenuItem("Create Project..."))
@@ -292,17 +292,17 @@ namespace NR
                     ImGui::EndMenu();
                 }
 
-                if (colourPushed)
+                if (colorPushed)
                 {
                     ImGui::PopStyleColor();
                 }
             }
             {
-                bool colourPushed = pushDarkTextIfActive("Edit");
+                bool colorPushed = pushDarkTextIfActive("Edit");
                 if (ImGui::BeginMenu("Edit"))
                 {
                     popItemHighlight();
-                    colourPushed = false;
+                    colorPushed = false;
                     
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
                     ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
@@ -318,19 +318,19 @@ namespace NR
                     ImGui::EndMenu();
                 }
 
-                if (colourPushed)
+                if (colorPushed)
                 {
                     ImGui::PopStyleColor();
                 }
             }
 
             {
-                bool colourPushed = pushDarkTextIfActive("View");
+                bool colorPushed = pushDarkTextIfActive("View");
 
                 if (ImGui::BeginMenu("View"))
                 {
                     popItemHighlight();
-                    colourPushed = false;
+                    colorPushed = false;
 
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
 
@@ -341,7 +341,7 @@ namespace NR
                     ImGui::EndMenu();
                 }
 
-                if (colourPushed)
+                if (colorPushed)
                 {
                     ImGui::PopStyleColor();
                 }
@@ -349,12 +349,12 @@ namespace NR
 
 #ifdef NR_DEBUG
             {
-                bool colourPushed = pushDarkTextIfActive("Debug");
+                bool colorPushed = pushDarkTextIfActive("Debug");
 
                 if (ImGui::BeginMenu("Debug"))
                 {
                     popItemHighlight();
-                    colourPushed = false;
+                    colorPushed = false;
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
                     if (PhysicsDebugger::IsDebugging())
                     {
@@ -378,18 +378,18 @@ namespace NR
                     ImGui::EndMenu();
                 }
 
-                if (colourPushed)
+                if (colorPushed)
                 {
                     ImGui::PopStyleColor();
                 }
             }
 #endif
             {
-                bool colourPushed = pushDarkTextIfActive("Help");
+                bool colorPushed = pushDarkTextIfActive("Help");
                 if (ImGui::BeginMenu("Help"))
                 {
                     popItemHighlight();
-                    colourPushed = false;
+                    colorPushed = false;
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
 
                     if (ImGui::MenuItem("About"))
@@ -401,7 +401,7 @@ namespace NR
                     ImGui::EndMenu();
                 }
 
-                if (colourPushed)
+                if (colorPushed)
                 {
                     ImGui::PopStyleColor();
                 }
@@ -508,6 +508,20 @@ namespace NR
             ImGui::SetCursorPos(ImVec2(logoOffset, 4.0f));
             DrawMenubar();
         }
+        {
+            UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
+            UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::textDarker);
+
+            const std::string title = Project::GetActive()->GetConfig().Name;
+            const ImVec2 textSize = ImGui::CalcTextSize(title.c_str());
+            const float rightOffset = ImGui::GetWindowWidth() / 5.0f;
+            
+            ImGui::SetCursorPosX(ImGui::GetWindowWidth() - rightOffset - textSize.x);
+            UI::ShiftCursorY(2.0f);
+            ImGui::Text(title.c_str());
+            UI::ScopedColor border(ImGuiCol_Border, IM_COL32(40, 40, 40, 255));
+            UI::DrawBorder(UI::RectExpanded(UI::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
+        }
 
         ImGui::ResumeLayout();
 
@@ -581,10 +595,12 @@ namespace NR
 
     void EditorLayer::HandleManualWindowResize()
     {
+        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        const bool maximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+
         ImVec2 newSize, newPosition;
-        if (UI::UpdateWindowManualResize(ImGui::GetCurrentWindow(), newSize, newPosition))
+        if (!maximized && UI::UpdateWindowManualResize(ImGui::GetCurrentWindow(), newSize, newPosition))
         {
-            auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
             glfwSetWindowPos(window, newPosition.x, newPosition.y);
             glfwSetWindowSize(window, newSize.x, newSize.y);
         }

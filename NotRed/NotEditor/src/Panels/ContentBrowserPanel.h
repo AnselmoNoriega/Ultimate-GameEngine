@@ -100,6 +100,11 @@ namespace NR
         Ref<ContentBrowserItem>& operator[](size_t index) { return Items[index]; }
         const Ref<ContentBrowserItem>& operator[](size_t index) const { return Items[index]; }
 
+        void Clear()
+        {
+            Items.clear();
+        }
+
         void erase(AssetHandle handle)
         {
             size_t index = FindItem(handle);

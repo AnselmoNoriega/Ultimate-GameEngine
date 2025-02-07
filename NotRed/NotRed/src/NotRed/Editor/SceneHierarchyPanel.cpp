@@ -392,11 +392,14 @@ namespace NR
             flags |= ImGuiTreeNodeFlags_Leaf;
         }
 
+        const std::string strID = std::string(name) + std::to_string((uint32_t)entity);
+
         ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
-        const bool isRowHovered = [&rowAreaMin, &rowAreaMax, &name]
-            {
-                return ImGui::ItemHoverable(ImRect(rowAreaMin, rowAreaMax), ImGui::GetID(name));
-            }();
+        bool isRowHovered, held;
+        bool isRowClicked = ImGui::ButtonBehavior(ImRect(rowAreaMin, rowAreaMax), ImGui::GetID(strID.c_str()),
+            &isRowHovered, &held, ImGuiButtonFlags_AllowItemOverlap | ImGuiButtonFlags_PressedOnClick);
+
+        ImGui::SetItemAllowOverlap();
 
         ImGui::PopClipRect();
 
@@ -523,14 +526,14 @@ namespace NR
                         mContext->ParentEntity(newEntity, entity);
                         newEntity.AddComponent<CameraComponent>();
                         SetSelected(newEntity);
-                    }/*
+                    }
                     if (ImGui::MenuItem("Text"))
                     {
                         auto newEntity = mContext->CreateEntity("Text");
                         mContext->ParentEntity(newEntity, entity);
                         newEntity.AddComponent<TextComponent>();
                         SetSelected(newEntity);
-                    }*/
+                    }
                     if (ImGui::BeginMenu("3D"))
                     {/*TODO
                         if (ImGui::MenuItem("Cube"))
@@ -643,33 +646,6 @@ namespace NR
 
         // Type column
         //------------
-        ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
-        const bool isRowClicked = [&rowAreaMin, &rowAreaMax, isRowHovered]
-            {
-                if (!isRowHovered)
-                {
-                    return false;
-                }
-
-                auto* table = ImGui::GetCurrentTable();
-                bool hoveringResizer = false;
-                for (int column = 0; column < ImGui::TableGetColumnCount(); column++)
-                {
-                    const auto resizerID = ImGui::TableGetColumnResizeID(table, column);
-                    if (ImGui::GetHoveredID() == resizerID)
-                        hoveringResizer = true;
-                }
-
-                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !hoveringResizer)
-                {
-                    return true;
-                }
-
-                return false;
-            }();
-
-        ImGui::PopClipRect();
-
         if (isRowClicked)
         {
             mSelectionContext = entity;
@@ -1056,7 +1032,7 @@ namespace NR
                 }
                 if (!mSelectionContext.HasComponent<TextComponent>())
                 {
-                    if (ImGui::Button("Text"))
+                    if (ImGui::MenuItem("Text"))
                     {
                         mSelectionContext.AddComponent<TextComponent>();
                         ImGui::CloseCurrentPopup();

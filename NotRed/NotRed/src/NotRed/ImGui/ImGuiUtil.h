@@ -1152,6 +1152,24 @@ namespace NR::UI
         DrawBorder(rectMin, rectMax, ImGui::GetStyleColorVec4(ImGuiCol_Border), thickness, offsetX, offsetY);
     };
 
+    static void DrawBorder(ImRect rect, float thickness = 1.0f, float rounding = 0.0f, float offsetX = 0.0f, float offsetY = 0.0f)
+    {
+        auto min = rect.Min;
+        min.x -= thickness;
+        min.y -= thickness;
+        min.x += offsetX;
+        min.y += offsetY;
+    
+        auto max = rect.Max;
+        max.x += thickness;
+        max.y += thickness;
+        max.x += offsetX;
+        max.y += offsetY;
+        
+        auto* drawList = ImGui::GetWindowDrawList();
+        drawList->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_Border)), rounding, 0, thickness);
+    };
+
     static void DrawBorderHorizontal(ImVec2 rectMin, ImVec2 rectMax, const ImVec4& borderColor, float thickness = 1.0f, float offsetX = 0.0f, float offsetY = 0.0f)
     {
         auto min = rectMin;

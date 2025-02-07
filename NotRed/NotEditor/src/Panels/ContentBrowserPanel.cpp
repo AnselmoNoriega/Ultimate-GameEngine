@@ -17,6 +17,7 @@
 
 #include "NotRed/Editor/AssetEditorPanel.h"
 #include "NotRed/Renderer/MaterialAsset.h"
+#include "NotRed/Util/StringUtils.h"
 
 #include "NotRed/Audio/Sound.h"
 
@@ -373,7 +374,7 @@ namespace NR
 		}
 
 		bool handled = false;
-		if (Input::IsKeyPressed(KeyCode::LeftControl) && mSelectionStack.SelectionCount() > 0)
+		if (Input::IsKeyPressed(KeyCode::LeftControl))
 		{
 			switch (e.GetKeyCode())
 			{
@@ -886,29 +887,17 @@ namespace NR
 
 	void ContentBrowserPanel::Refresh()
 	{
-		for (auto entry : std::filesystem::directory_iterator(Project::GetAssetDirectory() / mCurrentDirectory->FilePath))
+		mCurrentItems.Clear();
+		mDirectories.clear();
+		
+		Ref<DirectoryInfo> currentDirectory = mCurrentDirectory;
+		AssetHandle baseDirectoryHandle = ProcessDirectory(mProject->GetAssetDirectory().string(), nullptr);
+		
+		mBaseDirectory = mDirectories[baseDirectoryHandle];
+		mCurrentDirectory = GetDirectory(currentDirectory->FilePath);
+		if (!mCurrentDirectory)
 		{
-			if (!entry.is_directory())
-			{
-				const auto& assetInfo = AssetManager::GetMetadata(std::filesystem::relative(entry.path(), Project::GetActive()->GetAssetDirectory()));
-				if (!assetInfo.IsValid())
-				{
-					AssetHandle handle = AssetManager::ImportAsset(entry.path());
-					if (handle != 0)
-					{
-						mCurrentDirectory->Assets.push_back(handle);
-					}
-				}
-			}
-			else
-			{
-				const auto& directory = GetDirectory(std::filesystem::relative(entry.path(), Project::GetActive()->GetAssetDirectory()));
-				if (!directory)
-				{
-					AssetHandle directoryHandle = ProcessDirectory(entry.path(), mCurrentDirectory);
-					mCurrentDirectory->SubDirectories[directoryHandle] = mDirectories[directoryHandle];
-				}
-			}
+			mCurrentDirectory = mBaseDirectory;
 		}
 
 		ChangeDirectory(mCurrentDirectory);
