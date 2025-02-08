@@ -981,7 +981,7 @@ namespace NR
                 }
                 if (!mSelectionContext.HasComponent<AnimationComponent>())
                 {
-                    if (ImGui::Button("Animation"))
+                    if (ImGui::MenuItem("Animation"))
                     {
                         mSelectionContext.AddComponent<AnimationComponent>();
                         ImGui::CloseCurrentPopup();
@@ -1202,7 +1202,7 @@ namespace NR
                 if (AssetManager::IsAssetHandleValid(mc.MeshHandle))
                 {
                     auto mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
-                    if (mesh->IsValid())
+                    if (mesh && mesh->IsValid())
                     {
                         if (UI::BeginTreeNode("Materials"))
                         {
@@ -1482,8 +1482,8 @@ namespace NR
                 UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
                 if (AssetManager::IsAssetHandleValid(slc.SceneEnvironment))
                 {
-                    auto environment = AssetManager::GetAsset<Environment>(slc.SceneEnvironment);
-                    if (environment->RadianceMap)
+                    auto environment = AssetManager::GetAsset<Environment>(slc.SceneEnvironment);				
+                    if (environment && environment->RadianceMap)
                     {
                         UI::PropertySlider("Lod", slc.Lod, 0, environment->RadianceMap->GetMipLevelCount());
                     }
@@ -1508,8 +1508,11 @@ namespace NR
                         {
                             Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(slc.TurbidityAzimuthInclination.x, slc.TurbidityAzimuthInclination.y, slc.TurbidityAzimuthInclination.z);
                             Ref<Environment> env = AssetManager::GetAsset<Environment>(slc.SceneEnvironment);
-                            env->RadianceMap = preethamEnv;
-                            env->IrradianceMap = preethamEnv;
+                            if (env)
+                            {
+                                env->RadianceMap = preethamEnv;
+                                env->IrradianceMap = preethamEnv;
+                            }
                         }
                         else
                         {

@@ -82,7 +82,7 @@ namespace NR
 							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
 							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
 
-							if (asset->GetAssetType() != AssetType::Texture)
+							if (!asset || asset->GetAssetType() != AssetType::Texture)
 							{
 								break;
 							}
@@ -173,7 +173,7 @@ namespace NR
 
 							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
 							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-							if (asset->GetAssetType() != AssetType::Texture)
+							if (!asset || asset->GetAssetType() != AssetType::Texture)
 							{
 								break;
 							}
@@ -255,7 +255,7 @@ namespace NR
 
 							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
 							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-							if (asset->GetAssetType() != AssetType::Texture)
+							if (!asset || asset->GetAssetType() != AssetType::Texture)
 							{
 								break;
 							}
@@ -335,7 +335,7 @@ namespace NR
 
 							AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
 							Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-							if (asset->GetAssetType() != AssetType::Texture)
+							if (!asset || asset->GetAssetType() != AssetType::Texture)
 							{
 								break;
 							}

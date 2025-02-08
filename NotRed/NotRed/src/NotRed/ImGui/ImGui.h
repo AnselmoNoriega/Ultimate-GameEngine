@@ -1123,7 +1123,7 @@ namespace NR::UI
             {
                 auto object = AssetManager::GetAsset<T>(outHandle);
 
-                if (!object->IsFlagSet(AssetFlag::Missing))
+                if (object && !object->IsFlagSet(AssetFlag::Missing))
                 {
                     buttonText = AssetManager::GetMetadata(outHandle).FilePath.stem().string();
                 }
@@ -1132,23 +1132,36 @@ namespace NR::UI
                     buttonText = "Missing";
                 }
             }
+
+            if (IsItemDisabled())
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+            }
+
             ImGui::Button(fmt::format("{}##{}", buttonText, sCounter++).c_str(), { width, itemHeight });
+
+            if (IsItemDisabled())
+            {
+                ImGui::PopStyleVar();
+            }
         }
         ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
-        if (ImGui::BeginDragDropTarget())
+        if (!IsItemDisabled())
         {
-            auto data = ImGui::AcceptDragDropPayload("asset_payload");
-
-            if (data)
+            if (ImGui::BeginDragDropTarget())
             {
-                AssetHandle assetHandle = *(AssetHandle*)data->Data;
-                sPropertyAssetReferenceAssetHandle = assetHandle;
-                Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                if (asset->GetAssetType() == T::GetStaticType())
+                auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                if (data)
                 {
-                    outHandle = assetHandle;
-                    modified = true;
+                    AssetHandle assetHandle = *(AssetHandle*)data->Data;
+                    sPropertyAssetReferenceAssetHandle = assetHandle;
+                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                    if (asset->GetAssetType() == T::GetStaticType())
+                    {
+                        outHandle = assetHandle;
+                        modified = true;
+                    }
                 }
             }
         }
@@ -1187,12 +1200,17 @@ namespace NR::UI
         float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
         UI::PushID();
 
-        float itemHeight = 28.0f;
+        constexpr float itemHeight = 28.0f;
+
+        if (IsItemDisabled())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
 
         if (AssetManager::IsAssetHandleValid(outHandle))
         {
             auto object = AssetManager::GetAsset<TAssetType>(outHandle);
-            if (!object->IsFlagSet(AssetFlag::Missing))
+            if (object && !object->IsFlagSet(AssetFlag::Missing))
             {
                 std::string assetFileName = AssetManager::GetMetadata(outHandle).FilePath.stem().string();
                 ImGui::Button((char*)assetFileName.c_str(), { width, itemHeight });
@@ -1207,38 +1225,45 @@ namespace NR::UI
             ImGui::Button("Null", { width, itemHeight });
         }
 
+        if (IsItemDisabled())
+        {
+            ImGui::PopStyleVar();
+        }
+
         UI::PopID();
         ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
-        if (ImGui::BeginDragDropTarget())
+        if (!IsItemDisabled())
         {
-            auto data = ImGui::AcceptDragDropPayload("asset_payload");
-
-            if (data)
+            if (ImGui::BeginDragDropTarget())
             {
-                AssetHandle assetHandle = *(AssetHandle*)data->Data;
-                sPropertyAssetReferenceAssetHandle = assetHandle;
-                Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                if (asset)
+                auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                if (data)
                 {
-                    // No conversion necessary 
-                    if (asset->GetAssetType() == TAssetType::GetStaticType())
+                    AssetHandle assetHandle = *(AssetHandle*)data->Data;
+                    sPropertyAssetReferenceAssetHandle = assetHandle;
+                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                    if (asset)
                     {
-                        outHandle = assetHandle;
-                        succeeded = true;
+                        // No conversion necessary 
+                        if (asset->GetAssetType() == TAssetType::GetStaticType())
+                        {
+                            outHandle = assetHandle;
+                            succeeded = true;
+                        }
+                        // Convert
+                        else if (asset->GetAssetType() == TConversionType::GetStaticType())
+                        {
+                            conversionFunc(asset.As<TConversionType>());
+                            succeeded = false; // Must be handled my conversion function
+                        }
                     }
-                    // Convert
-                    else if (asset->GetAssetType() == TConversionType::GetStaticType())
+                    else
                     {
-                        conversionFunc(asset.As<TConversionType>());
-                        succeeded = false; // Must be handled my conversion function
-                    }
-                }
-                else
-                {
-                    if (outError)
-                    {
-                        *outError = PropertyAssetReferenceError::InvalidMetadata;
+                        if (outError)
+                        {
+                            *outError = PropertyAssetReferenceError::InvalidMetadata;
+                        }
                     }
                 }
             }
@@ -1276,7 +1301,12 @@ namespace NR::UI
         float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
         UI::PushID();
 
-        float itemHeight = 28.0f;
+        constexpr float itemHeight = 28.0f;
+
+        if (IsItemDisabled())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
 
         if (source)
         {
@@ -1301,28 +1331,31 @@ namespace NR::UI
             ImGui::Button("Null", { width, itemHeight });
         }
 
+        if (IsItemDisabled())
+        {
+            ImGui::PopStyleVar();
+        }
+
         UI::PopID();
         ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
-        if (ImGui::BeginDragDropTarget())
-        {
-            auto data = ImGui::AcceptDragDropPayload("asset_payload");
-
-            if (data)
-            {
-                AssetHandle assetHandle = *(AssetHandle*)data->Data;
-                sPropertyAssetReferenceAssetHandle = assetHandle;
-                Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                if (asset->GetAssetType() == T::GetStaticType())
-                {
-                    targetFunc(asset.As<T>());
-                    modified = true;
-                }
-            }
-        }
-
         if (!IsItemDisabled())
         {
+            if (ImGui::BeginDragDropTarget())
+            {
+                auto data = ImGui::AcceptDragDropPayload("asset_payload");
+                if (data)
+                {
+                    AssetHandle assetHandle = *(AssetHandle*)data->Data;
+                    sPropertyAssetReferenceAssetHandle = assetHandle;
+                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                    if (asset->GetAssetType() == T::GetStaticType())
+                    {
+                        targetFunc(asset.As<T>());
+                        modified = true;
+                    }
+                }
+            }
             DrawItemActivityOutline(2.0f, true, Colors::Theme::accent);
         }
 
@@ -1535,28 +1568,41 @@ namespace NR::UI
         {
             ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
             float width = ImGui::GetContentRegionAvail().x;
-            float itemHeight = 28.0f;
+            constexpr float itemHeight = 28.0f;
             std::string buttonText = "Null";
             if (entity)
             {
                 buttonText = entity.GetComponent<TagComponent>().Tag;
             }
 
+            if (IsItemDisabled())
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+            }
+
             ImGui::Button(fmt::format("{}##{}", buttonText, sCounter++).c_str(), { width, itemHeight });
+            
+            if (IsItemDisabled())
+            {
+                ImGui::PopStyleVar();
+            }
         }
 
         ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
-        if (ImGui::BeginDragDropTarget())
+        if (!IsItemDisabled())
         {
-            auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
-            if (data)
+            if (ImGui::BeginDragDropTarget())
             {
-                entity = *(Entity*)data->Data;
-                receivedValidEntity = true;
-            }
+                auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
+                if (data)
+                {
+                    entity = *(Entity*)data->Data;
+                    receivedValidEntity = true;
+                }
 
-            ImGui::EndDragDropTarget();
+                ImGui::EndDragDropTarget();
+            }
         }
 
         if (!IsItemDisabled())

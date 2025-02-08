@@ -19,6 +19,7 @@
 #include "NotRed/Core/Application.h"
 
 #include "NotRed/Asset/AssetManager.h"
+#include "NotRed/Math/Math.h"
 #include "NotRed/Physics/PhysicsManager.h"
 #include "NotRed/Physics/PhysicsActor.h"
 
@@ -409,6 +410,12 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         *outTransform = scene->GetWorldSpaceTransform(entity);
+    }
+
+    void NR_Transform_TransformMultiply(const TransformComponent* a, const TransformComponent* b, TransformComponent* outTransform)
+    {
+        glm::mat4 result = a->GetTransform() * b->GetTransform();
+        Math::DecomposeTransform(result, outTransform->Translation, outTransform->Rotation, outTransform->Scale);
     }
 
     MonoString* NR_TagComponent_GetTag(uint64_t entityID)
@@ -883,6 +890,27 @@ namespace NR::Script
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
         return ScriptEngine::GetEntityInstanceData(scene->GetID(), entityID).Instance.GetInstance();
+    }
+
+    void NR_AnimationComponent_GetRootMotion(uint64_t entityID, TransformComponent* outTransform)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        
+        // Root motion is currently translation only.  No need for expensive matrix decompose here.
+        if (AssetManager::IsAssetHandleValid(animationComponent.AnimationController))
+        {
+            auto animationController = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController);
+            outTransform->Translation = animationController->GetRootMotion();
+            outTransform->Rotation = { 0.0f, 0.0f, 0.0f };
+            outTransform->Scale = { 1.0f, 1.0f, 1.0f };
+        }
     }
 
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* outType)

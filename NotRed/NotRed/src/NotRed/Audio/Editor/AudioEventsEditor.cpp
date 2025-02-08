@@ -82,7 +82,7 @@ namespace NR
 				{
 					AssetHandle assetHandle = *(AssetHandle*)data->Data;
 					Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-					if (asset->GetAssetType() == T::GetStaticType())
+					if (asset && asset->GetAssetType() == T::GetStaticType())
 					{
 						object = asset.As<T>();
 						modified = true;

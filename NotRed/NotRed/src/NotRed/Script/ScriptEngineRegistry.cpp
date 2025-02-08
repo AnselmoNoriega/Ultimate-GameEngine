@@ -78,6 +78,7 @@ namespace NR
 		mono_add_internal_call("NR.TransformComponent::GetScale_Native", NR::Script::NR_TransformComponent_GetScale);
 		mono_add_internal_call("NR.TransformComponent::SetScale_Native", NR::Script::NR_TransformComponent_SetScale);
 		mono_add_internal_call("NR.TransformComponent::GetWorldSpaceTransform_Native", NR::Script::NR_TransformComponent_GetWorldSpaceTransform);
+		mono_add_internal_call("NR.Transform::TransformMultiply_Native", NR::Script::NR_Transform_TransformMultiply);
 
 		mono_add_internal_call("NR.Entity::CreateComponent_Native", NR::Script::NR_Entity_CreateComponent);
 		mono_add_internal_call("NR.Entity::CreateEntity_Native", NR::Script::NR_Entity_CreateEntity);
@@ -104,6 +105,7 @@ namespace NR
 		mono_add_internal_call("NR.AnimationComponent::SetIsAnimationPlaying_Native", NR::Script::NR_AnimationComponent_SetIsAnimationPlaying);
 		mono_add_internal_call("NR.AnimationComponent::GetStateIndex_Native", NR::Script::NR_AnimationComponent_GetStateIndex);
 		mono_add_internal_call("NR.AnimationComponent::SetStateIndex_Native", NR::Script::NR_AnimationComponent_SetStateIndex);
+		mono_add_internal_call("NR.AnimationComponent::GetRootMotion_Native", NR::Script::NR_AnimationComponent_GetRootMotion);
 		mono_add_internal_call("NR.MeshComponent::ReloadMeshCollider_Native", NR::Script::NR_MeshComponent_ReloadMeshCollider);
 		mono_add_internal_call("NR.MeshComponent::HasMaterial_Native", NR::Script::NR_MeshComponent_HasMaterial);
 		mono_add_internal_call("NR.MeshComponent::GetMaterial_Native", NR::Script::NR_MeshComponent_GetMaterial);

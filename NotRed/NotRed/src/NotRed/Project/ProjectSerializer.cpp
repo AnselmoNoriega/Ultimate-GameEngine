@@ -32,9 +32,9 @@ namespace NR
 			out << YAML::Key << "MeshPath" << YAML::Value << mProject->mConfig.MeshPath;
 			out << YAML::Key << "MeshSourcePath" << YAML::Value << mProject->mConfig.MeshSourcePath;
 			out << YAML::Key << "ScriptModulePath" << YAML::Value << mProject->mConfig.ScriptModulePath;
+			out << YAML::Key << "DefaultNamespace" << YAML::Value << mProject->mConfig.DefaultNamespace;
 			out << YAML::Key << "StartScene" << YAML::Value << mProject->mConfig.StartScene;
 			out << YAML::Key << "ReloadAssemblyOnPlay" << YAML::Value << mProject->mConfig.ReloadAssemblyOnPlay;
-
 
 			out << YAML::Key << "Physics" << YAML::Value;
 			{

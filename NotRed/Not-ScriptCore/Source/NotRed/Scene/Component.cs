@@ -198,6 +198,15 @@ namespace NR
             }
         }
 
+        public Transform RootMotion
+        {
+            get
+            {
+                GetRootMotion_Native(Entity.ID, out Transform result);
+                return result;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern bool GetIsAnimationPlaying_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -206,6 +215,8 @@ namespace NR
         public static extern uint GetStateIndex_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetStateIndex_Native(ulong entityID, uint value);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void GetRootMotion_Native(ulong entityID, out Transform result);
     }
 
     public class CameraComponent : Component

@@ -121,10 +121,6 @@ namespace NR
         AudioEventsEditor::Init();
 
         sNotRedInstallPath = FileSystem::GetEnvironmentVariable("NOTRED_DIR");
-
-        memset(mTextBuffer, 0, 250 * 1000);
-        strcpy(mTextBuffer, "Hello World");
-        mMSGothic = Ref<Font>::Create("Resources/Fonts/Roboto/Roboto-Regular.ttf");
     }
 
     void EditorLayer::Detach()
@@ -248,7 +244,7 @@ namespace NR
 
                             if (ImGui::MenuItem(it->second.Name.c_str()))
                             {
-                                OpenProject(it->second.FilePath);
+                                strcpy(sProjectFilePathBuffer, it->second.FilePath.data());
 
                                 RecentProject projectEntry;
                                 projectEntry.Name = it->second.Name;
@@ -703,7 +699,7 @@ namespace NR
             auto& meshComp = entity.GetComponent<MeshComponent>();
 
             auto mesh = AssetManager::GetAsset<Mesh>(meshComp.MeshHandle);
-            if (meshComp.MeshHandle && !mesh->IsFlagSet(AssetFlag::Missing))
+            if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
             {
                 selection.Mesh = &mesh->GetMeshAsset()->GetSubmeshes()[0];
             }
@@ -774,8 +770,11 @@ namespace NR
                         Entity entity = { e, mCurrentScene.Raw() };
                         glm::mat4 transform = entity.GetComponent<TransformComponent>().GetTransform();
                         auto mesh = AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle);
-                        const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
-                        mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                        if (mesh) 
+                        {
+                            const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
+                            mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
+                        }
                     }
                 }
             }
@@ -860,6 +859,30 @@ namespace NR
                 auto& tc = entity.GetComponent<TransformComponent>();
                 auto& plc = entity.GetComponent<PointLightComponent>();
                 mRenderer2D->DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
+            }
+        }
+
+        if (mShowPhysicsCollidersWireframe)
+        {
+            {
+                auto entities = mCurrentScene->GetAllEntitiesWith<BoxCollider2DComponent>();
+                for (auto e : entities)
+                {
+                    Entity entity = { e, mCurrentScene.Raw() };
+                    auto& tc = entity.GetComponent<TransformComponent>();
+                    auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+                    mRenderer2D->DrawRotatedRect({ tc.Translation.x, tc.Translation.y }, (2.0f * bc2d.Size) * glm::vec2(tc.Scale), tc.Rotation.z, { 0.25f, 0.6f, 1.0f, 1.0f });
+                }
+            }
+            {
+                auto entities = mCurrentScene->GetAllEntitiesWith<CircleCollider2DComponent>();
+                for (auto e : entities)
+                {
+                    Entity entity = { e, mCurrentScene.Raw() };
+                    auto& tc = entity.GetComponent<TransformComponent>();
+                    auto& cc2d = entity.GetComponent<CircleCollider2DComponent>();
+                    mRenderer2D->DrawCircle({ tc.Translation.x, tc.Translation.y, 0.0f }, glm::vec3(0.0f), cc2d.Radius * tc.Scale.x, { 0.25f, 0.6f, 1.0f, 1.0f });
+                }
             }
         }
 
@@ -963,7 +986,7 @@ namespace NR
             return;
         }
 
-        OpenProject(filepath);
+        strcpy(sProjectFilePathBuffer, filepath.data());
         std::filesystem::path projectFile = filepath;
 
         RecentProject projectEntry;
@@ -1022,6 +1045,9 @@ namespace NR
         // Reset cameras
         mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
         mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        
+        memset(sProjectNameBuffer, 0, MAX_PROJECT_NAME_LENGTH);
+        memset(sProjectFilePathBuffer, 0, MAX_PROJECT_FILEPATH_LENGTH);
     }
 
     void EditorLayer::SaveProject()
@@ -2015,7 +2041,7 @@ namespace NR
                             }
 
                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                            if (asset->GetAssetType() == AssetType::Mesh)
+                            if (asset && asset->GetAssetType() == AssetType::Mesh)
                             {
                                 Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
                                 entity.AddComponent<MeshComponent>(assetHandle);
@@ -2101,7 +2127,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->GetAssetType() != AssetType::Texture)
+                                            if (!asset || asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -2174,7 +2200,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->GetAssetType() != AssetType::Texture)
+                                            if (!asset || asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -2243,7 +2269,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->GetAssetType() != AssetType::Texture)
+                                            if (!asset || asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -2310,7 +2336,7 @@ namespace NR
 
                                             AssetHandle assetHandle = *(((AssetHandle*)data->Data) + i);
                                             Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                                            if (asset->GetAssetType() != AssetType::Texture)
+                                            if (!asset || asset->GetAssetType() != AssetType::Texture)
                                             {
                                                 break;
                                             }
@@ -2472,6 +2498,13 @@ namespace NR
                 ImGui::PopFont();
                 ImGui::PopStyleVar();
                 ImGui::EndPopup();
+            }
+            else
+            {
+                if (strlen(sProjectFilePathBuffer) > 0)
+                {
+                    OpenProject(sProjectFilePathBuffer);
+                }
             }
             ImGui::PopStyleVar(2);
         }

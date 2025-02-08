@@ -494,23 +494,26 @@ namespace NR
                 if (!mesh->IsFlagSet(AssetFlag::Missing))
                 {
                     Entity e = Entity(entity, this);
-                    if (e.HasComponent<AnimationComponent>())
+                    if (mesh->IsRigged())
                     {
-                        auto& anim = e.GetComponent<AnimationComponent>();
-                        auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-                        if (AssetManager::IsAssetHandleValid(anim.AnimationController))
+                        if (e.HasComponent<AnimationComponent>()) 
                         {
-                            e.Transform().SetTransform(e.Transform().GetTransform() * animationController->Update(dt));
-                            mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
+                            auto& anim = e.GetComponent<AnimationComponent>();
+                            if (AssetManager::IsAssetHandleValid(anim.AnimationController))
+                            {
+                                auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
+                                e.Transform().SetTransform(e.Transform().GetTransform() * animationController->Update(dt));
+                                mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
+                            }
+                            else
+                            {
+                                mesh->UpdateBoneTransforms({});
+                            }
                         }
                         else
                         {
                             mesh->UpdateBoneTransforms({});
                         }
-                    }
-                    else if (mesh->IsRigged())
-                    {
-                        mesh->UpdateBoneTransforms({});
                     }
 
                     glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
@@ -556,7 +559,7 @@ namespace NR
                 for (auto entity : group)
                 {
                     auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
-                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle)
+                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle || !AssetManager::IsAssetHandleValid(textComponent.FontAsset))
                     {
                         mSceneRenderer2D->DrawString(textComponent.TextString, Font::GetDefaultFont(), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
                     }
@@ -664,23 +667,26 @@ namespace NR
                 if (!mesh->IsFlagSet(AssetFlag::Missing))
                 {
                     Entity e = Entity(entity, this);
-                    if (e.HasComponent<AnimationComponent>())
+                    if (mesh->IsRigged())
                     {
-                        auto& anim = e.GetComponent<AnimationComponent>();
-                        auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-                        if (AssetManager::IsAssetHandleValid(anim.AnimationController))
+                        if (e.HasComponent<AnimationComponent>()) 
                         {
-                            e.Transform().SetTransform(e.Transform().GetTransform() * animationController->Update(dt));
-                            mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
+                            auto& anim = e.GetComponent<AnimationComponent>();
+                            if (AssetManager::IsAssetHandleValid(anim.AnimationController))
+                            {
+                                auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
+                                animationController->Update(dt);
+                                mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
+                            }
+                            else
+                            {
+                                mesh->UpdateBoneTransforms({});
+                            }
                         }
                         else
                         {
                             mesh->UpdateBoneTransforms({});
                         }
-                    }
-                    else if (mesh->IsRigged())
-                    {
-                        mesh->UpdateBoneTransforms({});
                     }
 
                     glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
@@ -829,7 +835,7 @@ namespace NR
                 for (auto entity : group)
                 {
                     auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
-                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle)
+                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle || !AssetManager::IsAssetHandleValid(textComponent.FontAsset))
                     {
                         mSceneRenderer2D->DrawString(textComponent.TextString, Font::GetDefaultFont(), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
                     }
@@ -910,7 +916,7 @@ namespace NR
                     b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
 
                     b2PolygonShape polygonShape;
-                    polygonShape.SetAsBox(boxCollider2D.Size.x, boxCollider2D.Size.y);
+                    polygonShape.SetAsBox(transform.Scale.x * boxCollider2D.Size.x, transform.Scale.y * boxCollider2D.Size.y);
 
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &polygonShape;
@@ -936,7 +942,7 @@ namespace NR
                     b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
 
                     b2CircleShape circleShape;
-                    circleShape.m_radius = circleCollider2D.Radius;
+                    circleShape.m_radius = transform.Scale.x * circleCollider2D.Radius;
 
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &circleShape;

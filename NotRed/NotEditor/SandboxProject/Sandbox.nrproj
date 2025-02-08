@@ -6,6 +6,7 @@ Project:
   MeshPath: Assets/Meshes
   MeshSourcePath: Assets/Meshes/Source
   ScriptModulePath: Assets/Scripts/Binaries
+  DefaultNamespace: Sandbox
   StartScene: Scenes/Demo.nrsc
   ReloadAssemblyOnPlay: true
   Physics:

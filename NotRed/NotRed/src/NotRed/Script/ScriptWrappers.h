@@ -77,6 +77,7 @@ namespace NR::Script
     void NR_TransformComponent_GetScale(uint64_t entityID, glm::vec3* outScale);
     void NR_TransformComponent_SetScale(uint64_t entityID, glm::vec3* inScale);
     void NR_TransformComponent_GetWorldSpaceTransform(uint64_t entityID, TransformComponent* outTransform);
+    void NR_Transform_TransformMultiply(const TransformComponent* a, const TransformComponent* b, TransformComponent* outTransform);
 
     MonoString* NR_TagComponent_GetTag(uint64_t entityID);
     void NR_TagComponent_SetTag(uint64_t entityID, MonoString* tag);
@@ -90,6 +91,7 @@ namespace NR::Script
     void NR_AnimationComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
     uint32_t NR_AnimationComponent_GetStateIndex(uint64_t entityID);
     void NR_AnimationComponent_SetStateIndex(uint64_t entityID, uint32_t value);
+    void NR_AnimationComponent_GetRootMotion(uint64_t entityID, TransformComponent* outTransform);
     void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID);
 
     MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID);

@@ -134,7 +134,7 @@ namespace NR
 		ozz::vector<std::string> mStateNames;
 		ozz::vector<Ref<AnimationAsset>> mAnimationAssets;
 		Ref<SkeletonAsset> mSkeletonAsset;
-		RootMotionMode mRootMotionMode = RootMotionMode::Apply;
+		RootMotionMode mRootMotionMode = RootMotionMode::InPlace;
 
 		float mPreviousAnimationTime = 0.0f;
 		float mAnimationTime = 0.0f;
