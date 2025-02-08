@@ -13,6 +13,16 @@
 
 namespace NR
 {
+	inline ozz::math::Float4x4 Float4x4FromAIMatrix4x4(const aiMatrix4x4& matrix)
+	{
+		ozz::math::Float4x4 result;
+		result.cols[0] = ozz::math::simd_float4::Load(matrix.a1, matrix.b1, matrix.c1, matrix.d1);
+		result.cols[1] = ozz::math::simd_float4::Load(matrix.a2, matrix.b2, matrix.c2, matrix.d2);
+		result.cols[2] = ozz::math::simd_float4::Load(matrix.a3, matrix.b3, matrix.c3, matrix.d3);
+		result.cols[3] = ozz::math::simd_float4::Load(matrix.a4, matrix.b4, matrix.c4, matrix.d4);
+		return result;
+	}
+
 	class OZZImporterAssimp
 	{
 	private:
@@ -21,10 +31,10 @@ namespace NR
 
 	public:
 
-		static bool ExtractRawSkeleton(const aiScene* scene, ozz::animation::offline::RawSkeleton& rawSkeleton)
+		static bool ExtractRawSkeleton(const aiScene* scene, ozz::animation::offline::RawSkeleton& rawSkeleton, ozz::math::Float4x4& skeletonTransform)
 		{
 			BoneHierachy boneHierarchy(scene);
-			return boneHierarchy.ExtractRawSkeleton(rawSkeleton);
+			return boneHierarchy.ExtractRawSkeleton(rawSkeleton, skeletonTransform);
 		}
 
 
@@ -115,7 +125,7 @@ namespace NR
 		public:
 			BoneHierachy(const aiScene* scene) : mScene(scene) {}
 
-			bool ExtractRawSkeleton(ozz::animation::offline::RawSkeleton& rawSkeleton)
+			bool ExtractRawSkeleton(ozz::animation::offline::RawSkeleton& rawSkeleton, ozz::math::Float4x4& skeletonTransform)
 			{
 				if (!mScene)
 				{
@@ -128,7 +138,9 @@ namespace NR
 					return false;
 				}
 
-				TraverseNode(mScene->mRootNode, rawSkeleton);
+				aiMatrix4x4 transform;
+				TraverseNode(mScene->mRootNode, rawSkeleton, transform);
+				skeletonTransform = Float4x4FromAIMatrix4x4(transform);
 
 				return true;
 			}
@@ -146,7 +158,7 @@ namespace NR
 				}
 			}
 
-			void TraverseNode(aiNode* node, ozz::animation::offline::RawSkeleton& rawSkeleton)
+			void TraverseNode(aiNode* node, ozz::animation::offline::RawSkeleton& rawSkeleton, aiMatrix4x4& transform)
 			{
 				bool isBone = (mBones.find(node->mName.C_Str()) != mBones.end());
 
@@ -159,7 +171,8 @@ namespace NR
 				{
 					for (uint32_t nodeIndex = 0; nodeIndex < node->mNumChildren; ++nodeIndex)
 					{
-						TraverseNode(node->mChildren[nodeIndex], rawSkeleton);
+						transform *= node->mTransformation;
+						TraverseNode(node->mChildren[nodeIndex], rawSkeleton, transform);
 					}
 				}
 			}

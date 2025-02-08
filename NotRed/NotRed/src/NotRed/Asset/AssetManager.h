@@ -37,7 +37,7 @@ namespace NR
         static const AssetMetadata& GetMetadata(const Ref<Asset>& asset) { return GetMetadata(asset->Handle); }
 
         static AssetHandle GetAssetHandleFromFilePath(const std::filesystem::path& filepath);
-        static bool IsAssetHandleValid(AssetHandle assetHandle) { return GetMetadata(assetHandle).IsValid(); }
+        static bool IsAssetHandleValid(AssetHandle assetHandle) { return IsMemoryAsset(assetHandle) || GetMetadata(assetHandle).IsValid(); }
 
         static AssetType GetAssetTypeFromExtension(const std::string& extension);
         static AssetType GetAssetTypeFromPath(const std::filesystem::path& path);
@@ -111,6 +111,11 @@ namespace NR
         template<typename T>
         static Ref<T> GetAsset(AssetHandle assetHandle)
         {
+            if (IsMemoryAsset(assetHandle))
+            {
+                return sMemoryAssets[assetHandle].As<T>();
+            }
+
             auto& metadata = GetMetadataInternal(assetHandle);
 
             Ref<Asset> asset = nullptr;
@@ -145,6 +150,20 @@ namespace NR
 
         static const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() { return sLoadedAssets; }
 
+        template<typename TAsset, typename... TArgs>
+        static AssetHandle CreateMemoryOnlyAsset(TArgs&&... args)
+        {
+            static_assert(std::is_base_of<Asset, TAsset>::value, "CreateMemoryOnlyAsset only works for types derived from Asset");
+            Ref<TAsset> asset = Ref<TAsset>::Create(std::forward<TArgs>(args)...);
+            asset->Handle = AssetHandle();
+            sMemoryAssets[asset->Handle] = asset;
+            return asset->Handle;
+        }
+        static bool IsMemoryAsset(AssetHandle handle)
+        {
+            return sMemoryAssets.find(handle) != sMemoryAssets.end();
+        }
+
         static void ImGuiRender(bool& open);
 
     private:
@@ -163,6 +182,7 @@ namespace NR
 
     private:
         static std::unordered_map<AssetHandle, Ref<Asset>> sLoadedAssets;
+        static std::unordered_map<AssetHandle, Ref<Asset>> sMemoryAssets;
         static AssetsChangeEventFn sAssetsChangeCallback;
         inline static AssetRegistry sAssetRegistry;
 

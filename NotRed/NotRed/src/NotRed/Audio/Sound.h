@@ -64,7 +64,7 @@ namespace NR
     */
     struct SoundConfig : public Asset
     {
-        Ref<AudioFile> FileAsset;     // Audio data source
+        AssetHandle FileAsset;     // Audio data source
 
         bool bLooping = false;
         float VolumeMultiplier = 1.0f;

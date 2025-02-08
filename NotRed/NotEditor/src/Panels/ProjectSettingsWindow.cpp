@@ -17,7 +17,7 @@ namespace NR
     ProjectSettingsWindow::ProjectSettingsWindow(const Ref<Project>& project)
         : mProject(project)
     {
-        mDefaultScene = AssetManager::GetAsset<Asset>(project->GetConfig().StartScene);
+        mDefaultScene = AssetManager::GetAssetHandleFromFilePath(project->GetConfig().StartScene);
         memset(mNewLayerNameBuffer, 0, 255);
     }
 
@@ -65,7 +65,7 @@ namespace NR
 
             UI::PopItemDisabled();
 
-            if (UI::PropertyAssetReference("Startup Scene", mDefaultScene))
+            if (UI::PropertyAssetReference<Scene>("Startup Scene", mDefaultScene))
             {
                 const auto& metadata = AssetManager::GetMetadata(mDefaultScene);
                 if (metadata.IsValid())

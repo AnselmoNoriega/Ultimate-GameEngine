@@ -41,16 +41,6 @@ namespace NR
 #define NR_MESH_LOG(...)
 #endif
 
-    ozz::math::Float4x4 Float4x4FromMat4(const glm::mat4 matrix)
-    {
-        ozz::math::Float4x4 result;
-        result.cols[0] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[0]));
-        result.cols[1] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[1]));
-        result.cols[2] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[2]));
-        result.cols[3] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[3]));
-        return result;
-    }
-
     static const uint32_t sMeshImportFlags =
         aiProcess_CalcTangentSpace |        // Create binormals/tangents
         aiProcess_Triangulate |             // Make sure we're triangles
@@ -72,7 +62,7 @@ namespace NR
         return result;
     }
 
-    glm::mat4 AssimpMat4ToMat4(const aiMatrix4x4& matrix)
+    glm::mat4 Mat4FromAIMatrix4x4(const aiMatrix4x4& matrix)
     {
         glm::mat4 result;
         //the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
@@ -106,7 +96,8 @@ namespace NR
         mScene = scene;
 
         ozz::animation::offline::RawSkeleton rawSkeleton;
-        if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton))
+        ozz::math::Float4x4 transform;
+        if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton, transform))
         {
             ozz::animation::offline::SkeletonBuilder builder;
             mSkeleton = builder(rawSkeleton);
@@ -250,9 +241,7 @@ namespace NR
                     {
                         // Allocate an index for a new bone
                         boneIndex = static_cast<uint32_t>(mBoneInfo.size());
-                        glm::mat4 boneOffset = AssimpMat4ToMat4(bone->mOffsetMatrix);
-                        ozz::math::Float4x4 transform = Float4x4FromMat4(submesh.Transform);
-                        mBoneInfo.emplace_back(Float4x4FromMat4(boneOffset), jointIndex);
+                        mBoneInfo.emplace_back(Float4x4FromAIMatrix4x4(bone->mOffsetMatrix), jointIndex);
                     }
 
                     for (size_t j = 0; j < bone->mNumWeights; ++j)
@@ -696,7 +685,7 @@ namespace NR
 
     void MeshAsset::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
     {
-        glm::mat4 transform = parentTransform * AssimpMat4ToMat4(node->mTransformation);
+        glm::mat4 transform = parentTransform * Mat4FromAIMatrix4x4(node->mTransformation);
         mNodeMap[node].resize(node->mNumMeshes);
 
         for (uint32_t i = 0; i < node->mNumMeshes; ++i)

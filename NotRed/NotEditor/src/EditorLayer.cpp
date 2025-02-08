@@ -702,9 +702,10 @@ namespace NR
         {
             auto& meshComp = entity.GetComponent<MeshComponent>();
 
-            if (meshComp.MeshObj && !meshComp.MeshObj->IsFlagSet(AssetFlag::Missing))
+            auto mesh = AssetManager::GetAsset<Mesh>(meshComp.MeshHandle);
+            if (meshComp.MeshHandle && !mesh->IsFlagSet(AssetFlag::Missing))
             {
-                selection.Mesh = &meshComp.MeshObj->GetMeshAsset()->GetSubmeshes()[0];
+                selection.Mesh = &mesh->GetMeshAsset()->GetSubmeshes()[0];
             }
         }
 
@@ -740,10 +741,10 @@ namespace NR
                         auto& selection = mSelectionContext[0];
                         if (selection.EntityObj.HasComponent<MeshComponent>())
                         {
-                            if (mShowBoundingBoxSubmeshes)
+                            auto mesh = AssetManager::GetAsset<Mesh>(selection.EntityObj.GetComponent<MeshComponent>().MeshHandle);
+                            if (mesh)
                             {
-                                auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
-                                if (mesh)
+                                if (mShowBoundingBoxSubmeshes)
                                 {
                                     auto& submeshIndices = mesh->GetSubmeshes();
                                     auto meshAsset = mesh->GetMeshAsset();
@@ -755,11 +756,7 @@ namespace NR
                                         mRenderer2D->DrawAABB(aabb, transform * submeshes[submeshIndex].Transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                                     }
                                 }
-                            }
-                            else
-                            {
-                                auto& mesh = selection.EntityObj.GetComponent<MeshComponent>().MeshObj;
-                                if (mesh)
+                                else
                                 {
                                     glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
                                     const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
@@ -776,7 +773,8 @@ namespace NR
                     {
                         Entity entity = { e, mCurrentScene.Raw() };
                         glm::mat4 transform = entity.GetComponent<TransformComponent>().GetTransform();
-                        const AABB& aabb = entity.GetComponent<MeshComponent>().MeshObj->GetMeshAsset()->GetBoundingBox();
+                        auto mesh = AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle);
+                        const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
                         mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                     }
                 }
@@ -1298,13 +1296,13 @@ namespace NR
                         entity.AddComponent<MeshComponent>();
                     }
                     MeshComponent& mc = entity.GetComponent<MeshComponent>();
-                    mc.MeshObj = mesh;
+                    mc.MeshHandle = mesh->Handle;
                 }
                 else
                 {
                     const auto& meshMetadata = AssetManager::GetMetadata(mesh->Handle);
                     Entity entity = mEditorScene->CreateEntity(meshMetadata.FilePath.stem().string());
-                    entity.AddComponent<MeshComponent>(mesh);
+                    entity.AddComponent<MeshComponent>(mesh->Handle);
                     SelectEntity(entity);
                 }
                 mCreateNewMeshPopupData = {};
@@ -1878,7 +1876,7 @@ namespace NR
                         else if (asset->GetAssetType() == AssetType::Mesh)
                         {
                             Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
-                            entity.AddComponent<MeshComponent>(asset.As<Mesh>());
+                            entity.AddComponent<MeshComponent>(assetHandle);
                             SelectEntity(entity);
                         }
                         else if (asset->GetAssetType() == AssetType::Prefab)
@@ -2020,7 +2018,7 @@ namespace NR
                             if (asset->GetAssetType() == AssetType::Mesh)
                             {
                                 Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
-                                entity.AddComponent<MeshComponent>(asset.As<Mesh>());
+                                entity.AddComponent<MeshComponent>(assetHandle);
                                 SelectEntity(entity);
                             }
                         }
@@ -2040,7 +2038,7 @@ namespace NR
             Entity selectedEntity = mSelectionContext.front().EntityObj;
             if (selectedEntity.HasComponent<MeshComponent>())
             {
-                Ref<Mesh> mesh = selectedEntity.GetComponent<MeshComponent>().MeshObj;
+                Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>(selectedEntity.GetComponent<MeshComponent>().MeshHandle);
                 if (mesh && mesh->GetAssetType() == AssetType::Mesh)
                 {
                     auto& materials = mesh->GetMaterials()->GetMaterials();
@@ -2687,7 +2685,7 @@ namespace NR
                 for (auto e : meshEntities)
                 {
                     Entity entity = { e, mCurrentScene.Raw() };
-                    auto mesh = entity.GetComponent<MeshComponent>().MeshObj;
+                    auto mesh = AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle);
                     if (!mesh || mesh->IsFlagSet(AssetFlag::Missing))
                     {
                         continue;

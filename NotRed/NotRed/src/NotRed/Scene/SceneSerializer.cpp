@@ -195,9 +195,9 @@ namespace NR
 			out << YAML::BeginMap; // MeshComponent
 
 			auto& mc = entity.GetComponent<MeshComponent>();
-			if (mc.MeshObj)
+			if (mc.MeshHandle)
 			{
-				out << YAML::Key << "AssetID" << YAML::Value << (mc.MeshObj ? mc.MeshObj->Handle : (AssetHandle)0);
+				out << YAML::Key << "AssetID" << YAML::Value << (mc.MeshHandle ? mc.MeshHandle : (AssetHandle)0);
 			}
 
 			auto materialTable = mc.Materials;
@@ -207,7 +207,7 @@ namespace NR
 
 				for (uint32_t i = 0; i < materialTable->GetMaterialCount(); ++i)
 				{
-					AssetHandle handle = (materialTable->HasMaterial(i) ? materialTable->GetMaterial(i)->Handle : (AssetHandle)0);
+					AssetHandle handle = (materialTable->HasMaterial(i) ? materialTable->GetMaterial(i) : (AssetHandle)0);
 					out << YAML::Key << i << YAML::Value << handle;
 				}
 
@@ -241,7 +241,7 @@ namespace NR
 			auto& anim = entity.GetComponent<AnimationComponent>();
 			if (anim.AnimationController)
 			{
-				out << YAML::Key << "AnimationController" << YAML::Value << anim.AnimationController->Handle;
+				out << YAML::Key << "AnimationController" << YAML::Value << anim.AnimationController;
 			}
 			out << YAML::EndMap; // AnimationComponent
 		}
@@ -308,7 +308,7 @@ namespace NR
 			auto& skyLightComponent = entity.GetComponent<SkyLightComponent>();
 			if (skyLightComponent.SceneEnvironment)
 			{
-				out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment->Handle;
+				out << YAML::Key << "EnvironmentMap" << YAML::Value << skyLightComponent.SceneEnvironment;
 			}
 			out << YAML::Key << "Intensity" << YAML::Value << skyLightComponent.Intensity;			
 			out << YAML::Key << "Lod" << YAML::Value << skyLightComponent.Lod;
@@ -341,7 +341,7 @@ namespace NR
 			out << YAML::BeginMap; // TextComponent
 			auto& textComponent = entity.GetComponent<TextComponent>();
 			out << YAML::Key << "TextString" << YAML::Value << textComponent.TextString;
-			out << YAML::Key << "FontHandle" << YAML::Value << textComponent.FontAsset->Handle;
+			out << YAML::Key << "FontHandle" << YAML::Value << textComponent.FontAsset;
 			out << YAML::Key << "Color" << YAML::Value << textComponent.Color;
 			out << YAML::Key << "LineSpacing" << YAML::Value << textComponent.LineSpacing;
 			out << YAML::Key << "Kerning" << YAML::Value << textComponent.Kerning;
@@ -431,7 +431,7 @@ namespace NR
 
 			if (boxColliderComponent.Material)
 			{
-				out << YAML::Key << "Material" << YAML::Value << boxColliderComponent.Material->Handle;
+				out << YAML::Key << "Material" << YAML::Value << boxColliderComponent.Material;
 			}
 			else
 			{
@@ -452,7 +452,7 @@ namespace NR
 
 			if (sphereColliderComponent.Material)
 			{
-				out << YAML::Key << "Material" << YAML::Value << sphereColliderComponent.Material->Handle;
+				out << YAML::Key << "Material" << YAML::Value << sphereColliderComponent.Material;
 			}
 			else
 			{
@@ -474,7 +474,7 @@ namespace NR
 
 			if (capsuleColliderComponent.Material)
 			{
-				out << YAML::Key << "Material" << YAML::Value << capsuleColliderComponent.Material->Handle;
+				out << YAML::Key << "Material" << YAML::Value << capsuleColliderComponent.Material;
 			}
 			else
 			{
@@ -493,7 +493,7 @@ namespace NR
 
 			if (meshColliderComponent.OverrideMesh)
 			{
-				out << YAML::Key << "AssetID" << YAML::Value << meshColliderComponent.CollisionMesh->Handle;
+				out << YAML::Key << "AssetID" << YAML::Value << meshColliderComponent.CollisionMesh;
 			}
 			out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
 			out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
@@ -501,7 +501,7 @@ namespace NR
 
 			if (meshColliderComponent.Material)
 			{
-				out << YAML::Key << "Material" << YAML::Value << meshColliderComponent.Material->Handle;
+				out << YAML::Key << "Material" << YAML::Value << meshColliderComponent.Material;
 			}
 			else
 			{
@@ -552,7 +552,7 @@ namespace NR
 		out << YAML::Key << "Environment";
 		out << YAML::Value;
 		out << YAML::BeginMap; // Environment
-		out << YAML::Key << "AssetHandle" << YAML::Value << scene->GetEnvironment()->Handle;
+		out << YAML::Key << "AssetHandle" << YAML::Value << scene->GetEnvironment();
 
 		const auto& light = scene->GetLight();
 		out << YAML::Key << "DirLight" << YAML::Value;
@@ -753,22 +753,14 @@ namespace NR
 			{
 				auto& component = deserializedEntity.AddComponent<MeshComponent>();
 
-				AssetHandle assetHandle = 0;
-				if (meshComponent["AssetPath"])
-				{
-					assetHandle = AssetManager::GetAssetHandleFromFilePath(meshComponent["AssetPath"].as<std::string>());
-				}
-				else if (meshComponent["AssetID"])
-				{
-					assetHandle = meshComponent["AssetID"].as<uint64_t>();
-				}
+				AssetHandle assetHandle = meshComponent["AssetID"].as<uint64_t>();
 
 				if (AssetManager::IsAssetHandleValid(assetHandle))
 				{
 					const AssetMetadata& metadata = AssetManager::GetMetadata(assetHandle);
 					if (metadata.Type == AssetType::Mesh)
 					{
-						component.MeshObj = AssetManager::GetAsset<Mesh>(assetHandle);
+						component.MeshHandle = assetHandle;
 					}
 
 					else if (metadata.Type == AssetType::MeshAsset)
@@ -779,24 +771,8 @@ namespace NR
 						std::filesystem::path meshDirectory = Project::GetMeshPath();
 						std::string filename = fmt::format("{0}.hmesh", meshPath.stem().string());
 						Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, meshDirectory.string(), meshAsset);
-						component.MeshObj = mesh;
+						component.MeshHandle = mesh->Handle;
 						AssetImporter::Serialize(mesh);
-					}
-				}
-				else
-				{
-					component.MeshObj = Ref<Asset>::Create().As<Mesh>();
-					component.MeshObj->ModifyFlags(AssetFlag::Missing, true);
-
-					std::string filepath = meshComponent["AssetPath"] ? meshComponent["AssetPath"].as<std::string>() : "";
-					if (filepath.empty())
-					{
-						NR_CORE_ERROR("Tried to load non-existent mesh in Entity: {0}", deserializedEntity.GetID());
-					}
-					else
-					{
-						NR_CORE_ERROR("Tried to load invalid mesh '{0}' in Entity {1}", filepath, deserializedEntity.GetID());
-						component.MeshObj->ModifyFlags(AssetFlag::Invalid, true);
 					}
 				}
 
@@ -846,7 +822,7 @@ namespace NR
 						const AssetMetadata& metadata = AssetManager::GetMetadata(animationControllerHandle);
 						if (metadata.Type == AssetType::AnimationController)
 						{
-							component.AnimationController = AssetManager::GetAsset<AnimationController>(animationControllerHandle);
+							component.AnimationController = animationControllerHandle;
 						}
 					}
 				}
@@ -925,31 +901,11 @@ namespace NR
 
 				if (skyLightComponent["EnvironmentMap"])
 				{
-					AssetHandle assetHandle = 0;
-					if (skyLightComponent["EnvironmentAssetPath"])
-					{
-						assetHandle = AssetManager::GetAssetHandleFromFilePath(skyLightComponent["EnvironmentAssetPath"].as<std::string>());
-					}
-					else
-					{
-						assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
-					}
+					AssetHandle assetHandle = skyLightComponent["EnvironmentMap"].as<uint64_t>();
 
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						component.SceneEnvironment = AssetManager::GetAsset<Environment>(assetHandle);
-					}
-					else
-					{
-						std::string filepath = skyLightComponent["EnvironmentAssetPath"] ? skyLightComponent["EnvironmentAssetPath"].as<std::string>() : "";
-						if (filepath.empty())
-						{
-							NR_CORE_ERROR("Tried to load non-existent environment map in Entity: {0}", deserializedEntity.GetID());
-						}
-						else
-						{
-							NR_CORE_ERROR("Tried to load invalid environment map '{0}' in Entity {1}", filepath, deserializedEntity.GetID());
-						}
+						component.SceneEnvironment = assetHandle;
 					}
 				}
 
@@ -971,6 +927,10 @@ namespace NR
 						component.TurbidityAzimuthInclination = skyLightComponent["TurbidityAzimuthInclination"].as<glm::vec3>();
 					}
 				}
+				if (!AssetManager::IsAssetHandleValid(component.SceneEnvironment))
+				{
+					NR_CORE_ERROR("Tried to load invalid environment map in Entity {0}", deserializedEntity.GetID());
+				}
 			}
 
 			auto spriteRendererComponent = entity["SpriteRendererComponent"];
@@ -990,7 +950,11 @@ namespace NR
 				AssetHandle fontHandle = textComponent["FontHandle"].as<uint64_t>();
 				if (AssetManager::IsAssetHandleValid(fontHandle))
 				{
-					component.FontAsset = AssetManager::GetAsset<Font>(fontHandle);
+					component.FontAsset = fontHandle;
+				}
+				else
+				{
+					component.FontAsset = Font::GetDefaultFont()->Handle;
 				}
 
 				component.Color = textComponent["Color"].as<glm::vec4>();
@@ -1065,7 +1029,7 @@ namespace NR
 				{
 					if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
 					{
-						component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+						component.Material = material.as<uint64_t>();
 					}
 					else
 					{
@@ -1088,7 +1052,7 @@ namespace NR
 				{
 					if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
 					{
-						component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+						component.Material = material.as<uint64_t>();
 					}
 					else
 					{
@@ -1112,7 +1076,7 @@ namespace NR
 				{
 					if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
 					{
-						component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+						component.Material = material.as<uint64_t>();
 					}
 					else
 					{
@@ -1130,7 +1094,7 @@ namespace NR
 				component.IsConvex = meshColliderComponent["IsConvex"] ? meshColliderComponent["IsConvex"].as<bool>() : false;
 				component.IsTrigger = meshColliderComponent["IsTrigger"] ? meshColliderComponent["IsTrigger"].as<bool>() : false;
 
-				component.CollisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().MeshObj : nullptr;
+				component.CollisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().MeshHandle : (AssetHandle)0;
 				bool overrideMesh = meshColliderComponent["OverrideMesh"] ? meshColliderComponent["OverrideMesh"].as<bool>() : false;
 
 				if (overrideMesh)
@@ -1139,7 +1103,7 @@ namespace NR
 
 					if (AssetManager::IsAssetHandleValid(assetHandle))
 					{
-						component.CollisionMesh = AssetManager::GetAsset<Mesh>(assetHandle);
+						component.CollisionMesh = assetHandle;
 					}
 					else
 					{
@@ -1147,7 +1111,7 @@ namespace NR
 					}
 				}
 
-				if (component.CollisionMesh && !component.CollisionMesh->IsFlagSet(AssetFlag::Missing))
+				if (component.CollisionMesh)
 				{
 					component.OverrideMesh = overrideMesh;
 					CookingFactory::CookMesh(component);
@@ -1162,39 +1126,12 @@ namespace NR
 				{
 					if (AssetManager::IsAssetHandleValid(material.as<uint64_t>()))
 					{
-						component.Material = AssetManager::GetAsset<PhysicsMaterial>(material.as<uint64_t>());
+						component.Material = material.as<uint64_t>();
 					}
 					else
 					{
 						NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
 					}
-				}
-			}
-
-			// NOTE(Peter): Compatibility fix for older scenes
-			auto physicsMaterialComponent = entity["PhysicsMaterialComponent"];
-			if (physicsMaterialComponent)
-			{
-				Ref<PhysicsMaterial> material = Ref<PhysicsMaterial>::Create();
-				material->StaticFriction = physicsMaterialComponent["StaticFriction"].as<float>();
-				material->DynamicFriction = physicsMaterialComponent["DynamicFriction"].as<float>();
-				material->Bounciness = physicsMaterialComponent["Bounciness"].as<float>();
-
-				if (deserializedEntity.HasComponent<BoxColliderComponent>())
-				{
-					deserializedEntity.GetComponent<BoxColliderComponent>().Material = material;
-				}
-				if (deserializedEntity.HasComponent<SphereColliderComponent>())
-				{
-					deserializedEntity.GetComponent<SphereColliderComponent>().Material = material;
-				}
-				if (deserializedEntity.HasComponent<CapsuleColliderComponent>())
-				{
-					deserializedEntity.GetComponent<CapsuleColliderComponent>().Material = material;
-				}
-				if (deserializedEntity.HasComponent<MeshColliderComponent>())
-				{
-					deserializedEntity.GetComponent<MeshColliderComponent>().Material = material;
 				}
 			}
 

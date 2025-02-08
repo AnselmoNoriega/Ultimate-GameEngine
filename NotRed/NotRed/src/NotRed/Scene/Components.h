@@ -87,16 +87,17 @@ namespace NR
 
     struct MeshComponent
     {
-        Ref<Mesh> MeshObj;
+        AssetHandle MeshHandle;
         Ref<MaterialTable> Materials = Ref<MaterialTable>::Create();
 
         MeshComponent() = default;
-        MeshComponent(const MeshComponent& other)
-            : MeshObj(other.MeshObj), Materials(Ref<MaterialTable>::Create(other.Materials)) { }
-        MeshComponent(const Ref<Mesh>& mesh)
-            : MeshObj(mesh) {}
 
-        operator Ref<Mesh>() { return MeshObj; }
+        MeshComponent(const MeshComponent& other)
+            : MeshHandle(other.MeshHandle), 
+            Materials(Ref<MaterialTable>::Create(other.Materials)) {}
+
+        MeshComponent(AssetHandle mesh)
+            : MeshHandle(mesh) {}
     };
 
     struct ParticleComponent
@@ -152,7 +153,7 @@ namespace NR
 
     struct SkyLightComponent
     {
-        Ref<Environment> SceneEnvironment;
+        AssetHandle SceneEnvironment;
         float Intensity = 1.0f;
         int Lod = 0;
 
@@ -162,7 +163,7 @@ namespace NR
 
     struct AnimationComponent
     {
-        Ref<NR::AnimationController> AnimationController;
+        AssetHandle AnimationController;
     };
 
     struct TextComponent
@@ -170,7 +171,7 @@ namespace NR
         std::string TextString = "Text";
 
         // Font
-        Ref<Font> FontAsset = Font::GetDefaultFont();
+        AssetHandle FontAsset;
         glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
         float LineSpacing = 0.0f;
         float Kerning = 0.0f;
@@ -207,7 +208,7 @@ namespace NR
     struct SpriteRendererComponent
     {
         glm::vec4 Color = { 1.0f, 1.0f, 1.0f, 1.0f };
-        Ref<Texture2D> Texture;
+        AssetHandle Texture;
         float TilingFactor = 1.0f;
 
         SpriteRendererComponent() = default;
@@ -299,7 +300,7 @@ namespace NR
         glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 
         bool IsTrigger = false;
-        Ref<PhysicsMaterial> Material;
+        AssetHandle Material;
 
         Ref<Mesh> DebugMesh;
 
@@ -315,7 +316,7 @@ namespace NR
         glm::vec3 Offset = glm::vec3(0.0f);
 
         bool IsTrigger = false;
-        Ref<PhysicsMaterial> Material;
+        AssetHandle Material;
 
         Ref<Mesh> DebugMesh;
 
@@ -332,7 +333,7 @@ namespace NR
         glm::vec3 Offset = glm::vec3(0.0f);
 
         bool IsTrigger = false;
-        Ref<PhysicsMaterial> Material;
+        AssetHandle Material;
 
         Ref<Mesh> DebugMesh;
 
@@ -344,22 +345,20 @@ namespace NR
     {
         static constexpr ColliderComponentType Type = ColliderComponentType::MeshCollider;
 
-        Ref<Mesh> CollisionMesh;
+        AssetHandle CollisionMesh;
         std::vector<Ref<Mesh>> ProcessedMeshes;
         bool IsConvex = false;
         bool OverrideMesh = false;
 
         bool IsTrigger = false;
-        Ref<PhysicsMaterial> Material;
+        AssetHandle Material;
 
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;
-        MeshColliderComponent(const Ref<Mesh>& mesh)
+        MeshColliderComponent(AssetHandle mesh)
             : CollisionMesh(mesh)
         {
         }
-
-        operator Ref<Mesh>() { return CollisionMesh; }
     };
 
     struct AudioListenerComponent

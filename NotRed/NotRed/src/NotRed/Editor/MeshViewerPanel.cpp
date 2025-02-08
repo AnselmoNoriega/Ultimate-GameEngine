@@ -176,7 +176,7 @@ namespace NR
 		sceneData->mScene = Ref<Scene>::Create("MeshViewerPanel", true);
 		sceneData->mMeshEntity = sceneData->mScene->CreateEntity("Mesh");
 		sceneData->mMesh = Ref<Mesh>::Create(sceneData->mMeshAsset);
-		sceneData->mMeshEntity.AddComponent<MeshComponent>(sceneData->mMesh);
+		sceneData->mMeshEntity.AddComponent<MeshComponent>(sceneData->mMesh->Handle);
 		sceneData->mMeshEntity.AddComponent<SkyLightComponent>().DynamicSky = true;
 
 		sceneData->mDirectionaLight = sceneData->mScene->CreateEntity("DirectionalLight");
@@ -311,7 +311,7 @@ namespace NR
 		}
 	}
 
-	static glm::mat4 AssimpMat4ToMat4(const aiMatrix4x4& matrix)
+	static glm::mat4 Mat4FromAIMatrix4x4(const aiMatrix4x4& matrix)
 	{
 		glm::mat4 result;
 		//the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
@@ -324,7 +324,7 @@ namespace NR
 
 	void MeshViewerPanel::MeshNodeHierarchy(const Ref<MeshAsset>& meshAsset, Ref<Mesh> mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
 	{
-		glm::mat4 localTransform = AssimpMat4ToMat4(node->mTransformation);
+		glm::mat4 localTransform = Mat4FromAIMatrix4x4(node->mTransformation);
 		glm::mat4 transform = parentTransform * localTransform;
 
 		NR_CORE_ASSERT(meshAsset->mNodeMap.find(node) != meshAsset->mNodeMap.end());

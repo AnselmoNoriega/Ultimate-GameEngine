@@ -191,7 +191,7 @@ namespace NR
         auto skyboxShader = Renderer::GetShaderLibrary()->Get("Skybox");
         mSkyboxMaterial = Material::Create(skyboxShader);
         mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
-        
+
         mSceneRenderer2D = Ref<Renderer2D>::Create();
     }
 
@@ -463,12 +463,12 @@ namespace NR
             for (auto entity : lights)
             {
                 auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
-                if (!skyLightComponent.SceneEnvironment && skyLightComponent.DynamicSky)
+                if (!AssetManager::IsAssetHandleValid(skyLightComponent.SceneEnvironment) && skyLightComponent.DynamicSky)
                 {
                     Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLightComponent.TurbidityAzimuthInclination.x, skyLightComponent.TurbidityAzimuthInclination.y, skyLightComponent.TurbidityAzimuthInclination.z);
-                    skyLightComponent.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
+                    skyLightComponent.SceneEnvironment = AssetManager::CreateMemoryOnlyAsset<Environment>(preethamEnv, preethamEnv);
                 }
-                mEnvironment = skyLightComponent.SceneEnvironment;
+                mEnvironment = AssetManager::GetAsset<Environment>(skyLightComponent.SceneEnvironment);
                 mEnvironmentIntensity = skyLightComponent.Intensity;
                 mSkyboxLod = skyLightComponent.Lod;
 
@@ -488,31 +488,35 @@ namespace NR
         for (auto entity : group)
         {
             auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
-            if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+            if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
             {
-                Entity e = Entity(entity, this);
-
-                if (e.HasComponent<AnimationComponent>()) {
-
-                    auto& anim = e.GetComponent<AnimationComponent>();
-                    if (anim.AnimationController)
-                    {
-                        e.Transform().SetTransform(e.Transform().GetTransform() * anim.AnimationController->Update(dt));
-                        meshComponent.MeshObj->UpdateBoneTransforms(anim.AnimationController->GetModelSpaceTransforms());
-                    }
-                    else
-                    {
-                        meshComponent.MeshObj->UpdateBoneTransforms({});
-                    }
-                }
-                else if (meshComponent.MeshObj->IsRigged())
+                auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
+                if (!mesh->IsFlagSet(AssetFlag::Missing))
                 {
-                    meshComponent.MeshObj->UpdateBoneTransforms({});
+                    Entity e = Entity(entity, this);
+                    if (e.HasComponent<AnimationComponent>())
+                    {
+                        auto& anim = e.GetComponent<AnimationComponent>();
+                        auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
+                        if (AssetManager::IsAssetHandleValid(anim.AnimationController))
+                        {
+                            e.Transform().SetTransform(e.Transform().GetTransform() * animationController->Update(dt));
+                            mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
+                        }
+                        else
+                        {
+                            mesh->UpdateBoneTransforms({});
+                        }
+                    }
+                    else if (mesh->IsRigged())
+                    {
+                        mesh->UpdateBoneTransforms({});
+                    }
+
+                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
+
+                    renderer->SubmitMesh(mesh, meshComponent.Materials, transform);
                 }
-
-                glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
-
-                renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
             }
         }
 
@@ -552,7 +556,14 @@ namespace NR
                 for (auto entity : group)
                 {
                     auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
-                    mSceneRenderer2D->DrawString(textComponent.TextString, textComponent.FontAsset, transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
+                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle)
+                    {
+                        mSceneRenderer2D->DrawString(textComponent.TextString, Font::GetDefaultFont(), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
+                    }
+                    else
+                    {
+                        mSceneRenderer2D->DrawString(textComponent.TextString, AssetManager::GetAsset<Font>(textComponent.FontAsset), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
+                    }
                 }
             }
 
@@ -623,12 +634,12 @@ namespace NR
             for (auto entity : lights)
             {
                 auto [transformComponent, skyLightComponent] = lights.get<TransformComponent, SkyLightComponent>(entity);
-                if (!skyLightComponent.SceneEnvironment && skyLightComponent.DynamicSky)
+                if (!AssetManager::IsAssetHandleValid(skyLightComponent.SceneEnvironment) && skyLightComponent.DynamicSky)
                 {
                     Ref<TextureCube> preethamEnv = Renderer::CreatePreethamSky(skyLightComponent.TurbidityAzimuthInclination.x, skyLightComponent.TurbidityAzimuthInclination.y, skyLightComponent.TurbidityAzimuthInclination.z);
-                    skyLightComponent.SceneEnvironment = Ref<Environment>::Create(preethamEnv, preethamEnv);
+                    skyLightComponent.SceneEnvironment = AssetManager::CreateMemoryOnlyAsset<Environment>(preethamEnv, preethamEnv);
                 }
-                mEnvironment = skyLightComponent.SceneEnvironment;
+                mEnvironment = AssetManager::GetAsset<Environment>(skyLightComponent.SceneEnvironment);
                 mEnvironmentIntensity = skyLightComponent.Intensity;
                 mSkyboxLod = skyLightComponent.Lod;
 
@@ -647,38 +658,34 @@ namespace NR
         for (auto entity : group)
         {
             auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
-            if (meshComponent.MeshObj && !meshComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+            if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
             {
-                Entity e = Entity(entity, this);
-
-                if (e.HasComponent<AnimationComponent>()) 
+                auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
+                if (!mesh->IsFlagSet(AssetFlag::Missing))
                 {
-                    auto& anim = e.GetComponent<AnimationComponent>();
-                    if (anim.AnimationController)
+                    Entity e = Entity(entity, this);
+                    if (e.HasComponent<AnimationComponent>())
                     {
-                        // TODO: Fix this.  It is problematic if the same AnimationController is shared by multiple entities.
-                        anim.AnimationController->Update(dt);
-                        meshComponent.MeshObj->UpdateBoneTransforms(anim.AnimationController->GetModelSpaceTransforms());
+                        auto& anim = e.GetComponent<AnimationComponent>();
+                        auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
+                        if (AssetManager::IsAssetHandleValid(anim.AnimationController))
+                        {
+                            e.Transform().SetTransform(e.Transform().GetTransform() * animationController->Update(dt));
+                            mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
+                        }
+                        else
+                        {
+                            mesh->UpdateBoneTransforms({});
+                        }
                     }
-                    else
+                    else if (mesh->IsRigged())
                     {
-                        meshComponent.MeshObj->UpdateBoneTransforms({});
+                        mesh->UpdateBoneTransforms({});
                     }
-                }
-                else if (meshComponent.MeshObj->IsRigged())
-                {
-                    meshComponent.MeshObj->UpdateBoneTransforms({});
-                }
 
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
 
-                if (mSelectedEntity == entity)
-                {
-                    renderer->SubmitSelectedMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
-                }
-                else
-                {
-                    renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
+                    renderer->SubmitMesh(mesh, meshComponent.Materials, transform);
                 }
             }
         }
@@ -822,7 +829,14 @@ namespace NR
                 for (auto entity : group)
                 {
                     auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
-                    mSceneRenderer2D->DrawString(textComponent.TextString, textComponent.FontAsset, transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
+                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle)
+                    {
+                        mSceneRenderer2D->DrawString(textComponent.TextString, Font::GetDefaultFont(), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
+                    }
+                    else
+                    {
+                        mSceneRenderer2D->DrawString(textComponent.TextString, AssetManager::GetAsset<Font>(textComponent.FontAsset), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
+                    }
                 }
             }
 
@@ -1356,7 +1370,7 @@ namespace NR
         for (auto childId : entity.Children())
         {
             CreatePrefabEntity(entity.mScene->FindEntityByID(childId), newEntity);
-        }
+    }
 
         if (!mIsEditorScene)
         {
@@ -1376,7 +1390,7 @@ namespace NR
         }
 
         return newEntity;
-    }
+}
 
     Entity Scene::Instantiate(Ref<Prefab> prefab, const glm::vec3* translation)
     {

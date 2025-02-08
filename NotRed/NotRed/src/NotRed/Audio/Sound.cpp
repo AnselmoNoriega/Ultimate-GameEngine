@@ -73,7 +73,7 @@ namespace NR
         if (!config->FileAsset)
             return false;
 
-        auto& assetMetadata = AssetManager::GetMetadata(config->FileAsset->Handle);
+        auto& assetMetadata = AssetManager::GetMetadata(config->FileAsset);
 
         std::string filepath = AssetManager::GetFileSystemPathString(assetMetadata);
         mDebugName = Utils::GetFilename(filepath);

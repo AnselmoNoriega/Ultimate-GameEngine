@@ -16,9 +16,9 @@
 
 namespace NR
 {
-	void ColliderShape::SetMaterial(const Ref<PhysicsMaterial>& material)
+	void ColliderShape::SetMaterial(AssetHandle material)
 	{
-		Ref<PhysicsMaterial> mat = material;
+		Ref<PhysicsMaterial> mat = AssetManager::GetAsset<PhysicsMaterial>(material);
 		if (!mat)
 		{
 			mat = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
@@ -151,8 +151,9 @@ namespace NR
 
 		SetMaterial(mComponent.Material);
 
+		auto collisionMesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
 		std::vector<MeshColliderData> cookedData;
-		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
+		cookedData.reserve(collisionMesh->GetSubmeshes().size());
 		CookingResult result = CookingFactory::CookMesh(component, false, cookedData);
 
 		NR_CORE_ASSERT(cookedData.size() > 0);
@@ -225,8 +226,11 @@ namespace NR
 		NR_CORE_ASSERT(!component.IsConvex);
 
 		SetMaterial(mComponent.Material);
+		
+		auto collisionMesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
+
 		std::vector<MeshColliderData> cookedData;
-		cookedData.reserve(component.CollisionMesh->GetSubmeshes().size());
+		cookedData.reserve(collisionMesh->GetSubmeshes().size());
 		CookingResult result = CookingFactory::CookMesh(component, false, cookedData);
 
 		NR_CORE_ASSERT(cookedData.size() > 0);

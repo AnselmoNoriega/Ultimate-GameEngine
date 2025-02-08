@@ -596,7 +596,7 @@ namespace NR::Script
             {
                 auto& meshCollider = entity.GetComponent<MeshColliderComponent>();
 
-                Ref<Mesh>* mesh = new Ref<Mesh>(meshCollider.CollisionMesh);
+                Ref<Mesh>* mesh = new Ref<Mesh>(AssetManager::GetAsset<Mesh>(meshCollider.CollisionMesh));
                 void* data[] = {
                     &entity.GetID(),
                     &mesh,
@@ -744,7 +744,8 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         auto& meshComponent = entity.GetComponent<MeshComponent>();
-        return new Ref<Mesh>(meshComponent.MeshObj);
+        auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
+        return new Ref<Mesh>(mesh);
     }
 
     void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh)
@@ -756,7 +757,7 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         auto& meshComponent = entity.GetComponent<MeshComponent>();
-        meshComponent.MeshObj = inMesh ? *inMesh : nullptr;
+        meshComponent.MeshHandle = inMesh ? (*inMesh)->Handle : (AssetHandle)0;
     }
 
     bool NR_MeshComponent_GetIsRigged(uint64_t entityID)
@@ -769,7 +770,8 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         auto& meshComponent = entity.GetComponent<MeshComponent>();
-        return meshComponent.MeshObj->IsRigged();
+        auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
+        return mesh->IsRigged();
     }
 
     bool NR_AnimationComponent_GetIsAnimationPlaying(uint64_t entityID)
@@ -782,7 +784,8 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         auto& animationComponent = entity.GetComponent<AnimationComponent>();
-        return animationComponent.AnimationController->IsAnimationPlaying();
+        auto animationController = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController);
+        return animationController->IsAnimationPlaying();
     }
 
     void NR_AnimationComponent_SetIsAnimationPlaying(uint64_t entityID, bool value)
@@ -795,18 +798,22 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         auto& animationComponent = entity.GetComponent<AnimationComponent>();
-        animationComponent.AnimationController->SetAnimationPlaying(value);
+        auto animationController = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController);
+        animationController->SetAnimationPlaying(value);
     }
 
     uint32_t NR_AnimationComponent_GetStateIndex(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
+        
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
         Entity entity = entityMap.at(entityID);
         auto& animationComponent = entity.GetComponent<AnimationComponent>();
-        return animationComponent.AnimationController->GetStateIndex();
+        auto animationController = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController);
+        return animationController->GetStateIndex();
     }
 
     void NR_AnimationComponent_SetStateIndex(uint64_t entityID, uint32_t value)
@@ -817,7 +824,8 @@ namespace NR::Script
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
         Entity entity = entityMap.at(entityID);
         auto& animationComponent = entity.GetComponent<AnimationComponent>();
-        animationComponent.AnimationController->SetStateIndex(value);
+        auto animationController = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController);
+        animationController->SetStateIndex(value);
     }
 
     void NR_MeshComponent_ReloadMeshCollider(uint64_t entityID)
@@ -836,7 +844,7 @@ namespace NR::Script
 
         auto& meshComponent = entity.GetComponent<MeshComponent>();
         auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
-        meshColliderComponent.CollisionMesh = meshComponent.MeshObj;
+        meshColliderComponent.CollisionMesh = meshComponent.MeshHandle;
         CookingFactory::ForceCookMesh(meshColliderComponent);
     }
 
@@ -1527,7 +1535,8 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<MeshColliderComponent>());
 
         auto& component = entity.GetComponent<MeshColliderComponent>();
-        return new Ref<Mesh>(new Mesh(component.CollisionMesh->GetMeshAsset()));
+        auto mesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
+        return new Ref<Mesh>(new Mesh(mesh->GetMeshAsset()));
     }
 
     void NR_MeshColliderComponent_SetColliderMesh(uint64_t entityID, Ref<Mesh>* inMesh) {}

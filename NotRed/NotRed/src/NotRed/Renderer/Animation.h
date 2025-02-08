@@ -29,6 +29,7 @@ namespace NR
 		
 		const ozz::animation::Skeleton& GetSkeleton() const { NR_CORE_ASSERT(mSkeleton, "Attempted to access null skeleton!"); return *mSkeleton; }
 
+		const glm::mat4 GetSkeletonTransform() const { return mSkeletonTransform; }
 		const glm::vec3& GetRootTranslation() const { return mRootTranslation; }
 		const glm::quat& GetRootRotation() const { return mRootRotation; }
 		const glm::vec3& GetRootScale() const { return mRootScale; }
@@ -39,11 +40,12 @@ namespace NR
 		static bool AreSameSkeleton(const ozz::animation::Skeleton& a, const ozz::animation::Skeleton& b);
 	
 	private:
-		glm::mat4 mRootTransform;
+		glm::mat4 mSkeletonTransform;    // Overall transform applied to entire skeleton.  e.g. if armature was exported from Blender with a non 1.0 scale factor.
+		glm::mat4 mRootTransform;        // Transform of the root joint, when skeleton is in rest pose.
 		glm::mat4 mInverseRootTransform;
-		glm::vec3 mRootTranslation;
-		glm::quat mRootRotation;
-		glm::vec3 mRootScale;
+		glm::vec3 mRootTranslation;      // Translation of the root joint, when skeleton is in rest pose.
+		glm::quat mRootRotation;         // ditto rotation
+		glm::vec3 mRootScale;            // ditto scale
 
 		std::string mFilePath;
 		
@@ -111,6 +113,8 @@ namespace NR
 		Ref<AnimationAsset> GetAnimationAsset(const size_t stateIndex) const { return mAnimationAssets[stateIndex]; }
 		void SetAnimationAsset(const std::string_view stateName, Ref<AnimationAsset> animationAsset);
 
+		glm::vec3 GetRootMotion() const { return mRootMotion; }
+
 		static AssetType GetStaticType() { return AssetType::AnimationController; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
@@ -125,6 +129,7 @@ namespace NR
 		glm::mat4 mInvRootTransformAtStart = glm::mat4(1.0f);
 		glm::mat4 mRootTransformAtEnd = glm::mat4(1.0f);
 		glm::mat4 mPreviousInvRootTransform = glm::mat4(1.0f);
+		glm::vec3 mRootMotion;
 
 		ozz::vector<std::string> mStateNames;
 		ozz::vector<Ref<AnimationAsset>> mAnimationAssets;

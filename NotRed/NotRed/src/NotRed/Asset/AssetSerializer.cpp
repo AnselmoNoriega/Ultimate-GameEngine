@@ -242,7 +242,7 @@ namespace NR
 
 		if (soundConfig->FileAsset)
 		{
-			NR_SERIALIZE_PROPERTY(AssetID, soundConfig->FileAsset->Handle, out);
+			NR_SERIALIZE_PROPERTY(AssetID, soundConfig->FileAsset, out);
 		}
 
 		NR_SERIALIZE_PROPERTY(IsLooping, (bool)soundConfig->bLooping, out);
@@ -293,7 +293,7 @@ namespace NR
 		AssetHandle assetHandle = data["AssetID"] ? data["AssetID"].as<uint64_t>() : 0;
 		if (AssetManager::IsAssetHandleValid(assetHandle))
 		{
-			soundConfig->FileAsset = AssetManager::GetAsset<AudioFile>(assetHandle);
+			soundConfig->FileAsset = assetHandle;
 		}
 		else if (assetHandle != 0)
 		{

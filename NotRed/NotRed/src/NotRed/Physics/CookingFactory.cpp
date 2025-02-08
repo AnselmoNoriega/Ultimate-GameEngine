@@ -60,7 +60,7 @@ namespace NR
         NR_SCOPE_TIMER("CookingFactory::CookMesh");
 
         Utils::CreateCacheDirectoryIfNeeded();
-        auto& metadata = AssetManager::GetMetadata(component.CollisionMesh->Handle);
+        auto& metadata = AssetManager::GetMetadata(component.CollisionMesh);
         if (!metadata.IsValid())
         {
             NR_CORE_ERROR("Invalid mesh");
@@ -79,9 +79,11 @@ namespace NR
             }
         }
 
+        const auto& mesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
+
         if (!std::filesystem::exists(filepath))
         {
-            result = component.IsConvex ? CookConvexMesh(component.CollisionMesh, outData) : CookTriangleMesh(component.CollisionMesh, outData);
+            result = component.IsConvex ? CookConvexMesh(mesh, outData) : CookTriangleMesh(mesh, outData);
 
             if (result == CookingResult::Success)
             {
@@ -119,9 +121,9 @@ namespace NR
             if (colliderBuffer.Size > 0)
             {
                 uint32_t offset = 0;
-                const auto& meshAsset = component.CollisionMesh->GetMeshAsset();
+                const auto& meshAsset = mesh->GetMeshAsset();
                 const auto& submeshes = meshAsset->GetSubmeshes();
-                for (const auto& submesh : component.CollisionMesh->GetSubmeshes())
+                for (const auto& submesh : mesh->GetSubmeshes())
                 {
                     MeshColliderData& data = outData.emplace_back();
                     data.Size = colliderBuffer.Read<uint32_t>(offset);
@@ -155,7 +157,8 @@ namespace NR
         std::vector<MeshColliderData> outData;
         CookingResult result = CookingResult::Failure;
 
-        result = component.IsConvex ? CookConvexMesh(component.CollisionMesh, outData) : CookTriangleMesh(component.CollisionMesh, outData);
+        const auto& mesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
+        result = component.IsConvex ? CookConvexMesh(mesh, outData) : CookTriangleMesh(mesh, outData);
 
         if (result == CookingResult::Success)
         {

@@ -26,7 +26,7 @@ namespace NR
 			mMaterial->release();
 		}
 
-		void SetMaterial(const Ref<PhysicsMaterial>& material);
+		void SetMaterial(AssetHandle material);
 
 		virtual const glm::vec3& GetOffset() const = 0;
 		virtual void SetOffset(const glm::vec3& offset) = 0;

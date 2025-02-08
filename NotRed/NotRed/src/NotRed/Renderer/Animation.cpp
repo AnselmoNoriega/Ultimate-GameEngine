@@ -35,6 +35,15 @@ namespace NR
 		aiProcess_LimitBoneWeights |        // If more than N (=4) bone weights, discard least influencing bones and renormalise sum to 1
 		aiProcess_ValidateDataStructure;    // Validation
 
+	glm::mat4 Mat4FromFloat4x4(const ozz::math::Float4x4& float4x4)
+	{
+		glm::mat4 result;
+		ozz::math::StorePtr(float4x4.cols[0], glm::value_ptr(result[0]));
+		ozz::math::StorePtr(float4x4.cols[1], glm::value_ptr(result[1]));
+		ozz::math::StorePtr(float4x4.cols[2], glm::value_ptr(result[2]));
+		ozz::math::StorePtr(float4x4.cols[3], glm::value_ptr(result[3]));
+		return result;
+	}
 
 	SkeletonAsset::SkeletonAsset(const std::string& filename)
 		: mFilePath(filename)
@@ -46,8 +55,10 @@ namespace NR
 		Assimp::Importer importer;
 		const aiScene* scene = importer.ReadFile(filename, sAnimationImportFlags);
 		ozz::animation::offline::RawSkeleton rawSkeleton;
-		if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton))
+		ozz::math::Float4x4 transform;
+		if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton, transform))
 		{
+			mSkeletonTransform = Mat4FromFloat4x4(transform);
 			ozz::animation::offline::SkeletonBuilder builder;
 			mSkeleton = builder(rawSkeleton);
 			if (!mSkeleton)
@@ -106,7 +117,8 @@ namespace NR
 		}
 
 		ozz::animation::offline::RawSkeleton rawSkeleton;
-		if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton))
+		ozz::math::Float4x4 skeletonTransform;
+		if (OZZImporterAssimp::ExtractRawSkeleton(scene, rawSkeleton, skeletonTransform))
 		{
 			ozz::animation::offline::SkeletonBuilder builder;
 			ozz::unique_ptr<ozz::animation::Skeleton> localSkeleton = builder(rawSkeleton);
@@ -173,7 +185,6 @@ namespace NR
 		// first compute animation time in range 0.0f (beginning of animation) to 1.0f (end of animation)
 		// for now assume animation always loops (later this will be part of the animation controller)
 		constexpr bool loop = true;
-		glm::mat4 rootMotion = glm::mat4(1.0f);
 
 		if (mAnimationAssets[mStateIndex] && mAnimationPlaying)
 		{
@@ -195,25 +206,7 @@ namespace NR
 				ozz::math::SoaFloat3 soaTranslation = soaTransform.translation;
 				ozz::math::SoaQuaternion soaRotation = soaTransform.rotation;
 				ozz::math::SoaFloat3 soaScale = soaTransform.scale;
-				if (mRootMotionMode == RootMotionMode::Apply)
-				{
-					glm::mat4 rootTransform = GetRootTransform();
-					if (mAnimationTime > mPreviousAnimationTime)
-					{
-						rootMotion = rootTransform * mPreviousInvRootTransform;
-					}
-					else
-					{
-						rootMotion = (mRootTransformAtEnd * mPreviousInvRootTransform) * (rootTransform * mInvRootTransformAtStart);
-					}
 
-					mPreviousInvRootTransform = glm::inverse(rootTransform);
-				}
-				// Remove root motion from the sampled animation.
-				// For now, we strip only the translation in forwards direction (Z), and that's also what gets returned back to caller
-				// (for them to do what they like with it - e.g. apply to the characters world position)
-				
-				// reset root transform back to original pose
 				const glm::vec3& rootTranslation = GetSkeletonAsset()->GetRootTranslation();
 				soaTranslation = ozz::math::SoaFloat3::Load(
 					ozz::math::simd_float4::Load(ozz::math::GetX(soaTranslation.x), ozz::math::GetY(soaTranslation.x), ozz::math::GetZ(soaTranslation.x), ozz::math::GetW(soaTranslation.x)),
@@ -239,7 +232,7 @@ namespace NR
 		}
 
 		mPreviousAnimationTime = mAnimationTime;
-		return glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, rootMotion[3][2] });   // return only root motion in forwards direction (Z)
+		return mRootMotionMode == RootMotionMode::Apply ? glm::translate(glm::mat4(1.0f), mRootMotion) : glm::mat4(1.0f);
 	}
 
 	void AnimationController::SetStateIndex(const uint32_t stateIndex)
@@ -313,6 +306,24 @@ namespace NR
 		{
 			NR_CORE_ERROR("ozz animation sampling job failed!");
 		}
+
+		// Work out how far the root (joint 0) moved since previous call to SampleAnimation()
+		// (bearing in mind that we might have looped back around to the beginning).
+		glm::mat4 rootTransform = GetRootTransform();
+		glm::mat4 rootMotion;
+		if (mAnimationTime > mPreviousAnimationTime)
+		{
+			rootMotion = rootTransform * mPreviousInvRootTransform;
+		}
+		else
+		{
+			rootMotion = (mRootTransformAtEnd * mPreviousInvRootTransform) * (rootTransform * mInvRootTransformAtStart);
+		}
+
+		// Return only motion in forward axis (Z).
+		// Must scale by skeletonTransform
+		mRootMotion = mSkeletonAsset->GetSkeletonTransform() * glm::vec4{ 0.0f, 0.0f, rootMotion[3][2], 0.0f };
+		mPreviousInvRootTransform = glm::inverse(rootTransform);
 	}
 
 	glm::mat4 AnimationController::GetRootTransform() const
@@ -330,8 +341,7 @@ namespace NR
 		glm::vec3 translation = { ozz::math::GetX(soaTranslation.x), ozz::math::GetX(soaTranslation.y), ozz::math::GetX(soaTranslation.z) };
 		glm::quat rotation = { ozz::math::GetX(soaRotation.w), ozz::math::GetX(soaRotation.x), ozz::math::GetX(soaRotation.y), ozz::math::GetX(soaRotation.z) };
 		glm::vec3 scale = { ozz::math::GetX(soaScale.x), ozz::math::GetX(soaScale.y), ozz::math::GetX(soaScale.z) };
-		
-		NR_CORE_INFO("Root translation = ({}, {}, {})", translation.x, translation.y, translation.z);
-		return glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale) * GetSkeletonAsset()->GetInverseRootTransform();
+
+		return glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale);
 	}
 }

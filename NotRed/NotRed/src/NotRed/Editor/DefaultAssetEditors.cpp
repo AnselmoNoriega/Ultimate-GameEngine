@@ -574,22 +574,13 @@ namespace NR
 			UI::PushID();
 			UI::BeginPropertyGrid();
 
-			// Need to wrap this first Property Grid into another ID,
-			// otherwise there's a conflict with the next Property Grid.
-			bool bWasEmpty = soundConfig.FileAsset == nullptr;
-			if (UI::PropertyAssetReference("Sound", soundConfig.FileAsset))
-			{
-				if (bWasEmpty)
-				{
-					soundConfig.FileAsset.Create();
-				}
-			}
+			UI::PropertyAssetReference<AudioFile>("Sound", soundConfig.FileAsset);
 
 			propertyGridSpacing();
 			propertyGridSpacing();
 
-			UI::Property("Volume Multiplier", soundConfig.VolumeMultiplier, 0.01f, 0.0f, 1.0f); //TODO: switch to dBs in the future ?
-			UI::Property("Pitch Multiplier", soundConfig.PitchMultiplier, 0.01f, 0.0f, 24.0f); // max pitch 24 is just an arbitrary number here
+			UI::Property("Volume Multiplier", soundConfig.VolumeMultiplier, 0.01f, 0.0f, 1.0f);
+			UI::Property("Pitch Multiplier", soundConfig.PitchMultiplier, 0.01f, 0.0f, 24.0f); 
 
 			propertyGridSpacing();
 			propertyGridSpacing();

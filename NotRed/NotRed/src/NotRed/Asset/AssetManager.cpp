@@ -27,6 +27,7 @@ namespace NR
     {
         WriteRegistryToFile();
 
+        sMemoryAssets.clear();
         sAssetRegistry.Clear();
         sLoadedAssets.clear();
     }
@@ -465,5 +466,7 @@ namespace NR
     }
 
     std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sLoadedAssets;
+    std::unordered_map<AssetHandle, Ref<Asset>> AssetManager::sMemoryAssets;
+
     AssetManager::AssetsChangeEventFn AssetManager::sAssetsChangeCallback;
 }

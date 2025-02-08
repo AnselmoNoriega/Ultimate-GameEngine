@@ -1098,7 +1098,7 @@ namespace NR::UI
     };
 
     template<typename T>
-    static bool PropertyAssetReference(const char* label, Ref<T>& object, PropertyAssetReferenceError* outError = nullptr, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
+    static bool PropertyAssetReference(const char* label, AssetHandle& outHandle, PropertyAssetReferenceError* outError = nullptr, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
     {
         bool modified = false;
         if (outError)
@@ -1119,11 +1119,13 @@ namespace NR::UI
             float itemHeight = 28.0f;
 
             std::string buttonText = "Null";
-            if (object)
+            if (AssetManager::IsAssetHandleValid(outHandle))
             {
+                auto object = AssetManager::GetAsset<T>(outHandle);
+
                 if (!object->IsFlagSet(AssetFlag::Missing))
                 {
-                    buttonText = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+                    buttonText = AssetManager::GetMetadata(outHandle).FilePath.stem().string();
                 }
                 else
                 {
@@ -1145,7 +1147,7 @@ namespace NR::UI
                 Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
                 if (asset->GetAssetType() == T::GetStaticType())
                 {
-                    object = asset.As<T>();
+                    outHandle = assetHandle;
                     modified = true;
                 }
             }
@@ -1166,7 +1168,7 @@ namespace NR::UI
     }
 
     template<typename TAssetType, typename TConversionType, typename Fn>
-    static bool PropertyAssetReferenceWithConversion(const char* label, Ref<TAssetType>& object, Fn&& conversionFunc, PropertyAssetReferenceError* outError = nullptr, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
+    static bool PropertyAssetReferenceWithConversion(const char* label, AssetHandle& outHandle, Fn&& conversionFunc, PropertyAssetReferenceError* outError = nullptr, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
     {
         bool succeeded = false;
         if (outError)
@@ -1187,11 +1189,12 @@ namespace NR::UI
 
         float itemHeight = 28.0f;
 
-        if (object)
+        if (AssetManager::IsAssetHandleValid(outHandle))
         {
+            auto object = AssetManager::GetAsset<TAssetType>(outHandle);
             if (!object->IsFlagSet(AssetFlag::Missing))
             {
-                std::string assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
+                std::string assetFileName = AssetManager::GetMetadata(outHandle).FilePath.stem().string();
                 ImGui::Button((char*)assetFileName.c_str(), { width, itemHeight });
             }
             else
@@ -1221,7 +1224,7 @@ namespace NR::UI
                     // No conversion necessary 
                     if (asset->GetAssetType() == TAssetType::GetStaticType())
                     {
-                        object = asset.As<TAssetType>();
+                        outHandle = assetHandle;
                         succeeded = true;
                     }
                     // Convert

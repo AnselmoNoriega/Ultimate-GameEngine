@@ -21,7 +21,7 @@ namespace NR
 
 	private:
 		Ref<Project> mProject;
-		Ref<Asset> mDefaultScene;
+		AssetHandle mDefaultScene;
 		int32_t mSelectedLayer = -1;
 		char mNewLayerNameBuffer[255];
 	};
