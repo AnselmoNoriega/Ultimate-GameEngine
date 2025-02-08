@@ -53,7 +53,7 @@ namespace NR
 		if (mInfo.Image)
 		{
 			const VKImageInfo& info = mInfo;
-			Renderer::Submit([info, layerViews = mPerLayerImageViews]()
+			Renderer::SubmitResourceFree([info, layerViews = mPerLayerImageViews]()
 				{
 					const auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
 					vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
@@ -92,11 +92,9 @@ namespace NR
 			return;
 		}
 
-		VKImageInfo info = mInfo;
-		Renderer::SubmitResourceFree([info, layerViews = mPerLayerImageViews]() mutable
+		Renderer::SubmitResourceFree([info = mInfo, layerViews = mPerLayerImageViews]() mutable
 			{
 				const auto vulkanDevice = VKContext::GetCurrentDevice()->GetVulkanDevice();
-				NR_CORE_WARN("VulkanImage2D::Release ImageView = {0}", (const void*)info.ImageView);
 				vkDestroyImageView(vulkanDevice, info.ImageView, nullptr);
 				vkDestroySampler(vulkanDevice, info.Sampler, nullptr);
 				for (auto& view : layerViews)
@@ -121,6 +119,8 @@ namespace NR
 	void VKImage2D::RT_Invalidate()
 	{
 		NR_CORE_VERIFY(mSpecification.Width > 0 && mSpecification.Height > 0);
+
+		Release();
 
 		VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 		VKAllocator allocator("Image2D");
