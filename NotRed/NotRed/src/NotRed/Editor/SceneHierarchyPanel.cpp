@@ -1318,8 +1318,21 @@ namespace NR
                         mInvalidMetadataCallback(entity, UI::sPropertyAssetReferenceAssetHandle);
                     }
                 }
-                UI::EndPropertyGrid();
+                if (anim.AnimationController) 
+                {
+                    int stateIndex = anim.AnimationController->GetStateIndex();
+                
+                    UI::Property("State", stateIndex);
+                    anim.AnimationController->SetStateIndex(stateIndex);
+                    int rootMotionMode = (int)anim.AnimationController->GetRootMotionMode();
 
+                    if (UI::PropertyRadio("Root Motion", rootMotionMode, { { 0, "Default" }, { 1, "In-place" }, { 2, "Apply" } }))
+                    {
+                        anim.AnimationController->SetRootMotionMode((AnimationController::RootMotionMode)rootMotionMode);
+                    }
+                }
+
+                UI::EndPropertyGrid();
                 if (entity.HasComponent<MeshComponent>())
                 {
                     auto mc = entity.GetComponent<MeshComponent>();

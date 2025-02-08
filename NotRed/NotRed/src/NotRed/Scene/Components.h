@@ -65,6 +65,12 @@ namespace NR
                 * glm::toMat4(glm::quat(glm::radians(Rotation)))
                 * glm::scale(glm::mat4(1.0f), Scale);
         }
+
+        void SetTransform(const glm::mat4& transform) 
+        {
+            // WARNING:  sets only the translation for now
+            Translation = transform[3];
+        }
     };
 
     struct RelationshipComponent

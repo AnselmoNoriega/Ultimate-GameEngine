@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <filesystem>
+#include <map>
 
 #include "NotRed/Asset/AssetMetadata.h"
 
@@ -29,6 +30,7 @@ namespace NR::UI
     static uint32_t sCounter = 0;
     static char sIDBuffer[16];
     static char* sMultilineBuffer = nullptr;
+    static char sRadioOptionBuffer[32];
 
     static const char* GenerateID()
     {
@@ -631,6 +633,47 @@ namespace NR::UI
         return modified;
     }
 
+    static bool PropertyRadio(const char* label, int& chosen, std::map<int, const std::string_view> options)
+    {
+        bool modified = false;
+
+        ShiftCursor(10.0f, 9.0f);
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ShiftCursorY(4.0f);
+        ImGui::PushItemWidth(-1);
+
+        if (IsItemDisabled())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
+
+        for (auto [value, option] : options)
+        {
+            sprintf_s(sRadioOptionBuffer, 32, "%s##%o", option.data(), sCounter++);
+            if (ImGui::RadioButton(sRadioOptionBuffer, &chosen, value))
+            {
+                modified = true;
+            }
+        }
+
+        if (IsItemDisabled())
+        {
+            ImGui::PopStyleVar();
+        }
+
+        if (!IsItemDisabled())
+        {
+            DrawItemActivityOutline(2.0f, true, Colors::Theme::accent);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        Draw::Underline();
+
+        return modified;
+    }
+
     static bool Property(const char* label, float& value, float delta = 0.1f, float min = 0.0f, float max = 0.0f)
     {
         bool modified = false;
@@ -761,8 +804,10 @@ namespace NR::UI
     {
         bool modified = false;
 
+        ShiftCursor(10.0f, 9.0f);
         ImGui::Text(label);
         ImGui::NextColumn();
+        ShiftCursorY(4.0f);
         ImGui::PushItemWidth(-1);
 
         sIDBuffer[0] = '#';
@@ -784,8 +829,15 @@ namespace NR::UI
             ImGui::PopStyleVar();
         }
 
+        if (!IsItemDisabled())
+        {
+            DrawItemActivityOutline(2.0f, true, Colors::Theme::accent);
+        }
+
         ImGui::PopItemWidth();
         ImGui::NextColumn();
+        Draw::Underline();
+
         return modified;
     }
 

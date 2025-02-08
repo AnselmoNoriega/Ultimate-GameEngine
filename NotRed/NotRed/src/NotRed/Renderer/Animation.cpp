@@ -5,6 +5,8 @@
 #include "NotRed/Asset/OZZImporterAssimp.h"
 #include "NotRed/Debug/Profiler.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/Importer.hpp>
@@ -165,12 +167,13 @@ namespace NR
 		mIsLoaded = true;
 	}
 
-	void AnimationController::Update(float dt)
+	glm::mat4 AnimationController::Update(float dt)
 	{
 		NR_PROFILE_FUNC();
 		// first compute animation time in range 0.0f (beginning of animation) to 1.0f (end of animation)
 		// for now assume animation always loops (later this will be part of the animation controller)
 		constexpr bool loop = true;
+		glm::mat4 rootMotion = glm::mat4(1.0f);
 
 		if (mAnimationAssets[mStateIndex] && mAnimationPlaying)
 		{
@@ -184,14 +187,45 @@ namespace NR
 				mAnimationTime = ozz::math::Clamp(0.0f, mAnimationTime, 1.0f);
 			}
 
-			ozz::animation::SamplingJob sampling_job;
-			sampling_job.animation = &mAnimationAssets[mStateIndex]->GetAnimation();
-			sampling_job.context = &mSamplingContext;
-			sampling_job.ratio = mAnimationTime;
-			sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
-			if (!sampling_job.Run())
+			SampleAnimation();
+			if (mRootMotionMode != RootMotionMode::Default)
 			{
-				NR_CORE_ERROR("ozz animation sampling job failed!");
+				// extract root transform so we can fiddle with it...
+				ozz::math::SoaTransform soaTransform = mLocalSpaceTransforms[0];
+				ozz::math::SoaFloat3 soaTranslation = soaTransform.translation;
+				ozz::math::SoaQuaternion soaRotation = soaTransform.rotation;
+				ozz::math::SoaFloat3 soaScale = soaTransform.scale;
+				if (mRootMotionMode == RootMotionMode::Apply)
+				{
+					glm::mat4 rootTransform = GetRootTransform();
+					if (mAnimationTime > mPreviousAnimationTime)
+					{
+						rootMotion = rootTransform * mPreviousInvRootTransform;
+					}
+					else
+					{
+						rootMotion = (mRootTransformAtEnd * mPreviousInvRootTransform) * (rootTransform * mInvRootTransformAtStart);
+					}
+
+					mPreviousInvRootTransform = glm::inverse(rootTransform);
+				}
+				// Remove root motion from the sampled animation.
+				// For now, we strip only the translation in forwards direction (Z), and that's also what gets returned back to caller
+				// (for them to do what they like with it - e.g. apply to the characters world position)
+				
+				// reset root transform back to original pose
+				const glm::vec3& rootTranslation = GetSkeletonAsset()->GetRootTranslation();
+				soaTranslation = ozz::math::SoaFloat3::Load(
+					ozz::math::simd_float4::Load(ozz::math::GetX(soaTranslation.x), ozz::math::GetY(soaTranslation.x), ozz::math::GetZ(soaTranslation.x), ozz::math::GetW(soaTranslation.x)),
+					ozz::math::simd_float4::Load(ozz::math::GetX(soaTranslation.y), ozz::math::GetY(soaTranslation.y), ozz::math::GetZ(soaTranslation.y), ozz::math::GetW(soaTranslation.y)),
+					ozz::math::simd_float4::Load(rootTranslation.z, ozz::math::GetY(soaTranslation.z), ozz::math::GetZ(soaTranslation.z), ozz::math::GetW(soaTranslation.z))
+				);
+
+				mLocalSpaceTransforms[0] = {
+					soaTranslation,
+					soaRotation,
+					soaScale
+				};
 			}
 
 			ozz::animation::LocalToModelJob ltm_job;
@@ -202,6 +236,26 @@ namespace NR
 			{
 				NR_CORE_ERROR("ozz animation convertion to model space failed!");
 			}
+		}
+
+		mPreviousAnimationTime = mAnimationTime;
+		return glm::translate(glm::mat4(1.0f), { 0.0f, 0.0f, rootMotion[3][2] });   // return only root motion in forwards direction (Z)
+	}
+
+	void AnimationController::SetStateIndex(const uint32_t stateIndex)
+	{
+		if (stateIndex != mStateIndex) 
+		{
+			mPreviousAnimationTime = 0.0f;
+			mAnimationTime = 1.0f;
+			mStateIndex = stateIndex;
+			SampleAnimation();
+			mRootTransformAtEnd = GetRootTransform();
+
+			mAnimationTime = 0.0;
+			SampleAnimation();
+			mInvRootTransformAtStart = glm::inverse(GetRootTransform());
+			mPreviousInvRootTransform = mInvRootTransformAtStart;
 		}
 	}
 
@@ -241,5 +295,43 @@ namespace NR
 			mStateNames.emplace_back(stateName);
 			mAnimationAssets.emplace_back(animationAsset);
 		}
+		if (mStateIndex == ~0)
+		{
+			SetStateIndex(0);
+		}
+	}
+
+	void AnimationController::SampleAnimation()
+	{
+		ozz::animation::SamplingJob sampling_job;
+		sampling_job.animation = &mAnimationAssets[mStateIndex]->GetAnimation();
+		sampling_job.context = &mSamplingContext;
+		sampling_job.ratio = mAnimationTime;
+		sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
+
+		if (!sampling_job.Run())
+		{
+			NR_CORE_ERROR("ozz animation sampling job failed!");
+		}
+	}
+
+	glm::mat4 AnimationController::GetRootTransform() const
+	{
+		// Extract the [0]th transform from ozz soa structs.
+		// The skeleton is ordered depth first, so we know [0]th joint is the "root"
+		// (there could be more than one root, but for now we just care about the the first one)
+		// We're extracting from local-space transform, but since it's a root, that's the same thing as model-space.
+		// (and we don't necessarily have the model-space transforms yet)
+		ozz::math::SoaTransform soaTransform = mLocalSpaceTransforms[0];
+		ozz::math::SoaFloat3 soaTranslation = soaTransform.translation;
+		ozz::math::SoaQuaternion soaRotation = soaTransform.rotation;
+		ozz::math::SoaFloat3 soaScale = soaTransform.scale;
+
+		glm::vec3 translation = { ozz::math::GetX(soaTranslation.x), ozz::math::GetX(soaTranslation.y), ozz::math::GetX(soaTranslation.z) };
+		glm::quat rotation = { ozz::math::GetX(soaRotation.w), ozz::math::GetX(soaRotation.x), ozz::math::GetX(soaRotation.y), ozz::math::GetX(soaRotation.z) };
+		glm::vec3 scale = { ozz::math::GetX(soaScale.x), ozz::math::GetX(soaScale.y), ozz::math::GetX(soaScale.z) };
+		
+		NR_CORE_INFO("Root translation = ({}, {}, {})", translation.x, translation.y, translation.z);
+		return glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.0f), scale) * GetSkeletonAsset()->GetInverseRootTransform();
 	}
 }

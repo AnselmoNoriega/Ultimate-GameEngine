@@ -150,11 +150,6 @@ namespace NR
 			{
 				bool isBone = (mBones.find(node->mName.C_Str()) != mBones.end());
 
-				for (uint32_t nodeIndex = 0; !isBone && nodeIndex < node->mNumChildren; ++nodeIndex)
-				{
-					isBone = (mBones.find(node->mChildren[nodeIndex]->mName.C_Str()) != mBones.end());
-				}
-
 				if (isBone)
 				{
 					rawSkeleton.roots.emplace_back();

@@ -492,13 +492,12 @@ namespace NR
             {
                 Entity e = Entity(entity, this);
 
-                glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
                 if (e.HasComponent<AnimationComponent>()) {
 
                     auto& anim = e.GetComponent<AnimationComponent>();
                     if (anim.AnimationController)
                     {
-                        anim.AnimationController->Update(dt);
+                        e.Transform().SetTransform(e.Transform().GetTransform() * anim.AnimationController->Update(dt));
                         meshComponent.MeshObj->UpdateBoneTransforms(anim.AnimationController->GetModelSpaceTransforms());
                     }
                     else
@@ -510,6 +509,8 @@ namespace NR
                 {
                     meshComponent.MeshObj->UpdateBoneTransforms({});
                 }
+
+                glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
 
                 renderer->SubmitMesh(meshComponent.MeshObj, meshComponent.Materials, transform);
             }
@@ -650,7 +651,6 @@ namespace NR
             {
                 Entity e = Entity(entity, this);
 
-                glm::mat4 transform = GetTransformRelativeToParent(e);
                 if (e.HasComponent<AnimationComponent>()) 
                 {
                     auto& anim = e.GetComponent<AnimationComponent>();
@@ -669,6 +669,8 @@ namespace NR
                 {
                     meshComponent.MeshObj->UpdateBoneTransforms({});
                 }
+
+                glm::mat4 transform = GetTransformRelativeToParent(e);
 
                 if (mSelectedEntity == entity)
                 {
