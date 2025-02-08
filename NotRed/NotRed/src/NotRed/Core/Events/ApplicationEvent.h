@@ -38,6 +38,24 @@ namespace NR
         unsigned int mWidth, mHeight;
     };
 
+    class WindowTitleBarHitTestEvent : public Event
+    {
+    public:
+        WindowTitleBarHitTestEvent(int x, int y, int& hit)
+            : m_X(x), m_Y(y), mHit(hit) {}
+
+        inline int GetX() const { return m_X; }
+        inline int GetY() const { return m_Y; }
+        inline void SetHit(bool hit) { mHit = (int)hit; }
+
+        EVENT_CLASS_TYPE(WindowTitleBarHitTest)
+            EVENT_CLASS_CATEGORY(EventCategoryApplication)
+    private:
+        int m_X;
+        int m_Y;
+        int& mHit;
+    };
+
     class AppTickEvent : public Event
     {
     public:

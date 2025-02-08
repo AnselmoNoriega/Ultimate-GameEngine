@@ -96,10 +96,12 @@ namespace NR
 		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
 
 		void UpdateWindowTitle(const std::string& sceneName);
-		void DrawMenubar();
-		float DrawTitlebar();
+		void UI_DrawMenubar();
 
-		void HandleManualWindowResize();
+		// Returns titlebar height
+		float UI_DrawTitlebar();
+		void UI_HandleManualWindowResize();
+		bool UI_TitleBarHitTest(int x, int y) const;
 
 		float GetSnapValue();
 
@@ -171,6 +173,8 @@ namespace NR
 		glm::vec2 mSecondViewportBounds[2];
 
 		float mLineWidth = 2.0f;
+
+		bool mTitleBarHovered = false;
 
 		int mGizmoType = -1;
 

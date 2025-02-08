@@ -177,9 +177,12 @@ namespace NR
         Application::Get().GetWindow().SetTitle(title);
     }
 
-    void EditorLayer::DrawMenubar()
+    void EditorLayer::UI_DrawMenubar()
     {
         const ImRect menuBarRect = { ImGui::GetCursorPos(), {ImGui::GetContentRegionAvail().x, ImGui::GetFrameHeightWithSpacing()} };
+
+        ImGui::BeginGroup();
+
         if (UI::BeginMenuBar(menuBarRect))
         {
             bool menuOpen = ImGui::IsPopupOpen("##menubar", ImGuiPopupFlags_AnyPopupId);
@@ -410,9 +413,11 @@ namespace NR
         }
 
         UI::EndMenuBar();
+
+        ImGui::EndGroup();
     }
 
-    float EditorLayer::DrawTitlebar()
+    float EditorLayer::UI_DrawTitlebar()
     {
         const float titlebarHeight = 57.0f;
         const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
@@ -444,6 +449,10 @@ namespace NR
         const float buttonsAreaWidth = 165;
         
         // Title bar drag area
+#ifdef NR_PLATFORM_WINDOWS
+        ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight));
+        mTitleBarHovered = ImGui::IsItemHovered();
+#else
         auto* rootWindow = ImGui::GetCurrentWindow()->RootWindow;
         const float windowWidth = (int)rootWindow->RootWindow->Size.x;
 
@@ -495,6 +504,7 @@ namespace NR
                 glfwSetWindowPos(window, point.x - moveOffsetX, point.y - moveOffsetY);
             }
         }
+#endif
 
         // Draw Menubar
         ImGui::SuspendLayout();
@@ -502,21 +512,59 @@ namespace NR
             ImGui::SetItemAllowOverlap();
             const float logoOffset = 16.0f * 2.0f + 41.0f + windowPadding.x;
             ImGui::SetCursorPos(ImVec2(logoOffset, 4.0f));
-            DrawMenubar();
+            UI_DrawMenubar();
+
+            if (ImGui::IsItemHovered())
+            {
+                mTitleBarHovered = false;
+            }
         }
+
+        const float menuBarRight = ImGui::GetItemRectMax().x - ImGui::GetCurrentWindow()->Pos.x;
+        
+        // Project name
         {
-            UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
             UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::textDarker);
+            UI::ScopedColor border(ImGuiCol_Border, IM_COL32(40, 40, 40, 255));
 
             const std::string title = Project::GetActive()->GetConfig().Name;
             const ImVec2 textSize = ImGui::CalcTextSize(title.c_str());
             const float rightOffset = ImGui::GetWindowWidth() / 5.0f;
+            ImGui::SameLine();
             
             ImGui::SetCursorPosX(ImGui::GetWindowWidth() - rightOffset - textSize.x);
-            UI::ShiftCursorY(2.0f);
-            ImGui::Text(title.c_str());
-            UI::ScopedColor border(ImGuiCol_Border, IM_COL32(40, 40, 40, 255));
+            UI::ShiftCursorY(1.0f + windowPadding.y);
+            {
+                UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
+                ImGui::Text(title.c_str());
+            }
+            UI::SetTooltip("Current project (" + Project::GetActive()->GetConfig().ProjectFileName + ")");
+            
             UI::DrawBorder(UI::RectExpanded(UI::GetItemRect(), 24.0f, 68.0f), 1.0f, 3.0f, 0.0f, -60.0f);
+        }
+
+        // Current Scene name
+        {
+            UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::text);
+            const std::string sceneName = mCurrentScene->GetName();
+
+            ImGui::SetCursorPosX(menuBarRight);
+            UI::ShiftCursorX(50.0f);
+
+            {
+                UI::ScopedFont boldFont(ImGui::GetIO().Fonts->Fonts[0]);
+                ImGui::Text(sceneName.c_str());
+            }
+
+            UI::SetTooltip("Current scene (" + mSceneFilePath + ")");
+            const float underlineThickness = 2.0f;
+            const float underlineExpandWidth = 4.0f;
+            
+            ImRect itemRect = UI::RectExpanded(UI::GetItemRect(), underlineExpandWidth, 0.0f);
+            
+            itemRect.Max.x = itemRect.Min.x + underlineThickness;
+            itemRect = UI::RectOffset(itemRect, -underlineThickness * 2.0f, 0.0f);
+            drawList->AddRectFilled(itemRect.Min, itemRect.Max, Colors::Theme::muted, 2.0f);
         }
 
         ImGui::ResumeLayout();
@@ -589,7 +637,7 @@ namespace NR
         return titlebarHeight;
     }
 
-    void EditorLayer::HandleManualWindowResize()
+    void EditorLayer::UI_HandleManualWindowResize()
     {
         auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
         const bool maximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
@@ -597,9 +645,16 @@ namespace NR
         ImVec2 newSize, newPosition;
         if (!maximized && UI::UpdateWindowManualResize(ImGui::GetCurrentWindow(), newSize, newPosition))
         {
+#ifndef NR_PLATFORM_WINDOWS
             glfwSetWindowPos(window, newPosition.x, newPosition.y);
             glfwSetWindowSize(window, newSize.x, newSize.y);
+#endif
         }
+    }
+
+    bool EditorLayer::UI_TitleBarHitTest(int /*x*/, int /*y*/) const
+    {
+        return mTitleBarHovered;
     }
 
     void EditorLayer::UpdateSceneRendererSettings()
@@ -1457,8 +1512,11 @@ namespace NR
             window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
         }
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        bool isMaximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, isMaximized ? ImVec2(6.0f, 6.0f) : ImVec2(1.0f, 1.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 3.0f);
         ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4{ 0.0f, 0.0f, 0.0f, 0.0f });
         ImGui::Begin("DockSpace Demo", nullptr, window_flags);
         ImGui::PopStyleColor(); // MenuBarBg
@@ -1473,17 +1531,15 @@ namespace NR
             UI::ScopedColor windowBorder(ImGuiCol_Border, IM_COL32(50, 50, 50, 255));
 
             // Draw window border if the window is not maximized
-            auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-            bool isMaximized = (bool)glfwGetWindowAttrib(window, GLFW_MAXIMIZED);
             if (!isMaximized)
             {
                 UI::RenderWindowOuterBorders(ImGui::GetCurrentWindow());
             }
         }
 
-        HandleManualWindowResize();
+        UI_HandleManualWindowResize();
 
-        const float titlebarHeight = DrawTitlebar();
+        const float titlebarHeight = UI_DrawTitlebar();
         ImGui::SetCursorPosY(titlebarHeight + ImGui::GetCurrentWindow()->WindowPadding.y);
 
         // Dockspace
@@ -1640,7 +1696,7 @@ namespace NR
                     return clicked;
                 };
 
-            const ImColor buttonTint = IM_COL32(160, 160, 160, 255);
+            const ImColor buttonTint = IM_COL32(192, 192, 192, 255);
             Ref<Texture2D> buttonTex = mSceneState == SceneState::Play ? mStopButtonTex : mPlayButtonTex;
             
             if (playbackButton(buttonTex, buttonTint))
@@ -2545,6 +2601,11 @@ namespace NR
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) { return OnKeyPressedEvent(event); });
         dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& event) { return OnMouseButtonPressed(event); });
+        dispatcher.Dispatch<WindowTitleBarHitTestEvent>([this](WindowTitleBarHitTestEvent& event)
+            {
+                event.SetHit(UI_TitleBarHitTest(event.GetX(), event.GetY()));
+                return true;
+            });
 
         AssetEditorPanel::OnEvent(e);
         mContentBrowserPanel->OnEvent(e);

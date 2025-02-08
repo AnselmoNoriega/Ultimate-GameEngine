@@ -63,7 +63,11 @@ namespace NR
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         }
 
+#ifdef NR_PLATFORM_WINDOWS
+        glfwWindowHint(GLFW_TITLEBAR, false);
+#else
         glfwWindowHint(GLFW_DECORATED, false);
+#endif
 
         if (mSpecification.Fullscreen)
         {
@@ -178,6 +182,12 @@ namespace NR
                 data.EventCallback(winEvent);
             });
 
+        glfwSetTitlebarHitTestCallback(mWindow, [](GLFWwindow* window, int x, int y, int* hit)
+            {
+                auto& data = *((WindowData*)glfwGetWindowUserPointer(window));
+                WindowTitleBarHitTestEvent event(x, y, *hit);
+                data.EventCallback(event);
+            });
 
         mImGuiMouseCursors[ImGuiMouseCursor_Arrow] = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
         mImGuiMouseCursors[ImGuiMouseCursor_TextInput] = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);

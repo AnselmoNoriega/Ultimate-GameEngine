@@ -651,7 +651,7 @@ namespace NR::UI
                 return ImRect();
             };
 
-        static const float WINDOWS_HOVER_PADDING = 6.0f;// 4.0f;     // Extend outside window for hovering/resizing (maxxed with TouchPadding) and inside windows for borders. Affect FindHoveredWindow().
+        static const float WINDOWS_HOVER_PADDING = 4.0f;
         static const float WINDOWS_RESIZE_FROM_EDGES_FEEDBACK_TIMER = 0.04f;    // Reduce visual noise by only highlighting the border after a certain time.
         
         auto& style = g.Style;

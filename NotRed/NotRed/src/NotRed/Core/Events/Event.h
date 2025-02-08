@@ -7,7 +7,7 @@ namespace NR
     enum class EventType
     {
         None,
-        WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved,
+        WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowTitleBarHitTest,
         AppTick, AppUpdate, AppRender,
         KeyPressed, KeyReleased, KeyTyped,
         MouseButtonPressed, MouseButtonReleased, MouseMoved, MouseScrolled

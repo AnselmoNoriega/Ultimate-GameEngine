@@ -82,6 +82,9 @@
     <Filter Include="src\NotRed\Renderer">
       <UniqueIdentifier>{CE756D71-3AD7-4A7F-C344-91312FA5813E}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\NotRed\Renderer\UI">
+      <UniqueIdentifier>{3B1EE7D6-2718-1029-1085-A639FC1D7695}</UniqueIdentifier>
+    </Filter>
     <Filter Include="src\NotRed\Scene">
       <UniqueIdentifier>{45903309-3189-525B-5ABB-37E046133267}</UniqueIdentifier>
     </Filter>
@@ -597,6 +600,12 @@
     <ClInclude Include="src\NotRed\Renderer\Texture.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\UI\Font.h">
+      <Filter>src\NotRed\Renderer\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Renderer\UI\MSDFData.h">
+      <Filter>src\NotRed\Renderer\UI</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Renderer\UniformBuffer.h">
       <Filter>src\NotRed\Renderer</Filter>
     </ClInclude>
@@ -834,8 +843,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Renderer\UI\Font.h" />
-    <ClInclude Include="src\NotRed\Renderer\UI\MSDFData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1207,6 +1214,9 @@
     <ClCompile Include="src\NotRed\Renderer\Texture.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Renderer\UI\Font.cpp">
+      <Filter>src\NotRed\Renderer\UI</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Renderer\UniformBuffer.cpp">
       <Filter>src\NotRed\Renderer</Filter>
     </ClCompile>
@@ -1372,6 +1382,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Renderer\UI\Font.cpp" />
   </ItemGroup>
 </Project>
