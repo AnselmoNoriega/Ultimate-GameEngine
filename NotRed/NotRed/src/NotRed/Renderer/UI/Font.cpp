@@ -44,8 +44,14 @@ namespace NR
 		generator.setThreadCount(THREADS);
 		generator.generate(glyphs.data(), glyphs.size());
 
-		msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>) generator.atlasStorage();
-		Ref<Texture2D> texture = Texture2D::Create(ImageFormat::RGBA32F, bitmap.width, bitmap.height, bitmap.pixels);
+		msdfgen::BitmapConstRef<T, N> bitmap = (msdfgen::BitmapConstRef<T, N>) generator.atlasStorage();		
+		
+		TextureProperties props;
+		props.GenerateMips = false;
+		props.SamplerWrap = TextureWrap::Clamp;
+		props.DebugName = "FontAtlas";
+		
+		Ref<Texture2D> texture = Texture2D::Create(ImageFormat::RGBA32F, bitmap.width, bitmap.height, bitmap.pixels, props);
 		return texture;
 	}
 

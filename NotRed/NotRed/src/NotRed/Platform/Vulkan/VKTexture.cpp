@@ -52,37 +52,15 @@ namespace NR
     VKTexture2D::VKTexture2D(const std::string& path, TextureProperties properties)
         : mPath(path), mProperties(properties)
     {
-        int width, height, channels;
-
-        if (stbi_is_hdr(path.c_str()))
-        {
-            mImageData.Data = (byte*)stbi_loadf(path.c_str(), &width, &height, &channels, 4);
-            mImageData.Size = width * height * 4 * sizeof(float);
-            mFormat = ImageFormat::RGBA32F;
-        }
-        else
-        {
-            //stbi_set_flip_vertically_on_load(1);
-            mImageData.Data = stbi_load(path.c_str(), &width, &height, &channels, 4);
-            mImageData.Size = width * height * 4;
-            mFormat = ImageFormat::RGBA;
-        }
-
-        NR_CORE_ASSERT(mImageData.Data, "Failed to load image!");
-
-        if (!mImageData.Data)
-        {
-            return;
-        }
-
-        mWidth = width;
-        mHeight = height;
+        bool loaded = LoadImage(path);
+        NR_CORE_ASSERT(loaded);
 
         ImageSpecification imageSpec;
         imageSpec.Format = mFormat;
         imageSpec.Width = mWidth;
         imageSpec.Height = mHeight;
         imageSpec.Mips = GetMipLevelCount();
+        imageSpec.DebugName = properties.DebugName;
         if (properties.Storage)
         {
             imageSpec.Usage = ImageUsage::Storage;
@@ -117,6 +95,7 @@ namespace NR
         imageSpec.Width = mWidth;
         imageSpec.Height = mHeight;
         imageSpec.Mips = GetMipLevelCount();
+        imageSpec.DebugName = properties.DebugName;
         mImage = Image2D::Create(imageSpec);
 
         Ref<VKTexture2D> instance = this;
@@ -132,6 +111,33 @@ namespace NR
         {
             mImage->Release();
         }
+    }
+
+    bool VKTexture2D::LoadImage(const std::string& path)
+    {
+        int width, height, channels;
+        if (stbi_is_hdr(path.c_str()))
+        {
+            mImageData.Data = (byte*)stbi_loadf(path.c_str(), &width, &height, &channels, 4);
+            mImageData.Size = width * height * 4 * sizeof(float);
+            mFormat = ImageFormat::RGBA32F;
+        }
+        else
+        {
+            mImageData.Data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+            mImageData.Size = width * height * 4;
+            mFormat = ImageFormat::RGBA;
+        }
+
+        NR_CORE_ASSERT(mImageData.Data, "Failed to load image!");
+        if (!mImageData.Data)
+        {
+            return false;
+        }
+
+        mWidth = width;
+        mHeight = height;
+        return true;
     }
 
     void VKTexture2D::Resize(uint32_t width, uint32_t height)
@@ -153,7 +159,7 @@ namespace NR
 
         mImage->Release();
 
-        uint32_t mipCount = GetMipLevelCount();
+        uint32_t mipCount = mProperties.GenerateMips ? GetMipLevelCount() : 1;
 
         ImageSpecification& imageSpec = mImage->GetSpecification();
         imageSpec.Format = mFormat;
@@ -251,11 +257,22 @@ namespace NR
                 1,
                 &bufferCopyRegion);
 
-            Utils::InsertImageMemoryBarrier(copyCmd, info.Image,
-                VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                subresourceRange);
+            if (mipCount > 1) // Mips to generate
+            {
+                Utils::InsertImageMemoryBarrier(copyCmd, info.Image,
+                    VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                    subresourceRange);
+            }
+            else
+            {
+                Utils::InsertImageMemoryBarrier(copyCmd, info.Image,
+                    VK_ACCESS_TRANSFER_READ_BIT, VK_ACCESS_SHADER_READ_BIT,
+                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, image->GetDescriptor().imageLayout,
+                    VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                    subresourceRange);
+            }
 
             device->FlushCommandBuffer(copyCmd);
 
@@ -317,7 +334,7 @@ namespace NR
             image->UpdateDescriptor();
         }
 
-        if (mImageData)
+        if (mImageData && mProperties.GenerateMips && mipCount > 1)
         {
             GenerateMips();
         }

@@ -18,7 +18,7 @@ float median(float r, float g, float b)
 
 float ScreenPxRange()
 {
-	float pxRange = 1.2f;
+	float pxRange = 2.0f;
     vec2 unitRange = vec2(pxRange)/vec2(textureSize(uFontAtlases[int(TexIndex)], 0));
     vec2 screenTexSize = vec2(1.0)/fwidth(Input.TexCoord);
     return max(0.5*dot(unitRange, screenTexSize), 1.0);
@@ -26,13 +26,13 @@ float ScreenPxRange()
 
 void main()
 {
-	vec4 bgColor = vec4(0.0);
+	vec4 bgColor = vec4(Input.Color.rgb, 0.0);
 	vec4 fgColor = Input.Color;
 
 	vec3 msd = texture(uFontAtlases[int(TexIndex)], Input.TexCoord).rgb;
 
     float sd = median(msd.r, msd.g, msd.b);
-    float screenPxDistance = ScreenPxRange()*(sd - 0.5);
+    float screenPxDistance = ScreenPxRange() * (sd - 0.5f);
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
 
     color = mix(bgColor, fgColor, opacity);

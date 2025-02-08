@@ -117,7 +117,7 @@ namespace NR
             usage += b.usage;
             budget += b.budget;
         }
-        return { usage, budget };
+        return { usage, budget - usage };
     }
 
     void VKAllocator::Init(Ref<VKDevice> device)

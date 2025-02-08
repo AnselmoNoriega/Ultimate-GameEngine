@@ -263,11 +263,15 @@ namespace NR
 			TextureProperties props;
 			props.SamplerWrap = TextureWrap::Clamp;
 			props.Storage = true;
-			mBloomComputeTextures[0] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
-			mBloomComputeTextures[1] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
-			mBloomComputeTextures[2] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
-			mBloomComputeMaterial = Material::Create(shader);
 
+			props.DebugName = "BloomCompute-0";
+			mBloomComputeTextures[0] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+			props.DebugName = "BloomCompute-1";
+			mBloomComputeTextures[1] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+			props.DebugName = "BloomCompute-2";
+			mBloomComputeTextures[2] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
+			
+			mBloomComputeMaterial = Material::Create(shader);
 			mBloomDirtTexture = Renderer::GetBlackTexture();
 		}
 
@@ -326,6 +330,7 @@ namespace NR
 			imageSpec.Format = ImageFormat::RG16F;
 			imageSpec.Usage = ImageUsage::Storage;
 			imageSpec.Layers = 16;
+			imageSpec.DebugName = "HBAO-Output";
 			Ref<Image2D> image = Image2D::Create(imageSpec);
 			image->Invalidate();
 			image->CreatePerLayerImageViews();

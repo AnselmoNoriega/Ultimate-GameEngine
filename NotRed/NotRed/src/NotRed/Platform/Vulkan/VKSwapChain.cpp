@@ -576,10 +576,14 @@ namespace NR
 			}
 		}
 
-
-		const auto& config = Renderer::GetConfig();
-		mCurrentBufferIndex = (mCurrentBufferIndex + 1) % config.FramesInFlight;
-		VK_CHECK_RESULT(vkWaitForFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex], VK_TRUE, UINT64_MAX));
+		{
+			NR_PROFILE_FUNC("VulkanSwapChain::Present - WaitForFences");
+			const auto& config = Renderer::GetConfig();
+			mCurrentBufferIndex = (mCurrentBufferIndex + 1) % config.FramesInFlight;
+			
+			// Make sure the frame we're requesting has finished rendering
+			VK_CHECK_RESULT(vkWaitForFences(mDevice->GetVulkanDevice(), 1, &mWaitFences[mCurrentBufferIndex], VK_TRUE, UINT64_MAX));
+		}
 	}
 
 	VkResult VKSwapChain::AcquireNextImage(VkSemaphore presentCompleteSemaphore, uint32_t* imageIndex)

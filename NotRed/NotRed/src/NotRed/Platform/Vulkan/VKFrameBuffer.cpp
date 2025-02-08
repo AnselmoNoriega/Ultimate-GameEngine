@@ -110,8 +110,6 @@ namespace NR
 
     void VKFrameBuffer::RT_Invalidate()
     {
-        NR_CORE_TRACE("VKFrameBuffer::RT_Invalidate ({})", mSpecification.DebugName);
-
         auto device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 
         if (mFrameBuffer)

@@ -68,6 +68,8 @@ namespace NR
         bool GenerateMips = true;
         bool StandardRGB = false;
         bool Storage = false;
+
+        std::string DebugName;
     };
 
     class Image : public RefCounted

@@ -416,7 +416,6 @@ namespace NR
                 NR_CORE_ASSERT(image->GetImageInfo().ImageView, "ImageView is null");
                 if (descriptor->WDS.pImageInfo && image->GetImageInfo().ImageView != descriptor->WDS.pImageInfo->imageView)
                 {
-                    NR_CORE_WARN("Out of date Image2D descriptor ({0} vs. {1})", (void*)image->GetImageInfo().ImageView, (void*)descriptor->WDS.pImageInfo->imageView);
                     mPendingDescriptors.emplace_back(descriptor);
                     
                     InvalidateDescriptorSets();

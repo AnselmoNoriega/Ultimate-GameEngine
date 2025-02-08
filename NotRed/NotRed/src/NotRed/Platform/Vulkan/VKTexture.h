@@ -42,6 +42,9 @@ namespace NR
 		uint64_t GetHash() const override { return (uint64_t)mImage.As<VKImage2D>()->GetDescriptor().imageView; }
 
 	private:
+		bool LoadImage(const std::string& path);
+
+	private:
 		std::string mPath;
 		uint32_t mWidth;
 		uint32_t mHeight;

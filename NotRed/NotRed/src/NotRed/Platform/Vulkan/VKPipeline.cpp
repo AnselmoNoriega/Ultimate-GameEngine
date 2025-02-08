@@ -65,8 +65,6 @@ namespace NR
 		Ref<VKPipeline> instance = this;
 		Renderer::Submit([instance]() mutable
 			{
-				NR_CORE_WARN("[VulkanPipeline] Creating pipeline {0}", instance->mSpecification.DebugName);
-
 				VkDevice device = VKContext::GetCurrentDevice()->GetVulkanDevice();
 				NR_CORE_ASSERT(instance->mSpecification.Shader);
 				Ref<VKShader> vulkanShader = Ref<VKShader>(instance->mSpecification.Shader);
