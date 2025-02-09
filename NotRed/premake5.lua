@@ -84,6 +84,7 @@ project "NotRed"
 		"%{IncludeDir.Nlohmann}",
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
+		"%{IncludeDir.SOUL}",
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.NsightAftermath}",
 		"%{IncludeDir.MiniAudio}",
@@ -235,6 +236,7 @@ project "NotEditor"
 	postbuildcommands 
 	{
 		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../vendor/bin/SOUL_PatchLoader.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysX_64.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCooking_64.dll" "%{cfg.targetdir}"',
@@ -448,6 +450,7 @@ project "Not-Runtime"
 	{
 		'{COPY} "../NotRed/vendor/NsightAftermath/lib/GFSDK_Aftermath_Lib.x64.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysX_64.dll" "%{cfg.targetdir}"',
+		'{COPY} "../vendor/bin/SOUL_PatchLoader.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCommon_64.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXCooking_64.dll" "%{cfg.targetdir}"',
 		'{COPY} "../NotRed/vendor/PhysX/win64/PhysXFoundation_64.dll" "%{cfg.targetdir}"'

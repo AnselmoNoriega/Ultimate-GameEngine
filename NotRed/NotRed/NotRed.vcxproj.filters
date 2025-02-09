@@ -657,6 +657,9 @@
     <ClInclude Include="src\NotRed\Util\YAMLSerializationHelpers.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Vendor\SOUL.h">
+      <Filter>src\NotRed\Vendor</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Vendor\glm_vec3_json.hpp">
       <Filter>src\NotRed\Vendor</Filter>
     </ClInclude>
