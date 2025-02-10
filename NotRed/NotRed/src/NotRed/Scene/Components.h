@@ -155,7 +155,7 @@ namespace NR
     {
         AssetHandle SceneEnvironment;
         float Intensity = 1.0f;
-        int Lod = 0;
+        float Lod = 0.0f;
 
         bool DynamicSky = false;
         glm::vec3 TurbidityAzimuthInclination = { 2.0, 0.0, 0.0 };

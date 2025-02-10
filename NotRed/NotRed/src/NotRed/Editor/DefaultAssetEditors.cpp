@@ -424,12 +424,11 @@ namespace NR
 		ImGui::SetCursorPosX(20);
 
 		UI::BeginPropertyGrid();
-		UI::PushItemDisabled();
 		{
+			UI::ScopedItemFlags flags(ImGuiItemFlags_Disabled);
 			UI::Property("Width", textureWidth);
 			UI::Property("Height", textureHeight);
 		}
-		UI::PopItemDisabled();
 		UI::EndPropertyGrid();
 	}
 

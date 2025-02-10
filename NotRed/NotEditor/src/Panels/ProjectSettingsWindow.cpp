@@ -52,18 +52,17 @@ namespace NR
         if (UI::PropertyGridHeader("General"))
         {
             UI::BeginPropertyGrid();
-            UI::PushItemDisabled();
-
-            UI::Property("Name", mProject->mConfig.Name);
-            UI::Property("Asset Directory", mProject->mConfig.AssetDirectory);
-            UI::Property("Asset Registry Path", mProject->mConfig.AssetRegistryPath);
-            UI::Property("Audio Commands Registry Path", mProject->mConfig.AudioCommandsRegistryPath);
-            UI::Property("Mesh Path", mProject->mConfig.MeshPath);
-            UI::Property("Mesh Source Path", mProject->mConfig.MeshSourcePath);
-            UI::Property("Script Module Path", mProject->mConfig.ScriptModulePath);
-            UI::Property("Project Directory", mProject->mConfig.ProjectDirectory);
-
-            UI::PopItemDisabled();
+            {
+                UI::ScopedItemFlags flags(ImGuiItemFlags_Disabled);
+                UI::Property("Name", mProject->mConfig.Name);
+                UI::Property("Asset Directory", mProject->mConfig.AssetDirectory);
+                UI::Property("Asset Registry Path", mProject->mConfig.AssetRegistryPath);
+                UI::Property("Audio Commands Registry Path", mProject->mConfig.AudioCommandsRegistryPath);
+                UI::Property("Mesh Path", mProject->mConfig.MeshPath);
+                UI::Property("Mesh Source Path", mProject->mConfig.MeshSourcePath);
+                UI::Property("Script Module Path", mProject->mConfig.ScriptModulePath);
+                UI::Property("Project Directory", mProject->mConfig.ProjectDirectory);
+            }
 
             if (UI::PropertyAssetReference<Scene>("Startup Scene", mDefaultScene))
             {

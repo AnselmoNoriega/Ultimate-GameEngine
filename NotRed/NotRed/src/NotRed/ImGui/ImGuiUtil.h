@@ -93,6 +93,15 @@ namespace NR::UI
         int mCount;
     };
 
+    class ScopedItemFlags
+    {
+    public:
+        ScopedItemFlags(const ScopedItemFlags&) = delete;
+        ScopedItemFlags operator=(const ScopedItemFlags&) = delete;
+        ScopedItemFlags(const ImGuiItemFlags flags, const bool enable = true) { ImGui::PushItemFlag(flags, enable); }
+        ~ScopedItemFlags() { ImGui::PopItemFlag(); }
+    };
+
     // The delay won't work on texts, because the timer isn't tracked for them.
     static bool IsItemHovered(float delayInSeconds = 0.1f, ImGuiHoveredFlags flags = 0)
     {

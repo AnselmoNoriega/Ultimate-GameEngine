@@ -397,7 +397,7 @@ namespace NR
         ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
         bool isRowHovered, held;
         bool isRowClicked = ImGui::ButtonBehavior(ImRect(rowAreaMin, rowAreaMax), ImGui::GetID(strID.c_str()),
-            &isRowHovered, &held, ImGuiButtonFlags_AllowItemOverlap | ImGuiButtonFlags_PressedOnClick);
+            &isRowHovered, &held, ImGuiButtonFlags_AllowItemOverlap);
 
         ImGui::SetItemAllowOverlap();
 
@@ -1486,13 +1486,12 @@ namespace NR
                     auto environment = AssetManager::GetAsset<Environment>(slc.SceneEnvironment);				
                     if (environment && environment->RadianceMap)
                     {
-                        UI::PropertySlider("Lod", slc.Lod, 0, environment->RadianceMap->GetMipLevelCount());
+                        UI::PropertySlider("Lod", slc.Lod, 0.0f, static_cast<float>(environment->RadianceMap->GetMipLevelCount()));
                     }
                     else
                     {
-                        UI::PushItemDisabled();
-                        UI::PropertySlider("Lod", slc.Lod, 0, 10);
-                        UI::PopItemDisabled();
+                        UI::ScopedItemFlags flags(ImGuiItemFlags_Disabled);
+                        UI::PropertySlider("Lod", slc.Lod, 0.0f, 10.0f);
                     }
                 }
                 ImGui::Separator();
@@ -1584,10 +1583,7 @@ namespace NR
                         for (auto& [name, field] : publicFields)
                         {
                             bool isRuntime = mContext->mIsPlaying && entityInstanceData.Instance.IsRuntimeAvailable();
-                            if (field.IsReadOnly)
-                            {
-                                UI::PushItemDisabled();
-                            }
+                            UI::ScopedItemFlags flags(ImGuiItemFlags_Disabled, field.IsReadOnly);
 
                             switch (field.Type)
                             {
@@ -1738,10 +1734,6 @@ namespace NR
                                     }
                                 }
                             }
-                            }
-                            if (field.IsReadOnly)
-                            {
-                                UI::PopItemDisabled();
                             }
                         }
                     }

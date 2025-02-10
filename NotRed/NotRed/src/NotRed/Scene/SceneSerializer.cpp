@@ -910,15 +910,8 @@ namespace NR
 				}
 
 				component.Intensity = skyLightComponent["Intensity"].as<float>();
-				auto lod = skyLightComponent["Lod"];
-				if (lod)
-				{
-					component.Lod = lod.as<int>();
-				}
-				else
-				{
-					component.Lod = 1;
-				}
+				component.Lod = skyLightComponent["Lod"].as<float>(1.0f);
+
 				if (skyLightComponent["DynamicSky"])
 				{
 					component.DynamicSky = skyLightComponent["DynamicSky"].as<bool>();
