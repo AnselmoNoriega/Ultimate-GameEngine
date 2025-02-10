@@ -1832,6 +1832,67 @@ namespace NR::Script
         return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create("Assets/Models/Plane1m.obj")));
     }
 
+    // TextComponent
+    MonoString* NR_TextComponent_GetText(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
+        
+        auto& component = entity.GetComponent<TextComponent>();
+        return mono_string_new(mono_domain_get(), component.TextString.c_str());
+    }
+
+    void NR_TextComponent_SetText(uint64_t entityID, MonoString* string)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
+        
+        auto& component = entity.GetComponent<TextComponent>();
+        component.TextString = mono_string_to_utf8(string);
+    }
+
+    void NR_TextComponent_GetColor(uint64_t entityID, glm::vec4* outColor)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
+        
+        auto& component = entity.GetComponent<TextComponent>();
+        *outColor = component.Color;
+    }
+
+    void NR_TextComponent_SetColor(uint64_t entityID, glm::vec4* inColor)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
+        
+        auto& component = entity.GetComponent<TextComponent>();
+        component.Color = *inColor;
+    }
+
     void* NR_MeshFactory_CreateCustomMesh(
         MonoArray* verticesArray,
         MonoArray* vertexOffsets,

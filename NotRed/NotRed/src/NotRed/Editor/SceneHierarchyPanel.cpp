@@ -532,7 +532,7 @@ namespace NR
                         SetSelected(newEntity);
                     }
                     if (ImGui::BeginMenu("3D"))
-                    {/*TODO
+                    {
                         if (ImGui::MenuItem("Cube"))
                         {
                             auto newEntity = mContext->CreateEntity("Cube");
@@ -602,7 +602,7 @@ namespace NR
                             auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
                             CookingFactory::CookMesh(collider);
                             SetSelected(newEntity);
-                        }*/
+                        }
                         ImGui::EndMenu();
                     }
                     ImGui::Separator();
@@ -1231,6 +1231,7 @@ namespace NR
                                 Ref<MaterialAsset> materialAsset = hasLocalMaterial ? mc.Materials->GetMaterial(i) : meshMaterialAsset;
 
                                 std::string label = fmt::format("[Material {0}]", i);
+                                AssetHandle materialAssetHandle = materialAsset->Handle;
 
                                 UI::PropertyAssetReferenceSettings settings;
                                 if (hasLocalMaterial || !hasMeshMaterial)
@@ -1240,7 +1241,7 @@ namespace NR
                                         settings.AdvanceToNextColumn = false;
                                         settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
                                     }
-                                    UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAsset, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
+                                    UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAssetHandle, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
                                         {
                                             materialTable->SetMaterial(i, materialAsset);
                                         }, settings);
@@ -1253,7 +1254,7 @@ namespace NR
                                         meshMaterialName = "Unnamed Material";
                                     }
 
-                                    UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAsset, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
+                                    UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAssetHandle, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
                                         {
                                             materialTable->SetMaterial(i, materialAsset);
                                         }, settings);

@@ -1247,7 +1247,7 @@ namespace NR::UI
         }
 
         static bool AssetSearchPopup(const char* ID, AssetType assetType, AssetHandle& selected, bool* cleared = nullptr, const char* hint = "Search Assets", const ImVec2& size = ImVec2{ 250.0f, 350.0f });
-
+        static bool AssetSearchPopup(const char* ID, AssetHandle& selected, bool* cleared = nullptr, const char* hint = "Search Assets", const ImVec2& size = ImVec2{ 250.0f, 350.0f }, std::initializer_list<AssetType> assetTypes = {});
     }; // Widgets
 
     enum class PropertyAssetReferenceError
@@ -1417,7 +1417,7 @@ namespace NR::UI
         ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
         bool clear = false;
-        if (Widgets::AssetSearchPopup("AssetSearchPopup", TConversionType::GetStaticType(), outHandle, &clear))
+        if (Widgets::AssetSearchPopup("AssetSearchPopup", outHandle, &clear, "Search Assets", ImVec2(250.0f, 350.0f), { TConversionType::GetStaticType(), TAssetType::GetStaticType() }))
         {
             if (clear)
             {
@@ -1477,7 +1477,7 @@ namespace NR::UI
     }
 
     template<typename T, typename Fn>
-    static bool PropertyAssetReferenceTarget(const char* label, const char* assetName, Ref<T> source, Fn&& targetFunc, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
+    static bool PropertyAssetReferenceTarget(const char* label, const char* assetName, AssetHandle& outHandle, Fn&& targetFunc, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
     {
         bool modified = false;
 
@@ -1496,78 +1496,56 @@ namespace NR::UI
         float width = ImGui::GetContentRegionAvail().x - settings.WidthOffset;
         UI::PushID();
 
-        constexpr float itemHeight = 28.0f;
+        float itemHeight = 28.0f;
 
-        if (IsItemDisabled())
+        if (AssetManager::IsAssetHandleValid(outHandle))
         {
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-        }
-
-        std::string buttonText = "Null";
-        if (source)
-        {
-            if (!source->IsFlagSet(AssetFlag::Missing))
+            Ref<T> source = AssetManager::GetAsset<T>(outHandle);
+            if (source && !source->IsFlagSet(AssetFlag::Missing))
             {
-                if (!assetName)
+                if (assetName)
+                {
+                    ImGui::Button((char*)assetName, { width, itemHeight });
+                }
+                else
                 {
                     std::string assetFileName = AssetManager::GetMetadata(source->Handle).FilePath.stem().string();
                     assetName = assetFileName.c_str();
+                    ImGui::Button((char*)assetName, { width, itemHeight });
                 }
-                buttonText = assetName;
             }
             else
             {
-                buttonText = "Missing";
+                ImGui::Button("Missing", { width, itemHeight });
             }
         }
-
-        if (ImGui::Button(fmt::format("{}##{}", buttonText, sCounter++).c_str(), { width, itemHeight }))
+        else 
         {
-            ImGui::OpenPopup("AssetSearchPopup");
+            ImGui::Button("Null", { width, itemHeight });
         }
 
-        if (IsItemDisabled())
-        {
-            ImGui::PopStyleVar();
-        }
-
+        UI::PopID();
         ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
 
-        AssetHandle handle;
-        bool clear = false;
-        if (Widgets::AssetSearchPopup("AssetSearchPopup", T::GetStaticType(), handle, &clear))
+        if (ImGui::BeginDragDropTarget())
         {
-            if (clear)
+            auto data = ImGui::AcceptDragDropPayload("asset_payload");
+
+            if (data)
             {
-                handle = 0;
-                source = Ref<T>();
+                AssetHandle assetHandle = *(AssetHandle*)data->Data;
+                sPropertyAssetReferenceAssetHandle = assetHandle;
+                Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
+                if (asset && asset->GetAssetType() == T::GetStaticType())
+                {
+                    targetFunc(asset.As<T>());
+                    modified = true;
+                }
             }
-            else
-            {
-                Ref<Asset> asset = AssetManager::GetAsset<Asset>(handle);
-                targetFunc(asset.As<T>());
-            }
-            modified = true;
         }
-        UI::PopID();
 
         if (!IsItemDisabled())
         {
-            if (ImGui::BeginDragDropTarget())
-            {
-                auto data = ImGui::AcceptDragDropPayload("asset_payload");
-                if (data)
-                {
-                    AssetHandle assetHandle = *(AssetHandle*)data->Data;
-                    sPropertyAssetReferenceAssetHandle = assetHandle;
-                    Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
-                    if (asset->GetAssetType() == T::GetStaticType())
-                    {
-                        targetFunc(asset.As<T>());
-                        modified = true;
-                    }
-                }
-            }
             DrawItemActivityOutline(2.0f, true, Colors::Theme::accent);
         }
 
@@ -1580,6 +1558,7 @@ namespace NR::UI
         {
             ImGui::PopStyleVar();
         }
+
         return modified;
     }
 
@@ -1917,6 +1896,7 @@ namespace NR::UI
             return clicked;
         }
     }
+
     static bool IsMatchingSearch(const std::string& item, const std::string& searchQuery, bool caseSensitive = false, bool stripWhiteSpaces = true, bool stripUnderscores = true)
     {
         if (searchQuery.empty())

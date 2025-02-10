@@ -199,6 +199,12 @@ namespace NR::Script
         MonoArray* matNames
     );
 
+    // TextComponent
+    MonoString* NR_TextComponent_GetText(uint64_t entityID);
+    void NR_TextComponent_SetText(uint64_t entityID, MonoString* string);
+    void NR_TextComponent_GetColor(uint64_t entityID, glm::vec4* outColor);
+    void NR_TextComponent_SetColor(uint64_t entityID, glm::vec4* inColor);
+
     void NR_ReloadCollider();
 
     // Audio

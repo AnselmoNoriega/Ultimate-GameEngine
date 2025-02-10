@@ -770,4 +770,31 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetEvent_Native(ulong entityID, uint eventID);
     }
+
+    public class TextComponent : Component
+    {
+        public string Text
+        {
+            get => GetText_Native(Entity.ID);
+            set => SetText_Native(Entity.ID, value);
+        }
+        public Vector4 Color
+        {
+            get
+            {
+                GetColor_Native(Entity.ID, out Vector4 color);
+                return color;
+            }
+            set => SetColor_Native(Entity.ID, ref value);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern string GetText_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetText_Native(ulong entityID, string text);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetColor_Native(ulong entityID, out Vector4 outColor);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetColor_Native(ulong entityID, ref Vector4 inColor);
+    }
 }

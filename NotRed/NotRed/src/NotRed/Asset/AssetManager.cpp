@@ -49,6 +49,12 @@ namespace NR
                 {
                     AssetHandle handle = GetAssetHandleFromFilePath(e.FilePath);
                     const auto& metadata = GetMetadata(handle);
+
+                    if (metadata.Type == AssetType::Prefab)
+                    {
+                        break;
+                    }
+
                     if (metadata.IsValid() && metadata.IsDataLoaded)
                     {
                         ReloadData(handle);

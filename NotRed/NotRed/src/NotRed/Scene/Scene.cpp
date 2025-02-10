@@ -1239,9 +1239,11 @@ namespace NR
         {
             auto prefabID = entity.GetComponent<PrefabComponent>().PrefabID;
             NR_CORE_VERIFY(AssetManager::IsAssetHandleValid(prefabID));
+            
             const auto& entityTransform = entity.GetComponent<TransformComponent>();
             Entity prefabInstance = Instantiate(AssetManager::GetAsset<Prefab>(prefabID), &entityTransform.Translation);
             parentNewEntity(prefabInstance);
+            
             return prefabInstance;
         }
 

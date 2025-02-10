@@ -48,6 +48,7 @@ namespace NR
 		Component_RegisterType(SphereColliderComponent);
 		Component_RegisterType(CapsuleColliderComponent);
 		Component_RegisterType(MeshColliderComponent);
+		Component_RegisterType(TextComponent);
 		Component_RegisterType(AudioListenerComponent);
 		Component_RegisterType(AudioComponent);
 	}
@@ -207,6 +208,11 @@ namespace NR
 
 		mono_add_internal_call("NR.MeshFactory::CreatePlane_Native", NR::Script::NR_MeshFactory_CreatePlane);
 		mono_add_internal_call("NR.MeshFactory::CreateCustomMesh_Native", NR::Script::NR_MeshFactory_CreateCustomMesh);
+
+		mono_add_internal_call("NR.TextComponent::GetText_Native", NR::Script::NR_TextComponent_GetText);
+		mono_add_internal_call("NR.TextComponent::SetText_Native", NR::Script::NR_TextComponent_SetText);
+		mono_add_internal_call("NR.TextComponent::GetColor_Native", NR::Script::NR_TextComponent_GetColor);
+		mono_add_internal_call("NR.TextComponent::SetColor_Native", NR::Script::NR_TextComponent_SetColor);
 
 		mono_add_internal_call("NR.AudioComponent::IsPlaying_Native", Script::NR_AudioComponent_IsPlaying);
 		mono_add_internal_call("NR.AudioComponent::Play_Native", Script::NR_AudioComponent_Play);
