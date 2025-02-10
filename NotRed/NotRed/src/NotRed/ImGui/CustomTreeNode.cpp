@@ -260,10 +260,6 @@ namespace ImGui
             // Unframed typed for tree nodes
             if (hovered || selected)
             {
-                //if (held && hovered) HZ_CORE_WARN("held && hovered");
-                //if(hovered && !selected && !held && !pressed && !toggled) HZ_CORE_WARN("hovered && !selected && !held");
-                //else if(!selected) HZ_CORE_WARN("ImGuiCol_Header");
-
                 const ImU32 bg_col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : (hovered && !selected && !held && !pressed && !toggled) ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
                 RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false);
                 RenderNavHighlight(frame_bb, id, nav_highlight_flags);

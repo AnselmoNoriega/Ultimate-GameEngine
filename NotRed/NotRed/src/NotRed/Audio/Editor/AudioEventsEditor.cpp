@@ -1317,8 +1317,40 @@ namespace NR
 				return false;
 				};
 
-			PropertyAssetReferenceNoLabel(("Target" + idstr).c_str(), action.Target, AssetType::Audio, !targetDisabled && !isPayload("audio_eventseditor_action"));
+
+			// Sound Config field
+			// ==================
+
+			bool dropped = false;
+			if (UI::AssetReferenceDropTargetButton(("Target" + idstr).c_str(), action.Target, AssetType::SoundConfig, dropped, !targetDisabled && !isPayload("audio_events_editor_action")))
+			{
+				ImGui::OpenPopup(("AssetSearchPopup" + idstr).c_str());
+			}
 			ImGui::PopItemWidth();
+
+			// Disable changed spacing for the popup
+			ImGui::PopStyleVar();
+			AssetHandle assetHandle;
+			if (action.Target)
+			{
+				assetHandle = action.Target->Handle;
+			}
+
+			bool clear = false;
+			if (UI::Widgets::AssetSearchPopup(("AssetSearchPopup" + idstr).c_str(), AssetType::SoundConfig, assetHandle, &clear, "Search Sound Config"))
+			{
+				if (clear)
+				{
+					assetHandle = 0;
+					action.Target = Ref<SoundConfig>();
+				}
+				else
+				{
+					action.Target = AssetManager::GetAsset<SoundConfig>(assetHandle);
+				}
+			}
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { 8.0f, 1.0f });
+			// ==================
 
 			if (targetDisabled)
 			{

@@ -291,15 +291,17 @@ namespace NR::UI
             const ImRect windowRect = UI::RectExpanded(ImGui::GetCurrentWindow()->Rect(), -padding, -padding);
             
             ImGui::PushClipRect(windowRect.Min, windowRect.Max, false);
-            
-            const ImColor col1 = Colors::Theme::backgroundPopup;
+
+            const ImColor col1 = ImGui::GetStyleColorVec4(ImGuiCol_PopupBg);
             const ImColor col2 = UI::ColorWithMultipliedValue(col1, 0.8f);
             
             ImGui::GetWindowDrawList()->AddRectFilledMultiColor(windowRect.Min, windowRect.Max, col1, col1, col2, col2);
+            ImGui::GetWindowDrawList()->AddRect(windowRect.Min, windowRect.Max, UI::ColorWithMultipliedValue(col1, 1.1f));
             ImGui::PopClipRect();
             
             // Popped in EndPopup()
             ImGui::PushStyleColor(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(1.0f, 1.0f));
         }
 
         return opened;
@@ -307,6 +309,7 @@ namespace NR::UI
 
     static void EndPopup()
     {
+        ImGui::PopStyleVar(); // WindowPadding;
         ImGui::PopStyleColor(); // HeaderHovered;
         ImGui::EndPopup();
     }

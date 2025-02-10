@@ -1013,6 +1013,9 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\ImGui\ImGuiWidgets.cpp">
+      <Filter>src\NotRed\ImGui</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp">
       <Filter>src\NotRed\ImGui</Filter>
     </ClCompile>

@@ -441,6 +441,7 @@
     <ClCompile Include="src\NotRed\ImGui\ImGuiBuild.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiLayer.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuiUtil.cpp" />
+    <ClCompile Include="src\NotRed\ImGui\ImGuiWidgets.cpp" />
     <ClCompile Include="src\NotRed\ImGui\ImGuizmo.cpp" />
     <ClCompile Include="src\NotRed\ImGui\VkImGui.cpp" />
     <ClCompile Include="src\NotRed\Math\Math.cpp" />

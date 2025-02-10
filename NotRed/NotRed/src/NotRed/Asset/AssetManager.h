@@ -149,6 +149,7 @@ namespace NR
         }
 
         static const std::unordered_map<AssetHandle, Ref<Asset>>& GetLoadedAssets() { return sLoadedAssets; }
+        static const AssetRegistry& GetAssetRegistry() { return sAssetRegistry; }
 
         template<typename TAsset, typename... TArgs>
         static AssetHandle CreateMemoryOnlyAsset(TArgs&&... args)

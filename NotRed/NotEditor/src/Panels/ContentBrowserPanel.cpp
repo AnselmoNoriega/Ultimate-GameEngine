@@ -671,7 +671,7 @@ namespace NR
 			// Search
 			{
 				UI::ShiftCursorY(2.0f);
-				if (UI::SearchWidget<MAX_INPUT_BUFFER_LENGTH>(mSearchBuffer))
+				if (UI::Widgets::SearchWidget<MAX_INPUT_BUFFER_LENGTH>(mSearchBuffer))
 				{
 					if (strlen(mSearchBuffer) == 0)
 					{

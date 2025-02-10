@@ -100,7 +100,7 @@ namespace NR
 
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - edgeOffset * 3.0f);
                 static std::string searchedString;
-                UI::SearchWidget(searchedString);
+                UI::Widgets::SearchWidget(searchedString);
                 ImGui::Spacing();
                 ImGui::Spacing();
 

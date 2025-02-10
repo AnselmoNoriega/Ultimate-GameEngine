@@ -65,7 +65,7 @@ private:
 		std::filesystem::path notredDir = NR::FileSystem::GetEnvironmentVariable("NOTRED_DIR");
 		std::string editorWorkingDirectory = (notredDir / "NotEditor").string();
 
-#ifdef HZ_DEBUG
+#ifdef NR_DEBUG
 		notredDir = notredDir / "bin" / "Debug-windows-x86_64" / "NotEditor";
 #else
 		notredDir = notredDir / "bin" / "Release-windows-x86_64" / "NotEditor";
