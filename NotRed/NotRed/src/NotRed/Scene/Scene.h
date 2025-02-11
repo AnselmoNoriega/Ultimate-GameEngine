@@ -113,9 +113,8 @@ namespace NR
 
 		void ConvertToLocalSpace(Entity entity);
 		void ConvertToWorldSpace(Entity entity);
-		glm::mat4 GetTransformRelativeToParent(Entity entity);
-		glm::vec3 GetTranslationRelativeToParent(Entity entity);
 		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
+		glm::vec3 GetTranslationRelativeToParent(Entity entity);
 		TransformComponent GetWorldSpaceTransform(Entity entity);
 
 		void ParentEntity(Entity entity, Entity parent);

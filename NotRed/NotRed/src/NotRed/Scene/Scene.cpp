@@ -253,7 +253,7 @@ namespace NR
             {
                 auto& transformComponent = view.get<TransformComponent>(entity);
                 Entity e = Entity(entity, this);
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 glm::vec3 translation;
                 glm::vec3 rotation;
                 glm::vec3 scale;
@@ -401,7 +401,7 @@ namespace NR
             return;
         }
 
-        glm::mat4 cameraViewMatrix = glm::inverse(GetTransformRelativeToParent(cameraEntity));
+        glm::mat4 cameraViewMatrix = glm::inverse(GetWorldSpaceTransformMatrix(cameraEntity));
         NR_CORE_ASSERT(cameraEntity, "Scene does not contain any cameras!");
         SceneCamera& camera = cameraEntity.GetComponent<CameraComponent>();
         camera.SetViewportSize(mViewportWidth, mViewportHeight);
@@ -516,7 +516,7 @@ namespace NR
                         }
                     }
 
-                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
+                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
 
                     renderer->SubmitMesh(mesh, meshComponent.Materials, transform);
                 }
@@ -529,7 +529,7 @@ namespace NR
             auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
             if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
-                glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
 
                 renderer->SubmitParticles(particleComponent, transform);
             }
@@ -689,7 +689,7 @@ namespace NR
                         }
                     }
 
-                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetTransformRelativeToParent(e);
+                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
 
                     renderer->SubmitMesh(mesh, meshComponent.Materials, transform);
                 }
@@ -702,7 +702,7 @@ namespace NR
             auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
             if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
             {
-                glm::mat4 transform = GetTransformRelativeToParent(Entity(entity, this));
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
 
                 renderer->SubmitParticles(particleComponent, transform);
             }
@@ -713,7 +713,7 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<BoxColliderComponent>();
                 renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, glm::translate(transform, collider.Offset));
             }
@@ -724,7 +724,7 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<SphereColliderComponent>();
                 renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
             }
@@ -735,7 +735,7 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<CapsuleColliderComponent>();
                 renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
             }
@@ -746,7 +746,7 @@ namespace NR
             for (auto entity : view)
             {
                 Entity e = { entity, this };
-                glm::mat4 transform = GetTransformRelativeToParent(e);
+                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<MeshColliderComponent>();
                 for (const auto& debugMesh : collider.ProcessedMeshes)
                 {
@@ -1483,12 +1483,12 @@ namespace NR
             return;
         }
 
-        glm::mat4 transform = GetTransformRelativeToParent(entity);
+        glm::mat4 transform = GetWorldSpaceTransformMatrix(entity);
         auto& entityTransform = entity.Transform();
         Math::DecomposeTransform(transform, entityTransform.Translation, entityTransform.Rotation, entityTransform.Scale);
     }
 
-    glm::mat4 Scene::GetTransformRelativeToParent(Entity entity)
+    glm::mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
     {
         NR_PROFILE_FUNC();
 
@@ -1497,7 +1497,7 @@ namespace NR
         Entity parent = FindEntityByID(entity.GetParentID());
         if (parent)
         {
-            transform = GetTransformRelativeToParent(parent);
+            transform = GetWorldSpaceTransformMatrix(parent);
         }
 
         return transform * entity.Transform().GetTransform();
@@ -1516,22 +1516,6 @@ namespace NR
         }
 
         return translation + entity.Transform().Translation;
-    }
-
-
-    glm::mat4 Scene::GetWorldSpaceTransformMatrix(Entity entity)
-    {
-        NR_PROFILE_FUNC();
-
-        glm::mat4 transform = entity.Transform().GetTransform();
-
-        while (Entity parent = FindEntityByID(entity.GetParentID()))
-        {
-            transform = parent.Transform().GetTransform() * transform;
-            entity = parent;
-        }
-
-        return transform;
     }
 
     TransformComponent Scene::GetWorldSpaceTransform(Entity entity)

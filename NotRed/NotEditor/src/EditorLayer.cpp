@@ -1869,7 +1869,7 @@ namespace NR
             bool snap = Input::IsKeyPressed(NR_KEY_LEFT_CONTROL);
 
             TransformComponent& entityTransform = selection.EntityObj.Transform();
-            glm::mat4 transform = mCurrentScene->GetTransformRelativeToParent(selection.EntityObj);
+            glm::mat4 transform = mCurrentScene->GetWorldSpaceTransformMatrix(selection.EntityObj);
             float snapValue = GetSnapValue();
             float snapValues[3] = { snapValue, snapValue, snapValue };
 
@@ -1889,7 +1889,7 @@ namespace NR
 
                     if (parent)
                     {
-                        glm::mat4 parentTransform = mCurrentScene->GetTransformRelativeToParent(parent);
+                        glm::mat4 parentTransform = mCurrentScene->GetWorldSpaceTransformMatrix(parent);
                         transform = glm::inverse(parentTransform) * transform;
 
                         glm::vec3 translation, rotation, scale;
@@ -2024,7 +2024,7 @@ namespace NR
                     bool snap = Input::IsKeyPressed(NR_KEY_LEFT_CONTROL);
 
                     TransformComponent& entityTransform = selection.EntityObj.Transform();
-                    glm::mat4 transform = mCurrentScene->GetTransformRelativeToParent(selection.EntityObj);
+                    glm::mat4 transform = mCurrentScene->GetWorldSpaceTransformMatrix(selection.EntityObj);
                     float snapValue = GetSnapValue();
                     float snapValues[3] = { snapValue, snapValue, snapValue };
 
@@ -2047,7 +2047,7 @@ namespace NR
                             if (parent)
                             {
                                 glm::vec3 parentTranslation, parentRotation, parentScale;
-                                Math::DecomposeTransform(mCurrentScene->GetTransformRelativeToParent(parent), parentTranslation, parentRotation, parentScale);
+                                Math::DecomposeTransform(mCurrentScene->GetWorldSpaceTransformMatrix(parent), parentTranslation, parentRotation, parentScale);
 
                                 glm::vec3 deltaRotation = (rotation - parentRotation) - entityTransform.Rotation;
                                 entityTransform.Translation = translation - parentTranslation;
@@ -2790,7 +2790,7 @@ namespace NR
                     for (uint32_t i = 0; i < submeshes.size(); ++i)
                     {
                         auto& submesh = submeshes[i];
-                        glm::mat4 transform = mCurrentScene->GetTransformRelativeToParent(entity);
+                        glm::mat4 transform = mCurrentScene->GetWorldSpaceTransformMatrix(entity);
                         Ray ray = {
                             glm::inverse(transform * submesh.Transform) * glm::vec4(origin, 1.0f),
                             glm::inverse(glm::mat3(transform) * glm::mat3(submesh.Transform)) * direction

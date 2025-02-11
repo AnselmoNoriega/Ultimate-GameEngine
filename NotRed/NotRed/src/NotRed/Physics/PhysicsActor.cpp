@@ -399,7 +399,7 @@ namespace NR
 		auto& sdk = PhysicsInternal::GetPhysicsSDK();
 
 		Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());
-		glm::mat4 transform = scene->GetTransformRelativeToParent(mEntity);
+		glm::mat4 transform = scene->GetWorldSpaceTransformMatrix(mEntity);
 
 		if (mRigidBodyData.BodyType == RigidBodyComponent::Type::Static)
 		{

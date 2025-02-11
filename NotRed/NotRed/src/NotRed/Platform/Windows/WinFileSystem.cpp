@@ -104,6 +104,7 @@ namespace NR
 			if (sIgnoreNextChange)
 			{
 				sIgnoreNextChange = false;
+				result = false;
 				continue;
 			}
 
