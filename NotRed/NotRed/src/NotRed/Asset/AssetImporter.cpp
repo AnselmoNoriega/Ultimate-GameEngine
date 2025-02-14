@@ -20,7 +20,7 @@ namespace NR
 		sSerializers[AssetType::SoundConfig] = CreateScope<SoundConfigSerializer>();
 		sSerializers[AssetType::Skeleton] = CreateScope<SkeletonAssetSerializer>();
 		sSerializers[AssetType::Scene] = CreateScope<SceneAssetSerializer>();
-		sSerializers[AssetType::DemoGraph] = CreateScope<DefaultGraphSerializer>();
+		sSerializers[AssetType::SOULSound] = CreateScope<SOULGraphSerializer>();
 		sSerializers[AssetType::Animation] = CreateScope<AnimationAssetSerializer>();
 		sSerializers[AssetType::AnimationController] = CreateScope<AnimationControllerSerializer>();
 		sSerializers[AssetType::Font] = CreateScope<FontSerializer>();

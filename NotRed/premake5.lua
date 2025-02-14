@@ -26,6 +26,7 @@ include "NotRed/vendor/Glad"
 include "NotRed/vendor/ImGui"
 include "NotRed/vendor/Box2D"
 include "NotRed/vendor/Optick"
+include "NotRed/vendor/SOUL"
 include "NotRed/vendor/ozz-animation"
 
 group "Dependencies/msdf"
@@ -85,6 +86,7 @@ project "NotRed"
 		"%{IncludeDir.PhysX}",
 		"%{IncludeDir.FastNoise}",
 		"%{IncludeDir.SOUL}",
+		"%{IncludeDir.SOUL_CORE}",
 		"%{IncludeDir.Vulkan}",
 		"%{IncludeDir.NsightAftermath}",
 		"%{IncludeDir.MiniAudio}",
@@ -99,6 +101,7 @@ project "NotRed"
 		"GLFW",
 		"Glad",
 		"Optick",
+		"SOUL",
 		"msdf-atlas-gen",
 		"ImGui",
 		"opengl32.lib",
@@ -221,6 +224,8 @@ project "NotEditor"
 		"NotRed/src",
 		"NotRed/vendor",
 		"%{IncludeDir.Choc}",
+		"%{IncludeDir.SOUL}",
+		"%{IncludeDir.SOUL_CORE}",
 		"%{IncludeDir.Entt}",
 		"%{IncludeDir.Glm}",
 		"%{IncludeDir.ImGui}",

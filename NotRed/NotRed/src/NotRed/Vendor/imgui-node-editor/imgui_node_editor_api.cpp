@@ -550,9 +550,9 @@ int ax::NodeEditor::BreakLinks(PinId pinId)
     return s_Editor->BreakLinks(pinId);
 }
 
-void ax::NodeEditor::NavigateToContent(float duration)
+void ax::NodeEditor::NavigateToContent(bool zoomIn /*= false*/, float duration)
 {
-    s_Editor->NavigateTo(s_Editor->GetContentBounds(), true, duration);
+    s_Editor->NavigateTo(s_Editor->GetContentBounds(), zoomIn, duration);
 }
 
 void ax::NodeEditor::NavigateToSelection(bool zoomIn, float duration)

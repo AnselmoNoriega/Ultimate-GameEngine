@@ -2166,20 +2166,22 @@ void ValueView::visitObjectMembers (Visitor&& visit) const
 
 struct ValueView::Iterator
 {
-    Iterator (const Iterator&) = default;
+    Iterator(const Iterator&) = default;
     Iterator& operator= (const Iterator&) = default;
 
-    ValueView operator*() const             { return value[index]; }
-    Iterator& operator++()                  { ++index; return *this; }
-    Iterator operator++ (int)               { auto old = *this; ++*this; return old; }
-    bool operator== (EndIterator) const     { return index == numElements; }
-    bool operator!= (EndIterator) const     { return index != numElements; }
+    Iterator(ValueView v, uint32_t i, uint32_t n) : value(v), index(i), numElements(n) {}
+
+    ValueView operator*() const { return value[index]; }
+    Iterator& operator++() { ++index; return *this; }
+    Iterator operator++ (int) { auto old = *this; ++*this; return old; }
+    bool operator== (EndIterator) const { return index == numElements; }
+    bool operator!= (EndIterator) const { return index != numElements; }
 
     ValueView value;
     uint32_t index, numElements;
 };
 
-inline ValueView::Iterator ValueView::begin() const   { return { *this, 0, size() }; }
+inline ValueView::Iterator ValueView::begin() const { return Iterator(*this, 0, size()); }
 
 //==============================================================================
 template <typename OutputStream>

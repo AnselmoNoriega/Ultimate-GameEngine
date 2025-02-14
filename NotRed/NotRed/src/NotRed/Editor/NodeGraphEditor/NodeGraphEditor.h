@@ -27,6 +27,7 @@ namespace NR
 
 		// If you override this, make sure to call base class method from subclass.
 		void SetAsset(const Ref<Asset>& asset) override;
+		Ref<Asset> GetAsset() { return mGraphAsset; }
 
 		void Update(float dt) override {}
 		void OnEvent(Event& e) override {}
@@ -67,6 +68,8 @@ namespace NR
 
 		Ref<Asset> mGraphAsset = nullptr;
 
+		std::function<Node* (bool searching, std::string_view searchedString)> onNodeListPopup = nullptr;
+
 		// A pair of nodes that are accepting a link connection in this frame
 		std::pair<Pin*, Pin*> mAcceptingLinkPins{ nullptr, nullptr };
 
@@ -89,7 +92,7 @@ namespace NR
 		Ref<Texture2D> mIconPin_A_D;
 
 		// For debugging
-		const bool mShowNodeIDs = false;
+		bool mShowNodeIDs = false;
 
 	private:
 		ImGuiWindowClass mWindowClass;

@@ -25,7 +25,7 @@ IncludeDir["Nlohmann"] = "%{wks.location}/NotRed/vendor/nlohmann-json"
 IncludeDir["Msdf_atlas_gen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdf-atlas-gen"
 IncludeDir["Msdfgen"] = "%{wks.location}/NotRed/vendor/msdf-atlas-gen/msdfgen"
 IncludeDir["SOUL"] = "%{wks.location}/NotRed/vendor/SOUL/include"
-IncludeDir["SOUL"] = "%{wks.location}/NotRed/vendor/SOUL/source/modules/soul_core"
+IncludeDir["SOUL_CORE"] = "%{wks.location}/NotRed/vendor/SOUL/source/modules/soul_core"
 
 LibraryDir = {}
 LibraryDir["PhysX"] = "%{wks.location}/NotRed/vendor/PhysX/lib/%{cfg.buildcfg}"

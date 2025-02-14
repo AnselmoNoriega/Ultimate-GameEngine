@@ -5,6 +5,7 @@
 #include "NotRed/Asset/AssetManager.h"
 
 #include "NotRed/Editor/NodeGraphEditor/NodeGraphEditor.h"
+#include "NotRed/Audio/SOUL/SOULGraphEditor.h"
 
 #include "MeshViewerPanel.h"
 
@@ -79,7 +80,7 @@ namespace NR
 		RegisterEditor<MeshViewerPanel>(AssetType::MeshAsset);
 		RegisterEditor<PrefabEditor>(AssetType::Prefab);
 		RegisterEditor<SoundConfigEditor>(AssetType::SoundConfig);
-		RegisterEditor<DemoNodeGraphEditor>(AssetType::DemoGraph);
+		RegisterEditor<SOULNodeGraphEditor>(AssetType::SOULSound);
 	}
 
 	void AssetEditorPanel::UnregisterAllEditors()

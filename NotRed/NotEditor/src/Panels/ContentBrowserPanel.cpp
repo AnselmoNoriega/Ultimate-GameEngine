@@ -20,6 +20,7 @@
 #include "NotRed/Util/StringUtils.h"
 
 #include "NotRed/Audio/Sound.h"
+#include "NotRed/Editor/NodeGraphEditor/NodeGraphAsset.h"
 
 namespace NR
 {
@@ -253,6 +254,11 @@ namespace NR
 								if (ImGui::MenuItem("Sound Config"))
 								{
 									CreateAsset<SoundConfig>("SoundConfig.nrsoundc");
+								}
+
+								if (ImGui::MenuItem("SOUL Sound"))
+								{
+									CreateAsset<SOULSound>("New SOUL Sound.soul_sound");
 								}
 
 								ImGui::EndMenu();

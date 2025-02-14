@@ -1578,12 +1578,18 @@ namespace NR::UI
         auto* window = ImGui::GetCurrentWindow();
         const bool itemWidthChanged = !window->DC.ItemWidthStack.empty();
         const float buttonWidth = itemWidthChanged ? window->DC.ItemWidth : 0.0f;
+
+        auto makeButtonID = [](std::string_view buttonText)
+            {
+                return fmt::format("{}##{}", buttonText, sCounter++);
+            };
+
         if (object)
         {
             if (!object->IsFlagSet(AssetFlag::Missing))
             {
                 auto assetFileName = AssetManager::GetMetadata(object->Handle).FilePath.stem().string();
-                if (ImGui::Button((char*)assetFileName.c_str(), { buttonWidth, 0.0f }))
+                if (ImGui::Button(makeButtonID(assetFileName).c_str(), { buttonWidth, 0.0f }))
                 {
                     clicked = true;
                 }
@@ -1591,7 +1597,7 @@ namespace NR::UI
             else
             {
                 UI::ScopedColor text(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
-                if (ImGui::Button("Missing", { buttonWidth, 0.0f }))
+                if (ImGui::Button(makeButtonID("Missing").c_str(), { buttonWidth, 0.0f }))
                 {
                     clicked = true;
                 }
@@ -1600,7 +1606,7 @@ namespace NR::UI
         else
         {
             UI::ScopedColor text(ImGuiCol_Text, Colors::Theme::muted);
-            if (ImGui::Button("Select Asset", { buttonWidth, 0.0f }))
+            if (ImGui::Button(makeButtonID("Select Asset").c_str(), { buttonWidth, 0.0f }))
             {
                 clicked = true;
             }
@@ -1897,7 +1903,7 @@ namespace NR::UI
         }
     }
 
-    static bool IsMatchingSearch(const std::string& item, const std::string& searchQuery, bool caseSensitive = false, bool stripWhiteSpaces = true, bool stripUnderscores = true)
+    static bool IsMatchingSearch(const std::string& item, std::string_view searchQuery, bool caseSensitive = false, bool stripWhiteSpaces = true, bool stripUnderscores = true)
     {
         if (searchQuery.empty())
         {
@@ -1916,7 +1922,7 @@ namespace NR::UI
             nameSanitized = choc::text::replace(nameSanitized, " ", "");
         }
 
-        std::string searchString = stripWhiteSpaces ? choc::text::replace(searchQuery, " ", "") : searchQuery;
+        std::string searchString = stripWhiteSpaces ? choc::text::replace(searchQuery, " ", "") : std::string(searchQuery);
 
         if (!caseSensitive)
         {

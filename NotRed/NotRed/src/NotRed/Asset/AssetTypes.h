@@ -28,7 +28,7 @@ namespace NR
         Animation,
         AnimationController,
         Font,
-        DemoGraph
+        SOULSound
     };
 
     namespace Utils
@@ -50,7 +50,7 @@ namespace NR
             if (assetType == "Animation")               return AssetType::Animation;
             if (assetType == "AnimationController")     return AssetType::AnimationController;
             if (assetType == "Font")                    return AssetType::Font;
-            if (assetType == "DemoGraph")               return AssetType::DemoGraph;
+            if (assetType == "SOULSound")               return AssetType::SOULSound;
 
             NR_CORE_ASSERT(false, "Unknown Asset Type");
             return AssetType::None;
@@ -72,7 +72,7 @@ namespace NR
             case AssetType::PhysicsMat:                 return "PhysicsMat";
             case AssetType::SoundConfig:                return "SoundConfig";
             case AssetType::Skeleton:                   return "Skeleton";
-            case AssetType::DemoGraph:                  return "DemoGraph";
+            case AssetType::SOULSound:                  return "SOULSound";
             case AssetType::Animation:                  return "Animation";
             case AssetType::AnimationController:        return "AnimationController";
             case AssetType::Font:                       return "Font";

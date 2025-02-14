@@ -72,6 +72,13 @@ namespace NR
 		}
 	};
 
+	static choc::value::Value CreateAssetRefObject(uint64_t handle = 0)
+	{
+		return choc::value::createObject("AssetHandle",
+			"TypeName", "AssetHandle",
+			"Value", std::to_string(handle));
+	}
+
 	//=================================================================
 	struct Node;
 
@@ -158,6 +165,12 @@ namespace NR
 		{
 			[[nodiscard]] static Node* SpawnNodeStatic(const std::string& category, const std::string& type);
 
+			[[nodiscard]] Node* SpawnNode(const std::string& category, const std::string& type) override { return SpawnNodeStatic(category, type); }
+		};
+
+		class SOULFactory : public Factory<SOULFactory>
+		{
+			[[nodiscard]] static Node* SpawnNodeStatic(const std::string& category, const std::string& type);
 			[[nodiscard]] Node* SpawnNode(const std::string& category, const std::string& type) override { return SpawnNodeStatic(category, type); }
 		};
 

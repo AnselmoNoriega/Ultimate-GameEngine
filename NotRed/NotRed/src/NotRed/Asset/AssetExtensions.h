@@ -39,6 +39,6 @@ namespace NR
 		{ ".otf", AssetType::Font },
 
 		// Graphs
-		{ ".demo_graph", AssetType::DemoGraph }
+		{ ".soul_sound", AssetType::SOULSound }
 	};
 }

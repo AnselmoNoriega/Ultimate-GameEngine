@@ -75,16 +75,20 @@ namespace NR
         void SaveAll();
         void LoadAll();
 
+        virtual bool SaveGraphState(const char* data, size_t size) = 0;
+        virtual const std::string& LoadGraphState() = 0;
+
         void CompileGraph();
 
     private:
         //==================================================================================
         /// Internal
         void AssignIds(Node* node);
-        void OnNodeSpawned(Node* node);
         void DeleteDeadLinks(UUID nodeId);
 
     protected:
+        void OnNodeSpawned(Node* node);
+
         // Assigns relationship between pins and nodes
         void BuildNode(Node* node);
         void BuildNodes();
@@ -94,6 +98,7 @@ namespace NR
     public:
         using NodeID = UUID;
         using PinID = UUID;
+        using LinkID = UUID;
 
         std::function<void()> onNodeCreated = nullptr, onNodeDeleted = nullptr;
         std::function<void()> onLinkCreated = nullptr, onLinkDeleted = nullptr;
@@ -131,11 +136,11 @@ namespace NR
 
 
     //==================================================================================
-    /// Demo Model
+    /// Demo Graph Editor Model
     class DemoNodeEditorModel : public NodeEditorModel
     {
     public:
-        explicit DemoNodeEditorModel(Ref<DemoGraph> graphAsset) : mGraphAsset(graphAsset) { Deserialize(); }
+        explicit DemoNodeEditorModel(Ref<SOULSound> graphAsset) : mGraphAsset(graphAsset) { Deserialize(); }
         ~DemoNodeEditorModel() = default;
 
         std::vector<Node>& GetNodes() override { return mGraphAsset->Nodes; }
@@ -149,13 +154,16 @@ namespace NR
         void Serialize() override { AssetImporter::Serialize(mGraphAsset); };
         void Deserialize() override { BuildNodes(); };
 
+        bool SaveGraphState(const char* data, size_t size) override;
+        const std::string& LoadGraphState() override;
+
         Nodes::AbstractFactory* GetNodeFactory() override { return &mNodeFactory; }
 
         void OnCompileGraph() override;
 
     private:
         Nodes::DemoFactory mNodeFactory;
-        Ref<DemoGraph> mGraphAsset = nullptr;
+        Ref<SOULSound> mGraphAsset = nullptr;
     };
 
 } // namespace

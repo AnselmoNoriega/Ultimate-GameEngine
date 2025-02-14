@@ -8,7 +8,7 @@
 #include "imgui-node-editor/imgui_node_editor_internal.h"
 
 #include "imgui-node-editor/builders.h"
-#include "imgui-node-editor/widgets.h"
+#include "NotRed/Vendor/imgui-node-editor/widgets.h"
 
 #include "NotRed/ImGui/ImGuiUtil.h"
 #include "NotRed/ImGui/Colors.h"
@@ -134,27 +134,45 @@ namespace NR
 		if (!mGraphAsset)
 			return false;
 
-		// TODO: need to make sure to delete the .graphstate file when deleting graph asset
-		auto& assetMetadata = AssetManager::GetMetadata(mGraphAsset->Handle);
-		std::filesystem::path settingsFilePath = AssetManager::GetFileSystemPath(assetMetadata);
-		settingsFilePath.replace_extension(".graphstate");
-		mGraphStatePath = settingsFilePath.string();
-
 		ed::Config config;
-		config.SettingsFile = mGraphStatePath.c_str();
+		config.SettingsFile = nullptr;
 		config.UserPointer = this;
+
+		// Save graph state
+		config.SaveSettings = [](const char* data, size_t size, ed::SaveReasonFlags reason, void* userPointer) -> bool
+			{
+				auto* nodeEditor = static_cast<NodeGraphEditorBase*>(userPointer);
+				return nodeEditor->GetModel()->SaveGraphState(data, size);
+			};
+
+		// Load graph state
+		config.LoadSettings = [](char* data, void* userPointer) -> size_t
+			{
+				auto* nodeEditor = static_cast<NodeGraphEditorBase*>(userPointer);
+				const std::string& graphState = nodeEditor->GetModel()->LoadGraphState();
+				if (!data)
+				{
+					// return size
+					return graphState.size();
+				}
+				else
+				{
+					// load data
+					memcpy(data, graphState.data(), graphState.size());
+				}
+			};
 
 		// Restore node location
 		config.LoadNodeSettings = [](ed::NodeId nodeId, char* data, void* userPointer) -> size_t
 			{
-				auto self = static_cast<NodeGraphEditorBase*>(userPointer);
+				auto* nodeEditor = static_cast<NodeGraphEditorBase*>(userPointer);
 
-				if (!self->GetModel())
+				if (!nodeEditor->GetModel())
 				{
 					return 0;
 				}
 
-				auto node = self->GetModel()->FindNode(UUID(nodeId.Get()));
+				auto node = nodeEditor->GetModel()->FindNode(UUID(nodeId.Get()));
 				if (!node)
 				{
 					return 0;
@@ -171,12 +189,12 @@ namespace NR
 		// Store node location
 		config.SaveNodeSettings = [](ed::NodeId nodeId, const char* data, size_t size, ed::SaveReasonFlags reason, void* userPointer) -> bool
 			{
-				auto self = static_cast<NodeGraphEditorBase*>(userPointer);
+				auto* nodeEditor = static_cast<NodeGraphEditorBase*>(userPointer);
 
-				if (!self->GetModel())
+				if (!nodeEditor->GetModel())
 					return false;
 
-				auto node = self->GetModel()->FindNode(UUID(nodeId.Get()));
+				auto node = nodeEditor->GetModel()->FindNode(UUID(nodeId.Get()));
 				if (!node)
 					return false;
 
@@ -257,6 +275,14 @@ namespace NR
 	static ImVec2 sAssetComboSize = ImVec2(0.0f, 280.0f);
 	static bool sShouldAssetComboOpen = false;
 	static const char* sAssetComboPopupID = "AssetPinCombo";
+
+	struct SelectAssetPinContext
+	{
+		UUID PinID = 0;
+		AssetHandle SelectedAssetHandle = 0;
+		std::string AssetType;
+	};
+	static SelectAssetPinContext sSelectAssetContext;
 
 	void NodeGraphEditorBase::Render()
 	{
@@ -483,7 +509,7 @@ namespace NR
 
 			UI::ScopedStyle windowPadding(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
 			UI::ScopedStyle disableBorder(ImGuiStyleVar_FrameBorderSize, 0.0f);
-			UI::ScopedColorStack popupColours(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80),
+			UI::ScopedColorStack popupColors(ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80),
 				ImGuiCol_Separator, IM_COL32(90, 90, 90, 255),
 				ImGuiCol_Text, Colors::Theme::textBrighter);
 
@@ -517,94 +543,77 @@ namespace NR
 
 				Node* node = nullptr;
 
-				const auto& nodeRegistry = GetModel()->GetNodeTypes();
-
-				static bool searching = false;
-
-				static char searchBuffer[256];
+				// Search widget
+				static bool grabFocus = true;
+				static std::string searchString;
+				if (ImGui::GetCurrentWindow()->Appearing)
 				{
-					UI::ScopedStyle rounding(ImGuiStyleVar_FrameRounding, 3.0f);
-					ImGui::InputText("##regsearch", searchBuffer, 256);
-					UI::DrawItemActivityOutline(3.0f, true, Colors::Theme::niceBlue);
-
-					// Search icon
-					if (!searching)
-					{
-						ImGui::SetItemAllowOverlap();
-						ImGui::SameLine(13.0f);
-						UI::ShiftCursorY(3.0f);
-						const ImVec2 searchIconSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
-						UI::Image(mSearchIcon, searchIconSize, ImVec2(0, 0), ImVec2(1, 1), ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
-					}
-
-					if (!ImGui::IsItemFocused() && sNewNodePopupOpening)
-					{
-						ImGui::SetKeyboardFocusHere(0);
-					}
+					grabFocus = true;
+					searchString.clear();
 				}
 
-				searching = searchBuffer[0] != 0;
+				UI::ShiftCursorX(4.0f);
+				UI::Widgets::SearchWidget(searchString, "Search nodes...", &grabFocus);
+				const bool searching = !searchString.empty();
 
-				for (const auto& [categoryName, category] : nodeRegistry)
 				{
 					UI::ScopedColorStack headerColors(ImGuiCol_Header, IM_COL32(255, 255, 255, 0),
 						ImGuiCol_HeaderActive, IM_COL32(45, 46, 51, 255), 
 						ImGuiCol_HeaderHovered, IM_COL32(0, 0, 0, 80));
 
-					// Can use this instead of the collapsing header
-					//UI::PopupMenuHeader(categoryName, true, false);
+					// If subclass graph editor has any custom nodes,
+					// the popup items for them can be added here
+					if (onNodeListPopup)
+						node = onNodeListPopup(searching, searchString);
 
-					if (searching)
-						ImGui::SetNextItemOpen(searchBuffer[0] != 0);
+					const auto& nodeRegistry = GetModel()->GetNodeTypes();
 
-					ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(170, 170, 170, 255));
-					if (ImGui::CollapsingHeader(categoryName.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
+					for (const auto& [categoryName, category] : nodeRegistry)
 					{
-						ImGui::PopStyleColor(); // header Text
-						ImGui::Separator();
 
-						ImGui::Indent();
-						//-------------------------------------------------
+						// Can use this instead of the collapsing header
+						//UI::PopupMenuHeader(categoryName, true, false);
 						if (searching)
+							ImGui::SetNextItemOpen(true);
+						ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(170, 170, 170, 255));
+						if (ImGui::CollapsingHeader(categoryName.c_str(), ImGuiTreeNodeFlags_DefaultOpen))
 						{
-							std::string searchString = Utils::String::ToLowerCopy(searchBuffer);
+							ImGui::PopStyleColor(); // header Text
+							ImGui::Separator();
 
-							for (const auto& [nodeName, spawnFunction] : category)
+							ImGui::Indent();
+							//-------------------------------------------------
+							if (searching)
 							{
-								const std::string nameNoUnderscores = choc::text::replace(nodeName, "_", " ");
-
-								const std::string nameSanitized = Utils::String::ToLowerCopy(choc::text::replace(nameNoUnderscores, " ", ""));
-								const std::string catSanitized = Utils::String::ToLowerCopy(choc::text::replace(categoryName, " ", ""));
-								searchString = choc::text::replace(searchString, " ", "");
-
-								if (choc::text::contains(catSanitized, searchString)
-									|| choc::text::contains(Utils::String::ToLowerCopy(nameSanitized), searchString))
+								for (const auto& [nodeName, spawnFunction] : category)
 								{
-									if (ImGui::MenuItem(nameNoUnderscores.c_str()))
-										node = GetModel()->CreateNode(categoryName, nodeName);
+									const std::string nameNoUnderscores = choc::text::replace(nodeName, "_", " ");
 
+									if (UI::IsMatchingSearch(categoryName, searchString)
+										|| UI::IsMatchingSearch(nodeName, searchString))
+									{
+										if (ImGui::MenuItem(nameNoUnderscores.c_str()))
+											node = GetModel()->CreateNode(categoryName, nodeName);
+
+									}
 								}
-
 							}
+							else
+							{
+								for (const auto& [nodeName, spawnFunction] : category)
+								{
+									if (ImGui::MenuItem(choc::text::replace(nodeName, "_", " ").c_str()))
+										node = GetModel()->CreateNode(categoryName, nodeName);
+								}
+							}
+							if (nodeRegistry.find(categoryName) != nodeRegistry.end())
+								ImGui::Spacing();
+							ImGui::Unindent();
 						}
 						else
 						{
-							for (const auto& [nodeName, spawnFunction] : category)
-							{
-								if (ImGui::MenuItem(choc::text::replace(nodeName, "_", " ").c_str()))
-								{
-									node = GetModel()->CreateNode(categoryName, nodeName);
-								}
-							}
+							ImGui::PopStyleColor(); // header Text
 						}
-
-						if (nodeRegistry.find(categoryName) != nodeRegistry.end())
-							ImGui::Spacing();
-						ImGui::Unindent();
-					}
-					else
-					{
-						ImGui::PopStyleColor(); // header Text
 					}
 				}
 
@@ -694,7 +703,7 @@ namespace NR
 		{
 			UI::ScopedFont largeFont(ImGui::GetIO().Fonts->Fonts[1]);
 			const ImVec2 zoomLabelPos({ editorMin.x + 20.0f, editorMax.y - 40.0f });
-			const std::string zoomLabelText = "Zoom " + choc::text::floatToString(ed::GetCurrentZoom(), 1, true);
+			const std::string zoomLabelText = "Zoom " + choc::text::floatToString(ed::GetCurrentZoom(), 1);
 
 			ImGui::GetWindowDrawList()->AddText(zoomLabelPos, IM_COL32(255, 255, 255, 60), zoomLabelText.c_str());
 		}
@@ -726,7 +735,7 @@ namespace NR
 		if (childWindow->DockNode && childWindow->DockNode->ParentNode)
 			mDockIDs[childWindow->ID] = childWindow->DockNode->ParentNode->ID;
 
-		if (!childWindow->DockIsActive && !ImGui::IsAnyMouseDown())
+		if (!childWindow->DockIsActive && !ImGui::IsAnyMouseDown() && !childWindow->DockNode && !childWindow->DockNodeIsVisible)
 		{
 			if (!mDockIDs[childWindow->ID])
 				mDockIDs[childWindow->ID] = mMainDockID;
@@ -755,6 +764,8 @@ namespace NR
 						ImColor(50, 50, 50), rounding, 0, 1.0f);
 				}
 			};
+
+		bool openAssetPopup = false;
 
 		//=============================================================
 		/// Basic nodes
@@ -960,14 +971,40 @@ namespace NR
 				{
 					if (!GetModel()->IsPinLinked(input.ID))
 					{
-						// TODO: the dropdown combobox doesn't work
-						// But this shoud demonstrate how to set pin values with custom types like object reference, vector, etc.
-
 						AssetHandle selected = 0;
 						Ref<AudioFile> asset;
 
-						static std::string sComboPreview;
+						bool assetDropped = false;
+						ImGui::SetNextItemWidth(90.0f);
 
+						if (input.Value.isObjectWithClassName("AssetHandle"))
+						{
+							auto handleStr = input.Value["Value"].get<std::string>();
+							selected = std::stoull(handleStr);
+						}
+						if (AssetManager::IsAssetHandleValid(selected))
+						{
+							asset = AssetManager::GetAsset<AudioFile>(selected);
+						}
+						// TODO: get supported asset type from the pin
+						//		Initialize choc::Value class object with correct asset type using helper function
+						if (UI::AssetReferenceDropTargetButton("SoundFile", asset, AssetType::SOULSound, assetDropped))
+						{
+							NR_CORE_WARN("Asset clicked");
+							openAssetPopup = true;
+							sSelectAssetContext = { input.ID, selected };
+						}
+						drawItemActivityOutline(2.5f);
+						if (assetDropped)
+						{
+							NR_CORE_WARN("Asset dropped");
+							choc::value::Value customValueType = choc::value::createObject("AssetHandle",
+								"TypeName", "AssetHandle",
+								"Value", std::to_string((uint64_t)asset->Handle));
+							if (auto* pin = GetModel()->FindPin(sSelectAssetContext.PinID))
+								pin->Value = customValueType;
+						}
+#if 0
 						if (input.Value.isObjectWithClassName("AssetHandle"))
 						{
 							auto handleStr = input.Value["Value"].get<std::string>();
@@ -1004,6 +1041,7 @@ namespace NR
 							//sComboNodeSize = ed::GetNodeSize(hoveredNode) / ed::GetCurrentZoom();
 							sShouldAssetComboOpen = true;
 						}
+#endif
 					}
 				}
 
@@ -1015,7 +1053,7 @@ namespace NR
 				builder.EndInput();
 			}
 
-			// Setting colour of the Message Node input field to dark
+			// Setting color of the Message Node input field to dark
 			UI::ScopedColor frameBgColor(ImGuiCol_FrameBg, ImVec4{ 0.08f, 0.08f, 0.08f, 1.0f });
 
 			if (isSimple)
@@ -1027,7 +1065,11 @@ namespace NR
 
 				// TODO: handle simple nodes display icon properly
 				if (const char* displayIcon = GetIconForSimpleNode(node.Name))
+				{
+					UI::ScopedColor textColor(ImGuiCol_Text, Colors::Theme::text);
+					UI::ScopedFont largeFont(ImGui::GetIO().Fonts->Fonts[1]);
 					ImGui::TextUnformatted(displayIcon);
+				}
 				else
 					ImGui::TextUnformatted(node.Name.c_str());
 
@@ -1172,6 +1214,40 @@ namespace NR
 			}
 			ed::EndGroupHint();
 		}
+
+		//=============================================================
+		/// Asset pin search popup
+		ed::Suspend();
+		if (openAssetPopup)
+		{
+			ImGui::OpenPopup("AssetSearch");
+		}
+
+		Ref<AudioFile> asset;
+		
+		bool clear = false;
+		if (UI::Widgets::AssetSearchPopup("AssetSearch", asset->GetStaticType(), sSelectAssetContext.SelectedAssetHandle, &clear, "Search Asset", ImVec2{ 250.0f, 300.0f }))
+		{
+			NR_CORE_WARN("Asset search selected");
+			choc::value::Value customValueType = choc::value::createObject("AssetHandle",
+				"TypeName", "AssetHandle",
+				"Value", std::to_string((uint64_t)sSelectAssetContext.SelectedAssetHandle));
+			
+			if (auto* pin = GetModel()->FindPin(sSelectAssetContext.PinID))
+			{
+				if (clear)
+				{
+					pin->Value = choc::value::Value();
+				}
+				else
+				{
+					pin->Value = customValueType;
+				}
+			}
+			sSelectAssetContext.PinID = 0;
+			sSelectAssetContext.SelectedAssetHandle = 0;
+		}
+		ed::Resume();
 	}
 
 	void NodeGraphEditorBase::DrawPinIcon(const Pin& pin, bool connected, int alpha)
@@ -1239,7 +1315,7 @@ namespace NR
 
 	void DemoNodeGraphEditor::SetAsset(const Ref<Asset>& asset)
 	{
-		mModel = std::make_unique<DemoNodeEditorModel>(asset.As<DemoGraph>());
+		mModel = std::make_unique<DemoNodeEditorModel>(asset.As<SOULSound>());
 		NodeGraphEditorBase::SetAsset(asset);
 	}
 
