@@ -50,10 +50,6 @@ namespace NR
         glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
         glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 
-        glm::vec3 Up = { 0.0f, 1.0f, 0.0f };
-        glm::vec3 Right = { 1.0f, 0.0f, 0.0f };
-        glm::vec3 Forward = { 0.0f, 0.0f, -1.0f };
-
         TransformComponent() = default;
         TransformComponent(const TransformComponent& other) = default;
         TransformComponent(const glm::vec3& translation)

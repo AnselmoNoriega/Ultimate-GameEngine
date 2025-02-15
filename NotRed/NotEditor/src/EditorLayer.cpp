@@ -451,7 +451,7 @@ namespace NR
         // Title bar drag area
 #ifdef NR_PLATFORM_WINDOWS
         ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight));
-        mTitleBarHovered = ImGui::IsItemHovered();
+        mTitleBarHovered = ImGui::IsItemHovered() && (Input::GetCursorMode() != CursorMode::Locked);
 #else
         auto* rootWindow = ImGui::GetCurrentWindow()->RootWindow;
         const float windowWidth = (int)rootWindow->RootWindow->Size.x;

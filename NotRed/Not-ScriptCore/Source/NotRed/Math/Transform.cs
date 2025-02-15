@@ -10,9 +10,9 @@ namespace NR
         public Vector3 Rotation;
         public Vector3 Scale;
 
-        public Vector3 Up { get; }
-        public Vector3 Right { get; }
-        public Vector3 Forward { get; }
+        public Vector3 Up { get { return new Quaternion(Rotation) * Vector3.Up; } }
+        public Vector3 Right { get { return new Quaternion(Rotation) * Vector3.Right; } }
+        public Vector3 Forward { get { return new Quaternion(Rotation) * Vector3.Forward; } }
 
         public static Transform operator *(Transform a, Transform b)
         {

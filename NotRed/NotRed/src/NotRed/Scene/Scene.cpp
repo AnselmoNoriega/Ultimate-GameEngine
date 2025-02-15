@@ -151,6 +151,16 @@ namespace NR
         }
     }
 
+    Audio::Transform GetAudioTransform(const TransformComponent& transformComponent) 
+    {
+        auto rotationQuat = glm::quat(transformComponent.Rotation);
+        return {
+            transformComponent.Translation,
+            rotationQuat * glm::vec3(0.0f, 0.0f, -1.0f) /* orientation */,
+            rotationQuat * glm::vec3(0.0f, 1.0f, 0.0f)  /* up */
+        };
+    }
+
     Scene::Scene(const std::string& name, bool isEditorScene, bool construct)
         : mName(name), mIsEditorScene(isEditorScene)
     {
@@ -247,25 +257,6 @@ namespace NR
             PhysicsManager::GetScene()->Simulate(dt, mIsPlaying);
         }
 
-        {
-            auto view = mRegistry.view<TransformComponent>();
-            for (auto entity : view)
-            {
-                auto& transformComponent = view.get<TransformComponent>(entity);
-                Entity e = Entity(entity, this);
-                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
-                glm::vec3 translation;
-                glm::vec3 rotation;
-                glm::vec3 scale;
-                Math::DecomposeTransform(transform, translation, rotation, scale);
-
-                glm::quat rotationQuat = glm::quat(rotation);
-                transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
-                transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
-                transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
-            }
-        }
-
         {	//--- Update Audio Listener ---
             //=============================
 
@@ -279,9 +270,7 @@ namespace NR
                 if (listenerComponent.Active)
                 {
                     listener = e;
-                    auto worldSpaceTransform = GetWorldSpaceTransform(listener);
-
-                    Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+                    auto transform = GetAudioTransform(GetWorldSpaceTransform(listener));
                     AudioEngine::Get().UpdateListenerPosition(transform);
                     AudioEngine::Get().UpdateListenerConeAttenuation(
                         listenerComponent.ConeInnerAngleInRadians,
@@ -307,11 +296,11 @@ namespace NR
                 {
                     // If camera was changed or destroyed during Runtime, it might not have Listener Component (?)
                     if (!listener.HasComponent<AudioListenerComponent>())
+                    {
                         listener.AddComponent<AudioListenerComponent>();
+                    }
 
-                    auto worldSpaceTransform = GetWorldSpaceTransform(listener);
-
-                    Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+                    auto transform = GetAudioTransform(GetWorldSpaceTransform(listener));
                     AudioEngine::Get().UpdateListenerPosition(transform);
 
                     auto& listenerComponent = listener.GetComponent<AudioListenerComponent>();
@@ -356,8 +345,7 @@ namespace NR
                 }
 
                 // 2. Update positions of associated sound sources
-                auto worldSpaceTransform = GetWorldSpaceTransform(e);
-                Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+                auto transform = GetAudioTransform(GetWorldSpaceTransform(e));
 
                 // 3. Update velocities of associated sound sources
                 glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
@@ -788,8 +776,7 @@ namespace NR
                     continue;
                 }
 
-                auto worldSpaceTransform = GetWorldSpaceTransform(e);
-                Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+                auto transform = GetAudioTransform(GetWorldSpaceTransform(e));
 
                 glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
                 updateData.emplace_back(SoundSourceUpdateData{
@@ -1020,8 +1007,7 @@ namespace NR
             if (listener.mEntityHandle != entt::null)
             {
                 // Initialize listener's position
-                auto worldSpaceTransform = GetWorldSpaceTransform(listener);
-                Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+                auto transform = GetAudioTransform(GetWorldSpaceTransform(listener));
                 AudioEngine::Get().UpdateListenerPosition(transform);
 
                 auto& listenerComponent = listener.GetComponent<AudioListenerComponent>();
@@ -1045,8 +1031,7 @@ namespace NR
                 const auto& [audioComponent] = view.get(entity);
 
                 Entity e = { entity, this };
-                auto worldSpaceTransform = GetWorldSpaceTransform(e);
-                Audio::Transform transform{ worldSpaceTransform.Translation, worldSpaceTransform.Forward, worldSpaceTransform.Up };
+                auto transform = GetAudioTransform(GetWorldSpaceTransform(e));
 
 
                 glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
@@ -1526,11 +1511,6 @@ namespace NR
         TransformComponent transformComponent;
 
         Math::DecomposeTransform(transform, transformComponent.Translation, transformComponent.Rotation, transformComponent.Scale);
-
-        glm::quat rotationQuat = glm::quat(transformComponent.Rotation);
-        transformComponent.Up = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 1.0f, 0.0f)));
-        transformComponent.Right = glm::normalize(glm::rotate(rotationQuat, glm::vec3(1.0f, 0.0f, 0.0f)));
-        transformComponent.Forward = glm::normalize(glm::rotate(rotationQuat, glm::vec3(0.0f, 0.0f, -1.0f)));
 
         return transformComponent;
     }

@@ -6,7 +6,7 @@ namespace NR
     [StructLayout(LayoutKind.Sequential), Serializable]
     public struct Vector3 : IEquatable<Vector3>
     {
-        public static readonly Vector3 Zero = new Vector3(0, 0, 0);
+        public static readonly Vector3 zero = new Vector3(0, 0, 0);
 
         public static readonly Vector3 Forward = new Vector3(0, 0, -1);
         public static readonly Vector3 Right = new Vector3(1, 0, 0);
@@ -162,6 +162,15 @@ namespace NR
         public static Vector3 operator -(Vector3 vector)
         {
             return new Vector3(-vector.x, -vector.y, -vector.z);
+        }
+
+        public static Vector3 Cross(Vector3 x, Vector3 y)
+        {
+            return new Vector3(
+                x.y * y.z - y.y * x.z,
+                x.z * y.x - y.z * x.x,
+                x.x * y.y - y.x * x.y
+            );
         }
 
         public override bool Equals(object obj) => obj is Vector3 other && this.Equals(other);

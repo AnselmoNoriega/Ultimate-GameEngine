@@ -44,6 +44,14 @@ namespace NR
                 SetTransform_Native(Entity.ID, ref value);
             }
         }
+        public Transform WorldTransform
+        {
+            get
+            {
+                GetWorldSpaceTransform_Native(Entity.ID, out Transform result);
+                return result;
+            }
+        }
 
         public Vector3 Translation
         {
@@ -84,12 +92,6 @@ namespace NR
             {
                 SetScale_Native(Entity.ID, ref value);
             }
-        }
-
-        public Transform GetWorldSpaceTransform()
-        {
-            GetWorldSpaceTransform_Native(Entity.ID, out Transform transform);
-            return transform;
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]

@@ -31,10 +31,13 @@ hooks/
 **.meta
 **.log
 
-!AssetRegistryCache.nrr
 *.nvdbg
 *.nv-gpudmp
 *gpudmp.json
 
 # Directories
 NotRed/vendor/VulkanSDK
+
+!NotEditor/SandboxProject/Assets/Scripts/Binaries
+
+!AssetRegistryCache
