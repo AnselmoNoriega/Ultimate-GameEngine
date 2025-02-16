@@ -75,11 +75,12 @@ namespace NR
 		void BeginScene(const SceneRendererCamera& camera, float dt);
 		void EndScene();
 
-		void SubmitMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr); 
-		void SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
-		void SubmitSelectedMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 
-		void SubmitPhysicsDebugMesh(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
+		void SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform = glm::mat4(1.0f));
+
+		void SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 
 		Ref<RenderPass> GetFinalRenderPass();
 		Ref<RenderPass> GetExternalCompositeRenderPass() { return mExternalCompositeRenderPass; }
@@ -356,7 +357,8 @@ namespace NR
 		struct DrawCommand
 		{
 			Ref<Mesh> Mesh;
-			Ref<MaterialTable> MaterialTable;
+			uint32_t SubmeshIndex;
+			Ref<NR::MaterialTable> MaterialTable;
 			glm::mat4 Transform;
 			Ref<Material> OverrideMaterial;
 		};

@@ -59,7 +59,7 @@ namespace NR
 
         public override string ToString()
         {
-            return "(" + x + ", " + y + ")";
+            return "Vector2[" + x + ", " + y + "]";
         }
 
         public float Length()

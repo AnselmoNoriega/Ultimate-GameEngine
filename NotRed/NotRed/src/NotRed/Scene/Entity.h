@@ -4,7 +4,6 @@
 
 #include "Scene.h"
 #include "Components.h"
-#include "NotRed/Renderer/Mesh.h"
 
 namespace NR
 {

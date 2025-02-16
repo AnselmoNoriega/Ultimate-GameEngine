@@ -1721,6 +1721,34 @@ namespace NR::Script
         return new Ref<MaterialAsset>(materialTable->GetMaterial(index));
     }
 
+    void NR_PointLightComponent_GetRadiance(uint64_t entityID, glm::vec3* outRadiance)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
+        
+        *outRadiance = entity.GetComponent<PointLightComponent>().Radiance;
+    }
+
+    void NR_PointLightComponent_SetRadiance(uint64_t entityID, glm::vec3* inRadiance)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
+        
+        entity.GetComponent<PointLightComponent>().Radiance = *inRadiance;
+    }
+
     uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *inMesh;

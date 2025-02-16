@@ -140,6 +140,7 @@ namespace NR
 		QuadVertex* mQuadVertexBufferPtr = nullptr;
 
 		Ref<Pipeline> mCirclePipeline;
+		Ref<Material> mCircleMaterial;
 		Ref<VertexBuffer> mCircleVertexBuffer;
 		uint32_t mCircleIndexCount = 0;
 		CircleVertex* mCircleVertexBufferBase = nullptr;

@@ -1957,9 +1957,12 @@ namespace NR
                         }
                         else if (asset->GetAssetType() == AssetType::Mesh)
                         {
-                            Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
-                            entity.AddComponent<MeshComponent>(assetHandle);
-                            SelectEntity(entity);
+                            Ref<Mesh> mesh = asset.As<Mesh>();
+                            const auto& submeshIndices = mesh->GetSubmeshes();
+                            const auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
+                            
+                            Entity rootEntity = mEditorScene->InstantiateMesh(mesh);
+                            SelectEntity(rootEntity);
                         }
                         else if (asset->GetAssetType() == AssetType::Prefab)
                         {
@@ -2779,13 +2782,39 @@ namespace NR
                 for (auto e : meshEntities)
                 {
                     Entity entity = { e, mCurrentScene.Raw() };
-                    auto mesh = AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle);
+                    auto& mc = entity.GetComponent<MeshComponent>();
+                    auto mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
+
                     if (!mesh || mesh->IsFlagSet(AssetFlag::Missing))
                     {
                         continue;
                     }
 
                     auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
+                    float lastT = std::numeric_limits<float>::max();
+                    auto& submesh = submeshes[mc.SubmeshIndex];
+                    glm::mat4 transform = mCurrentScene->GetWorldSpaceTransformMatrix(entity);
+                    
+                    Ray ray = {
+                        glm::inverse(transform) * glm::vec4(origin, 1.0f),
+                        glm::inverse(glm::mat3(transform)) * direction
+                    };
+                    
+                    float t;
+                    bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
+                    if (intersects)
+                    {
+                        const auto& triangleCache = mesh->GetMeshAsset()->GetTriangleCache(mc.SubmeshIndex);
+                        for (const auto& triangle : triangleCache)
+                        {
+                            if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
+                            {
+                                mSelectionContext.push_back({ entity, &submesh, t });
+                                break;
+                            }
+                        }
+                    }
+#if 0
                     constexpr float lastT = std::numeric_limits<float>::max();
                     for (uint32_t i = 0; i < submeshes.size(); ++i)
                     {
@@ -2811,6 +2840,7 @@ namespace NR
                             }
                         }
                     }
+#endif
                 }
                 std::sort(mSelectionContext.begin(), mSelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
                 if (mSelectionContext.size())

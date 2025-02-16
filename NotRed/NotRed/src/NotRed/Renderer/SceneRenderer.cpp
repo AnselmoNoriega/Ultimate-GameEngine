@@ -946,26 +946,26 @@ namespace NR
 		sThreadPool.clear();
 	}
 
-	void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
-		mDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
-		mShadowPassDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
+		mDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
+		mShadowPassDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
 	}
 
-	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
-		mSelectedMeshDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
-		mShadowPassDrawList.push_back({ mesh, materialTable, transform, overrideMaterial });
+		mSelectedMeshDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
+		mShadowPassDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
+	}
+
+	void SceneRenderer::SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform)
+	{
+		mColliderDrawList.push_back({ mesh, submeshIndex, nullptr, transform });
 	}
 
 	void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform)
 	{
-		mParticlesDrawList.push_back({ mesh, nullptr, transform });
-	}
-
-	void SceneRenderer::SubmitPhysicsDebugMesh(Ref<Mesh> mesh, const glm::mat4& transform)
-	{
-		mColliderDrawList.push_back({ mesh, nullptr, transform });
+		mParticlesDrawList.push_back({ mesh, 0, nullptr, transform });
 	}
 
 	void SceneRenderer::ClearPass(Ref<RenderPass> renderPass, bool explicitClear)
@@ -1003,11 +1003,11 @@ namespace NR
 			{
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
+					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mShadowPassMaterial, cascade);
 				}
 				else
 				{
-					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mShadowPassMaterial, cascade);
+					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mShadowPassMaterial, cascade);
 				}
 			}
 
@@ -1025,22 +1025,22 @@ namespace NR
 		{
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
 			}
 			else
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
 			}
 		}
 		for (auto& dc : mSelectedMeshDrawList)
 		{
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
 			}
 			else
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
@@ -1089,15 +1089,15 @@ namespace NR
 		{
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
+				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mSelectedGeometryMaterial);
 			}
 			else
 			{
-				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mSelectedGeometryMaterial);
+				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mSelectedGeometryMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
-
+		
 		Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass);
 		// Skybox
 		mSkyboxMaterial->Set("uUniforms.TextureLod", mSceneData.SkyboxLod);
@@ -1110,21 +1110,21 @@ namespace NR
 		// Render entities
 		for (auto& dc : mDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
+			Renderer::RenderSubmesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
 		}
 
 		for (auto& dc : mSelectedMeshDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
+			Renderer::RenderSubmesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
 			if (mOptions.ShowSelectedInWireframe)
 			{
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
+					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mWireframeMaterial);
 				}
 				else
 				{
-					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mWireframeMaterial);
+					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mWireframeMaterial);
 				}
 			}
 		}
@@ -1633,11 +1633,11 @@ namespace NR
 			{
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
+					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mColliderMaterial);
 				}
 				else
 				{
-					Renderer::RenderMesh(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.Transform, mColliderMaterial);
+					Renderer::RenderMesh(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mColliderMaterial);
 				}
 			}
 			Renderer::EndRenderPass(mCommandBuffer);

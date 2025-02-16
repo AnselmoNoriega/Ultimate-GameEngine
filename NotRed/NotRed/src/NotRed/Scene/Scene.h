@@ -94,6 +94,7 @@ namespace NR
 		float GetSkyboxLod() const { return mSkyboxLod; }
 
 		Entity CreateEntity(const std::string& name = "Entity");
+		Entity CreateChildEntity(Entity parent, const std::string& name = "");
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
 		void SubmitToDestroyEntity(Entity entity);
 		void DestroyEntity(Entity entity);
@@ -101,6 +102,7 @@ namespace NR
 		Entity DuplicateEntity(Entity entity);
 		Entity CreatePrefabEntity(Entity entity, Entity parent, const glm::vec3* translation = nullptr);
 		Entity Instantiate(Ref<Prefab> prefab, const glm::vec3* translation = nullptr);
+		Entity InstantiateMesh(Ref<Mesh> mesh);
 
 		template<typename T>
 		auto GetAllEntitiesWith()
@@ -149,6 +151,8 @@ namespace NR
 		void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
 		void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
 		void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
+
+		void TraverseNodes(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode, const glm::mat4& parentTransform = glm::mat4(1.0f));
 
 	private:
 		template<typename Fn>

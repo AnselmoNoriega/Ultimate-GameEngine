@@ -423,6 +423,46 @@ namespace NR::UI
         return modified;
     }
 
+    static bool Property(const char* label, uint32_t& value, uint32_t minValue = 0, uint32_t maxValue = 0)
+    {
+        bool modified = false;
+        ShiftCursor(10.0f, 9.0f);
+
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        
+        ShiftCursorY(4.0f);
+        
+        ImGui::PushItemWidth(-1);
+        sIDBuffer[0] = '#';
+        sIDBuffer[1] = '#';
+        memset(sIDBuffer + 2, 0, 14);
+        sprintf_s(sIDBuffer + 2, 14, "%o", sCounter++);
+
+        if (IsItemDisabled())
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+        }
+        if (ImGui::DragScalar(sIDBuffer, ImGuiDataType_U32, &value, 1.0f, &minValue, &maxValue))
+        {
+            modified = true;
+        }
+        if (IsItemDisabled())
+        {
+            ImGui::PopStyleVar();
+        }
+        if (!IsItemDisabled())
+        {
+            DrawItemActivityOutline(2.0f, true, Colors::Theme::accent);
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+        Draw::Underline();
+
+        return modified;
+    }
+
     static bool PropertySlider(const char* label, int& value, int min, int max)
     {
         bool modified = false;

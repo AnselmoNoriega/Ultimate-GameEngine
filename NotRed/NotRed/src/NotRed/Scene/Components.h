@@ -5,6 +5,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include <set>
+
 #include "NotRed/Core/UUID.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Mesh.h"
@@ -12,6 +14,7 @@
 #include "NotRed/Scene/SceneCamera.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 #include "NotRed/Asset/Asset.h"
+#include "NotRed/Math/Math.h"
 #include "NotRed/Renderer/UI/Font.h"
 
 #include "NotRed/Script/ScriptModuleField.h"
@@ -84,16 +87,17 @@ namespace NR
     struct MeshComponent
     {
         AssetHandle MeshHandle;
+        uint32_t SubmeshIndex = 0;
         Ref<MaterialTable> Materials = Ref<MaterialTable>::Create();
 
         MeshComponent() = default;
 
         MeshComponent(const MeshComponent& other)
-            : MeshHandle(other.MeshHandle), 
+            : MeshHandle(other.MeshHandle), SubmeshIndex(other.SubmeshIndex),
             Materials(Ref<MaterialTable>::Create(other.Materials)) {}
 
-        MeshComponent(AssetHandle mesh)
-            : MeshHandle(mesh) {}
+        MeshComponent(AssetHandle mesh, uint32_t submeshIndex = 0)
+            : MeshHandle(mesh), SubmeshIndex(submeshIndex) {}
     };
 
     struct ParticleComponent
@@ -342,6 +346,7 @@ namespace NR
         static constexpr ColliderComponentType Type = ColliderComponentType::MeshCollider;
 
         AssetHandle CollisionMesh;
+        uint32_t SubmeshIndex = 0;
         std::vector<Ref<Mesh>> ProcessedMeshes;
         bool IsConvex = false;
         bool OverrideMesh = false;

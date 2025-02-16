@@ -54,6 +54,10 @@ namespace NR
     {
         bool loaded = LoadImage(path);
         NR_CORE_ASSERT(loaded);
+        if (!loaded)
+        {
+            LoadImage("Resources/Textures/ErrorTexture.png");
+        }
 
         ImageSpecification imageSpec;
         imageSpec.Format = mFormat;

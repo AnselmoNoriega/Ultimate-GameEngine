@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <box2d/box2d.h>
+#include <assimp/scene.h>
 
 #include "Entity.h"
 #include "Prefab.h"
@@ -41,6 +42,11 @@ namespace NR
     {
         UUID SceneID;
     };
+
+    namespace Utils 
+    {
+        glm::mat4 Mat4FromAssimpMat4(const aiMatrix4x4& matrix);
+    }
 
     class ContactListener2D : public b2ContactListener
     {
@@ -506,7 +512,7 @@ namespace NR
 
                     glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
 
-                    renderer->SubmitMesh(mesh, meshComponent.Materials, transform);
+                    renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
                 }
             }
         }
@@ -679,7 +685,7 @@ namespace NR
 
                     glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
 
-                    renderer->SubmitMesh(mesh, meshComponent.Materials, transform);
+                    renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
                 }
             }
         }
@@ -703,7 +709,7 @@ namespace NR
                 Entity e = { entity, this };
                 glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<BoxColliderComponent>();
-                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, glm::translate(transform, collider.Offset));
+                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, 0, glm::translate(transform, collider.Offset));
             }
         }
 
@@ -714,7 +720,7 @@ namespace NR
                 Entity e = { entity, this };
                 glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<SphereColliderComponent>();
-                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
+                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, 0, transform);
             }
         }
 
@@ -725,7 +731,7 @@ namespace NR
                 Entity e = { entity, this };
                 glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<CapsuleColliderComponent>();
-                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, transform);
+                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, 0, transform);
             }
         }
 
@@ -738,7 +744,7 @@ namespace NR
                 auto& collider = e.GetComponent<MeshColliderComponent>();
                 for (const auto& debugMesh : collider.ProcessedMeshes)
                 {
-                    renderer->SubmitPhysicsDebugMesh(debugMesh, transform);
+                    renderer->SubmitPhysicsDebugMesh(debugMesh, collider.SubmeshIndex, transform);
                 }
             }
         }
@@ -1094,6 +1100,11 @@ namespace NR
 
     Entity Scene::CreateEntity(const std::string& name)
     {
+        return CreateChildEntity({}, name);
+    }
+
+    Entity Scene::CreateChildEntity(Entity parent, const std::string& name)
+    {
         NR_PROFILE_FUNC();
 
         auto entity = Entity{ mRegistry.create(), this };
@@ -1107,6 +1118,11 @@ namespace NR
         }
 
         entity.AddComponent<RelationshipComponent>();
+
+        if (parent)
+        {
+            entity.SetParent(parent);
+        }
 
         mEntityIDMap[idComponent.ID] = entity;
         return entity;
@@ -1403,6 +1419,61 @@ namespace NR
         }
 
         return result;
+    }
+
+    void Scene::TraverseNodes(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode, const glm::mat4& parentTransform)
+    {
+        aiScene* aScene = (aiScene*)assimpScene;
+        aiNode* node = (aiNode*)assimpNode;
+        if (node == aScene->mRootNode)
+        {
+            for (uint32_t i = 0; i < node->mNumChildren; ++i)
+            {
+                TraverseNodes(parent, mesh, assimpScene, node->mChildren[i], parentTransform);
+            }
+
+            return;
+        }
+
+        glm::mat4 transform = parentTransform * Utils::Mat4FromAssimpMat4(node->mTransformation);
+        auto nodeName = node->mName.C_Str();
+        Entity nodeEntity = CreateChildEntity(parent, nodeName);
+        if (node->mNumMeshes == 1)
+        {
+            // Node == Mesh in this case
+            uint32_t submeshIndex = node->mMeshes[0];
+            nodeEntity.Transform().SetTransform(transform);
+            nodeEntity.AddComponent<MeshComponent>(mesh->Handle, submeshIndex);
+            nodeEntity.AddComponent<MeshColliderComponent>(mesh->Handle);
+        }
+
+        else if (node->mNumMeshes > 1)
+        {
+            // Create one entity per child mesh, parented under node
+            for (uint32_t i = 0; i < node->mNumMeshes; i++)
+            {
+                uint32_t submeshIndex = node->mMeshes[i];
+                auto meshName = aScene->mMeshes[submeshIndex]->mName.C_Str();
+                Entity childEntity = CreateChildEntity(nodeEntity, meshName);
+                childEntity.Transform().SetTransform(transform);
+                childEntity.AddComponent<MeshComponent>(mesh->Handle, submeshIndex);
+            }
+        }
+
+        for (uint32_t i = 0; i < node->mNumChildren; ++i)
+        {
+            TraverseNodes(nodeEntity, mesh, assimpScene, node->mChildren[i], transform);
+        }
+    }
+
+    Entity Scene::InstantiateMesh(Ref<Mesh> mesh)
+    {
+        auto& assetData = AssetManager::GetMetadata(mesh->Handle);
+        Entity rootEntity = CreateEntity(assetData.FilePath.stem().string());
+        auto aScene = mesh->GetMeshAsset()->mScene;
+        TraverseNodes(rootEntity, mesh, aScene, aScene->mRootNode);
+
+        return rootEntity;
     }
 
     Entity Scene::FindEntityByTag(const std::string& tag)

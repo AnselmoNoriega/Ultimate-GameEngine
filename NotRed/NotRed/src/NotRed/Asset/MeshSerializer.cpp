@@ -101,8 +101,6 @@ namespace NR
         out << YAML::Key << "Mesh";
         {
             out << YAML::BeginMap;
-            out << YAML::Key << "AssetHandle";
-            out << YAML::Value << mesh->Handle;
             out << YAML::Key << "MeshAsset";
             out << YAML::Value << mesh->GetMeshAsset()->Handle;
             out << YAML::Key << "SubmeshIndices";

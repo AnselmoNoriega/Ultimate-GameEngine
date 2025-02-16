@@ -164,6 +164,7 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = "Renderer2D-Circle";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Renderer2D_Circle");
+			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.RenderPass = renderPass;
 			pipelineSpecification.Layout = {
 				{ ShaderDataType::Float3, "aWorldPosition" },
@@ -172,6 +173,7 @@ namespace NR
 				{ ShaderDataType::Float4, "aColor" }
 			};
 			mCirclePipeline = Pipeline::Create(pipelineSpecification);
+			mCircleMaterial = Material::Create(pipelineSpecification.Shader);
 
 			mCircleVertexBuffer = VertexBuffer::Create(MaxVertices * sizeof(QuadVertex));
 			mCircleVertexBufferBase = new CircleVertex[MaxVertices];
@@ -218,10 +220,14 @@ namespace NR
 		mFontTextureSlotIndex = 0;
 
 		for (uint32_t i = 1; i < mTextureSlots.size(); ++i)
+		{
 			mTextureSlots[i] = nullptr;
+		}
 
 		for (uint32_t i = 0; i < mFontTextureSlots.size(); ++i)
+		{
 			mFontTextureSlots[i] = nullptr;
+		}
 	}
 
 	void Renderer2D::EndScene()
@@ -229,6 +235,7 @@ namespace NR
 		mRenderCommandBuffer->Begin();
 		Renderer::BeginRenderPass(mRenderCommandBuffer, mQuadPipeline->GetSpecification().RenderPass);
 
+		// Lines
 		uint32_t dataSize = (uint32_t)((uint8_t*)mQuadVertexBufferPtr - (uint8_t*)mQuadVertexBufferBase);
 		if (dataSize)
 		{
@@ -248,7 +255,16 @@ namespace NR
 
 			Renderer::RenderGeometry(mRenderCommandBuffer, mQuadPipeline, mUniformBufferSet, nullptr, mQuadMaterial, mQuadVertexBuffer, mQuadIndexBuffer, glm::mat4(1.0f), mQuadIndexCount);
 
-			mStats.DrawCalls++;
+			++mStats.DrawCalls;
+		}
+
+		// Circles
+		dataSize = (uint32_t)((uint8_t*)mCircleVertexBufferPtr - (uint8_t*)mCircleVertexBufferBase);
+		if (dataSize)
+		{
+			mCircleVertexBuffer->SetData(mCircleVertexBufferBase, dataSize);
+			Renderer::RenderGeometry(mRenderCommandBuffer, mCirclePipeline, mUniformBufferSet, nullptr, mCircleMaterial, mCircleVertexBuffer, mQuadIndexBuffer, glm::mat4(1.0f), mCircleIndexCount);
+			++mStats.DrawCalls;
 		}
 
 		// Render text
@@ -271,7 +287,7 @@ namespace NR
 
 			Renderer::RenderGeometry(mRenderCommandBuffer, mTextPipeline, mUniformBufferSet, nullptr, mTextMaterial, mTextVertexBuffer, mTextIndexBuffer, glm::mat4(1.0f), mTextIndexCount);
 
-			mStats.DrawCalls++;
+			++mStats.DrawCalls;
 		}
 
 		dataSize = (uint32_t)((uint8_t*)mLineVertexBufferPtr - (uint8_t*)mLineVertexBufferBase);
@@ -287,7 +303,7 @@ namespace NR
 				});
 			Renderer::RenderGeometry(mRenderCommandBuffer, mLinePipeline, mUniformBufferSet, nullptr, mLineMaterial, mLineVertexBuffer, mLineIndexBuffer, glm::mat4(1.0f), mLineIndexCount);
 
-			mStats.DrawCalls++;
+			++mStats.DrawCalls;
 		}
 
 		Renderer::EndRenderPass(mRenderCommandBuffer);

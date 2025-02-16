@@ -242,6 +242,26 @@ namespace NR
         // TODO
     }
 
+    public class PointLightComponent : Component
+    {
+        public Vector3 Radiance
+        {
+            get
+            {
+                GetRadiance_Native(Entity.ID, out Vector3 result);
+                return result;
+            }
+            set
+            {
+                SetRadiance_Native(Entity.ID, ref value);
+            }
+        }
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetRadiance_Native(ulong entityID, out Vector3 outRadiance);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRadiance_Native(ulong entityID, ref Vector3 inRadiance);
+    }
+
     public enum RigidBody2DBodyType
     {
         Static, Dynamic, Kinematic

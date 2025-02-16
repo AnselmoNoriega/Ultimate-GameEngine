@@ -203,6 +203,7 @@ namespace NR
 		std::string mFilePath;
 
 	private:
+		friend class Scene;
 		friend class Renderer;
 		friend class VKRenderer;
 		friend class GLRenderer;
@@ -256,6 +257,7 @@ namespace NR
 		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
 	private:
+		friend class Scene;
 		friend class Renderer;
 		friend class VKRenderer;
 		friend class GLRenderer;

@@ -190,6 +190,9 @@ namespace NR::Script
     Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
     uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
 
+    void NR_PointLightComponent_GetRadiance(uint64_t entityID, glm::vec3* outRadiance);
+    void NR_PointLightComponent_SetRadiance(uint64_t entityID, glm::vec3* inRadiance);
+
     void* NR_MeshFactory_CreatePlane(float width, float height);
     void* NR_MeshFactory_CreateCustomMesh(
         MonoArray* verticesArray,
