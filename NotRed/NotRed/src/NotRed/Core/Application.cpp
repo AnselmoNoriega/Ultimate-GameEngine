@@ -85,7 +85,7 @@ namespace NR
 
         ScriptEngine::Init("Resources/Scripts/Not-ScriptCore.dll");
         PhysicsManager::Init();
-        Font::StaticInit();
+        Font::Init();
         AudioEngine::Init();
     }
 
@@ -103,6 +103,7 @@ namespace NR
 
         AudioCommandRegistry::Shutdown();
         Project::SetActive(nullptr);
+        Font::Shutdown();
         PhysicsManager::Shutdown();
         ScriptEngine::Shutdown();
         AudioEngine::Shutdown();

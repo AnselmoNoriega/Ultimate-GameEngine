@@ -3,6 +3,24 @@
 
 namespace NR::UI
 {
+	Ref<Texture2D> Widgets::sSearchIcon;
+	Ref<Texture2D> Widgets::sClearIcon;
+	Ref<Texture2D> Widgets::sGearIcon;
+
+	void Widgets::Init()
+	{
+		sSearchIcon = Texture2D::Create("Resources/Editor/icon_search_24px.png", { TextureWrap::Clamp });
+		sClearIcon = Texture2D::Create("Resources/Editor/close.png", { TextureWrap::Clamp });
+		sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png", { TextureWrap::Clamp });
+	}
+
+	void Widgets::Shutdown() 
+	{
+		sSearchIcon.Reset();
+		sClearIcon.Reset();
+		sGearIcon.Reset();
+	}
+
 	bool Widgets::AssetSearchPopup(const char* ID, AssetType assetType, AssetHandle& selected, bool* cleared, const char* hint /*= "Search Assets"*/, const ImVec2& size)
 	{
 		UI::ScopedColor popupBG(ImGuiCol_PopupBg, UI::ColorWithMultipliedValue(Colors::Theme::background, 1.6f));

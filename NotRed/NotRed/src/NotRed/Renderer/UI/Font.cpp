@@ -326,11 +326,16 @@ namespace NR
 		delete mMSDFData;
 	}
 
-	static Ref<Font> sDefaultFont;
+	Ref<Font> Font::sDefaultFont;
 
-	void Font::StaticInit()
+	void Font::Init()
 	{
 		sDefaultFont = Ref<Font>::Create("Resources/Fonts/Roboto/Roboto-Regular.ttf");
+	}
+
+	void Font::Shutdown()
+	{
+		sDefaultFont.Reset();
 	}
 
 	Ref<Font> Font::GetDefaultFont()

@@ -119,12 +119,14 @@ namespace NR
 
         UpdateSceneRendererSettings();
         AudioEventsEditor::Init();
+        UI::Widgets::Init();
 
         sNotRedInstallPath = FileSystem::GetEnvironmentVariable("NOTRED_DIR");
     }
 
     void EditorLayer::Detach()
     {
+        UI::Widgets::Shutdown();
         CloseProject(false);
         AudioEventsEditor::Shutdown();
         FileSystem::StopWatching();

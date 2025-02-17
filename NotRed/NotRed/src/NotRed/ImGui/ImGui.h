@@ -1134,6 +1134,8 @@ namespace NR::UI
     class Widgets
     {
     public:
+        static void Init();
+        static void Shutdown();
 
         template<uint32_t BuffSize = 256, typename StringType>
         static bool SearchWidget(StringType& searchString, const char* hint = "Search...", bool* grabFocus = nullptr)
@@ -1223,10 +1225,6 @@ namespace NR::UI
 
             ImGui::BeginHorizontal(GenerateID(), ImGui::GetItemRectSize());
 
-            TextureProperties clampProps;
-            clampProps.SamplerWrap = TextureWrap::Clamp;
-            static Ref<Texture2D> sSearchIcon = Texture2D::Create("Resources/Editor/icon_search_24px.png", clampProps);
-            static Ref<Texture2D> sClearIcon = Texture2D::Create("Resources/Editor/close.png", clampProps);
             const ImVec2 iconSize(ImGui::GetTextLineHeight(), ImGui::GetTextLineHeight());
 
             // Search icon
@@ -1288,6 +1286,28 @@ namespace NR::UI
 
         static bool AssetSearchPopup(const char* ID, AssetType assetType, AssetHandle& selected, bool* cleared = nullptr, const char* hint = "Search Assets", const ImVec2& size = ImVec2{ 250.0f, 350.0f });
         static bool AssetSearchPopup(const char* ID, AssetHandle& selected, bool* cleared = nullptr, const char* hint = "Search Assets", const ImVec2& size = ImVec2{ 250.0f, 350.0f }, std::initializer_list<AssetType> assetTypes = {});
+        
+        static bool OptionsButton()
+        {
+            const bool clicked = ImGui::InvisibleButton("##options", ImVec2{ ImGui::GetFrameHeight(), ImGui::GetFrameHeight() });
+            const float spaceAvail = std::min(ImGui::GetItemRectSize().x, ImGui::GetItemRectSize().y);
+            const float desiredIconSize = 15.0f;
+            const float padding = std::max((spaceAvail - desiredIconSize) / 2.0f, 0.0f);
+            constexpr auto buttonColor = Colors::Theme::text;
+            const uint8_t value = uint8_t(ImColor(buttonColor).Value.x * 255);
+        
+            UI::DrawButtonImage(sGearIcon, IM_COL32(value, value, value, 200),
+                IM_COL32(value, value, value, 255),
+                IM_COL32(value, value, value, 150),
+                UI::RectExpanded(UI::GetItemRect(), -padding, -padding));
+
+            return clicked;
+        }
+
+    private:
+        static Ref<Texture2D> sSearchIcon;
+        static Ref<Texture2D> sClearIcon;
+        static Ref<Texture2D> sGearIcon;
     }; // Widgets
 
     enum class PropertyAssetReferenceError
@@ -1918,29 +1938,6 @@ namespace NR::UI
         Draw::Underline();
 
         return receivedValidEntity;
-    }
-
-    namespace Buttons
-    {
-        static bool Options()
-        {
-            const bool clicked = ImGui::InvisibleButton("##options", ImVec2{ ImGui::GetFrameHeight(), ImGui::GetFrameHeight() });
-            
-            Ref<Texture2D> sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
-            const float spaceAvail = std::min(ImGui::GetItemRectSize().x, ImGui::GetItemRectSize().y);
-            constexpr float desiredIconSize = 15.0f;
-            const float padding = std::max((spaceAvail - desiredIconSize) / 2.0f, 0.0f);
-            constexpr auto buttonColor = Colors::Theme::text;
-            const uint8_t value = uint8_t(ImColor(buttonColor).Value.x * 255);
-            
-            UI::DrawButtonImage(
-                sGearIcon, IM_COL32(value, value, value, 200),
-                IM_COL32(value, value, value, 255),
-                IM_COL32(value, value, value, 150),
-                UI::RectExpanded(UI::GetItemRect(), -padding, -padding));
-            
-            return clicked;
-        }
     }
 
     static bool IsMatchingSearch(const std::string& item, std::string_view searchQuery, bool caseSensitive = false, bool stripWhiteSpaces = true, bool stripUnderscores = true)

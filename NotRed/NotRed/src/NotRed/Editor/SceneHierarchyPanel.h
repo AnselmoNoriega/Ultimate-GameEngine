@@ -33,11 +33,11 @@ namespace NR
 
 		Ref<Texture2D> mPencilIcon;
 		Ref<Texture2D> mPlusIcon;
+		Ref<Texture2D> mGearIcon;
 
 	private:
 		std::function<void(Entity)> mSelectionChangedCallback, mEntityDeletedCallback;
 		std::function<void(Entity, Ref<MeshAsset>)> mMeshAssetConvertCallback;
 		std::function<void(Entity, AssetHandle)> mInvalidMetadataCallback;
 	};
-
 }

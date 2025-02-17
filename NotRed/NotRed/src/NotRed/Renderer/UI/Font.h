@@ -16,8 +16,9 @@ namespace NR
 
 		Ref<Texture2D> GetFontAtlas() const { return mTextureAtlas; }
 		const MSDFData* GetMSDFData() const { return mMSDFData; }
-		
-		static void StaticInit();
+
+		static void Init();
+		static void Shutdown();
 		
 		static Ref<Font> GetDefaultFont();
 		
@@ -28,5 +29,8 @@ namespace NR
 		std::filesystem::path mFilePath;
 		Ref<Texture2D> mTextureAtlas;
 		MSDFData* mMSDFData = nullptr;
+
+	private:
+		static Ref<Font> sDefaultFont;
 	};
 }

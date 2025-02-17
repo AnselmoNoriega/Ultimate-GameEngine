@@ -34,8 +34,6 @@
 
 namespace NR
 {
-    static Ref<Texture2D> mGearIcon;
-
     SceneHierarchyPanel::SceneHierarchyPanel()
     {
         mPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
@@ -726,7 +724,7 @@ namespace NR
     }
 
     template<typename T, typename UIFunction>
-    static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, bool canBeRemoved = true)
+    static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction, const Ref<Texture2D>& settingsIcon, bool canBeRemoved = true)
     {
         if (entity.HasComponent<T>())
         {
@@ -747,7 +745,7 @@ namespace NR
                 ImGui::OpenPopup("ComponentSettings");
             }
 
-            UI::DrawButtonImage(mGearIcon, IM_COL32(160, 160, 160, 200),
+            UI::DrawButtonImage(settingsIcon, IM_COL32(160, 160, 160, 200),
                 IM_COL32(160, 160, 160, 255),
                 IM_COL32(160, 160, 160, 150),
                 UI::RectExpanded(UI::GetItemRect(), -6.0f, -6.0f));
@@ -1165,7 +1163,7 @@ namespace NR
                 UI::ShiftCursorY(-8.0f);
                 UI::Draw::Underline();
                 UI::ShiftCursorY(18.0f);
-            }, false);
+            }, mGearIcon, false);
 
         DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
             {
@@ -1288,8 +1286,7 @@ namespace NR
                         UI::EndTreeNode();
                     }
                 }
-
-            });
+        }, mGearIcon);
 
         DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
             {
@@ -1321,7 +1318,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<AnimationComponent>("Animation", entity, [&](AnimationComponent& anim)
             {
@@ -1373,7 +1370,7 @@ namespace NR
                     ImGui::Text("Please add a Mesh component!");
                     ImGui::PopStyleColor();
                 }
-            });
+            }, mGearIcon);
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
             {
@@ -1426,11 +1423,11 @@ namespace NR
                     }
                 }
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& mc)
             {
-            });
+            }, mGearIcon);
 
         DrawComponent<TextComponent>("Text", entity, [](TextComponent& tc)
             {
@@ -1465,7 +1462,7 @@ namespace NR
                 UI::Property("Max Width", tc.MaxWidth);
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<DirectionalLightComponent>("Directional Light", entity, [](DirectionalLightComponent& dlc)
             {
@@ -1476,7 +1473,7 @@ namespace NR
                 UI::Property("Soft Shadows", dlc.SoftShadows);
                 UI::Property("Source Size", dlc.LightSize);
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<PointLightComponent>("Point Light", entity, [](PointLightComponent& dlc)
             {
@@ -1486,7 +1483,7 @@ namespace NR
                 UI::Property("Radius", dlc.Radius, 0.1f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Falloff", dlc.Falloff, 0.005f, 0.f, 1.f);
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<SkyLightComponent>("Sky Light", entity, [](SkyLightComponent& slc)
             {
@@ -1534,7 +1531,7 @@ namespace NR
                     }
                 }
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<ScriptComponent>("Script", entity, [=](ScriptComponent& sc) mutable
             {
@@ -1758,7 +1755,7 @@ namespace NR
                     ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-            });
+            }, mGearIcon);
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
@@ -1776,7 +1773,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& bc2dc)
             {
@@ -1788,7 +1785,7 @@ namespace NR
                 UI::Property("Friction", bc2dc.Friction);
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](CircleCollider2DComponent& cc2dc)
             {
@@ -1800,7 +1797,7 @@ namespace NR
                 UI::Property("Friction", cc2dc.Friction);
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [&](RigidBodyComponent& rbc)
             {
@@ -1852,7 +1849,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<BoxColliderComponent>("Box Collider", entity, [](BoxColliderComponent& bcc)
             {
@@ -1868,7 +1865,7 @@ namespace NR
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", bcc.Material);
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](SphereColliderComponent& scc)
             {
@@ -1882,7 +1879,7 @@ namespace NR
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", scc.Material);
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [](CapsuleColliderComponent& ccc)
             {
@@ -1905,7 +1902,7 @@ namespace NR
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", ccc.Material);
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
             {
@@ -1952,12 +1949,13 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            });
+            }, mGearIcon);
 
 
         DrawComponent<AudioListenerComponent>("Audio Listener", entity, [&](AudioListenerComponent& alc)
             {
                 UI::BeginPropertyGrid();
+
                 if (UI::Property("Active", alc.Active))
                 {
                     auto view = mContext->GetAllEntitiesWith<AudioListenerComponent>();
@@ -1969,37 +1967,34 @@ namespace NR
                             e.GetComponent<AudioListenerComponent>().Active = ent == entity;
                         }
                     }
+                    else
+                    {
+                    }
                 }
+
                 float inAngle = glm::degrees(alc.ConeInnerAngleInRadians);
                 float outAngle = glm::degrees(alc.ConeOuterAngleInRadians);
                 float outGain = alc.ConeOuterGain;
-                //? Have to manually clamp here because UI::Property doesn't take flags to pass in ImGuiSliderFlags_ClampOnInput
+                
                 if (UI::Property("Inner Cone Angle", inAngle, 1.0f, 0.0f, 360.0f))
                 {
-                    if (inAngle > 360.0f)
-                    {
-                        inAngle = 360.0f;
-                    }
+                    if (inAngle > 360.0f) inAngle = 360.0f;
                     alc.ConeInnerAngleInRadians = glm::radians(inAngle);
                 }
                 if (UI::Property("Outer Cone Angle", outAngle, 1.0f, 0.0f, 360.0f))
                 {
-                    if (outAngle > 360.0f)
-                    {
-                        outAngle = 360.0f;
-                    }
+                    if (outAngle > 360.0f) outAngle = 360.0f;
                     alc.ConeOuterAngleInRadians = glm::radians(outAngle);
                 }
                 if (UI::Property("Outer Gain", outGain, 0.01f, 0.0f, 1.0f))
                 {
-                    if (outGain > 1.0f)
-                    {
-                        outGain = 1.0f;
-                    }
+                    if (outGain > 1.0f) outGain = 1.0f;
                     alc.ConeOuterGain = outGain;
                 }
+
                 UI::EndPropertyGrid();
-            });
+
+            }, mGearIcon);
 
         DrawComponent<AudioComponent>("Audio", entity, [&](AudioComponent& ac)
             {
@@ -2010,11 +2005,16 @@ namespace NR
                         ImGui::NextColumn();
                     };
 
+                // Making separators a little bit less bright to "separate" them visually from the text
                 auto& colors = ImGui::GetStyle().Colors;
                 auto oldSCol = colors[ImGuiCol_Separator];
                 const float brM = 0.6f;
                 colors[ImGuiCol_Separator] = ImVec4{ oldSCol.x * brM, oldSCol.y * brM, oldSCol.z * brM, 1.0f };
 
+                //=======================================================
+
+                //--- Sound Assets and Looping
+                //----------------------------
                 UI::PushID();
                 UI::BeginPropertyGrid();
 
@@ -2029,19 +2029,18 @@ namespace NR
 
                 if (UI::Property("Volume Multiplier", ac.VolumeMultiplier, 0.01f, 0.0f, 1.0f)) //TODO: switch to dBs in the future ?
                 {
-                    //ac.VolumeMultiplier = soundConfig.VolumeMultiplier;
                 }
+
                 if (UI::Property("Pitch Multiplier", ac.PitchMultiplier, 0.01f, 0.0f, 24.0f)) // max pitch 24 is just an arbitrary number here
                 {
-                    //ac.PitchMultiplier = soundConfig.PitchMultiplier;
                 }
 
                 UI::Property("Play on Awake", ac.PlayOnAwake);
                 UI::Property("Stop When Entity Is Destroyed", ac.StopIfEntityDestroyed);
-
                 UI::EndPropertyGrid();
                 UI::PopID();
+
                 colors[ImGuiCol_Separator] = oldSCol;
-            });
+            }, mGearIcon);
                 }
             }

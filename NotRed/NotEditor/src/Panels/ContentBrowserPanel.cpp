@@ -742,7 +742,7 @@ namespace NR
 
 			// Settings button
 			ImGui::Spring();
-			if (UI::Buttons::Options())
+			if (UI::Widgets::OptionsButton())
 			{
 				ImGui::OpenPopup("ContentBrowserSettings");
 			}
