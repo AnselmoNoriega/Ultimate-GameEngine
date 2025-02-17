@@ -4,38 +4,10 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "NotRed/Scene/Components.h"
+#include "PhysicsTypes.h"
 
 namespace NR
 {
-	enum class CookingResult
-	{
-		Success,
-
-		ZeroAreaTestFailed,
-		PolygonLimitReached,
-
-		LargeTriangle,
-
-		Failure
-	};
-
-	enum class ForceMode : uint8_t
-	{
-		Force,
-		Impulse,
-		VelocityChange,
-		Acceleration
-	};
-
-	enum class ActorLockFlag
-	{
-		PositionX = 1 << 0, PositionY = 1 << 1, PositionZ = 1 << 2, 
-		Position = PositionX | PositionY | PositionZ,
-		
-		RotationX = 1 << 3, RotationY = 1 << 4, RotationZ = 1 << 5, 
-		Rotation = RotationX | RotationY | RotationZ
-	};
-
 	namespace PhysicsUtils
 	{
 		physx::PxTransform ToPhysicsTransform(const TransformComponent& transform);
@@ -54,5 +26,8 @@ namespace NR
 
 		CookingResult FromPhysicsCookingResult(physx::PxConvexMeshCookingResult::Enum cookingResult);
 		CookingResult FromPhysicsCookingResult(physx::PxTriangleMeshCookingResult::Enum cookingResult);
+		
+		physx::PxBroadPhaseType::Enum ToPhysicsBroadphaseType(BroadphaseType type);
+		physx::PxFrictionType::Enum ToPhysicsFrictionType(FrictionType type);
 	}
 }

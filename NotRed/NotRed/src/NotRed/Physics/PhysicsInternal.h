@@ -31,8 +31,5 @@ namespace NR
 			physx::PxPairFlags& pairFlags, 
 			const void* constantBlock, 
 			physx::PxU32 constantBlockSize);
-
-		static physx::PxBroadPhaseType::Enum ToPhysicsBroadphaseType(BroadphaseType type);
-		static physx::PxFrictionType::Enum ToPhysicsFrictionType(FrictionType type);
 	};
 }

@@ -165,6 +165,10 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetLockFlag_Native", NR::Script::NR_RigidBodyComponent_SetLockFlag);
 		mono_add_internal_call("NR.RigidBodyComponent::IsLockFlagSet_Native", NR::Script::NR_RigidBodyComponent_IsLockFlagSet);
 		mono_add_internal_call("NR.RigidBodyComponent::GetLockFlags_Native", NR::Script::NR_RigidBodyComponent_GetLockFlags);
+		mono_add_internal_call("NR.RigidBodyComponent::IsKinematic_Native", NR::Script::NR_RigidBodyComponent_IsKinematic);
+		mono_add_internal_call("NR.RigidBodyComponent::SetIsKinematic_Native", NR::Script::NR_RigidBodyComponent_SetIsKinematic);
+		mono_add_internal_call("NR.RigidBodyComponent::IsSleeping_Native", NR::Script::NR_RigidBodyComponent_IsSleeping);
+		mono_add_internal_call("NR.RigidBodyComponent::SetIsSleeping_Native", NR::Script::NR_RigidBodyComponent_SetIsSleeping);
 
 		mono_add_internal_call("NR.BoxColliderComponent::GetSize_Native", NR::Script::NR_BoxColliderComponent_GetSize);
 		mono_add_internal_call("NR.BoxColliderComponent::SetSize_Native", NR::Script::NR_BoxColliderComponent_SetSize);

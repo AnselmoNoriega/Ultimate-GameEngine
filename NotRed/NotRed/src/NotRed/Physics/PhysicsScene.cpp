@@ -14,24 +14,20 @@ namespace NR
 {
 	static ContactListener sContactListener;
 
-#define ENABLE_ACTIVE_ACTORS 1
-
 	PhysicsScene::PhysicsScene(const PhysicsSettings& settings)
 		: mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_PCM;
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ENHANCED_DETERMINISM;
-
-#if ENABLE_ACTIVE_ACTORS
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_ACTIVE_ACTORS;
-#endif
+
 		sceneDesc.gravity = PhysicsUtils::ToPhysicsVector(settings.Gravity);
-		sceneDesc.broadPhaseType = PhysicsInternal::ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
-		sceneDesc.cpuDispatcher = PhysicsInternal::GetCPUDispatcher();
+		sceneDesc.broadPhaseType = PhysicsUtils::ToPhysicsBroadphaseType(settings.BroadphaseAlgorithm);
+		sceneDesc.frictionType = PhysicsUtils::ToPhysicsFrictionType(settings.FrictionModel);
 		sceneDesc.filterShader = (physx::PxSimulationFilterShader)PhysicsInternal::FilterShader;
+		sceneDesc.cpuDispatcher = PhysicsInternal::GetCPUDispatcher();
 		sceneDesc.simulationEventCallback = &sContactListener;
-		sceneDesc.frictionType = PhysicsInternal::ToPhysicsFrictionType(settings.FrictionModel);
 
 		NR_CORE_ASSERT(sceneDesc.isValid());
 
@@ -60,20 +56,16 @@ namespace NR
 
 		if (advanced)
 		{
-#if ENABLE_ACTIVE_ACTORS
 			uint32_t nbActiveActors;
 			physx::PxActor** activeActors = mPhysicsScene->getActiveActors(nbActiveActors);
 			for (uint32_t i = 0; i < nbActiveActors; ++i)
 			{
-				Ref<PhysicsActor> actor = (PhysicsActor*)(activeActors[i]->userData);
-				actor->SynchronizeTransform();
+				Ref<PhysicsActor> actor = (PhysicsActor*)activeActors[i]->userData;
+				if (!actor->IsSleeping())
+				{
+					actor->SynchronizeTransform();
+				}
 			}
-#else
-			for (auto& actor : mActors)
-			{
-				actor->SynchronizeTransform();
-			}
-#endif
 		}
 	}
 

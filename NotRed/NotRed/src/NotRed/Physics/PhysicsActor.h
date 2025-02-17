@@ -1,6 +1,5 @@
 #pragma once
 
-#include "PhysicsUtils.h"
 #include "PhysicsShapes.h"
 #include "NotRed/Scene/Entity.h"
 
@@ -82,6 +81,7 @@ namespace NR
 
 		void WakeUp();
 		void Sleep();
+		bool IsSleeping() const;
 
 	private:
 		void CreateRigidActor();

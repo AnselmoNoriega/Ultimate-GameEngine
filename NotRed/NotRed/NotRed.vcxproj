@@ -247,6 +247,7 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsScene.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsSettings.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsShapes.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsTypes.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsUtils.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathHelpers.h" />

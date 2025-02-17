@@ -53,6 +53,12 @@ namespace NR
             }
         }
 
+        public bool IsKinematic
+        {
+            get => IsKinematic_Native(Entity.ID);
+            set => SetIsKinematic_Native(Entity.ID, value);
+        }
+
         public Vector3 Translation
         {
             get
@@ -435,6 +441,12 @@ namespace NR
 
         public uint Layer { get { return GetLayer_Native(Entity.ID); } }
 
+        public bool IsSleeping
+        {
+            get => IsSleeping_Native(Entity.ID);
+            set => SetIsSleeping_Native(Entity.ID, value);
+        }
+
         public void GetKinematicTarget(out Vector3 targetPosition, out Vector3 targetRotation)
         {
             GetKinematicTarget_Native(Entity.ID, out targetPosition, out targetRotation);
@@ -517,6 +529,11 @@ namespace NR
         internal static extern Type GetBodyType_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetBodyType_Native(ulong entityID, Type type);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsKinematic_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetIsKinematic_Native(ulong entityID, bool isKinematic);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetKinematicTarget_Native(ulong entityID, out Vector3 targetPosition, out Vector3 targetRotation);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -527,6 +544,10 @@ namespace NR
         internal static extern bool IsLockFlagSet_Native(ulong entityID, ActorLockFlag flag);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern uint GetLockFlags_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsSleeping_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetIsSleeping_Native(ulong entityID, bool isSleeping);
     }
 
     public class BoxColliderComponent : Component

@@ -132,6 +132,10 @@ namespace NR::Script
     void NR_RigidBodyComponent_SetLockFlag(uint64_t entityID, ActorLockFlag flag, bool value);
     bool NR_RigidBodyComponent_IsLockFlagSet(uint64_t entityID, ActorLockFlag flag);
     uint32_t NR_RigidBodyComponent_GetLockFlags(uint64_t entityID);
+    bool NR_RigidBodyComponent_IsKinematic(uint64_t entityID);
+    void NR_RigidBodyComponent_SetIsKinematic(uint64_t entityID, bool isKinematic);
+    bool NR_RigidBodyComponent_IsSleeping(uint64_t entityID);
+    void NR_RigidBodyComponent_SetIsSleeping(uint64_t entityID, bool isSleeping);
 
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize);
     void NR_BoxColliderComponent_SetSize(uint64_t entityID, glm::vec3* inSize);

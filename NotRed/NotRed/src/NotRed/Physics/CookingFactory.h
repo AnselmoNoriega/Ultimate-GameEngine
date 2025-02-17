@@ -1,7 +1,5 @@
 #pragma once
 
-#include <PhysX/include/PxPhysicsAPI.h>
-
 #include "PhysicsUtils.h"
 
 #include "NotRed/Core/Core.h"

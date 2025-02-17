@@ -3,6 +3,8 @@
 
 #include "CookingFactory.h"
 
+#include "NotRed/Math/Math.h"
+
 #include "Debug/PhysicsDebugger.h"
 
 namespace NR
@@ -168,29 +170,5 @@ namespace NR
 		}
 
 		return physx::PxFilterFlag::eSUPPRESS;
-	}
-
-	physx::PxBroadPhaseType::Enum PhysicsInternal::ToPhysicsBroadphaseType(BroadphaseType type)
-	{
-		switch (type)
-		{
-		case BroadphaseType::SweepAndPrune: return physx::PxBroadPhaseType::eSAP;
-		case BroadphaseType::MultiBoxPrune: return physx::PxBroadPhaseType::eMBP;
-		case BroadphaseType::AutomaticBoxPrune: return physx::PxBroadPhaseType::eABP;
-		}
-
-		return physx::PxBroadPhaseType::eABP;
-	}
-
-	physx::PxFrictionType::Enum PhysicsInternal::ToPhysicsFrictionType(FrictionType type)
-	{
-		switch (type)
-		{
-		case FrictionType::Patch:			return physx::PxFrictionType::ePATCH;
-		case FrictionType::OneDirectional:	return physx::PxFrictionType::eONE_DIRECTIONAL;
-		case FrictionType::TwoDirectional:	return physx::PxFrictionType::eTWO_DIRECTIONAL;
-		}
-
-		return physx::PxFrictionType::ePATCH;
 	}
 }

@@ -74,5 +74,26 @@ namespace NR
 			}
 			return CookingResult::Failure;
 		}
+
+		physx::PxBroadPhaseType::Enum ToPhysicsBroadphaseType(BroadphaseType type)
+		{
+			switch (type)
+			{
+			case BroadphaseType::SweepAndPrune:			return physx::PxBroadPhaseType::eSAP;
+			case BroadphaseType::MultiBoxPrune:			return physx::PxBroadPhaseType::eMBP;
+			case BroadphaseType::AutomaticBoxPrune:		return physx::PxBroadPhaseType::eABP;
+			}
+			return physx::PxBroadPhaseType::eABP;
+		}
+		physx::PxFrictionType::Enum ToPhysicsFrictionType(FrictionType type)
+		{
+			switch (type)
+			{
+			case FrictionType::Patch:					return physx::PxFrictionType::ePATCH;
+			case FrictionType::OneDirectional:			return physx::PxFrictionType::eONE_DIRECTIONAL;
+			case FrictionType::TwoDirectional:			return physx::PxFrictionType::eTWO_DIRECTIONAL;
+			}
+			return physx::PxFrictionType::ePATCH;
+		}
 	}
 }

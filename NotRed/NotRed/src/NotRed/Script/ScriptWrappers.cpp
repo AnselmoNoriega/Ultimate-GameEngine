@@ -1133,9 +1133,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        if (component.IsKinematic)
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
         {
-            NR_CORE_WARN("Cannot add a force to a kinematic actor! EntityID({0})", entityID);
+            NR_CONSOLE_LOG_WARN("Cannot add a force to a static or kinematic actor! EntityID({0})", entityID);
             return;
         }
 
@@ -1155,9 +1155,9 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        if (component.IsKinematic)
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
         {
-            NR_CORE_WARN("Cannot add torque to a kinematic actor! EntityID({0})", entityID);
+            NR_CONSOLE_LOG_WARN("Cannot add torque to a static or kinematic actor! EntityID({0})", entityID);
             return;
         }
 
@@ -1176,6 +1176,12 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get linear velocity from a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+
         NR_CORE_ASSERT(outVelocity);
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         *outVelocity = actor->GetVelocity();
@@ -1191,10 +1197,12 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
-
-        NR_CORE_ASSERT(velocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-        actor->SetVelocity(*velocity);
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set linear velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+        PhysicsManager::GetScene()->GetActor(entity)->SetVelocity(*velocity);
     }
 
     void NR_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity)
@@ -1207,6 +1215,12 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get angular velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
 
         NR_CORE_ASSERT(outVelocity);
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
@@ -1224,6 +1238,12 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set angular velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+
         NR_CORE_ASSERT(velocity);
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetAngularVelocity(*velocity);
@@ -1239,6 +1259,13 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get max linear velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return 0.0f;
+        }
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetMaxVelocity();
     }
@@ -1253,6 +1280,13 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set max linear velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetMaxVelocity(maxVelocity);
     }
@@ -1266,6 +1300,13 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get max angular velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return 0.0f;
+        }
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetMaxAngularVelocity();
     }
@@ -1278,6 +1319,14 @@ namespace NR::Script
 
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set max angular velocity of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
 
         actor->SetMaxAngularVelocity(maxVelocity);
@@ -1293,6 +1342,13 @@ namespace NR::Script
         
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get linear drag of a static or kinematic actor! EntityID({0})", entityID);
+            return 0.0f;
+        }
         
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetLinearDrag();
@@ -1308,6 +1364,13 @@ namespace NR::Script
         
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set linear drag of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
         
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetLinearDrag(linearDrag);
@@ -1323,6 +1386,13 @@ namespace NR::Script
         
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get angular drag of a static or kinematic actor! EntityID({0})", entityID);
+            return 0.0f;
+        }
         
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetAngularDrag();
@@ -1338,6 +1408,13 @@ namespace NR::Script
         
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set angular drag of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
         
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetAngularDrag(angularDrag);
@@ -1366,6 +1443,11 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot get mass of a static or kinematic actor! EntityID({0})", entityID);
+            return 0.0f;
+        }
 
         const Ref<PhysicsActor>& actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetMass();
@@ -1381,6 +1463,11 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot set mass of a static or kinematic actor! EntityID({0})", entityID);
+            return;
+        }
 
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetMass(mass);
@@ -1447,6 +1534,11 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.IsKinematic || component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            return false;
+        }
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->IsLockFlagSet(flag);
     }
@@ -1465,6 +1557,77 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetLockFlags();
+    }
+
+    bool NR_RigidBodyComponent_IsKinematic(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Static actors can't be kinematic! EntityID({0})", entityID);
+            return false;
+        }
+        return PhysicsManager::GetScene()->GetActor(entity)->IsKinematic();
+    }
+
+    void NR_RigidBodyComponent_SetIsKinematic(uint64_t entityID, bool isKinematic)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Cannot make a static actor kinematic! EntityID({0})", entityID);
+            return;
+        }
+        PhysicsManager::GetScene()->GetActor(entity)->SetKinematic(isKinematic);
+    }
+
+    bool NR_RigidBodyComponent_IsSleeping(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Shouldn't call RigidBodyComponent.IsSleeping on a static actor! EntityID({0})", entityID);
+            return true;
+        }
+        return PhysicsManager::GetScene()->GetActor(entity)->IsSleeping();
+    }
+
+    void NR_RigidBodyComponent_SetIsSleeping(uint64_t entityID, bool isSleeping)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        auto& component = entity.GetComponent<RigidBodyComponent>();
+        if (component.BodyType == RigidBodyComponent::Type::Static)
+        {
+            NR_CONSOLE_LOG_WARN("Static actors can't be put to sleep! EntityID({0})", entityID);
+            return;
+        }
+        if (isSleeping)
+            PhysicsManager::GetScene()->GetActor(entity)->Sleep();
+        else
+            PhysicsManager::GetScene()->GetActor(entity)->WakeUp();
     }
 
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize)

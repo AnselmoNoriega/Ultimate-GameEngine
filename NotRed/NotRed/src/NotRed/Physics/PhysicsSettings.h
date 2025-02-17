@@ -2,22 +2,10 @@
 
 #include <glm/glm.hpp>
 
+#include "PhysicsTypes.h"
+
 namespace NR
 {
-	enum class BroadphaseType
-	{
-		SweepAndPrune,
-		MultiBoxPrune,
-		AutomaticBoxPrune
-	};
-
-	enum class FrictionType
-	{
-		Patch,
-		OneDirectional,
-		TwoDirectional
-	};
-
 	enum class DebugType
 	{
 		DebugToFile,

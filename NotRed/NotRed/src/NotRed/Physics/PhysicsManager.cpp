@@ -191,6 +191,9 @@ namespace NR
 						bool hasGravity = !actor->IsGravityDisabled();
 						UI::Property("Has Gravity", hasGravity);
 
+						bool isSleeping = actor->IsSleeping();
+						UI::Property("Is Sleeping", isSleeping);
+
 						glm::vec3 linearVelocity = actor->GetVelocity();
 						float maxLinearVelocity = actor->GetMaxVelocity();
 						glm::vec3 angularVelocity = actor->GetAngularVelocity();

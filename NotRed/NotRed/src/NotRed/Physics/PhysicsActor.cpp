@@ -78,6 +78,11 @@ namespace NR
 		}
 	}
 
+	bool PhysicsActor::IsSleeping() const
+	{
+		return IsDynamic() ? mRigidActor->is<physx::PxRigidDynamic>()->isSleeping() : false;
+	}
+
 	float PhysicsActor::GetMass() const
 	{
 		return !IsDynamic() ? mRigidBodyData.Mass : mRigidActor->is<physx::PxRigidDynamic>()->getMass();
@@ -239,9 +244,7 @@ namespace NR
 			return;
 		}
 
-		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
-		NR_CORE_ASSERT(actor);
-		actor->setLinearVelocity(PhysicsUtils::ToPhysicsVector(velocity));
+		mRigidActor->is<physx::PxRigidDynamic>()->setLinearVelocity(PhysicsUtils::ToPhysicsVector(velocity));
 	}
 
 	glm::vec3 PhysicsActor::GetAngularVelocity() const
@@ -490,9 +493,9 @@ namespace NR
 
 			SetKinematic(mRigidBodyData.IsKinematic);
 
-			ModifyLockFlag(ActorLockFlag::PositionX, mRigidBodyData.LockPositionX);
-			ModifyLockFlag(ActorLockFlag::PositionY, mRigidBodyData.LockPositionY);
-			ModifyLockFlag(ActorLockFlag::PositionZ, mRigidBodyData.LockPositionZ);
+			ModifyLockFlag(ActorLockFlag::TranslationX, mRigidBodyData.LockPositionX);
+			ModifyLockFlag(ActorLockFlag::TranslationY, mRigidBodyData.LockPositionY);
+			ModifyLockFlag(ActorLockFlag::TranslationZ, mRigidBodyData.LockPositionZ);
 			ModifyLockFlag(ActorLockFlag::RotationX, mRigidBodyData.LockRotationX);
 			ModifyLockFlag(ActorLockFlag::RotationY, mRigidBodyData.LockRotationY);
 			ModifyLockFlag(ActorLockFlag::RotationZ, mRigidBodyData.LockRotationZ);
