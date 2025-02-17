@@ -6,6 +6,8 @@
 
 namespace NR
 {
+	enum class EFalloffMode { Constant, Linear };
+
 	class PhysicsActor : public RefCounted
 	{
 	public:
@@ -15,8 +17,14 @@ namespace NR
 		float GetMass() const;
 		void SetMass(float mass);
 
+		float GetInverseMass() const;
+
+		glm::mat4 GetCenterOfMass() const;
+		glm::mat4 GetLocalCenterOfMass() const;
+
 		void AddForce(const glm::vec3& force, ForceMode forceMode);
 		void AddTorque(const glm::vec3& torque, ForceMode forceMode);
+		void AddRadialImpulse(const glm::vec3& origin, float radius, float strength, EFalloffMode falloff = EFalloffMode::Constant, bool velocityChange = false);
 
 		glm::vec3 GetVelocity() const;
 		void SetVelocity(const glm::vec3& velocity);
@@ -30,6 +38,8 @@ namespace NR
 
 		void SetLinearDrag(float drag) const;
 		void SetAngularDrag(float drag) const;
+		float GetLinearDrag() const;
+		float GetAngularDrag() const;
 
 		glm::vec3 GetKinematicTargetPosition() const;
 		glm::vec3 GetKinematicTargetRotation() const;
@@ -60,6 +70,8 @@ namespace NR
 		const TransformComponent& GetTransform() const { return mEntity.GetComponent<TransformComponent>(); }
 
 		physx::PxRigidActor& GetPhysicsActor() const { return *mRigidActor; }
+
+		const std::vector<Ref<ColliderShape>>& GetCollisionShapes() const { return mColliders; }
 
 		glm::vec3 GetPosition() const { return PhysicsUtils::FromPhysicsVector(mRigidActor->getGlobalPose().p); }
 		void SetPosition(const glm::vec3& translation, bool autowake = true);

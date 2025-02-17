@@ -70,6 +70,7 @@ namespace NR
 		mono_add_internal_call("NR.Physics::OverlapSphereNonAlloc_Native", NR::Script::NR_Physics_OverlapSphereNonAlloc);
 		mono_add_internal_call("NR.Physics::GetGravity_Native", NR::Script::NR_Physics_GetGravity);
 		mono_add_internal_call("NR.Physics::SetGravity_Native", NR::Script::NR_Physics_SetGravity);
+		mono_add_internal_call("NR.Physics::AddRadialImpulse_Native", NR::Script::NR_Physics_AddRadialImpulse);
 		mono_add_internal_call("NR.Entity::GetParent_Native", NR::Script::NR_Entity_GetParent);
 		mono_add_internal_call("NR.Entity::SetParent_Native", NR::Script::NR_Entity_SetParent);
 		mono_add_internal_call("NR.Entity::GetChildren_Native", NR::Script::NR_Entity_GetChildren);
@@ -209,6 +210,10 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetMaxVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::GetMaxAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_GetMaxAngularVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::SetMaxAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxAngularVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::GetLinearDrag_Native", NR::Script::NR_RigidBodyComponent_GetLinearDrag);
+		mono_add_internal_call("NR.RigidBodyComponent::SetLinearDrag_Native", NR::Script::NR_RigidBodyComponent_SetLinearDrag);
+		mono_add_internal_call("NR.RigidBodyComponent::GetAngularDrag_Native", NR::Script::NR_RigidBodyComponent_GetAngularDrag);
+		mono_add_internal_call("NR.RigidBodyComponent::SetAngularDrag_Native", NR::Script::NR_RigidBodyComponent_SetAngularDrag);
 
 		mono_add_internal_call("NR.MeshFactory::CreatePlane_Native", NR::Script::NR_MeshFactory_CreatePlane);
 		mono_add_internal_call("NR.MeshFactory::CreateCustomMesh_Native", NR::Script::NR_MeshFactory_CreateCustomMesh);

@@ -36,6 +36,8 @@ namespace NR
 
 		virtual void DetachFromActor(physx::PxRigidActor* actor) = 0;
 
+		virtual const char* GetShapeName() const = 0;
+
 		virtual void SetFilterData(const physx::PxFilterData& filterData) = 0;
 
 		physx::PxMaterial& GetMaterial() const { return *mMaterial; }
@@ -58,6 +60,8 @@ namespace NR
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
 
+		const char* GetShapeName() const override { return "BoxCollider"; }
+
 		void SetOffset(const glm::vec3& offset) override;
 		void SetTrigger(bool isTrigger) override;
 
@@ -79,6 +83,8 @@ namespace NR
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
 
+		const char* GetShapeName() const override { return "SphereCollider"; }
+
 		void SetOffset(const glm::vec3& offset) override;
 		void SetTrigger(bool isTrigger) override;
 
@@ -99,6 +105,8 @@ namespace NR
 		~CapsuleColliderShape() override = default;
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
+
+		const char* GetShapeName() const override { return "CapsuleCollider"; }
 
 		void SetOffset(const glm::vec3& offset) override;
 		void SetTrigger(bool isTrigger) override;
@@ -128,6 +136,8 @@ namespace NR
 		void SetFilterData(const physx::PxFilterData& filterData) override;
 		void DetachFromActor(physx::PxRigidActor* actor) override;
 
+		const char* GetShapeName() const override { return "ConvexMeshCollider"; }
+
 	private:
 		MeshColliderComponent& mComponent;
 		std::vector<physx::PxShape*> mShapes;
@@ -140,6 +150,8 @@ namespace NR
 		~TriangleMeshShape() override = default;
 
 		void DetachFromActor(physx::PxRigidActor* actor) override;
+
+		const char* GetShapeName() const override { return "TriangleMeshCollider"; }
 
 		void SetOffset(const glm::vec3& offset) override {};
 		void SetTrigger(bool isTrigger) override;

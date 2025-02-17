@@ -8,6 +8,8 @@
 #include "PhysicsUtils.h"
 #include "ContactListener.h"
 
+#include "NotRed/Debug/Profiler.h"
+
 namespace NR
 {
 	static ContactListener sContactListener;
@@ -149,30 +151,55 @@ namespace NR
 		return result;
 	}
 
-	bool PhysicsScene::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	bool PhysicsScene::OverlapBox(const glm::vec3& origin, const glm::vec3& halfSize, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
 	{
 		return OverlapGeometry(origin, physx::PxBoxGeometry(halfSize.x, halfSize.y, halfSize.z), buffer, count);
 	}
 
-	bool PhysicsScene::OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	bool PhysicsScene::OverlapCapsule(const glm::vec3& origin, float radius, float halfHeight, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
 	{
 		return OverlapGeometry(origin, physx::PxCapsuleGeometry(radius, halfHeight), buffer, count);
 	}
 
-	bool PhysicsScene::OverlapSphere(const glm::vec3& origin, float radius, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	bool PhysicsScene::OverlapSphere(const glm::vec3& origin, float radius, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
 	{
 		return OverlapGeometry(origin, physx::PxSphereGeometry(radius), buffer, count);
 	}
 
-	bool PhysicsScene::OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	void PhysicsScene::AddRadialImpulse(const glm::vec3& origin, float radius, float strength, EFalloffMode falloff, bool velocityChange)
 	{
-		physx::PxOverlapBuffer buf(buffer.data(), OVERLAP_MAX_COLLIDERS);
+		NR_PROFILE_FUNC();
+		std::array<OverlapHit, OVERLAP_MAX_COLLIDERS> overlappedColliders;
+		memset(overlappedColliders.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
+		uint32_t count = 0;
+
+		if (!OverlapSphere(origin, radius, overlappedColliders, count))
+		{
+			return;
+		}
+
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			overlappedColliders[i].Actor->AddRadialImpulse(origin, radius, strength, falloff, velocityChange);
+		}
+	}
+
+	static std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS> sOverlapBuffer;
+	bool PhysicsScene::OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
+	{
+		NR_PROFILE_FUNC();
+		physx::PxOverlapBuffer buf(sOverlapBuffer.data(), OVERLAP_MAX_COLLIDERS);
 		physx::PxTransform pose = PhysicsUtils::ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
+
 		bool result = mPhysicsScene->overlap(geometry, pose, buf);
 		if (result)
 		{
-			memcpy(buffer.data(), buf.touches, buf.nbTouches * sizeof(physx::PxOverlapHit));
-			count = buf.nbTouches;
+			count = buf.nbTouches > OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
+			for (uint32_t i = 0; i < count; ++i)
+			{
+				buffer[i].Actor = (PhysicsActor*)sOverlapBuffer[i].actor->userData;
+				buffer[i].Shape = (ColliderShape*)sOverlapBuffer[i].shape->userData;
+			}
 		}
 		return result;
 	}

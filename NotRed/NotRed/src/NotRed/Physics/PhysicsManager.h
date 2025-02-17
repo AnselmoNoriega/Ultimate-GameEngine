@@ -19,6 +19,8 @@ namespace NR
 		// Gives the current scene
 		static Ref<PhysicsScene> GetScene() { return sScene; }
 
+		static void ImGuiRender();
+
 		static void CreateActors(Ref<Scene> scene);
 		static Ref<PhysicsActor> CreateActor(Entity entity);
 

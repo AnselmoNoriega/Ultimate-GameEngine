@@ -421,13 +421,19 @@ namespace NR
             }
         }
 
-        public uint Layer 
-        { 
-            get 
-            { 
-                return GetLayer_Native(Entity.ID);
-            } 
+        public float LinearDrag
+        {
+            get { return GetLinearDrag_Native(Entity.ID); }
+            set { SetLinearDrag_Native(Entity.ID, value); }
         }
+
+        public float AngularDrag
+        {
+            get { return GetAngularDrag_Native(Entity.ID); }
+            set { SetAngularDrag_Native(Entity.ID, value); }
+        }
+
+        public uint Layer { get { return GetLayer_Native(Entity.ID); } }
 
         public void GetKinematicTarget(out Vector3 targetPosition, out Vector3 targetRotation)
         {
@@ -485,6 +491,15 @@ namespace NR
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float GetMaxVelocity_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetLinearDrag_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetLinearDrag_Native(ulong entityID, float linearDrag);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetAngularDrag_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetAngularDrag_Native(ulong entityID, float angularDrag);
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetMaxVelocity_Native(ulong entityID, float maxVelocity);
         [MethodImpl(MethodImplOptions.InternalCall)]

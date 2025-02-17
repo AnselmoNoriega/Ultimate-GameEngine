@@ -43,6 +43,7 @@ namespace NR
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
 		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f)));
+		mShape->userData = this;
 	}
 
 	void BoxColliderShape::SetOffset(const glm::vec3& offset)
@@ -81,6 +82,7 @@ namespace NR
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
 		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f)));
+		mShape->userData = this;
 	}
 
 	void SphereColliderShape::SetOffset(const glm::vec3& offset)
@@ -119,6 +121,7 @@ namespace NR
 		mShape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		mShape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
 		mShape->setLocalPose(PhysicsUtils::ToPhysicsTransform(offset + mComponent.Offset, glm::vec3(0.0f, 0.0f, physx::PxHalfPi)));
+		mShape->userData = this;
 	}
 
 	void CapsuleColliderShape::SetOffset(const glm::vec3& offset)
@@ -177,6 +180,7 @@ namespace NR
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
 			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(colliderData.Transform));
+			shape->userData = this;
 
 			actor.GetPhysicsActor().attachShape(*shape);
 
@@ -253,6 +257,7 @@ namespace NR
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
 			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(colliderData.Transform));
+			shape->userData = this;
 
 			actor.GetPhysicsActor().attachShape(*shape);
 			mShapes.push_back(shape);

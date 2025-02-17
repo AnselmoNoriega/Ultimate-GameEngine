@@ -97,6 +97,24 @@ namespace NR
 		mRigidBodyData.Mass = mass;
 	}
 
+	float PhysicsActor::GetInverseMass() const
+	{
+		return !IsDynamic() ? -mRigidBodyData.Mass : mRigidActor->is<physx::PxRigidDynamic>()->getInvMass();
+	}
+
+	glm::mat4 PhysicsActor::GetCenterOfMass() const
+	{
+		if (!IsDynamic())
+		{
+			return glm::mat4(1.0f);
+		}
+
+		const auto actor = mRigidActor->is<physx::PxRigidDynamic>();
+		return PhysicsUtils::FromPhysicsTransform(actor->getGlobalPose().transform(actor->getCMassLocalPose()));
+	}
+
+	glm::mat4 PhysicsActor::GetLocalCenterOfMass() const { return !IsDynamic() ? glm::mat4(1.0f) : PhysicsUtils::FromPhysicsTransform(mRigidActor->is<physx::PxRigidDynamic>()->getCMassLocalPose()); }
+
 	glm::vec3 PhysicsActor::GetKinematicTargetPosition() const
 	{
 		if (!IsKinematic())
@@ -168,6 +186,36 @@ namespace NR
 		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
 		NR_CORE_ASSERT(actor);
 		actor->addTorque(PhysicsUtils::ToPhysicsVector(torque), (physx::PxForceMode::Enum)forceMode);
+	}
+
+	void PhysicsActor::AddRadialImpulse(const glm::vec3& origin, float radius, float strength, EFalloffMode falloff, bool velocityChange)
+	{
+		if (!IsDynamic() && !IsKinematic())
+		{
+			return;
+		}
+
+		float mass = GetMass();
+		glm::mat4 centerOfMassTransform = GetCenterOfMass();
+		glm::vec3 centerOfMass = centerOfMassTransform[3];
+		glm::vec3 delta = centerOfMass - origin;
+		float magnitude = glm::length(delta);
+		
+		if (magnitude > radius)
+		{
+			return;
+		}
+
+		delta = glm::normalize(delta);
+		float impulseMagnitude = strength;
+		if (falloff == EFalloffMode::Linear)
+		{
+			impulseMagnitude *= (1.0f - (magnitude / radius));
+		}
+
+		glm::vec3 impulse = delta * impulseMagnitude;
+		ForceMode mode = velocityChange ? ForceMode::VelocityChange : ForceMode::Impulse;
+		AddForce(impulse, mode);
 	}
 
 	glm::vec3 PhysicsActor::GetVelocity() const
@@ -293,6 +341,32 @@ namespace NR
 		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
 		NR_CORE_ASSERT(actor);
 		actor->setAngularDamping(drag);
+	}
+
+	float PhysicsActor::GetLinearDrag() const
+	{
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Trying to get linear drag of non-dynamic PhysicsActor.");
+			return 0.0f;
+		}
+
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		return actor->getLinearDamping();
+	}
+
+	float PhysicsActor::GetAngularDrag() const
+	{
+		if (!IsDynamic())
+		{
+			NR_CORE_WARN("Trying to get angular drag of non-dynamic PhysicsActor.");
+			return 0.0f;
+		}
+
+		physx::PxRigidDynamic* actor = mRigidActor->is<physx::PxRigidDynamic>();
+		NR_CORE_ASSERT(actor);
+		return actor->getAngularDamping();
 	}
 
 	void PhysicsActor::SetSimulationData(uint32_t layerId)

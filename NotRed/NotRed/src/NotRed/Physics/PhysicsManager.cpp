@@ -146,6 +146,110 @@ namespace NR
 		return actor;
 	}
 
+	void PhysicsManager::ImGuiRender()
+	{
+		ImGui::Begin("Physics Stats");
+		if (sScene && sScene->IsValid())
+		{
+			auto gravity = sScene->GetGravity();
+			std::string gravityString = fmt::format("X: {0}, Y: {1}, Z: {2}", gravity.x, gravity.y, gravity.z);
+			ImGui::Text("Gravity: %s", gravityString.c_str());
+			
+			const auto& actors = sScene->GetActors();
+			ImGui::Text("Actors: %d", actors.size());
+
+			for (const auto& actor : actors)
+			{
+				UUID id = actor->GetEntity().GetID();
+				std::string label = fmt::format("{0}##{1}", actor->GetEntity().GetComponent<TagComponent>().Tag, id);
+				bool open = UI::PropertyGridHeader(label, false);
+				if (open)
+				{
+					UI::BeginPropertyGrid();
+					UI::PushItemDisabled();
+
+					glm::vec3 translation = actor->GetPosition();
+					glm::vec3 rotation = actor->GetRotation();
+					
+					UI::Property("Translation", translation);
+					UI::Property("Rotation", rotation);
+					
+					bool isDynamic = actor->IsDynamic();
+					bool isKinematic = actor->IsKinematic();
+					
+					UI::Property("Is Dynamic", isDynamic);
+					UI::Property("Is Kinematic", isKinematic);
+
+					if (actor->IsDynamic())
+					{
+						float mass = actor->GetMass();
+						UI::Property("Mass", mass);
+
+						float inverseMass = actor->GetInverseMass();
+						UI::Property("Inverse Mass", inverseMass);
+
+						bool hasGravity = !actor->IsGravityDisabled();
+						UI::Property("Has Gravity", hasGravity);
+
+						glm::vec3 linearVelocity = actor->GetVelocity();
+						float maxLinearVelocity = actor->GetMaxVelocity();
+						glm::vec3 angularVelocity = actor->GetAngularVelocity();
+						float maxAngularVelocity = actor->GetMaxAngularVelocity();
+
+						UI::Property("Linear Velocity", linearVelocity);
+						UI::Property("Max Linear Velocity", maxLinearVelocity);
+						UI::Property("Angular Velocity", angularVelocity);
+						UI::Property("Max Angular Velocity", maxAngularVelocity);
+
+						float linearDrag = actor->GetLinearDrag();
+						float angularDrag = actor->GetAngularDrag();
+
+						UI::Property("Linear Drag", linearDrag);
+						UI::Property("Angular Drag", angularDrag);
+					}
+
+					UI::PopItemDisabled();
+					UI::EndPropertyGrid();
+
+					const auto& collisionShapes = actor->GetCollisionShapes();
+					ImGui::Text("Shapes: %d", collisionShapes.size());
+
+					for (const auto& shape : collisionShapes)
+					{
+						std::string shapeLabel = fmt::format("{0}##{1}", shape->GetShapeName(), id);
+						bool shapeOpen = UI::PropertyGridHeader(shapeLabel, false);
+						if (shapeOpen)
+						{
+							UI::BeginPropertyGrid();
+							UI::PushItemDisabled();
+
+							glm::vec3 offset = shape->GetOffset();
+							bool isTrigger = shape->IsTrigger();
+
+							UI::Property("Offset", offset);
+							UI::Property("Is Trigger", isTrigger);
+
+							const auto& material = shape->GetMaterial();
+							float staticFriction = material.getStaticFriction();
+							float dynamicFriction = material.getDynamicFriction();
+							float restitution = material.getRestitution();
+
+							UI::Property("Static Friction", staticFriction);
+							UI::Property("Dynamic Friction", staticFriction);
+							UI::Property("Restitution", restitution);
+
+							UI::PopItemDisabled();
+							UI::EndPropertyGrid();
+							ImGui::TreePop();
+						}
+					}
+					ImGui::TreePop();
+				}
+			}
+		}
+		ImGui::End();
+	}
+
 	PhysicsSettings PhysicsManager::sSettings;
 	Ref<PhysicsScene> PhysicsManager::sScene;
 }

@@ -52,6 +52,7 @@ namespace NR::Script
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders);
     void NR_Physics_GetGravity(glm::vec3* outGravity);
     void NR_Physics_SetGravity(glm::vec3* inGravity);
+    void NR_Physics_AddRadialImpulse(glm::vec3* inOrigin, float radius, float strength, EFalloffMode falloff, bool velocityChange);
 
     // Entity
     void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID);
@@ -119,6 +120,10 @@ namespace NR::Script
     void NR_RigidBodyComponent_SetMaxVelocity(uint64_t entityID, float maxVelocity);
     float NR_RigidBodyComponent_GetMaxAngularVelocity(uint64_t entityID);
     void NR_RigidBodyComponent_SetMaxAngularVelocity(uint64_t entityID, float maxVelocity);
+    float NR_RigidBodyComponent_GetLinearDrag(uint64_t entityID);
+    void NR_RigidBodyComponent_SetLinearDrag(uint64_t entityID, float linearDrag);
+    float NR_RigidBodyComponent_GetAngularDrag(uint64_t entityID);
+    void NR_RigidBodyComponent_SetAngularDrag(uint64_t entityID, float angularDrag);
     uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID);
     float NR_RigidBodyComponent_GetMass(uint64_t entityID);
     void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass);

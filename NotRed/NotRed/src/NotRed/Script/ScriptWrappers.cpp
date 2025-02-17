@@ -548,12 +548,12 @@ namespace NR::Script
         return success;
     }
 
-    static void AddCollidersToArray(MonoArray* array, const std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
+    static void AddCollidersToArray(MonoArray* array, const std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
     {
         uint32_t arrayIndex = 0;
         for (uint32_t i = 0; i < count; ++i)
         {
-            Entity& entity = *(Entity*)hits[i].actor->userData;
+            Entity entity = hits[i].Actor->GetEntity();
 
             if (entity.HasComponent<BoxColliderComponent>() && arrayIndex < arrayLength)
             {
@@ -617,14 +617,16 @@ namespace NR::Script
 
     }
 
-    static std::array<physx::PxOverlapHit, OVERLAP_MAX_COLLIDERS> sOverlapBuffer;
+    static std::array<OverlapHit, OVERLAP_MAX_COLLIDERS> sOverlapBuffer;
 
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize)
     {
+        NR_PROFILE_FUNC();
+
         NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
 
         MonoArray* outColliders = nullptr;
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         uint32_t count;
         if (PhysicsManager::GetScene()->OverlapBox(*origin, *halfSize, sOverlapBuffer, count))
@@ -638,10 +640,12 @@ namespace NR::Script
 
     MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight)
     {
+        NR_PROFILE_FUNC();
+
         NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
 
         MonoArray* outColliders = nullptr;
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         uint32_t count;
         if (PhysicsManager::GetScene()->OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, count))
@@ -656,7 +660,8 @@ namespace NR::Script
     {
         NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
 
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+        NR_PROFILE_FUNC();
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
 
@@ -677,6 +682,9 @@ namespace NR::Script
     int32_t NR_Physics_OverlapCapsuleNonAlloc(glm::vec3* origin, float radius, float halfHeight, MonoArray* outColliders)
     {
         NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
+
+        NR_PROFILE_FUNC();
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
@@ -699,6 +707,9 @@ namespace NR::Script
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders)
     {
         NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
+
+        NR_PROFILE_FUNC();
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
 
@@ -732,10 +743,19 @@ namespace NR::Script
         scene->SetGravity(*inGravity);
     }
 
+    void NR_Physics_AddRadialImpulse(glm::vec3* inOrigin, float radius, float strength, EFalloffMode falloff, bool velocityChange)
+    {
+        Ref<PhysicsScene> scene = PhysicsManager::GetScene();
+        NR_CORE_ASSERT(scene && scene->IsValid(), "No active Phyiscs Scene!");
+        scene->AddRadialImpulse(*inOrigin, radius, strength, falloff, velocityChange);
+    }
+
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius)
     {
+        NR_PROFILE_FUNC();
+
         MonoArray* outColliders = nullptr;
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         uint32_t count;
 
@@ -1261,6 +1281,66 @@ namespace NR::Script
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
 
         actor->SetMaxAngularVelocity(maxVelocity);
+    }
+
+    float NR_RigidBodyComponent_GetLinearDrag(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        return actor->GetLinearDrag();
+    }
+
+    void NR_RigidBodyComponent_SetLinearDrag(uint64_t entityID, float linearDrag)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        actor->SetLinearDrag(linearDrag);
+    }
+
+    float NR_RigidBodyComponent_GetAngularDrag(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        return actor->GetAngularDrag();
+    }
+
+    void NR_RigidBodyComponent_SetAngularDrag(uint64_t entityID, float angularDrag)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
+        
+        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        actor->SetAngularDrag(angularDrag);
     }
 
     uint32_t NR_RigidBodyComponent_GetLayer(uint64_t entityID)

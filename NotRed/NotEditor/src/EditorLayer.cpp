@@ -2444,6 +2444,7 @@ namespace NR
         ImGui::End();
 
         ScriptEngine::ImGuiRender();
+        PhysicsManager::ImGuiRender();
         if (mViewportPanelFocused)
         {
             mFocusedRenderer = mViewportRenderer;

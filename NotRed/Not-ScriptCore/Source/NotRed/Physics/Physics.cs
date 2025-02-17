@@ -44,6 +44,8 @@ namespace NR
         RotationXYZ = RotationX | RotationY | RotationZ
     }
 
+    public enum EFalloffMode { Constant, Linear }
+
     public static class Physics
     {
         public static Vector3 Gravity
@@ -56,6 +58,11 @@ namespace NR
 
             set => SetGravity_Native(ref value);
         }
+        public static void AddRadialImpulse(Vector3 origin, float radius, float strength, EFalloffMode falloff = EFalloffMode.Constant, bool velocityChange = false)
+        {
+            AddRadialImpulse_Native(ref origin, radius, strength, falloff, velocityChange);
+        }
+
         public static bool Raycast(RaycastData raycastData, out RaycastHit hit) => Raycast_Native(ref raycastData, out hit);
 
         public static bool Raycast(Vector3 origin, Vector3 direction, float maxDistance, out RaycastHit hit, params Type[] componentFilters)
@@ -117,5 +124,7 @@ namespace NR
         internal static extern void GetGravity_Native(out Vector3 gravity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetGravity_Native(ref Vector3 gravity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void AddRadialImpulse_Native(ref Vector3 origin, float radius, float strength, EFalloffMode falloff, bool velocityChange);
     }
 }
