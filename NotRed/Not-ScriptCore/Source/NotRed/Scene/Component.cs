@@ -118,6 +118,11 @@ namespace NR
         internal static extern void SetScale_Native(ulong entityID, ref Vector3 inScale);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetWorldSpaceTransform_Native(ulong entityID, out Transform outTransform);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsKinematic_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetIsKinematic_Native(ulong entityID, bool isKinematic);
     }
 
     public class MeshComponent : Component
@@ -529,11 +534,6 @@ namespace NR
         internal static extern Type GetBodyType_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetBodyType_Native(ulong entityID, Type type);
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern bool IsKinematic_Native(ulong entityID);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetIsKinematic_Native(ulong entityID, bool isKinematic);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetKinematicTarget_Native(ulong entityID, out Vector3 targetPosition, out Vector3 targetRotation);
         [MethodImpl(MethodImplOptions.InternalCall)]

@@ -92,8 +92,6 @@ namespace NR
         mSceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
         mSceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-        mPrefabHierarchyPanel = CreateScope<SceneHierarchyPanel>();
-
         mRenderer2D = Ref<Renderer2D>::Create();
 
         if (!mUserPreferences->StartupProject.empty())
@@ -121,11 +119,14 @@ namespace NR
         AudioEventsEditor::Init();
         UI::Widgets::Init();
 
+        SceneHierarchyPanel::Init();
+
         sNotRedInstallPath = FileSystem::GetEnvironmentVariable("NOTRED_DIR");
     }
 
     void EditorLayer::Detach()
     {
+        SceneHierarchyPanel::Shutdown();
         UI::Widgets::Shutdown();
         CloseProject(false);
         AudioEventsEditor::Shutdown();

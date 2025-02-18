@@ -195,7 +195,7 @@ namespace NR
 
 	void PhysicsActor::AddRadialImpulse(const glm::vec3& origin, float radius, float strength, EFalloffMode falloff, bool velocityChange)
 	{
-		if (!IsDynamic() && !IsKinematic())
+		if (!IsDynamic() || IsKinematic())
 		{
 			return;
 		}

@@ -172,7 +172,11 @@ namespace NR
 
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			overlappedColliders[i].Actor->AddRadialImpulse(origin, radius, strength, falloff, velocityChange);
+			auto actor = overlappedColliders[i].Actor;
+			if (actor->IsDynamic() && !actor->IsKinematic())
+			{
+				actor->AddRadialImpulse(origin, radius, strength, falloff, velocityChange);
+			}
 		}
 	}
 

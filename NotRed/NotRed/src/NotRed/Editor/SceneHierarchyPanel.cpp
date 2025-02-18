@@ -34,24 +34,27 @@
 
 namespace NR
 {
-    SceneHierarchyPanel::SceneHierarchyPanel()
-    {
-        mPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
-        mPlusIcon = Texture2D::Create("Resources/Editor/plus_icon.png");
-        mGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
-    }
+    Ref<Texture2D> SceneHierarchyPanel::sPencilIcon;
+    Ref<Texture2D> SceneHierarchyPanel::sPlusIcon;
+    Ref<Texture2D> SceneHierarchyPanel::sGearIcon;
 
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
         : mContext(context)
     {
-        mPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
-        mPlusIcon = Texture2D::Create("Resources/Editor/plus_icon.png");
-        mGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
     }
 
-    SceneHierarchyPanel::~SceneHierarchyPanel()
+    void SceneHierarchyPanel::Init()
     {
-        mGearIcon.~Ref();
+        sPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
+        sPlusIcon = Texture2D::Create("Resources/Editor/plus_icon.png");
+        sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
+    }
+
+    void SceneHierarchyPanel::Shutdown()
+    {
+        sPencilIcon.Reset();
+        sPlusIcon.Reset();
+        sGearIcon.Reset();
     }
 
     void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene)
@@ -889,7 +892,7 @@ namespace NR
         {
             const float iconOffset = 6.0f;
             UI::ShiftCursor(4.0f, iconOffset);
-            UI::Image(mPencilIcon, ImVec2(mPencilIcon->GetWidth(), mPencilIcon->GetHeight()),
+            UI::Image(sPencilIcon, ImVec2(sPencilIcon->GetWidth(), sPencilIcon->GetHeight()),
                 ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
                 ImColor(128, 128, 128, 255).Value);
             ImGui::SameLine(0.0f, 4.0f);
@@ -948,7 +951,7 @@ namespace NR
 
             ImGui::SetCursorScreenPos(iconPos);
             UI::ShiftCursor(-5.0f, -1.0f);
-            UI::Image(mPlusIcon, ImVec2(iconWidth, iconHeight),
+            UI::Image(sPlusIcon, ImVec2(iconWidth, iconHeight),
                 ImVec2(0.0f, 0.0f), ImVec2(1.0f, 1.0f),
                 ImColor(160, 160, 160, 255).Value);
         }
@@ -1163,7 +1166,7 @@ namespace NR
                 UI::ShiftCursorY(-8.0f);
                 UI::Draw::Underline();
                 UI::ShiftCursorY(18.0f);
-            }, mGearIcon, false);
+            }, sGearIcon, false);
 
         DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
             {
@@ -1286,7 +1289,7 @@ namespace NR
                         UI::EndTreeNode();
                     }
                 }
-        }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
             {
@@ -1318,7 +1321,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<AnimationComponent>("Animation", entity, [&](AnimationComponent& anim)
             {
@@ -1335,10 +1338,10 @@ namespace NR
                 }
 
                 auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-                if (anim.AnimationController) 
+                if (anim.AnimationController)
                 {
                     int stateIndex = animationController->GetStateIndex();
-                
+
                     UI::Property("State", stateIndex);
                     animationController->SetStateIndex(stateIndex);
                     int rootMotionMode = (int)animationController->GetRootMotionMode();
@@ -1370,7 +1373,7 @@ namespace NR
                     ImGui::Text("Please add a Mesh component!");
                     ImGui::PopStyleColor();
                 }
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
             {
@@ -1423,11 +1426,11 @@ namespace NR
                     }
                 }
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity, [](SpriteRendererComponent& mc)
             {
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<TextComponent>("Text", entity, [](TextComponent& tc)
             {
@@ -1462,7 +1465,7 @@ namespace NR
                 UI::Property("Max Width", tc.MaxWidth);
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<DirectionalLightComponent>("Directional Light", entity, [](DirectionalLightComponent& dlc)
             {
@@ -1473,7 +1476,7 @@ namespace NR
                 UI::Property("Soft Shadows", dlc.SoftShadows);
                 UI::Property("Source Size", dlc.LightSize);
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<PointLightComponent>("Point Light", entity, [](PointLightComponent& dlc)
             {
@@ -1483,7 +1486,7 @@ namespace NR
                 UI::Property("Radius", dlc.Radius, 0.1f, 0.f, std::numeric_limits<float>::max());
                 UI::Property("Falloff", dlc.Falloff, 0.005f, 0.f, 1.f);
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<SkyLightComponent>("Sky Light", entity, [](SkyLightComponent& slc)
             {
@@ -1492,7 +1495,7 @@ namespace NR
                 UI::Property("Intensity", slc.Intensity, 0.01f, 0.0f, 5.0f);
                 if (AssetManager::IsAssetHandleValid(slc.SceneEnvironment))
                 {
-                    auto environment = AssetManager::GetAsset<Environment>(slc.SceneEnvironment);				
+                    auto environment = AssetManager::GetAsset<Environment>(slc.SceneEnvironment);
                     if (environment && environment->RadianceMap)
                     {
                         UI::PropertySlider("Lod", slc.Lod, 0.0f, static_cast<float>(environment->RadianceMap->GetMipLevelCount()));
@@ -1531,7 +1534,7 @@ namespace NR
                     }
                 }
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<ScriptComponent>("Script", entity, [=](ScriptComponent& sc) mutable
             {
@@ -1755,7 +1758,7 @@ namespace NR
                     ScriptEngine::OnCreateEntity(entity);
                 }
 #endif
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<RigidBody2DComponent>("Rigidbody 2D", entity, [](RigidBody2DComponent& rb2dc)
             {
@@ -1773,7 +1776,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& bc2dc)
             {
@@ -1785,7 +1788,7 @@ namespace NR
                 UI::Property("Friction", bc2dc.Friction);
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<CircleCollider2DComponent>("Circle Collider 2D", entity, [](CircleCollider2DComponent& cc2dc)
             {
@@ -1797,7 +1800,7 @@ namespace NR
                 UI::Property("Friction", cc2dc.Friction);
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<RigidBodyComponent>("Rigidbody", entity, [&](RigidBodyComponent& rbc)
             {
@@ -1849,7 +1852,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<BoxColliderComponent>("Box Collider", entity, [](BoxColliderComponent& bcc)
             {
@@ -1865,7 +1868,7 @@ namespace NR
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", bcc.Material);
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](SphereColliderComponent& scc)
             {
@@ -1879,7 +1882,7 @@ namespace NR
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", scc.Material);
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<CapsuleColliderComponent>("Capsule Collider", entity, [](CapsuleColliderComponent& ccc)
             {
@@ -1902,7 +1905,7 @@ namespace NR
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", ccc.Material);
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<MeshColliderComponent>("Mesh Collider", entity, [&](MeshColliderComponent& mcc)
             {
@@ -1949,7 +1952,7 @@ namespace NR
                 }
 
                 UI::EndPropertyGrid();
-            }, mGearIcon);
+            }, sGearIcon);
 
 
         DrawComponent<AudioListenerComponent>("Audio Listener", entity, [&](AudioListenerComponent& alc)
@@ -1975,7 +1978,7 @@ namespace NR
                 float inAngle = glm::degrees(alc.ConeInnerAngleInRadians);
                 float outAngle = glm::degrees(alc.ConeOuterAngleInRadians);
                 float outGain = alc.ConeOuterGain;
-                
+
                 if (UI::Property("Inner Cone Angle", inAngle, 1.0f, 0.0f, 360.0f))
                 {
                     if (inAngle > 360.0f) inAngle = 360.0f;
@@ -1994,7 +1997,7 @@ namespace NR
 
                 UI::EndPropertyGrid();
 
-            }, mGearIcon);
+            }, sGearIcon);
 
         DrawComponent<AudioComponent>("Audio", entity, [&](AudioComponent& ac)
             {
@@ -2041,6 +2044,6 @@ namespace NR
                 UI::PopID();
 
                 colors[ImGuiCol_Separator] = oldSCol;
-            }, mGearIcon);
-                }
-            }
+            }, sGearIcon);
+    }
+}

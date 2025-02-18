@@ -6,7 +6,7 @@ namespace NR
     [StructLayout(LayoutKind.Sequential), Serializable]
     public struct Vector3 : IEquatable<Vector3>
     {
-        public static readonly Vector3 zero = new Vector3(0, 0, 0);
+        public static readonly Vector3 Zero = new Vector3(0, 0, 0);
 
         public static readonly Vector3 Forward = new Vector3(0, 0, -1);
         public static readonly Vector3 Right = new Vector3(1, 0, 0);
@@ -191,15 +191,6 @@ namespace NR
         public static Vector3 Sin(Vector3 vector)
         {
             return new Vector3((float)Math.Sin(vector.x), (float)Math.Sin(vector.y), (float)Math.Sin(vector.z));
-        }
-
-        public static Vector3 Cross(Vector3 a, Vector3 b)
-        {
-            return new Vector3(
-                a.y * b.z - a.z * b.y,
-                a.z * b.x - a.x * b.z,
-                a.x * b.y - a.y * b.x
-            );
         }
 
         public override string ToString()

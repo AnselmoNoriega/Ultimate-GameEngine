@@ -9,9 +9,11 @@ namespace NR
 	class SceneHierarchyPanel
 	{
 	public:
-		SceneHierarchyPanel();
+		SceneHierarchyPanel() = default;
 		SceneHierarchyPanel(const Ref<Scene>& scene);
-		~SceneHierarchyPanel();
+
+		static void Init();
+		static void Shutdown();
 
 		void SetContext(const Ref<Scene>& scene);
 		void SetSelected(Entity entity);
@@ -31,9 +33,9 @@ namespace NR
 		Ref<Scene> mContext;
 		Entity mSelectionContext;
 
-		Ref<Texture2D> mPencilIcon;
-		Ref<Texture2D> mPlusIcon;
-		Ref<Texture2D> mGearIcon;
+		static Ref<Texture2D> sPencilIcon;
+		static Ref<Texture2D> sPlusIcon;
+		static Ref<Texture2D> sGearIcon;
 
 	private:
 		std::function<void(Entity)> mSelectionChangedCallback, mEntityDeletedCallback;

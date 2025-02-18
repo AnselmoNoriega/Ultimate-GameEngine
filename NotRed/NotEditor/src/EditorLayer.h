@@ -111,7 +111,7 @@ namespace NR
 
 	private:
 		Ref<UserPreferences> mUserPreferences;
-		Scope<SceneHierarchyPanel> mSceneHierarchyPanel, mPrefabHierarchyPanel;
+		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
 		Scope<ContentBrowserPanel> mContentBrowserPanel;
 		Scope<ProjectSettingsWindow> mProjectSettingsPanel;
 		Scope<EditorConsolePanel> mConsolePanel;
