@@ -7,11 +7,17 @@
 
 namespace NR
 {
+	struct SubmeshColliderData
+	{
+		Buffer ColliderData;
+		glm::mat4 Transform;
+	};
+
 	struct MeshColliderData
 	{
-		byte* Data;
-		glm::mat4 Transform;
-		uint32_t Size;
+		std::vector<SubmeshColliderData> Submeshes;
+		enum class ColliderType : uint8_t { Triangle, Convex };
+		ColliderType Type;
 	};
 
 	class CookingFactory
@@ -20,14 +26,14 @@ namespace NR
 		static void Initialize();
 		static void Shutdown();
 
-		static CookingResult CookMesh(MeshColliderComponent& component, bool invalidateOld = false, std::vector<MeshColliderData>& outData = mDefaultOutData);
-		static CookingResult ForceCookMesh(MeshColliderComponent& component);
+		static CookingResult ForceCookMesh(AssetHandle collisionMesh);
+		static CookingResult CookMesh(AssetHandle collisionMesh, bool invalidateOld = false);
 
-		static CookingResult CookConvexMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData);
-		static CookingResult CookTriangleMesh(const Ref<Mesh>& mesh, std::vector<MeshColliderData>& outData);
-
+		static CookingResult CookConvexMesh(const Ref<Mesh>& mesh, MeshColliderData& outData);
+		static CookingResult CookTriangleMesh(const Ref<StaticMesh>& staticMesh, MeshColliderData& outData);
+		
 	private:
-		static void GenerateDebugMesh(MeshColliderComponent& component, const MeshColliderData& colliderData);
+		static void GenerateDebugMesh(AssetHandle collisionMesh);
 
 	private:
 		static std::vector<MeshColliderData> mDefaultOutData;

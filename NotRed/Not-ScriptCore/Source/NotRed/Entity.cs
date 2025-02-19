@@ -60,7 +60,16 @@ namespace NR
 
         public Entity Instantiate(Prefab prefab, Vector3 translation)
         {
-            ulong entityID = InstantiateWithTranslation_Native(ID, prefab.ID, ref translation);
+            Transform transform = new Transform();
+            transform.Position = translation;
+            transform.Rotation = Vector3.Zero;
+            transform.Scale = new Vector3(1.0f);
+            return Instantiate(prefab, transform);
+        }
+
+        public Entity Instantiate(Prefab prefab, Transform transform)
+        {
+            ulong entityID = InstantiateWithTransform_Native(ID, prefab.ID, ref transform);
             if (entityID == 0)
             {
                 return null;
@@ -358,7 +367,7 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong Instantiate_Native(ulong entityID, ulong prefabID);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern ulong InstantiateWithTranslation_Native(ulong entityID, ulong prefabID, ref Vector3 translation);
+        private static extern ulong InstantiateWithTransform_Native(ulong entityID, ulong prefabID, ref Transform transform);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong DestroyEntity_Native(ulong entityID);
 

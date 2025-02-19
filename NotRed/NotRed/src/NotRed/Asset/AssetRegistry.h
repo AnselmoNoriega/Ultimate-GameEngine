@@ -10,6 +10,8 @@ namespace NR
 	class AssetRegistry
 	{
 	public:
+		std::filesystem::path GetPathKey(const std::filesystem::path& path) const;
+
 		AssetMetadata& operator[](const std::filesystem::path& path);
 
 		const AssetMetadata& Get(const std::filesystem::path& path) const;

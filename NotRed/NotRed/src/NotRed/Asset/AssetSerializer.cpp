@@ -47,9 +47,9 @@ namespace NR
 
 	bool MeshAssetSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
 	{
-		asset = Ref<MeshAsset>::Create(AssetManager::GetFileSystemPathString(metadata));
+		asset = Ref<MeshSource>::Create(AssetManager::GetFileSystemPathString(metadata));
 		asset->Handle = metadata.Handle;
-		return (asset.As<MeshAsset>())->GetStaticVertices().size() > 0;
+		return (asset.As<MeshSource>())->GetVertices().size() > 0;
 	}
 
 	void MaterialAssetSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const

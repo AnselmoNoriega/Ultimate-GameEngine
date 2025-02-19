@@ -11,8 +11,9 @@ namespace NR
 	{
 		sSerializers[AssetType::Prefab] = CreateScope<PrefabSerializer>();
 		sSerializers[AssetType::Texture] = CreateScope<TextureSerializer>();
-		sSerializers[AssetType::MeshAsset] = CreateScope<MeshAssetSerializer>();
 		sSerializers[AssetType::Mesh] = CreateScope<MeshSerializer>();
+		sSerializers[AssetType::StaticMesh] = CreateScope<StaticMeshSerializer>();
+		sSerializers[AssetType::MeshSource] = CreateScope<MeshAssetSerializer>();
 		sSerializers[AssetType::Material] = CreateScope<MaterialAssetSerializer>();
 		sSerializers[AssetType::EnvMap] = CreateScope<EnvironmentSerializer>();
 		sSerializers[AssetType::PhysicsMat] = CreateScope<PhysicsMaterialSerializer>();

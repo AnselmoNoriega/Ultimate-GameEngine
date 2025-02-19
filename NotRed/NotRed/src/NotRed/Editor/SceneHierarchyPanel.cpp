@@ -226,7 +226,7 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                                        CookingFactory::CookMesh(collider);
+                                        // CookingFactory::CookMesh(collider);
                                         SetSelected(newEntity);
                                     }
                                     if (ImGui::MenuItem("Torus"))
@@ -235,7 +235,7 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                                        CookingFactory::CookMesh(collider);
+                                        // CookingFactory::CookMesh(collider);
                                         SetSelected(newEntity);
                                     }
                                     if (ImGui::MenuItem("Plane"))
@@ -244,7 +244,7 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                                        CookingFactory::CookMesh(collider);
+                                        // CookingFactory::CookMesh(collider);
                                         SetSelected(newEntity);
                                     }
                                     if (ImGui::MenuItem("Cone"))
@@ -253,7 +253,7 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cone.fbx");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                                        CookingFactory::CookMesh(collider);
+                                        // CookingFactory::CookMesh(collider);
                                         SetSelected(newEntity);
                                     }
                                     ImGui::EndMenu();
@@ -571,7 +571,7 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrmesh");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
+                            // CookingFactory::CookMesh(collider);
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Torus"))
@@ -581,7 +581,7 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrmesh");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
+                            // CookingFactory::CookMesh(collider);
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Plane"))
@@ -591,7 +591,7 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrmesh");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
+                            // CookingFactory::CookMesh(collider);
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Cone"))
@@ -601,7 +601,7 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cone.fbx");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
-                            CookingFactory::CookMesh(collider);
+                            // CookingFactory::CookMesh(collider);
                             SetSelected(newEntity);
                         }
                         ImGui::EndMenu();
@@ -972,11 +972,19 @@ namespace NR
                         ImGui::CloseCurrentPopup();
                     }
                 }
-                if (!mSelectionContext.HasComponent<MeshComponent>())
+                if (!mSelectionContext.HasComponent<MeshComponent>() && !mSelectionContext.HasComponent<StaticMeshComponent>())
                 {
                     if (ImGui::MenuItem("Mesh"))
                     {
                         mSelectionContext.AddComponent<MeshComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
+                if (!mSelectionContext.HasComponent<StaticMeshComponent>() && !mSelectionContext.HasComponent<MeshComponent>())
+                {
+                    if (ImGui::MenuItem("Static Mesh"))
+                    {
+                        mSelectionContext.AddComponent<StaticMeshComponent>();
                         ImGui::CloseCurrentPopup();
                     }
                 }
@@ -1100,12 +1108,7 @@ namespace NR
                 {
                     if (ImGui::MenuItem("Mesh Collider"))
                     {
-                        MeshColliderComponent& component = mSelectionContext.AddComponent<MeshColliderComponent>();
-                        if (mSelectionContext.HasComponent<MeshComponent>())
-                        {
-                            component.CollisionMesh = mSelectionContext.GetComponent<MeshComponent>().MeshHandle;
-                            CookingFactory::CookMesh(component);
-                        }
+                        mSelectionContext.AddComponent<MeshColliderComponent>();
 
                         ImGui::CloseCurrentPopup();
                     }
@@ -1180,8 +1183,8 @@ namespace NR
 
                 UI::PropertyAssetReferenceError error;
 
-                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshAsset>("Mesh", mc.MeshHandle,
-                    [=](Ref<MeshAsset> meshAsset)
+                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshSource>("Mesh", mc.Mesh,
+                    [=](Ref<MeshSource> meshAsset)
                     {
                         if (mMeshAssetConvertCallback)
                         {
@@ -1193,7 +1196,10 @@ namespace NR
                     {
                         auto& mcc = entity.GetComponent<MeshColliderComponent>();
                         mcc.CollisionMesh = mc.MeshHandle;
-                        CookingFactory::CookMesh(mcc, true);
+                        if (AssetManager::IsAssetHandleValid(mcc.CollisionMesh))
+                        {
+                            CookingFactory::CookMesh(mcc.CollisionMesh);
+                        }
                     }
                 }
 
@@ -1207,7 +1213,7 @@ namespace NR
 
                 if (mesh)
                 {
-                    UI::Property("Submesh Index", mc.SubmeshIndex, 0, mesh->GetMeshAsset()->GetSubmeshes().size() - 1);
+                    UI::Property("Submesh Index", mc.SubmeshIndex, 0, mesh->GetMeshSource()->GetSubmeshes().size() - 1);
                 }
 
                 UI::EndPropertyGrid();
@@ -1374,6 +1380,102 @@ namespace NR
                     ImGui::PopStyleColor();
                 }
             }, sGearIcon);
+
+        DrawComponent<StaticMeshComponent>("Static Mesh", entity, [&](StaticMeshComponent& smc)
+            {
+                Ref<StaticMesh> mesh = AssetManager::GetAsset<StaticMesh>(smc.StaticMesh);
+                if (AssetManager::IsAssetHandleValid(smc.StaticMesh))
+                {
+                    mesh = AssetManager::GetAsset<StaticMesh>(smc.StaticMesh);
+                }
+
+                UI::BeginPropertyGrid();
+                UI::PropertyAssetReferenceError error;
+                if (UI::PropertyAssetReferenceWithConversion<StaticMesh, MeshSource>("Static Mesh", smc.StaticMesh,
+                    [=](Ref<MeshSource> meshAsset)
+                    {
+                        if (m_MeshAssetConvertCallback)
+                            m_MeshAssetConvertCallback(entity, meshAsset);
+                    }, &error))
+                {
+                }
+
+                if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
+                {
+                    if (m_InvalidMetadataCallback)
+                        m_InvalidMetadataCallback(entity, UI::s_PropertyAssetReferenceAssetHandle);
+                }
+
+                UI::EndPropertyGrid();
+                if (mesh && mesh->IsValid())
+                {
+                    if (UI::BeginTreeNode("Materials"))
+                    {
+                        UI::BeginPropertyGrid();
+                        auto& meshMaterialTable = mesh->GetMaterials();
+                        if (smc.MaterialTable->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
+                        {
+                            smc.MaterialTable->SetMaterialCount(meshMaterialTable->GetMaterialCount());
+                        }
+
+                        for (size_t i = 0; i < smc.MaterialTable->GetMaterialCount(); ++i)
+                        {
+                            if (i == meshMaterialTable->GetMaterialCount())
+                            {
+                                ImGui::Separator();
+                            }
+
+                            bool hasLocalMaterial = smc.MaterialTable->HasMaterial(i);
+                            bool hasMeshMaterial = meshMaterialTable->HasMaterial(i);
+                            Ref<MaterialAsset> meshMaterialAsset;
+                            if (hasMeshMaterial)
+                            {
+                                meshMaterialAsset = meshMaterialTable->GetMaterial(i);
+                            }
+
+                            Ref<MaterialAsset> materialAsset = hasLocalMaterial ? smc.MaterialTable->GetMaterial(i) : meshMaterialAsset;
+                            std::string label = fmt::format("[Material {0}]", i);
+                            AssetHandle materialAssetHandle = materialAsset->Handle;
+                            UI::PropertyAssetReferenceSettings settings;
+                            
+                            if (hasLocalMaterial || !hasMeshMaterial)
+                            {
+                                if (hasLocalMaterial)
+                                {
+                                    settings.AdvanceToNextColumn = false;
+                                    settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
+                                }
+                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAssetHandle, [i, materialTable = smc.MaterialTable](Ref<MaterialAsset> materialAsset) mutable
+                                    {
+                                        materialTable->SetMaterial(i, materialAsset);
+                                    }, settings);
+                            }
+                            else
+                            {
+                                std::string meshMaterialName = meshMaterialAsset->GetMaterial()->GetName();
+                                if (meshMaterialName.empty())
+                                    meshMaterialName = "Unnamed Material";
+                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAssetHandle, [i, materialTable = smc.MaterialTable](Ref<MaterialAsset> materialAsset) mutable
+                                    {
+                                        materialTable->SetMaterial(i, materialAsset);
+                                    }, settings);
+                            }
+
+                            if (hasLocalMaterial)
+                            {
+                                ImGui::SameLine();
+                                float prevItemHeight = ImGui::GetItemRectSize().y;
+                                if (ImGui::Button("X", { prevItemHeight, prevItemHeight }))
+                                    smc.MaterialTable->ClearMaterial(i);
+                                ImGui::NextColumn();
+                            }
+                        }
+
+                        UI::EndPropertyGrid();
+                        UI::EndTreeNode();
+                    }
+                }
+            });
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
             {
@@ -1810,7 +1912,7 @@ namespace NR
                     if (!rbc.IsKinematic && entity.HasComponent<MeshColliderComponent>())
                     {
                         auto& mcc = entity.GetComponent<MeshColliderComponent>();
-                        mcc.IsConvex = true;
+                        //mcc.IsConvex = true;
                     }
                 }
 
@@ -1917,23 +2019,6 @@ namespace NR
                     cookMesh = true;
                 }
 
-                bool wasConvex = mcc.IsConvex;
-                if (UI::Property("Is Convex", mcc.IsConvex))
-                {
-                    cookMesh = true;
-
-                    if (wasConvex && !mcc.IsConvex && entity.HasComponent<RigidBodyComponent>())
-                    {
-                        auto& rb = entity.GetComponent<RigidBodyComponent>();
-                        if (rb.BodyType == RigidBodyComponent::Type::Dynamic && !rb.IsKinematic)
-                        {
-                            mcc.IsConvex = true;
-                            cookMesh = false;
-                            NR_CORE_ERROR("MeshColliderComponent must be convex for non-kinematic dynamic Rigidbodies!");
-                        }
-                    }
-                }
-
                 UI::Property("Is Trigger", mcc.IsTrigger);
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", mcc.Material);
 
@@ -1946,9 +2031,17 @@ namespace NR
                     }
                 }
 
+                if (UI::Button("Force cook mesh"))
+                {
+                    cookMesh = true;
+                }
+
                 if (cookMesh)
                 {
-                    CookingFactory::CookMesh(mcc, true);
+                    if (AssetManager::IsAssetHandleValid(mcc.CollisionMesh))
+                    {
+                        CookingFactory::CookMesh(mcc.CollisionMesh, true);
+                    }
                 }
 
                 UI::EndPropertyGrid();

@@ -12,7 +12,7 @@ namespace NR
 	#define ASSET_LOG(...)
 #endif
 
-	static std::filesystem::path GetKey(const std::filesystem::path& path)
+	std::filesystem::path AssetRegistry::GetPathKey(const std::filesystem::path& path) const
 	{
 		auto key = std::filesystem::relative(path, Project::GetAssetDirectory());
 		if (key.empty())
@@ -24,7 +24,7 @@ namespace NR
 	}
 	AssetMetadata& AssetRegistry::operator[](const std::filesystem::path& path)
 	{
-		auto key = GetKey(path);
+		auto key = GetPathKey(path);
 		
 		ASSET_LOG("[ASSET] Retrieving key {0} (path = {1})", key.string(), path.string());
 		NR_CORE_ASSERT(!path.string().empty());
@@ -34,7 +34,7 @@ namespace NR
 
 	const AssetMetadata& AssetRegistry::Get(const std::filesystem::path& path) const
 	{
-		auto key = GetKey(path);
+		auto key = GetPathKey(path);
 		
 		NR_CORE_ASSERT(mAssetRegistry.find(key) != mAssetRegistry.end());
 		ASSET_LOG("[ASSET] Retrieving const {0} (path = {1})", key.string(), path.string());
@@ -45,7 +45,7 @@ namespace NR
 
 	bool AssetRegistry::Contains(const std::filesystem::path& path) const
 	{
-		auto key = GetKey(path);
+		auto key = GetPathKey(path);
 		
 		ASSET_LOG("[ASSET] Contains key {0} (path = {1})", key.string(), path.string());
 		
@@ -54,7 +54,7 @@ namespace NR
 
 	size_t AssetRegistry::Remove(const std::filesystem::path& path)
 	{
-		auto key = GetKey(path);
+		auto key = GetPathKey(path);
 		
 		ASSET_LOG("[ASSET] Removing key {0} (path = {1})", key.string(), path.string());
 		

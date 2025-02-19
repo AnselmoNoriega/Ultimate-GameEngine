@@ -13,15 +13,16 @@ namespace NR
 		{ ".nrmaterial", AssetType::Material },
 		{ ".nrprefab", AssetType::Prefab },
 		{ ".nrmesh", AssetType::Mesh },
+		{ ".nrsmesh", AssetType::StaticMesh },
 		{ ".nrsound", AssetType::SoundConfig },
 		{ ".nrpm", AssetType::PhysicsMat },
 		{ ".nranim", AssetType::AnimationController },
 		
 		// Meshes
-		{ ".fbx", AssetType::MeshAsset },
-		{ ".gltf", AssetType::MeshAsset },
-		{ ".glb", AssetType::MeshAsset },
-		{ ".obj", AssetType::MeshAsset },
+		{ ".fbx", AssetType::MeshSource },
+		{ ".gltf", AssetType::MeshSource },
+		{ ".glb", AssetType::MeshSource },
+		{ ".obj", AssetType::MeshSource },
 
 		// Textures
 		{ ".png", AssetType::Texture },

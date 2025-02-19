@@ -155,7 +155,7 @@ namespace NR
 
 	void MeshViewerPanel::SetAsset(const Ref<Asset>& asset)
 	{
-		Ref<MeshAsset> meshAsset = (Ref<MeshAsset>)asset;
+		Ref<MeshSource> meshAsset = (Ref<MeshSource>)asset;
 
 		const std::string& path = meshAsset->GetFilePath();
 		size_t found = path.find_last_of("/\\");
@@ -296,7 +296,7 @@ namespace NR
 		ImGui::PopID();
 	}
 
-	void MeshViewerPanel::DrawMeshNode(const Ref<MeshAsset>& meshAsset, const Ref<Mesh>& mesh)
+	void MeshViewerPanel::DrawMeshNode(const Ref<MeshSource>& meshAsset, const Ref<Mesh>& mesh)
 	{
 		// Mesh Hierarchy
 		auto rootNode = meshAsset->mScene->mRootNode;
@@ -322,7 +322,7 @@ namespace NR
 		return result;
 	}
 
-	void MeshViewerPanel::MeshNodeHierarchy(const Ref<MeshAsset>& meshAsset, Ref<Mesh> mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
+	void MeshViewerPanel::MeshNodeHierarchy(const Ref<MeshSource>& meshAsset, Ref<Mesh> mesh, aiNode* node, const glm::mat4& parentTransform, uint32_t level)
 	{
 		glm::mat4 localTransform = Mat4FromAssimpMat4(node->mTransformation);
 		glm::mat4 transform = parentTransform * localTransform;

@@ -15,8 +15,9 @@ namespace NR
         None,
         Scene,
         Prefab,
-        MeshAsset,
         Mesh,
+        StaticMesh,
+        MeshSource,
         Material,
         Texture,
         EnvMap,
@@ -38,8 +39,10 @@ namespace NR
             if (assetType == "None")                    return AssetType::None;
             if (assetType == "Scene")                   return AssetType::Scene;
             if (assetType == "Prefab")                  return AssetType::Prefab;
-            if (assetType == "MeshAsset")               return AssetType::MeshAsset;
             if (assetType == "Mesh")                    return AssetType::Mesh;
+            if (assetType == "StaticMesh")              return AssetType::StaticMesh;
+            if (assetType == "MeshAsset")               return AssetType::MeshSource; // DEPRECATED
+            if (assetType == "MeshSource")              return AssetType::MeshSource;
             if (assetType == "Material")                return AssetType::Material;
             if (assetType == "Texture")                 return AssetType::Texture;
             if (assetType == "EnvMap")                  return AssetType::EnvMap;
@@ -63,8 +66,9 @@ namespace NR
             case AssetType::None:                       return "None";
             case AssetType::Scene:                      return "Scene";
             case AssetType::Prefab:                     return "Prefab";
-            case AssetType::MeshAsset:                  return "MeshAsset";
             case AssetType::Mesh:                       return "Mesh";
+            case AssetType::StaticMesh:                 return "StaticMesh";
+            case AssetType::MeshSource:                 return "MeshSource";
             case AssetType::Material:                   return "Material";
             case AssetType::Texture:                    return "Texture";
             case AssetType::EnvMap:                     return "EnvMap";

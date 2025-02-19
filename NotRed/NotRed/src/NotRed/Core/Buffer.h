@@ -93,7 +93,7 @@ namespace NR
 		}
 
 		template<typename T>
-		T* As()
+		T* As() const
 		{
 			return (T*)Data;
 		}

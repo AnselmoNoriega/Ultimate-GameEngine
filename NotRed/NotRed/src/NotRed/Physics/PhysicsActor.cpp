@@ -10,6 +10,7 @@
 #include "NotRed/Debug/Profiler.h"
 
 #include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Asset/AssetManager.h"
 
 namespace NR
 {
@@ -455,7 +456,9 @@ namespace NR
 
 	void PhysicsActor::AddCollider(MeshColliderComponent& collider, Entity entity, const glm::vec3& offset)
 	{
-		if (collider.IsConvex)
+		NR_PROFILE_FUNC();
+		const AssetMetadata& metadata = AssetManager::GetMetadata(collider.CollisionMesh);
+		if (metadata.IsValid() && metadata.Type == AssetType::Mesh)
 		{
 			mColliders.push_back(Ref<ConvexMeshShape>::Create(collider, *this, entity, offset));
 		}
@@ -473,6 +476,8 @@ namespace NR
 
 	void PhysicsActor::CreateRigidActor()
 	{
+		NR_PROFILE_FUNC();
+
 		auto& sdk = PhysicsInternal::GetPhysicsSDK();
 
 		Ref<Scene> scene = Scene::GetScene(mEntity.GetSceneID());

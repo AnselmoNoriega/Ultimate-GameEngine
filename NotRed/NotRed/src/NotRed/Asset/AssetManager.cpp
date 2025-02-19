@@ -142,7 +142,7 @@ namespace NR
         }
 
         sAssetRegistry.Remove(metadata.FilePath);
-        metadata.FilePath = newFilePath;
+        metadata.FilePath = sAssetRegistry.GetPathKey(newFilePath);
         sAssetRegistry[metadata.FilePath] = metadata;
         
         WriteRegistryToFile();

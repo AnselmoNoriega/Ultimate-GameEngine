@@ -73,13 +73,20 @@ namespace NR
         }
 
         YAML::Node rootNode = data["Mesh"];
-        if (!rootNode["MeshAsset"])
-        {
+        if (!rootNode["MeshAsset"] && !rootNode["MeshSource"])
             return false;
+
+        AssetHandle meshSourceHandle = 0;
+        if (rootNode["MeshAsset"]) // DEPRECATED
+        {
+            meshSourceHandle = rootNode["MeshAsset"].as<uint64_t>();
+        }
+        else
+        {
+            meshSourceHandle = rootNode["MeshSource"].as<uint64_t>();
         }
 
-        AssetHandle meshSourceHandle = rootNode["MeshAsset"].as<uint64_t>();
-        Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(meshSourceHandle);
+        Ref<MeshSource> meshAsset = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
         if (!meshAsset)
         {
             return false;
@@ -101,11 +108,11 @@ namespace NR
         out << YAML::Key << "Mesh";
         {
             out << YAML::BeginMap;
-            out << YAML::Key << "MeshAsset";
-            out << YAML::Value << mesh->GetMeshAsset()->Handle;
+            out << YAML::Key << "MeshSource";
+            out << YAML::Value << mesh->GetMeshSource()->Handle;
             out << YAML::Key << "SubmeshIndices";
             out << YAML::Flow;
-            if (mesh->GetSubmeshes().size() == mesh->GetMeshAsset()->GetSubmeshes().size())
+            if (mesh->GetSubmeshes().size() == mesh->GetMeshSource()->GetSubmeshes().size())
             {
                 out << YAML::Value << std::vector<uint32_t>();
             }
@@ -146,6 +153,98 @@ namespace NR
     }
 
     bool MeshSerializer::DeserializeRuntime(const std::string& filepath)
+    {
+        NR_CORE_ASSERT(false);
+        return false;
+    }
+
+    StaticMeshSerializer::StaticMeshSerializer()
+    {
+    }
+
+    bool StaticMeshSerializer::TryLoadData(const AssetMetadata& metadata, Ref<Asset>& asset) const
+    {
+        auto filepath = Project::GetAssetDirectory() / metadata.FilePath;
+        std::ifstream stream(filepath);
+        NR_CORE_ASSERT(stream);
+
+        std::stringstream strStream;
+        strStream << stream.rdbuf();
+        YAML::Node data = YAML::Load(strStream.str());
+        if (!data["Mesh"])
+        {
+            return false;
+        }
+
+        YAML::Node rootNode = data["Mesh"];
+        if (!rootNode["MeshAsset"] && !rootNode["MeshSource"])
+        {
+            return false;
+        }
+
+        AssetHandle meshSourceHandle = rootNode["MeshSource"].as<uint64_t>();
+        Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
+        if (!meshSource)
+        {
+            return false; // TODO(Yan): feedback to the user
+        }
+
+        auto submeshIndices = rootNode["SubmeshIndices"].as<std::vector<uint32_t>>();
+        Ref<StaticMesh> mesh = Ref<StaticMesh>::Create(meshSource, submeshIndices);
+        mesh->Handle = metadata.Handle;
+        asset = mesh;
+
+        return true;
+    }
+
+    void StaticMeshSerializer::Serialize(Ref<StaticMesh> mesh, const std::string& filepath)
+    {
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "Mesh";
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "MeshSource";
+            out << YAML::Value << mesh->GetMeshSource()->Handle;
+            out << YAML::Key << "SubmeshIndices";
+            out << YAML::Flow;
+            if (mesh->GetSubmeshes().size() == mesh->GetMeshSource()->GetSubmeshes().size())
+                out << YAML::Value << std::vector<uint32_t>();
+            else
+                out << YAML::Value << mesh->GetSubmeshes();
+            out << YAML::EndMap;
+        }
+        out << YAML::EndMap;
+
+        auto serializePath = Project::GetActive()->GetAssetDirectory() / filepath;
+        NR_CORE_WARN("Serializing to {0}", serializePath.string());
+        
+        std::ofstream fout(serializePath);
+        NR_CORE_ASSERT(fout.good());
+        
+        if (fout.good())
+        {
+            fout << out.c_str();
+        }
+    }
+
+    void StaticMeshSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const
+    {
+        StaticMeshSerializer serializer;
+        serializer.Serialize(asset.As<Mesh>(), metadata.FilePath.string());
+    }
+
+    void StaticMeshSerializer::SerializeRuntime(Ref<StaticMesh> mesh, const std::string& filepath)
+    {
+        NR_CORE_ASSERT(false);
+    }
+
+    bool StaticMeshSerializer::Deserialize(const std::string& filepath)
+    {
+        return false;
+    }
+
+    bool StaticMeshSerializer::DeserializeRuntime(const std::string& filepath)
     {
         NR_CORE_ASSERT(false);
         return false;
