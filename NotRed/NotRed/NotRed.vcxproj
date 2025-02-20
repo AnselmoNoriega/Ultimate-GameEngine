@@ -244,9 +244,11 @@
     <ClInclude Include="src\NotRed\Physics\PhysicsInternal.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsLayer.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsManager.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsMeshCache.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsScene.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsSettings.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsShapes.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsSystem.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsTypes.h" />
     <ClInclude Include="src\NotRed\Physics\PhysicsUtils.h" />
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h" />
@@ -463,8 +465,10 @@
     <ClCompile Include="src\NotRed\Physics\PhysicsInternal.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsLayer.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsManager.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsMeshCache.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsScene.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsShapes.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsSystem.cpp" />
     <ClCompile Include="src\NotRed\Physics\PhysicsUtils.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp" />
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathShaderDatabase.cpp" />

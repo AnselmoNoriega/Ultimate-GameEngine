@@ -8,11 +8,13 @@
 #include "NotRed/Asset/AssetManager.h"
 #include "PhysicsInternal.h"
 #include "PhysicsActor.h"
+#include "PhysicsSystem.h"
 
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"
 
 //#include "NotRed/Project/Project.h"
+#include "NotRed/Debug/Profiler.h"
 
 namespace NR
 {
@@ -150,49 +152,35 @@ namespace NR
 	ConvexMeshShape::ConvexMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::ConvexMesh), mComponent(component)
 	{
-		NR_CORE_ASSERT(component.IsConvex);
+		NR_PROFILE_FUNC();
+
+		NR_CORE_ASSERT(AssetManager::GetMetadata(component.CollisionMesh).Type == AssetType::Mesh);
 
 		SetMaterial(mComponent.Material);
 
-		auto collisionMesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
-		std::vector<MeshColliderData> cookedData;
-		cookedData.reserve(collisionMesh->GetSubmeshes().size());
-		CookingResult result = CookingFactory::CookMesh(component, false, cookedData);
+		const MeshColliderData& meshData = PhysicsSystem::GetMeshCache().GetMeshData(component.CollisionMesh);
+		NR_CORE_ASSERT(meshData.Submeshes.size() > component.SubmeshIndex);
 
-		NR_CORE_ASSERT(cookedData.size() > 0);
+		const SubmeshColliderData& submesh = meshData.Submeshes[component.SubmeshIndex];
+		glm::vec3 submeshTranslation, submeshRotation, submeshScale;
+		Math::DecomposeTransform(submesh.Transform, submeshTranslation, submeshRotation, submeshScale);
 
-		if (result != CookingResult::Success)
-		{
-			return;
-		}
+		physx::PxDefaultMemoryInputData input(submesh.ColliderData.As<physx::PxU8>(), submesh.ColliderData.Size);
+		physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
+		physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
+		convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
 
-		for (auto& colliderData : cookedData)
-		{
-			glm::vec3 submeshTranslation, submeshRotation, submeshScale;
-			Math::DecomposeTransform(colliderData.Transform, submeshTranslation, submeshRotation, submeshScale);
+		physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(convexGeometry, *mMaterial, true);
+		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
+		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
+		//shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submesh.Transform));
 
-			physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
-			physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
-			physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
-			convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
+		actor.GetPhysicsActor().attachShape(*shape);
 
-			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(convexGeometry, *mMaterial, true);
-			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
-			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(colliderData.Transform));
-			shape->userData = this;
+		mShapes.push_back(shape);
 
-			actor.GetPhysicsActor().attachShape(*shape);
-
-			mShapes.push_back(shape);
-
-			shape->release();
-			convexMesh->release();
-
-			delete[] colliderData.Data;
-		}
-
-		cookedData.clear();
+		shape->release();
+		convexMesh->release();
 	}
 
 	void ConvexMeshShape::SetTrigger(bool isTrigger)
@@ -227,47 +215,36 @@ namespace NR
 	TriangleMeshShape::TriangleMeshShape(MeshColliderComponent& component, const PhysicsActor& actor, Entity entity, const glm::vec3& offset)
 		: ColliderShape(ColliderType::TriangleMesh), mComponent(component)
 	{
-		NR_CORE_ASSERT(!component.IsConvex);
+		NR_PROFILE_FUNC();
+
+		NR_CORE_ASSERT(AssetManager::GetMetadata(component.CollisionMesh).Type == AssetType::StaticMesh);
 
 		SetMaterial(mComponent.Material);
-		
+
 		auto collisionMesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
 
-		std::vector<MeshColliderData> cookedData;
-		cookedData.reserve(collisionMesh->GetSubmeshes().size());
-		CookingResult result = CookingFactory::CookMesh(component, false, cookedData);
+		const MeshColliderData& meshData = PhysicsSystem::GetMeshCache().GetMeshData(component.CollisionMesh);
 
-		NR_CORE_ASSERT(cookedData.size() > 0);
-
-		if (result != CookingResult::Success)
+		for (size_t i = 0; i < meshData.Submeshes.size(); ++i)
 		{
-			return;
-		}
+			const SubmeshColliderData& submeshData = meshData.Submeshes[i];
 
-		for (auto& colliderData : cookedData)
-		{
-			glm::vec3 submeshTranslation, submeshRotation, submeshScale;
-			Math::DecomposeTransform(colliderData.Transform, submeshTranslation, submeshRotation, submeshScale);
-
-			physx::PxDefaultMemoryInputData input(colliderData.Data, colliderData.Size);
+			physx::PxDefaultMemoryInputData input(submeshData.ColliderData.As<physx::PxU8>(), submeshData.ColliderData.Size);
 			physx::PxTriangleMesh* trimesh = PhysicsInternal::GetPhysicsSDK().createTriangleMesh(input);
-			physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
-			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(triangleGeometry, *mMaterial, true);
+			physx::PxTriangleMeshGeometry triangleGeometry = physx::PxTriangleMeshGeometry(trimesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(entity.Transform().Scale)));
 
+			physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(triangleGeometry, *mMaterial, true);
 			shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 			shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(colliderData.Transform));
-			shape->userData = this;
+			shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submeshData.Transform));
 
 			actor.GetPhysicsActor().attachShape(*shape);
+
 			mShapes.push_back(shape);
 
 			shape->release();
 			trimesh->release();
-			delete[] colliderData.Data;
 		}
-
-		cookedData.clear();
 	}
 
 	void TriangleMeshShape::SetTrigger(bool isTrigger)

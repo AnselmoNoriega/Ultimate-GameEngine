@@ -865,6 +865,8 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\PhysicsTypes.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsMeshCache.h" />
+    <ClInclude Include="src\NotRed\Physics\PhysicsSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1419,5 +1421,7 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\PhysicsMeshCache.cpp" />
+    <ClCompile Include="src\NotRed\Physics\PhysicsSystem.cpp" />
   </ItemGroup>
 </Project>

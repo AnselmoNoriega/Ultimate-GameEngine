@@ -93,6 +93,8 @@ namespace NR
 
 	Ref<PhysicsActor> PhysicsScene::CreateActor(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(entity);
 
 		mActors.push_back(actor);
@@ -103,6 +105,8 @@ namespace NR
 
 	void PhysicsScene::RemoveActor(Ref<PhysicsActor> actor)
 	{
+		NR_PROFILE_FUNC();
+
 		if (!actor)
 		{
 			return;
@@ -130,6 +134,8 @@ namespace NR
 
 	bool PhysicsScene::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* outHit)
 	{
+		NR_PROFILE_FUNC();
+
 		physx::PxRaycastBuffer hitInfo;
 		bool result = mPhysicsScene->raycast(PhysicsUtils::ToPhysicsVector(origin), PhysicsUtils::ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
 		if (result)
@@ -184,6 +190,7 @@ namespace NR
 	bool PhysicsScene::OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count)
 	{
 		NR_PROFILE_FUNC();
+
 		physx::PxOverlapBuffer buf(sOverlapBuffer.data(), OVERLAP_MAX_COLLIDERS);
 		physx::PxTransform pose = PhysicsUtils::ToPhysicsTransform(glm::translate(glm::mat4(1.0f), origin));
 
@@ -202,6 +209,8 @@ namespace NR
 
 	void PhysicsScene::CreateRegions()
 	{
+		NR_PROFILE_FUNC();
+
 		const PhysicsSettings& settings = PhysicsManager::GetSettings();
 
 		if (settings.BroadphaseAlgorithm == BroadphaseType::AutomaticBoxPrune)
@@ -223,6 +232,8 @@ namespace NR
 
 	bool PhysicsScene::Advance(float dt)
 	{
+		NR_PROFILE_FUNC();
+
 		SubstepStrategy(dt);
 
 		for (uint32_t i = 0; i < mNumSubSteps; ++i)
