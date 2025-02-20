@@ -134,18 +134,19 @@ namespace NR
 		std::string NodeName, MeshName;
 	};
 
-	class MeshAsset : public Asset
+	class MeshSource : public Asset
 	{
 	public:
-		MeshAsset(const std::string& filename);
-		MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
-		MeshAsset(
+		MeshSource(const std::string& filename);
+		MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
+		MeshSource(
 			const std::vector<std::vector<Vertex>>& vertices, 
 			const std::vector<std::vector<Index>>& indices,
 			const std::vector<std::string>& matNames
 		);
-		MeshAsset(int particleCount);
-		virtual ~MeshAsset() = default;
+		MeshSource(int particleCount);
+		MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const std::vector<Submesh>& submeshes);
+		virtual ~MeshSource() = default;
 
 		void DumpVertexBuffer();
 
@@ -166,8 +167,8 @@ namespace NR
 		Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 
-		static AssetType GetStaticType() { return AssetType::MeshAsset; }
-		virtual AssetType GetAssetType() const override { return AssetType::MeshAsset; }
+		static AssetType GetStaticType() { return AssetType::MeshSource; }
+		virtual AssetType GetAssetType() const override { return AssetType::MeshSource; }
 
 		const AABB& GetBoundingBox() const { return mBoundingBox; }
 
@@ -215,23 +216,23 @@ namespace NR
 	class Mesh : public Asset
 	{
 	public:
-		explicit Mesh(Ref<MeshAsset> meshAsset);
-		Mesh(Ref<MeshAsset> meshAsset, const std::vector<uint32_t>& submeshes);
+		explicit Mesh(Ref<MeshSource> meshSource);
+		Mesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes);
 		Mesh(const Ref<Mesh>& other);
 		virtual ~Mesh() = default;
 
 		void UpdateBoneTransforms(const ozz::vector<ozz::math::Float4x4>& modelSpaceTransforms);
 
-		bool IsRigged() { return mMeshAsset && mMeshAsset->IsRigged(); }
+		bool IsRigged() { return mMeshSource && mMeshSource->IsRigged(); }
 
 		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
 
-		Ref<MeshAsset> GetMeshAsset() { return mMeshAsset; }
-		Ref<MeshAsset> GetMeshAsset() const { return mMeshAsset; }
-		void SetMeshAsset(Ref<MeshAsset> meshAsset) { mMeshAsset = meshAsset; }
+		Ref<MeshSource> GetMeshSource() { return mMeshSource; }
+		Ref<MeshSource> GetMeshSource() const { return mMeshSource; }
+		void SetMeshSource(Ref<MeshSource> meshSource) { mMeshSource = meshSource; }
 
 		Ref<MaterialTable> GetMaterials() const { return mMaterials; }
 
@@ -246,7 +247,7 @@ namespace NR
 		void BoneTransform(float time);
 
 	private:
-		Ref<MeshAsset> mMeshAsset;
+		Ref<MeshSource> mMeshSource;
 		std::vector<uint32_t> mSubmeshes;
 
 		// Materials
@@ -261,6 +262,45 @@ namespace NR
 		friend class Renderer;
 		friend class VKRenderer;
 		friend class GLRenderer;
+		friend class SceneHierarchyPanel;
+		friend class MeshViewerPanel;
+	};
+
+	// Static Mesh - no skeletal animation, flattened hierarchy
+	class StaticMesh : public Asset
+	{
+	public:
+		explicit StaticMesh(Ref<MeshSource> meshSource);
+		StaticMesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes);
+		StaticMesh(const Ref<StaticMesh>& other);
+		virtual ~StaticMesh();
+
+		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
+		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
+		
+		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
+		
+		Ref<MeshSource> GetMeshSource() { return mMeshSource; }
+		Ref<MeshSource> GetMeshSource() const { return mMeshSource; }
+		
+		void SetMeshAsset(Ref<MeshSource> meshAsset) { mMeshSource = meshAsset; }
+		
+		Ref<MaterialTable> GetMaterials() const { return mMaterials; }
+		static AssetType GetStaticType() { return AssetType::StaticMesh; }
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
+	
+	private:
+		Ref<MeshSource> mMeshSource;
+		std::vector<uint32_t> mSubmeshes;
+	
+		// Materials
+		Ref<MaterialTable> mMaterials;
+
+	private:
+		friend class Scene;
+		friend class Renderer;
+		friend class VulkanRenderer;
+		friend class OpenGLRenderer;
 		friend class SceneHierarchyPanel;
 		friend class MeshViewerPanel;
 	};

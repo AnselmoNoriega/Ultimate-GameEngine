@@ -22,6 +22,7 @@
 #include "NotRed/Renderer/Renderer2D.h"
 
 #include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/PhysicsSystem.h"
 #include "NotRed/Math/Math.h"
 
 #include "NotRed/Audio/AudioEngine.h"

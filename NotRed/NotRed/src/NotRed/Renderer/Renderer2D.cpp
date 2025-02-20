@@ -892,7 +892,7 @@ namespace NR
 
 	void Renderer2D::DrawAABB(Ref<Mesh> mesh, const glm::mat4& transform, const glm::vec4& color)
 	{
-		const auto& meshAssetSubmeshes = mesh->GetMeshAsset()->GetSubmeshes();
+		const auto& meshAssetSubmeshes = mesh->GetMeshSource()->GetSubmeshes();
 		auto& submeshes = mesh->GetSubmeshes();
 		for (uint32_t submeshIndex : submeshes)
 		{

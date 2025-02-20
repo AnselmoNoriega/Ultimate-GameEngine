@@ -4,6 +4,8 @@
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 
+#include "NotRed/Physics/PhysicsSystem.h"
+
 namespace NR
 {
 	Project::Project()
@@ -19,12 +21,14 @@ namespace NR
 		if (sActiveProject)
 		{
 			AssetManager::Shutdown();
+			PhysicsSystem::Shutdown();
 		}
 
 		sActiveProject = project;
 		if (sActiveProject)
 		{
 			AssetManager::Init();
+			PhysicsSystem::Init();
 			AudioCommandRegistry::Init();
 		}
 	}

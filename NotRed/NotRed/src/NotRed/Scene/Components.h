@@ -102,6 +102,7 @@ namespace NR
 
     struct ParticleComponent
     {
+        // TODO: Change it to a AssetHandler
         Ref<Mesh> MeshObj;
 
         int ParticleCount = 80128;
@@ -113,13 +114,13 @@ namespace NR
 
         ParticleComponent()
         {
-            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(ParticleCount));
+            MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(ParticleCount));
         }
         ParticleComponent(const ParticleComponent& other) = default;
         ParticleComponent(const int particleNum)
         {
             ParticleCount = particleNum;
-            MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(particleNum));
+            MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(particleNum));
         }
 
         operator Ref<Mesh>() { return MeshObj; }
@@ -180,6 +181,19 @@ namespace NR
         float MaxWidth = 10.0f;
         TextComponent() = default;
         TextComponent(const TextComponent& other) = default;
+    };
+
+    struct StaticMeshComponent
+    {
+        AssetHandle StaticMesh;
+        Ref<MaterialTable> Materials = Ref<MaterialTable>::Create();
+        StaticMeshComponent() = default;
+        StaticMeshComponent(const StaticMeshComponent& other)
+            : StaticMesh(other.StaticMesh), Materials(Ref<MaterialTable>::Create(other.Materials))
+        { }
+
+        StaticMeshComponent(AssetHandle staticMesh)
+            : StaticMesh(staticMesh) {}
     };
 
     struct ScriptComponent
@@ -347,8 +361,6 @@ namespace NR
 
         AssetHandle CollisionMesh;
         uint32_t SubmeshIndex = 0;
-        std::vector<Ref<Mesh>> ProcessedMeshes;
-        bool IsConvex = false;
         bool OverrideMesh = false;
 
         bool IsTrigger = false;
@@ -356,10 +368,9 @@ namespace NR
 
         MeshColliderComponent() = default;
         MeshColliderComponent(const MeshColliderComponent& other) = default;
-        MeshColliderComponent(AssetHandle mesh)
-            : CollisionMesh(mesh)
-        {
-        }
+        MeshColliderComponent(AssetHandle mesh, uint32_t submeshIndex = 0)
+            : CollisionMesh(mesh), SubmeshIndex(submeshIndex)
+        {}
     };
 
     struct AudioListenerComponent

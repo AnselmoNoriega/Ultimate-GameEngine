@@ -307,7 +307,7 @@ namespace NR
         return sData->SelectedDrawCall;
     }
 
-    void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
+    void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<StaticMesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
     {
         NR_CORE_VERIFY(mesh);
         NR_CORE_VERIFY(materialTable);
@@ -325,7 +325,7 @@ namespace NR
                 const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 const VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                Ref<MeshSource> meshAsset = mesh->GetMeshSource();
                 Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
 
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
@@ -447,7 +447,7 @@ namespace NR
                 const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 const VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                Ref<MeshSource> meshAsset = mesh->GetMeshSource();
                 Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
 
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
@@ -526,7 +526,7 @@ namespace NR
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
                 
-                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                Ref<MeshSource> meshAsset = mesh->GetMeshSource();
                 Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
                 
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
@@ -579,7 +579,7 @@ namespace NR
     void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, uint32_t submeshIndex, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms)
     {
         NR_CORE_ASSERT(mesh);
-        NR_CORE_ASSERT(mesh->GetMeshAsset());
+        NR_CORE_ASSERT(mesh->GetMeshSource());
 
         Buffer pushConstantBuffer;
         pushConstantBuffer.Allocate(sizeof(glm::mat4) + additionalUniforms.Size);
@@ -597,7 +597,7 @@ namespace NR
                 uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
                 VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-                Ref<MeshAsset> meshAsset = mesh->GetMeshAsset();
+                Ref<MeshSource> meshAsset = mesh->GetMeshSource();
                 auto vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
 
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
@@ -671,6 +671,74 @@ namespace NR
                 vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, pushConstantBuffer.Size, pushConstantBuffer.Data);
                 vkCmdDrawIndexed(commandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
 
+                pushConstantBuffer.Release();
+            });
+    }
+
+    void VKRenderer::RenderStaticMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<StaticMesh> staticMesh, Ref<Material> material, const glm::mat4& transform, Buffer additionalUniforms /*= Buffer()*/)
+    {
+        NR_CORE_ASSERT(staticMesh);
+        NR_CORE_ASSERT(staticMesh->GetMeshSource());
+
+        Buffer pushConstantBuffer;
+        pushConstantBuffer.Allocate(sizeof(glm::mat4) + additionalUniforms.Size);
+        if (additionalUniforms.Size)
+        {
+            pushConstantBuffer.Write(additionalUniforms.Data, additionalUniforms.Size, sizeof(glm::mat4));
+        }
+
+        Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, staticMesh, vulkanMaterial, transform, pushConstantBuffer]() mutable
+            {
+                NR_PROFILE_FUNC("VulkanRenderer::RenderMeshWithMaterial");
+                NR_SCOPE_PERF("VulkanRenderer::RenderMeshWithMaterial");
+
+                uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+                VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
+                Ref<MeshSource> meshSource = staticMesh->GetMeshSource();
+                auto vulkanMeshVB = meshSource->GetVertexBuffer().As<VKVertexBuffer>();
+                VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
+                VkDeviceSize offsets[1] = { 0 };
+                vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
+                
+                auto vulkanMeshIB = Ref<VKIndexBuffer>(meshSource->GetIndexBuffer());
+                VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
+                vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
+                
+                RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+                Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
+                VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
+                VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
+                vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+                
+                float lineWidth = vulkanPipeline->GetSpecification().LineWidth;
+                if (lineWidth != 1.0f)
+                {
+                    vkCmdSetLineWidth(commandBuffer, lineWidth);
+                }
+
+                // Bind descriptor sets describing shader binding points
+                VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
+                if (descriptorSet)
+                {
+                    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &descriptorSet, 0, nullptr);
+                }
+
+                Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
+                if (uniformStorageBuffer)
+                {
+                    vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, pushConstantBuffer.Size, uniformStorageBuffer.Size, uniformStorageBuffer.Data);
+                }
+
+                const auto& meshAssetSubmeshes = meshSource->GetSubmeshes();
+                for (uint32_t submeshIndex : staticMesh->GetSubmeshes())
+                {
+                    const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
+                    glm::mat4 worldTransform = transform * submesh.Transform;
+                    pushConstantBuffer.Write(&worldTransform, sizeof(glm::mat4));
+                    vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, pushConstantBuffer.Size, pushConstantBuffer.Data);
+                    vkCmdDrawIndexed(commandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
+                }
                 pushConstantBuffer.Release();
             });
     }

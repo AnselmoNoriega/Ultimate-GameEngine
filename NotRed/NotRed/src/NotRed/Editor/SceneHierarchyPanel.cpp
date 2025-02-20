@@ -1183,7 +1183,7 @@ namespace NR
 
                 UI::PropertyAssetReferenceError error;
 
-                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshSource>("Mesh", mc.Mesh,
+                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshSource>("Mesh", mc.MeshHandle,
                     [=](Ref<MeshSource> meshAsset)
                     {
                         if (mMeshAssetConvertCallback)
@@ -1308,7 +1308,7 @@ namespace NR
                     {
                         pc.ParticleCount = 1;
                     }
-                    pc.MeshObj = Ref<Mesh>::Create(Ref<MeshAsset>::Create(pc.ParticleCount));
+                    pc.MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(pc.ParticleCount));
                 }
 
                 if (UI::PropertyColor("Star Color", pc.StarColor))
@@ -1394,16 +1394,20 @@ namespace NR
                 if (UI::PropertyAssetReferenceWithConversion<StaticMesh, MeshSource>("Static Mesh", smc.StaticMesh,
                     [=](Ref<MeshSource> meshAsset)
                     {
-                        if (m_MeshAssetConvertCallback)
-                            m_MeshAssetConvertCallback(entity, meshAsset);
+                        if (mMeshAssetConvertCallback)
+                        {
+                            mMeshAssetConvertCallback(entity, meshAsset);
+                        }
                     }, &error))
                 {
                 }
 
                 if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
                 {
-                    if (m_InvalidMetadataCallback)
-                        m_InvalidMetadataCallback(entity, UI::s_PropertyAssetReferenceAssetHandle);
+                    if (mInvalidMetadataCallback)
+                    {
+                        mInvalidMetadataCallback(entity, UI::sPropertyAssetReferenceAssetHandle);
+                    }
                 }
 
                 UI::EndPropertyGrid();
@@ -1412,20 +1416,20 @@ namespace NR
                     if (UI::BeginTreeNode("Materials"))
                     {
                         UI::BeginPropertyGrid();
-                        auto& meshMaterialTable = mesh->GetMaterials();
-                        if (smc.MaterialTable->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
+                        const auto& meshMaterialTable = mesh->GetMaterials();
+                        if (smc.Materials->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
                         {
-                            smc.MaterialTable->SetMaterialCount(meshMaterialTable->GetMaterialCount());
+                            smc.Materials->SetMaterialCount(meshMaterialTable->GetMaterialCount());
                         }
 
-                        for (size_t i = 0; i < smc.MaterialTable->GetMaterialCount(); ++i)
+                        for (size_t i = 0; i < smc.Materials->GetMaterialCount(); ++i)
                         {
                             if (i == meshMaterialTable->GetMaterialCount())
                             {
                                 ImGui::Separator();
                             }
 
-                            bool hasLocalMaterial = smc.MaterialTable->HasMaterial(i);
+                            bool hasLocalMaterial = smc.Materials->HasMaterial(i);
                             bool hasMeshMaterial = meshMaterialTable->HasMaterial(i);
                             Ref<MaterialAsset> meshMaterialAsset;
                             if (hasMeshMaterial)
@@ -1433,7 +1437,7 @@ namespace NR
                                 meshMaterialAsset = meshMaterialTable->GetMaterial(i);
                             }
 
-                            Ref<MaterialAsset> materialAsset = hasLocalMaterial ? smc.MaterialTable->GetMaterial(i) : meshMaterialAsset;
+                            Ref<MaterialAsset> materialAsset = hasLocalMaterial ? smc.Materials->GetMaterial(i) : meshMaterialAsset;
                             std::string label = fmt::format("[Material {0}]", i);
                             AssetHandle materialAssetHandle = materialAsset->Handle;
                             UI::PropertyAssetReferenceSettings settings;
@@ -1445,7 +1449,7 @@ namespace NR
                                     settings.AdvanceToNextColumn = false;
                                     settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
                                 }
-                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAssetHandle, [i, materialTable = smc.MaterialTable](Ref<MaterialAsset> materialAsset) mutable
+                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAssetHandle, [i, materialTable = smc.Materials](Ref<MaterialAsset> materialAsset) mutable
                                     {
                                         materialTable->SetMaterial(i, materialAsset);
                                     }, settings);
@@ -1455,7 +1459,7 @@ namespace NR
                                 std::string meshMaterialName = meshMaterialAsset->GetMaterial()->GetName();
                                 if (meshMaterialName.empty())
                                     meshMaterialName = "Unnamed Material";
-                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAssetHandle, [i, materialTable = smc.MaterialTable](Ref<MaterialAsset> materialAsset) mutable
+                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAssetHandle, [i, materialTable = smc.Materials](Ref<MaterialAsset> materialAsset) mutable
                                     {
                                         materialTable->SetMaterial(i, materialAsset);
                                     }, settings);
@@ -1466,7 +1470,10 @@ namespace NR
                                 ImGui::SameLine();
                                 float prevItemHeight = ImGui::GetItemRectSize().y;
                                 if (ImGui::Button("X", { prevItemHeight, prevItemHeight }))
-                                    smc.MaterialTable->ClearMaterial(i);
+                                {
+                                    smc.Materials->ClearMaterial(i);
+                                }
+
                                 ImGui::NextColumn();
                             }
                         }
@@ -1475,7 +1482,7 @@ namespace NR
                         UI::EndTreeNode();
                     }
                 }
-            });
+            }, sGearIcon);
 
         DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)
             {

@@ -521,6 +521,7 @@ namespace NR
 			mExternalCompositeRenderPass = RenderPass::Create(renderPassSpec);
 
 			PipelineSpecification pipelineSpecification;
+			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.DebugName = "Wireframe";
 			pipelineSpecification.Wireframe = true;
 			pipelineSpecification.DepthTest = true;
@@ -952,15 +953,32 @@ namespace NR
 		mShadowPassDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
 	}
 
+	void SceneRenderer::SubmitStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform /*= glm::mat4(1.0f)*/, Ref<Material> overrideMaterial /*= nullptr*/)
+	{
+		mStaticMeshDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
+		mStaticMeshShadowPassDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
+	}
+
 	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
 		mSelectedMeshDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
 		mShadowPassDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
 	}
 
+	void SceneRenderer::SubmitSelectedStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	{
+		mSelectedStaticMeshDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
+		mStaticMeshShadowPassDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
+	}
+
 	void SceneRenderer::SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform)
 	{
 		mColliderDrawList.push_back({ mesh, submeshIndex, nullptr, transform });
+	}
+
+	void SceneRenderer::SubmitPhysicsStaticDebugMesh(Ref<StaticMesh> mesh, const glm::mat4& transform)
+	{
+		mStaticColliderDrawList.push_back({ mesh, nullptr, transform });
 	}
 
 	void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform)
@@ -999,6 +1017,12 @@ namespace NR
 
 			// Render entities
 			const Buffer cascade(&i, sizeof(uint32_t));
+			
+			for (auto& dc : mStaticMeshShadowPassDrawList)
+			{
+				Renderer::RenderStaticMesh(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mShadowPassMaterial, cascade);
+			}
+
 			for (auto& dc : mShadowPassDrawList)
 			{
 				if (dc.Mesh->IsRigged())
@@ -1020,7 +1044,12 @@ namespace NR
 	void SceneRenderer::PreDepthPass()
 	{
 		mGPUTimeQueries.DepthPrePassQuery = mCommandBuffer->BeginTimestampQuery();
-		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
+		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);		
+		
+		for (auto& dc : mStaticMeshDrawList)
+		{
+			Renderer::RenderStaticMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mPreDepthMaterial);
+		}
 		for (auto& dc : mDrawList)
 		{
 			if (dc.Mesh->IsRigged())
@@ -1031,6 +1060,10 @@ namespace NR
 			{
 				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
 			}
+		}
+		for (auto& dc : mSelectedStaticMeshDrawList)
+		{
+			Renderer::RenderStaticMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mPreDepthMaterial);
 		}
 		for (auto& dc : mSelectedMeshDrawList)
 		{
@@ -1085,6 +1118,10 @@ namespace NR
 		mGPUTimeQueries.GeometryPassQuery = mCommandBuffer->BeginTimestampQuery();
 
 		Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
+		for (auto& dc : mSelectedStaticMeshDrawList)
+		{
+			Renderer::RenderStaticMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mSelectedGeometryMaterial);
+		}
 		for (auto& dc : mSelectedMeshDrawList)
 		{
 			if (dc.Mesh->IsRigged())
@@ -1107,7 +1144,21 @@ namespace NR
 		mSkyboxMaterial->Set("uTexture", radianceMap);
 		Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, nullptr, mSkyboxMaterial);
 
-		// Render entities
+		// Render static meshes
+		for (auto& dc : mStaticMeshDrawList)
+		{
+			Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.StaticMesh, dc.MaterialTable ? dc.MaterialTable : dc.StaticMesh->GetMaterials(), dc.Transform);
+		}
+		for (auto& dc : mSelectedStaticMeshDrawList)
+		{
+			Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.StaticMesh, dc.MaterialTable ? dc.MaterialTable : dc.StaticMesh->GetMaterials(), dc.Transform);
+			if (mOptions.ShowSelectedInWireframe)
+			{
+				Renderer::RenderStaticMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mWireframeMaterial);
+			}
+		}
+
+		// Render dynamic meshes
 		for (auto& dc : mDrawList)
 		{
 			Renderer::RenderSubmesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
@@ -1629,7 +1680,12 @@ namespace NR
 			auto pipeline = mOptions.ShowPhysicsColliders == SceneRendererOptions::PhysicsColliderView::Normal ? mGeometryWireframePipeline : mGeometryWireframeOnTopPipeline;
 			auto pipelineAnim = mOptions.ShowPhysicsColliders == SceneRendererOptions::PhysicsColliderView::Normal ? mGeometryWireframePipelineAnim : mGeometryWireframeOnTopPipelineAnim;
 			mColliderMaterial->Set("uMaterialUniforms.Color", mOptions.PhysicsCollidersColor);
-			for (DrawCommand& dc : mColliderDrawList)
+
+			for (auto& dc : mStaticColliderDrawList)
+			{
+				Renderer::RenderStaticMesh(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mColliderMaterial);
+			}
+			for (auto& dc : mColliderDrawList)
 			{
 				if (dc.Mesh->IsRigged())
 				{
@@ -1687,7 +1743,14 @@ namespace NR
 		mSelectedMeshDrawList.clear();
 		mShadowPassDrawList.clear();
 		mParticlesDrawList.clear();
+
+		mStaticMeshDrawList.clear();
+		mSelectedStaticMeshDrawList.clear();
+		mStaticMeshShadowPassDrawList.clear();
+
 		mColliderDrawList.clear();
+		mStaticColliderDrawList.clear();
+		
 		mSceneData = {};
 	}
 
@@ -1845,6 +1908,8 @@ namespace NR
 		NR_PROFILE_FUNC();
 
 		ImGui::Begin("Scene Renderer");
+
+		ImGui::Text("Viewport Size: %d, %d", mViewportWidth, mViewportHeight);
 
 		const float headerSpacingOffset = -(ImGui::GetStyle().ItemSpacing.y + 1.0f);
 		if (UI::PropertyGridHeader("Shaders", false))

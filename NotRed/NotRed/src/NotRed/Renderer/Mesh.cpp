@@ -76,7 +76,7 @@ namespace NR
         }
     }
 
-    MeshAsset::MeshAsset(const std::string& filename)
+    MeshSource::MeshSource(const std::string& filename)
         : mFilePath(filename)
     {
         LogStream::Initialize();
@@ -500,7 +500,7 @@ namespace NR
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
     }
 
-    MeshAsset::MeshAsset(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
+    MeshSource::MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
         : mStaticVertices(vertices), mIndices(indices)
     {
         Submesh submesh;
@@ -515,7 +515,7 @@ namespace NR
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
     }
 
-    MeshAsset::MeshAsset(
+    MeshSource::MeshSource(
         const std::vector<std::vector<Vertex>>& vertices,
         const std::vector<std::vector<Index>>& indices,
         const std::vector<std::string>& matNames
@@ -598,7 +598,7 @@ namespace NR
         }
     }
 
-    MeshAsset::MeshAsset(int particleCount)
+    MeshSource::MeshSource(int particleCount)
     {
         {
             for (uint32_t i = 0; i < particleCount; ++i)
@@ -650,7 +650,21 @@ namespace NR
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(Index));
     }
 
-    void MeshAsset::DumpVertexBuffer()
+    MeshSource::MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const std::vector<Submesh>& submeshes)
+        : mStaticVertices(vertices), mIndices(indices), mSubmeshes(submeshes)
+    {
+        mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
+        mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
+        /*mVertexBufferLayout = {
+            { ShaderDataType::Float3, "aPosition" },
+            { ShaderDataType::Float3, "aNormal" },
+            { ShaderDataType::Float3, "aTangent" },
+            { ShaderDataType::Float3, "aBinormal" },
+            { ShaderDataType::Float2, "aTexCoord" },
+        };*/
+    }
+
+    void MeshSource::DumpVertexBuffer()
     {
         NR_MESH_LOG("------------------------------------------------------");
         NR_MESH_LOG("Vertex Buffer Dump");
@@ -686,7 +700,7 @@ namespace NR
         NR_MESH_LOG("------------------------------------------------------");
     }
 
-    void MeshAsset::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
+    void MeshSource::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
     {
         glm::mat4 transform = parentTransform * Utils::Mat4FromAssimpMat4(node->mTransformation);
         mNodeMap[node].resize(node->mNumMeshes);
@@ -706,64 +720,64 @@ namespace NR
         }
     }
 
-    Mesh::Mesh(Ref<MeshAsset> meshAsset)
-        : mMeshAsset(meshAsset)
+    Mesh::Mesh(Ref<MeshSource> meshSource)
+        : mMeshSource(meshSource)
     {
         SetSubmeshes({});
 
-        const auto& meshMaterials = meshAsset->GetMaterials();
+        const auto& meshMaterials = meshSource->GetMaterials();
         mMaterials = Ref<MaterialTable>::Create(static_cast<uint32_t>(meshMaterials.size()));
         for (size_t i = 0; i < meshMaterials.size(); ++i)
         {
             mMaterials->SetMaterial(static_cast<uint32_t>(i), Ref<MaterialAsset>::Create(meshMaterials[i]));
         }
 
-        if (mMeshAsset->IsRigged())
+        if (mMeshSource->IsRigged())
         {
-            mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+            mBoneTransforms.resize(mMeshSource->mBoneInfo.size());
             mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
             for (auto& ub : mBoneTransformUBs)
             {
-                ub = UniformBuffer::Create(static_cast<uint32_t>(meshAsset->mBoneInfo.size() * sizeof(glm::mat4)), 0);
+                ub = UniformBuffer::Create(static_cast<uint32_t>(meshSource->mBoneInfo.size() * sizeof(glm::mat4)), 0);
             }
         }
     }
 
-    Mesh::Mesh(Ref<MeshAsset> meshAsset, const std::vector<uint32_t>& submeshes)
-        : mMeshAsset(meshAsset)
+    Mesh::Mesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes)
+        : mMeshSource(meshSource)
     {
         SetSubmeshes(submeshes);
 
-        const auto& meshMaterials = meshAsset->GetMaterials();
+        const auto& meshMaterials = meshSource->GetMaterials();
         mMaterials = Ref<MaterialTable>::Create(static_cast<uint32_t>(meshMaterials.size()));
         for (size_t i = 0; i < meshMaterials.size(); ++i)
         {
             mMaterials->SetMaterial(static_cast<uint32_t>(i), Ref<MaterialAsset>::Create(meshMaterials[static_cast<uint32_t>(i)]));
         }
 
-        if (mMeshAsset->IsRigged())
+        if (mMeshSource->IsRigged())
         {
-            mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+            mBoneTransforms.resize(mMeshSource->mBoneInfo.size());
             mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
             for (auto& ub : mBoneTransformUBs)
             {
-                ub = UniformBuffer::Create(static_cast<uint32_t>(meshAsset->mBoneInfo.size() * sizeof(glm::mat4)), 0);
+                ub = UniformBuffer::Create(static_cast<uint32_t>(meshSource->mBoneInfo.size() * sizeof(glm::mat4)), 0);
             }
         }
     }
 
     Mesh::Mesh(const Ref<Mesh>& other)
-        : mMeshAsset(other->mMeshAsset), mMaterials(other->mMaterials)
+        : mMeshSource(other->mMeshSource), mMaterials(other->mMaterials)
     {
         SetSubmeshes(other->mSubmeshes);
 
-        if (mMeshAsset->IsRigged())
+        if (mMeshSource->IsRigged())
         {
-            mBoneTransforms.resize(mMeshAsset->mBoneInfo.size());
+            mBoneTransforms.resize(mMeshSource->mBoneInfo.size());
             mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
             for (auto& ub : mBoneTransformUBs)
             {
-                ub = UniformBuffer::Create(static_cast<uint32_t>(mMeshAsset->mBoneInfo.size() * sizeof(glm::mat4)), 0);
+                ub = UniformBuffer::Create(static_cast<uint32_t>(mMeshSource->mBoneInfo.size() * sizeof(glm::mat4)), 0);
             }
         }
     }
@@ -773,16 +787,16 @@ namespace NR
         NR_PROFILE_FUNC();
         if (modelSpaceTransforms.empty())
         {
-            for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
+            for (size_t i = 0; i < mMeshSource->mBoneInfo.size(); ++i)
             {
                 mBoneTransforms[i] = ozz::math::Float4x4::identity();
             }
         }
         else
         {
-            for (size_t i = 0; i < mMeshAsset->mBoneInfo.size(); ++i)
+            for (size_t i = 0; i < mMeshSource->mBoneInfo.size(); ++i)
             {
-                mBoneTransforms[i] = modelSpaceTransforms[mMeshAsset->mBoneInfo[i].JointIndex] * mMeshAsset->mBoneInfo[i].InverseBindPose;
+                mBoneTransforms[i] = modelSpaceTransforms[mMeshSource->mBoneInfo[i].JointIndex] * mMeshSource->mBoneInfo[i].InverseBindPose;
             }
         }
         Ref<Mesh> instance = this;
@@ -800,7 +814,7 @@ namespace NR
         }
         else
         {
-            const auto& submeshes = mMeshAsset->GetSubmeshes();
+            const auto& submeshes = mMeshSource->GetSubmeshes();
             mSubmeshes.resize(submeshes.size());
             for (uint32_t i = 0; i < submeshes.size(); ++i)
             {
@@ -811,33 +825,33 @@ namespace NR
 
     void Mesh::AddVertices(const std::vector<Vertex>& vertices, uint32_t index)
     {
-        Submesh& submesh = mMeshAsset->mSubmeshes[index];
+        Submesh& submesh = mMeshSource->mSubmeshes[index];
         if (submesh.BaseVertex == 0 && index != 0)
         {
-            submesh.BaseVertex = mMeshAsset->mStaticVertices.size();
+            submesh.BaseVertex = mMeshSource->mStaticVertices.size();
         }
         submesh.VertexCount += (uint32_t)vertices.size();
 
         uint32_t startIndex = submesh.BaseVertex + submesh.VertexCount;
 
-        mMeshAsset->mStaticVertices.insert(
-            mMeshAsset->mStaticVertices.begin() + startIndex,
+        mMeshSource->mStaticVertices.insert(
+            mMeshSource->mStaticVertices.begin() + startIndex,
             vertices.begin(),
             vertices.end()
         );
 
-        mMeshAsset->mVertexBuffer = VertexBuffer::Create(
-            mMeshAsset->mStaticVertices.data(),
-            (uint32_t)(mMeshAsset->mStaticVertices.size() * sizeof(Vertex))
+        mMeshSource->mVertexBuffer = VertexBuffer::Create(
+            mMeshSource->mStaticVertices.data(),
+            (uint32_t)(mMeshSource->mStaticVertices.size() * sizeof(Vertex))
         );
     }
 
     void Mesh::AddIndices(const std::vector<int>& indices, uint32_t subMeshIndex)
     {
-        Submesh& submesh = mMeshAsset->mSubmeshes[subMeshIndex];
+        Submesh& submesh = mMeshSource->mSubmeshes[subMeshIndex];
         if (submesh.BaseIndex == 0 && subMeshIndex != 0)
         {
-            submesh.BaseIndex = mMeshAsset->mIndices.size();
+            submesh.BaseIndex = mMeshSource->mIndices.size();
         }
         submesh.IndexCount += indices.size();
 
@@ -848,24 +862,80 @@ namespace NR
                 (uint32_t)indices[i + 1],
                 (uint32_t)indices[i + 2]
             };
-            mMeshAsset->mIndices.push_back(index);
-            mMeshAsset->mTriangleCache[subMeshIndex].emplace_back(
-                mMeshAsset->mStaticVertices[index.V1],
-                mMeshAsset->mStaticVertices[index.V2],
-                mMeshAsset->mStaticVertices[index.V3]
+            mMeshSource->mIndices.push_back(index);
+            mMeshSource->mTriangleCache[subMeshIndex].emplace_back(
+                mMeshSource->mStaticVertices[index.V1],
+                mMeshSource->mStaticVertices[index.V2],
+                mMeshSource->mStaticVertices[index.V3]
             );
         }
     }
 
     void Mesh::SetSubmeshesCount(int count)
     {
-        mMeshAsset->mSubmeshes.clear();
+        mMeshSource->mSubmeshes.clear();
         mSubmeshes.clear();
 
         for (int i = 0; i < count; ++i)
         {
-            mMeshAsset->mSubmeshes.emplace_back();
+            mMeshSource->mSubmeshes.emplace_back();
             mSubmeshes.push_back(i);
+        }
+    }
+
+    ////////////////////////////////////////////////////////
+    // StaticMesh //////////////////////////////////////////
+    ////////////////////////////////////////////////////////
+    StaticMesh::StaticMesh(Ref<MeshSource> meshSource)
+        : mMeshSource(meshSource)
+    {
+        SetSubmeshes({});
+
+        const auto& meshMaterials = meshSource->GetMaterials();
+        mMaterials = Ref<MaterialTable>::Create(meshMaterials.size());
+        for (size_t i = 0; i < meshMaterials.size(); ++i)
+        {
+            mMaterials->SetMaterial(i, Ref<MaterialAsset>::Create(meshMaterials[i]));
+        }
+    }
+
+    StaticMesh::StaticMesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes)
+        : mMeshSource(meshSource)
+    {
+        SetSubmeshes(submeshes);
+        
+        const auto& meshMaterials = meshSource->GetMaterials();
+        mMaterials = Ref<MaterialTable>::Create(meshMaterials.size());
+        for (size_t i = 0; i < meshMaterials.size(); ++i)
+        {
+            mMaterials->SetMaterial(i, Ref<MaterialAsset>::Create(meshMaterials[i]));
+        }
+    }
+
+    StaticMesh::StaticMesh(const Ref<StaticMesh>& other)
+        : mMeshSource(other->mMeshSource), mMaterials(other->mMaterials)
+    {
+        SetSubmeshes(other->mSubmeshes);
+    }
+
+    StaticMesh::~StaticMesh()
+    {
+    }
+
+    void StaticMesh::SetSubmeshes(const std::vector<uint32_t>& submeshes)
+    {
+        if (!submeshes.empty())
+        {
+            mSubmeshes = submeshes;
+        }
+        else
+        {
+            const auto& submeshes = mMeshSource->GetSubmeshes();
+            mSubmeshes.resize(submeshes.size());
+            for (uint32_t i = 0; i < submeshes.size(); ++i)
+            {
+                mSubmeshes[i] = i;
+            }
         }
     }
 }

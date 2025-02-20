@@ -97,11 +97,12 @@ namespace NR
 		Entity CreateChildEntity(Entity parent, const std::string& name = "");
 		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
 		void SubmitToDestroyEntity(Entity entity);
-		void DestroyEntity(Entity entity);
+		void DestroyEntity(Entity entity, bool excludeChildren = false);
 
 		Entity DuplicateEntity(Entity entity);
-		Entity CreatePrefabEntity(Entity entity, Entity parent, const glm::vec3* translation = nullptr);
-		Entity Instantiate(Ref<Prefab> prefab, const glm::vec3* translation = nullptr);
+		Entity CreatePrefabEntity(Entity entity, const glm::mat4* transform = nullptr);
+		Entity CreatePrefabEntity(Entity entity, Entity parent, const glm::mat4* transform = nullptr);
+		Entity Instantiate(Ref<Prefab> prefab, const glm::mat4* transform = nullptr);
 		Entity InstantiateMesh(Ref<Mesh> mesh);
 
 		template<typename T>
@@ -151,8 +152,10 @@ namespace NR
 		void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
 		void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
 		void AudioComponentDestroy(entt::registry& registry, entt::entity entity);
+		void MeshColliderComponentConstruct(entt::registry& registry, entt::entity entity);
+		void MeshColliderComponentDestroy(entt::registry& registry, entt::entity entity);
 
-		void TraverseNodes(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode, const glm::mat4& parentTransform = glm::mat4(1.0f));
+		void BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode);
 
 	private:
 		template<typename Fn>

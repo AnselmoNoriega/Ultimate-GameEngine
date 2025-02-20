@@ -76,9 +76,12 @@ namespace NR
 		void EndScene();
 
 		void SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 		void SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitSelectedStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 
 		void SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform = glm::mat4(1.0f));
+		void SubmitPhysicsStaticDebugMesh(Ref<StaticMesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 
 		void SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 
@@ -362,11 +365,27 @@ namespace NR
 			glm::mat4 Transform;
 			Ref<Material> OverrideMaterial;
 		};
+		
+		struct StaticDrawCommand
+		{
+			Ref<StaticMesh> StaticMesh;
+			Ref<MaterialTable> MaterialTable;
+			glm::mat4 Transform;
+			Ref<Material> OverrideMaterial;
+		};
+
 		std::vector<DrawCommand> mDrawList;
 		std::vector<DrawCommand> mSelectedMeshDrawList;
-		std::vector<DrawCommand> mColliderDrawList;
 		std::vector<DrawCommand> mShadowPassDrawList;
 		std::vector<DrawCommand> mParticlesDrawList;
+
+		std::vector<StaticDrawCommand> mStaticMeshDrawList;
+		std::vector<StaticDrawCommand> mSelectedStaticMeshDrawList;
+		std::vector<StaticDrawCommand> mStaticMeshShadowPassDrawList;
+
+		// Debug
+		std::vector<StaticDrawCommand> mStaticColliderDrawList;
+		std::vector<DrawCommand> mColliderDrawList;
 
 		// Grid
 		Ref<Pipeline> mGridPipeline;

@@ -272,7 +272,7 @@ namespace NR
         return sRendererAPI->CreatePreethamSky(turbidity, azimuth, inclination);
     }
 
-    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
+    void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<StaticMesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
     {
         sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, materialTable, transform);
     }
@@ -285,6 +285,11 @@ namespace NR
     void Renderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms)
     {
         sRendererAPI->RenderMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, submeshIndex, material, transform, additionalUniforms);
+    }
+
+    void Renderer::RenderStaticMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<StaticMesh> mesh, const glm::mat4& transform, Ref<Material> material, Buffer additionalUniforms /*= Buffer()*/)
+    {
+        sRendererAPI->RenderStaticMesh(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, material, transform, additionalUniforms);
     }
 
     void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
