@@ -1008,6 +1008,111 @@ namespace NR::Script
         component.BodyType = *type;
     }
 
+    void NR_RigidBody2DComponent_GetTranslation(uint64_t entityID, glm::vec2* outTranslation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        const b2Vec2& translation = body->GetPosition();
+        outTranslation->x = translation.x;
+        outTranslation->y = translation.y;
+    }
+
+    void NR_RigidBody2DComponent_SetTranslation(uint64_t entityID, glm::vec2* inTranslation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        body->SetTransform(b2Vec2(inTranslation->x, inTranslation->y), body->GetAngle());
+    }
+
+    void NR_RigidBody2DComponent_GetRotation(uint64_t entityID, float* outRotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        if (body->GetType() != b2_dynamicBody)
+        {
+            NR_CORE_ASSERT("Trying to add force to non dynamic body");
+        }
+        *outRotation = body->GetAngle();
+    }
+
+    void NR_RigidBody2DComponent_SetRotation(uint64_t entityID, float* inRotation)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        if (body->GetType() != b2_dynamicBody)
+        {
+            NR_CORE_ASSERT("Trying to add force to non dynamic body");
+        }
+        body->SetTransform(body->GetTransform().p, *inRotation);
+    }
+
+    void NR_RigidBody2DComponent_AddForce(uint64_t entityID, glm::vec2* force, glm::vec2* offset, bool wake)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        if (body->GetType() != b2_dynamicBody)
+        {
+            NR_CORE_ASSERT("Trying to add force to non dynamic body");
+        }
+        body->ApplyForce(*(const b2Vec2*)force, body->GetWorldCenter() + *(const b2Vec2*)offset, wake);
+    }
+    void NR_RigidBody2DComponent_AddTorque(uint64_t entityID, float* torque, bool wake)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        if (body->GetType() != b2_dynamicBody)
+        {
+            NR_CORE_ASSERT("Trying to add force to non dynamic body");
+        }
+        body->ApplyTorque(*torque, wake);
+    }
+
     void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* outTranslation)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -1040,7 +1145,7 @@ namespace NR::Script
         actor->SetPosition(*inTranslation);
     }
 
-    void NR_RigidBodyComponent_GetRotation(uint64_t entityID, glm::vec3* rotation)
+    void NR_RigidBodyComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1052,13 +1157,14 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        NR_CORE_ASSERT(rotation);
+        NR_CORE_ASSERT(outRotation);
 
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-        *rotation = actor->GetRotation();
+        NR_CORE_ASSERT(actor);
+        *outRotation = actor->GetRotation();
     }
 
-    void NR_RigidBodyComponent_SetRotation(uint64_t entityID, glm::vec3* rotation)
+    void NR_RigidBodyComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1070,13 +1176,14 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        NR_CORE_ASSERT(rotation);
+        NR_CORE_ASSERT(inRotation);
 
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-        actor->SetRotation(*rotation);
+        NR_CORE_ASSERT(actor);
+        actor->SetRotation(*inRotation);
     }
 
-    void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* rotation)
+    void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* inRotation)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1088,10 +1195,11 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        NR_CORE_ASSERT(rotation);
+        NR_CORE_ASSERT(inRotation);
 
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
-        actor->Rotate(*rotation);
+        NR_CORE_ASSERT(actor);
+        actor->Rotate(*inRotation);
     }
 
     void NR_RigidBody2DComponent_ApplyImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake)
@@ -1110,6 +1218,26 @@ namespace NR::Script
         body->ApplyLinearImpulse(*(const b2Vec2*)impulse, body->GetWorldCenter() + *(const b2Vec2*)offset, wake);
     }
 
+    void NR_RigidBody2DComponent_ApplyAngularImpulse(uint64_t entityID, float* impulse, bool wake)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        if (body->GetType() != b2_dynamicBody)
+        {
+            NR_CORE_ASSERT("Trying to add force to non dynamic body");
+        }
+        body->ApplyAngularImpulse(*impulse, wake);
+    }
+
     void NR_RigidBody2DComponent_GetVelocity(uint64_t entityID, glm::vec2* outVelocity)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
@@ -1121,11 +1249,10 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
         const auto& velocity = body->GetLinearVelocity();
-        NR_CORE_ASSERT(outVelocity);
         *outVelocity = { velocity.x, velocity.y };
     }
 
-    void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* velocity)
+    void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* inVelocity)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1135,8 +1262,70 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
-        NR_CORE_ASSERT(velocity);
-        body->SetLinearVelocity({ velocity->x, velocity->y });
+        if (body->GetType() != b2_dynamicBody)
+        {
+            NR_CORE_ASSERT("Trying to add force to non dynamic body");
+        }
+        body->SetLinearVelocity({ inVelocity->x, inVelocity->y });
+    }
+
+    void NR_RigidBody2DComponent_GetGravityScale(uint64_t entityID, float* outGravityScale)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        *outGravityScale = body->GetGravityScale();
+    }
+
+    void NR_RigidBody2DComponent_SetGravityScale(uint64_t entityID, float* inGravityScale)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        body->SetGravityScale(*inGravityScale);
+    }
+
+    void NR_RigidBody2DComponent_GetMass(uint64_t entityID, float* outMass)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
+        //outMass* = body->GetMass();
+    }
+
+    void NR_RigidBody2DComponent_SetMass(uint64_t entityID, float* inMass)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+        
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
+        
+        auto& component = entity.GetComponent<RigidBody2DComponent>();
+        b2Body* body = (b2Body*)component.RuntimeBody;
     }
 
     RigidBodyComponent::Type NR_RigidBodyComponent_GetBodyType(uint64_t entityID)
@@ -1232,7 +1421,7 @@ namespace NR::Script
         *outVelocity = actor->GetVelocity();
     }
 
-    void NR_RigidBodyComponent_SetVelocity(uint64_t entityID, glm::vec3* velocity)
+    void NR_RigidBodyComponent_SetVelocity(uint64_t entityID, glm::vec3* inVelocity)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1247,7 +1436,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot set linear velocity of a static or kinematic actor! EntityID({0})", entityID);
             return;
         }
-        PhysicsManager::GetScene()->GetActor(entity)->SetVelocity(*velocity);
+        PhysicsManager::GetScene()->GetActor(entity)->SetVelocity(*inVelocity);
     }
 
     void NR_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity)

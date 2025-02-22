@@ -1881,6 +1881,11 @@ namespace NR
                 {
                     UI::BeginPropertyGrid();
                     UI::Property("Fixed Rotation", rb2dc.FixedRotation);
+                    UI::Property("Mass", rb2dc.Mass);
+                    UI::Property("Linear Drag", rb2dc.LinearDrag);
+                    UI::Property("Angular Drag", rb2dc.AngularDrag);
+                    UI::Property("Gravity Scale", rb2dc.GravityScale);
+                    UI::Property("Is Bullet", rb2dc.IsBullet);
                     UI::EndPropertyGrid();
                 }
 

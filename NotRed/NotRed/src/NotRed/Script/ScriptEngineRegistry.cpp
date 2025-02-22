@@ -160,9 +160,20 @@ namespace NR
 
 		mono_add_internal_call("NR.RigidBody2DComponent::GetBodyType_Native", NR::Script::NR_RigidBody2DComponent_GetBodyType);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetBodyType_Native", NR::Script::NR_RigidBody2DComponent_SetBodyType);
+		mono_add_internal_call("NR.RigidBody2DComponent::GetTranslation_Native", NR::Script::NR_RigidBody2DComponent_GetTranslation);
+		mono_add_internal_call("NR.RigidBody2DComponent::SetTranslation_Native", NR::Script::NR_RigidBody2DComponent_SetTranslation);
+		mono_add_internal_call("NR.RigidBody2DComponent::GetRotation_Native", NR::Script::NR_RigidBody2DComponent_GetRotation);
+		mono_add_internal_call("NR.RigidBody2DComponent::SetRotation_Native", NR::Script::NR_RigidBody2DComponent_SetRotation);
+		mono_add_internal_call("NR.RigidBody2DComponent::AddForce_Native", NR::Script::NR_RigidBody2DComponent_AddForce);
+		mono_add_internal_call("NR.RigidBody2DComponent::AddTorque_Native", NR::Script::NR_RigidBody2DComponent_AddTorque);
 		mono_add_internal_call("NR.RigidBody2DComponent::ApplyImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyImpulse);
+		mono_add_internal_call("NR.RigidBody2DComponent::ApplyAngularImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyAngularImpulse);
 		mono_add_internal_call("NR.RigidBody2DComponent::GetVelocity_Native", NR::Script::NR_RigidBody2DComponent_GetVelocity);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetVelocity_Native", NR::Script::NR_RigidBody2DComponent_SetVelocity);
+		mono_add_internal_call("NR.RigidBody2DComponent::GetGravityScale_Native", NR::Script::NR_RigidBody2DComponent_GetGravityScale);
+		mono_add_internal_call("NR.RigidBody2DComponent::SetGravityScale_Native", NR::Script::NR_RigidBody2DComponent_SetGravityScale);
+		mono_add_internal_call("NR.RigidBody2DComponent::GetMass_Native", NR::Script::NR_RigidBody2DComponent_GetMass);
+		mono_add_internal_call("NR.RigidBody2DComponent::SetMass_Native", NR::Script::NR_RigidBody2DComponent_SetMass);
 		mono_add_internal_call("NR.RigidBodyComponent::GetLayer_Native", NR::Script::NR_RigidBodyComponent_GetLayer);
 		mono_add_internal_call("NR.RigidBodyComponent::GetMass_Native", NR::Script::NR_RigidBodyComponent_GetMass);
 		mono_add_internal_call("NR.RigidBodyComponent::SetMass_Native", NR::Script::NR_RigidBodyComponent_SetMass);

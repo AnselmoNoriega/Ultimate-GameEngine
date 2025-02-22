@@ -932,6 +932,16 @@ namespace NR
 
                 b2Body* body = world->CreateBody(&bodyDef);
                 body->SetFixedRotation(rigidBody2D.FixedRotation);
+
+                b2MassData massData;
+                body->GetMassData(&massData);
+                massData.mass = rigidBody2D.Mass;
+                body->SetMassData(&massData);
+                body->SetGravityScale(rigidBody2D.GravityScale);
+                body->SetLinearDamping(rigidBody2D.LinearDrag);
+                body->SetAngularDamping(rigidBody2D.AngularDrag);
+                body->SetBullet(rigidBody2D.IsBullet);
+
                 Entity* entityStorage = &mPhysics2DBodyEntityBuffer[physicsBodyEntityBufferIndex++];
                 *entityStorage = e;
                 body->GetUserData().pointer = reinterpret_cast<uintptr_t>(entityStorage);

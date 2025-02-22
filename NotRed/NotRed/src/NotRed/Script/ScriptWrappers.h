@@ -105,9 +105,20 @@ namespace NR::Script
 
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
     void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
+    void NR_RigidBody2DComponent_GetTranslation(uint64_t entityID, glm::vec2* outTranslation);
+    void NR_RigidBody2DComponent_SetTranslation(uint64_t entityID, glm::vec2* inTranslation);
+    void NR_RigidBody2DComponent_GetRotation(uint64_t entityID, float* outRotation);
+    void NR_RigidBody2DComponent_SetRotation(uint64_t entityID, float* inRotation);
+    void NR_RigidBody2DComponent_AddForce(uint64_t entityID, glm::vec2* force, glm::vec2* offset, bool wake);
+    void NR_RigidBody2DComponent_AddTorque(uint64_t entityID, float* torque, bool wake);
     void NR_RigidBody2DComponent_ApplyImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
+    void NR_RigidBody2DComponent_ApplyAngularImpulse(uint64_t entityID, float* impulse, bool wake);
     void NR_RigidBody2DComponent_GetVelocity(uint64_t entityID, glm::vec2* outVelocity);
-    void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* velocity);
+    void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* inVelocity);
+    void NR_RigidBody2DComponent_GetGravityScale(uint64_t entityID, float* outGravityScale);
+    void NR_RigidBody2DComponent_SetGravityScale(uint64_t entityID, float* inGravityScale);
+    void NR_RigidBody2DComponent_GetMass(uint64_t entityID, float* outMass);
+    void NR_RigidBody2DComponent_SetMass(uint64_t entityID, float* inMass);
 
     RigidBodyComponent::Type NR_RigidBodyComponent_GetBodyType(uint64_t entityID);
     void NR_RigidBodyComponent_SetBodyType(uint64_t entityID, RigidBodyComponent::Type type);

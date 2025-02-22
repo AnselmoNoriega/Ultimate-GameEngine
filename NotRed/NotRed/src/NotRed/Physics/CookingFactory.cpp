@@ -26,7 +26,7 @@ namespace NR
 
     struct NotRedPhysicsMesh
     {
-        const char Header[8] = "NotRedPM";
+        const char Header[9] = "NotRedPM";
         MeshColliderData::ColliderType Type;
         uint32_t SubmeshCount;
     };
@@ -281,7 +281,7 @@ namespace NR
 
     CookingResult CookingFactory::CookConvexMesh(const Ref<Mesh>& mesh, MeshColliderData& outData)
     {
-        const auto& vertices = mesh->GetMeshSource()->GetVertices();
+        const auto& vertices = mesh->GetMeshSource()->GetStaticVertices();
         const auto& indices = mesh->GetMeshSource()->GetIndices();
         const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
 
@@ -300,8 +300,7 @@ namespace NR
 
             physx::PxDefaultMemoryOutputStream buf;
             physx::PxConvexMeshCookingResult::Enum result;
-
-            if (!sCookingData->CookingSDK->cookConvexMesh(convexDesc, buf, &result))
+            if (!PxCookConvexMesh(sCookingData->CookingParameters, convexDesc, buf, &result))
             {
                 NR_CORE_ERROR("Failed to cook convex mesh {0}", submesh.MeshName);
                 return PhysicsUtils::FromPhysicsCookingResult(result);
@@ -317,7 +316,7 @@ namespace NR
 
     CookingResult CookingFactory::CookTriangleMesh(const Ref<StaticMesh>& staticMesh, MeshColliderData& outData)
     {
-        const std::vector<Vertex>& vertices = staticMesh->GetMeshSource()->GetVertices();
+        const std::vector<Vertex>& vertices = staticMesh->GetMeshSource()->GetStaticVertices();
         const std::vector<Index>& indices = staticMesh->GetMeshSource()->GetIndices();
 
         const auto& submeshes = staticMesh->GetMeshSource()->GetSubmeshes();
@@ -335,9 +334,9 @@ namespace NR
 
             physx::PxDefaultMemoryOutputStream buf;
             physx::PxTriangleMeshCookingResult::Enum result;
-            if (!sCookingData->CookingSDK->cookTriangleMesh(triangleDesc, buf, &result))
+            if (!PxCookTriangleMesh(sCookingData->CookingParameters, triangleDesc, buf, &result))
             {
-                NR_CORE_ERROR("Failed to cook static mesh {0}", staticMesh->GetMeshSource()->GetFilePath());
+                NR_CORE_ERROR("Failed to cook convex mesh {0}", submesh.MeshName);
                 return PhysicsUtils::FromPhysicsCookingResult(result);
             }
 

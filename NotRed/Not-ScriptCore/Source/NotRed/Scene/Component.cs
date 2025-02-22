@@ -280,27 +280,6 @@ namespace NR
 
     public class RigidBody2DComponent : Component
     {
-        public void ApplyImpulse(Vector2 impulse, Vector2 offset, bool wake)
-        {
-            ApplyImpulse_Native(Entity.ID, ref impulse, ref offset, wake);
-        }
-
-        public Vector2 GetVelocity()
-        {
-            GetVelocity_Native(Entity.ID, out Vector2 velocity);
-            return velocity;
-        }
-
-        public void SetVelocity(Vector2 velocity)
-        {
-            SetVelocity_Native(Entity.ID, ref velocity);
-        }
-
-        public void Rotate(Vector3 rotation)
-        {
-            Rotate_Native(Entity.ID, ref rotation);
-        }
-
         public RigidBody2DBodyType BodyType
         {
             get
@@ -315,19 +294,114 @@ namespace NR
             }
         }
 
+        public Vector2 Translation
+        {
+            get
+            {
+                GetTranslation_Native(Entity.ID, out Vector2 translation);
+                return translation;
+            }
+
+            set
+            {
+                SetTranslation_Native(Entity.ID, ref value);
+            }
+        }
+
+        public float Rotation
+        {
+            get
+            {
+                GetRoation_Native(Entity.ID, out float rotation);
+                return rotation;
+            }
+            set
+            {
+                SetRotationNative(Entity.ID, ref value);
+            }
+        }
+
+        public float Mass
+        {
+            get { return GetMass_Native(Entity.ID); }
+            set { SetMass_Native(Entity.ID, ref value); }
+        }
+
+        public Vector2 LinearVelocity
+        {
+            get
+            {
+                GetLinearVelocity_Native(Entity.ID, out Vector2 velocity);
+                return velocity;
+            }
+            set { SetLinearVelocity_Native(Entity.ID, ref value); }
+        }
+
+        public float GravityScale
+        {
+            get
+            {
+                GetGravityScale_Native(Entity.ID, out float gravityScale);
+                return gravityScale;
+            }
+
+            set { SetGravityScale_Native(Entity.ID, ref value); }
+        }
+
+        public void ApplyLinearImpulse(Vector2 impulse, Vector2 offset, bool wake)
+        {
+            ApplyLinearImpulse_Native(Entity.ID, ref impulse, ref offset, ref wake);
+        }
+
+        public void ApplyAngularImpulse(float impulse, bool wake)
+        {
+            ApplyAngularImpulse_Native(Entity.ID, ref impulse, wake);
+        }
+
+        public void AddForce(Vector2 force, Vector2 offset, bool wake)
+        {
+            AddForce_Native(Entity.ID, ref force, ref offset, wake);
+        }
+
+        public void AddTorque(float torque, bool wake)
+        {
+            AddTorque_Native(Entity.ID, ref torque, wake);
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetBodyType_Native(ulong entityID, out RigidBody2DBodyType type);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetBodyType_Native(ulong entityID, ref RigidBody2DBodyType type);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void ApplyImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, bool wake);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetVelocity_Native(ulong entityID, out Vector2 velocity);
+        internal static extern void GetTranslation_Native(ulong entityID, out Vector2 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetVelocity_Native(ulong entityID, ref Vector2 velocity);
+        internal static extern void SetTranslation_Native(ulong entityID, ref Vector2 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Rotate_Native(ulong entityID, ref Vector3 rotation);
+        internal static extern void GetRoation_Native(ulong entityID, out float rotation);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetRotationNative(ulong entityID, ref float rotation);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetMass_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetMass_Native(ulong entityID, ref float mass);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector2 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector2 velocity);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetGravityScale_Native(ulong entityID, out float gravityScale);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetGravityScale_Native(ulong entityID, ref float gravityScale);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void ApplyLinearImpulse_Native(ulong entityID, ref Vector2 impulse, ref Vector2 offset, ref bool wake);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void ApplyAngularImpulse_Native(ulong entityID, ref float impulse, bool wake);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void AddForce_Native(ulong entityID, ref Vector2 force, ref Vector2 offset, bool wake);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void AddTorque_Native(ulong entityID, ref float torque, bool wake);
     }
 
     public class BoxCollider2DComponent : Component

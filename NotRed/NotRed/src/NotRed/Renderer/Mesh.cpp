@@ -655,13 +655,6 @@ namespace NR
     {
         mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
-        /*mVertexBufferLayout = {
-            { ShaderDataType::Float3, "aPosition" },
-            { ShaderDataType::Float3, "aNormal" },
-            { ShaderDataType::Float3, "aTangent" },
-            { ShaderDataType::Float3, "aBinormal" },
-            { ShaderDataType::Float2, "aTexCoord" },
-        };*/
     }
 
     void MeshSource::DumpVertexBuffer()
