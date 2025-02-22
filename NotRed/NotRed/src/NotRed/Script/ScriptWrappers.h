@@ -30,6 +30,12 @@ namespace NR::Script
     void NR_Input_GetMousePosition(glm::vec2* outPosition);
     void NR_Input_SetCursorMode(CursorMode mode);
     CursorMode NR_Input_GetCursorMode();
+    bool NR_Input_IsControllerPresent(int id);
+    MonoArray* NR_Input_GetConnectedControllerIDs();
+    MonoString* NR_Input_GetControllerName(int id);
+    bool NR_Input_IsControllerButtonPressed(int id, int button);
+    float NR_Input_GetControllerAxis(int id, int axis);
+    uint8_t NR_Input_GetControllerHat(int id, int hat);
 
     // Scene
     MonoArray* NR_Scene_GetEntities();

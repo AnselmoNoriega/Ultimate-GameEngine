@@ -123,6 +123,12 @@ namespace NR
 		mono_add_internal_call("NR.Input::GetMousePosition_Native", NR::Script::NR_Input_GetMousePosition);
 		mono_add_internal_call("NR.Input::SetCursorMode_Native", NR::Script::NR_Input_SetCursorMode);
 		mono_add_internal_call("NR.Input::GetCursorMode_Native", NR::Script::NR_Input_GetCursorMode);
+		mono_add_internal_call("NR.Input::IsControllerPresent_Native", NR::Script::NR_Input_IsControllerPresent);
+		mono_add_internal_call("NR.Input::GetConnectedControllerIDs_Native", NR::Script::NR_Input_GetConnectedControllerIDs);
+		mono_add_internal_call("NR.Input::GetControllerName_Native", NR::Script::NR_Input_GetControllerName);
+		mono_add_internal_call("NR.Input::IsControllerButtonPressed_Native", NR::Script::NR_Input_IsControllerButtonPressed);
+		mono_add_internal_call("NR.Input::GetControllerAxis_Native", NR::Script::NR_Input_GetControllerAxis);
+		mono_add_internal_call("NR.Input::GetControllerHat_Native", NR::Script::NR_Input_GetControllerHat);
 
 		mono_add_internal_call("NR.Texture2D::Constructor_Native", NR::Script::NR_Texture2D_Constructor);
 		mono_add_internal_call("NR.Texture2D::Destructor_Native", NR::Script::NR_Texture2D_Destructor);

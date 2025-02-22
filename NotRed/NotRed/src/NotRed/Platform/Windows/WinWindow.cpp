@@ -13,6 +13,7 @@
 
 #include "NotRed/Core/Events/KeyEvent.h"
 #include "NotRed/Core/Events/MouseEvent.h"
+#include "NotRed/Core/Input.h"
 
 #include "NotRed/Renderer/RendererAPI.h"
 
@@ -256,6 +257,7 @@ namespace NR
     void WinWindow::ProcessEvents()
     {
         glfwPollEvents();
+        Input::Update();
     }
 
     void WinWindow::SwapBuffers()

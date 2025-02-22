@@ -461,6 +461,50 @@ namespace NR::Script
         return Input::GetCursorMode();
     }
 
+    bool NR_Input_IsControllerPresent(int id)
+    {
+        return Input::IsControllerPresent(id);
+    }
+
+    MonoArray* NR_Input_GetConnectedControllerIDs()
+    {
+        std::vector<int> ids = Input::GetConnectedControllerIDs();
+
+        MonoArray* result = mono_array_new(mono_domain_get(), mono_get_int32_class(), ids.size());
+        for (size_t i = 0; i < ids.size(); i++)
+        {
+            mono_array_set(result, int, i, ids[i]);
+        }
+
+        return result;
+    }
+
+    MonoString* NR_Input_GetControllerName(int id)
+    {
+        auto name = Input::GetControllerName(id);
+        if (name.empty())
+        {
+            return mono_string_new(mono_domain_get(), "");
+        }
+
+        return mono_string_new(mono_domain_get(), &name.front());
+    }
+
+    bool NR_Input_IsControllerButtonPressed(int id, int button)
+    {
+        return Input::IsControllerButtonPressed(id, button);
+    }
+
+    float NR_Input_GetControllerAxis(int id, int axis)
+    {
+        return Input::GetControllerAxis(id, axis);
+    }
+
+    uint8_t NR_Input_GetControllerHat(int id, int hat)
+    {
+        return Input::GetControllerHat(id, hat);
+    }
+
     MonoArray* NR_Scene_GetEntities()
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
