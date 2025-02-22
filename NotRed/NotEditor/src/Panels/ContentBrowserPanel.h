@@ -167,6 +167,7 @@ namespace NR
         void RenderItems();
 
         void Refresh();
+        void RefreshWithoutLock();
 
         void UpdateInput();
 

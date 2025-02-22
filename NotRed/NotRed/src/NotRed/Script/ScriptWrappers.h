@@ -60,7 +60,7 @@ namespace NR::Script
     MonoArray* NR_Entity_GetChildren(uint64_t entityID);
     uint64_t NR_Entity_CreateEntity(uint64_t entityID);
     uint64_t NR_Entity_Instantiate(uint64_t entityID, uint64_t prefabID);
-    uint64_t NR_Entity_InstantiateWithTranslation(uint64_t entityID, uint64_t prefabID, glm::vec3* tranlation);
+    uint64_t NR_Entity_InstantiateWithTransform(uint64_t entityID, uint64_t prefabID, TransformComponent* inTransform);
     void NR_Entity_DestroyEntity(uint64_t entityID);
     void NR_Entity_CreateComponent(uint64_t entityID, void* type);
     bool NR_Entity_HasComponent(uint64_t entityID, void* type);
@@ -162,7 +162,6 @@ namespace NR::Script
 
     Ref<Mesh>* NR_MeshColliderComponent_GetColliderMesh(uint64_t entityID);
     void NR_MeshColliderComponent_SetColliderMesh(uint64_t entityID, Ref<Mesh>* inMesh);
-    bool NR_MeshColliderComponent_IsConvex(uint64_t entityID);
     void NR_MeshColliderComponent_SetConvex(uint64_t entityID, bool convex);
     bool NR_MeshColliderComponent_IsTrigger(uint64_t entityID);
     void NR_MeshColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);

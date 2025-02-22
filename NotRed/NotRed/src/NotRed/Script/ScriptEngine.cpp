@@ -443,6 +443,8 @@ namespace NR
 
 	void ScriptEngine::CreateEntity(Entity entity)
 	{
+		NR_PROFILE_FUNC();
+
 		EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
 		if (entityInstance.ScriptClass->CreateMethod)
 		{

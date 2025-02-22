@@ -492,7 +492,16 @@ namespace NR
 		auto filepath = AssetManager::GetFileSystemPath(mAssetInfo);
 		std::filesystem::path newFilepath = fmt::format("{0}\\{1}{2}", filepath.parent_path().string(), newName, filepath.extension().string());
 
-		if (!FileSystem::Rename(filepath, newFilepath))
+		if (FileSystem::Rename(filepath, newFilepath))
+		{
+			// Update AssetManager with new name
+			auto& metadata = AssetManager::GetMetadata(mAssetInfo.Handle);
+			AssetManager::AssetRenamed(mAssetInfo.Handle, newFilepath);
+		}
+		else
+		{
+			NR_CORE_ERROR("A file with that name already exists!");
+		}
 		{
 			NR_CORE_ERROR("A file with that name already exists!");
 		}

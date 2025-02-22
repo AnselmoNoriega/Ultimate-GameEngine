@@ -195,10 +195,8 @@ namespace NR
 			out << YAML::BeginMap; // MeshComponent
 
 			auto& mc = entity.GetComponent<MeshComponent>();
-			if (mc.MeshHandle)
-			{
-				out << YAML::Key << "AssetID" << YAML::Value << (mc.MeshHandle ? mc.MeshHandle : (AssetHandle)0);
-			}
+			out << YAML::Key << "AssetID" << YAML::Value << mc.MeshHandle;
+			out << YAML::Key << "SubmeshIndex" << YAML::Value << mc.SubmeshIndex;
 
 			auto materialTable = mc.Materials;
 			if (materialTable->GetMaterialCount() > 0)
@@ -215,6 +213,28 @@ namespace NR
 			}
 
 			out << YAML::EndMap; // MeshComponent
+		}
+
+		if (entity.HasComponent<StaticMeshComponent>())
+		{
+			out << YAML::Key << "StaticMeshComponent";
+			out << YAML::BeginMap; // StaticMeshComponent
+			StaticMeshComponent& smc = entity.GetComponent<StaticMeshComponent>();
+			out << YAML::Key << "AssetID" << YAML::Value << smc.StaticMesh;
+			auto materialTable = smc.Materials;
+
+			if (materialTable->GetMaterialCount() > 0)
+			{
+				out << YAML::Key << "MaterialTable" << YAML::Value << YAML::BeginMap; // MaterialTable
+				for (uint32_t i = 0; i < materialTable->GetMaterialCount(); i++)
+				{
+					AssetHandle handle = (materialTable->HasMaterial(i) ? materialTable->GetMaterial(i)->Handle : (AssetHandle)0);
+					out << YAML::Key << i << YAML::Value << handle;
+				}
+				out << YAML::EndMap; // MaterialTable
+			}
+
+			out << YAML::EndMap; // StaticMeshComponent
 		}
 
 		if (entity.HasComponent<ParticleComponent>())
@@ -495,7 +515,6 @@ namespace NR
 			{
 				out << YAML::Key << "AssetID" << YAML::Value << meshColliderComponent.CollisionMesh;
 			}
-			out << YAML::Key << "IsConvex" << YAML::Value << meshColliderComponent.IsConvex;
 			out << YAML::Key << "IsTrigger" << YAML::Value << meshColliderComponent.IsTrigger;
 			out << YAML::Key << "OverrideMesh" << YAML::Value << meshColliderComponent.OverrideMesh;
 
@@ -762,11 +781,10 @@ namespace NR
 					{
 						component.MeshHandle = assetHandle;
 					}
-
-					else if (metadata.Type == AssetType::MeshAsset)
+					else if (metadata.Type == AssetType::MeshSource)
 					{
 						// Create new mesh
-						Ref<MeshAsset> meshAsset = AssetManager::GetAsset<MeshAsset>(assetHandle);
+						Ref<MeshSource> meshAsset = AssetManager::GetAsset<MeshSource>(assetHandle);
 						std::filesystem::path meshPath = metadata.FilePath;
 						std::filesystem::path meshDirectory = Project::GetMeshPath();
 						std::string filename = fmt::format("{0}.hmesh", meshPath.stem().string());
@@ -774,6 +792,11 @@ namespace NR
 						component.MeshHandle = mesh->Handle;
 						AssetImporter::Serialize(mesh);
 					}
+				}
+
+				if (meshComponent["SubmeshIndex"])
+				{
+					component.SubmeshIndex = meshComponent["SubmeshIndex"].as<uint32_t>();
 				}
 
 				if (meshComponent["MaterialTable"])
@@ -823,6 +846,32 @@ namespace NR
 						if (metadata.Type == AssetType::AnimationController)
 						{
 							component.AnimationController = animationControllerHandle;
+						}
+					}
+				}
+			}
+
+			auto staticMeshComponent = entity["StaticMeshComponent"];
+			if (staticMeshComponent)
+			{
+				auto& component = deserializedEntity.AddComponent<StaticMeshComponent>();
+				AssetHandle assetHandle = staticMeshComponent["AssetID"].as<uint64_t>();
+				if (AssetManager::IsAssetHandleValid(assetHandle))
+				{
+					const AssetMetadata& metadata = AssetManager::GetMetadata(assetHandle);
+					component.StaticMesh = assetHandle;
+				}
+
+				if (staticMeshComponent["MaterialTable"])
+				{
+					YAML::Node materialTableNode = staticMeshComponent["MaterialTable"];
+					for (auto materialEntry : materialTableNode)
+					{
+						uint32_t index = materialEntry.first.as<uint32_t>();
+						AssetHandle materialAsset = materialEntry.second.as<AssetHandle>();
+						if (materialAsset && AssetManager::IsAssetHandleValid(materialAsset))
+						{
+							component.Materials->SetMaterial(index, AssetManager::GetAsset<MaterialAsset>(materialAsset));
 						}
 					}
 				}
@@ -1084,10 +1133,18 @@ namespace NR
 			if (meshColliderComponent)
 			{
 				auto& component = deserializedEntity.AddComponent<MeshColliderComponent>();
-				component.IsConvex = meshColliderComponent["IsConvex"] ? meshColliderComponent["IsConvex"].as<bool>() : false;
 				component.IsTrigger = meshColliderComponent["IsTrigger"] ? meshColliderComponent["IsTrigger"].as<bool>() : false;
 
-				component.CollisionMesh = deserializedEntity.HasComponent<MeshComponent>() ? deserializedEntity.GetComponent<MeshComponent>().MeshHandle : (AssetHandle)0;
+				component.CollisionMesh = 0;
+				if (deserializedEntity.HasComponent<MeshComponent>())
+				{
+					component.CollisionMesh = deserializedEntity.GetComponent<MeshComponent>().MeshHandle;
+				}
+				else if (deserializedEntity.HasComponent<StaticMeshComponent>())
+				{
+					component.CollisionMesh = deserializedEntity.GetComponent<StaticMeshComponent>().StaticMesh;
+				}
+
 				bool overrideMesh = meshColliderComponent["OverrideMesh"] ? meshColliderComponent["OverrideMesh"].as<bool>() : false;
 
 				if (overrideMesh)
@@ -1107,7 +1164,10 @@ namespace NR
 				if (component.CollisionMesh)
 				{
 					component.OverrideMesh = overrideMesh;
-					CookingFactory::CookMesh(component);
+					if (AssetManager::IsAssetHandleValid(component.CollisionMesh))
+					{
+						CookingFactory::CookMesh(component.CollisionMesh);
+					}
 				}
 				else
 				{

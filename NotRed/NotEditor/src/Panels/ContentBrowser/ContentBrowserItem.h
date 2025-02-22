@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <map>
 
 #include "NotRed/Core/Input.h"
 #include "NotRed/Renderer/Texture.h"
@@ -114,7 +115,7 @@ namespace NR
 		std::filesystem::path FilePath;
 
 		std::vector<AssetHandle> Assets;
-		std::unordered_map<AssetHandle, Ref<DirectoryInfo>> SubDirectories;
+		std::map<AssetHandle, Ref<DirectoryInfo>> SubDirectories;
 	};
 
 	class ContentBrowserDirectory : public ContentBrowserItem

@@ -89,7 +89,7 @@ namespace NR
         mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
         mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
         mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
-        mSceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
+        mSceneHierarchyPanel->SetMeshSourceConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshSource, this, std::placeholders::_1, std::placeholders::_2));
         mSceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
 
         mRenderer2D = Ref<Renderer2D>::Create();
@@ -690,13 +690,6 @@ namespace NR
 
     void EditorLayer::DeleteEntity(Entity entity)
     {
-        auto children = entity.Children();
-        for (auto childId : children)
-        {
-            DeleteEntity(mEditorScene->FindEntityByID(childId));
-        }
-
-        mEditorScene->UnparentEntity(entity);
         mEditorScene->DestroyEntity(entity);
     }
 
@@ -759,7 +752,7 @@ namespace NR
             auto mesh = AssetManager::GetAsset<Mesh>(meshComp.MeshHandle);
             if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
             {
-                selection.Mesh = &mesh->GetMeshAsset()->GetSubmeshes()[0];
+                selection.Mesh = &mesh->GetMeshSource()->GetSubmeshes()[0];
             }
         }
 
@@ -801,7 +794,7 @@ namespace NR
                                 if (mShowBoundingBoxSubmeshes)
                                 {
                                     auto& submeshIndices = mesh->GetSubmeshes();
-                                    auto meshAsset = mesh->GetMeshAsset();
+                                    auto meshAsset = mesh->GetMeshSource();
                                     auto& submeshes = meshAsset->GetSubmeshes();
                                     for (uint32_t submeshIndex : submeshIndices)
                                     {
@@ -813,7 +806,7 @@ namespace NR
                                 else
                                 {
                                     glm::mat4 transform = selection.EntityObj.GetComponent<TransformComponent>().GetTransform();
-                                    const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
+                                    const AABB& aabb = mesh->GetMeshSource()->GetBoundingBox();
                                     mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                                 }
                             }
@@ -830,7 +823,7 @@ namespace NR
                         auto mesh = AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle);
                         if (mesh) 
                         {
-                            const AABB& aabb = mesh->GetMeshAsset()->GetBoundingBox();
+                            const AABB& aabb = mesh->GetMeshSource()->GetBoundingBox();
                             mRenderer2D->DrawAABB(aabb, transform, glm::vec4{ 1.0f, 1.0f, 1.0f, 1.0f });
                         }
                     }
@@ -1347,12 +1340,22 @@ namespace NR
             const std::string& meshAssetPath = Project::GetActive()->GetConfig().MeshPath;
 
             ImGui::AlignTextToFramePadding();
+            // Import settings
+            static bool isStatic = false;
+            
+            UI::BeginPropertyGrid();
+            if (UI::Property("Static", isStatic))
+            {
+                mCreateNewMeshPopupData.CreateMeshFilenameBuffer[0] = 0; // Recreate filepath
+            }
+            UI::EndPropertyGrid();
+
             ImGui::Text("Path: %s/", meshAssetPath.c_str());
             ImGui::SameLine();
 
             NR_CORE_ASSERT(mCreateNewMeshPopupData.MeshToCreate);
-            const AssetMetadata& assetData = AssetManager::GetMetadata(mCreateNewMeshPopupData.MeshToCreate->Handle);
-            std::string filepath = fmt::format("{0}/{1}.nrmesh", mCurrentScene->GetName(), assetData.FilePath.stem().string());
+            const AssetMetadata& assetData = AssetManager::GetMetadata(mCreateNewMeshPopupData.MeshToCreate->Handle);			
+            std::string filepath = fmt::format("{0}/{1}.{2}", mCurrentScene->GetName(), assetData.FilePath.stem().string(), isStatic ? "nrsmesh" : "nrmesh");
 
             if (!mCreateNewMeshPopupData.CreateMeshFilenameBuffer[0])
             {
@@ -1371,23 +1374,50 @@ namespace NR
                     FileSystem::CreateDirectory(path.parent_path());
                 }
 
-                Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(path.filename().string(), path.parent_path().string(), mCreateNewMeshPopupData.MeshToCreate);
-                Entity entity = mCreateNewMeshPopupData.TargetEntity;
-                if (entity)
+                if (isStatic)
                 {
-                    if (!entity.HasComponent<MeshComponent>())
+                    Ref<StaticMesh> mesh = AssetManager::CreateNewAsset<StaticMesh>(path.filename().string(), path.parent_path().string(), mCreateNewMeshPopupData.MeshToCreate);
+
+                    Entity entity = mCreateNewMeshPopupData.TargetEntity;
+                    if (entity)
                     {
-                        entity.AddComponent<MeshComponent>();
+                        if (!entity.HasComponent<StaticMeshComponent>())
+                        {
+                            entity.AddComponent<StaticMeshComponent>();
+                        }
+
+                        StaticMeshComponent& mc = entity.GetComponent<StaticMeshComponent>();
+                        mc.StaticMesh = mesh->Handle;
                     }
-                    MeshComponent& mc = entity.GetComponent<MeshComponent>();
-                    mc.MeshHandle = mesh->Handle;
+                    else
+                    {
+                        const auto& meshMetadata = AssetManager::GetMetadata(mesh->Handle);
+                        Entity entity = mEditorScene->CreateEntity(meshMetadata.FilePath.stem().string());
+                        entity.AddComponent<StaticMeshComponent>(mesh->Handle);
+                        SelectEntity(entity);
+                    }
                 }
                 else
                 {
-                    const auto& meshMetadata = AssetManager::GetMetadata(mesh->Handle);
-                    Entity entity = mEditorScene->CreateEntity(meshMetadata.FilePath.stem().string());
-                    entity.AddComponent<MeshComponent>(mesh->Handle);
-                    SelectEntity(entity);
+                    Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(path.filename().string(), path.parent_path().string(), mCreateNewMeshPopupData.MeshToCreate);
+                    Entity entity = mCreateNewMeshPopupData.TargetEntity;
+                    if (entity)
+                    {
+                        if (!entity.HasComponent<MeshComponent>())
+                        {
+                            entity.AddComponent<MeshComponent>();
+                        }
+
+                        MeshComponent& mc = entity.GetComponent<MeshComponent>();
+                        mc.MeshHandle = mesh->Handle;
+                    }
+                    else
+                    {
+                        const auto& submeshIndices = mesh->GetSubmeshes();
+                        const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+                        Entity rootEntity = mEditorScene->InstantiateMesh(mesh);
+                        SelectEntity(rootEntity);
+                    }
                 }
                 mCreateNewMeshPopupData = {};
                 ImGui::CloseCurrentPopup();
@@ -1476,10 +1506,10 @@ namespace NR
         }
     }
 
-    void EditorLayer::CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset)
+    void EditorLayer::CreateMeshFromMeshSource(Entity entity, Ref<MeshSource> meshSource)
     {
         mShowCreateNewMeshPopup = true;
-        mCreateNewMeshPopupData.MeshToCreate = meshAsset;
+        mCreateNewMeshPopupData.MeshToCreate = meshSource;
         mCreateNewMeshPopupData.TargetEntity = entity;
     }
 
@@ -1952,20 +1982,30 @@ namespace NR
                     Ref<Asset> asset = AssetManager::GetAsset<Asset>(assetHandle);
                     if (asset)
                     {
-                        if (asset->GetAssetType() == AssetType::MeshAsset)
+                        if (asset->GetAssetType() == AssetType::MeshSource)
                         {
                             mShowCreateNewMeshPopup = true;
-                            mCreateNewMeshPopupData.MeshToCreate = asset.As<MeshAsset>();
+                            mCreateNewMeshPopupData.MeshToCreate = asset.As<MeshSource>();
                             mCreateNewMeshPopupData.TargetEntity = {};
                         }
                         else if (asset->GetAssetType() == AssetType::Mesh)
                         {
                             Ref<Mesh> mesh = asset.As<Mesh>();
                             const auto& submeshIndices = mesh->GetSubmeshes();
-                            const auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
+                            const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
                             
                             Entity rootEntity = mEditorScene->InstantiateMesh(mesh);
                             SelectEntity(rootEntity);
+                        }
+                        else if (asset->GetAssetType() == AssetType::StaticMesh)
+                        {
+                            Ref<StaticMesh> staticMesh = asset.As<StaticMesh>();
+                            auto& assetData = AssetManager::GetMetadata(staticMesh->Handle);
+                            
+                            Entity entity = mEditorScene->CreateEntity(assetData.FilePath.stem().string());
+                            entity.AddComponent<StaticMeshComponent>(staticMesh->Handle);
+                            
+                            SelectEntity(entity);
                         }
                         else if (asset->GetAssetType() == AssetType::Prefab)
                         {
@@ -2794,7 +2834,7 @@ namespace NR
                         continue;
                     }
 
-                    auto& submeshes = mesh->GetMeshAsset()->GetSubmeshes();
+                    auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
                     float lastT = std::numeric_limits<float>::max();
                     auto& submesh = submeshes[mc.SubmeshIndex];
                     glm::mat4 transform = mCurrentScene->GetWorldSpaceTransformMatrix(entity);
@@ -2808,7 +2848,7 @@ namespace NR
                     bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
                     if (intersects)
                     {
-                        const auto& triangleCache = mesh->GetMeshAsset()->GetTriangleCache(mc.SubmeshIndex);
+                        const auto& triangleCache = mesh->GetMeshSource()->GetTriangleCache(mc.SubmeshIndex);
                         for (const auto& triangle : triangleCache)
                         {
                             if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
@@ -2818,7 +2858,20 @@ namespace NR
                             }
                         }
                     }
-#if 0
+                }
+                auto staticMeshEntities = mCurrentScene->GetAllEntitiesWith<StaticMeshComponent>();
+                for (auto e : staticMeshEntities)
+                {
+                    Entity entity = { e, mCurrentScene.Raw() };
+                    auto& smc = entity.GetComponent<StaticMeshComponent>();
+                    auto staticMesh = AssetManager::GetAsset<StaticMesh>(smc.StaticMesh);
+                    if (!staticMesh || staticMesh->IsFlagSet(AssetFlag::Missing))
+                    {
+                        continue;
+                    }
+
+                    auto& submeshes = staticMesh->GetMeshSource()->GetSubmeshes();
+
                     constexpr float lastT = std::numeric_limits<float>::max();
                     for (uint32_t i = 0; i < submeshes.size(); ++i)
                     {
@@ -2826,14 +2879,14 @@ namespace NR
                         glm::mat4 transform = mCurrentScene->GetWorldSpaceTransformMatrix(entity);
                         Ray ray = {
                             glm::inverse(transform * submesh.Transform) * glm::vec4(origin, 1.0f),
-                            glm::inverse(glm::mat3(transform) * glm::mat3(submesh.Transform)) * direction
+                            glm::inverse(glm::mat3(transform * submesh.Transform))* direction
                         };
 
                         float t;
                         bool intersects = ray.IntersectsAABB(submesh.BoundingBox, t);
                         if (intersects)
                         {
-                            const auto& triangleCache = mesh->GetMeshAsset()->GetTriangleCache(i);
+                            const auto& triangleCache = staticMesh->GetMeshSource()->GetTriangleCache(i);
                             for (const auto& triangle : triangleCache)
                             {
                                 if (ray.IntersectsTriangle(triangle.V0.Position, triangle.V1.Position, triangle.V2.Position, t))
@@ -2844,7 +2897,6 @@ namespace NR
                             }
                         }
                     }
-#endif
                 }
                 std::sort(mSelectionContext.begin(), mSelectionContext.end(), [](auto& a, auto& b) { return a.Distance < b.Distance; });
                 if (mSelectionContext.size())

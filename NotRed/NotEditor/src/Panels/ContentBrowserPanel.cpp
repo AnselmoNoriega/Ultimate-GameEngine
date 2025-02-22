@@ -185,7 +185,19 @@ namespace NR
 						UI::ScopedColorStack itemBg(ImGuiCol_Header, IM_COL32_DISABLE,
 							ImGuiCol_HeaderActive, IM_COL32_DISABLE);
 
+						std::vector<Ref<DirectoryInfo>> directories;
+						directories.reserve(mBaseDirectory->SubDirectories.size());
 						for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
+						{
+							directories.emplace_back(directory);
+						}
+
+						std::sort(directories.begin(), directories.end(), [](const auto& a, const auto& b)
+							{
+								return a->FilePath.stem().string() < b->FilePath.stem().string();
+							});
+
+						for (auto& directory : directories)
 						{
 							RenderDirectoryHierarchy(directory);
 						}
@@ -590,7 +602,19 @@ namespace NR
 		//--------------
 		if (open)
 		{
-			for (auto& [handle, child] : directory->SubDirectories)
+			std::vector<Ref<DirectoryInfo>> directories;
+			directories.reserve(mBaseDirectory->SubDirectories.size());
+			for (auto& [handle, directory] : directory->SubDirectories)
+			{
+				directories.emplace_back(directory);
+			}
+			
+			std::sort(directories.begin(), directories.end(), [](const auto& a, const auto& b)
+				{
+					return a->FilePath.stem().string() < b->FilePath.stem().string();
+				});
+
+			for (auto& child : directories)
 			{
 				RenderDirectoryHierarchy(child);
 			}
@@ -772,7 +796,7 @@ namespace NR
 
 		bool openDeleteDialogue = false;
 
-		std::lock_guard<std::mutex> lock(sLockMutex);
+		std::scoped_lock<std::mutex> lock(sLockMutex);
 		for (auto& item : mCurrentItems)
 		{
 			item->RenderBegin();
@@ -858,7 +882,10 @@ namespace NR
 
 			if (result.IsSet(ContentBrowserAction::Renamed))
 			{
+				RefreshWithoutLock();
 				SortItemList();
+				item->SetSelected(true);
+				mSelectionStack.Select(item->GetID());
 				break;
 			}
 
@@ -870,7 +897,7 @@ namespace NR
 
 			if (result.IsSet(ContentBrowserAction::Refresh))
 			{
-				ChangeDirectory(mCurrentDirectory);
+				RefreshWithoutLock();
 				break;
 			}
 		}
@@ -885,6 +912,11 @@ namespace NR
 	void ContentBrowserPanel::Refresh()
 	{
 		std::lock_guard<std::mutex> lock(sLockMutex);
+		RefreshWithoutLock();
+	}
+
+	void ContentBrowserPanel::RefreshWithoutLock()
+	{
 
 		mCurrentItems.Clear();
 		mDirectories.clear();

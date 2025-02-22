@@ -179,6 +179,9 @@ namespace NR
             mRegistry.on_construct<AudioComponent>().connect<&Scene::AudioComponentConstruct>(this);
             mRegistry.on_destroy<AudioComponent>().connect<&Scene::AudioComponentDestroy>(this);
 
+            mRegistry.on_construct<MeshColliderComponent>().connect<&Scene::MeshColliderComponentConstruct>(this);
+            mRegistry.on_destroy<MeshColliderComponent>().connect<&Scene::MeshColliderComponentDestroy>(this);
+
             mSceneEntity = mRegistry.create();
             mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
 
@@ -478,42 +481,54 @@ namespace NR
 
         renderer->SetScene(this);
         renderer->BeginScene({ camera, cameraViewMatrix, 0.1f, 1000.0f, 45.0f }, dt);
-
-        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
-        for (auto entity : group)
+        
+        // Render Static Meshes
         {
-            auto [transformComponent, meshComponent] = group.get<TransformComponent, MeshComponent>(entity);
-            if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
+            auto group = mRegistry.group<StaticMeshComponent>(entt::get<TransformComponent>);
+            for (auto entity : group)
             {
-                auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
-                if (!mesh->IsFlagSet(AssetFlag::Missing))
+                auto [transformComponent, staticMeshComponent] = group.get<TransformComponent, StaticMeshComponent>(entity);
+                if (AssetManager::IsAssetHandleValid(staticMeshComponent.StaticMesh))
                 {
-                    Entity e = Entity(entity, this);
-                    if (mesh->IsRigged())
+                    auto staticMesh = AssetManager::GetAsset<StaticMesh>(staticMeshComponent.StaticMesh);
+                    if (!staticMesh->IsFlagSet(AssetFlag::Missing))
                     {
-                        if (e.HasComponent<AnimationComponent>()) 
+                        Entity e = Entity(entity, this);
+                        glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
+
+                        if (mSelectedEntity == entity)
+                            renderer->SubmitSelectedStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
+                        else
+                            renderer->SubmitStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
+                    }
+                }
+            }
+        }
+
+        // Render Dynamic Meshes
+        {
+            auto view = mRegistry.view<MeshComponent, TransformComponent>();
+            for (auto entity : view)
+            {
+                auto [transformComponent, meshComponent] = view.get<TransformComponent, MeshComponent>(entity);
+                if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
+                {
+                    auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
+                    if (!mesh->IsFlagSet(AssetFlag::Missing))
+                    {
+                        mesh->UpdateBoneTransforms(dt);
+                        Entity e = Entity(entity, this);
+                        glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
+                        
+                        if (mSelectedEntity == entity)
                         {
-                            auto& anim = e.GetComponent<AnimationComponent>();
-                            if (AssetManager::IsAssetHandleValid(anim.AnimationController))
-                            {
-                                auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-                                e.Transform().SetTransform(e.Transform().GetTransform() * animationController->Update(dt));
-                                mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
-                            }
-                            else
-                            {
-                                mesh->UpdateBoneTransforms({});
-                            }
+                            renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.MaterialTable, transform);
                         }
                         else
                         {
-                            mesh->UpdateBoneTransforms({});
+                            renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.MaterialTable, transform);
                         }
                     }
-
-                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
-
-                    renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
                 }
             }
         }
@@ -540,7 +555,7 @@ namespace NR
             mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
             {
 #if TODO_SPRITES
-                auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRenderer>);
+                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);
                 for (auto entity : group)
                 {
                     auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
@@ -650,43 +665,60 @@ namespace NR
 
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
-        auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
         renderer->SetScene(this);
         renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f }, dt);
-        for (auto entity : group)
+        
+        // Render Static Meshes
         {
-            auto [meshComponent, transformComponent] = group.get<MeshComponent, TransformComponent>(entity);
-            if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
+            auto group = mRegistry.group<StaticMeshComponent>(entt::get<TransformComponent>);
+            for (auto entity : group)
             {
-                auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
-                if (!mesh->IsFlagSet(AssetFlag::Missing))
+                auto [transformComponent, staticMeshComponent] = group.get<TransformComponent, StaticMeshComponent>(entity);
+                if (AssetManager::IsAssetHandleValid(staticMeshComponent.StaticMesh))
                 {
-                    Entity e = Entity(entity, this);
-                    if (mesh->IsRigged())
+                    auto staticMesh = AssetManager::GetAsset<StaticMesh>(staticMeshComponent.StaticMesh);
+                    if (!staticMesh->IsFlagSet(AssetFlag::Missing))
                     {
-                        if (e.HasComponent<AnimationComponent>()) 
+                        Entity e = Entity(entity, this);
+                        glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
+
+                        if (mSelectedEntity == entity)
                         {
-                            auto& anim = e.GetComponent<AnimationComponent>();
-                            if (AssetManager::IsAssetHandleValid(anim.AnimationController))
-                            {
-                                auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-                                animationController->Update(dt);
-                                mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
-                            }
-                            else
-                            {
-                                mesh->UpdateBoneTransforms({});
-                            }
+                            renderer->SubmitSelectedStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
                         }
                         else
                         {
-                            mesh->UpdateBoneTransforms({});
+                            renderer->SubmitStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
                         }
                     }
+                }
+            }
+        }
 
-                    glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
-
-                    renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+        // Render Dynamic Meshes
+        {
+            auto view = mRegistry.view<MeshComponent, TransformComponent>();
+            for (auto entity : view)
+            {
+                auto [transformComponent, meshComponent] = view.get<TransformComponent, MeshComponent>(entity);
+                if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
+                {
+                    auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.Mesh);
+                    if (!mesh->IsFlagSet(AssetFlag::Missing))
+                    {
+                        mesh->Update(dt);
+                        Entity e = Entity(entity, this);
+                        glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
+                        
+                        if (mSelectedEntity == entity)
+                        {
+                            renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+                        }
+                        else
+                        {
+                            renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+                        }
+                    }
                 }
             }
         }
@@ -743,9 +775,21 @@ namespace NR
                 Entity e = { entity, this };
                 glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
                 auto& collider = e.GetComponent<MeshColliderComponent>();
-                for (const auto& debugMesh : collider.ProcessedMeshes)
+                if (e.HasComponent<MeshComponent>())
                 {
-                    renderer->SubmitPhysicsDebugMesh(debugMesh, collider.SubmeshIndex, transform);
+                    Ref<Mesh> debugMesh = PhysicsSystem::GetMeshCache().GetDebugMesh(collider.CollisionMesh);
+                    if (debugMesh)
+                    {
+                        renderer->SubmitPhysicsDebugMesh(debugMesh, collider.SubmeshIndex, transform);
+                    }
+                }
+                else if (e.HasComponent<StaticMeshComponent>())
+                {
+                    Ref<StaticMesh> debugMesh = PhysicsSystem::GetMeshCache().GetDebugStaticMesh(collider.CollisionMesh);
+                    if (debugMesh)
+                    {
+                        renderer->SubmitPhysicsStaticDebugMesh(debugMesh, transform);
+                    }
                 }
             }
         }
@@ -811,7 +855,7 @@ namespace NR
             mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
             {
 #if TODO_SPRITES
-                auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRenderer>);
+                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);
                 for (auto entity : group)
                 {
                     auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
@@ -936,7 +980,7 @@ namespace NR
                     b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
 
                     b2CircleShape circleShape;
-                    circleShape.m_radius = transform.Scale.x * circleCollider2D.Radius;
+                    circleShape.mradius = transform.Scale.x * circleCollider2D.Radius;
 
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &circleShape;

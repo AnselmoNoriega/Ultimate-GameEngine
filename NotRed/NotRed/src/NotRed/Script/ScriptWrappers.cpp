@@ -208,7 +208,7 @@ namespace NR::Script
         return result.GetID();
     }
 
-    uint64_t NR_Entity_InstantiateWithTranslation(uint64_t entityID, uint64_t prefabID, glm::vec3* inTranslation)
+    uint64_t NR_Entity_InstantiateWithTransform(uint64_t entityID, uint64_t prefabID, TransformComponent* inTransform)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -222,7 +222,8 @@ namespace NR::Script
         }
 
         Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
-        Entity result = scene->Instantiate(prefab, inTranslation);
+        glm::mat4 transform = inTransform->GetTransform();
+        Entity result = scene->Instantiate(prefab, &transform);
         return result.GetID();
     }
 
@@ -1807,25 +1808,10 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<MeshColliderComponent>();
         auto mesh = AssetManager::GetAsset<Mesh>(component.CollisionMesh);
-        return new Ref<Mesh>(new Mesh(mesh->GetMeshAsset()));
+        return new Ref<Mesh>(new Mesh(mesh->GetMeshSource()));
     }
 
     void NR_MeshColliderComponent_SetColliderMesh(uint64_t entityID, Ref<Mesh>* inMesh) {}
-
-    bool NR_MeshColliderComponent_IsConvex(uint64_t entityID)
-    {
-        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
-        NR_CORE_ASSERT(scene, "No active scene!");
-
-        const auto& entityMap = scene->GetEntityMap();
-        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-
-        Entity entity = entityMap.at(entityID);
-        NR_CORE_ASSERT(entity.HasComponent<MeshColliderComponent>());
-
-        auto& component = entity.GetComponent<MeshColliderComponent>();
-        return component.IsConvex;
-    }
 
     void NR_MeshColliderComponent_SetConvex(uint64_t entityID, bool convex) {}
 
@@ -1851,10 +1837,10 @@ namespace NR::Script
         AssetHandle handle = AssetManager::GetAssetHandleFromFilePath(mono_string_to_utf8(filepath));
         if (AssetManager::IsAssetHandleValid(handle))
         {
-            return new Ref<Mesh>(new Mesh(AssetManager::GetAsset<MeshAsset>(handle)));
+            return new Ref<Mesh>(new Mesh(AssetManager::GetAsset<MeshSource>(handle)));
         }
 
-        return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create(mono_string_to_utf8(filepath))));
+        return new Ref<Mesh>(new Mesh(Ref<MeshSource>::Create(mono_string_to_utf8(filepath))));
     }
 
     void NR_Mesh_Destructor(Ref<Mesh>* _this)
@@ -1873,7 +1859,7 @@ namespace NR::Script
     MonoArray* NR_Mesh_GetVertices(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
-        const auto& staticVertices = mesh->GetMeshAsset()->GetStaticVertices();
+        const auto& staticVertices = mesh->GetMeshSource()->GetStaticVertices();
 
         json j = staticVertices;
         std::string serialized = j.dump();
@@ -1911,7 +1897,7 @@ namespace NR::Script
     MonoArray* NR_Mesh_GetIndices(Ref<Mesh>* inMesh)
     {
         Ref<Mesh>& mesh = *(Ref<Mesh>*)inMesh;
-        const auto& indices = mesh->GetMeshAsset()->GetIndices();
+        const auto& indices = mesh->GetMeshSource()->GetIndices();
         MonoArray* array = mono_array_new(mono_domain_get(), mono_get_int32_class(), indices.size() * 3);
 
         size_t idx = 0;
@@ -2100,7 +2086,7 @@ namespace NR::Script
 
     void* NR_MeshFactory_CreatePlane(float width, float height)
     {
-        return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create("Assets/Models/Plane1m.obj")));
+        return new Ref<Mesh>(new Mesh(Ref<MeshSource>::Create("Assets/Models/Plane1m.obj")));
     }
 
     // TextComponent
@@ -2229,7 +2215,7 @@ namespace NR::Script
             mono_free((void*)cStr);
         }
 
-        return new Ref<Mesh>(new Mesh(Ref<MeshAsset>::Create(
+        return new Ref<Mesh>(new Mesh(Ref<MeshSource>::Create(
             verticesForSubmeshes,
             indicesForSubmeshes,
             materialNames

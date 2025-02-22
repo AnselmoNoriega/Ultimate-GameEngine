@@ -92,7 +92,7 @@ namespace NR
 
 		void UI_NewScene();
 
-		void CreateMeshFromMeshAsset(Entity entity, Ref<MeshAsset> meshAsset);
+		void CreateMeshFromMeshSource(Entity entity, Ref<MeshSource> meshSource);
 		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
 
 		void UpdateWindowTitle(const std::string& sceneName);
@@ -217,7 +217,7 @@ namespace NR
 
 		struct CreateNewMeshPopupData
 		{
-			Ref<MeshAsset> MeshToCreate;
+			Ref<MeshSource> MeshToCreate;
 			std::array<char, 256> CreateMeshFilenameBuffer;
 			Entity TargetEntity;
 
