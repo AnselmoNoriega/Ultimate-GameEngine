@@ -22,9 +22,9 @@
 
 #include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 
-#include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsLayer.h"
-#include "NotRed/Physics/Debug/PhysicsDebugger.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsLayer.h"
+#include "NotRed/Physics/3D/Debug/PhysicsDebugger.h"
 
 #include "NotRed/Math/Math.h"
 #include "NotRed/Util/FileSystem.h"

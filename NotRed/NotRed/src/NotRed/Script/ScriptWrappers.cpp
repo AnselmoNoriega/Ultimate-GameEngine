@@ -20,8 +20,8 @@
 
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Math/Math.h"
-#include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsActor.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsActor.h"
 
 #include "NotRed/Math/Noise.h"
 
@@ -32,6 +32,7 @@
 #include "NotRed/Audio/AudioComponent.h"
 #include "NotRed/Audio/AudioPlayback.h"
 #include "NotRed/Script/ScriptEngine.h"
+#include "NotRed/Physics/2D/Physics2D.h"
 
 #include "NotRed/Audio/AudioEngine.h"
 #include "NotRed/Audio/AudioEvents/CommandID.h"
@@ -593,6 +594,37 @@ namespace NR::Script
         return success;
     }
 
+    MonoArray* NR_Physics_Raycast2D(RaycastData2D* inData)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
+        std::vector<Raycast2DResult> raycastResults = Physics2D::Raycast(scene, inData->Origin, inData->Origin + inData->Direction * inData->MaxDistance);
+
+        MonoArray* results = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.RaycastHit2D"), raycastResults.size());
+        for (size_t i = 0; i < raycastResults.size(); ++i)
+        {
+            UUID entityID = raycastResults[i].HitEntity.GetID();
+            void* data[] = {
+                &entityID
+            };
+
+            MonoObject* entity = ScriptEngine::Construct("NR.Entity:.ctor(ulong)", true, data);
+
+            void* rcData[] = {
+                entity,
+                &raycastResults[i].Point,
+                &raycastResults[i].Normal,
+                &raycastResults[i].Distance
+            };
+
+            MonoObject* obj = ScriptEngine::Construct("NR.RaycastHit2D:.ctor(Entity,Vector2,Vector2,single)", true, rcData);
+            mono_array_set(results, MonoObject*, i, obj);
+        }
+
+        return results;
+    }
+
     static void AddCollidersToArray(MonoArray* array, const std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
     {
         uint32_t arrayIndex = 0;
@@ -878,10 +910,10 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         auto& animationComponent = entity.GetComponent<AnimationComponent>();
         auto animationController = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController);
@@ -908,7 +940,7 @@ namespace NR::Script
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
 
-        Entity entity = entityMap.at(entityID); 
+        Entity entity = entityMap.at(entityID);
         if (!entity.HasComponent<MeshColliderComponent>())
         {
             return;
@@ -961,13 +993,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         auto& animationComponent = entity.GetComponent<AnimationComponent>();
-        
+
         // Root motion is currently translation only.  No need for expensive matrix decompose here.
         if (AssetManager::IsAssetHandleValid(animationComponent.AnimationController))
         {
@@ -1078,13 +1110,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
-        
+
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
         if (body->GetType() != b2_dynamicBody)
@@ -1097,13 +1129,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
-        
+
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
         if (body->GetType() != b2_dynamicBody)
@@ -1222,13 +1254,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
-        
+
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
         if (body->GetType() != b2_dynamicBody)
@@ -1301,13 +1333,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
-        
+
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
         //outMass* = body->GetMass();
@@ -1317,13 +1349,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBody2DComponent>());
-        
+
         auto& component = entity.GetComponent<RigidBody2DComponent>();
         b2Body* body = (b2Body*)component.RuntimeBody;
     }
@@ -1570,10 +1602,10 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
@@ -1583,7 +1615,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot get linear drag of a static or kinematic actor! EntityID({0})", entityID);
             return 0.0f;
         }
-        
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetLinearDrag();
     }
@@ -1592,10 +1624,10 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
@@ -1605,7 +1637,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot set linear drag of a static or kinematic actor! EntityID({0})", entityID);
             return;
         }
-        
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetLinearDrag(linearDrag);
     }
@@ -1614,10 +1646,10 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
@@ -1627,7 +1659,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot get angular drag of a static or kinematic actor! EntityID({0})", entityID);
             return 0.0f;
         }
-        
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         return actor->GetAngularDrag();
     }
@@ -1636,10 +1668,10 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
@@ -1649,7 +1681,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot set angular drag of a static or kinematic actor! EntityID({0})", entityID);
             return;
         }
-        
+
         Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
         actor->SetAngularDrag(angularDrag);
     }
@@ -2187,13 +2219,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
-        
+
         *outRadiance = entity.GetComponent<PointLightComponent>().Radiance;
     }
 
@@ -2201,13 +2233,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
-        
+
         entity.GetComponent<PointLightComponent>().Radiance = *inRadiance;
     }
 
@@ -2327,13 +2359,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
-        
+
         auto& component = entity.GetComponent<TextComponent>();
         return mono_string_new(mono_domain_get(), component.TextString.c_str());
     }
@@ -2342,13 +2374,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
-        
+
         auto& component = entity.GetComponent<TextComponent>();
         component.TextString = mono_string_to_utf8(string);
     }
@@ -2357,13 +2389,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
-        
+
         auto& component = entity.GetComponent<TextComponent>();
         *outColor = component.Color;
     }
@@ -2372,13 +2404,13 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        
+
         const auto& entityMap = scene->GetEntityMap();
         NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
-        
+
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<TextComponent>());
-        
+
         auto& component = entity.GetComponent<TextComponent>();
         component.Color = *inColor;
     }

@@ -1,7 +1,7 @@
 #include "nrpch.h"
 #include "PhysicsDebugger.h"
 
-#include "NotRed/Physics/PhysicsInternal.h"
+#include "NotRed/Physics/3D/PhysicsInternal.h"
 
 namespace NR
 {

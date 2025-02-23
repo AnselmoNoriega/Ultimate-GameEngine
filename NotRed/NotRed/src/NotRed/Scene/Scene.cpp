@@ -21,8 +21,8 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Renderer2D.h"
 
-#include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsSystem.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsSystem.h"
 #include "NotRed/Math/Math.h"
 
 #include "NotRed/Audio/AudioEngine.h"
@@ -703,10 +703,10 @@ namespace NR
                 auto [transformComponent, meshComponent] = view.get<TransformComponent, MeshComponent>(entity);
                 if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
                 {
-                    auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.Mesh);
+                    auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
                     if (!mesh->IsFlagSet(AssetFlag::Missing))
                     {
-                        mesh->Update(dt);
+                        mesh->UpdateBoneTransforms(dt);
                         Entity e = Entity(entity, this);
                         glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
                         
@@ -990,7 +990,7 @@ namespace NR
                     b2Body* body = static_cast<b2Body*>(rigidBody2D.RuntimeBody);
 
                     b2CircleShape circleShape;
-                    circleShape.mradius = transform.Scale.x * circleCollider2D.Radius;
+                    circleShape.m_radius = transform.Scale.x * circleCollider2D.Radius;
 
                     b2FixtureDef fixtureDef;
                     fixtureDef.shape = &circleShape;
@@ -1228,6 +1228,13 @@ namespace NR
             if (entity.HasComponent<RigidBodyComponent>())
             {
                 PhysicsManager::GetScene()->RemoveActor(PhysicsManager::GetScene()->GetActor(entity));
+            }
+
+            if (entity.HasComponent<RigidBody2DComponent>())
+            {
+                auto& world = mRegistry.get<Box2DWorldComponent>(mSceneEntity).World;
+                b2Body* body = (b2Body*)entity.GetComponent<RigidBody2DComponent>().RuntimeBody;
+                world->DestroyBody(body);
             }
         }
 

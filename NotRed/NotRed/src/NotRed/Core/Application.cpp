@@ -16,7 +16,7 @@
 #include "NotRed/Renderer/Renderer.h"
 #include "NotRed/Renderer/Framebuffer.h"
 #include "NotRed/Script/ScriptEngine.h"
-#include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 

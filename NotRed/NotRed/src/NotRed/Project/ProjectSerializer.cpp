@@ -3,8 +3,8 @@
 
 #include <filesystem>
 
-#include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsLayer.h"
 
 #include "NotRed/Util/YAMLSerializationHelpers.h"
 

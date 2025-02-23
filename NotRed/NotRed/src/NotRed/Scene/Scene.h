@@ -200,6 +200,7 @@ namespace NR
 	private:
 		friend class Entity;
 		friend class Prefab;
+		friend class Physics2D;
 		friend class SceneRenderer;
 		friend class SceneSerializer;
 		friend class PrefabSerializer;

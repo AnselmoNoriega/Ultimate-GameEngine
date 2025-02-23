@@ -54,30 +54,24 @@ namespace NR
     {
         bool loaded = LoadImage(path);
         NR_CORE_ASSERT(loaded);
-        if (!loaded)
+        if (loaded)
         {
-            LoadImage("Resources/Textures/ErrorTexture.png");
+            ImageSpecification imageSpec;
+            imageSpec.Format = mFormat;
+            imageSpec.Width = mWidth;
+            imageSpec.Height = mHeight;
+            imageSpec.Mips = GetMipLevelCount();
+            imageSpec.DebugName = properties.DebugName;
+            mImage = Image2D::Create(imageSpec);
+
+            NR_CORE_ASSERT(mFormat != ImageFormat::None);
+
+            Ref<VKTexture2D> instance = this;
+            Renderer::Submit([instance]() mutable
+                {
+                    instance->Invalidate();
+                });
         }
-
-        ImageSpecification imageSpec;
-        imageSpec.Format = mFormat;
-        imageSpec.Width = mWidth;
-        imageSpec.Height = mHeight;
-        imageSpec.Mips = GetMipLevelCount();
-        imageSpec.DebugName = properties.DebugName;
-        if (properties.Storage)
-        {
-            imageSpec.Usage = ImageUsage::Storage;
-        }
-        mImage = Image2D::Create(imageSpec);
-
-        NR_CORE_ASSERT(mFormat != ImageFormat::None);
-
-        Ref<VKTexture2D> instance = this;
-        Renderer::Submit([instance]() mutable
-            {
-                instance->Invalidate();
-            });
     }
 
     VKTexture2D::VKTexture2D(ImageFormat format, uint32_t width, uint32_t height, const void* data, TextureProperties properties)

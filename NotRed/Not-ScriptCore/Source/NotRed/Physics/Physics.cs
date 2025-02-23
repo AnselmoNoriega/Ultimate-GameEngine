@@ -31,6 +31,32 @@ namespace NR
         public Type[] RequiredComponents;
     }
 
+    public class RaycastHit2D
+
+    {
+        public Entity Entity { get; internal set; }
+        public Vector2 Position { get; internal set; }
+        public Vector2 Normal { get; internal set; }
+        public float Distance { get; internal set; }
+
+        RaycastHit2D(Entity entity, Vector2 position, Vector2 normal, float distance)
+        {
+            Entity = entity;
+            Position = position;
+            Normal = normal;
+            Distance = distance;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RaycastData2D
+    {
+        public Vector2 Origin;
+        public Vector2 Direction;
+        public float MaxDistance;
+        public Type[] RequiredComponents;
+    }
+
     public enum ActorLockFlag : uint
     {
         TranslationX = 1 << 0,
@@ -74,6 +100,16 @@ namespace NR
             return Raycast_Native(ref sRaycastData, out hit);
         }
 
+        public static RaycastHit2D[] Raycast2D(RaycastData2D raycastData) => Raycast2D_Native(ref raycastData);
+        public static RaycastHit2D[] Raycast2D(Vector2 origin, Vector2 direction, float maxDistance, params Type[] componentFilters)
+        {
+            sRaycastData2D.Origin = origin;
+            sRaycastData2D.Direction = direction;
+            sRaycastData2D.MaxDistance = maxDistance;
+            sRaycastData2D.RequiredComponents = componentFilters;
+            return Raycast2D_Native(ref sRaycastData2D);
+        }
+
         public static Collider[] OverlapBox(Vector3 origin, Vector3 halfSize)
         {
             return OverlapBox_Native(ref origin, ref halfSize);
@@ -105,9 +141,12 @@ namespace NR
         }
 
         private static RaycastData sRaycastData = new RaycastData();
+        private static RaycastData2D sRaycastData2D = new RaycastData2D();
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool Raycast_Native(ref RaycastData raycastData, out RaycastHit hit);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern RaycastHit2D[] Raycast2D_Native(ref RaycastData2D raycastData);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern Collider[] OverlapBox_Native(ref Vector3 origin, ref Vector3 halfSize);
         [MethodImpl(MethodImplOptions.InternalCall)]

@@ -4,8 +4,8 @@
 
 #include "NotRed/Project/ProjectSerializer.h"
 #include "NotRed/Asset/AssetManager.h"
-#include "NotRed/Physics/PhysicsManager.h"
-#include "NotRed/Physics/PhysicsLayer.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsLayer.h"
 #include "NotRed/Core/Input.h"
 
 namespace NR

@@ -4,7 +4,7 @@
 #include "NotRed/Asset/AssetManager.h"
 #include "NotRed/Audio/AudioEvents/AudioCommandRegistry.h"
 
-#include "NotRed/Physics/PhysicsSystem.h"
+#include "NotRed/Physics/3D/PhysicsSystem.h"
 
 namespace NR
 {

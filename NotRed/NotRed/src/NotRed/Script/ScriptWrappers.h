@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "NotRed/Core/Input.h"
-#include "NotRed/Physics/PhysicsManager.h"
+#include "NotRed/Physics/3D/PhysicsManager.h"
 
 #include "NotRed/Audio/Sound.h"
 
@@ -48,6 +48,14 @@ namespace NR::Script
         MonoArray* RequiredComponentTypes;
     };
 
+    struct RaycastData2D
+    {
+        glm::vec2 Origin;
+        glm::vec2 Direction;
+        float MaxDistance;
+        MonoArray* RequiredComponentTypes;
+    };
+
     // Physics
     bool NR_Physics_Raycast(RaycastData* inData, RaycastHit* hit);
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize);
@@ -59,6 +67,9 @@ namespace NR::Script
     void NR_Physics_GetGravity(glm::vec3* outGravity);
     void NR_Physics_SetGravity(glm::vec3* inGravity);
     void NR_Physics_AddRadialImpulse(glm::vec3* inOrigin, float radius, float strength, EFalloffMode falloff, bool velocityChange);
+
+    // 2D Physics
+    MonoArray* NR_Physics_Raycast2D(RaycastData2D* inData);
 
     // Entity
     void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID);
