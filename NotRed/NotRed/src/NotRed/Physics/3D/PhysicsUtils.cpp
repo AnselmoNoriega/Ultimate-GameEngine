@@ -37,6 +37,7 @@ namespace NR
 		physx::PxMat44 ToPhysicsMatrix(const glm::mat4& matrix) { return *(physx::PxMat44*)&matrix; }
 		const physx::PxVec3& ToPhysicsVector(const glm::vec3& vector) { return *(physx::PxVec3*)&vector; }
 		const physx::PxVec4& ToPhysicsVector(const glm::vec4& vector) { return *(physx::PxVec4*)&vector; }
+		physx::PxExtendedVec3 ToPhysicsExtendedVector(const glm::vec3& vector) { return physx::PxExtendedVec3(vector.x, vector.y, vector.z); }
 		physx::PxQuat ToPhysicsQuat(const glm::quat& quat) { return physx::PxQuat(quat.x, quat.y, quat.z, quat.w); }
 
 		glm::mat4 FromPhysicsTransform(const physx::PxTransform& transform)

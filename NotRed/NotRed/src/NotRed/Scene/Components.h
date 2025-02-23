@@ -302,6 +302,11 @@ namespace NR
         RigidBodyComponent(const RigidBodyComponent& other) = default;
     };
 
+    struct CharacterControllerComponent
+    {
+        float SlopeLimit;
+        float StepOffset;
+    };
 
     enum class ColliderComponentType
     {

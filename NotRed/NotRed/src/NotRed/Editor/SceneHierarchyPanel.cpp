@@ -1077,6 +1077,14 @@ namespace NR
                         ImGui::CloseCurrentPopup();
                     }
                 }
+                if (!mSelectionContext.HasComponent<CharacterControllerComponent>())
+                {
+                    if (ImGui::MenuItem("Character Controller"))
+                    {
+                        auto& ccc = mSelectionContext.AddComponent<CharacterControllerComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
                 if (!mSelectionContext.HasComponent<BoxColliderComponent>())
                 {
                     if (ImGui::MenuItem("Box Collider"))
@@ -1892,6 +1900,16 @@ namespace NR
                 UI::EndPropertyGrid();
             }, sGearIcon);
 
+        DrawComponent<CharacterControllerComponent>("Character Controller", entity, [&](CharacterControllerComponent& ccc)
+            {
+                UI::BeginPropertyGrid();
+
+                UI::Property("Slope Limit", ccc.SlopeLimit);
+                UI::Property("Step Offset", ccc.StepOffset);
+
+                UI::EndPropertyGrid();
+            }, sGearIcon);
+
         DrawComponent<BoxCollider2DComponent>("Box Collider 2D", entity, [](BoxCollider2DComponent& bc2dc)
             {
                 UI::BeginPropertyGrid();
@@ -2015,6 +2033,7 @@ namespace NR
                 {
                     ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                 }
+                UI::Property("Offset", ccc.Offset);
                 UI::Property("Is Trigger", ccc.IsTrigger);
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", ccc.Material);
 

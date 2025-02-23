@@ -439,6 +439,18 @@ namespace NR
 			out << YAML::EndMap; // RigidBodyComponent
 		}
 
+		if (entity.HasComponent<CharacterControllerComponent>())
+		{
+			out << YAML::Key << "CharacterControllerComponent";
+			out << YAML::BeginMap; // CharacterControllerComponent
+
+			auto& ccc = entity.GetComponent<CharacterControllerComponent>();
+			out << YAML::Key << "SlopeLimit" << YAML::Value << ccc.SlopeLimit;
+			out << YAML::Key << "StepOffset" << YAML::Value << ccc.StepOffset;
+
+			out << YAML::EndMap; // CharacterControllerComponent
+		}
+
 		if (entity.HasComponent<BoxColliderComponent>())
 		{
 			out << YAML::Key << "BoxColliderComponent";
@@ -490,6 +502,7 @@ namespace NR
 			auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
 			out << YAML::Key << "Radius" << YAML::Value << capsuleColliderComponent.Radius;
 			out << YAML::Key << "Height" << YAML::Value << capsuleColliderComponent.Height;
+			out << YAML::Key << "Offset" << YAML::Value << capsuleColliderComponent.Offset;
 			out << YAML::Key << "IsTrigger" << YAML::Value << capsuleColliderComponent.IsTrigger;
 
 			if (capsuleColliderComponent.Material)
@@ -1058,6 +1071,14 @@ namespace NR
 				}
 			}
 
+			auto characterControllerComponent = entity["CharacterControllerComponent"];
+			if (characterControllerComponent)
+			{
+				auto& component = deserializedEntity.AddComponent<CharacterControllerComponent>();
+				component.SlopeLimit = characterControllerComponent["SlopeLimit"].as<float>(0.0);
+				component.StepOffset = characterControllerComponent["StepOffset"].as<float>(0.0);
+			}
+
 			auto boxColliderComponent = entity["BoxColliderComponent"];
 			if (boxColliderComponent)
 			{
@@ -1111,6 +1132,7 @@ namespace NR
 				auto& component = deserializedEntity.AddComponent<CapsuleColliderComponent>();
 				component.Radius = capsuleColliderComponent["Radius"].as<float>();
 				component.Height = capsuleColliderComponent["Height"].as<float>();
+				component.Offset = capsuleColliderComponent["Offset"].as<glm::vec3>(glm::vec3{ 0.0f, 0.0f, 0.0f });
 				component.IsTrigger = capsuleColliderComponent["IsTrigger"] ? capsuleColliderComponent["IsTrigger"].as<bool>() : false;
 
 				auto material = capsuleColliderComponent["Material"];

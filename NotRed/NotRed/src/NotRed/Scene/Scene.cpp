@@ -545,6 +545,11 @@ namespace NR
             }
         }
 
+        if (renderer->GetOptions().ShowPhysicsColliders != SceneRendererOptions::PhysicsColliderView::None)
+        {
+            RenderPhysicsDebug(renderer);
+        }
+
         renderer->EndScene();
         /////////////////////////////////////////////////////////////////////
 
@@ -735,63 +740,9 @@ namespace NR
             }
         }
 
+        if (renderer->GetOptions().ShowPhysicsColliders != SceneRendererOptions::PhysicsColliderView::None)
         {
-            auto view = mRegistry.view<BoxColliderComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
-                auto& collider = e.GetComponent<BoxColliderComponent>();
-                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, 0, glm::translate(transform, collider.Offset));
-            }
-        }
-
-        {
-            auto view = mRegistry.view<SphereColliderComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
-                auto& collider = e.GetComponent<SphereColliderComponent>();
-                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, 0, transform);
-            }
-        }
-
-        {
-            auto view = mRegistry.view<CapsuleColliderComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
-                auto& collider = e.GetComponent<CapsuleColliderComponent>();
-                renderer->SubmitPhysicsDebugMesh(collider.DebugMesh, 0, transform);
-            }
-        }
-
-        {
-            auto view = mRegistry.view<MeshColliderComponent>();
-            for (auto entity : view)
-            {
-                Entity e = { entity, this };
-                glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
-                auto& collider = e.GetComponent<MeshColliderComponent>();
-                if (e.HasComponent<MeshComponent>())
-                {
-                    Ref<Mesh> debugMesh = PhysicsSystem::GetMeshCache().GetDebugMesh(collider.CollisionMesh);
-                    if (debugMesh)
-                    {
-                        renderer->SubmitPhysicsDebugMesh(debugMesh, collider.SubmeshIndex, transform);
-                    }
-                }
-                else if (e.HasComponent<StaticMeshComponent>())
-                {
-                    Ref<StaticMesh> debugMesh = PhysicsSystem::GetMeshCache().GetDebugStaticMesh(collider.CollisionMesh);
-                    if (debugMesh)
-                    {
-                        renderer->SubmitPhysicsStaticDebugMesh(debugMesh, transform);
-                    }
-                }
-            }
+            RenderPhysicsDebug(renderer);
         }
 
         renderer->EndScene();
@@ -846,45 +797,6 @@ namespace NR
             {
                 DestroyEntity(deadEntities[i]);
             }
-        }
-
-        // Render 2D
-        if (renderer->GetFinalPassImage())
-        {
-            mSceneRenderer2D->BeginScene(editorCamera.GetViewProjection(), editorCamera.GetViewMatrix());
-            mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
-            {
-#if TODO_SPRITES
-                auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);
-                for (auto entity : group)
-                {
-                    auto [transformComponent, spriteRendererComponent] = group.get<TransformComponent, SpriteRenderer>(entity);
-                    if (spriteRendererComponent.Texture)
-                    {
-                        Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Texture, spriteRendererComponent.TilingFactor);
-                    }
-                    else
-                    {
-                        Renderer2D::DrawQuad(transformComponent.Transform, spriteRendererComponent.Color);
-                    }
-                }
-#endif
-                auto group = mRegistry.group<TransformComponent>(entt::get<TextComponent>);
-                for (auto entity : group)
-                {
-                    auto [transformComponent, textComponent] = group.get<TransformComponent, TextComponent>(entity);
-                    if (textComponent.FontAsset == Font::GetDefaultFont()->Handle || !AssetManager::IsAssetHandleValid(textComponent.FontAsset))
-                    {
-                        mSceneRenderer2D->DrawString(textComponent.TextString, Font::GetDefaultFont(), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
-                    }
-                    else
-                    {
-                        mSceneRenderer2D->DrawString(textComponent.TextString, AssetManager::GetAsset<Font>(textComponent.FontAsset), transformComponent.GetTransform(), textComponent.MaxWidth, textComponent.Color, textComponent.LineSpacing, textComponent.Kerning);
-                    }
-                }
-            }
-
-            mSceneRenderer2D->EndScene();
         }
     }
 
@@ -1333,6 +1245,7 @@ namespace NR
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<CharacterControllerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1413,6 +1326,7 @@ namespace NR
         CopyComponentIfExists<BoxCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<RigidBodyComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
+        CopyComponentIfExists<CharacterControllerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
@@ -1741,6 +1655,7 @@ namespace NR
         CopyComponent<BoxCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<CharacterControllerComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);

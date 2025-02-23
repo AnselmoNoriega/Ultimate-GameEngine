@@ -74,6 +74,8 @@ namespace NR
 		void Update(float dt);
 		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
 		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
+		void RenderPhysicsDebug(Ref<SceneRenderer> renderer);
+
 		void OnEvent(Event& e);
 
 		// Runtime

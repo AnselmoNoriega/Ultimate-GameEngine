@@ -45,6 +45,7 @@ namespace NR
 		CopyComponentIfExists<BoxCollider2DComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<CircleCollider2DComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<RigidBodyComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
+		CopyComponentIfExists<CharacterControllerComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<BoxColliderComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<SphereColliderComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);
 		CopyComponentIfExists<CapsuleColliderComponent>(newEntity, mScene->mRegistry, entity, entity.mScene->mRegistry);

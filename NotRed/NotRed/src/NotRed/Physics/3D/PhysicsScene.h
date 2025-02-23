@@ -6,6 +6,7 @@
 
 #include "PhysicsSettings.h"
 #include "PhysicsActor.h"
+#include "PhysicsController.h"
 
 namespace NR
 {
@@ -39,6 +40,13 @@ namespace NR
 
 		const std::vector<Ref<PhysicsActor>>& GetActors() const { return mActors; }
 
+		Ref<PhysicsController> GetController(Entity entity);
+
+		Ref<PhysicsController> CreateController(Entity entity);
+		void RemoveController(Ref<PhysicsController> controller);
+
+		const std::vector<Ref<PhysicsController>>& GetControllers() const { return mControllers; }
+
 		glm::vec3 GetGravity() const { return PhysicsUtils::FromPhysicsVector(mPhysicsScene->getGravity()); }
 		void SetGravity(const glm::vec3& gravity) { mPhysicsScene->setGravity(PhysicsUtils::ToPhysicsVector(gravity)); }
 
@@ -63,8 +71,10 @@ namespace NR
 
 	private:
 		physx::PxScene* mPhysicsScene;
+		physx::PxControllerManager* mPhysicsControllerManager;
 
 		std::vector<Ref<PhysicsActor>> mActors;
+		std::vector<Ref<PhysicsController>> mControllers;
 
 		float mSubStepSize;
 		float mAccumulator = 0.0f;

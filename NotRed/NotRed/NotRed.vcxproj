@@ -240,7 +240,8 @@
     <ClInclude Include="src\NotRed\Physics\2D\Physics2D.h" />
     <ClInclude Include="src\NotRed\Physics\3D\ContactListener.h" />
     <ClInclude Include="src\NotRed\Physics\3D\CookingFactory.h" />
-    <ClInclude Include="src\NotRed\Physics\Debug\PhysicsDebugger.h" />
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h" />
+    <ClInclude Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsInternal.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsLayer.h" />
@@ -462,7 +463,8 @@
     <ClCompile Include="src\NotRed\Physics\2D\Physics2D.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\ContactListener.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\CookingFactory.cpp" />
-    <ClCompile Include="src\NotRed\Physics\Debug\PhysicsDebugger.cpp" />
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsController.cpp" />
+    <ClCompile Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsInternal.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsLayer.cpp" />

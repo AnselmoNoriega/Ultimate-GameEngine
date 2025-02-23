@@ -319,7 +319,7 @@ namespace NR
     bool Application::OnWindowClose(WindowCloseEvent& e)
     {
         Close();
-        return true;
+        return false;
     }
 
     std::string Application::OpenFile(const char* filter) const

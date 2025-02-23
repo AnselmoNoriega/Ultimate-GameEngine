@@ -133,7 +133,7 @@ namespace NR
 		NR_CORE_ASSERT(actor);
 
 		physx::PxTransform target;
-		actor->getKinematicTarget(target);
+		NR_CORE_VERIFY(actor->getKinematicTarget(target), "kinematic target not set");
 		return PhysicsUtils::FromPhysicsVector(target.p);
 	}
 
@@ -149,7 +149,7 @@ namespace NR
 		NR_CORE_ASSERT(actor);
 
 		physx::PxTransform target;
-		actor->getKinematicTarget(target);
+		NR_CORE_VERIFY(actor->getKinematicTarget(target), "kinematic target not set");
 		return glm::eulerAngles(PhysicsUtils::FromPhysicsQuat(target.q));
 	}
 

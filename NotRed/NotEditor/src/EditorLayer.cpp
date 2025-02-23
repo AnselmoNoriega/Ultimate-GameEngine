@@ -629,7 +629,8 @@ namespace NR
             const int iconHeight = mIconClose->GetHeight();
             if (ImGui::InvisibleButton("Close", ImVec2(buttonWidth * 1.2f, buttonHeight * 0.8f)))
             {
-                Application::Get().Close();
+                auto closeEvent = WindowCloseEvent();
+                Application::Get().OnEvent(closeEvent);
             }
 
             UI::DrawButtonImage(mIconClose, Colors::Theme::text, UI::ColorWithMultipliedValue(Colors::Theme::text, 1.4f), buttonColP);
@@ -2652,6 +2653,15 @@ namespace NR
             {
                 event.SetHit(UI_TitleBarHitTest(event.GetX(), event.GetY()));
                 return true;
+            });
+        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& event)
+            {
+                if ((mSceneState == SceneState::Play) || (mSceneState == SceneState::Pause))
+                {
+                    SceneStop();
+                }
+
+                return false; // give other things a chance to react to window close
             });
 
         AssetEditorPanel::OnEvent(e);

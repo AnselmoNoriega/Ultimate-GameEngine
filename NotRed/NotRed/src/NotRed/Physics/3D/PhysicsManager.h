@@ -23,6 +23,7 @@ namespace NR
 
 		static void CreateActors(Ref<Scene> scene);
 		static Ref<PhysicsActor> CreateActor(Entity entity);
+		static Ref<PhysicsController> CreateController(Entity entity);
 
 	private:
 		static PhysicsSettings sSettings;

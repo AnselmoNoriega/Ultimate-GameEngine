@@ -67,11 +67,24 @@ namespace NR
 			}
 		}
 		{
+			auto view = scene->GetAllEntitiesWith<CharacterControllerComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, scene.Raw() };
+				CreateController(e);
+			}
+		}
+		{
 			auto view = scene->GetAllEntitiesWith<TransformComponent>();
 			for (auto entity : view)
 			{
 				Entity e = { entity, scene.Raw() };
 				if (e.HasComponent<RigidBodyComponent>())
+				{
+					continue;
+				}
+
+				if (e.HasComponent<CharacterControllerComponent>())
 				{
 					continue;
 				}
@@ -144,6 +157,18 @@ namespace NR
 		}
 		actor->SetSimulationData(entity.GetComponent<RigidBodyComponent>().Layer);
 		return actor;
+	}
+
+	Ref<PhysicsController> PhysicsManager::CreateController(Entity entity)
+	{
+		auto existingController = sScene->GetController(entity);
+		if (existingController)
+		{
+			return existingController;
+		}
+
+		Ref<PhysicsController> controller = sScene->CreateController(entity);
+		return controller;
 	}
 
 	void PhysicsManager::ImGuiRender()

@@ -417,7 +417,7 @@
     <ClInclude Include="src\NotRed\Physics\3D\CookingFactory.h">
       <Filter>src\NotRed\Physics</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Physics\Debug\PhysicsDebugger.h">
+    <ClInclude Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.h">
       <Filter>src\NotRed\Physics\Debug</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActor.h">
@@ -868,6 +868,7 @@
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsMeshCache.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsSystem.h" />
     <ClInclude Include="src\NotRed\Physics\2D\Physics2D.h" />
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1071,7 +1072,7 @@
     <ClCompile Include="src\NotRed\Physics\3D\CookingFactory.cpp">
       <Filter>src\NotRed\Physics</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Physics\Debug\PhysicsDebugger.cpp">
+    <ClCompile Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.cpp">
       <Filter>src\NotRed\Physics\Debug</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsActor.cpp">
@@ -1425,5 +1426,6 @@
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsMeshCache.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsSystem.cpp" />
     <ClCompile Include="src\NotRed\Physics\2D\Physics2D.cpp" />
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsController.cpp" />
   </ItemGroup>
 </Project>

@@ -3,6 +3,8 @@
 
 #include <glm/glm.hpp>
 
+#include "NotRed/Asset/AssetManager.h"
+
 #include "PhysicsManager.h"
 #include "PhysicsInternal.h"
 #include "PhysicsUtils.h"
@@ -32,6 +34,7 @@ namespace NR
 		NR_CORE_ASSERT(sceneDesc.isValid());
 
 		mPhysicsScene = PhysicsInternal::GetPhysicsSDK().createScene(sceneDesc);
+		mPhysicsControllerManager = PxCreateControllerManager(*mPhysicsScene);
 		NR_CORE_ASSERT(mPhysicsScene);
 
 		CreateRegions();
@@ -61,7 +64,7 @@ namespace NR
 			for (uint32_t i = 0; i < nbActiveActors; ++i)
 			{
 				Ref<PhysicsActor> actor = (PhysicsActor*)activeActors[i]->userData;
-				if (!actor->IsSleeping())
+				if (actor && !actor->IsSleeping())
 				{
 					actor->SynchronizeTransform();
 				}
@@ -127,6 +130,68 @@ namespace NR
 			if ((*it)->GetEntity() == actor->GetEntity())
 			{
 				mActors.erase(it);
+				break;
+			}
+		}
+	}
+
+	Ref<PhysicsController> PhysicsScene::GetController(Entity entity)
+	{
+		for (auto& controller : mControllers)
+		{
+			if (controller->GetEntity() == entity)
+				return controller;
+		}
+
+		return nullptr;
+	}
+
+	Ref<PhysicsController> PhysicsScene::CreateController(Entity entity)
+	{
+		Ref<PhysicsController> controller = Ref<PhysicsController>::Create(entity);
+
+		const auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+		const auto& characterControllerComponent = entity.GetComponent<CharacterControllerComponent>();
+
+		Ref<PhysicsMaterial> mat = AssetManager::GetAsset<PhysicsMaterial>(capsuleColliderComponent.Material);
+		if (!mat)
+		{
+			mat = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+		}
+
+		controller->mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
+
+		physx::PxCapsuleControllerDesc desc;
+		desc.position = PhysicsUtils::ToPhysicsExtendedVector(entity.Transform().Translation + capsuleColliderComponent.Offset); // not convinced this is correct.  (e.g. it needs to be world space, not local)
+		desc.height = capsuleColliderComponent.Height;
+		desc.radius = capsuleColliderComponent.Radius;
+		desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;  // TODO: get from component
+		desc.climbingMode = physx::PxCapsuleClimbingMode::eEASY;
+		desc.slopeLimit = characterControllerComponent.SlopeLimit;
+		desc.stepOffset = characterControllerComponent.StepOffset;
+		desc.material = controller->mMaterial;
+
+		NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));
+
+		mControllers.push_back(controller);
+		return controller;
+	}
+
+	void PhysicsScene::RemoveController(Ref<PhysicsController> controller)
+	{
+		if (!controller || !controller->mController)
+		{
+			return;
+		}
+
+		controller->mController->release();
+		controller->mController = nullptr;
+
+		for (auto it = mControllers.begin(); it != mControllers.end(); it++)
+		{
+			if ((*it)->GetEntity() == controller->GetEntity())
+			{
+				mControllers.erase(it);
 				break;
 			}
 		}
@@ -267,12 +332,19 @@ namespace NR
 	{
 		NR_CORE_ASSERT(mPhysicsScene);
 
+		for (auto& controller : mControllers)
+		{
+			RemoveController(controller);
+		}
+
 		for (auto& actor : mActors)
 		{
 			RemoveActor(actor);
 		}
 
+		mControllers.clear();
 		mActors.clear();
+		mPhysicsControllerManager->release();
 		mPhysicsScene->release();
 		mPhysicsScene = nullptr;
 	}
