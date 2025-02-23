@@ -45,6 +45,7 @@ namespace NR
 		Component_RegisterType(RigidBody2DComponent);
 		Component_RegisterType(BoxCollider2DComponent);
 		Component_RegisterType(RigidBodyComponent);
+		Component_RegisterType(CharacterControllerComponent);
 		Component_RegisterType(BoxColliderComponent);
 		Component_RegisterType(SphereColliderComponent);
 		Component_RegisterType(CapsuleColliderComponent);
@@ -188,6 +189,12 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetIsKinematic_Native", NR::Script::NR_RigidBodyComponent_SetIsKinematic);
 		mono_add_internal_call("NR.RigidBodyComponent::IsSleeping_Native", NR::Script::NR_RigidBodyComponent_IsSleeping);
 		mono_add_internal_call("NR.RigidBodyComponent::SetIsSleeping_Native", NR::Script::NR_RigidBodyComponent_SetIsSleeping);
+
+		mono_add_internal_call("NR.CharacterControllerComponent::GetSlopeLimit_Native", NR::Script::NR_CharacterControllerComponent_GetSlopeLimit);
+		mono_add_internal_call("NR.CharacterControllerComponent::SetSlopeLimit_Native", NR::Script::NR_CharacterControllerComponent_SetSlopeLimit);
+		mono_add_internal_call("NR.CharacterControllerComponent::GetStepOffset_Native", NR::Script::NR_CharacterControllerComponent_GetStepOffset);
+		mono_add_internal_call("NR.CharacterControllerComponent::SetStepOffset_Native", NR::Script::NR_CharacterControllerComponent_SetStepOffset);
+		mono_add_internal_call("NR.CharacterControllerComponent::Move_Native", NR::Script::NR_CharacterControllerComponent_Move);
 
 		mono_add_internal_call("NR.BoxColliderComponent::GetSize_Native", NR::Script::NR_BoxColliderComponent_GetSize);
 		mono_add_internal_call("NR.BoxColliderComponent::SetSize_Native", NR::Script::NR_BoxColliderComponent_SetSize);

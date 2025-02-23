@@ -22,7 +22,22 @@ namespace NR
 		}
 	}
 
-	// TODO: will probably want to return the collision result... e.g. so it can be used to inform animation
+	void PhysicsController::SetSlopeLimit(const float slopeLimit)
+	{
+		if (mController)
+		{
+			mController->setSlopeLimit(slopeLimit);
+		}
+	}
+
+	void PhysicsController::SetStepOffset(const float stepOffset)
+	{
+		if (mController)
+		{
+			mController->setStepOffset(stepOffset);
+		}
+	}
+
 	void PhysicsController::Move(const glm::vec3& displacement, float dt)
 	{
 		physx::PxControllerFilters filters;

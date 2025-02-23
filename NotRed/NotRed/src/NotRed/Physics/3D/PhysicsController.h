@@ -18,6 +18,9 @@ namespace NR
 
 		Entity GetEntity() const { return mEntity; }
 
+		void SetSlopeLimit(const float slopeLimit);
+		void SetStepOffset(const float stepOffset);
+
 		void Move(const glm::vec3& displacement, float dt);
 
 		glm::vec3 GetPosition() const;

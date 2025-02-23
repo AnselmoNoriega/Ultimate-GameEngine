@@ -169,6 +169,7 @@ namespace NR
 		desc.climbingMode = physx::PxCapsuleClimbingMode::eEASY;
 		desc.slopeLimit = characterControllerComponent.SlopeLimit;
 		desc.stepOffset = characterControllerComponent.StepOffset;
+		desc.contactOffset = 0.01;
 		desc.material = controller->mMaterial;
 
 		NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));

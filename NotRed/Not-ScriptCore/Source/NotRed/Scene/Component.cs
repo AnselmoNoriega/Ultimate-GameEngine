@@ -624,6 +624,41 @@ namespace NR
         internal static extern void SetIsSleeping_Native(ulong entityID, bool isSleeping);
     }
 
+    public class CharacterControllerComponent : Component
+    {
+        public float SlopeLimit
+        {
+            get { return GetSlopeLimit_Native(Entity.ID); }
+            set { SetSlopeLimit_Native(Entity.ID, value); }
+        }
+
+        public float StepOffset
+        {
+            get { return GetStepOffset_Native(Entity.ID); }
+            set { SetStepOffset_Native(Entity.ID, value); }
+        }
+
+        public void Move(Vector3 displacement, float ts)
+        {
+            Move_Native(Entity.ID, ref displacement, ts);
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetSlopeLimit_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetSlopeLimit_Native(ulong entityID, float mass);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetStepOffset_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetStepOffset_Native(ulong entityID, float mass);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Move_Native(ulong entityID, ref Vector3 displacement, float ts);
+    }
+
     public class BoxColliderComponent : Component
     {
 

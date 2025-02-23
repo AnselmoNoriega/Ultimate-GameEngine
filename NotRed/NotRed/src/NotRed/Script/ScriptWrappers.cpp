@@ -1891,9 +1891,90 @@ namespace NR::Script
             return;
         }
         if (isSleeping)
+        {
             PhysicsManager::GetScene()->GetActor(entity)->Sleep();
+        }
         else
+        {
             PhysicsManager::GetScene()->GetActor(entity)->WakeUp();
+        }
+    }
+
+    float NR_CharacterControllerComponent_GetSlopeLimit(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
+        auto& component = entity.GetComponent<CharacterControllerComponent>();
+        return component.SlopeLimit;
+    }
+
+    void NR_CharacterControllerComponent_SetSlopeLimit(uint64_t entityID, float slopeLimit)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
+
+        auto& component = entity.GetComponent<CharacterControllerComponent>();
+
+        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        controller->SetSlopeLimit(slopeLimit);
+        component.SlopeLimit = slopeLimit;
+    }
+
+    float NR_CharacterControllerComponent_GetStepOffset(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
+        auto& component = entity.GetComponent<CharacterControllerComponent>();
+        return component.StepOffset;
+    }
+
+    void NR_CharacterControllerComponent_SetStepOffset(uint64_t entityID, float stepOffset)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
+
+        auto& component = entity.GetComponent<CharacterControllerComponent>();
+
+        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        controller->SetStepOffset(stepOffset);
+        component.StepOffset = stepOffset;
+    }
+
+    void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement, float dt)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
+
+        auto& component = entity.GetComponent<CharacterControllerComponent>();
+
+        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        controller->Move(*displacement, dt);
+        entity.Transform().Translation = controller->GetPosition();
     }
 
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize)

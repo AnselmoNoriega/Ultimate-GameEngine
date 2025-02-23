@@ -165,6 +165,12 @@ namespace NR::Script
     bool NR_RigidBodyComponent_IsSleeping(uint64_t entityID);
     void NR_RigidBodyComponent_SetIsSleeping(uint64_t entityID, bool isSleeping);
 
+    float NR_CharacterControllerComponent_GetSlopeLimit(uint64_t entityID);
+    void NR_CharacterControllerComponent_SetSlopeLimit(uint64_t entityID, float slopeLimit);
+    float NR_CharacterControllerComponent_GetStepOffset(uint64_t entityID);
+    void NR_CharacterControllerComponent_SetStepOffset(uint64_t entityID, float stepOffset);
+    void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement, float dt);
+
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize);
     void NR_BoxColliderComponent_SetSize(uint64_t entityID, glm::vec3* inSize);
     void NR_BoxColliderComponent_GetOffset(uint64_t entityID, glm::vec3* outOffset);
