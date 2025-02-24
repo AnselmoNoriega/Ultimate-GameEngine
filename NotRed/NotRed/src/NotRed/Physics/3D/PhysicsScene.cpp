@@ -165,9 +165,9 @@ namespace NR
 		desc.position = PhysicsUtils::ToPhysicsExtendedVector(entity.Transform().Translation + capsuleColliderComponent.Offset); // not convinced this is correct.  (e.g. it needs to be world space, not local)
 		desc.height = capsuleColliderComponent.Height;
 		desc.radius = capsuleColliderComponent.Radius;
-		desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;  // TODO: get from component
-		desc.climbingMode = physx::PxCapsuleClimbingMode::eEASY;
-		desc.slopeLimit = characterControllerComponent.SlopeLimit;
+		desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;
+		desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;
+		desc.slopeLimit = std::max(0.0f, cos(glm::radians(characterControllerComponent.SlopeLimitDeg)));
 		desc.stepOffset = characterControllerComponent.StepOffset;
 		desc.contactOffset = 0.01;
 		desc.material = controller->mMaterial;

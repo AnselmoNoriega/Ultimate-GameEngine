@@ -1904,8 +1904,38 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
 
-                UI::Property("Slope Limit", ccc.SlopeLimit);
-                UI::Property("Step Offset", ccc.StepOffset);
+                // Layer has been removed, set to Default layer
+                if (!PhysicsLayerManager::IsLayerValid(ccc.Layer))
+                {
+                    ccc.Layer = 0;
+                }
+
+                int layerCount = PhysicsLayerManager::GetLayerCount();
+                const auto& layerNames = PhysicsLayerManager::GetLayerNames();
+                UI::PropertyDropdown("Layer", layerNames, layerCount, (int*)&ccc.Layer);
+
+                if (UI::Property("Slope Limit", ccc.SlopeLimitDeg, 1.0f, 0.0f, 90.0f))
+                {
+                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    {
+                        auto controller = PhysicsManager::GetScene()->GetController(entity);
+                        if (controller)
+                        {
+                            controller->SetSlopeLimit(ccc.SlopeLimitDeg);
+                        }
+                    }
+                }
+                if (UI::Property("Step Offset", ccc.StepOffset))
+                {
+                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    {
+                        auto controller = PhysicsManager::GetScene()->GetController(entity);
+                        if (controller)
+                        {
+                            controller->SetStepOffset(ccc.StepOffset);
+                        }
+                    }
+                }
 
                 UI::EndPropertyGrid();
             }, sGearIcon);

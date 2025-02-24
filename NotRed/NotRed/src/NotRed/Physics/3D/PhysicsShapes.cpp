@@ -165,15 +165,18 @@ namespace NR
 		glm::vec3 submeshTranslation, submeshRotation, submeshScale;
 		Math::DecomposeTransform(submesh.Transform, submeshTranslation, submeshRotation, submeshScale);
 
+		glm::vec3 scale = entity.Transform().Scale;
+		std::swap(scale.y, scale.z);
+
 		physx::PxDefaultMemoryInputData input(submesh.ColliderData.As<physx::PxU8>(), submesh.ColliderData.Size);
 		physx::PxConvexMesh* convexMesh = PhysicsInternal::GetPhysicsSDK().createConvexMesh(input);
-		physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * entity.Transform().Scale)));
+		physx::PxConvexMeshGeometry convexGeometry = physx::PxConvexMeshGeometry(convexMesh, physx::PxMeshScale(PhysicsUtils::ToPhysicsVector(submeshScale * scale)));
 		convexGeometry.meshFlags = physx::PxConvexMeshGeometryFlag::eTIGHT_BOUNDS;
 
 		physx::PxShape* shape = PhysicsInternal::GetPhysicsSDK().createShape(convexGeometry, *mMaterial, true);
 		shape->setFlag(physx::PxShapeFlag::eSIMULATION_SHAPE, !mComponent.IsTrigger);
 		shape->setFlag(physx::PxShapeFlag::eTRIGGER_SHAPE, mComponent.IsTrigger);
-		//shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submesh.Transform));
+		shape->setLocalPose(PhysicsUtils::ToPhysicsTransform(submeshTranslation, submeshRotation));
 
 		actor.GetPhysicsActor().attachShape(*shape);
 

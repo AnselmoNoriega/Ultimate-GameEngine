@@ -168,6 +168,7 @@ namespace NR
 		}
 
 		Ref<PhysicsController> controller = sScene->CreateController(entity);
+		controller->SetSimulationData(entity.GetComponent<CharacterControllerComponent>().Layer);
 		return controller;
 	}
 

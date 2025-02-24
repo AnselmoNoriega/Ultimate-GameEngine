@@ -1,5 +1,6 @@
 #include "nrpch.h"
 #include "PhysicsController.h"
+#include "PhysicsLayer.h"
 #include "PhysicsUtils.h"
 
 namespace NR
@@ -22,11 +23,30 @@ namespace NR
 		}
 	}
 
-	void PhysicsController::SetSlopeLimit(const float slopeLimit)
+	void PhysicsController::SetSimulationData(uint32_t layerId)
+	{
+		const PhysicsLayer& layerInfo = PhysicsLayerManager::GetLayer(layerId);
+
+		if (layerInfo.CollidesWith == 0)
+			return;
+
+		physx::PxFilterData filterData;
+		filterData.word0 = layerInfo.BitValue;
+		filterData.word1 = layerInfo.CollidesWith;
+		filterData.word2 = 1;
+
+		const auto actor = mController->getActor();
+		NR_CORE_ASSERT(actor && actor->getNbShapes() == 1);
+		physx::PxShape* shape;
+		actor->getShapes(&shape, 1);
+		shape->setSimulationFilterData(filterData);
+	}
+
+	void PhysicsController::SetSlopeLimit(const float slopeLimitDeg)
 	{
 		if (mController)
 		{
-			mController->setSlopeLimit(slopeLimit);
+			mController->setSlopeLimit(std::max(0.0f, glm::radians(slopeLimitDeg)));
 		}
 	}
 

@@ -304,8 +304,9 @@ namespace NR
 
     struct CharacterControllerComponent
     {
-        float SlopeLimit;
+        float SlopeLimitDeg;
         float StepOffset;
+        uint32_t Layer = 0;
     };
 
     enum class ColliderComponentType

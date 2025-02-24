@@ -1910,10 +1910,10 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
         auto& component = entity.GetComponent<CharacterControllerComponent>();
-        return component.SlopeLimit;
+        return component.SlopeLimitDeg;
     }
 
-    void NR_CharacterControllerComponent_SetSlopeLimit(uint64_t entityID, float slopeLimit)
+    void NR_CharacterControllerComponent_SetSlopeLimit(uint64_t entityID, float slopeLimitDeg)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1926,8 +1926,9 @@ namespace NR::Script
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
         Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
-        controller->SetSlopeLimit(slopeLimit);
-        component.SlopeLimit = slopeLimit;
+        float slopeLimitDegClamped = std::clamp(slopeLimitDeg, 0.0f, 90.0f);
+        controller->SetSlopeLimit(slopeLimitDegClamped);
+        component.SlopeLimitDeg = slopeLimitDegClamped;
     }
 
     float NR_CharacterControllerComponent_GetStepOffset(uint64_t entityID)
