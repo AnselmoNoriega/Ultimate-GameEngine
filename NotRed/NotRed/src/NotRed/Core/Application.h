@@ -17,6 +17,7 @@ namespace NR
         std::string Name = "NotRed";
 
         uint32_t WindowWidth = 1600, WindowHeight = 900;
+        bool WindowDecorated = false;
         bool Fullscreen = false;
         bool VSync = true;
         std::string WorkingDirectory;

@@ -170,6 +170,8 @@ namespace NR::Script
     float NR_CharacterControllerComponent_GetStepOffset(uint64_t entityID);
     void NR_CharacterControllerComponent_SetStepOffset(uint64_t entityID, float stepOffset);
     void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement, float dt);
+    bool NR_CharacterControllerComponent_IsGrounded(uint64_t entityID);
+    CollisionFlags NR_CharacterControllerComponent_GetCollisionFlags(uint64_t entityID);
 
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize);
     void NR_BoxColliderComponent_SetSize(uint64_t entityID, glm::vec3* inSize);

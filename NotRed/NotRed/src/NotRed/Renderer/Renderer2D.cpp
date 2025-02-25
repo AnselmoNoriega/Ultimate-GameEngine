@@ -17,7 +17,8 @@
 
 namespace NR
 {
-	Renderer2D::Renderer2D()
+	Renderer2D::Renderer2D(const Renderer2DSpecification& specification)
+		: mSpecification(specification)
 	{
 		Init();
 	}
@@ -29,7 +30,14 @@ namespace NR
 
 	void Renderer2D::Init()
 	{
-		mRenderCommandBuffer = RenderCommandBuffer::Create(0, "Renderer2D");
+		if (mSpecification.SwapChainTarget)
+		{
+			mRenderCommandBuffer = RenderCommandBuffer::CreateFromSwapChain("Renderer2D");
+		}
+		else
+		{
+			mRenderCommandBuffer = RenderCommandBuffer::Create(0, "Renderer2D");
+		}
 
 		FrameBufferSpecification frameBufferSpec;
 		frameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::Depth };
@@ -341,6 +349,14 @@ namespace NR
 				pipelineSpecification.RenderPass = renderPass;
 				mTextPipeline = Pipeline::Create(pipelineSpecification);
 			}
+		}
+	}
+
+	void Renderer2D::RecreateSwapchain()
+	{
+		if (mSpecification.SwapChainTarget)
+		{
+			mRenderCommandBuffer = RenderCommandBuffer::CreateFromSwapChain("Renderer2D");
 		}
 	}
 

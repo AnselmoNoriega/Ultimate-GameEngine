@@ -14,10 +14,15 @@
 
 namespace NR
 {
+	struct Renderer2DSpecification
+	{
+		bool SwapChainTarget = false;
+	};
+
 	class Renderer2D : public RefCounted
 	{
 	public:
-		Renderer2D();
+		Renderer2D(const Renderer2DSpecification& specification = Renderer2DSpecification());
 		virtual ~Renderer2D();
 
 		void Init();
@@ -25,6 +30,8 @@ namespace NR
 
 		void BeginScene(const glm::mat4& viewProj, const glm::mat4& view, bool depthTest = true);
 		void EndScene();
+
+		void RecreateSwapchain();
 
 		Ref<RenderPass> GetTargetRenderPass();
 		void SetTargetRenderPass(Ref<RenderPass> renderPass);
@@ -126,6 +133,7 @@ namespace NR
 		static const uint32_t MaxLineVertices = MaxLines * 2;
 		static const uint32_t MaxLineIndices = MaxLines * 6;
 
+		Renderer2DSpecification mSpecification;
 		Ref<RenderCommandBuffer> mRenderCommandBuffer;
 
 		Ref<Texture2D> mWhiteTexture;

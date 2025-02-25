@@ -64,11 +64,16 @@ namespace NR
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         }
 
+        if (!mSpecification.Decorated)
+        {
+            // This removes titlebar on all platforms
+            // and all of the native window effects on non-Windows platforms
 #ifdef NR_PLATFORM_WINDOWS
-        glfwWindowHint(GLFW_TITLEBAR, false);
+            glfwWindowHint(GLFW_TITLEBAR, false);
 #else
-        glfwWindowHint(GLFW_DECORATED, false);
+            glfwWindowHint(GLFW_DECORATED, false);
 #endif
+        }
 
         if (mSpecification.Fullscreen)
         {

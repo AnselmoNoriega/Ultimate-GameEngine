@@ -192,7 +192,7 @@ namespace NR
 
 	void MeshViewerPanel::ResetCamera(EditorCamera& camera)
 	{
-		camera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+		camera = EditorCamera(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 1000.0f);
 	}
 
 	void MeshViewerPanel::RenderMeshTab(ImGuiID dockspaceID, const std::shared_ptr<MeshScene>& sceneData)

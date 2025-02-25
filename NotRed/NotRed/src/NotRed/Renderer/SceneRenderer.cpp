@@ -1782,18 +1782,14 @@ namespace NR
 
 	void SceneRenderer::CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const
 	{
-		struct FrustumBounds
-		{
-			float r, l, b, t, f, n;
-		};
-
 		auto viewProjection = sceneCamera.RenderCamera.GetProjectionMatrix() * sceneCamera.ViewMatrix;
 
 		const int SHADOW_MAP_CASCADE_COUNT = 4;
 		float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
 
-		float nearClip = 0.1f;
-		float farClip = 1000.0f;
+		float nearClip = sceneCamera.Near;
+		float farClip = sceneCamera.Far;
+
 		float clipRange = farClip - nearClip;
 
 		float minZ = nearClip;
@@ -1874,7 +1870,7 @@ namespace NR
 
 			// Offset to texel space to avoid shimmering (from https://stackoverflow.com/questions/33499053/cascaded-shadow-map-shimmering)
 			glm::mat4 shadowMatrix = lightOrthoMatrix * lightViewMatrix;
-			const float ShadowMapResolution = 4096.0f;
+			float ShadowMapResolution = mShadowPassPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetWidth();
 			glm::vec4 shadowOrigin = (shadowMatrix * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) * ShadowMapResolution / 2.0f;
 			glm::vec4 roundedOrigin = glm::round(shadowOrigin);
 			glm::vec4 roundOffset = roundedOrigin - shadowOrigin;

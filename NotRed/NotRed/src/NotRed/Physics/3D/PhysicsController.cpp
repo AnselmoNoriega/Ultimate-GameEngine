@@ -46,7 +46,7 @@ namespace NR
 	{
 		if (mController)
 		{
-			mController->setSlopeLimit(std::max(0.0f, glm::radians(slopeLimitDeg)));
+			mController->setSlopeLimit(std::max(0.0f, cos(glm::radians(slopeLimitDeg))));
 		}
 	}
 
@@ -62,12 +62,12 @@ namespace NR
 	{
 		physx::PxControllerFilters filters;
 
-		mController->move(PhysicsUtils::ToPhysicsVector(displacement), 0.0, static_cast<physx::PxF32>(dt), filters);
+		mCollisionFlags = mController->move(PhysicsUtils::ToPhysicsVector(displacement), 0.0, static_cast<physx::PxF32>(dt), filters);
 	}
 
 	glm::vec3 PhysicsController::GetPosition() const 
 	{
-		auto pxPos = mController->getPosition();
+		const auto& pxPos = mController->getPosition();
 		glm::vec3 pos = { pxPos.x, pxPos.y, pxPos.z };
 		const auto& ccc = mEntity.GetComponent<CapsuleColliderComponent>();
 		pos -= ccc.Offset;

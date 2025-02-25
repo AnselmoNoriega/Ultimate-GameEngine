@@ -17,7 +17,7 @@ namespace NR
     {
     public:
         EditorCamera() = default;
-        EditorCamera(const glm::mat4& projectionMatrix);
+        EditorCamera(float verticalFOV, float aspectRatio, float nearClip, float farClip);
 
         void Focus(const glm::vec3& focusPoint);
         void Update(float dt);
@@ -33,7 +33,7 @@ namespace NR
 
         const glm::vec3& GetFocalPoint() const { return mFocalPoint; }
 
-        inline void SetViewportSize(uint32_t width, uint32_t height) { mViewportWidth = width; mViewportHeight = height; }
+        void SetViewportSize(uint32_t width, uint32_t height);
 
         const glm::mat4& GetViewMatrix() const { return mViewMatrix; }
         glm::mat4 GetViewProjection() const { return mProjectionMatrix * mViewMatrix; }
@@ -49,6 +49,11 @@ namespace NR
         float GetPitch() const { return mPitch; }
         float GetYaw() const { return mYaw; }
         float GetCameraSpeed() const;
+
+        float GetVerticalFOV() const { return mVerticalFOV; }
+        float GetAspectRatio() const { return mAspectRatio; }
+        float GetNearClip() const { return mNearClip; }
+        float GetFarClip() const { return mFarClip; }
 
     private:
         void UpdateCameraView();
@@ -81,6 +86,8 @@ namespace NR
         float mPitchDelta{}, mYawDelta{};
         glm::vec3 mPositionDelta{};
         glm::vec3 mRightDirection{};
+
+        float mVerticalFOV, mAspectRatio, mNearClip, mFarClip;
 
         CameraMode mCameraMode{ CameraMode::ARCBALL };
 

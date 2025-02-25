@@ -15,7 +15,7 @@
 namespace NR
 {
 	RuntimeLayer::RuntimeLayer(std::string_view projectPath)
-		: mEditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f)) , mProjectPath(projectPath)
+		: mEditorCamera(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 1000.0f)
 	{
 	}
 
@@ -27,7 +27,12 @@ namespace NR
 		spec.SwapChainTarget = true;
 		mSceneRenderer = Ref<SceneRenderer>::Create(mRuntimeScene, spec);
 		mSceneRenderer->GetOptions().ShowGrid = false;
-		mSceneRenderer->SetShadowSettings(-50.0f, 50.0f, 0.95f);
+		mSceneRenderer->SetShadowSettings(-5.0f, 5.0f, 0.95f);
+
+		Renderer2DSpecification r2DSpec;
+		spec.SwapChainTarget = true;
+		mRenderer2D = Ref<Renderer2D>::Create(r2DSpec);
+		mRenderer2D->SetLineWidth(2.0f);
 		
 		ScenePlay();
 	}
@@ -57,6 +62,15 @@ namespace NR
 		auto [width, height] = Application::Get().GetWindow().GetSize();
 		mSceneRenderer->SetViewportSize(width, height);
 		mRuntimeScene->SetViewportSize(width, height);
+		mEditorCamera.SetViewportSize(width, height);
+		mRenderer2DProj = glm::ortho(0.0f, (float)width, 0.0f, (float)height);
+
+		if (mWidth != width || mHeight != height)
+		{
+			mWidth = width;
+			mHeight = height;
+			mRenderer2D->RecreateSwapchain();
+		}
 
 		if (mViewportPanelFocused)
 		{
@@ -65,6 +79,12 @@ namespace NR
 
 		mRuntimeScene->Update(dt);
 		mRuntimeScene->RenderRuntime(mSceneRenderer, dt);
+
+		if (Input::IsKeyPressed(KeyCode::LeftShift))
+		{
+			using namespace std::chrono_literals;
+			std::this_thread::sleep_for(100ms);
+		}
 	}
 
 	void RuntimeLayer::OpenProject()
@@ -76,8 +96,8 @@ namespace NR
 
 		Project::SetActive(project);
 		ScriptEngine::LoadAppAssembly((Project::GetScriptModuleFilePath()).string());
-		
-		mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+
+		mEditorCamera = EditorCamera(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 1000.0f);
 		if (!project->GetConfig().StartScene.empty())
 		{
 			OpenScene((Project::GetAssetDirectory() / project->GetConfig().StartScene).string());

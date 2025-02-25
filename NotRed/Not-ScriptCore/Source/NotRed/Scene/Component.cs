@@ -624,6 +624,11 @@ namespace NR
         internal static extern void SetIsSleeping_Native(ulong entityID, bool isSleeping);
     }
 
+    public enum CollisionFlags
+    {
+        None, Sides, Above, Below
+    }
+
     public class CharacterControllerComponent : Component
     {
         public float SlopeLimit
@@ -643,6 +648,16 @@ namespace NR
             Move_Native(Entity.ID, ref displacement, ts);
         }
 
+        public bool IsGrounded
+        {
+            get { return IsGrounded_Native(Entity.ID); }
+        }
+
+        public CollisionFlags CollisionFlags
+        {
+            get { return GetCollisionFlags_Native(Entity.ID); }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern float GetSlopeLimit_Native(ulong entityID);
 
@@ -657,6 +672,12 @@ namespace NR
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void Move_Native(ulong entityID, ref Vector3 displacement, float ts);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsGrounded_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern CollisionFlags GetCollisionFlags_Native(ulong entityID);
     }
 
     public class BoxColliderComponent : Component

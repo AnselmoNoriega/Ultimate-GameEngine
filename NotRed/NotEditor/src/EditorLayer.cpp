@@ -910,7 +910,7 @@ namespace NR
                 Entity entity = { e, mCurrentScene.Raw() };
                 auto& tc = entity.GetComponent<TransformComponent>();
                 auto& plc = entity.GetComponent<PointLightComponent>();
-                mRenderer2D->DrawQuadBillboard(tc.Translation, { 1.0f, 1.0f }, mPointLightIcon);
+                mRenderer2D->DrawQuadBillboard(mCurrentScene->GetWorldSpaceTransform(entity).Translation, { 1.0f, 1.0f }, mPointLightIcon);
             }
         }
 
@@ -945,9 +945,10 @@ namespace NR
             {
                 auto& tc = selection.EntityObj.GetComponent<TransformComponent>();
                 auto& plc = selection.EntityObj.GetComponent<PointLightComponent>();
-                mRenderer2D->DrawCircle(tc.Translation, { 0.0f, 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
-                mRenderer2D->DrawCircle(tc.Translation, { glm::radians(90.0f), 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
-                mRenderer2D->DrawCircle(tc.Translation, { 0.0f, glm::radians(90.0f), 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                glm::vec3 translation = mCurrentScene->GetWorldSpaceTransform(selection.EntityObj).Translation;
+                mRenderer2D->DrawCircle(translation, { 0.0f, 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                mRenderer2D->DrawCircle(translation, { glm::radians(90.0f), 0.0f, 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
+                mRenderer2D->DrawCircle(translation, { 0.0f, glm::radians(90.0f), 0.0f }, plc.Radius, glm::vec4(plc.Radiance, 1.0f));
             }
         }
 
@@ -1095,8 +1096,8 @@ namespace NR
         FileSystem::StartWatching();
         
         // Reset cameras
-        mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
-        mSecondEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        mEditorCamera = EditorCamera(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 1000.0f);
+        mSecondEditorCamera = EditorCamera(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 1000.0f);
         
         memset(sProjectNameBuffer, 0, MAX_PROJECT_NAME_LENGTH);
         memset(sProjectFilePathBuffer, 0, MAX_PROJECT_FILEPATH_LENGTH);
@@ -1151,7 +1152,7 @@ namespace NR
         UpdateWindowTitle(name);
         mSceneFilePath = std::string();
 
-        mEditorCamera = EditorCamera(glm::perspectiveFov(glm::radians(45.0f), 1280.0f, 720.0f, 0.1f, 1000.0f));
+        mEditorCamera = EditorCamera(glm::radians(45.0f), 1280.0f / 720.0f, 0.1f, 1000.0f);
         mCurrentScene = mEditorScene;
 
         if (mViewportRenderer)
@@ -1786,7 +1787,6 @@ namespace NR
             mRuntimeScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
         }
 
-        mEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
         mEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
         // Render viewport image
@@ -2041,7 +2041,6 @@ namespace NR
             if (viewportSize.x > 1 && viewportSize.y > 1)
             {
                 mSecondViewportRenderer->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-                mSecondEditorCamera.SetProjectionMatrix(glm::perspectiveFov(glm::radians(45.0f), viewportSize.x, viewportSize.y, 0.1f, 1000.0f));
                 mSecondEditorCamera.SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
                 // Render viewport image

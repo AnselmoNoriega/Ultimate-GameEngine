@@ -288,7 +288,7 @@ project "NotEditor"
 		postbuildcommands 
 		{
 			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 
 	filter "configurations:Dist"
@@ -397,7 +397,7 @@ project "NotLauncher"
 		postbuildcommands 
 		{
 			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 		
 	filter "configurations:Dist"
@@ -493,7 +493,7 @@ project "Not-Runtime"
 		postbuildcommands 
 		{
 			'{COPY} "../NotRed/vendor/assimp/bin/Release/assimp-vc143-mt.dll" "%{cfg.targetdir}"',
-			'{COPY} "../NotRed/vendor/mono/bin/Debug/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
+			'{COPY} "../NotRed/vendor/mono/bin/Release/mono-2.0-sgen.dll" "%{cfg.targetdir}"'
 		}
 	filter "configurations:Dist"
 		defines "NR_DIST"

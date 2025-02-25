@@ -86,6 +86,7 @@ namespace NR
 		void SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 
 		Ref<RenderPass> GetFinalRenderPass();
+		Ref<RenderPass> GetCompositeRenderPass() { return mCompositePipeline->GetSpecification().RenderPass; }
 		Ref<RenderPass> GetExternalCompositeRenderPass() { return mExternalCompositeRenderPass; }
 		Ref<Image2D> GetFinalPassImage();
 

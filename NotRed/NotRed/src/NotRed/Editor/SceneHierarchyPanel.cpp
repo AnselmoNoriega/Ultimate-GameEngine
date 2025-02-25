@@ -1179,36 +1179,24 @@ namespace NR
                 UI::ShiftCursorY(18.0f);
             }, sGearIcon, false);
 
-        DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
+        DrawComponent<StaticMeshComponent>("Static Mesh", entity, [&](StaticMeshComponent& smc)
             {
-                Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
-                if (AssetManager::IsAssetHandleValid(mc.MeshHandle))
+                Ref<StaticMesh> mesh = AssetManager::GetAsset<StaticMesh>(smc.StaticMesh);
+                if (AssetManager::IsAssetHandleValid(smc.StaticMesh))
                 {
-                    mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
+                    mesh = AssetManager::GetAsset<StaticMesh>(smc.StaticMesh);
                 }
 
                 UI::BeginPropertyGrid();
-
                 UI::PropertyAssetReferenceError error;
-
-                if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshSource>("Mesh", mc.MeshHandle,
+                if (UI::PropertyAssetReferenceWithConversion<StaticMesh, MeshSource>("Static Mesh", smc.StaticMesh,
                     [=](Ref<MeshSource> meshAsset)
                     {
                         if (mMeshAssetConvertCallback)
-                        {
                             mMeshAssetConvertCallback(entity, meshAsset);
-                        }
                     }, &error))
                 {
-                    if (entity.HasComponent<MeshColliderComponent>())
-                    {
-                        auto& mcc = entity.GetComponent<MeshColliderComponent>();
-                        mcc.CollisionMesh = mc.MeshHandle;
-                        if (AssetManager::IsAssetHandleValid(mcc.CollisionMesh))
-                        {
-                            CookingFactory::CookMesh(mcc.CollisionMesh);
-                        }
-                    }
+                    // TODO
                 }
 
                 if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
@@ -1219,42 +1207,34 @@ namespace NR
                     }
                 }
 
-                if (mesh)
-                {
-                    UI::Property("Submesh Index", mc.SubmeshIndex, 0, mesh->GetMeshSource()->GetSubmeshes().size() - 1);
-                }
-
                 UI::EndPropertyGrid();
-
                 if (mesh && mesh->IsValid())
                 {
                     if (UI::BeginTreeNode("Materials"))
                     {
                         UI::BeginPropertyGrid();
 
-                        const auto& meshMaterialTable = mesh->GetMaterials();
-                        if (mc.Materials->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
+                        auto meshMaterialTable = mesh->GetMaterials();
+                        if (smc.Materials->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
                         {
-                            mc.Materials->SetMaterialCount(meshMaterialTable->GetMaterialCount());
+                            smc.Materials->SetMaterialCount(meshMaterialTable->GetMaterialCount());
                         }
 
-                        for (size_t i = 0; i < mc.Materials->GetMaterialCount(); ++i)
+                        for (size_t i = 0; i < smc.Materials->GetMaterialCount(); i++)
                         {
                             if (i == meshMaterialTable->GetMaterialCount())
                             {
                                 ImGui::Separator();
                             }
 
-                            bool hasLocalMaterial = mc.Materials->HasMaterial(i);
+                            bool hasLocalMaterial = smc.Materials->HasMaterial(i);
                             bool hasMeshMaterial = meshMaterialTable->HasMaterial(i);
 
                             Ref<MaterialAsset> meshMaterialAsset;
                             if (hasMeshMaterial)
-                            {
                                 meshMaterialAsset = meshMaterialTable->GetMaterial(i);
-                            }
 
-                            Ref<MaterialAsset> materialAsset = hasLocalMaterial ? mc.Materials->GetMaterial(i) : meshMaterialAsset;
+                            Ref<MaterialAsset> materialAsset = hasLocalMaterial ? smc.Materials->GetMaterial(i) : meshMaterialAsset;
 
                             std::string label = fmt::format("[Material {0}]", i);
 
@@ -1268,7 +1248,8 @@ namespace NR
                                     settings.AdvanceToNextColumn = false;
                                     settings.WidthOffset = ImGui::GetStyle().ItemSpacing.x + 28.0f;
                                 }
-                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAssetHandle, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
+
+                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), nullptr, materialAssetHandle, [i, materialTable = smc.Materials](Ref<MaterialAsset> materialAsset) mutable
                                     {
                                         materialTable->SetMaterial(i, materialAsset);
                                     }, settings);
@@ -1281,7 +1262,7 @@ namespace NR
                                     meshMaterialName = "Unnamed Material";
                                 }
 
-                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAssetHandle, [i, materialTable = mc.Materials](Ref<MaterialAsset> materialAsset) mutable
+                                UI::PropertyAssetReferenceTarget<MaterialAsset>(label.c_str(), meshMaterialName.c_str(), materialAssetHandle, [i, materialTable = smc.Materials](Ref<MaterialAsset> materialAsset) mutable
                                     {
                                         materialTable->SetMaterial(i, materialAsset);
                                     }, settings);
@@ -1292,9 +1273,7 @@ namespace NR
                                 ImGui::SameLine();
                                 float prevItemHeight = ImGui::GetItemRectSize().y;
                                 if (ImGui::Button("X", { prevItemHeight, prevItemHeight }))
-                                {
-                                    mc.Materials->ClearMaterial(i);
-                                }
+                                    smc.Materials->ClearMaterial(i);
                                 ImGui::NextColumn();
                             }
                         }

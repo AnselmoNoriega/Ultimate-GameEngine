@@ -10,6 +10,14 @@
 
 namespace NR
 {
+	enum class CollisionFlags : physx::PxU8
+	{
+		None,
+		Sides,
+		Above,
+		Below
+	};
+
 	class PhysicsController : public RefCounted
 	{
 	public:
@@ -26,10 +34,21 @@ namespace NR
 
 		glm::vec3 GetPosition() const;
 
+		bool IsGrounded() const
+		{
+			return mCollisionFlags & physx::PxControllerCollisionFlag::eCOLLISION_DOWN;
+		}
+
+		CollisionFlags GetCollisionFlags() const
+		{
+			return static_cast<CollisionFlags>((physx::PxU8)mCollisionFlags);
+		}
+
 	private:
 		Entity mEntity;
 		physx::PxController* mController = nullptr;
 		physx::PxMaterial* mMaterial = nullptr;
+		physx::PxControllerCollisionFlags mCollisionFlags = {};
 
 	private:
 		friend class PhysicsScene;

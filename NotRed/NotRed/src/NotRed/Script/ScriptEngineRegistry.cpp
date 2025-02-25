@@ -195,6 +195,8 @@ namespace NR
 		mono_add_internal_call("NR.CharacterControllerComponent::GetStepOffset_Native", NR::Script::NR_CharacterControllerComponent_GetStepOffset);
 		mono_add_internal_call("NR.CharacterControllerComponent::SetStepOffset_Native", NR::Script::NR_CharacterControllerComponent_SetStepOffset);
 		mono_add_internal_call("NR.CharacterControllerComponent::Move_Native", NR::Script::NR_CharacterControllerComponent_Move);
+		mono_add_internal_call("NR.CharacterControllerComponent::IsGrounded_Native", NR::Script::NR_CharacterControllerComponent_IsGrounded);
+		mono_add_internal_call("NR.CharacterControllerComponent::GetCollisionFlags_Native", NR::Script::NR_CharacterControllerComponent_GetCollisionFlags);
 
 		mono_add_internal_call("NR.BoxColliderComponent::GetSize_Native", NR::Script::NR_BoxColliderComponent_GetSize);
 		mono_add_internal_call("NR.BoxColliderComponent::SetSize_Native", NR::Script::NR_BoxColliderComponent_SetSize);

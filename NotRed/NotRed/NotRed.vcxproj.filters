@@ -64,8 +64,14 @@
     <Filter Include="src\NotRed\Physics">
       <UniqueIdentifier>{9A90804A-8674-41A0-EFD4-3BF3DBD72B22}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\NotRed\Physics\Debug">
-      <UniqueIdentifier>{9026DFAD-7C4B-2E2E-A596-13BE911A2D4C}</UniqueIdentifier>
+    <Filter Include="src\NotRed\Physics\2D">
+      <UniqueIdentifier>{FFD0CB89-6B3D-8784-3431-1FE2A05CA9EC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Physics\3D">
+      <UniqueIdentifier>{20D1CB89-8C3D-8784-5531-1FE2C15CA9EC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\NotRed\Physics\3D\Debug">
+      <UniqueIdentifier>{963396D3-0241-C4B9-8B27-C0A4F7339070}</UniqueIdentifier>
     </Filter>
     <Filter Include="src\NotRed\Platform">
       <UniqueIdentifier>{7C6E9096-E8CF-6DA4-713D-B456DD9DA463}</UniqueIdentifier>
@@ -411,38 +417,53 @@
     <ClInclude Include="src\NotRed\Math\Ray.h">
       <Filter>src\NotRed\Math</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\2D\Physics2D.h">
+      <Filter>src\NotRed\Physics\2D</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\ContactListener.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\CookingFactory.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.h">
-      <Filter>src\NotRed\Physics\Debug</Filter>
+      <Filter>src\NotRed\Physics\3D\Debug</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActor.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h">
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsInternal.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsLayer.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsManager.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsMeshCache.h">
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsScene.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsSettings.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsShapes.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsSystem.h">
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsTypes.h">
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsUtils.h">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.h">
       <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
@@ -864,11 +885,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Physics\3D\PhysicsTypes.h" />
-    <ClInclude Include="src\NotRed\Physics\3D\PhysicsMeshCache.h" />
-    <ClInclude Include="src\NotRed\Physics\3D\PhysicsSystem.h" />
-    <ClInclude Include="src\NotRed\Physics\2D\Physics2D.h" />
-    <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1066,35 +1082,47 @@
     <ClCompile Include="src\NotRed\Math\Noise.cpp">
       <Filter>src\NotRed\Math</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\2D\Physics2D.cpp">
+      <Filter>src\NotRed\Physics\2D</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\ContactListener.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\CookingFactory.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.cpp">
-      <Filter>src\NotRed\Physics\Debug</Filter>
+      <Filter>src\NotRed\Physics\3D\Debug</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsActor.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsController.cpp">
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsInternal.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsLayer.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsManager.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsMeshCache.cpp">
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsScene.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsShapes.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsSystem.cpp">
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsUtils.cpp">
-      <Filter>src\NotRed\Physics</Filter>
+      <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Platform\Vulkan\Debug\NsightAftermathGpuCrashTracker.cpp">
       <Filter>src\NotRed\Platform\Vulkan\Debug</Filter>
@@ -1423,9 +1451,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Physics\3D\PhysicsMeshCache.cpp" />
-    <ClCompile Include="src\NotRed\Physics\3D\PhysicsSystem.cpp" />
-    <ClCompile Include="src\NotRed\Physics\2D\Physics2D.cpp" />
-    <ClCompile Include="src\NotRed\Physics\3D\PhysicsController.cpp" />
   </ItemGroup>
 </Project>

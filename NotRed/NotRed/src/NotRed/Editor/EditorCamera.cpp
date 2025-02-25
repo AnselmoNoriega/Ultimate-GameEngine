@@ -19,8 +19,8 @@
 
 namespace NR
 {
-    EditorCamera::EditorCamera(const glm::mat4& projectionMatrix)
-        : Camera(projectionMatrix), mFocalPoint(0.0f)
+    EditorCamera::EditorCamera(float verticalFOV, float aspectRatio, float nearClip, float farClip)
+        : Camera(glm::perspective(verticalFOV, aspectRatio, nearClip, farClip)), mVerticalFOV(verticalFOV), mAspectRatio(aspectRatio), mNearClip(nearClip), mFarClip(farClip)
     {
 
         const glm::vec3 position = { -5, 5, 5 };
@@ -266,6 +266,15 @@ namespace NR
             mDistance = 1.0f;
         }
         mPositionDelta += delta * ZoomSpeed() * forwardDir;
+    }
+
+    void EditorCamera::SetViewportSize(uint32_t width, uint32_t height)
+    {
+        mViewportWidth = width;
+        mViewportHeight = height;
+
+        mAspectRatio = (float)width / (float)height;
+        SetProjectionMatrix(glm::perspective(mVerticalFOV, mAspectRatio, mNearClip, mFarClip));
     }
 
     glm::vec3 EditorCamera::GetUpDirection() const

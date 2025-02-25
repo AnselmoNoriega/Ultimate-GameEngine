@@ -45,10 +45,15 @@ namespace NR
 	private:
 		Ref<Scene> mRuntimeScene;
 		Ref<SceneRenderer> mSceneRenderer;
+		Ref<Renderer2D> mRenderer2D;
 
 		std::string mProjectPath;
 
 		bool mReloadScriptOnPlay = true;
+
+		glm::mat4 mRenderer2DProj;
+
+		uint32_t mWidth = 0, mHeight = 0;
 
 		EditorCamera mEditorCamera;
 		

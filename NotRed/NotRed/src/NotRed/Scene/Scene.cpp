@@ -431,12 +431,13 @@ namespace NR
                     auto pointLights = mRegistry.group<PointLightComponent>(entt::get<TransformComponent>);
                     mLightEnvironment.PointLights.resize(pointLights.size());
                     uint32_t pointLightIndex = 0;
-                    for (auto entity : pointLights)
+                    for (auto e : pointLights)
                     {
-                        auto [transformComponent, lightComponent] = pointLights.get<TransformComponent, PointLightComponent>(entity);
-                        Entity e = Entity(entity, this);
+                        Entity entity(e, this);
+                        auto [transformComponent, lightComponent] = pointLights.get<TransformComponent, PointLightComponent>(e);
+                        auto transform = entity.HasComponent<RigidBodyComponent>() ? entity.Transform() : GetWorldSpaceTransform(entity);
                         mLightEnvironment.PointLights[pointLightIndex++] = {
-                            GetTranslationRelativeToParent(e),
+                            transform.Translation,
                             lightComponent.Intensity,
                             lightComponent.Radiance,
                             lightComponent.MinRadius,
@@ -480,7 +481,7 @@ namespace NR
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
         renderer->SetScene(this);
-        renderer->BeginScene({ camera, cameraViewMatrix, 0.1f, 1000.0f, 45.0f }, dt);
+        renderer->BeginScene({ camera, cameraViewMatrix, camera.GetPerspectiveNearClip(), camera.GetPerspectiveFarClip(), camera.GetPerspectiveVerticalFOV() }, dt);
         
         // Render Static Meshes
         {
@@ -497,9 +498,9 @@ namespace NR
                         glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
 
                         if (mSelectedEntity == entity)
-                            renderer->SubmitSelectedStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
+                            renderer->SubmitSelectedStaticMesh(staticMesh, staticMeshComponent.Materials, transform);
                         else
-                            renderer->SubmitStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
+                            renderer->SubmitStaticMesh(staticMesh, staticMeshComponent.Materials, transform);
                     }
                 }
             }
@@ -557,7 +558,7 @@ namespace NR
         if (renderer->GetFinalPassImage())
         {
             mSceneRenderer2D->BeginScene(camera.GetProjectionMatrix() * cameraViewMatrix, cameraViewMatrix);
-            mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
+            mSceneRenderer2D->SetTargetRenderPass(renderer->GetCompositeRenderPass());
             {
 #if TODO_SPRITES
                 auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);
@@ -627,8 +628,9 @@ namespace NR
                 {
                     auto [transformComponent, lightComponent] = pointLights.get<TransformComponent, PointLightComponent>(entity);
                     Entity e = Entity(entity, this);
+                    auto transform = GetWorldSpaceTransform(Entity(entity, this));
                     mLightEnvironment.PointLights[pointLightIndex++] = {
-                        GetTranslationRelativeToParent(e),
+                        transform.Translation,
                         lightComponent.Intensity,
                         lightComponent.Radiance,
                         lightComponent.MinRadius,
@@ -671,7 +673,7 @@ namespace NR
         mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
         renderer->SetScene(this);
-        renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), 0.1f, 1000.0f, 45.0f }, dt);
+        renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), editorCamera.GetNearClip(), editorCamera.GetFarClip(), editorCamera.GetVerticalFOV() }, dt);
         
         // Render Static Meshes
         {
@@ -689,11 +691,11 @@ namespace NR
 
                         if (mSelectedEntity == entity)
                         {
-                            renderer->SubmitSelectedStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
+                            renderer->SubmitSelectedStaticMesh(staticMesh, staticMeshComponent.Materials, transform);
                         }
                         else
                         {
-                            renderer->SubmitStaticMesh(staticMesh, staticMeshComponent.MaterialTable, transform);
+                            renderer->SubmitStaticMesh(staticMesh, staticMeshComponent.Materials, transform);
                         }
                     }
                 }

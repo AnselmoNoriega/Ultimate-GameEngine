@@ -15,6 +15,7 @@ namespace NR
 		std::string Title = "NotRed";
 		uint32_t Width = 1600;
 		uint32_t Height = 900;
+		bool Decorated = true;
 		bool Fullscreen = false;
 		bool VSync = true;
 	};

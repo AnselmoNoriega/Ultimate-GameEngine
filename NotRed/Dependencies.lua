@@ -33,7 +33,7 @@ LibraryDir["Vulkan"] = "%{wks.location}/NotRed/vendor/Vulkan/lib"
 LibraryDir["NsightAftermath"] = "%{wks.location}/NotRed/vendor/NsightAftermath/lib"
 
 Library = {}
-Library["Mono"] = "vendor/mono/lib/Debug/mono-2.0-sgen.lib"
+Library["Mono"] = "vendor/mono/lib/Release/mono-2.0-sgen.lib"
 
 Library["PhysX"] = "%{LibraryDir.PhysX}/PhysX_64.lib"
 Library["PhysXCharacterKinematic"] = "%{LibraryDir.PhysX}/PhysXCharacterKinematic_static_64.lib"

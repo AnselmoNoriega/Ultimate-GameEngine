@@ -33,7 +33,9 @@ NR::Application* NR::CreateApplication(int argc, char** argv)
 	specification.Name = "Not Runtime";
 	specification.WindowWidth = 1600;
 	specification.WindowHeight = 900;
-	specification.Fullscreen = true;
+	specification.WindowDecorated = true;
+	specification.Fullscreen = false;
+	specification.StartMaximized = true;
 	specification.VSync = true;
 	specification.EnableImGui = false;
 	specification.WorkingDirectory = "../NotEditor";

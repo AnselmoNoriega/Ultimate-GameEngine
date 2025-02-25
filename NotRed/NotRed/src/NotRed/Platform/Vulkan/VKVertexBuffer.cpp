@@ -10,6 +10,8 @@ namespace NR
     VKVertexBuffer::VKVertexBuffer(uint32_t size, VertexBufferUsage usage)
         : mSize(size)
     {
+        mLocalData.Allocate(size);
+
         Ref<VKVertexBuffer> instance = this;
         Renderer::Submit([instance]() mutable
             {
@@ -20,7 +22,6 @@ namespace NR
                 vertexBufferCreateInfo.size = instance->mSize;
                 vertexBufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
                 instance->mMemoryAllocation = allocator.AllocateBuffer(vertexBufferCreateInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, instance->mVulkanBuffer);
-                instance->mLocalData.Allocate(instance->mSize);
             });
     }
 

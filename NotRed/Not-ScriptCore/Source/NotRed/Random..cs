@@ -2,26 +2,26 @@ using System;
 
 namespace NR
 {
-    public class Random
+    public class XRandom
     {
         private ulong x;
         private ulong y;
         private ulong buffer;
         private ulong bufferMask;
 
-        public Random()
+        public XRandom()
         {
             x = (ulong)Guid.NewGuid().GetHashCode();
             y = (ulong)Guid.NewGuid().GetHashCode();
         }
 
-        public Random(ulong seed)
+        public XRandom(ulong seed)
         {
             x = seed << 3;
             y = seed >> 3;
         }
 
-        public Random(int seed)
+        public XRandom(int seed)
             : this((ulong)seed)
         {
         }

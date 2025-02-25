@@ -57,6 +57,7 @@ namespace NR
         windowSpec.Title = specification.Name;
         windowSpec.Width = specification.WindowWidth;
         windowSpec.Height = specification.WindowHeight;
+        windowSpec.Decorated = specification.WindowDecorated;
         windowSpec.Fullscreen = specification.Fullscreen;
         windowSpec.VSync = specification.VSync;
         mWindow = std::unique_ptr<Window>(Window::Create(windowSpec));
