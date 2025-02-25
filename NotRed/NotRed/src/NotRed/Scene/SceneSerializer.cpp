@@ -446,6 +446,7 @@ namespace NR
 
 			auto& ccc = entity.GetComponent<CharacterControllerComponent>();
 			out << YAML::Key << "Layer" << YAML::Value << ccc.Layer;
+			out << YAML::Key << "DisableGravity" << YAML::Value << ccc.DisableGravity;
 			out << YAML::Key << "SlopeLimit" << YAML::Value << ccc.SlopeLimitDeg;
 			out << YAML::Key << "StepOffset" << YAML::Value << ccc.StepOffset;
 
@@ -1090,6 +1091,7 @@ namespace NR
 			{
 				auto& component = deserializedEntity.AddComponent<CharacterControllerComponent>();
 				component.Layer = characterControllerComponent["Layer"].as<uint32_t>(0);
+				component.DisableGravity = characterControllerComponent["DisableGravity"].as<bool>(false);
 				component.SlopeLimitDeg = characterControllerComponent["SlopeLimit"].as<float>(0.0);
 				component.StepOffset = characterControllerComponent["StepOffset"].as<float>(0.0);
 			}

@@ -633,29 +633,35 @@ namespace NR
     {
         public float SlopeLimit
         {
-            get { return GetSlopeLimit_Native(Entity.ID); }
-            set { SetSlopeLimit_Native(Entity.ID, value); }
+            get => GetSlopeLimit_Native(Entity.ID);
+            set => SetSlopeLimit_Native(Entity.ID, value);
         }
 
         public float StepOffset
         {
-            get { return GetStepOffset_Native(Entity.ID); }
-            set { SetStepOffset_Native(Entity.ID, value); }
+            get => GetStepOffset_Native(Entity.ID);
+            set => SetStepOffset_Native(Entity.ID, value);
         }
 
-        public void Move(Vector3 displacement, float ts)
+        public void Move(Vector3 displacement) => Move_Native(Entity.ID, ref displacement);
+
+        public Vector3 Velocity
         {
-            Move_Native(Entity.ID, ref displacement, ts);
+            get
+            {
+                GetVelocity_Native(Entity.ID, out Vector3 result);
+                return result;
+            }
         }
 
         public bool IsGrounded
         {
-            get { return IsGrounded_Native(Entity.ID); }
+            get => IsGrounded_Native(Entity.ID);
         }
 
         public CollisionFlags CollisionFlags
         {
-            get { return GetCollisionFlags_Native(Entity.ID); }
+            get => GetCollisionFlags_Native(Entity.ID);
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -671,7 +677,10 @@ namespace NR
         internal static extern void SetStepOffset_Native(ulong entityID, float mass);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void Move_Native(ulong entityID, ref Vector3 displacement, float ts);
+        internal static extern void Move_Native(ulong entityID, ref Vector3 displacement);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void GetVelocity_Native(ulong entityID, out Vector3 result);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool IsGrounded_Native(ulong entityID);

@@ -26,6 +26,7 @@ namespace NR
 
 		Entity GetEntity() const { return mEntity; }
 
+		void SetHasGravity(bool hasGravity);
 		void SetSimulationData(uint32_t layerId);
 		void SetSlopeLimit(const float slopeLimitDeg);
 		void SetStepOffset(const float stepOffset);
@@ -33,22 +34,27 @@ namespace NR
 		void Move(const glm::vec3& displacement, float dt);
 
 		glm::vec3 GetPosition() const;
+		const glm::vec3& GetVelocity() const;
+		bool IsGrounded() const;
+		CollisionFlags GetCollisionFlags() const;
 
-		bool IsGrounded() const
-		{
-			return mCollisionFlags & physx::PxControllerCollisionFlag::eCOLLISION_DOWN;
-		}
+		void Move(glm::vec3 displacement);
 
-		CollisionFlags GetCollisionFlags() const
-		{
-			return static_cast<CollisionFlags>((physx::PxU8)mCollisionFlags);
-		}
+	private:
+		void Update(float dt);
+		void SynchronizeTransform();
 
 	private:
 		Entity mEntity;
 		physx::PxController* mController = nullptr;
 		physx::PxMaterial* mMaterial = nullptr;
 		physx::PxControllerCollisionFlags mCollisionFlags = {};
+		
+		glm::vec3 mVelocity = {};         // velocity of controller at last update
+		glm::vec3 mDisplacement = {};     // displacement (if any) for next update (comes from Move() calls)
+		glm::vec3 mGravity = {};          // gravity for this controller (initialized to be opposite of controllers "up" vector,
+		
+		bool mHasGravity = true;
 
 	private:
 		friend class PhysicsScene;

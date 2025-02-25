@@ -308,6 +308,7 @@ namespace NR
         float SlopeLimitDeg;
         float StepOffset;
         uint32_t Layer = 0;
+        bool DisableGravity = false;
     };
 
     enum class ColliderComponentType

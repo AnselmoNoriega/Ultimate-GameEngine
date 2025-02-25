@@ -1901,6 +1901,18 @@ namespace NR
                 const auto& layerNames = PhysicsLayerManager::GetLayerNames();
                 UI::PropertyDropdown("Layer", layerNames, layerCount, (int*)&ccc.Layer);
 
+                if (UI::Property("Disable Gravity", ccc.DisableGravity))
+                {
+                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    {
+                        auto controller = PhysicsManager::GetScene()->GetController(entity);
+                        if (controller)
+                        {
+                            controller->SetHasGravity(!ccc.DisableGravity);
+                        }
+                    }
+                }
+
                 if (UI::Property("Slope Limit", ccc.SlopeLimitDeg, 1.0f, 0.0f, 90.0f))
                 {
                     if (mContext->IsPlaying() && PhysicsManager::GetScene())

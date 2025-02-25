@@ -171,6 +171,9 @@ namespace NR
 		desc.stepOffset = characterControllerComponent.StepOffset;
 		desc.contactOffset = 0.01;
 		desc.material = controller->mMaterial;
+		desc.upDirection = { 0.0f, 1.0f, 0.0f };
+		controller->mGravity = -1.0f * PhysicsUtils::FromPhysicsVector(desc.upDirection) * glm::length(PhysicsManager::GetSettings().Gravity);
+		controller->mHasGravity = !characterControllerComponent.DisableGravity;
 
 		NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));
 
@@ -349,6 +352,12 @@ namespace NR
 	bool PhysicsScene::Advance(float dt)
 	{
 		NR_PROFILE_FUNC();
+
+		for (auto& controller : mControllers)
+		{
+			controller->Update(dt);
+			controller->SynchronizeTransform();
+		}
 
 		SubstepStrategy(dt);
 

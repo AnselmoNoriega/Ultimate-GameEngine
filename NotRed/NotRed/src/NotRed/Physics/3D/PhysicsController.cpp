@@ -1,5 +1,7 @@
 #include "nrpch.h"
 #include "PhysicsController.h"
+
+#include "PhysicsManager.h"
 #include "PhysicsLayer.h"
 #include "PhysicsUtils.h"
 
@@ -21,6 +23,11 @@ namespace NR
 		{
 			mMaterial->release();
 		}
+	}
+
+	void PhysicsController::SetHasGravity(bool hasGravity)
+	{
+		mHasGravity = hasGravity;
 	}
 
 	void PhysicsController::SetSimulationData(uint32_t layerId)
@@ -58,11 +65,9 @@ namespace NR
 		}
 	}
 
-	void PhysicsController::Move(const glm::vec3& displacement, float dt)
+	void PhysicsController::Move(glm::vec3 displacement)
 	{
-		physx::PxControllerFilters filters;
-
-		mCollisionFlags = mController->move(PhysicsUtils::ToPhysicsVector(displacement), 0.0, static_cast<physx::PxF32>(dt), filters);
+		mDisplacement += displacement;
 	}
 
 	glm::vec3 PhysicsController::GetPosition() const 
@@ -72,5 +77,46 @@ namespace NR
 		const auto& ccc = mEntity.GetComponent<CapsuleColliderComponent>();
 		pos -= ccc.Offset;
 		return pos;
+	}
+
+	const glm::vec3& PhysicsController::GetVelocity() const
+	{
+		return mVelocity;
+	}
+
+	bool PhysicsController::IsGrounded() const
+	{
+		return mCollisionFlags & physx::PxControllerCollisionFlag::eCOLLISION_DOWN;
+	}
+
+	CollisionFlags PhysicsController::GetCollisionFlags() const
+	{
+		return static_cast<CollisionFlags>((physx::PxU8)mCollisionFlags);
+	}
+
+	void PhysicsController::Update(float dt)
+	{
+		physx::PxControllerFilters filters;
+
+		if (mHasGravity) 
+		{
+			mVelocity += mGravity * dt;
+		}
+
+		glm::vec3 displacement = mDisplacement + (mVelocity * dt);
+		mCollisionFlags = mController->move(PhysicsUtils::ToPhysicsVector(displacement), 0.0, static_cast<physx::PxF32>(dt), filters);
+
+		if (IsGrounded())
+		{
+			mVelocity = mGravity * 0.01f; // setting mVelocity back to zero here would be more technically correct,
+		}
+
+		mDisplacement = {};
+	}
+
+	void PhysicsController::SynchronizeTransform()
+	{
+		TransformComponent& transform = mEntity.Transform();
+		transform.Translation = GetPosition();
 	}
 }

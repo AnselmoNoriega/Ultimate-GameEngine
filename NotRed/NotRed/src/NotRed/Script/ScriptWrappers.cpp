@@ -1974,11 +1974,26 @@ namespace NR::Script
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
         Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
-        controller->Move(*displacement, dt);
-        entity.Transform().Translation = controller->GetPosition();
+        controller->Move(*displacement);
     }
 
-    bool hNR_CharacterControllerComponent_IsGrounded(uint64_t entityID)
+    void NR_CharacterControllerComponent_GetVelocity(uint64_t entityID, glm::vec3* outResult)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<CharacterControllerComponent>());
+
+        auto& component = entity.GetComponent<CharacterControllerComponent>();
+
+        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        *outResult = controller->GetVelocity();
+    }
+
+    bool NR_CharacterControllerComponent_IsGrounded(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
@@ -1994,7 +2009,7 @@ namespace NR::Script
         return controller->IsGrounded();
     }
 
-    CollisionFlags Hazel_CharacterControllerComponent_GetCollisionFlags(uint64_t entityID)
+    CollisionFlags NR_CharacterControllerComponent_GetCollisionFlags(uint64_t entityID)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
