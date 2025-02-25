@@ -6,6 +6,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include <set>
+#include <limits>
 
 #include "NotRed/Core/UUID.h"
 #include "NotRed/Renderer/Texture.h"
@@ -315,6 +316,15 @@ namespace NR
         SphereCollider, 
         CapsuleCollider, 
         MeshCollider
+    };
+
+    struct FixedJointComponent
+    {
+        UUID ConnectedEntity;
+
+        // Setting the break force/torque to the max value of a float (e.g infinity) makes the joint unbreakable
+        float BreakForce = std::numeric_limits<float>::max();
+        float BreakTorque = std::numeric_limits<float>::max();
     };
 
     struct BoxColliderComponent

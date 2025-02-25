@@ -452,6 +452,19 @@ namespace NR
 			out << YAML::EndMap; // CharacterControllerComponent
 		}
 
+		if (entity.HasComponent<FixedJointComponent>())
+		{
+			out << YAML::Key << "FixedJointComponent";
+			out << YAML::BeginMap; // FixedJointComponent
+
+			auto& fjc = entity.GetComponent<FixedJointComponent>();
+			out << YAML::Key << "ConnectedEntity" << YAML::Value << fjc.ConnectedEntity;
+			out << YAML::Key << "BreakForce" << YAML::Value << fjc.BreakForce;
+			out << YAML::Key << "BreakTorque" << YAML::Value << fjc.BreakTorque;
+
+			out << YAML::EndMap; // FixedJointComponent
+		}
+
 		if (entity.HasComponent<BoxColliderComponent>())
 		{
 			out << YAML::Key << "BoxColliderComponent";
@@ -1079,6 +1092,15 @@ namespace NR
 				component.Layer = characterControllerComponent["Layer"].as<uint32_t>(0);
 				component.SlopeLimitDeg = characterControllerComponent["SlopeLimit"].as<float>(0.0);
 				component.StepOffset = characterControllerComponent["StepOffset"].as<float>(0.0);
+			}
+
+			auto fixedJointComponent = entity["FixedJointComponent"];
+			if (fixedJointComponent)
+			{
+				auto& component = deserializedEntity.AddComponent<FixedJointComponent>();
+				component.ConnectedEntity = fixedJointComponent["ConnectedEntity"].as<UUID>(0);
+				component.BreakForce = fixedJointComponent["BreakForce"].as<float>(0.0);
+				component.BreakTorque = fixedJointComponent["BreakTorque"].as<float>(0.0);
 			}
 
 			auto boxColliderComponent = entity["BoxColliderComponent"];

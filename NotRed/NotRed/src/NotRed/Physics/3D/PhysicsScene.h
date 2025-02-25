@@ -7,6 +7,7 @@
 #include "PhysicsSettings.h"
 #include "PhysicsActor.h"
 #include "PhysicsController.h"
+#include "PhysicsJoints.h"
 
 namespace NR
 {
@@ -27,7 +28,7 @@ namespace NR
 	class PhysicsScene : public RefCounted
 	{
 	public:
-		PhysicsScene(const PhysicsSettings& settings);
+		PhysicsScene(const Ref<Scene>& scene, const PhysicsSettings& settings);
 		~PhysicsScene();
 
 		void Simulate(float dt, bool callFixedUpdate = true);
@@ -45,7 +46,11 @@ namespace NR
 		Ref<PhysicsController> CreateController(Entity entity);
 		void RemoveController(Ref<PhysicsController> controller);
 
-		const std::vector<Ref<PhysicsController>>& GetControllers() const { return mControllers; }
+		const std::vector<Ref<PhysicsController>>& GetControllers() const { return mControllers; }		
+		
+		Ref<JointBase> GetJoint(Entity entity);
+		Ref<JointBase> CreateJoint(Entity entity);
+		void RemoveJoint(Ref<JointBase> joint);
 
 		glm::vec3 GetGravity() const { return PhysicsUtils::FromPhysicsVector(mPhysicsScene->getGravity()); }
 		void SetGravity(const glm::vec3& gravity) { mPhysicsScene->setGravity(PhysicsUtils::ToPhysicsVector(gravity)); }
@@ -59,6 +64,9 @@ namespace NR
 
 		bool IsValid() const { return mPhysicsScene != nullptr; }
 
+		const Ref<Scene>& GetEntityScene() const { return mEntityScene; }
+		Ref<Scene> GetEntityScene() { return mEntityScene; }
+
 	private:
 		void CreateRegions();
 
@@ -70,11 +78,13 @@ namespace NR
 		bool OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
 
 	private:
+		Ref<Scene> mEntityScene;
 		physx::PxScene* mPhysicsScene;
 		physx::PxControllerManager* mPhysicsControllerManager;
 
 		std::vector<Ref<PhysicsActor>> mActors;
 		std::vector<Ref<PhysicsController>> mControllers;
+		std::vector<Ref<JointBase>> mJoints;
 
 		float mSubStepSize;
 		float mAccumulator = 0.0f;

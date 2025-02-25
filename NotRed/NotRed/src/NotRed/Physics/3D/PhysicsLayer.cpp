@@ -1,28 +1,9 @@
 #include "nrpch.h"
 #include "PhysicsLayer.h"
+#include "NotRed/Util/ContainerUtils.h"
 
 namespace NR
 {
-	template<typename T, typename ConditionFunction>
-	static bool RemoveIfExists(std::vector<T>& vector, ConditionFunction condition)
-	{
-		auto it = vector.begin();
-		while (it != vector.end())
-		{
-			if (condition(*it))
-			{
-				vector.erase(it);
-				return true;
-			}
-			else
-			{
-				++it;
-			}
-		}
-
-		return false;
-	}
-
 	uint32_t PhysicsLayerManager::AddLayer(const std::string& name, bool setCollisions)
 	{
 		uint32_t layerId = GetNextLayerID();
@@ -58,14 +39,14 @@ namespace NR
 			}
 		}
 
-		RemoveIfExists<std::string>(sLayerNames, [&](const std::string& name) { return name == layerInfo.Name; });
-		RemoveIfExists<PhysicsLayer>(sLayers, [&](const PhysicsLayer& layer) { return layer.ID == layerId; });
+		Utils::RemoveIf(sLayerNames, [&](const std::string& name) { return name == layerInfo.Name; });
+		Utils::RemoveIf(sLayers, [&](const PhysicsLayer& layer) { return layer.ID == layerId; });
 	}
 
 	void PhysicsLayerManager::UpdateLayerName(uint32_t layerId, const std::string& newName)
 	{
 		PhysicsLayer& layer = GetLayer(layerId);
-		RemoveIfExists<std::string>(sLayerNames, [&](const std::string& name) { return name == layer.Name; });
+		Utils::RemoveIf(sLayerNames, [&](const std::string& name) { return name == layer.Name; });
 		sLayerNames.insert(sLayerNames.begin() + layerId, newName);
 		layer.Name = newName;
 	}

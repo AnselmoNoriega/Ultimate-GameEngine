@@ -37,16 +37,16 @@ namespace NR
 			return mScene->mRegistry.get<T>(mEntityHandle);
 		}
 
-		template<typename T>
+		template<typename... T>
 		bool HasComponent()
 		{
-			return mScene->mRegistry.all_of<T>(mEntityHandle);
+			return mScene->mRegistry.all_of<T...>(mEntityHandle);
 		}
 
-		template<typename T>
+		template<typename... T>
 		bool HasComponent() const
 		{
-			return mScene->mRegistry.all_of<T>(mEntityHandle);
+			return mScene->mRegistry.all_of<T...>(mEntityHandle);
 		}
 
 		template<typename...T>

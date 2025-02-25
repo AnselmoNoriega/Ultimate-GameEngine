@@ -244,6 +244,7 @@
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActor.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsInternal.h" />
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsLayer.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsManager.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsMeshCache.h" />
@@ -326,6 +327,7 @@
     <ClInclude Include="src\NotRed\Script\ScriptEngineRegistry.h" />
     <ClInclude Include="src\NotRed\Script\ScriptModuleField.h" />
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h" />
+    <ClInclude Include="src\NotRed\Util\ContainerUtils.h" />
     <ClInclude Include="src\NotRed\Util\FileSystem.h" />
     <ClInclude Include="src\NotRed\Util\SerializationMacros.h" />
     <ClInclude Include="src\NotRed\Util\StringUtils.h" />
@@ -467,6 +469,7 @@
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsActor.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsController.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsInternal.cpp" />
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsJoints.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsLayer.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsManager.cpp" />
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsMeshCache.cpp" />

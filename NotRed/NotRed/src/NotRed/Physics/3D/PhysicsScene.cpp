@@ -16,8 +16,8 @@ namespace NR
 {
 	static ContactListener sContactListener;
 
-	PhysicsScene::PhysicsScene(const PhysicsSettings& settings)
-		: mSubStepSize(settings.FixedDeltaTime)
+	PhysicsScene::PhysicsScene(const Ref<Scene>& scene, const PhysicsSettings& settings)
+		: mEntityScene(scene), mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_PCM;
@@ -198,6 +198,56 @@ namespace NR
 		}
 	}
 
+	Ref<JointBase> PhysicsScene::GetJoint(Entity entity)
+	{
+		for (auto& joint : mJoints)
+		{
+			if (joint->GetEntity() == entity)
+			{
+				return joint;
+			}
+		}
+
+		return nullptr;
+	}
+
+	Ref<JointBase> PhysicsScene::CreateJoint(Entity entity)
+	{
+		Ref<JointBase> joint = nullptr;
+
+		if (entity.HasComponent<FixedJointComponent>())
+		{
+			joint = Ref<FixedJoint>::Create(entity);
+		}
+
+		if (!joint || !joint->IsValid())
+		{
+			return nullptr;
+		}
+
+		mJoints.push_back(joint);
+		return joint;
+	}
+
+	void PhysicsScene::RemoveJoint(Ref<JointBase> joint)
+	{
+		if (!joint || !joint->IsValid())
+		{
+			return;
+		}
+
+		joint->Release();
+
+		for (auto it = mJoints.begin(); it != mJoints.end(); it++)
+		{
+			if ((*it)->GetEntity() == joint->GetEntity())
+			{
+				mJoints.erase(it);
+				break;
+			}
+		}
+	}
+
 	bool PhysicsScene::Raycast(const glm::vec3& origin, const glm::vec3& direction, float maxDistance, RaycastHit* outHit)
 	{
 		NR_PROFILE_FUNC();
@@ -333,6 +383,11 @@ namespace NR
 	{
 		NR_CORE_ASSERT(mPhysicsScene);
 
+		for (auto& joint : mJoints)
+		{
+			RemoveJoint(joint);
+		}
+
 		for (auto& controller : mControllers)
 		{
 			RemoveController(controller);
@@ -348,5 +403,7 @@ namespace NR
 		mPhysicsControllerManager->release();
 		mPhysicsScene->release();
 		mPhysicsScene = nullptr;
+
+		mEntityScene = nullptr;
 	}
 }

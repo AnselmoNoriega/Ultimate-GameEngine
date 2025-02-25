@@ -25,11 +25,11 @@ namespace NR
 		PhysicsInternal::Shutdown();
 	}
 
-	void PhysicsManager::CreateScene()
+	void PhysicsManager::CreateScene(const Ref<Scene>& scene)
 	{
 		NR_PROFILE_FUNC();
 
-		sScene = Ref<PhysicsScene>::Create(sSettings);	
+		sScene = Ref<PhysicsScene>::Create(scene, sSettings);
 
 #ifdef NR_DEBUG
 		if (sSettings.DebugOnPlay && !PhysicsDebugger::IsDebugging())
@@ -39,7 +39,8 @@ namespace NR
 				PhysicsManager::GetSettings().DebugType == DebugType::LiveDebug
 			);
 		}
-#endif
+#endif		
+		CreateActors(scene);
 	}
 
 	void PhysicsManager::DestroyScene()
@@ -116,6 +117,16 @@ namespace NR
 				CreateActor(e);
 			}
 		}
+
+		// Joints
+		{
+			auto view = scene->GetAllEntitiesWith<FixedJointComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, scene.Raw() };
+				CreateJoint(e);
+			}
+		}
 	}
 
 	Ref<PhysicsActor> PhysicsManager::CreateActor(Entity entity)
@@ -129,10 +140,9 @@ namespace NR
 		}
 
 		Ref<PhysicsActor> actor = sScene->CreateActor(entity);
-		Ref<Scene> scene = Scene::GetScene(entity.GetSceneID());
 		for (auto childId : entity.Children())
 		{
-			Entity child = scene->FindEntityByID(childId);
+			Entity child = sScene->GetEntityScene()->FindEntityByID(childId);
 			if (child.HasComponent<RigidBodyComponent>())
 			{
 				continue;
@@ -170,6 +180,18 @@ namespace NR
 		Ref<PhysicsController> controller = sScene->CreateController(entity);
 		controller->SetSimulationData(entity.GetComponent<CharacterControllerComponent>().Layer);
 		return controller;
+	}
+
+	Ref<JointBase> PhysicsManager::CreateJoint(Entity entity)
+	{
+		auto existingJoint = sScene->GetJoint(entity);
+		if (existingJoint)
+		{
+			return existingJoint;
+		}
+
+		Ref<JointBase> joint = sScene->CreateJoint(entity);
+		return joint;
 	}
 
 	void PhysicsManager::ImGuiRender()

@@ -664,9 +664,7 @@ namespace NR
 		size_t pos = name.find(nameSpace + ".");
 		if (pos == 0)
 		{
-			{
-				name.erase(pos, nameSpace.length() + 1);
-			}
+			name.erase(pos, nameSpace.length() + 1);
 		}
 		return name;
 	}

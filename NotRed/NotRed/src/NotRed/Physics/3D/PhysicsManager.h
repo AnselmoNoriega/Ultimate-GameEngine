@@ -12,7 +12,7 @@ namespace NR
 
 		static void SetCurrentScene(const Ref<PhysicsScene>& scene) { sScene = scene; }
 
-		static void CreateScene();
+		static void CreateScene(const Ref<Scene>& scene);
 		static void DestroyScene();
 
 		static PhysicsSettings& GetSettings() { return sSettings; }
@@ -24,6 +24,7 @@ namespace NR
 		static void CreateActors(Ref<Scene> scene);
 		static Ref<PhysicsActor> CreateActor(Entity entity);
 		static Ref<PhysicsController> CreateController(Entity entity);
+		static Ref<JointBase> CreateJoint(Entity entity);
 
 	private:
 		static PhysicsSettings sSettings;

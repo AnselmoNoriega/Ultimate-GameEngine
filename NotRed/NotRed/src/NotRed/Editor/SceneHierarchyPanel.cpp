@@ -1085,6 +1085,14 @@ namespace NR
                         ImGui::CloseCurrentPopup();
                     }
                 }
+                if (!mSelectionContext.HasComponent<FixedJointComponent>())
+                {
+                    if (ImGui::MenuItem("Fixed Joint"))
+                    {
+                        auto& ccc = mSelectionContext.AddComponent<FixedJointComponent>();
+                        ImGui::CloseCurrentPopup();
+                    }
+                }
                 if (!mSelectionContext.HasComponent<BoxColliderComponent>())
                 {
                     if (ImGui::MenuItem("Box Collider"))
@@ -1912,6 +1920,52 @@ namespace NR
                         if (controller)
                         {
                             controller->SetStepOffset(ccc.StepOffset);
+                        }
+                    }
+                }
+
+                UI::EndPropertyGrid();
+            }, sGearIcon);
+
+        DrawComponent<FixedJointComponent>("Fixed Joint", entity, [&](FixedJointComponent& fjc)
+            {
+                UI::BeginPropertyGrid();
+
+                Entity targetEntity = mContext->FindEntityByID(fjc.ConnectedEntity);
+                if (UI::PropertyEntityReference("Connected Entity", targetEntity))
+                {
+                    fjc.ConnectedEntity = targetEntity.GetID();
+
+                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    {
+                        auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                        if (joint)
+                        {
+                            joint->SetConnectedEntity(targetEntity);
+                        }
+                    }
+                }
+
+                if (UI::Property("Break Force", fjc.BreakForce, 1.0f))
+                {
+                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    {
+                        auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                        if (joint)
+                        {
+                            joint->SetBreakForce(fjc.BreakForce, fjc.BreakTorque);
+                        }
+                    }
+                }
+
+                if (UI::Property("Break Torque", fjc.BreakTorque, 1.0f))
+                {
+                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    {
+                        auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                        if (joint)
+                        {
+                            joint->SetBreakForce(fjc.BreakForce, fjc.BreakTorque);
                         }
                     }
                 }

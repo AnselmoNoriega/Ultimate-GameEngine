@@ -1536,6 +1536,68 @@ namespace NR::UI
         return succeeded;
     }
 
+    template<typename... TComponents>
+    static bool PropertyEntityReferenceWithComponents(const char* label, Entity& entity, bool requiresAllComponents = true)
+    {
+        bool receivedValidEntity = false;
+
+        ShiftCursor(10.0f, 9.0f);
+        ImGui::Text(label);
+        ImGui::NextColumn();
+        ShiftCursorY(4.0f);
+        ImGui::PushItemWidth(-1);
+
+        ImVec2 originalButtonTextAlign = ImGui::GetStyle().ButtonTextAlign;
+        {
+            ImGui::GetStyle().ButtonTextAlign = { 0.0f, 0.5f };
+            float width = ImGui::GetContentRegionAvail().x;
+            float itemHeight = 28.0f;
+
+            std::string buttonText = "Null";
+
+            if (entity)
+            {
+                buttonText = entity.GetComponent<TagComponent>().Tag;
+            }
+
+            ImGui::Button(fmt::format("{}##{}", buttonText, sCounter++).c_str(), { width, itemHeight });
+        }
+        ImGui::GetStyle().ButtonTextAlign = originalButtonTextAlign;
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            auto data = ImGui::AcceptDragDropPayload("scene_entity_hierarchy");
+            if (data)
+            {
+                Entity temp = *(Entity*)data->Data;
+
+                if (requiresAllComponents)
+                {
+                    if (temp.HasComponent<TComponents...>())
+                    {
+                        entity = temp;
+                        receivedValidEntity = true;
+                    }
+                }
+                else
+                {
+                    if (temp.HasAny<TComponents...>())
+                    {
+                        entity = temp;
+                        receivedValidEntity = true;
+                    }
+                }
+            }
+
+            ImGui::EndDragDropTarget();
+        }
+
+        ImGui::PopItemWidth();
+        ImGui::NextColumn();
+
+        return receivedValidEntity;
+    }
+
     template<typename T, typename Fn>
     static bool PropertyAssetReferenceTarget(const char* label, const char* assetName, AssetHandle& outHandle, Fn&& targetFunc, const PropertyAssetReferenceSettings& settings = PropertyAssetReferenceSettings())
     {

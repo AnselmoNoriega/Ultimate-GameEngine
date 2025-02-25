@@ -915,8 +915,7 @@ namespace NR
             }
         }
 
-        PhysicsManager::CreateScene();
-        PhysicsManager::CreateActors(this);
+        PhysicsManager::CreateScene(this);
 
         {
             auto view = mRegistry.view<ScriptComponent>();
@@ -1248,6 +1247,7 @@ namespace NR
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<RigidBodyComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CharacterControllerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<FixedJointComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
@@ -1329,6 +1329,7 @@ namespace NR
         CopyComponentIfExists<CircleCollider2DComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<RigidBodyComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<CharacterControllerComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
+        CopyComponentIfExists<FixedJointComponent>(newEntity.mEntityHandle, entity.mEntityHandle, mRegistry);
         CopyComponentIfExists<BoxColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<SphereColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
         CopyComponentIfExists<CapsuleColliderComponent>(newEntity, mRegistry, entity, entity.mScene->mRegistry);
@@ -1658,6 +1659,7 @@ namespace NR
         CopyComponent<CircleCollider2DComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<RigidBodyComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CharacterControllerComponent>(target->mRegistry, mRegistry, enttMap);
+        CopyComponent<FixedJointComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<BoxColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<SphereColliderComponent>(target->mRegistry, mRegistry, enttMap);
         CopyComponent<CapsuleColliderComponent>(target->mRegistry, mRegistry, enttMap);
