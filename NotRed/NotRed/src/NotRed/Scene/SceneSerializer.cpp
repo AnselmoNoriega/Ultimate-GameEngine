@@ -460,8 +460,11 @@ namespace NR
 
 			auto& fjc = entity.GetComponent<FixedJointComponent>();
 			out << YAML::Key << "ConnectedEntity" << YAML::Value << fjc.ConnectedEntity;
+			out << YAML::Key << "IsBreakable" << YAML::Value << fjc.IsBreakable;
 			out << YAML::Key << "BreakForce" << YAML::Value << fjc.BreakForce;
 			out << YAML::Key << "BreakTorque" << YAML::Value << fjc.BreakTorque;
+			out << YAML::Key << "EnableCollision" << YAML::Value << fjc.EnableCollision;
+			out << YAML::Key << "EnablePreProcessing" << YAML::Value << fjc.EnablePreProcessing;
 
 			out << YAML::EndMap; // FixedJointComponent
 		}
@@ -1100,9 +1103,11 @@ namespace NR
 			if (fixedJointComponent)
 			{
 				auto& component = deserializedEntity.AddComponent<FixedJointComponent>();
-				component.ConnectedEntity = fixedJointComponent["ConnectedEntity"].as<UUID>(0);
-				component.BreakForce = fixedJointComponent["BreakForce"].as<float>(0.0);
-				component.BreakTorque = fixedJointComponent["BreakTorque"].as<float>(0.0);
+				component.ConnectedEntity = fixedJointComponent["ConnectedEntity"].as<UUID>(0);				component.IsBreakable = fixedJointComponent["IsBreakable"].as<bool>(true);
+				component.BreakForce = fixedJointComponent["BreakForce"].as<float>(100.0f);
+				component.BreakTorque = fixedJointComponent["BreakTorque"].as<float>(10.0f);
+				component.EnableCollision = fixedJointComponent["EnableCollision"].as<bool>(false);
+				component.EnablePreProcessing = fixedJointComponent["EnablePreProcessing"].as<bool>(true);
 			}
 
 			auto boxColliderComponent = entity["BoxColliderComponent"];

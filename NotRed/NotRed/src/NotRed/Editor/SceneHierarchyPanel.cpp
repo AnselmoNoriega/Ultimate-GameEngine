@@ -1953,31 +1953,68 @@ namespace NR
                         auto joint = PhysicsManager::GetScene()->GetJoint(entity);
                         if (joint)
                         {
-                            joint->SetConnectedEntity(targetEntity);
+                            if (fjc.IsBreakable)
+                            {
+                                joint->SetBreakForceAndTorque(fjc.BreakForce, fjc.BreakTorque);
+                            }
+                            else
+                            {
+                                joint->SetBreakForceAndTorque(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+                            }
                         }
                     }
                 }
 
-                if (UI::Property("Break Force", fjc.BreakForce, 1.0f))
+                if (fjc.IsBreakable)
+                {
+                    if (UI::Property("Break Force", fjc.BreakForce, 1.0f))
+                    {
+                        if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                        {
+                            auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                            if (joint)
+                            {
+                                joint->SetBreakForceAndTorque(fjc.BreakForce, fjc.BreakTorque);
+                            }
+                        }
+                    }
+                    UI::SetTooltip("The amount of force required to break this joint");
+
+                    if (UI::Property("Break Torque", fjc.BreakTorque, 1.0f))
+                    {
+                        if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                        {
+                            auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                            if (joint)
+                            {
+                                joint->SetBreakForceAndTorque(fjc.BreakForce, fjc.BreakTorque);
+                            }
+                        }
+                    }
+                    UI::SetTooltip("The amount of torque required to break this joint");
+                }
+
+                if (UI::Property("Enable Collision", fjc.EnableCollision))
                 {
                     if (mContext->IsPlaying() && PhysicsManager::GetScene())
                     {
                         auto joint = PhysicsManager::GetScene()->GetJoint(entity);
                         if (joint)
                         {
-                            joint->SetBreakForce(fjc.BreakForce, fjc.BreakTorque);
+                            joint->SetCollisionEnabled(fjc.EnableCollision);
                         }
                     }
                 }
+                UI::SetTooltip("Enable collision between the entities that this joint constraints");
 
-                if (UI::Property("Break Torque", fjc.BreakTorque, 1.0f))
+                if (UI::Property("Enable Preprocessing", fjc.EnablePreProcessing))
                 {
                     if (mContext->IsPlaying() && PhysicsManager::GetScene())
                     {
                         auto joint = PhysicsManager::GetScene()->GetJoint(entity);
                         if (joint)
                         {
-                            joint->SetBreakForce(fjc.BreakForce, fjc.BreakTorque);
+                            joint->SetPreProcessingEnabled(fjc.EnablePreProcessing);
                         }
                     }
                 }

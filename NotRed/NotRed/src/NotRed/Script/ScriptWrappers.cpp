@@ -2025,6 +2025,212 @@ namespace NR::Script
         return controller->GetCollisionFlags();
     }
 
+    uint64_t NR_FixedJointComponent_GetConnectedEntity(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        return component.ConnectedEntity;
+    }
+
+    void NR_FixedJointComponent_SetConnectedEntity(uint64_t entityID, uint64_t connectedEntity)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+        Entity other = entityMap.at(connectedEntity);
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        component.ConnectedEntity = connectedEntity;
+
+        PhysicsManager::GetScene()->GetJoint(entity)->SetConnectedEntity(other);
+    }
+
+    bool NR_FixedJointComponent_IsBreakable(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        return component.IsBreakable;
+    }
+
+    void NR_FixedJointComponent_SetIsBreakable(uint64_t entityID, bool isBreakable)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        component.IsBreakable = isBreakable;
+
+        if (isBreakable)
+            PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
+        else
+            PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+    }
+
+    bool NR_FixedJointComponent_IsBroken(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        return PhysicsManager::GetScene()->GetJoint(entity)->IsBroken();
+    }
+
+    void NR_FixedJointComponent_Break(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        PhysicsManager::GetScene()->GetJoint(entity)->Break();
+    }
+
+    float NR_FixedJointComponent_GetBreakForce(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        return component.BreakForce;
+    }
+
+    void NR_FixedJointComponent_SetBreakForce(uint64_t entityID, float breakForce)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        component.BreakForce = breakForce;
+        PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
+    }
+
+    float NR_FixedJointComponent_GetBreakTorque(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        return component.BreakTorque;
+    }
+
+    void NR_FixedJointComponent_SetBreakTorque(uint64_t entityID, float breakTorque)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        component.BreakTorque = breakTorque;
+        PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
+    }
+
+    bool NR_FixedJointComponent_IsCollisionEnabled(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        return component.EnableCollision;
+    }
+
+    void NR_FixedJointComponent_SetCollisionEnabled(uint64_t entityID, bool isCollisionEnabled)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        component.EnableCollision = isCollisionEnabled;
+        PhysicsManager::GetScene()->GetJoint(entity)->SetCollisionEnabled(isCollisionEnabled);
+    }
+
+    bool NR_FixedJointComponent_IsPreProcessingEnabled(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        return component.EnablePreProcessing;
+    }
+
+    void NR_FixedJointComponent_SetPreProcessingEnabled(uint64_t entityID, bool isPreProcessingEnabled)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
+
+        auto& component = entity.GetComponent<FixedJointComponent>();
+        component.EnablePreProcessing = isPreProcessingEnabled;
+        PhysicsManager::GetScene()->GetJoint(entity)->SetPreProcessingEnabled(isPreProcessingEnabled);
+    }
+
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize)
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();

@@ -689,6 +689,86 @@ namespace NR
         internal static extern CollisionFlags GetCollisionFlags_Native(ulong entityID);
     }
 
+    public class FixedJointComponent : Component
+    {
+
+        public Entity ConnectedEntity
+        {
+            get => new Entity(GetConnectedEntity_Native(Entity.ID));
+            set => SetConnectedEntity_Native(Entity.ID, value.ID);
+        }
+
+        public bool IsBreakable
+        {
+            get => IsBreakable_Native(Entity.ID);
+            set => SetIsBreakable_Native(Entity.ID, value);
+        }
+
+        public bool IsBroken => IsBroken_Native(Entity.ID);
+
+        public float BreakForce
+        {
+            get => GetBreakForce_Native(Entity.ID);
+            set => SetBreakForce_Native(Entity.ID, value);
+        }
+
+        public float BreakTorque
+        {
+            get => GetBreakTorque_Native(Entity.ID);
+            set => SetBreakTorque_Native(Entity.ID, value);
+        }
+
+        public bool IsCollisionEnabled
+        {
+            get => IsCollisionEnabled_Native(Entity.ID);
+            set => SetCollisionEnabled_Native(Entity.ID, value);
+        }
+
+        public bool IsPreProcessingEnabled
+        {
+            get => IsPreProcessingEnabled_Native(Entity.ID);
+            set => SetPreProcessingEnabled_Native(Entity.ID, value);
+        }
+
+        public void Break() => Break_Native(Entity.ID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern ulong GetConnectedEntity_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetConnectedEntity_Native(ulong entityID, ulong connectedEntityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsBreakable_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetIsBreakable_Native(ulong entityID, bool isBreakable);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsBroken_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void Break_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetBreakForce_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetBreakForce_Native(ulong entityID, float breakForce);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetBreakTorque_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetBreakTorque_Native(ulong entityID, float breakForce);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsCollisionEnabled_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetCollisionEnabled_Native(ulong entityID, bool isCollisionEnabled);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern bool IsPreProcessingEnabled_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetPreProcessingEnabled_Native(ulong entityID, bool isPreProcessingEnabled);
+
+    }
+
     public class BoxColliderComponent : Component
     {
 

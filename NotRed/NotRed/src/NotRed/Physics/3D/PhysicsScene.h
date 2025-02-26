@@ -51,6 +51,7 @@ namespace NR
 		Ref<JointBase> GetJoint(Entity entity);
 		Ref<JointBase> CreateJoint(Entity entity);
 		void RemoveJoint(Ref<JointBase> joint);
+		const std::vector<Ref<JointBase>>& GetJoints() const { return mJoints; }
 
 		glm::vec3 GetGravity() const { return PhysicsUtils::FromPhysicsVector(mPhysicsScene->getGravity()); }
 		void SetGravity(const glm::vec3& gravity) { mPhysicsScene->setGravity(PhysicsUtils::ToPhysicsVector(gravity)); }

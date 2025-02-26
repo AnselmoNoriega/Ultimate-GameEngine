@@ -190,8 +190,7 @@ namespace NR
 			return existingJoint;
 		}
 
-		Ref<JointBase> joint = sScene->CreateJoint(entity);
-		return joint;
+		return sScene->CreateJoint(entity);
 	}
 
 	void PhysicsManager::ImGuiRender()
@@ -294,6 +293,46 @@ namespace NR
 							ImGui::TreePop();
 						}
 					}
+					ImGui::TreePop();
+				}
+			}
+
+			const auto& joints = sScene->GetJoints();
+			ImGui::Text("Joints: %d", actors.size());
+
+			for (const auto& joint : joints)
+			{
+				UUID id = joint->GetEntity().GetID();
+				std::string label = fmt::format("{0} ({1})##{1}", joint->GetDebugName(), joint->GetEntity().GetComponent<TagComponent>().Tag, id);
+				bool open = UI::PropertyGridHeader(label, false);
+				if (open)
+				{
+					UI::BeginPropertyGrid();
+					UI::PushItemDisabled();
+
+					bool isBreakable = joint->IsBreakable();
+					UI::Property("Is Breakable", isBreakable);
+
+					if (isBreakable)
+					{
+						bool isBroken = joint->IsBroken();
+						UI::Property("Is Broken", isBroken);
+
+						float breakForce, breakTorque;
+						joint->GetBreakForceAndTorque(breakForce, breakTorque);
+						UI::Property("Break Force", breakForce);
+						UI::Property("Break Torque", breakTorque);
+					}
+
+					bool isCollisionEnabled = joint->IsCollisionEnabled();
+					UI::Property("Is Collision Enabled", isCollisionEnabled);
+
+					bool isPreProcessingEnabled = joint->IsPreProcessingEnabled();
+					UI::Property("Is Preprocessing Enabled", isPreProcessingEnabled);
+
+					UI::PopItemDisabled();
+					UI::EndPropertyGrid();
+
 					ImGui::TreePop();
 				}
 			}

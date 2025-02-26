@@ -46,6 +46,7 @@ namespace NR
 		Component_RegisterType(BoxCollider2DComponent);
 		Component_RegisterType(RigidBodyComponent);
 		Component_RegisterType(CharacterControllerComponent);
+		Component_RegisterType(FixedJointComponent);
 		Component_RegisterType(BoxColliderComponent);
 		Component_RegisterType(SphereColliderComponent);
 		Component_RegisterType(CapsuleColliderComponent);
@@ -198,6 +199,21 @@ namespace NR
 		mono_add_internal_call("NR.CharacterControllerComponent::GetVelocity_Native", NR::Script::NR_CharacterControllerComponent_GetVelocity);
 		mono_add_internal_call("NR.CharacterControllerComponent::IsGrounded_Native", NR::Script::NR_CharacterControllerComponent_IsGrounded);
 		mono_add_internal_call("NR.CharacterControllerComponent::GetCollisionFlags_Native", NR::Script::NR_CharacterControllerComponent_GetCollisionFlags);
+
+		mono_add_internal_call("NR.FixedJointComponent::GetConnectedEntity_Native", NR::Script::NR_FixedJointComponent_GetConnectedEntity);
+		mono_add_internal_call("NR.FixedJointComponent::SetConnectedEntity_Native", NR::Script::NR_FixedJointComponent_SetConnectedEntity);
+		mono_add_internal_call("NR.FixedJointComponent::IsBreakable_Native", NR::Script::NR_FixedJointComponent_IsBreakable);
+		mono_add_internal_call("NR.FixedJointComponent::SetIsBreakable_Native", NR::Script::NR_FixedJointComponent_SetIsBreakable);
+		mono_add_internal_call("NR.FixedJointComponent::IsBroken_Native", NR::Script::NR_FixedJointComponent_IsBroken);
+		mono_add_internal_call("NR.FixedJointComponent::Break_Native", NR::Script::NR_FixedJointComponent_Break);
+		mono_add_internal_call("NR.FixedJointComponent::GetBreakForce_Native", NR::Script::NR_FixedJointComponent_GetBreakForce);
+		mono_add_internal_call("NR.FixedJointComponent::SetBreakForce_Native", NR::Script::NR_FixedJointComponent_SetBreakForce);
+		mono_add_internal_call("NR.FixedJointComponent::GetBreakTorque_Native", NR::Script::NR_FixedJointComponent_GetBreakTorque);
+		mono_add_internal_call("NR.FixedJointComponent::SetBreakTorque_Native", NR::Script::NR_FixedJointComponent_SetBreakTorque);
+		mono_add_internal_call("NR.FixedJointComponent::IsCollisionEnabled_Native", NR::Script::NR_FixedJointComponent_IsCollisionEnabled);
+		mono_add_internal_call("NR.FixedJointComponent::SetCollisionEnabled_Native", NR::Script::NR_FixedJointComponent_SetCollisionEnabled);
+		mono_add_internal_call("NR.FixedJointComponent::IsPreProcessingEnabled_Native", NR::Script::NR_FixedJointComponent_IsPreProcessingEnabled);
+		mono_add_internal_call("NR.FixedJointComponent::SetPreProcessingEnabled_Native", NR::Script::NR_FixedJointComponent_SetPreProcessingEnabled);
 
 		mono_add_internal_call("NR.BoxColliderComponent::GetSize_Native", NR::Script::NR_BoxColliderComponent_GetSize);
 		mono_add_internal_call("NR.BoxColliderComponent::SetSize_Native", NR::Script::NR_BoxColliderComponent_SetSize);

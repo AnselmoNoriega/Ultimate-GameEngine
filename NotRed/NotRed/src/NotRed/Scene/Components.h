@@ -323,9 +323,12 @@ namespace NR
     {
         UUID ConnectedEntity;
 
-        // Setting the break force/torque to the max value of a float (e.g infinity) makes the joint unbreakable
-        float BreakForce = std::numeric_limits<float>::max();
-        float BreakTorque = std::numeric_limits<float>::max();
+        bool IsBreakable = true;
+        float BreakForce = 100.0f;
+        float BreakTorque = 10.0f;
+
+        bool EnableCollision = false;
+        bool EnablePreProcessing = true;
     };
 
     struct BoxColliderComponent

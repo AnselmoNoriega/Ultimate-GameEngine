@@ -74,8 +74,18 @@ namespace NR
 	{
 		const auto& pxPos = mController->getPosition();
 		glm::vec3 pos = { pxPos.x, pxPos.y, pxPos.z };
-		const auto& ccc = mEntity.GetComponent<CapsuleColliderComponent>();
-		pos -= ccc.Offset;
+
+		if (mEntity.HasComponent<CapsuleColliderComponent>())
+		{
+			const auto& ccc = mEntity.GetComponent<CapsuleColliderComponent>();
+			pos -= ccc.Offset;
+		}
+		else if (mEntity.HasComponent<BoxColliderComponent>())
+		{
+			const auto& bcc = mEntity.GetComponent<BoxColliderComponent>();
+			pos -= bcc.Offset;
+		}
+
 		return pos;
 	}
 

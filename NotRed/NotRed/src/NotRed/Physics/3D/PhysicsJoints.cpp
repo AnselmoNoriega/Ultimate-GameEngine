@@ -1,7 +1,7 @@
 #include "nrpch.h"
 #include "PhysicsJoints.h"
 
-#include <PhysX/include/extensions/PxFixedJoint.h>
+#include <Physics/include/extensions/PxFixedJoint.h>
 
 #include "PhysicsManager.h"
 #include "PhysicsInternal.h"
@@ -20,8 +20,8 @@ namespace NR
 		glm::vec3 globalAxis = rotationQuat * glm::vec3(0.0f, 1.0f, 0.0f);
 
 		physx::PxVec3 localAnchor = attachActor.getGlobalPose().transformInv(PhysicsUtils::ToPhysicsVector(worldTransform.Translation));
-		physx::PxVec3 localAxis = attachActor.getGlobalPose().rotateInv(PhysicsUtils::ToPhysicsVector(globalAxis));
 		physx::PxVec3 localNormal = attachActor.getGlobalPose().rotateInv(PhysicsUtils::ToPhysicsVector(globalNormal));
+		physx::PxVec3 localAxis = attachActor.getGlobalPose().rotateInv(PhysicsUtils::ToPhysicsVector(globalAxis));
 
 		physx::PxMat33 rot(localAxis, localNormal, localAxis.cross(localNormal));
 		physx::PxTransform localFrame;
@@ -50,7 +50,18 @@ namespace NR
 
 		mJoint = physx::PxFixedJointCreate(PhysicsInternal::GetPhysicsSDK(), &actor0, localFrame0, &actor1, localFrame1);
 		NR_CORE_ASSERT(mJoint, "Failed to create FixedJoint!");
-		mJoint->setBreakForce(fixedJointComponent.BreakForce, fixedJointComponent.BreakTorque);
+
+		if (fixedJointComponent.IsBreakable)
+		{
+			mJoint->setBreakForce(fixedJointComponent.BreakForce, fixedJointComponent.BreakTorque);
+		}
+		else
+		{
+			mJoint->setBreakForce(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+		}
+
+		mJoint->setConstraintFlag(physx::PxConstraintFlag::eCOLLISION_ENABLED, fixedJointComponent.EnableCollision);
+		mJoint->setConstraintFlag(physx::PxConstraintFlag::eDISABLE_PREPROCESSING, !fixedJointComponent.EnablePreProcessing);
 	}
 
 	FixedJoint::~FixedJoint()
@@ -75,10 +86,60 @@ namespace NR
 		mJoint->setLocalPose(physx::PxJointActorIndex::eACTOR1, localFrame1);
 	}
 
-	void FixedJoint::SetBreakForce(float breakForce, float breakTorque)
+	void FixedJoint::GetBreakForceAndTorque(float& breakForce, float& breakTorque) const
+	{
+		NR_CORE_VERIFY(mJoint);
+		mJoint->getBreakForce(breakForce, breakTorque);
+	}
+
+	void FixedJoint::SetBreakForceAndTorque(float breakForce, float breakTorque)
 	{
 		NR_CORE_VERIFY(mJoint);
 		mJoint->setBreakForce(breakForce, breakTorque);
+	}
+
+	bool FixedJoint::IsBroken() const
+	{
+		NR_CORE_VERIFY(mJoint);
+		return mJoint->getConstraintFlags() & physx::PxConstraintFlag::eBROKEN;
+	}
+
+	bool FixedJoint::IsBreakable() const
+	{
+		NR_CORE_VERIFY(mJoint);
+		float breakForce, breakTorque;
+		mJoint->getBreakForce(breakForce, breakTorque);
+		return breakForce == std::numeric_limits<float>::max() && breakTorque == std::numeric_limits<float>::max();
+	}
+
+	void FixedJoint::Break()
+	{
+		NR_CORE_VERIFY(mJoint);
+		mJoint->setConstraintFlag(physx::PxConstraintFlag::eBROKEN, true);
+	}
+
+	bool FixedJoint::IsPreProcessingEnabled() const
+	{
+		NR_CORE_VERIFY(mJoint);
+		return !(mJoint->getConstraintFlags() & physx::PxConstraintFlag::eDISABLE_PREPROCESSING);
+	}
+
+	void FixedJoint::SetPreProcessingEnabled(bool enabled)
+	{
+		NR_CORE_VERIFY(mJoint);
+		mJoint->setConstraintFlag(physx::PxConstraintFlag::eDISABLE_PREPROCESSING, !enabled);
+	}
+
+	bool FixedJoint::IsCollisionEnabled() const
+	{
+		NR_CORE_VERIFY(mJoint);
+		return mJoint->getConstraintFlags() & physx::PxConstraintFlag::eCOLLISION_ENABLED;
+	}
+
+	void FixedJoint::SetCollisionEnabled(bool enabled)
+	{
+		NR_CORE_VERIFY(mJoint);
+		mJoint->setConstraintFlag(physx::PxConstraintFlag::eCOLLISION_ENABLED, enabled);
 	}
 
 	void FixedJoint::Release()

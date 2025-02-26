@@ -21,12 +21,25 @@ namespace NR
 		virtual ~JointBase() {}
 
 		virtual void SetConnectedEntity(Entity other) = 0;
-		virtual void SetBreakForce(float breakForce, float breakTorque) = 0;
+
+		virtual void GetBreakForceAndTorque(float& breakForce, float& breakTorque) const = 0;
+		virtual void SetBreakForceAndTorque(float breakForce, float breakTorque) = 0;
+		virtual bool IsBroken() const = 0;
+		virtual bool IsBreakable() const = 0;
+		virtual void Break() = 0;
+
+		virtual bool IsPreProcessingEnabled() const = 0;
+		virtual void SetPreProcessingEnabled(bool enabled) = 0;
+
+		virtual bool IsCollisionEnabled() const = 0;
+		virtual void SetCollisionEnabled(bool enabled) = 0;
 
 		Entity GetEntity() const { return mEntity; }
 
 		virtual bool IsValid() const = 0;
 		virtual void Release() = 0;
+
+		virtual const char* GetDebugName() const = 0;
 
 		JointType GetType() const { return mType; }
 
@@ -49,11 +62,24 @@ namespace NR
 		FixedJoint(Entity entity);
 		~FixedJoint();
 
-		virtual void SetConnectedEntity(Entity other) override;
-		virtual void SetBreakForce(float breakForce, float breakTorque) override;
+		void SetConnectedEntity(Entity other) override;
 
-		virtual bool IsValid() const override { return mJoint != nullptr; }
-		virtual void Release() override;
+		void GetBreakForceAndTorque(float& breakForce, float& breakTorque) const override;
+		void SetBreakForceAndTorque(float breakForce, float breakTorque) override;
+		bool IsBroken() const override;
+		bool IsBreakable() const override;
+		void Break() override;
+
+		bool IsPreProcessingEnabled() const override;
+		void SetPreProcessingEnabled(bool enabled) override;
+
+		bool IsCollisionEnabled() const override;
+		void SetCollisionEnabled(bool enabled) override;
+
+		const char* GetDebugName() const override { return "FixedJoint"; }
+
+		bool IsValid() const override { return mJoint != nullptr; }
+		void Release() override;
 
 	private:
 		physx::PxFixedJoint* mJoint = nullptr;
