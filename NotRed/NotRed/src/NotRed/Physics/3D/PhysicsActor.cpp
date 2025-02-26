@@ -15,7 +15,7 @@
 namespace NR
 {
 	PhysicsActor::PhysicsActor(Entity entity)
-		: mEntity(entity), mRigidBodyData(entity.GetComponent<RigidBodyComponent>()), mRigidActor(nullptr)
+		: PhysicsActorBase(PhysicsActorBase::Type::Actor, entity), mRigidBodyData(entity.GetComponent<RigidBodyComponent>())
 	{
 		CreateRigidActor();
 	}

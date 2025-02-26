@@ -887,6 +887,7 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Util\ContainerUtils.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h" />
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsActorBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

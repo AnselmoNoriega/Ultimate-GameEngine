@@ -242,6 +242,7 @@
     <ClInclude Include="src\NotRed\Physics\3D\CookingFactory.h" />
     <ClInclude Include="src\NotRed\Physics\3D\Debug\PhysicsDebugger.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActor.h" />
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsActorBase.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsInternal.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h" />

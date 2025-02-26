@@ -55,6 +55,11 @@ namespace NR
 			}
 		}
 
+		for (auto& controller : mControllers)
+		{
+			controller->Update(dt);
+		}
+
 		bool advanced = Advance(dt);
 
 		if (advanced)
@@ -69,7 +74,43 @@ namespace NR
 					actor->SynchronizeTransform();
 				}
 			}
+
+			for (auto& controller : mControllers)
+			{
+				controller->SynchronizeTransform();
+			}
 		}
+	}
+
+	bool PhysicsScene::Advance(float dt)
+	{
+		SubstepStrategy(dt);
+
+		for (uint32_t i = 0; i < mNumSubSteps; ++i)
+		{
+			mPhysicsScene->simulate(mSubStepSize);
+			mPhysicsScene->fetchResults(true);
+		}
+
+		return mNumSubSteps != 0;
+	}
+
+	void PhysicsScene::SubstepStrategy(float dt)
+	{
+		if (mAccumulator > mSubStepSize)
+		{
+			mAccumulator = 0.0f;
+		}
+
+		mAccumulator += dt;
+		if (mAccumulator < mSubStepSize)
+		{
+			mNumSubSteps = 0;
+			return;
+		}
+
+		mNumSubSteps = glm::min(static_cast<uint32_t>(mAccumulator / mSubStepSize), MAX_SUB_STEPS);
+		mAccumulator -= (float)mNumSubSteps * mSubStepSize;
 	}
 
 	Ref<PhysicsActor> PhysicsScene::GetActor(Entity entity)
@@ -77,7 +118,9 @@ namespace NR
 		for (auto& actor : mActors)
 		{
 			if (actor->GetEntity() == entity)
+			{
 				return actor;
+			}
 		}
 
 		return nullptr;
@@ -88,7 +131,9 @@ namespace NR
 		for (const auto& actor : mActors)
 		{
 			if (actor->GetEntity() == entity)
+			{
 				return actor;
+			}
 		}
 
 		return nullptr;
@@ -150,32 +195,65 @@ namespace NR
 	{
 		Ref<PhysicsController> controller = Ref<PhysicsController>::Create(entity);
 
-		const auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+		const auto& transformComponent = entity.GetComponent<TransformComponent>();
 		const auto& characterControllerComponent = entity.GetComponent<CharacterControllerComponent>();
 
-		Ref<PhysicsMaterial> mat = AssetManager::GetAsset<PhysicsMaterial>(capsuleColliderComponent.Material);
-		if (!mat)
+		if (entity.HasComponent<CapsuleColliderComponent>())
 		{
-			mat = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+			const auto& capsuleColliderComponent = entity.GetComponent<CapsuleColliderComponent>();
+
+			Ref<PhysicsMaterial> mat = AssetManager::GetAsset<PhysicsMaterial>(capsuleColliderComponent.Material);
+			if (!mat)
+			{
+				mat = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+			}
+
+			controller->mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
+
+			physx::PxCapsuleControllerDesc desc;
+			desc.position = PhysicsUtils::ToPhysicsExtendedVector(entity.Transform().Translation + capsuleColliderComponent.Offset); // not convinced this is correct.  (e.g. it needs to be world space, not local)
+			desc.height = capsuleColliderComponent.Height;
+			desc.radius = capsuleColliderComponent.Radius;
+			desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;  // TODO: get from component
+			desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;
+			desc.slopeLimit = std::max(0.0f, cos(glm::radians(characterControllerComponent.SlopeLimitDeg)));
+			desc.stepOffset = characterControllerComponent.StepOffset;
+			desc.contactOffset = 0.01;                                                     // TODO: get from component
+			desc.material = controller->mMaterial;
+			desc.upDirection = { 0.0f, 1.0f, 0.0f };
+
+			NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));
+		}
+		else if (entity.HasComponent<BoxColliderComponent>())
+		{
+			const auto& boxColliderComponent = entity.GetComponent<BoxColliderComponent>();
+
+			Ref<PhysicsMaterial> mat = AssetManager::GetAsset<PhysicsMaterial>(boxColliderComponent.Material);
+			if (!mat)
+			{
+				mat = Ref<PhysicsMaterial>::Create(0.6f, 0.6f, 0.0f);
+			}
+
+			controller->mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
+
+			physx::PxBoxControllerDesc desc;
+			desc.position = PhysicsUtils::ToPhysicsExtendedVector(entity.Transform().Translation + boxColliderComponent.Offset); // not convinced this is correct.  (e.g. it needs to be world space, not local)
+			desc.halfHeight = (boxColliderComponent.Size.y * transformComponent.Scale.y) / 2.0f;
+			desc.halfSideExtent = (boxColliderComponent.Size.x * transformComponent.Scale.x) / 2.0f;
+			desc.halfForwardExtent = (boxColliderComponent.Size.z * transformComponent.Scale.z) / 2.0f;
+			desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;  // TODO: get from component
+			desc.slopeLimit = std::max(0.0f, cos(glm::radians(characterControllerComponent.SlopeLimitDeg)));
+			desc.stepOffset = characterControllerComponent.StepOffset;
+			desc.contactOffset = 0.01;                                                     // TODO: get from component
+			desc.material = controller->mMaterial;
+			desc.upDirection = { 0.0f, 1.0f, 0.0f };
+
+			NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));
 		}
 
-		controller->mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
-
-		physx::PxCapsuleControllerDesc desc;
-		desc.position = PhysicsUtils::ToPhysicsExtendedVector(entity.Transform().Translation + capsuleColliderComponent.Offset); // not convinced this is correct.  (e.g. it needs to be world space, not local)
-		desc.height = capsuleColliderComponent.Height;
-		desc.radius = capsuleColliderComponent.Radius;
-		desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;
-		desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;
-		desc.slopeLimit = std::max(0.0f, cos(glm::radians(characterControllerComponent.SlopeLimitDeg)));
-		desc.stepOffset = characterControllerComponent.StepOffset;
-		desc.contactOffset = 0.01;
-		desc.material = controller->mMaterial;
-		desc.upDirection = { 0.0f, 1.0f, 0.0f };
-		controller->mGravity = -1.0f * PhysicsUtils::FromPhysicsVector(desc.upDirection) * glm::length(PhysicsManager::GetSettings().Gravity);
+		controller->mGravity = -1.0f * PhysicsUtils::FromPhysicsVector(controller->mController->getUpDirection()) * glm::length(PhysicsManager::GetSettings().Gravity);
 		controller->mHasGravity = !characterControllerComponent.DisableGravity;
-
-		NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));
+		controller->mController->getActor()->userData = controller.Raw();
 
 		mControllers.push_back(controller);
 		return controller;
@@ -259,8 +337,8 @@ namespace NR
 		bool result = mPhysicsScene->raycast(PhysicsUtils::ToPhysicsVector(origin), PhysicsUtils::ToPhysicsVector(glm::normalize(direction)), maxDistance, hitInfo);
 		if (result)
 		{
-			Ref<PhysicsActor> actor = (PhysicsActor*)hitInfo.block.actor->userData;
-			outHit->HitEntity = actor->GetEntity().GetID();
+			Ref<PhysicsActorBase> object = (PhysicsActorBase*)hitInfo.block.actor->userData;
+			outHit->HitEntity = object->GetEntity().GetID();
 			outHit->Position = PhysicsUtils::FromPhysicsVector(hitInfo.block.position);
 			outHit->Normal = PhysicsUtils::FromPhysicsVector(hitInfo.block.normal);
 			outHit->Distance = hitInfo.block.distance;
@@ -297,10 +375,14 @@ namespace NR
 
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			auto actor = overlappedColliders[i].Actor;
-			if (actor->IsDynamic() && !actor->IsKinematic())
+			auto actorBase = overlappedColliders[i].Actor;
+			if (actorBase->GetType() == PhysicsActorBase::Type::Actor)
 			{
-				actor->AddRadialImpulse(origin, radius, strength, falloff, velocityChange);
+				auto actor = actorBase.As<PhysicsActor>();
+				if (actor->IsDynamic() && !actor->IsKinematic())
+				{
+					actor->AddRadialImpulse(origin, radius, strength, falloff, velocityChange);
+				}
 			}
 		}
 	}
@@ -319,7 +401,7 @@ namespace NR
 			count = buf.nbTouches > OVERLAP_MAX_COLLIDERS ? OVERLAP_MAX_COLLIDERS : buf.nbTouches;
 			for (uint32_t i = 0; i < count; ++i)
 			{
-				buffer[i].Actor = (PhysicsActor*)sOverlapBuffer[i].actor->userData;
+				buffer[i].Actor = (PhysicsActorBase*)sOverlapBuffer[i].actor->userData;
 				buffer[i].Shape = (ColliderShape*)sOverlapBuffer[i].shape->userData;
 			}
 		}
@@ -347,45 +429,6 @@ namespace NR
 			region.mBounds = regionBounds[i];
 			mPhysicsScene->addBroadPhaseRegion(region);
 		}
-	}
-
-	bool PhysicsScene::Advance(float dt)
-	{
-		NR_PROFILE_FUNC();
-
-		for (auto& controller : mControllers)
-		{
-			controller->Update(dt);
-			controller->SynchronizeTransform();
-		}
-
-		SubstepStrategy(dt);
-
-		for (uint32_t i = 0; i < mNumSubSteps; ++i)
-		{
-			mPhysicsScene->simulate(mSubStepSize);
-			mPhysicsScene->fetchResults(true);
-		}
-
-		return mNumSubSteps != 0;
-	}
-
-	void PhysicsScene::SubstepStrategy(float dt)
-	{
-		if (mAccumulator > mSubStepSize)
-		{
-			mAccumulator = 0.0f;
-		}
-
-		mAccumulator += dt;
-		if (mAccumulator < mSubStepSize)
-		{
-			mNumSubSteps = 0;
-			return;
-		}
-
-		mNumSubSteps = glm::min(static_cast<uint32_t>(mAccumulator / mSubStepSize), MAX_SUB_STEPS);
-		mAccumulator -= (float)mNumSubSteps * mSubStepSize;
 	}
 
 	void PhysicsScene::Destroy()

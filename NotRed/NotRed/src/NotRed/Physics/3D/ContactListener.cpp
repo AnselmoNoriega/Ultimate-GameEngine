@@ -20,7 +20,7 @@ namespace NR
 		for (uint32_t i = 0; i < count; ++i)
 		{
 			physx::PxActor& physxActor = *actors[i];
-			Ref<PhysicsActor> actor = (PhysicsActor*)physxActor.userData;
+			Ref<PhysicsActorBase> actor = (PhysicsActorBase*)physxActor.userData;
 			NR_CORE_INFO("PhysX Actor waking up: ID: {0}, Name: {1}", actor->GetEntity().GetID(), actor->GetEntity().GetComponent<TagComponent>().Tag);
 		}
 	}
@@ -30,7 +30,7 @@ namespace NR
 		for (uint32_t i = 0; i < count; ++i)
 		{
 			physx::PxActor& physxActor = *actors[i];
-			Ref<PhysicsActor> actor = (PhysicsActor*)physxActor.userData;
+			Ref<PhysicsActorBase> actor = (PhysicsActorBase*)physxActor.userData;
 			NR_CORE_INFO("PhysX Actor going to sleep: ID: {0}, Name: {1}", actor->GetEntity().GetID(), actor->GetEntity().GetComponent<TagComponent>().Tag);
 		}
 	}
@@ -50,8 +50,8 @@ namespace NR
 			return;
 		}
 
-		Ref<PhysicsActor> actorA = (PhysicsActor*)pairHeader.actors[0]->userData;
-		Ref<PhysicsActor> actorB = (PhysicsActor*)pairHeader.actors[1]->userData;
+		Ref<PhysicsActorBase> actorA = (PhysicsActorBase*)pairHeader.actors[0]->userData;
+		Ref<PhysicsActorBase> actorB = (PhysicsActorBase*)pairHeader.actors[1]->userData;
 
 		if (!actorA || !actorB)
 		{
@@ -103,8 +103,8 @@ namespace NR
 				continue;
 			}
 
-			Ref<PhysicsActor> triggerActor = (PhysicsActor*)pairs[i].triggerActor->userData;
-			Ref<PhysicsActor> otherActor = (PhysicsActor*)pairs[i].otherActor->userData;
+			Ref<PhysicsActorBase> triggerActor = (PhysicsActorBase*)pairs[i].triggerActor->userData;
+			Ref<PhysicsActorBase> otherActor = (PhysicsActorBase*)pairs[i].otherActor->userData;
 			
 			if (!triggerActor || !otherActor)
 			{

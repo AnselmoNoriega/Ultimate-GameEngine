@@ -21,7 +21,7 @@ namespace NR
 
 	struct OverlapHit
 	{
-		Ref<PhysicsActor> Actor;
+		Ref<PhysicsActorBase> Actor;
 		Ref<ColliderShape> Shape;
 	};
 

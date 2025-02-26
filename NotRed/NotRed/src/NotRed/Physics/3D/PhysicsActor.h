@@ -1,13 +1,13 @@
 #pragma once
 
+#include "PhysicsActorBase.h"
 #include "PhysicsShapes.h"
-#include "NotRed/Scene/Entity.h"
 
 namespace NR
 {
 	enum class EFalloffMode { Constant, Linear };
 
-	class PhysicsActor : public RefCounted
+	class PhysicsActor : public PhysicsActorBase
 	{
 	public:
 		PhysicsActor(Entity entity);
@@ -44,7 +44,7 @@ namespace NR
 		glm::vec3 GetKinematicTargetRotation() const;
 		void SetKinematicTarget(const glm::vec3& targetPosition, const glm::vec3& targetRotation) const;
 
-		void SetSimulationData(uint32_t layerId);
+		void SetSimulationData(uint32_t layerId) override;
 
 		bool IsDynamic() const { return mRigidBodyData.BodyType == RigidBodyComponent::Type::Dynamic; }
 
@@ -65,7 +65,6 @@ namespace NR
 		void AddCollider(CapsuleColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		void AddCollider(MeshColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 
-		Entity GetEntity() const { return mEntity; }
 		const TransformComponent& GetTransform() const { return mEntity.GetComponent<TransformComponent>(); }
 
 		physx::PxRigidActor& GetPhysicsActor() const { return *mRigidActor; }
@@ -85,14 +84,13 @@ namespace NR
 
 	private:
 		void CreateRigidActor();
-		void SynchronizeTransform();
+		void SynchronizeTransform() override;
 
 	private:
-		Entity mEntity;
 		RigidBodyComponent mRigidBodyData;
 		uint32_t mLockFlags = 0;
 
-		physx::PxRigidActor* mRigidActor;
+		physx::PxRigidActor* mRigidActor = nullptr;
 		std::vector<Ref<ColliderShape>> mColliders;
 
 	private:

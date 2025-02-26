@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>
 
 #include "NotRed/Scene/Components.h"
-#include "NotRed/Scene/Entity.h"
+#include "PhysicsActorBase.h"
 
 
 namespace NR
@@ -18,13 +18,11 @@ namespace NR
 		Below
 	};
 
-	class PhysicsController : public RefCounted
+	class PhysicsController : public PhysicsActorBase
 	{
 	public:
 		PhysicsController(Entity entity);
 		~PhysicsController();
-
-		Entity GetEntity() const { return mEntity; }
 
 		void SetHasGravity(bool hasGravity);
 		void SetSimulationData(uint32_t layerId);
@@ -42,10 +40,9 @@ namespace NR
 
 	private:
 		void Update(float dt);
-		void SynchronizeTransform();
+		void SynchronizeTransform() override;
 
 	private:
-		Entity mEntity;
 		physx::PxController* mController = nullptr;
 		physx::PxMaterial* mMaterial = nullptr;
 		physx::PxControllerCollisionFlags mCollisionFlags = {};

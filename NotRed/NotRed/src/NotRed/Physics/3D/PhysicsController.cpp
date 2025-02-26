@@ -8,7 +8,7 @@
 namespace NR
 {
 	PhysicsController::PhysicsController(Entity entity)
-		: mEntity(entity), mController(nullptr)
+		: PhysicsActorBase(PhysicsActorBase::Type::Controller, entity)
 	{
 	}
 
