@@ -45,9 +45,9 @@ namespace NR
 
 	}
 
-	void PhysicsScene::Simulate(float dt, bool callFixedUpdate)
+	void PhysicsScene::Simulate(float dt)
 	{
-		if (callFixedUpdate)
+		if (mEntityScene->IsPlaying())
 		{
 			for (auto& actor : mActors)
 			{
@@ -210,10 +210,12 @@ namespace NR
 
 			controller->mMaterial = PhysicsInternal::GetPhysicsSDK().createMaterial(mat->StaticFriction, mat->DynamicFriction, mat->Bounciness);
 
+			float radiusScale = glm::max(transformComponent.Scale.x, transformComponent.Scale.z);
+
 			physx::PxCapsuleControllerDesc desc;
 			desc.position = PhysicsUtils::ToPhysicsExtendedVector(entity.Transform().Translation + capsuleColliderComponent.Offset); // not convinced this is correct.  (e.g. it needs to be world space, not local)
-			desc.height = capsuleColliderComponent.Height;
-			desc.radius = capsuleColliderComponent.Radius;
+			desc.height = capsuleColliderComponent.Height * transformComponent.Scale.y;
+			desc.radius = capsuleColliderComponent.Radius * radiusScale;
 			desc.nonWalkableMode = physx::PxControllerNonWalkableMode::ePREVENT_CLIMBING;  // TODO: get from component
 			desc.climbingMode = physx::PxCapsuleClimbingMode::eCONSTRAINED;
 			desc.slopeLimit = std::max(0.0f, cos(glm::radians(characterControllerComponent.SlopeLimitDeg)));

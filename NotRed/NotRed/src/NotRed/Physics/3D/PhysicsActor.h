@@ -58,8 +58,6 @@ namespace NR
 		void ModifyLockFlag(ActorLockFlag flag, bool addFlag);
 		uint32_t GetLockFlags() const { return mLockFlags; }
 
-		void FixedUpdate(float fixedDeltaTime);
-
 		void AddCollider(BoxColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		void AddCollider(SphereColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));
 		void AddCollider(CapsuleColliderComponent& collider, Entity entity, const glm::vec3& offset = glm::vec3(0.0f));

@@ -264,7 +264,7 @@ namespace NR
             }
             mPostUpdateQueue.clear();
 
-            PhysicsManager::GetScene()->Simulate(dt, mIsPlaying);
+            PhysicsManager::GetScene()->Simulate(dt);
         }
 
         {	//--- Update Audio Listener ---
