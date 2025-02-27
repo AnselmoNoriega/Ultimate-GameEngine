@@ -119,6 +119,11 @@ namespace NR
         std::unique_ptr<b2World> World;
     };
 
+    struct PhysicsSceneComponent
+    {
+        Ref<PhysicsScene> World;
+    };
+
     void Scene::ScriptComponentConstruct(entt::registry& registry, entt::entity entity)
     {
         auto entityID = registry.get<IDComponent>(entity).ID;
@@ -168,30 +173,33 @@ namespace NR
         };
     }
 
-    Scene::Scene(const std::string& name, bool isEditorScene, bool construct)
+    Scene::Scene(const std::string& name, bool isEditorScene, bool initalize)
         : mName(name), mIsEditorScene(isEditorScene)
     {
-        if (construct)
+        if (!initalize)
         {
-            mRegistry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentConstruct>(this);
-            mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(this);
-
-            mRegistry.on_construct<AudioComponent>().connect<&Scene::AudioComponentConstruct>(this);
-            mRegistry.on_destroy<AudioComponent>().connect<&Scene::AudioComponentDestroy>(this);
-
-            mRegistry.on_construct<MeshColliderComponent>().connect<&Scene::MeshColliderComponentConstruct>(this);
-            mRegistry.on_destroy<MeshColliderComponent>().connect<&Scene::MeshColliderComponentDestroy>(this);
-
-            mSceneEntity = mRegistry.create();
-            mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
-
-            Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
-            b2dWorld.World->SetContactListener(&sBox2DContactListener);
-
-            sActiveScenes[mSceneID] = this;
-
-            Init();
+            return;
         }
+
+        mRegistry.on_construct<ScriptComponent>().connect<&Scene::ScriptComponentConstruct>(this);
+        mRegistry.on_destroy<ScriptComponent>().connect<&Scene::ScriptComponentDestroy>(this);
+
+        mRegistry.on_construct<AudioComponent>().connect<&Scene::AudioComponentConstruct>(this);
+        mRegistry.on_destroy<AudioComponent>().connect<&Scene::AudioComponentDestroy>(this);
+        
+        mSceneEntity = mRegistry.create();
+        mRegistry.emplace<SceneComponent>(mSceneEntity, mSceneID);
+
+
+        // TODO: Obviously not necessary in all cases
+        Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
+        b2dWorld.World->SetContactListener(&sBox2DContactListener);
+
+        mRegistry.emplace<PhysicsSceneComponent>(mSceneEntity, Ref<PhysicsScene>::Create(this, Physics::GetSettings()));
+
+        sActiveScenes[mSceneID] = this;
+
+        Init();
     }
 
     Scene::~Scene()

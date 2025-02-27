@@ -6,13 +6,36 @@
 #include "NotRed/Scene/Scene.h"
 #include "NotRed/Scene/Entity.h"
 #include "NotRed/Script/ScriptEngine.h"
+#include "PhysicsJoints.h"
 
 namespace NR
 {
 	void ContactListener::onConstraintBreak(physx::PxConstraintInfo* constraints, physx::PxU32 count)
 	{
-		PX_UNUSED(constraints);
-		PX_UNUSED(count);
+		for (uint32_t i = 0; i < count; i++)
+		{
+			physx::PxJoint* nativeJoint = (physx::PxJoint*)constraints[i].externalReference;
+			Ref<JointBase> joint = (JointBase*)nativeJoint->userData;
+
+			Entity entity = joint->GetEntity();
+			Entity connectedEntity = joint->GetConnectedEntity();
+
+			bool actorAScriptModuleValid = ScriptEngine::IsEntityModuleValid(entity);
+			bool actorBScriptModuleValid = ScriptEngine::IsEntityModuleValid(connectedEntity);
+
+			glm::vec3 linearForce = joint->GetLastReportedLinearForce();
+			glm::vec3 angularForce = joint->GetLastReportedAngularForce();
+
+			if (actorAScriptModuleValid)
+			{
+				ScriptEngine::JointBreak(entity, linearForce, angularForce);
+			}
+
+			if (actorBScriptModuleValid)
+			{
+				ScriptEngine::JointBreak(connectedEntity, linearForce, angularForce);
+			}
+		}
 	}
 
 	void ContactListener::onWake(physx::PxActor** actors, physx::PxU32 count)

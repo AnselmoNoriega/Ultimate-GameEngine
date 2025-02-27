@@ -12,6 +12,8 @@
 
 #include "NotRed/Debug/Profiler.h"
 
+#include "NotRed/ImGui/ImGui.h"
+
 namespace NR
 {
 	static ContactListener sContactListener;
@@ -42,7 +44,13 @@ namespace NR
 
 	PhysicsScene::~PhysicsScene()
 	{
+		Clear();
 
+		mPhysicsControllerManager->release();
+		mPhysicsScene->release();
+		mPhysicsScene = nullptr;
+
+		mEntityScene = nullptr;
 	}
 
 	void PhysicsScene::Simulate(float dt)
@@ -78,6 +86,11 @@ namespace NR
 			for (auto& controller : mControllers)
 			{
 				controller->SynchronizeTransform();
+			}			
+			
+			for (auto& joint : mJoints)
+			{
+				joint->PostSimulation();
 			}
 		}
 	}
@@ -143,7 +156,45 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
+		auto existingActor = GetActor(entity);
+		if (existingActor)
+		{
+			return existingActor;
+		}
+
 		Ref<PhysicsActor> actor = Ref<PhysicsActor>::Create(entity);
+
+		for (auto childId : entity.Children())
+		{
+			Entity child = mEntityScene->FindEntityByUUID(childId);
+
+			if (child.HasComponent<RigidBodyComponent>())
+			{
+				continue;
+			}
+
+			if (child.HasComponent<BoxColliderComponent>())
+			{
+				actor->AddCollider(child.GetComponent<BoxColliderComponent>(), child, child.Transform().Translation);
+			}
+
+			if (child.HasComponent<SphereColliderComponent>())
+			{
+				actor->AddCollider(child.GetComponent<SphereColliderComponent>(), child, child.Transform().Translation);
+			}
+
+			if (child.HasComponent<CapsuleColliderComponent>())
+			{
+				actor->AddCollider(child.GetComponent<CapsuleColliderComponent>(), child, child.Transform().Translation);
+			}
+
+			if (child.HasComponent<MeshColliderComponent>())
+			{
+				actor->AddCollider(child.GetComponent<MeshColliderComponent>(), child, child.Transform().Translation);
+			}
+		}
+
+		actor->SetSimulationData(entity.GetComponent<RigidBodyComponent>().Layer);
 
 		mActors.push_back(actor);
 		mPhysicsScene->addActor(*actor->mRigidActor);
@@ -193,6 +244,12 @@ namespace NR
 
 	Ref<PhysicsController> PhysicsScene::CreateController(Entity entity)
 	{
+		auto existingController = GetController(entity);
+		if (existingController)
+		{
+			return existingController;
+		}
+
 		Ref<PhysicsController> controller = Ref<PhysicsController>::Create(entity);
 
 		const auto& transformComponent = entity.GetComponent<TransformComponent>();
@@ -257,6 +314,8 @@ namespace NR
 		controller->mHasGravity = !characterControllerComponent.DisableGravity;
 		controller->mController->getActor()->userData = controller.Raw();
 
+		controller->SetSimulationData(entity.GetComponent<CharacterControllerComponent>().Layer);
+
 		mControllers.push_back(controller);
 		return controller;
 	}
@@ -296,11 +355,21 @@ namespace NR
 
 	Ref<JointBase> PhysicsScene::CreateJoint(Entity entity)
 	{
+		auto existingJoint = GetJoint(entity);
+		if (existingJoint)
+		{
+			return existingJoint;
+		}
+
 		Ref<JointBase> joint = nullptr;
+
+		const auto& fixedJointComponent = entity.GetComponent<FixedJointComponent>();
+		Entity connectedEntity = mEntityScene->FindEntityByID(fixedJointComponent.ConnectedEntity);
+		NR_CORE_VERIFY(connectedEntity);
 
 		if (entity.HasComponent<FixedJointComponent>())
 		{
-			joint = Ref<FixedJoint>::Create(entity);
+			joint = Ref<FixedJoint>::Create(entity, connectedEntity);
 		}
 
 		if (!joint || !joint->IsValid())
@@ -410,30 +479,232 @@ namespace NR
 		return result;
 	}
 
-	void PhysicsScene::CreateRegions()
+	void PhysicsScene::ImGuiRender()
 	{
-		NR_PROFILE_FUNC();
+		ImGui::Begin("Physics Stats");
 
-		const PhysicsSettings& settings = PhysicsManager::GetSettings();
-
-		if (settings.BroadphaseAlgorithm == BroadphaseType::AutomaticBoxPrune)
+		if (IsValid())
 		{
-			return;
+			auto gravity = GetGravity();
+			std::string gravityString = fmt::format("X: {0}, Y: {1}, Z: {2}", gravity.x, gravity.y, gravity.z);
+			ImGui::Text("Gravity: %s", gravityString.c_str());
+
+			ImGui::Text("Actors: %d", mActors.size());
+
+
+
+			for (const auto& actor : mActors)
+			{
+				UUID id = actor->GetEntity().GetID();
+				std::string label = fmt::format("{0}##{1}", actor->GetEntity().GetComponent<TagComponent>().Tag, id);
+				bool open = UI::PropertyGridHeader(label, false);
+				if (open)
+				{
+					UI::BeginPropertyGrid();
+					UI::PushItemDisabled();
+
+					glm::vec3 translation = actor->GetPosition();
+					glm::vec3 rotation = actor->GetRotation();
+					UI::Property("Translation", translation);
+					UI::Property("Rotation", rotation);
+
+					bool isDynamic = actor->IsDynamic();
+					bool isKinematic = actor->IsKinematic();
+					UI::Property("Is Dynamic", isDynamic);
+					UI::Property("Is Kinematic", isKinematic);
+
+					if (actor->IsDynamic())
+					{
+						float mass = actor->GetMass();
+						UI::Property("Mass", mass);
+						float inverseMass = actor->GetInverseMass();
+						UI::Property("Inverse Mass", inverseMass);
+
+						bool hasGravity = !actor->IsGravityDisabled();
+						UI::Property("Has Gravity", hasGravity);
+
+						bool isSleeping = actor->IsSleeping();
+						UI::Property("Is Sleeping", isSleeping);
+
+						glm::vec3 linearVelocity = actor->GetVelocity();
+						float maxLinearVelocity = actor->GetMaxVelocity();
+						glm::vec3 angularVelocity = actor->GetAngularVelocity();
+						float maxAngularVelocity = actor->GetMaxAngularVelocity();
+						UI::Property("Linear Velocity", linearVelocity);
+						UI::Property("Max Linear Velocity", maxLinearVelocity);
+						UI::Property("Angular Velocity", angularVelocity);
+						UI::Property("Max Angular Velocity", maxAngularVelocity);
+
+
+						float linearDrag = actor->GetLinearDrag();
+						float angularDrag = actor->GetAngularDrag();
+						UI::Property("Linear Drag", linearDrag);
+						UI::Property("Angular Drag", angularDrag);
+					}
+
+					UI::PopItemDisabled();
+					UI::EndPropertyGrid();
+
+					const auto& collisionShapes = actor->GetCollisionShapes();
+
+					ImGui::Text("Shapes: %d", collisionShapes.size());
+
+					for (const auto& shape : collisionShapes)
+					{
+						std::string shapeLabel = fmt::format("{0}##{1}", shape->GetShapeName(), id);
+						bool shapeOpen = UI::PropertyGridHeader(shapeLabel, false);
+						if (shapeOpen)
+						{
+							UI::BeginPropertyGrid();
+							UI::PushItemDisabled();
+
+							glm::vec3 offset = shape->GetOffset();
+							bool isTrigger = shape->IsTrigger();
+
+							UI::Property("Offset", offset);
+							UI::Property("Is Trigger", isTrigger);
+
+							const auto& material = shape->GetMaterial();
+							float staticFriction = material.getStaticFriction();
+							float dynamicFriction = material.getDynamicFriction();
+							float restitution = material.getRestitution();
+
+							UI::Property("Static Friction", staticFriction);
+							UI::Property("Dynamic Friction", staticFriction);
+							UI::Property("Restitution", restitution);
+
+							UI::PopItemDisabled();
+							UI::EndPropertyGrid();
+							ImGui::TreePop();
+						}
+					}
+
+					ImGui::TreePop();
+				}
+			}
+
+			ImGui::Text("Joints: %d", mJoints.size());
+
+			for (const auto& joint : mJoints)
+			{
+				UUID id = joint->GetEntity().GetID();
+				std::string label = fmt::format("{0} ({1})##{1}", joint->GetDebugName(), joint->GetEntity().GetComponent<TagComponent>().Tag, id);
+				bool open = UI::PropertyGridHeader(label, false);
+				if (open)
+				{
+					UI::BeginPropertyGrid();
+					UI::PushItemDisabled();
+
+					bool isBreakable = joint->IsBreakable();
+					UI::Property("Is Breakable", isBreakable);
+
+					if (isBreakable)
+					{
+						bool isBroken = joint->IsBroken();
+						UI::Property("Is Broken", isBroken);
+
+						float breakForce, breakTorque;
+						joint->GetBreakForceAndTorque(breakForce, breakTorque);
+						UI::Property("Break Force", breakForce);
+						UI::Property("Break Torque", breakTorque);
+					}
+
+					bool isCollisionEnabled = joint->IsCollisionEnabled();
+					UI::Property("Is Collision Enabled", isCollisionEnabled);
+
+					bool isPreProcessingEnabled = joint->IsPreProcessingEnabled();
+					UI::Property("Is Preprocessing Enabled", isPreProcessingEnabled);
+
+					UI::PopItemDisabled();
+					UI::EndPropertyGrid();
+
+					ImGui::TreePop();
+				}
+			}
 		}
 
-		physx::PxBounds3* regionBounds = new physx::PxBounds3[settings.WorldBoundsSubdivisions * settings.WorldBoundsSubdivisions];
-		physx::PxBounds3 globalBounds(PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMin), PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMax));
-		uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, settings.WorldBoundsSubdivisions);
-		
-		for (uint32_t i = 0; i < regionCount; ++i)
+		ImGui::End();
+	}
+
+	void PhysicsScene::InitializeScene()
+	{
 		{
-			physx::PxBroadPhaseRegion region;
-			region.mBounds = regionBounds[i];
-			mPhysicsScene->addBroadPhaseRegion(region);
+			auto view = mEntityScene->GetAllEntitiesWith<RigidBodyComponent>();
+
+			for (auto entity : view)
+			{
+				Entity e = { entity, mEntityScene.Raw() };
+				CreateActor(e);
+			}
+		}
+
+		{
+			auto view = mEntityScene->GetAllEntitiesWith<CharacterControllerComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, mEntityScene.Raw() };
+				CreateController(e);
+			}
+		}
+
+		{
+			auto view = mEntityScene->GetAllEntitiesWith<TransformComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, mEntityScene.Raw() };
+
+				if (e.HasComponent<RigidBodyComponent>())
+				{
+					continue;
+				}
+
+				if (e.HasComponent<CharacterControllerComponent>())
+				{
+					continue;
+				}
+
+				if (!e.HasAny<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent>())
+				{
+					continue;
+				}
+
+				bool parentWithRigidBody = false;
+
+				Entity current = e;
+				while (Entity parent = mEntityScene->FindEntityByID(current.GetParentID()))
+				{
+					if (parent.HasComponent<RigidBodyComponent>())
+					{
+						parentWithRigidBody = true;
+						break;
+					}
+
+					current = parent;
+				}
+
+				if (parentWithRigidBody)
+				{
+					continue;
+				}
+
+				auto& rigidbody = e.AddComponent<RigidBodyComponent>();
+				rigidbody.BodyType = RigidBodyComponent::Type::Static;
+				CreateActor(e);
+			}
+		}
+
+		// Joints
+		{
+			auto view = mEntityScene->GetAllEntitiesWith<FixedJointComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, mEntityScene.Raw() };
+				CreateJoint(e);
+			}
 		}
 	}
 
-	void PhysicsScene::Destroy()
+	void PhysicsScene::Clear()
 	{
 		NR_CORE_ASSERT(mPhysicsScene);
 
@@ -454,10 +725,24 @@ namespace NR
 
 		mControllers.clear();
 		mActors.clear();
-		mPhysicsControllerManager->release();
-		mPhysicsScene->release();
-		mPhysicsScene = nullptr;
+	}
 
-		mEntityScene = nullptr;
+	void PhysicsScene::CreateRegions()
+	{
+		const PhysicsSettings& settings = PhysicsManager::GetSettings();
+
+		if (settings.BroadphaseAlgorithm == BroadphaseType::AutomaticBoxPrune)
+			return;
+
+		physx::PxBounds3* regionBounds = new physx::PxBounds3[settings.WorldBoundsSubdivisions * settings.WorldBoundsSubdivisions];
+		physx::PxBounds3 globalBounds(PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMin), PhysicsUtils::ToPhysicsVector(settings.WorldBoundsMax));
+		uint32_t regionCount = physx::PxBroadPhaseExt::createRegionsFromWorldBounds(regionBounds, globalBounds, settings.WorldBoundsSubdivisions);
+
+		for (uint32_t i = 0; i < regionCount; ++i)
+		{
+			physx::PxBroadPhaseRegion region;
+			region.mBounds = regionBounds[i];
+			mPhysicsScene->addBroadPhaseRegion(region);
+		}
 	}
 }

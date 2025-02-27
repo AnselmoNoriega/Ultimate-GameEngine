@@ -65,6 +65,7 @@ namespace NR
 		static void CollisionEnd(Entity entity, Entity other);
 		static void TriggerBegin(Entity entity, Entity other);
 		static void TriggerEnd(Entity entity, Entity other);
+		static void JointBreak(Entity entity, const glm::vec3& linearForce, const glm::vec3& angularForce);
 
 		static MonoObject* Construct(const std::string& fullName, bool callConstructor = true, void** parameters = nullptr);
 		static MonoClass* GetCoreClass(const std::string& fullName);

@@ -6,7 +6,7 @@ namespace NR
     [StructLayout(LayoutKind.Sequential), Serializable]
     public struct Vector3 : IEquatable<Vector3>
     {
-        public static readonly Vector3 zero = new Vector3(0, 0, 0);
+        public static readonly Vector3 Zero = new Vector3(0, 0, 0);
 
         public static readonly Vector3 Forward = new Vector3(0, 0, -1);
         public static readonly Vector3 Back = new Vector3(0, 0, 1);

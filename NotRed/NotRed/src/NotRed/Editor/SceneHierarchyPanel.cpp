@@ -1913,11 +1913,13 @@ namespace NR
                 const auto& layerNames = PhysicsLayerManager::GetLayerNames();
                 UI::PropertyDropdown("Layer", layerNames, layerCount, (int*)&ccc.Layer);
 
+                auto physicsScene = mContext->GetPhysicsScene();
+
                 if (UI::Property("Disable Gravity", ccc.DisableGravity))
                 {
                     if (mContext->IsPlaying() && PhysicsManager::GetScene())
                     {
-                        auto controller = PhysicsManager::GetScene()->GetController(entity);
+                        auto controller = mContext->GetPhysicsScene()->GetController(entity);
                         if (controller)
                         {
                             controller->SetHasGravity(!ccc.DisableGravity);
@@ -1927,9 +1929,9 @@ namespace NR
 
                 if (UI::Property("Slope Limit", ccc.SlopeLimitDeg, 1.0f, 0.0f, 90.0f))
                 {
-                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    if (mContext->IsPlaying())
                     {
-                        auto controller = PhysicsManager::GetScene()->GetController(entity);
+                        auto controller = physicsScene->GetController(entity);
                         if (controller)
                         {
                             controller->SetSlopeLimit(ccc.SlopeLimitDeg);
@@ -1938,9 +1940,9 @@ namespace NR
                 }
                 if (UI::Property("Step Offset", ccc.StepOffset))
                 {
-                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    if (mContext->IsPlaying())
                     {
-                        auto controller = PhysicsManager::GetScene()->GetController(entity);
+                        auto controller = physicsScene->GetController(entity);
                         if (controller)
                         {
                             controller->SetStepOffset(ccc.StepOffset);
@@ -1955,14 +1957,35 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
 
+                auto physicsScene = mContext->GetPhysicsScene();
+
                 Entity targetEntity = mContext->FindEntityByID(fjc.ConnectedEntity);
                 if (UI::PropertyEntityReference("Connected Entity", targetEntity))
                 {
                     fjc.ConnectedEntity = targetEntity.GetID();
 
-                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    if (mContext->IsPlaying())
                     {
-                        auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                        auto joint = physicsScene->GetJoint(entity);
+                        if (joint)
+                        {
+                            if (fjc.IsBreakable)
+                            {
+                                joint->SetBreakForceAndTorque(fjc.BreakForce, fjc.BreakTorque);
+                            }
+                            else
+                            {
+                                joint->SetBreakForceAndTorque(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+                            }
+                        }
+                    }
+                }
+
+                if (UI::Property("Is Breakable", fjc.IsBreakable))
+                {
+                    if (mContext->IsPlaying())
+                    {
+                        auto joint = physicsScene->GetJoint(entity);
                         if (joint)
                         {
                             if (fjc.IsBreakable)
@@ -1981,9 +2004,9 @@ namespace NR
                 {
                     if (UI::Property("Break Force", fjc.BreakForce, 1.0f))
                     {
-                        if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                        if (mContext->IsPlaying())
                         {
-                            auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                            auto joint = physicsScene->GetJoint(entity);
                             if (joint)
                             {
                                 joint->SetBreakForceAndTorque(fjc.BreakForce, fjc.BreakTorque);
@@ -1994,9 +2017,9 @@ namespace NR
 
                     if (UI::Property("Break Torque", fjc.BreakTorque, 1.0f))
                     {
-                        if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                        if (mContext->IsPlaying())
                         {
-                            auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                            auto joint = physicsScene->GetJoint(entity);
                             if (joint)
                             {
                                 joint->SetBreakForceAndTorque(fjc.BreakForce, fjc.BreakTorque);
@@ -2008,9 +2031,9 @@ namespace NR
 
                 if (UI::Property("Enable Collision", fjc.EnableCollision))
                 {
-                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    if (mContext->IsPlaying())
                     {
-                        auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                        auto joint = physicsScene->GetJoint(entity);
                         if (joint)
                         {
                             joint->SetCollisionEnabled(fjc.EnableCollision);
@@ -2021,9 +2044,9 @@ namespace NR
 
                 if (UI::Property("Enable Preprocessing", fjc.EnablePreProcessing))
                 {
-                    if (mContext->IsPlaying() && PhysicsManager::GetScene())
+                    if (mContext->IsPlaying())
                     {
-                        auto joint = PhysicsManager::GetScene()->GetJoint(entity);
+                        auto joint = physicsScene->GetJoint(entity);
                         if (joint)
                         {
                             joint->SetPreProcessingEnabled(fjc.EnablePreProcessing);

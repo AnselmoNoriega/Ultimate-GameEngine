@@ -18,70 +18,72 @@ namespace NR
 	class JointBase : public RefCounted
 	{
 	public:
-		virtual ~JointBase() {}
+		virtual ~JointBase()
+		{
+			Release();
+		}
 
-		virtual void SetConnectedEntity(Entity other) = 0;
+		void SetConnectedEntity(Entity other);
 
-		virtual void GetBreakForceAndTorque(float& breakForce, float& breakTorque) const = 0;
-		virtual void SetBreakForceAndTorque(float breakForce, float breakTorque) = 0;
-		virtual bool IsBroken() const = 0;
+		void GetBreakForceAndTorque(float& breakForce, float& breakTorque) const;
+		void SetBreakForceAndTorque(float breakForce, float breakTorque);
+		bool IsBroken() const;
+		void Break();
 		virtual bool IsBreakable() const = 0;
-		virtual void Break() = 0;
 
-		virtual bool IsPreProcessingEnabled() const = 0;
-		virtual void SetPreProcessingEnabled(bool enabled) = 0;
+		bool IsPreProcessingEnabled() const;
+		void SetPreProcessingEnabled(bool enabled);
 
-		virtual bool IsCollisionEnabled() const = 0;
-		virtual void SetCollisionEnabled(bool enabled) = 0;
+		bool IsCollisionEnabled() const;
+		void SetCollisionEnabled(bool enabled);
+
+		const glm::vec3& GetLastReportedLinearForce() const { return mLastReportedLinearForce; }
+		const glm::vec3& GetLastReportedAngularForce() const { return mLastReportedAngularForce; }
 
 		Entity GetEntity() const { return mEntity; }
+		Entity GetConnectedEntity() const { return mConnectedEntity; }
 
-		virtual bool IsValid() const = 0;
-		virtual void Release() = 0;
+		bool IsValid() const { return mJoint != nullptr; }
+		void Release();
 
 		virtual const char* GetDebugName() const = 0;
 
 		JointType GetType() const { return mType; }
 
+	private:
+		void PostSimulation();
+
 	protected:
-		JointBase(Entity entity, JointType type)
-			: mEntity(entity), mType(type) {}
+		JointBase(Entity entity, Entity connectedEntity, JointType type);
 
 		physx::PxTransform GetLocalFrame(physx::PxRigidActor& attachActor);
 
+		virtual void ConnectedEntityChanged(Entity other) = 0;
+
 	protected:
-		Entity mEntity;
+		Entity mEntity, mConnectedEntity;
+		physx::PxJoint* mJoint = nullptr;
 
 	private:
 		JointType mType = JointType::None;
+		glm::vec3 mLastReportedLinearForce = glm::vec3(0.0f);
+		glm::vec3 mLastReportedAngularForce = glm::vec3(0.0f);
+
+	private:
+		friend class PhysicsScene;
 	};
 
 	class FixedJoint : public JointBase
 	{
 	public:
-		FixedJoint(Entity entity);
-		~FixedJoint();
+		FixedJoint(Entity entity, Entity connectedEntity);
+		~FixedJoint() override;
 
-		void SetConnectedEntity(Entity other) override;
-
-		void GetBreakForceAndTorque(float& breakForce, float& breakTorque) const override;
-		void SetBreakForceAndTorque(float breakForce, float breakTorque) override;
-		bool IsBroken() const override;
 		bool IsBreakable() const override;
-		void Break() override;
-
-		bool IsPreProcessingEnabled() const override;
-		void SetPreProcessingEnabled(bool enabled) override;
-
-		bool IsCollisionEnabled() const override;
-		void SetCollisionEnabled(bool enabled) override;
 
 		const char* GetDebugName() const override { return "FixedJoint"; }
 
-		bool IsValid() const override { return mJoint != nullptr; }
-		void Release() override;
-
-	private:
-		physx::PxFixedJoint* mJoint = nullptr;
+	protected:
+		void ConnectedEntityChanged(Entity other) override;
 	};
 }

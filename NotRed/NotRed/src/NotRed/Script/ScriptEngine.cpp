@@ -54,6 +54,7 @@ namespace NR
 		MonoMethod* CollisionEndMethod = nullptr;
 		MonoMethod* TriggerBeginMethod = nullptr;
 		MonoMethod* TriggerEndMethod = nullptr;
+		MonoMethod* OnJointBreakMethod = nullptr;
 		MonoMethod* Collision2DBeginMethod = nullptr;
 		MonoMethod* Collision2DEndMethod = nullptr;
 
@@ -68,7 +69,8 @@ namespace NR
 			CollisionBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionBegin(ulong)");
 			CollisionEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:CollisionEnd(ulong)");
 			TriggerBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:TriggerBegin(ulong)");
-			TriggerEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:TriggerEnd(ulong)");
+			TriggerEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:TriggerEnd(ulong)");			
+			OnJointBreakMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:JointBreak(Vector3,Vector3)");
 			Collision2DBeginMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DBegin(ulong)");
 			Collision2DEndMethod = GetMethod(sCoreAssemblyImage, "NR.Entity:Collision2DEnd(ulong)");
 		}
@@ -544,6 +546,17 @@ namespace NR
 			UUID id = other.GetID();
 			void* args[] = { &id };
 			CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->TriggerEndMethod, args);
+		}
+	}
+
+	void ScriptEngine::JointBreak(Entity entity, const glm::vec3& linearForce, const glm::vec3& angularForce)
+	{
+		NR_PROFILE_FUNC();
+		EntityInstance& entityInstance = GetEntityInstanceData(entity.GetSceneID(), entity.GetID()).Instance;
+		if (entityInstance.ScriptClass->OnJointBreakMethod)
+		{
+			void* args[] = { (void*)&linearForce, (void*)&angularForce };
+			CallMethod(entityInstance.GetInstance(), entityInstance.ScriptClass->OnJointBreakMethod, args);
 		}
 	}
 

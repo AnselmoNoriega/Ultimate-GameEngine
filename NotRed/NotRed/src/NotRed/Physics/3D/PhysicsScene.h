@@ -68,13 +68,16 @@ namespace NR
 		const Ref<Scene>& GetEntityScene() const { return mEntityScene; }
 		Ref<Scene> GetEntityScene() { return mEntityScene; }
 
+		void ImGuiRender();
+
 	private:
+		void InitializeScene();
+		void Clear();
+
 		void CreateRegions();
 
 		bool Advance(float dt);
 		void SubstepStrategy(float dt);
-
-		void Destroy();
 
 		bool OverlapGeometry(const glm::vec3& origin, const physx::PxGeometry& geometry, std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& buffer, uint32_t& count);
 
@@ -93,6 +96,6 @@ namespace NR
 		const uint32_t MAX_SUB_STEPS = 8;
 
 	private:
-		friend class PhysicsManager;
+		friend class Scene;
 	};
 }

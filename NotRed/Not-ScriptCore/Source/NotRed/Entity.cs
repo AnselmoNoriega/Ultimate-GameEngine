@@ -9,9 +9,6 @@ namespace NR
 {
     public class Entity
     {
-        public ulong ID { get; private set; }
-        public string Tag => GetComponent<TagComponent>().Tag;
-
         private Action<Entity> _collision2DBeginCallbacks;
         private Action<Entity> _collision2DEndCallbacks;
 
@@ -20,6 +17,8 @@ namespace NR
 
         private Action<Entity> _triggerBeginCallbacks;
         private Action<Entity> _triggerEndCallbacks;
+
+        private Action<Vector3, Vector3> _jointBreakCallbacks;
 
         private List<IEnumerator> coroutines = new List<IEnumerator>(); 
         private readonly object coroutineLock = new object();
@@ -35,11 +34,6 @@ namespace NR
         ~Entity()
         {
 
-        }
-
-        public ulong GetID()
-        {
-            return ID;
         }
 
         public Entity Create()
@@ -103,6 +97,9 @@ namespace NR
                 return new Vector3(cosYaw * cosPitch, sinPitch, sinYaw * cosPitch);
             }
         }
+
+        public ulong ID { get; private set; }
+        public string Tag => GetComponent<TagComponent>().Tag;
 
         public Vector3 Translation
         {
@@ -247,20 +244,16 @@ namespace NR
             _triggerEndCallbacks += callback;
         }
 
+        public void AddJointBreakCallback(Action<Vector3, Vector3> callback) => _jointBreakCallbacks += callback;
+
         private void CollisionBegin(ulong id)
         {
-            if (_collisionBeginCallbacks != null)
-            {
-                _collisionBeginCallbacks.Invoke(new Entity(id));
-            }
+            _collisionBeginCallbacks?.Invoke(new Entity(id));
         }
 
         private void CollisionEnd(ulong id)
         {
-            if (_collisionEndCallbacks != null)
-            {
-                _collisionEndCallbacks.Invoke(new Entity(id));
-            }
+            _collisionEndCallbacks?.Invoke(new Entity(id));
         }
 
         private void Collision2DBegin(ulong id)
@@ -275,18 +268,17 @@ namespace NR
 
         private void TriggerBegin(ulong id)
         {
-            if (_triggerBeginCallbacks != null)
-            {
-                _triggerBeginCallbacks.Invoke(new Entity(id));
-            }
+            _triggerBeginCallbacks?.Invoke(new Entity(id));
         }
 
         private void TriggerEnd(ulong id)
         {
-            if (_triggerEndCallbacks != null)
-            {
-                _triggerEndCallbacks.Invoke(new Entity(id));
-            }
+            _triggerEndCallbacks?.Invoke(new Entity(id));
+        }
+
+        private void OnJointBreak(Vector3 linearForce, Vector3 angularForce)
+        {
+            _jointBreakCallbacks?.Invoke(linearForce, angularForce);
         }
 
         public void StartCoroutine(IEnumerator coroutine)

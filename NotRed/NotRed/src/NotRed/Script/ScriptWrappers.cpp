@@ -347,7 +347,7 @@ namespace NR::Script
 
         if (entity.HasComponent<RigidBodyComponent>())
         {
-            auto actor = PhysicsManager::GetScene()->GetActor(entity);
+            auto& actor = scene->GetPhysicsScene()->GetActor(entity);
             actor->SetPosition(*inTranslation);
         }
     }
@@ -375,7 +375,7 @@ namespace NR::Script
 
         if (entity.HasComponent<RigidBodyComponent>())
         {
-            auto actor = PhysicsManager::GetScene()->GetActor(entity);
+            auto& actor = scene->GetPhysicsScene()->GetActor(entity);
             actor->SetRotation(*inRotation);
         }
     }
@@ -530,10 +530,10 @@ namespace NR::Script
     {
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
-        NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
+        NR_CORE_ASSERT(scene->GetPhysicsScene()->IsValid());
 
         RaycastHit temp;
-        bool success = PhysicsManager::GetScene()->Raycast(inData->Origin, inData->Direction, inData->MaxDistance, &temp);
+        bool success = scene->GetPhysicsScene()->Raycast(inData->Origin, inData->Direction, inData->MaxDistance, &temp);
         if (success && inData->RequiredComponentTypes != nullptr)
         {
             Entity entity = scene->FindEntityByID(temp.HitEntity);
@@ -591,13 +591,13 @@ namespace NR::Script
         }
 
         *hit = temp;
-        return success;
-    }
+        return success;
 
-    MonoArray* NR_Physics_Raycast2D(RaycastData2D* inData)
-    {
+    
+    MonoArray* NR_Physics_Raycast2D(RaycastData2D* inData){
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
+   ;
 
         std::vector<Raycast2DResult> raycastResults = Physics2D::Raycast(scene, inData->Origin, inData->Origin + inData->Direction * inData->MaxDistance);
 
@@ -622,7 +622,7 @@ namespace NR::Script
             mono_array_set(results, MonoObject*, i, obj);
         }
 
-        return results;
+        return results;}
     }
 
     static void AddCollidersToArray(MonoArray* array, const std::array<OverlapHit, OVERLAP_MAX_COLLIDERS>& hits, uint32_t count, uint32_t arrayLength)
@@ -699,14 +699,15 @@ namespace NR::Script
     MonoArray* NR_Physics_OverlapBox(glm::vec3* origin, glm::vec3* halfSize)
     {
         NR_PROFILE_FUNC();
-
-        NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        NR_CORE_ASSERT(scene->GetPhysicsScene()->IsValid());
 
         MonoArray* outColliders = nullptr;
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         uint32_t count;
-        if (PhysicsManager::GetScene()->OverlapBox(*origin, *halfSize, sOverlapBuffer, count))
+        if (scene->GetPhysicsScene()->OverlapBox(*origin, *halfSize, sOverlapBuffer, count))
         {
             outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
             AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
@@ -718,14 +719,15 @@ namespace NR::Script
     MonoArray* NR_Physics_OverlapCapsule(glm::vec3* origin, float radius, float halfHeight)
     {
         NR_PROFILE_FUNC();
-
-        NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
+        
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
 
         MonoArray* outColliders = nullptr;
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         uint32_t count;
-        if (PhysicsManager::GetScene()->OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, count))
+        if (scene->GetPhysicsScene()->OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, count))
         {
             outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("NR.Collider"), count);
             AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
@@ -735,15 +737,16 @@ namespace NR::Script
 
     int32_t NR_Physics_OverlapBoxNonAlloc(glm::vec3* origin, glm::vec3* halfSize, MonoArray* outColliders)
     {
-        NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
-
         NR_PROFILE_FUNC();
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
 
         uint32_t count;
-        if (PhysicsManager::GetScene()->OverlapBox(*origin, *halfSize, sOverlapBuffer, count))
+        if (scene->GetPhysicsScene()->OverlapBox(*origin, *halfSize, sOverlapBuffer, count))
         {
             if (count > arrayLength)
             {
@@ -758,22 +761,18 @@ namespace NR::Script
 
     int32_t NR_Physics_OverlapCapsuleNonAlloc(glm::vec3* origin, float radius, float halfHeight, MonoArray* outColliders)
     {
-        NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
-
         NR_PROFILE_FUNC();
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
-
         const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
-
-        uint32_t count = 0;
-        if (PhysicsManager::GetScene()->OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, count))
+        uint32_t count;
+        if (scene->GetPhysicsScene()->OverlapCapsule(*origin, radius, halfHeight, sOverlapBuffer, count))
         {
             if (count > arrayLength)
-            {
                 count = arrayLength;
-            }
 
             AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
         }
@@ -783,22 +782,19 @@ namespace NR::Script
 
     int32_t NR_Physics_OverlapSphereNonAlloc(glm::vec3* origin, float radius, MonoArray* outColliders)
     {
-        NR_CORE_ASSERT(PhysicsManager::GetScene()->IsValid());
-
         NR_PROFILE_FUNC();
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
 
-        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(physx::PxOverlapHit));
+        memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         const uint32_t arrayLength = (uint32_t)mono_array_length(outColliders);
 
-        uint32_t count = 0;
-        if (PhysicsManager::GetScene()->OverlapSphere(*origin, radius, sOverlapBuffer, count))
+        uint32_t count;
+        if (scene->GetPhysicsScene()->OverlapSphere(*origin, radius, sOverlapBuffer, count))
         {
             if (count > arrayLength)
-            {
                 count = arrayLength;
-            }
 
             AddCollidersToArray(outColliders, sOverlapBuffer, count, arrayLength);
         }
@@ -808,33 +804,40 @@ namespace NR::Script
 
     void NR_Physics_GetGravity(glm::vec3* outGravity)
     {
-        Ref<PhysicsScene> scene = PhysicsManager::GetScene();
-        NR_CORE_ASSERT(scene && scene->IsValid(), "No active Phyiscs Scene!");
-        *outGravity = scene->GetGravity();
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        *outGravity = scene->GetPhysicsScene()->GetGravity();
     }
 
     void NR_Physics_SetGravity(glm::vec3* inGravity)
     {
-        Ref<PhysicsScene> scene = PhysicsManager::GetScene();
-        NR_CORE_ASSERT(scene && scene->IsValid(), "No active Phyiscs Scene!");
-        scene->SetGravity(*inGravity);
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        scene->GetPhysicsScene()->SetGravity(*inGravity);
     }
 
     void NR_Physics_AddRadialImpulse(glm::vec3* inOrigin, float radius, float strength, EFalloffMode falloff, bool velocityChange)
     {
-        Ref<PhysicsScene> scene = PhysicsManager::GetScene();
-        NR_CORE_ASSERT(scene && scene->IsValid(), "No active Phyiscs Scene!");
-        scene->AddRadialImpulse(*inOrigin, radius, strength, falloff, velocityChange);
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        scene->GetPhysicsScene()->AddRadialImpulse(*inOrigin, radius, strength, falloff, velocityChange);
     }
 
     MonoArray* NR_Physics_OverlapSphere(glm::vec3* origin, float radius)
     {
         NR_PROFILE_FUNC();
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
 
         MonoArray* outColliders = nullptr;
         memset(sOverlapBuffer.data(), 0, OVERLAP_MAX_COLLIDERS * sizeof(OverlapHit));
 
         uint32_t count;
+        if (scene->GetPhysicsScene()->OverlapSphere(*origin, radius, sOverlapBuffer, count))
+        {
+            outColliders = mono_array_new(mono_domain_get(), ScriptEngine::GetCoreClass("Hazel.Collider"), count);
+            AddCollidersToArray(outColliders, sOverlapBuffer, count, count);
+        }
 
         return outColliders;
     }
@@ -1179,7 +1182,7 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         *outTranslation = actor->GetPosition();
     }
 
@@ -1195,7 +1198,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
         auto& component = entity.GetComponent<RigidBodyComponent>();
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         NR_CORE_ASSERT(actor);
         actor->SetPosition(*inTranslation);
     }
@@ -1214,7 +1217,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
         NR_CORE_ASSERT(outRotation);
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         NR_CORE_ASSERT(actor);
         *outRotation = actor->GetRotation();
     }
@@ -1233,7 +1236,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
         NR_CORE_ASSERT(inRotation);
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         NR_CORE_ASSERT(actor);
         actor->SetRotation(*inRotation);
     }
@@ -1252,7 +1255,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<RigidBodyComponent>();
         NR_CORE_ASSERT(inRotation);
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         NR_CORE_ASSERT(actor);
         actor->Rotate(*inRotation);
     }
@@ -1428,7 +1431,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         NR_CORE_ASSERT(actor);
         actor->AddForce(*force, forceMode);
     }
@@ -1450,7 +1453,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->AddTorque(*torque, forceMode);
     }
 
@@ -1472,7 +1475,7 @@ namespace NR::Script
         }
 
         NR_CORE_ASSERT(outVelocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         *outVelocity = actor->GetVelocity();
     }
 
@@ -1491,7 +1494,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot set linear velocity of a static or kinematic actor! EntityID({0})", entityID);
             return;
         }
-        PhysicsManager::GetScene()->GetActor(entity)->SetVelocity(*inVelocity);
+        scene->GetPhysicsScene()->GetActor(entity)->SetVelocity(*inVelocity);
     }
 
     void NR_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity)
@@ -1512,7 +1515,7 @@ namespace NR::Script
         }
 
         NR_CORE_ASSERT(outVelocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         *outVelocity = actor->GetAngularVelocity();
     }
 
@@ -1534,7 +1537,7 @@ namespace NR::Script
         }
 
         NR_CORE_ASSERT(velocity);
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->SetAngularVelocity(*velocity);
     }
 
@@ -1555,7 +1558,7 @@ namespace NR::Script
             return 0.0f;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->GetMaxVelocity();
     }
 
@@ -1576,7 +1579,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->SetMaxVelocity(maxVelocity);
     }
     float NR_RigidBodyComponent_GetMaxAngularVelocity(uint64_t entityID)
@@ -1596,7 +1599,7 @@ namespace NR::Script
             return 0.0f;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->GetMaxAngularVelocity();
     }
     void NR_RigidBodyComponent_SetMaxAngularVelocity(uint64_t entityID, float maxVelocity)
@@ -1616,7 +1619,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
 
         actor->SetMaxAngularVelocity(maxVelocity);
     }
@@ -1639,7 +1642,7 @@ namespace NR::Script
             return 0.0f;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->GetLinearDrag();
     }
 
@@ -1661,7 +1664,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->SetLinearDrag(linearDrag);
     }
 
@@ -1683,7 +1686,7 @@ namespace NR::Script
             return 0.0f;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->GetAngularDrag();
     }
 
@@ -1705,7 +1708,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->SetAngularDrag(angularDrag);
     }
 
@@ -1738,7 +1741,7 @@ namespace NR::Script
             return 0.0f;
         }
 
-        const Ref<PhysicsActor>& actor = PhysicsManager::GetScene()->GetActor(entity);
+        const Ref<PhysicsActor>& actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->GetMass();
     }
 
@@ -1758,7 +1761,7 @@ namespace NR::Script
             return;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->SetMass(mass);
     }
 
@@ -1774,7 +1777,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         *outTargetPosition = actor->GetKinematicTargetPosition();
         *outTargetRotation = actor->GetKinematicTargetRotation();
     }
@@ -1791,7 +1794,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->SetKinematicTarget(*inTargetPosition, *inTargetRotation);
     }
 
@@ -1807,7 +1810,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         actor->ModifyLockFlag(flag, value);
     }
 
@@ -1828,7 +1831,7 @@ namespace NR::Script
             return false;
         }
 
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->IsLockFlagSet(flag);
     }
 
@@ -1844,7 +1847,7 @@ namespace NR::Script
         NR_CORE_ASSERT(entity.HasComponent<RigidBodyComponent>());
 
         auto& component = entity.GetComponent<RigidBodyComponent>();
-        Ref<PhysicsActor> actor = PhysicsManager::GetScene()->GetActor(entity);
+        Ref<PhysicsActor> actor = scene->GetPhysicsScene()->GetActor(entity);
         return actor->GetLockFlags();
     }
 
@@ -1862,7 +1865,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Static actors can't be kinematic! EntityID({0})", entityID);
             return false;
         }
-        return PhysicsManager::GetScene()->GetActor(entity)->IsKinematic();
+        return scene->GetPhysicsScene()->GetActor(entity)->IsKinematic();
     }
 
     void NR_RigidBodyComponent_SetIsKinematic(uint64_t entityID, bool isKinematic)
@@ -1879,7 +1882,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Cannot make a static actor kinematic! EntityID({0})", entityID);
             return;
         }
-        PhysicsManager::GetScene()->GetActor(entity)->SetKinematic(isKinematic);
+        scene->GetPhysicsScene()->GetActor(entity)->SetKinematic(isKinematic);
     }
 
     bool NR_RigidBodyComponent_IsSleeping(uint64_t entityID)
@@ -1896,7 +1899,7 @@ namespace NR::Script
             NR_CONSOLE_LOG_WARN("Shouldn't call RigidBodyComponent.IsSleeping on a static actor! EntityID({0})", entityID);
             return true;
         }
-        return PhysicsManager::GetScene()->GetActor(entity)->IsSleeping();
+        return scene->GetPhysicsScene()->GetActor(entity)->IsSleeping();
     }
 
     void NR_RigidBodyComponent_SetIsSleeping(uint64_t entityID, bool isSleeping)
@@ -1915,11 +1918,11 @@ namespace NR::Script
         }
         if (isSleeping)
         {
-            PhysicsManager::GetScene()->GetActor(entity)->Sleep();
+            scene->GetPhysicsScene()->GetActor(entity)->Sleep();
         }
         else
         {
-            PhysicsManager::GetScene()->GetActor(entity)->WakeUp();
+            scene->GetPhysicsScene()->GetActor(entity)->WakeUp();
         }
     }
 
@@ -1948,7 +1951,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
-        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        Ref<PhysicsController> controller = scene->GetPhysicsScene()->GetController(entity);
         float slopeLimitDegClamped = std::clamp(slopeLimitDeg, 0.0f, 90.0f);
         controller->SetSlopeLimit(slopeLimitDegClamped);
         component.SlopeLimitDeg = slopeLimitDegClamped;
@@ -1979,7 +1982,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
-        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        Ref<PhysicsController> controller = scene->GetPhysicsScene()->GetController(entity);
         controller->SetStepOffset(stepOffset);
         component.StepOffset = stepOffset;
     }
@@ -1996,7 +1999,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
-        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        Ref<PhysicsController> controller = scene->GetPhysicsScene()->GetController(entity);
         controller->Move(*displacement);
     }
 
@@ -2012,7 +2015,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
-        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        Ref<PhysicsController> controller = scene->GetPhysicsScene()->GetController(entity);
         *outResult = controller->GetVelocity();
     }
 
@@ -2028,7 +2031,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
-        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        Ref<PhysicsController> controller = scene->GetPhysicsScene()->GetController(entity);
         return controller->IsGrounded();
     }
 
@@ -2044,7 +2047,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<CharacterControllerComponent>();
 
-        Ref<PhysicsController> controller = PhysicsManager::GetScene()->GetController(entity);
+        Ref<PhysicsController> controller = scene->GetPhysicsScene()->GetController(entity);
         return controller->GetCollisionFlags();
     }
 
@@ -2076,7 +2079,7 @@ namespace NR::Script
         auto& component = entity.GetComponent<FixedJointComponent>();
         component.ConnectedEntity = connectedEntity;
 
-        PhysicsManager::GetScene()->GetJoint(entity)->SetConnectedEntity(other);
+        scene->GetPhysicsScene()->GetJoint(entity)->SetConnectedEntity(other);
     }
 
     bool NR_FixedJointComponent_IsBreakable(uint64_t entityID)
@@ -2107,9 +2110,9 @@ namespace NR::Script
         component.IsBreakable = isBreakable;
 
         if (isBreakable)
-            PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
+            scene->GetPhysicsScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
         else
-            PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
+            scene->GetPhysicsScene()->GetJoint(entity)->SetBreakForceAndTorque(std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
     }
 
     bool NR_FixedJointComponent_IsBroken(uint64_t entityID)
@@ -2122,7 +2125,7 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
 
-        return PhysicsManager::GetScene()->GetJoint(entity)->IsBroken();
+        return scene->GetPhysicsScene()->GetJoint(entity)->IsBroken();
     }
 
     void NR_FixedJointComponent_Break(uint64_t entityID)
@@ -2135,7 +2138,7 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_ASSERT(entity.HasComponent<FixedJointComponent>());
 
-        PhysicsManager::GetScene()->GetJoint(entity)->Break();
+        scene->GetPhysicsScene()->GetJoint(entity)->Break();
     }
 
     float NR_FixedJointComponent_GetBreakForce(uint64_t entityID)
@@ -2164,7 +2167,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<FixedJointComponent>();
         component.BreakForce = breakForce;
-        PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
+        scene->GetPhysicsScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
     }
 
     float NR_FixedJointComponent_GetBreakTorque(uint64_t entityID)
@@ -2193,7 +2196,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<FixedJointComponent>();
         component.BreakTorque = breakTorque;
-        PhysicsManager::GetScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
+        scene->GetPhysicsScene()->GetJoint(entity)->SetBreakForceAndTorque(component.BreakForce, component.BreakTorque);
     }
 
     bool NR_FixedJointComponent_IsCollisionEnabled(uint64_t entityID)
@@ -2222,7 +2225,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<FixedJointComponent>();
         component.EnableCollision = isCollisionEnabled;
-        PhysicsManager::GetScene()->GetJoint(entity)->SetCollisionEnabled(isCollisionEnabled);
+        scene->GetPhysicsScene()->GetJoint(entity)->SetCollisionEnabled(isCollisionEnabled);
     }
 
     bool NR_FixedJointComponent_IsPreProcessingEnabled(uint64_t entityID)
@@ -2251,7 +2254,7 @@ namespace NR::Script
 
         auto& component = entity.GetComponent<FixedJointComponent>();
         component.EnablePreProcessing = isPreProcessingEnabled;
-        PhysicsManager::GetScene()->GetJoint(entity)->SetPreProcessingEnabled(isPreProcessingEnabled);
+        scene->GetPhysicsScene()->GetJoint(entity)->SetPreProcessingEnabled(isPreProcessingEnabled);
     }
 
     void NR_BoxColliderComponent_GetSize(uint64_t entityID, glm::vec3* outSize)
