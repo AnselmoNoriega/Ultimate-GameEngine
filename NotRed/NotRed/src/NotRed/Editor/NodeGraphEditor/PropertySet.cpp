@@ -429,4 +429,4 @@ namespace NR::Utils
 
 #endif
 
-} // namespace Hazel::Utils
+} // namespace NR::Utils

@@ -637,6 +637,18 @@ namespace NR
                 {
                     entityDeleted = true;
                 }
+
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Reset Transform to Mesh"))
+                {
+                    mContext->ResetTransformsToMesh(entity, false);
+                }
+
+                if (ImGui::MenuItem("Reset All Transforms to Mesh"))
+                {
+                    mContext->ResetTransformsToMesh(entity, true);
+                }
             }
 
             ImGui::EndPopup();

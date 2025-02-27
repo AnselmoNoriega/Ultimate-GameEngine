@@ -558,7 +558,7 @@ namespace NR
         if (renderer->GetFinalPassImage())
         {
             mSceneRenderer2D->BeginScene(camera.GetProjectionMatrix() * cameraViewMatrix, cameraViewMatrix);
-            mSceneRenderer2D->SetTargetRenderPass(renderer->GetCompositeRenderPass());
+            mSceneRenderer2D->SetTargetRenderPass(renderer->GetExternalCompositeRenderPass());
             {
 #if TODO_SPRITES
                 auto group = mRegistry.group<TransformComponent>(entt::get<SpriteRenderer>);

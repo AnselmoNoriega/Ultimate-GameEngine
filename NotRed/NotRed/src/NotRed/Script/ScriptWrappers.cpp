@@ -948,8 +948,7 @@ namespace NR::Script
 
         auto& meshComponent = entity.GetComponent<MeshComponent>();
         auto& meshColliderComponent = entity.GetComponent<MeshColliderComponent>();
-        meshColliderComponent.CollisionMesh = meshComponent.MeshHandle;
-        CookingFactory::ForceCookMesh(meshColliderComponent);
+        CookingFactory::ForceCookMesh(meshColliderComponent.CollisionMesh);
     }
 
     bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index)
@@ -987,6 +986,30 @@ namespace NR::Script
         Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
         NR_CORE_ASSERT(scene, "No active scene!");
         return ScriptEngine::GetEntityInstanceData(scene->GetID(), entityID).Instance.GetInstance();
+    }
+
+    bool NR_AnimationComponent_GetEnableRootMotion(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        return animationComponent.EnableRootMotion;
+    }
+
+    void NR_AnimationComponent_SetEnableRootMotion(uint64_t entityID, bool value)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        auto& animationComponent = entity.GetComponent<AnimationComponent>();
+        animationComponent.EnableRootMotion = value;
     }
 
     void NR_AnimationComponent_GetRootMotion(uint64_t entityID, TransformComponent* outTransform)

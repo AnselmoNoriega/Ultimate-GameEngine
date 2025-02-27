@@ -150,4 +150,4 @@ namespace NR
         return &GetNodes().back();
     }
 
-} // namespace Hazel
+} // namespace NR

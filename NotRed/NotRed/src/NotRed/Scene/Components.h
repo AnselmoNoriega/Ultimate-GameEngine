@@ -166,6 +166,11 @@ namespace NR
     struct AnimationComponent
     {
         AssetHandle AnimationController;
+        UUID RootMotionTarget = 0;  
+        float AnimationTime = 0.0;
+
+        bool EnableRootMotion = false;
+        bool EnableAnimation = true;
     };
 
     struct TextComponent

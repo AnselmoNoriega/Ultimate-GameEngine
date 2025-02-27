@@ -50,4 +50,4 @@ namespace NR
         Ref<SOULSound> mGraphAsset = nullptr;
     };
 
-} // namespace Hazel
+} // namespace NR

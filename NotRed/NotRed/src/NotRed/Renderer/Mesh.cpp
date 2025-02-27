@@ -695,7 +695,8 @@ namespace NR
 
     void MeshSource::TraverseNodes(aiNode* node, const glm::mat4& parentTransform, uint32_t level)
     {
-        glm::mat4 transform = parentTransform * Utils::Mat4FromAssimpMat4(node->mTransformation);
+        glm::mat4 localTransform = Utils::Mat4FromAssimpMat4(node->mTransformation);
+        glm::mat4 transform = parentTransform * localTransform;
         mNodeMap[node].resize(node->mNumMeshes);
 
         for (uint32_t i = 0; i < node->mNumMeshes; ++i)
@@ -704,6 +705,7 @@ namespace NR
             auto& submesh = mSubmeshes[mesh];
             submesh.NodeName = node->mName.C_Str();
             submesh.Transform = transform;
+            submesh.LocalTransform = localTransform;
             mNodeMap[node][i] = mesh;
         }
 

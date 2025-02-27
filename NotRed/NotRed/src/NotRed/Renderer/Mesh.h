@@ -128,7 +128,8 @@ namespace NR
 		uint32_t VertexCount{};
 		uint32_t MaterialIndex{};
 
-		glm::mat4 Transform{ 1.0f };
+		glm::mat4 Transform{ 1.0f }; // World transform
+		glm::mat4 LocalTransform{ 1.0f };
 		AABB BoundingBox;
 
 		std::string NodeName, MeshName;

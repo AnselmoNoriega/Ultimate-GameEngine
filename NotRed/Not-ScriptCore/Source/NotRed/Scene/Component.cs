@@ -190,25 +190,19 @@ namespace NR
     {
         public bool IsAnimationPlaying
         {
-            get
-            {
-                return GetIsAnimationPlaying_Native(Entity.ID);
-            }
-            set
-            {
-                SetIsAnimationPlaying_Native(Entity.ID, value);
-            }
+            get => GetIsAnimationPlaying_Native(Entity.ID);
+            set => SetIsAnimationPlaying_Native(Entity.ID, value);
         }
         public uint StateIndex
         {
-            get
-            {
-                return GetStateIndex_Native(Entity.ID);
-            }
-            set
-            {
-                SetStateIndex_Native(Entity.ID, value);
-            }
+            get => GetStateIndex_Native(Entity.ID);
+            set => SetStateIndex_Native(Entity.ID, value);
+        }
+
+        public bool IsRootMotionEnabled
+        {
+            get => GetEnableRootMotion_Native(Entity.ID);
+            set => SetEnableRootMotion_Native(Entity.ID, value);
         }
 
         public Transform RootMotion
@@ -228,6 +222,12 @@ namespace NR
         public static extern uint GetStateIndex_Native(ulong entityID);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetStateIndex_Native(ulong entityID, uint value);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern bool GetEnableRootMotion_Native(ulong entityID);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void SetEnableRootMotion_Native(ulong entityID, bool value);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void GetRootMotion_Native(ulong entityID, out Transform result);
     }
