@@ -523,7 +523,7 @@ namespace NR
                 if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
                 {
                     auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
-                    if (!mesh->IsFlagSet(AssetFlag::Missing))
+                    if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
                     {
                         mesh->UpdateBoneTransforms(dt);
                         Entity e = Entity(entity, this);
@@ -719,7 +719,7 @@ namespace NR
                 if (AssetManager::IsAssetHandleValid(meshComponent.MeshHandle))
                 {
                     auto mesh = AssetManager::GetAsset<Mesh>(meshComponent.MeshHandle);
-                    if (!mesh->IsFlagSet(AssetFlag::Missing))
+                    if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
                     {
                         mesh->UpdateBoneTransforms(dt);
                         Entity e = Entity(entity, this);

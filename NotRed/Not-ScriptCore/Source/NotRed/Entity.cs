@@ -38,12 +38,12 @@ namespace NR
 
         public Entity Create()
         {
-            return new Entity(CreateEntity_Native(ID));
+            return new Entity(CreateEntity_Native());
         }
 
         public Entity Instantiate(Prefab prefab)
         {
-            ulong entityID = Instantiate_Native(ID, prefab.ID);
+            ulong entityID = Instantiate_Native(prefab.ID);
             if (entityID == 0)
             {
                 return null;
@@ -54,16 +54,7 @@ namespace NR
 
         public Entity Instantiate(Prefab prefab, Vector3 translation)
         {
-            Transform transform = new Transform();
-            transform.Position = translation;
-            transform.Rotation = Vector3.Zero;
-            transform.Scale = new Vector3(1.0f);
-            return Instantiate(prefab, transform);
-        }
-
-        public Entity Instantiate(Prefab prefab, Transform transform)
-        {
-            ulong entityID = InstantiateWithTransform_Native(ID, prefab.ID, ref transform);
+            ulong entityID = InstantiateWithTranslation_Native(prefab.ID, ref translation);
             if (entityID == 0)
             {
                 return null;
@@ -355,11 +346,11 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong InstantiateEntity_Native();
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern ulong CreateEntity_Native(ulong entityID);
+        private static extern ulong CreateEntity_Native();
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern ulong Instantiate_Native(ulong entityID, ulong prefabID);
+        private static extern ulong Instantiate_Native(ulong prefabID);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private static extern ulong InstantiateWithTransform_Native(ulong entityID, ulong prefabID, ref Transform transform);
+        private static extern ulong InstantiateWithTranslation_Native(ulong prefabID, ref Vector3 translation);
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern ulong DestroyEntity_Native(ulong entityID);
 
