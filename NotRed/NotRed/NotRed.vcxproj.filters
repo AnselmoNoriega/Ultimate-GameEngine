@@ -888,6 +888,7 @@
     <ClInclude Include="src\NotRed\Util\ContainerUtils.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActorBase.h" />
+    <ClInclude Include="src\NotRed\Editor\ECSPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1455,5 +1456,6 @@
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsJoints.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ECSPanel.cpp" />
   </ItemGroup>
 </Project>

@@ -44,7 +44,7 @@ namespace NR
 	{
 	public:
 		PrefabEditor();
-		void SetAsset(const Ref<Asset>& asset) override { mPrefab = (Ref<Prefab>)asset; mSceneHierarchyPanel.SetContext(mPrefab->mScene); }
+		void SetAsset(const Ref<Asset>& asset) override { mPrefab = (Ref<Prefab>)asset; mSceneHierarchyPanel.SetSceneContext(mPrefab->mScene); }
 
 	private:
 		void Close() override;

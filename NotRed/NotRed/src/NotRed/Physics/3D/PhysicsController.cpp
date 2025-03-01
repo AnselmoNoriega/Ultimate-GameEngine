@@ -9,6 +9,7 @@ namespace NR
 {
 	PhysicsController::PhysicsController(Entity entity)
 		: PhysicsActorBase(PhysicsActorBase::Type::Controller, entity)
+		, mGravity(glm::length(PhysicsManager::GetSettings().Gravity))
 	{
 	}
 
@@ -70,6 +71,11 @@ namespace NR
 		mDisplacement += displacement;
 	}
 
+	void PhysicsController::Jump(float jumpPower)
+	{
+		mSpeedDown = -1.0f * jumpPower;
+	}
+
 	glm::vec3 PhysicsController::GetPosition() const 
 	{
 		const auto& pxPos = mController->getPosition();
@@ -89,9 +95,9 @@ namespace NR
 		return pos;
 	}
 
-	const glm::vec3& PhysicsController::GetVelocity() const
+	float PhysicsController::GetSpeedDown() const
 	{
-		return mVelocity;
+		return mSpeedDown;
 	}
 
 	bool PhysicsController::IsGrounded() const
@@ -108,17 +114,18 @@ namespace NR
 	{
 		physx::PxControllerFilters filters;
 
-		if (mHasGravity) 
+		if (mHasGravity)
 		{
-			mVelocity += mGravity * dt;
+			mSpeedDown += mGravity * dt;
 		}
 
-		glm::vec3 displacement = mDisplacement + (mVelocity * dt);
+		glm::vec3 displacement = mDisplacement - PhysicsUtils::FromPhysicsVector(mController->getUpDirection()) * mSpeedDown * dt;
+
 		mCollisionFlags = mController->move(PhysicsUtils::ToPhysicsVector(displacement), 0.0, static_cast<physx::PxF32>(dt), filters);
 
 		if (IsGrounded())
 		{
-			mVelocity = mGravity * 0.01f; // setting mVelocity back to zero here would be more technically correct,
+			mSpeedDown = mGravity * 0.01f; // setting mVelocity back to zero here would be more technically correct,
 		}
 
 		mDisplacement = {};

@@ -310,7 +310,6 @@ namespace NR
 			NR_CORE_VERIFY(controller->mController = mPhysicsControllerManager->createController(desc));
 		}
 
-		controller->mGravity = -1.0f * PhysicsUtils::FromPhysicsVector(controller->mController->getUpDirection()) * glm::length(PhysicsManager::GetSettings().Gravity);
 		controller->mHasGravity = !characterControllerComponent.DisableGravity;
 		controller->mController->getActor()->userData = controller.Raw();
 

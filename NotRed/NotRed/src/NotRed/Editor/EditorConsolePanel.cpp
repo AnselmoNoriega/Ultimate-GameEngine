@@ -29,14 +29,9 @@ namespace NR
 		sInstance = nullptr;
 	}
 
-	void EditorConsolePanel::ImGuiRender(bool* show)
+	void EditorConsolePanel::ImGuiRender(bool& isOpen)
 	{
-		if (!(*show))
-		{
-			return;
-		}
-
-		ImGui::Begin("Log", show);
+		ImGui::Begin("Log", &isOpen);
 		RenderMenu();
 		ImGui::Separator();
 		RenderConsole();

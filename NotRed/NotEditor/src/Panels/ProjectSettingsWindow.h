@@ -4,15 +4,18 @@
 #include "NotRed/Project/Project.h"
 #include "NotRed/Scene/Scene.h"
 
+#include "NotRed/Editor/EditorPanel.h"
+
 namespace NR
 {
-	class ProjectSettingsWindow
+	class ProjectSettingsWindow : public EditorPanel
 	{
 	public:
-		ProjectSettingsWindow(const Ref<Project>& project);
+		ProjectSettingsWindow();
 		~ProjectSettingsWindow();
-		
-		void ImGuiRender(bool& show);
+
+		void ImGuiRender(bool& isOpen) override;
+		void ProjectChanged(const Ref<Project>& project) override;
 
 	private:
 		void RenderGeneralSettings();

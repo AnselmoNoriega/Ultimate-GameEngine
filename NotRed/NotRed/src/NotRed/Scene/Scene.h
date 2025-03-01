@@ -207,5 +207,6 @@ namespace NR
 		friend class SceneSerializer;
 		friend class PrefabSerializer;
 		friend class SceneHierarchyPanel;
+		friend class ECSPanel;
 	};
 }

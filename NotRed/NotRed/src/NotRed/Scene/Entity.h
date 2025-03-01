@@ -70,6 +70,9 @@ namespace NR
 		TransformComponent& Transform() { return mScene->mRegistry.get<TransformComponent>(mEntityHandle); }
 		const glm::mat4& Transform() const { return mScene->mRegistry.get<TransformComponent>(mEntityHandle).GetTransform(); }
 
+		std::string& Name() { return HasComponent<TagComponent>() ? GetComponent<TagComponent>().Tag : NoName; }
+		const std::string& Name() const { return HasComponent<TagComponent>() ? GetComponent<TagComponent>().Tag : NoName; }
+
 		operator uint32_t() const { return (uint32_t)mEntityHandle; }
 		operator entt::entity() const { return mEntityHandle; }
 		operator bool() const { return (mEntityHandle != entt::null) && mScene; }
@@ -162,6 +165,8 @@ namespace NR
 	private:
 		entt::entity mEntityHandle{ entt::null };
 		Scene* mScene = nullptr;
+
+		inline static std::string NoName = "Unnamed";
 
 		friend class Prefab;
 		friend class Scene;

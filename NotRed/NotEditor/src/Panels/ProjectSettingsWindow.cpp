@@ -14,10 +14,8 @@ namespace NR
 
     static bool sSerializeProject = false;
 
-    ProjectSettingsWindow::ProjectSettingsWindow(const Ref<Project>& project)
-        : mProject(project)
+    ProjectSettingsWindow::ProjectSettingsWindow()
     {
-        mDefaultScene = AssetManager::GetAssetHandleFromFilePath(project->GetConfig().StartScene);
         memset(mNewLayerNameBuffer, 0, 255);
     }
 
@@ -25,14 +23,15 @@ namespace NR
     {
     }
 
-    void ProjectSettingsWindow::ImGuiRender(bool& show)
+    void ProjectSettingsWindow::ImGuiRender(bool& isOpen)
     {
-        if (!show)
+        if (mProject == nullptr)
         {
+            isOpen = false;
             return;
         }
 
-        ImGui::Begin("Project Settings", &show);
+        ImGui::Begin("Project Settings", &isOpen);
         RenderGeneralSettings();
         RenderScriptingSettings();
         RenderPhysicsSettings();
@@ -44,6 +43,12 @@ namespace NR
             serializer.Serialize(mProject->mConfig.ProjectDirectory + "/" + mProject->mConfig.ProjectFileName);
             sSerializeProject = false;
         }
+    }
+
+    void ProjectSettingsWindow::ProjectChanged(const Ref<Project>& project)
+    {
+        mProject = project;
+        mDefaultScene = AssetManager::GetAssetHandleFromFilePath(project->GetConfig().StartScene);
     }
 
     void ProjectSettingsWindow::RenderGeneralSettings()

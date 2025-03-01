@@ -157,8 +157,9 @@ namespace NR::Script
 		void NR_CharacterControllerComponent_SetSlopeLimit(uint64_t entityID, float slopeLimitDeg);
 		float NR_CharacterControllerComponent_GetStepOffset(uint64_t entityID);
 		void NR_CharacterControllerComponent_SetStepOffset(uint64_t entityID, float stepOffset);
-		void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement, float ts);
-		void NR_CharacterControllerComponent_GetVelocity(uint64_t entityID, glm::vec3* outResult);
+		void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement);
+		void NR_CharacterControllerComponent_Jump(uint64_t entityID, float jumpPower);
+		float NR_CharacterControllerComponent_GetSpeedDown(uint64_t entityID);
 		bool NR_CharacterControllerComponent_IsGrounded(uint64_t entityID);
 		CollisionFlags NR_CharacterControllerComponent_GetCollisionFlags(uint64_t entityID);
 

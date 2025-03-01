@@ -38,8 +38,8 @@ namespace NR
     Ref<Texture2D> SceneHierarchyPanel::sPlusIcon;
     Ref<Texture2D> SceneHierarchyPanel::sGearIcon;
 
-    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
-        : mContext(context)
+    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context, bool isWindow)
+        : mContext(context), mIsWindow(isWindow)
     {
     }
 
@@ -57,7 +57,7 @@ namespace NR
         sGearIcon.Reset();
     }
 
-    void SceneHierarchyPanel::SetContext(const Ref<Scene>& scene)
+    void SceneHierarchyPanel::SetSceneContext(const Ref<Scene>& scene)
     {
         mContext = scene;
         mSelectionContext = {};
@@ -82,12 +82,12 @@ namespace NR
         }
     }
 
-    void SceneHierarchyPanel::ImGuiRender(bool window)
+    void SceneHierarchyPanel::ImGuiRender(bool& isOpen)
     {
-        if (window)
+        if (mIsWindow)
         {
             UI::ScopedStyle padding(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-            ImGui::Begin("Scene Hierarchy");
+            ImGui::Begin("Scene Hierarchy", &isOpen);
         }
 
         ImRect windowRect = { ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax() };
@@ -321,7 +321,7 @@ namespace NR
             }
         }
 
-        if (window)
+        if (mIsWindow)
         {
             ImGui::End();
         }
@@ -467,7 +467,7 @@ namespace NR
         }
 
         const bool missingMesh = entity.HasComponent<MeshComponent>() && (AssetManager::IsAssetHandleValid(entity.GetComponent<MeshComponent>().MeshHandle)
-            && AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle)->IsFlagSet(AssetFlag::Missing));
+            && AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle) && AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle)->IsFlagSet(AssetFlag::Missing));
 
         if (missingMesh)
         {

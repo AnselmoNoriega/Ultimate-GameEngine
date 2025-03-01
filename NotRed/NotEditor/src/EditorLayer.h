@@ -15,6 +15,8 @@
 #include "NotRed/ImGui/ImGuiLayer.h"
 #include "NotRed/Editor/EditorCamera.h"
 
+#include "NotRed/Editor/PanelManager.h"
+
 #include "NotRed/Editor/SceneHierarchyPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Panels/ProjectSettingsWindow.h"
@@ -23,6 +25,7 @@
 #include "NotRed/Project/UserPreferences.h"
 
 #include "NotRed/Renderer/UI/Font.h"
+#include "NotRed/Editor/ECSPanel.h"
 
 namespace NR
 {
@@ -110,11 +113,11 @@ namespace NR
 		void UpdateSceneRendererSettings();
 
 	private:
-		Ref<UserPreferences> mUserPreferences;
-		Scope<SceneHierarchyPanel> mSceneHierarchyPanel;
-		Scope<ContentBrowserPanel> mContentBrowserPanel;
-		Scope<ProjectSettingsWindow> mProjectSettingsPanel;
-		Scope<EditorConsolePanel> mConsolePanel;
+		Ref<UserPreferences> mUserPreferences;		
+		Scope<PanelManager> mPanelManager;
+
+		Scope<ECSPanel> mECSDebugPanel;
+		bool mECSDebugPanelOpen = false;
 
 		Ref<Scene> mRuntimeScene, mEditorScene, mCurrentScene;
 		Ref<SceneRenderer> mViewportRenderer;
@@ -190,20 +193,19 @@ namespace NR
 		bool mShowPhysicsCollidersWireframe = true;
 		bool mShowPhysicsCollidersWireframeOnTop = false;
 
+		bool mShowAudioEventsEditor = false;
+		bool mAssetManagerPanelOpen = false;
+
 		bool mShowIcons = true;
 
 		bool mViewportPanelMouseOver = false;
 		bool mViewportPanelFocused = false;
 		bool mViewportHasCapturedMouse = false;
 
-		bool mShowConsolePanel = true;
-
 		bool mViewportPanel2MouseOver = false;
 		bool mViewportPanel2Focused = false;
 
-		bool mShowProjectSettings = false;
 		bool mShowSecondViewport = false;
-		bool mShowAudioEventsEditor = false;
 
 		bool mShowWelcomePopup = true;
 		bool mShowAboutPopup = false;
@@ -212,8 +214,6 @@ namespace NR
 		bool mShowNewScenePopup = false;
 
 		bool mShowCreateNewMeshPopup = false;
-
-		bool mAssetManagerPanelOpen = false;
 
 		struct CreateNewMeshPopupData
 		{

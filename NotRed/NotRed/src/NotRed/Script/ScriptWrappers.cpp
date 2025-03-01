@@ -488,7 +488,7 @@ namespace NR::Script
 
 		uint64_t NR_Entity_GetParent(uint64_t entityID)
 		{
-			return GetEntity(entityID).GetParentUUID();
+			return GetEntity(entityID).GetParentID();
 		}
 
 		void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID)
@@ -507,6 +507,11 @@ namespace NR::Script
 			uint32_t index = 0;
 			for (auto child : children)
 			{
+				NR_CORE_ASSERT(
+					ScriptEngine::GetCurrentSceneContext()->GetEntityMap().find(child) != ScriptEngine::GetCurrentSceneContext()->GetEntityMap().end(),
+					"Invalid child entity ID or child entity doesn't exist in scene!"
+				);
+
 				void* data[] = {
 					&child
 				};
@@ -1397,7 +1402,7 @@ namespace NR::Script
 			component.StepOffset = stepOffset;
 		}
 
-		void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement, float ts)
+		void NR_CharacterControllerComponent_Move(uint64_t entityID, glm::vec3* displacement)
 		{
 			auto entity = GetEntity(entityID);
 			auto& controller = ScriptEngine::GetCurrentSceneContext()->GetPhysicsScene()->GetController(entity);
@@ -1405,12 +1410,20 @@ namespace NR::Script
 			controller->Move(*displacement);
 		}
 
-		void NR_CharacterControllerComponent_GetVelocity(uint64_t entityID, glm::vec3* outResult)
+		void NR_CharacterControllerComponent_Jump(uint64_t entityID, float jumpPower)
 		{
 			auto entity = GetEntity(entityID);
 			auto& controller = ScriptEngine::GetCurrentSceneContext()->GetPhysicsScene()->GetController(entity);
 			NR_CORE_ASSERT(controller);
-			*outResult = controller->GetVelocity();
+			controller->Jump(jumpPower);
+		}
+
+		float NR_CharacterControllerComponent_GetSpeedDown(uint64_t entityID)
+		{
+			auto entity = GetEntity(entityID);
+			auto& controller = ScriptEngine::GetCurrentSceneContext()->GetPhysicsScene()->GetController(entity);
+			NR_CORE_ASSERT(controller);
+			return controller->GetSpeedDown();
 		}
 
 		bool NR_CharacterControllerComponent_IsGrounded(uint64_t entityID)

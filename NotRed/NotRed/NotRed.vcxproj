@@ -214,6 +214,7 @@
     <ClInclude Include="src\NotRed\Debug\Profiler.h" />
     <ClInclude Include="src\NotRed\Editor\AssetEditorPanel.h" />
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h" />
+    <ClInclude Include="src\NotRed\Editor\ECSPanel.h" />
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h" />
@@ -442,6 +443,7 @@
     <ClCompile Include="src\NotRed\Core\Window.cpp" />
     <ClCompile Include="src\NotRed\Editor\AssetEditorPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp" />
+    <ClCompile Include="src\NotRed\Editor\ECSPanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp" />
     <ClCompile Include="src\NotRed\Editor\EditorConsolePanel.cpp" />
     <ClCompile Include="src\NotRed\Editor\MeshViewerPanel.cpp" />

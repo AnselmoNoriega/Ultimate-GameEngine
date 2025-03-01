@@ -645,14 +645,9 @@ namespace NR
 
         public void Move(Vector3 displacement) => Move_Native(Entity.ID, ref displacement);
 
-        public Vector3 Velocity
-        {
-            get
-            {
-                GetVelocity_Native(Entity.ID, out Vector3 result);
-                return result;
-            }
-        }
+        public void Jump(float jumpPower) => Jump_Native(Entity.ID, jumpPower);
+
+        public float SpeedDown => GetSpeedDown_Native(Entity.ID);
 
         public bool IsGrounded
         {
@@ -680,7 +675,10 @@ namespace NR
         internal static extern void Move_Native(ulong entityID, ref Vector3 displacement);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetVelocity_Native(ulong entityID, out Vector3 result);
+        internal static extern void Jump_Native(ulong entityID, float jumpPower);
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetSpeedDown_Native(ulong entityID);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool IsGrounded_Native(ulong entityID);

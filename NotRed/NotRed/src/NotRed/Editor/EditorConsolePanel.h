@@ -1,17 +1,19 @@
 #pragma once
 
+#include "EditorPanel.h"
+
 #include "EditorConsole/ConsoleMessage.h"
 #include "NotRed/Renderer/Texture.h"
 
 namespace NR
 {
-	class EditorConsolePanel
+	class EditorConsolePanel : public EditorPanel
 	{
 	public:
 		EditorConsolePanel();
 		~EditorConsolePanel();
 
-		void ImGuiRender(bool* show);
+		void ImGuiRender(bool& isOpen) override;
 		void ScenePlay();
 
 	private:

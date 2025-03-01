@@ -26,8 +26,8 @@ namespace NR
 {
 	static int sColumnCount = 9;
 
-	ContentBrowserPanel::ContentBrowserPanel(Ref<Project> project)
-		: mProject(project)
+	ContentBrowserPanel::ContentBrowserPanel()
+		: mProject(nullptr)
 	{
 		sInstance = this;
 
@@ -55,11 +55,6 @@ namespace NR
 		mBackbtnTex = Texture2D::Create("Resources/Editor/icon_back.png");
 		mFwrdbtnTex = Texture2D::Create("Resources/Editor/icon_fwrd.png");
 		mRefreshIcon = Texture2D::Create("Resources/Editor/refresh.png");
-
-		AssetHandle baseDirectoryHandle = ProcessDirectory(project->GetAssetDirectory().string(), nullptr);
-
-		mBaseDirectory = mDirectories[baseDirectoryHandle];
-		ChangeDirectory(mBaseDirectory);
 
 		memset(mSearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
 	}
@@ -151,9 +146,9 @@ namespace NR
 	static float sPadding = 2.0f;
 	static float sThumbnailSize = 128.0f;
 
-	void ContentBrowserPanel::ImGuiRender()
+	void ContentBrowserPanel::ImGuiRender(bool& isOpen)
 	{
-		ImGui::Begin("Content Browser", NULL, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
+		ImGui::Begin("Content Browser", &isOpen, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar);
 
 		mIsContentBrowserHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
 		mIsContentBrowserFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
@@ -187,9 +182,12 @@ namespace NR
 
 						std::vector<Ref<DirectoryInfo>> directories;
 						directories.reserve(mBaseDirectory->SubDirectories.size());
-						for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
+						if (mBaseDirectory)
 						{
-							directories.emplace_back(directory);
+							for (auto& [handle, directory] : mBaseDirectory->SubDirectories)
+							{
+								RenderDirectoryHierarchy(directory);
+							}
 						}
 
 						std::sort(directories.begin(), directories.end(), [](const auto& a, const auto& b)
@@ -375,6 +373,27 @@ namespace NR
 		EventDispatcher dispatcher(e);
 		dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) { return OnKeyPressedEvent(event); });
 	}
+
+	void ContentBrowserPanel::ProjectChanged(const Ref<Project>& project)
+	{
+		mDirectories.clear();
+		mCurrentItems.Clear();
+		mBaseDirectory = nullptr;
+		mCurrentDirectory = nullptr;
+		mNextDirectory = nullptr;
+		mPreviousDirectory = nullptr;
+		mSelectionStack.Clear();
+		mBreadCrumbData.clear();
+
+		mProject = project;
+
+		AssetHandle baseDirectoryHandle = ProcessDirectory(project->GetAssetDirectory().string(), nullptr);
+		mBaseDirectory = mDirectories[baseDirectoryHandle];
+		ChangeDirectory(mBaseDirectory);
+
+		memset(mSearchBuffer, 0, MAX_INPUT_BUFFER_LENGTH);
+	}
+
 	bool ContentBrowserPanel::OnKeyPressedEvent(KeyPressedEvent& e)
 	{
 		if (!mIsContentBrowserFocused)

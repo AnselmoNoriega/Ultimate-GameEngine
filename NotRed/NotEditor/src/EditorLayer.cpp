@@ -44,6 +44,12 @@ namespace NR
 
     static char* sProjectNameBuffer = new char[MAX_PROJECT_NAME_LENGTH];
     static char* sProjectFilePathBuffer = new char[MAX_PROJECT_FILEPATH_LENGTH];
+
+#define SCENE_HIERARCHY_PANEL_ID "SceneHierarchyPanel"
+#define CONSOLE_PANEL_ID "EditorConsolePanel"
+#define CONTENT_BROWSER_PANEL_ID "ContentBrowserPanel"
+#define PROJECT_SETTINGS_PANEL_ID "ProjectSettingsPanel"
+
     EditorLayer::EditorLayer(const Ref<UserPreferences>& userPreferences)
         : mUserPreferences(userPreferences)
     {
@@ -86,11 +92,21 @@ namespace NR
 
         mPointLightIcon = Texture2D::Create("Resources/Editor/Icons/PointLight.png");
 
-        mSceneHierarchyPanel = CreateScope<SceneHierarchyPanel>(mEditorScene);
-        mSceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
-        mSceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
-        mSceneHierarchyPanel->SetMeshSourceConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshSource, this, std::placeholders::_1, std::placeholders::_2));
-        mSceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+        /////////// Configure Panels ///////////
+        mPanelManager = CreateScope<PanelManager>();
+
+        Ref<SceneHierarchyPanel> sceneHierarchyPanel = mPanelManager->AddPanel<SceneHierarchyPanel>(SCENE_HIERARCHY_PANEL_ID, "Scene Hierarchy", true, mEditorScene);
+        sceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
+        sceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
+        sceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
+        sceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+        mPanelManager->AddPanel<EditorConsolePanel>(CONSOLE_PANEL_ID, "Log", true);
+        mPanelManager->AddPanel<ContentBrowserPanel>(CONTENT_BROWSER_PANEL_ID, "Content Browser", true);
+        mPanelManager->AddPanel<ProjectSettingsWindow>(PROJECT_SETTINGS_PANEL_ID, "Project Settings", false);
+
+        mECSDebugPanel = CreateScope<ECSPanel>(mEditorScene);
 
         mRenderer2D = Ref<Renderer2D>::Create();
 
@@ -102,8 +118,6 @@ namespace NR
         {
             NR_CORE_VERIFY(false, "No project provided!");
         }
-
-        mConsolePanel = CreateScope<EditorConsolePanel>();
 
         mViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
         mSecondViewportRenderer = Ref<SceneRenderer>::Create(mCurrentScene);
@@ -142,7 +156,7 @@ namespace NR
         UI::SetMouseEnabled(true);
         Input::SetCursorMode(CursorMode::Normal);
 
-        mConsolePanel->ScenePlay();
+        mPanelManager->GetPanel<EditorConsolePanel>(CONSOLE_PANEL_ID)->ScenePlay();
 
         if (Project::GetActive()->GetConfig().ReloadAssemblyOnPlay)
         {
@@ -153,7 +167,8 @@ namespace NR
         mEditorScene->CopyTo(mRuntimeScene);
 
         mRuntimeScene->RuntimeStart();
-        mSceneHierarchyPanel->SetContext(mRuntimeScene);
+        mPanelManager->SetSceneContext(mRuntimeScene);
+        mECSDebugPanel->SetContext(mRuntimeScene);
         mCurrentScene = mRuntimeScene;
     }
 
@@ -169,7 +184,8 @@ namespace NR
         mSelectionContext.clear();
         ScriptEngine::SetSceneContext(mEditorScene);
         AudioEngine::SetSceneContext(mEditorScene);
-        mSceneHierarchyPanel->SetContext(mEditorScene);
+        mPanelManager->SetSceneContext(mEditorScene);
+        mECSDebugPanel->SetContext(mEditorScene);
         mCurrentScene = mEditorScene;
     }
 
@@ -307,7 +323,6 @@ namespace NR
                     colorPushed = false;
                     
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
-                    ImGui::MenuItem("Project Settings", nullptr, &mShowProjectSettings);
                     ImGui::MenuItem("Second Viewport", nullptr, &mShowSecondViewport);
                     
                     if (ImGui::MenuItem("Reload C# Assembly"))
@@ -336,8 +351,14 @@ namespace NR
 
                     ImGui::PushStyleColor(ImGuiCol_HeaderHovered, colHovered);
 
+                    for (auto& [id, panelData] : mPanelManager->GetPanels())
+                    {
+                        ImGui::MenuItem(panelData.Name, nullptr, &panelData.IsOpen);
+                    }
+
                     ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
-                    ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);
+                    ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);					
+                    ImGui::MenuItem("ECS Debug", nullptr, &mECSDebugPanelOpen);
 
                     ImGui::PopStyleColor();
                     ImGui::EndMenu();
@@ -1076,6 +1097,8 @@ namespace NR
         Project::SetActive(project);
         ScriptEngine::LoadAppAssembly((Project::GetScriptModuleFilePath()).string());
 
+        mPanelManager->OnProjectChanged(project);
+
         if (!project->GetConfig().StartScene.empty())
         {
             OpenScene((Project::GetAssetDirectory() / project->GetConfig().StartScene).string());
@@ -1091,8 +1114,6 @@ namespace NR
         }
 
         mSelectionContext.clear();
-        mContentBrowserPanel = CreateScope<ContentBrowserPanel>(project);
-        mProjectSettingsPanel = CreateScope<ProjectSettingsWindow>(project);
         FileSystem::StartWatching();
         
         // Reset cameras
@@ -1120,8 +1141,9 @@ namespace NR
         FileSystem::StopWatching();
 
         SaveProject();
-        
-        mSceneHierarchyPanel->SetContext(nullptr);
+
+        mPanelManager->SetSceneContext(nullptr);
+        mECSDebugPanel->SetContext(nullptr);
         ScriptEngine::SetSceneContext(nullptr);
         AudioEngine::SetSceneContext(nullptr);
         mViewportRenderer->SetScene(nullptr);
@@ -1146,7 +1168,8 @@ namespace NR
         mSelectionContext = {};
 
         mEditorScene = Ref<Scene>::Create(name, true);
-        mSceneHierarchyPanel->SetContext(mEditorScene);
+        mPanelManager->SetSceneContext(mEditorScene);
+        mECSDebugPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
         AudioEngine::SetSceneContext(mEditorScene);
         UpdateWindowTitle(name);
@@ -1185,7 +1208,8 @@ namespace NR
 
         std::filesystem::path path = filepath;
         UpdateWindowTitle(path.filename().string());
-        mSceneHierarchyPanel->SetContext(mEditorScene);
+        mPanelManager->SetSceneContext(mEditorScene);
+        mECSDebugPanel->SetContext(mEditorScene);
         ScriptEngine::SetSceneContext(mEditorScene);
         AudioEngine::SetSceneContext(mEditorScene);
 
@@ -1700,10 +1724,6 @@ namespace NR
         }
         ImGui::End();
 
-        mConsolePanel->ImGuiRender(&mShowConsolePanel);
-        mContentBrowserPanel->ImGuiRender();
-        mProjectSettingsPanel->ImGuiRender(mShowProjectSettings);
-
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 
@@ -2158,7 +2178,8 @@ namespace NR
             ImGui::PopStyleVar();
         }
 
-        mSceneHierarchyPanel->ImGuiRender();
+        mPanelManager->ImGuiRender();
+        mECSDebugPanel->OnImGuiRender(mECSDebugPanelOpen);
 
         ImGui::Begin("Materials");
         if (mSelectionContext.size())
@@ -2664,7 +2685,7 @@ namespace NR
             });
 
         AssetEditorPanel::OnEvent(e);
-        mContentBrowserPanel->OnEvent(e);
+        mPanelManager->OnEvent(e);
     }
 
     bool EditorLayer::OnKeyPressedEvent(KeyPressedEvent& e)
@@ -2738,7 +2759,8 @@ namespace NR
                 {
                     mSelectionContext.clear();
                     mEditorScene->SetSelectedEntity({});
-                    mSceneHierarchyPanel->SetSelected({});
+                    mPanelManager->GetPanel<SceneHierarchyPanel>(SCENE_HIERARCHY_PANEL_ID)->SetSelected({});
+                    mECSDebugPanel->SetSelected({});
                 }
                 break;
             case KeyCode::Delete: // TODO: this should be in the scene hierarchy panel
@@ -2747,7 +2769,8 @@ namespace NR
                     DeleteEntity(mSelectionContext[0].EntityObj);
                     mSelectionContext.clear();
                     mEditorScene->SetSelectedEntity({});
-                    mSceneHierarchyPanel->SetSelected({});
+                    mPanelManager->GetPanel<SceneHierarchyPanel>(SCENE_HIERARCHY_PANEL_ID)->SetSelected({});
+                    mECSDebugPanel->SetSelected({});
                 }
                 break;
             }
@@ -2947,7 +2970,8 @@ namespace NR
 
     void EditorLayer::Selected(const SelectedSubmesh& selectionContext)
     {
-        mSceneHierarchyPanel->SetSelected(selectionContext.EntityObj);
+        mPanelManager->GetPanel<SceneHierarchyPanel>(SCENE_HIERARCHY_PANEL_ID)->SetSelected(selectionContext.EntityObj);
+        mECSDebugPanel->SetSelected(selectionContext.EntityObj);
         mEditorScene->SetSelectedEntity(selectionContext.EntityObj);
     }
 

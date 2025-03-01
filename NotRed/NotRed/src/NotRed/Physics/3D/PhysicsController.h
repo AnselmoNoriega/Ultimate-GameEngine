@@ -32,11 +32,12 @@ namespace NR
 		void Move(const glm::vec3& displacement, float dt);
 
 		glm::vec3 GetPosition() const;
-		const glm::vec3& GetVelocity() const;
+		float GetSpeedDown() const;
 		bool IsGrounded() const;
 		CollisionFlags GetCollisionFlags() const;
 
 		void Move(glm::vec3 displacement);
+		void Jump(float jumpPower);
 
 	private:
 		void Update(float dt);
@@ -46,10 +47,10 @@ namespace NR
 		physx::PxController* mController = nullptr;
 		physx::PxMaterial* mMaterial = nullptr;
 		physx::PxControllerCollisionFlags mCollisionFlags = {};
-		
-		glm::vec3 mVelocity = {};         // velocity of controller at last update
-		glm::vec3 mDisplacement = {};     // displacement (if any) for next update (comes from Move() calls)
-		glm::vec3 mGravity = {};          // gravity for this controller (initialized to be opposite of controllers "up" vector,
+
+		float mSpeedDown = 0.0f;      
+		glm::vec3 mDisplacement = {}; 
+		float mGravity = {};       
 		
 		bool mHasGravity = true;
 

@@ -10,6 +10,8 @@
 #include "ContentBrowser/ContentBrowserItem.h"
 #include "NotRed/Core/Events/KeyEvent.h"
 
+#include "NotRed/Editor/EditorPanel.h"
+
 #define MAX_INPUT_BUFFER_LENGTH 128
 
 namespace NR
@@ -142,16 +144,18 @@ namespace NR
         }
     };
 
-    class ContentBrowserPanel
+    class ContentBrowserPanel : public EditorPanel
     {
     public:
         static ContentBrowserPanel& Get() { return *sInstance; }
 
     public:
-        ContentBrowserPanel(Ref<Project> project);
+        ContentBrowserPanel();
 
-        void ImGuiRender();
-        void OnEvent(Event& e);
+        void ImGuiRender(bool& isOpen) override;
+
+        void OnEvent(Event& e) override;
+        void ProjectChanged(const Ref<Project>& project) override;
 
         const SelectionStack& GetSelectionStack() const { return mSelectionStack; }
         ContentBrowserItemList& GetCurrentItems() { return mCurrentItems; }

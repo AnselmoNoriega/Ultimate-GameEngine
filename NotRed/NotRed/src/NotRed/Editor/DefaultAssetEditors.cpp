@@ -762,7 +762,7 @@ namespace NR
 	}
 
 	PrefabEditor::PrefabEditor()
-		: AssetEditor("Prefab Editor")
+		: AssetEditor("Prefab Editor"), mSceneHierarchyPanel(nullptr, false)
 	{
 	}
 
@@ -772,6 +772,7 @@ namespace NR
 
 	void PrefabEditor::Render()
 	{
-		mSceneHierarchyPanel.ImGuiRender(false);
+		bool isOpen = true;
+		mSceneHierarchyPanel.ImGuiRender(isOpen);
 	}
 }
