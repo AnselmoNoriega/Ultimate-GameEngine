@@ -14,6 +14,13 @@ namespace NR
         public Vector3 Right { get { return new Quaternion(Rotation) * Vector3.Right; } }
         public Vector3 Forward { get { return new Quaternion(Rotation) * Vector3.Forward; } }
 
+        public Transform(Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            this.Position = position;
+            this.Rotation = rotation;
+            this.Scale = scale;
+        }
+
         public static Transform operator *(Transform a, Transform b)
         {
             TransformMultiply_Native(a, b, out Transform result);

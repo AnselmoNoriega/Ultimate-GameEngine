@@ -19,6 +19,11 @@ namespace NR
             return (float)Math.Cos(value);
         }
 
+        public static float Acos(float value)
+        {
+            return (float)Math.Acos(value);
+        }
+
         public static float Clamp(float value, float min, float max)
         {
             if (value < min)
