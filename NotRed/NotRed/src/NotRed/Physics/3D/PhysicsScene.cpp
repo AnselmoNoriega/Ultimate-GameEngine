@@ -537,11 +537,11 @@ namespace NR
 						UI::Property("Is Sleeping", isSleeping);
 
 						glm::vec3 linearVelocity = actor->GetVelocity();
-						float maxLinearVelocity = actor->GetMaxVelocity();
+						float maxVelocity = actor->GetMaxVelocity();
 						glm::vec3 angularVelocity = actor->GetAngularVelocity();
 						float maxAngularVelocity = actor->GetMaxAngularVelocity();
 						UI::Property("Linear Velocity", linearVelocity);
-						UI::Property("Max Linear Velocity", maxLinearVelocity);
+						UI::Property("Max Linear Velocity", maxVelocity);
 						UI::Property("Angular Velocity", angularVelocity);
 						UI::Property("Max Angular Velocity", maxAngularVelocity);
 

@@ -1,17 +1,15 @@
 #pragma once
 
 #include "NotRed/Core/UUID.h"
-#include "NotRed/Core/TimeFrame.h"
 
 #include "NotRed/Renderer/Camera.h"
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Material.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
-
 #include "NotRed/Renderer/RenderCommandBuffer.h"
 #include "NotRed/Renderer/Renderer2D.h"
 
-#include "Entt/include/entt.hpp"
+#include "entt/include/entt.hpp"
 
 #include "SceneCamera.h"
 #include "NotRed/Editor/EditorCamera.h"
@@ -35,6 +33,7 @@ namespace NR
 		glm::vec3 Radiance = { 0.0f, 0.0f, 0.0f };
 		float Multiplier = 0.0f;
 
+		// C++ only
 		bool CastShadows = true;
 	};
 
@@ -59,28 +58,37 @@ namespace NR
 
 
 	class Entity;
+	using EntityMap = std::unordered_map<UUID, Entity>;
+
 	struct TransformComponent;
 
-	using EntityMap = std::unordered_map<UUID, Entity>;
+	class PhysicsScene;
 
 	class Scene : public Asset
 	{
 	public:
-		Scene(const std::string& name = "UntitledScene", bool isEditorScene = false, bool construct = true);
+		Scene(const std::string& name = "UntitledScene", bool isEditorScene = false, bool initalize = true);
 		~Scene();
 
 		void Init();
 
-		void Update(float dt);
+		void UpdateRuntime(float dt);
+		void UpdateEditor(float dt);
+
 		void RenderRuntime(Ref<SceneRenderer> renderer, float dt);
 		void RenderEditor(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
-		void RenderPhysicsDebug(Ref<SceneRenderer> renderer);
+		void RenderSimulation(Ref<SceneRenderer> renderer, float dt, const EditorCamera& editorCamera);
+
+		void RenderPhysicsDebug(Ref<SceneRenderer> renderer, bool runtime);
 
 		void OnEvent(Event& e);
 
 		// Runtime
 		void RuntimeStart();
 		void RuntimeStop();
+
+		void SimulationStart();
+		void SimulationStop();
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
@@ -95,16 +103,19 @@ namespace NR
 		float& GetSkyboxLod() { return mSkyboxLod; }
 		float GetSkyboxLod() const { return mSkyboxLod; }
 
-		Entity CreateEntity(const std::string& name = "Entity");
+		Entity CreateEntity(const std::string& name = "");
 		Entity CreateChildEntity(Entity parent, const std::string& name = "");
-		Entity CreateEntityWithID(UUID uuid, const std::string& name = "Entity", bool runtimeMap = false);
+		Entity CreateEntityWithID(UUID uuid, const std::string& name = "", bool runtimeMap = false);
 		void SubmitToDestroyEntity(Entity entity);
-		void DestroyEntity(Entity entity, bool excludeChildren = false);
+		void DestroyEntity(Entity entity, bool excludeChildren = false, bool first = true);
+
+		void ResetTransformsToMesh(Entity entity, bool resetChildren);
 
 		Entity DuplicateEntity(Entity entity);
-		Entity CreatePrefabEntity(Entity entity, const glm::mat4* transform = nullptr);
-		Entity CreatePrefabEntity(Entity entity, Entity parent, const glm::mat4* transform = nullptr);
-		Entity Instantiate(Ref<Prefab> prefab, const glm::mat4* transform = nullptr);
+		Entity CreatePrefabEntity(Entity entity, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
+		Entity CreatePrefabEntity(Entity entity, Entity parent, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
+
+		Entity Instantiate(Ref<Prefab> prefab, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
 		Entity InstantiateMesh(Ref<Mesh> mesh);
 
 		template<typename T>
@@ -114,12 +125,11 @@ namespace NR
 		}
 
 		Entity FindEntityByTag(const std::string& tag);
-		Entity FindEntityByID(UUID id);
+		Entity FindEntityByUUID(UUID id);
 
 		void ConvertToLocalSpace(Entity entity);
 		void ConvertToWorldSpace(Entity entity);
 		glm::mat4 GetWorldSpaceTransformMatrix(Entity entity);
-		glm::vec3 GetTranslationRelativeToParent(Entity entity);
 		TransformComponent GetWorldSpaceTransform(Entity entity);
 
 		void ParentEntity(Entity entity, Entity parent);
@@ -135,21 +145,25 @@ namespace NR
 		bool IsEditorScene() const { return mIsEditorScene; }
 		bool IsPlaying() const { return mIsPlaying; }
 
+		//Box2DWorldComponent* GetWorld2D() const { return };
 		float GetPhysics2DGravity() const;
 		void SetPhysics2DGravity(float gravity);
+
+		Ref<PhysicsScene> GetPhysicsScene() const;
 
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { mSelectedEntity = entity; }
 
 		static AssetType GetStaticType() { return AssetType::Scene; }
-		virtual AssetType GetAssetType() const override { return AssetType::Scene; }
+		AssetType GetAssetType() const override { return GetStaticType(); }
 
 		const std::string& GetName() const { return mName; }
 		void SetName(const std::string& name) { mName = name; }
-	
+
 	public:
 		static Ref<Scene> CreateEmpty();
 
+	private:
 		void ScriptComponentConstruct(entt::registry& registry, entt::entity entity);
 		void ScriptComponentDestroy(entt::registry& registry, entt::entity entity);
 		void AudioComponentConstruct(entt::registry& registry, entt::entity entity);
@@ -159,12 +173,13 @@ namespace NR
 
 		void BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode);
 
-	private:
 		template<typename Fn>
 		void SubmitPostUpdateFunc(Fn&& func)
 		{
 			mPostUpdateQueue.emplace_back(func);
 		}
+
+		void UpdateAnimation(float dt, bool isRuntime);
 
 	private:
 		UUID mSceneID;
@@ -172,6 +187,7 @@ namespace NR
 		entt::registry mRegistry;
 
 		std::string mName;
+		bool mIsEditorScene = false;
 		uint32_t mViewportWidth = 0, mViewportHeight = 0;
 
 		EntityMap mEntityIDMap;
@@ -191,15 +207,13 @@ namespace NR
 		Entity* mPhysics2DBodyEntityBuffer = nullptr;
 
 		std::vector<std::function<void()>> mPostUpdateQueue;
-		
+
 		Ref<Renderer2D> mSceneRenderer2D;
 
 		float mSkyboxLod = 1.0f;
 		bool mIsPlaying = false;
 		bool mShouldSimulate = false;
-		bool mIsEditorScene = false;
 
-	private:
 		friend class Entity;
 		friend class Prefab;
 		friend class Physics2D;
@@ -207,6 +221,6 @@ namespace NR
 		friend class SceneSerializer;
 		friend class PrefabSerializer;
 		friend class SceneHierarchyPanel;
-		friend class ECSPanel;
+		friend class ECSDebugPanel;
 	};
 }

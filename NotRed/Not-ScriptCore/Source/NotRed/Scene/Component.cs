@@ -329,14 +329,14 @@ namespace NR
             set { SetMass_Native(Entity.ID, ref value); }
         }
 
-        public Vector2 LinearVelocity
+        public Vector2 Velocity
         {
             get
             {
-                GetLinearVelocity_Native(Entity.ID, out Vector2 velocity);
+                GetVelocity_Native(Entity.ID, out Vector2 velocity);
                 return velocity;
             }
-            set { SetLinearVelocity_Native(Entity.ID, ref value); }
+            set { SetVelocity_Native(Entity.ID, ref value); }
         }
 
         public float GravityScale
@@ -389,9 +389,9 @@ namespace NR
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetMass_Native(ulong entityID, ref float mass);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void GetLinearVelocity_Native(ulong entityID, out Vector2 velocity);
+        internal static extern void GetVelocity_Native(ulong entityID, out Vector2 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetLinearVelocity_Native(ulong entityID, ref Vector2 velocity);
+        internal static extern void SetVelocity_Native(ulong entityID, ref Vector2 velocity);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetGravityScale_Native(ulong entityID, out float gravityScale);
         [MethodImpl(MethodImplOptions.InternalCall)]

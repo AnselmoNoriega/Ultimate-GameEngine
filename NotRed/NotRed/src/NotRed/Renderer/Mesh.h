@@ -3,11 +3,13 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include <ozz/base/maths/simd_math.h>
+
 #include "NotRed/Asset/Asset.h"
 
 #include "NotRed/Math/AABB.h"
-#include "NotRed/Renderer/Animation.h"
 
+#include "NotRed/Renderer/Animation.h"
 #include "NotRed/Renderer/IndexBuffer.h"
 #include "NotRed/Renderer/MaterialAsset.h"
 #include "NotRed/Renderer/Pipeline.h"
@@ -15,26 +17,17 @@
 #include "NotRed/Renderer/UniformBuffer.h"
 #include "NotRed/Renderer/VertexBuffer.h"
 
-#include <ozz/base/maths/simd_math.h>
-
 struct aiNode;
 struct aiAnimation;
 struct aiNodeAnim;
 struct aiScene;
 
-namespace Assimp 
-{
+namespace Assimp {
 	class Importer;
 }
 
 namespace NR
 {
-	struct ParticleVertex
-	{
-		glm::vec3 Position;
-		float Index;
-	};
-
 	struct Vertex
 	{
 		glm::vec3 Position;
@@ -46,7 +39,7 @@ namespace NR
 
 	struct SkinnedVertex : public Vertex
 	{
-		uint32_t IDs[4] = { 0, 0,0, 0 };
+		uint32_t IDs[4] = { 0, 0, 0, 0 };
 		float Weights[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
 
 		SkinnedVertex(const Vertex& vertex) : Vertex(vertex) {}
@@ -60,7 +53,7 @@ namespace NR
 			}
 			if (Weight > 0.0f)
 			{
-				for (size_t i = 0; i < 4; ++i)
+				for (size_t i = 0; i < 4; i++)
 				{
 					if (Weights[i] == 0.0f)
 					{
@@ -70,6 +63,9 @@ namespace NR
 					}
 				}
 
+				// Note: when importing from assimp we are passing aiProcess_LimitBoneWeights which automatically keeps only the top N (where N defaults to 4)
+				//       bone weights (and normalizes the sum to 1), which is exactly what we want.
+				//       So, we should never get here.
 				NR_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
 			}
 		}
@@ -98,14 +94,21 @@ namespace NR
 		uint32_t V1, V2, V3;
 	};
 
+	static_assert(sizeof(Index) == 3 * sizeof(uint32_t));
+
 	struct BoneInfo
 	{
+		ozz::math::Float4x4 SubMeshInverseTransform;
 		ozz::math::Float4x4 InverseBindPose;
-			
+		uint32_t SubMeshIndex;
 		uint32_t JointIndex;
 
-		BoneInfo(ozz::math::Float4x4 inverseBindPose, uint32_t jointIndex) 
-			: InverseBindPose(inverseBindPose), JointIndex(jointIndex) {}
+		BoneInfo(ozz::math::Float4x4 subMeshInverseTransform, ozz::math::Float4x4 inverseBindPose, uint32_t subMeshIndex, uint32_t jointIndex)
+			: SubMeshInverseTransform(subMeshInverseTransform)
+			, InverseBindPose(inverseBindPose)
+			, SubMeshIndex(subMeshIndex)
+			, JointIndex(jointIndex)
+		{}
 	};
 
 	struct VertexBoneData
@@ -121,7 +124,7 @@ namespace NR
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
-			for (size_t i = 0; i < 4; ++i)
+			for (size_t i = 0; i < 4; i++)
 			{
 				if (Weights[i] == 0.0)
 				{
@@ -131,7 +134,8 @@ namespace NR
 				}
 			}
 
-			NR_CORE_ASSERT(false, "Too many weights for a bone!");
+			// should never get here - more bones than we have space for
+			NR_CORE_ASSERT(false, "Too many bones!");
 		}
 	};
 
@@ -146,11 +150,11 @@ namespace NR
 	class Submesh
 	{
 	public:
-		uint32_t BaseVertex{};
-		uint32_t BaseIndex{};
-		uint32_t IndexCount{};
-		uint32_t VertexCount{};
-		uint32_t MaterialIndex{};
+		uint32_t BaseVertex;
+		uint32_t BaseIndex;
+		uint32_t MaterialIndex;
+		uint32_t IndexCount;
+		uint32_t VertexCount;
 
 		glm::mat4 Transform{ 1.0f }; // World transform
 		glm::mat4 LocalTransform{ 1.0f };
@@ -159,19 +163,18 @@ namespace NR
 		std::string NodeName, MeshName;
 	};
 
+	//
+	// MeshSource is a representation of an actual asset file on disk
+	// Meshes are created from MeshSource
+	//
 	class MeshSource : public Asset
 	{
 	public:
 		MeshSource(const std::string& filename);
 		MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform);
-		MeshSource(
-			const std::vector<std::vector<Vertex>>& vertices, 
-			const std::vector<std::vector<Index>>& indices,
-			const std::vector<std::string>& matNames
-		);
-		MeshSource(int particleCount);
 		MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const std::vector<Submesh>& submeshes);
-		virtual ~MeshSource() = default;
+		MeshSource(int squareCount);
+		~MeshSource() override;
 
 		void DumpVertexBuffer();
 
@@ -193,7 +196,7 @@ namespace NR
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 
 		static AssetType GetStaticType() { return AssetType::MeshSource; }
-		virtual AssetType GetAssetType() const override { return AssetType::MeshSource; }
+		AssetType GetAssetType() const override { return GetStaticType(); }
 
 		const AABB& GetBoundingBox() const { return mBoundingBox; }
 
@@ -203,16 +206,12 @@ namespace NR
 	private:
 		std::vector<Submesh> mSubmeshes;
 
-		std::unique_ptr<Assimp::Importer> mImporter;
+		std::unique_ptr<Assimp::Importer> mImporter; // note: the importer owns data pointed to by mScene, and mNodeMap and hence must stay in scope for lifetime of MeshAsset.
 
 		Ref<VertexBuffer> mVertexBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
 
 		std::vector<Vertex> mStaticVertices;
-		std::vector<ParticleVertex> mParticleVertices;
-
-		AABB mBoundingBox;
-
 		std::vector<Index> mIndices;
 		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
 		const aiScene* mScene;
@@ -221,52 +220,50 @@ namespace NR
 		std::vector<BoneInfo> mBoneInfo;
 		ozz::unique_ptr<ozz::animation::Skeleton> mSkeleton;
 
-		// Materials
 		std::vector<Ref<Material>> mMaterials;
 
 		std::unordered_map<uint32_t, std::vector<Triangle>> mTriangleCache;
 
+		AABB mBoundingBox;
+
 		std::string mFilePath;
 
-	private:
 		friend class Scene;
 		friend class Renderer;
 		friend class VKRenderer;
-		friend class GLRenderer;
 		friend class SceneHierarchyPanel;
 		friend class MeshViewerPanel;
 		friend class Mesh;
 	};
 
+	// Dynamic Mesh - supports skeletal animation and retains hierarchy
 	class Mesh : public Asset
 	{
 	public:
 		explicit Mesh(Ref<MeshSource> meshSource);
 		Mesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes);
 		Mesh(const Ref<Mesh>& other);
-		virtual ~Mesh() = default;
+		virtual ~Mesh();
 
 		void UpdateBoneTransforms(const ozz::vector<ozz::math::Float4x4>& modelSpaceTransforms);
 
 		bool IsRigged() { return mMeshSource && mMeshSource->IsRigged(); }
-
 		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
+
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
+
+		// Pass in an empty vector to set ALL submeshes for MeshSource
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
 
 		Ref<MeshSource> GetMeshSource() { return mMeshSource; }
 		Ref<MeshSource> GetMeshSource() const { return mMeshSource; }
-		void SetMeshSource(Ref<MeshSource> meshSource) { mMeshSource = meshSource; }
+		void SetMeshAsset(Ref<MeshSource> meshSource) { mMeshSource = meshSource; }
 
 		Ref<MaterialTable> GetMaterials() const { return mMaterials; }
 
 		static AssetType GetStaticType() { return AssetType::Mesh; }
-		virtual AssetType GetAssetType() const override { return AssetType::Mesh; }
-
-		void AddVertices(const std::vector<Vertex>& vertices, uint32_t index);
-		void AddIndices(const std::vector<int>& indices, uint32_t index);
-		void SetSubmeshesCount(int count);
+		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
 	private:
 		void BoneTransform(float time);
@@ -282,11 +279,9 @@ namespace NR
 		ozz::vector<ozz::math::Float4x4> mBoneTransforms;
 		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
-	private:
 		friend class Scene;
 		friend class Renderer;
 		friend class VKRenderer;
-		friend class GLRenderer;
 		friend class SceneHierarchyPanel;
 		friend class MeshViewerPanel;
 	};
@@ -298,34 +293,33 @@ namespace NR
 		explicit StaticMesh(Ref<MeshSource> meshSource);
 		StaticMesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes);
 		StaticMesh(const Ref<StaticMesh>& other);
-		virtual ~StaticMesh();
+		~StaticMesh() override;
 
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
-		
+
+		// Pass in an empty vector to set ALL submeshes for MeshSource
 		void SetSubmeshes(const std::vector<uint32_t>& submeshes);
-		
+
 		Ref<MeshSource> GetMeshSource() { return mMeshSource; }
 		Ref<MeshSource> GetMeshSource() const { return mMeshSource; }
-		
 		void SetMeshAsset(Ref<MeshSource> meshAsset) { mMeshSource = meshAsset; }
-		
+
 		Ref<MaterialTable> GetMaterials() const { return mMaterials; }
+
 		static AssetType GetStaticType() { return AssetType::StaticMesh; }
-		virtual AssetType GetAssetType() const override { return GetStaticType(); }
-	
+		AssetType GetAssetType() const override { return GetStaticType(); }
+
 	private:
 		Ref<MeshSource> mMeshSource;
 		std::vector<uint32_t> mSubmeshes;
-	
+
 		// Materials
 		Ref<MaterialTable> mMaterials;
 
-	private:
 		friend class Scene;
 		friend class Renderer;
-		friend class VulkanRenderer;
-		friend class OpenGLRenderer;
+		friend class VKRenderer;
 		friend class SceneHierarchyPanel;
 		friend class MeshViewerPanel;
 	};

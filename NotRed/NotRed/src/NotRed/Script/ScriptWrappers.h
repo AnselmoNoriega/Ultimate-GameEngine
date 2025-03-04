@@ -18,7 +18,7 @@ namespace NR::Audio
 	struct Transform;
 }
 
-namespace NR::Script 
+namespace NR::Script
 {
 		// Math
 		float NR_Noise_PerlinNoise(float x, float y);
@@ -74,9 +74,10 @@ namespace NR::Script
 		uint64_t NR_Entity_GetParent(uint64_t entityID);
 		void NR_Entity_SetParent(uint64_t entityID, uint64_t parentID);
 		MonoArray* NR_Entity_GetChildren(uint64_t entityID);
-		uint64_t NR_Entity_CreateEntity();
-		uint64_t NR_Entity_Instantiate(uint64_t prefabID);
-		uint64_t NR_Entity_InstantiateWithTranslation(uint64_t prefabID, glm::vec3* tranlation);
+		uint64_t NR_Entity_CreateEntity(uint64_t entityID);
+		uint64_t NR_Entity_Instantiate(uint64_t entityID, uint64_t prefabID);
+		uint64_t NR_Entity_InstantiateWithPosition(uint64_t entityID, uint64_t prefabID, glm::vec3* inPosition);
+		uint64_t NR_Entity_InstantiateWithTransform(uint64_t entityID, uint64_t prefabID, glm::vec3* inPosition, glm::vec3* inRotation, glm::vec3* inScale);
 		void NR_Entity_DestroyEntity(uint64_t entityID);
 		void NR_Entity_CreateComponent(uint64_t entityID, void* type);
 		bool NR_Entity_HasComponent(uint64_t entityID, void* type);
@@ -87,25 +88,38 @@ namespace NR::Script
 
 		void NR_TransformComponent_GetTransform(uint64_t entityID, TransformComponent* outTransform);
 		void NR_TransformComponent_SetTransform(uint64_t entityID, TransformComponent* inTransform);
-		void NR_TransformComponent_GetTranslation(uint64_t entityID, glm::vec3* outTranslation);
-		void NR_TransformComponent_SetTranslation(uint64_t entityID, glm::vec3* inTranslation);
+		void NR_TransformComponent_GetPosition(uint64_t entityID, glm::vec3* outPosition);
+		void NR_TransformComponent_SetPosition(uint64_t entityID, glm::vec3* inPosition);
 		void NR_TransformComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation);
 		void NR_TransformComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation);
 		void NR_TransformComponent_GetScale(uint64_t entityID, glm::vec3* outScale);
 		void NR_TransformComponent_SetScale(uint64_t entityID, glm::vec3* inScale);
 		void NR_TransformComponent_GetWorldSpaceTransform(uint64_t entityID, TransformComponent* outTransform);
+		void NR_Transform_TransformMultiply(const TransformComponent* a, const TransformComponent* b, TransformComponent* outTransform);
 
-		void* NR_MeshComponent_GetMesh(uint64_t entityID);
-		void NR_MeshComponent_SetMesh(uint64_t entityID, Ref<Mesh>* inMesh);
+		void* NR_MeshComponent_GetMesh(uint64_t entityID, bool* outIsStatic);
+		void NR_MeshComponent_SetMesh(uint64_t entityID, void* in, bool inIsStatic);
 		bool NR_MeshComponent_HasMaterial(uint64_t entityID, int index);
 		Ref<MaterialAsset>* NR_MeshComponent_GetMaterial(uint64_t entityID, int index);
+		bool NR_MeshComponent_GetIsRigged(uint64_t entityID);
+
+		bool NR_AnimationComponent_GetIsAnimationPlaying(uint64_t entityID);
+		void NR_AnimationComponent_SetIsAnimationPlaying(uint64_t entityID, bool value);
+		uint32_t NR_AnimationComponent_GetStateIndex(uint64_t entityID);
+		void NR_AnimationComponent_SetStateIndex(uint64_t entityID, uint32_t value);
+		bool NR_AnimationComponent_GetEnableRootMotion(uint64_t entityID);
+		void NR_AnimationComponent_SetEnableRootMotion(uint64_t entityID, bool value);
+		void NR_AnimationComponent_GetRootMotion(uint64_t entityID, TransformComponent* outTransform);
 
 		MonoObject* NR_ScriptComponent_GetInstance(uint64_t entityID);
 
+		void NR_PointLightComponent_GetRadiance(uint64_t entityID, glm::vec3* outRadiance);
+		void NR_PointLightComponent_SetRadiance(uint64_t entityID, glm::vec3* inRadiance);
+
 		void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
 		void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
-		void NR_RigidBody2DComponent_GetTranslation(uint64_t entityID, glm::vec2* outTranslation);
-		void NR_RigidBody2DComponent_SetTranslation(uint64_t entityID, glm::vec2* inTranslation);
+		void NR_RigidBody2DComponent_GetPosition(uint64_t entityID, glm::vec2* outPosition);
+		void NR_RigidBody2DComponent_SetPosition(uint64_t entityID, glm::vec2* inPosition);
 		void NR_RigidBody2DComponent_GetRotation(uint64_t entityID, float* outRotation);
 		void NR_RigidBody2DComponent_SetRotation(uint64_t entityID, float* inRotation);
 		void NR_RigidBody2DComponent_AddForce(uint64_t entityID, glm::vec2* force, glm::vec2* offset, bool wake);
@@ -121,8 +135,8 @@ namespace NR::Script
 
 		RigidBodyComponent::Type NR_RigidBodyComponent_GetBodyType(uint64_t entityID);
 		void NR_RigidBodyComponent_SetBodyType(uint64_t entityID, RigidBodyComponent::Type type);
-		void NR_RigidBodyComponent_GetTranslation(uint64_t entityID, glm::vec3* outTranslation);
-		void NR_RigidBodyComponent_SetTranslation(uint64_t entityID, glm::vec3* inTranslation);
+		void NR_RigidBodyComponent_GetPosition(uint64_t entityID, glm::vec3* outPosition);
+		void NR_RigidBodyComponent_SetPosition(uint64_t entityID, glm::vec3* inPosition);
 		void NR_RigidBodyComponent_GetRotation(uint64_t entityID, glm::vec3* outRotation);
 		void NR_RigidBodyComponent_SetRotation(uint64_t entityID, glm::vec3* inRotation);
 		void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* inRotation);
@@ -201,9 +215,8 @@ namespace NR::Script
 		bool NR_CapsuleColliderComponent_IsTrigger(uint64_t entityID);
 		void NR_CapsuleColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);
 
-		Ref<Mesh>* NR_MeshColliderComponent_GetColliderMesh(uint64_t entityID);
+		void* NR_MeshColliderComponent_GetColliderMesh(uint64_t entityID, bool* outIsStatic);
 		void NR_MeshColliderComponent_SetColliderMesh(uint64_t entityID, Ref<Mesh>* inMesh);
-		bool NR_MeshColliderComponent_IsConvex(uint64_t entityID);
 		void NR_MeshColliderComponent_SetConvex(uint64_t entityID, bool convex);
 		bool NR_MeshColliderComponent_IsTrigger(uint64_t entityID);
 		void NR_MeshColliderComponent_SetTrigger(uint64_t entityID, bool isTrigger);
@@ -228,11 +241,11 @@ namespace NR::Script
 		void NR_Material_SetTexture(Ref<MaterialAsset>* _this, MonoString* uniform, Ref<Texture2D>* texture);
 
 		// Mesh
-		Ref<Mesh>* NR_Mesh_Constructor(MonoString* filepath);
-		void NR_Mesh_Destructor(Ref<Mesh>* _this);
-		Ref<MaterialAsset>* NR_Mesh_GetMaterial(Ref<Mesh>* inMesh);
-		Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(Ref<Mesh>* inMesh, int index);
-		uint32_t NR_Mesh_GetMaterialCount(Ref<Mesh>* inMesh);
+		void* NR_Mesh_Constructor(MonoString* filepath, bool* outIsStatic);
+		void NR_Mesh_Destructor(void* _this, bool isStatic);
+		Ref<MaterialAsset>* NR_Mesh_GetMaterial(void* inMesh, bool isStatic);
+		Ref<MaterialAsset>* NR_Mesh_GetMaterialByIndex(void* inMesh, int index, bool isStatic);
+		uint32_t NR_Mesh_GetMaterialCount(void* inMesh, bool isStatic);
 
 		void* NR_MeshFactory_CreatePlane(float width, float height);
 
