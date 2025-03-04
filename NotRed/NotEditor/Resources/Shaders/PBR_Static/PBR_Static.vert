@@ -11,11 +11,17 @@
 // - My implementation from years ago in the Sparky engine (https://github.com/TheCherno/Sparky)
 #version 450 core
 
+// Vertex buffer
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aTangent;
 layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
+
+// Transform buffer
+layout(location = 5) in vec4 aMRow0;
+layout(location = 6) in vec4 aMRow1;
+layout(location = 7) in vec4 aMRow2;
 
 layout (std140, binding = 0) uniform Camera
 {
@@ -29,11 +35,6 @@ layout (std140, binding = 1) uniform ShadowData
 {
 	mat4 uLightMatrix[4];
 };
-
-layout (push_constant) uniform Transform
-{
-	mat4 Transform;
-} uRenderer;
 
 struct VertexOutput
 {
@@ -54,11 +55,19 @@ layout (location = 0) out VertexOutput Output;
 
 void main()
 {
-	Output.WorldPosition = vec3(uRenderer.Transform * vec4(aPosition, 1.0));
-    Output.Normal = mat3(uRenderer.Transform) * aNormal;
+	mat4 transform = mat4(
+		vec4(aMRow0.x, aMRow1.x, aMRow2.x, 0.0),
+		vec4(aMRow0.y, aMRow1.y, aMRow2.y, 0.0),
+		vec4(aMRow0.z, aMRow1.z, aMRow2.z, 0.0),
+		vec4(aMRow0.w, aMRow1.w, aMRow2.w, 1.0)
+	);
+
+	//Output.WorldPosition = vec3(u_Renderer.Transform * vec4(aPosition, 1.0));
+	Output.WorldPosition = vec3(transform * vec4(aPosition, 1.0));
+	Output.Normal = mat3(transform) * aNormal;
 	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(aTangent, aBinormal, aNormal);
-	Output.WorldTransform = mat3(uRenderer.Transform);
+	Output.WorldNormals = mat3(transform) * mat3(aTangent, aBinormal, aNormal);
+	Output.WorldTransform = mat3(transform);
 	Output.Binormal = aBinormal;
 
 	Output.CameraView = mat3(uViewMatrix);
@@ -69,5 +78,5 @@ void main()
 	Output.ShadowMapCoords[3] = uLightMatrix[3] * vec4(Output.WorldPosition, 1.0);
 	Output.ViewPosition = vec3(uViewMatrix * vec4(Output.WorldPosition, 1.0));
 	
-	gl_Position = uViewProjectionMatrix * vec4(Output.WorldPosition, 1.0);
+	gl_Position = uViewProjectionMatrix * transform * vec4(aPosition, 1.0);
 }

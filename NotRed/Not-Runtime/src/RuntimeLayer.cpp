@@ -79,12 +79,6 @@ namespace NR
 
 		mRuntimeScene->Update(dt);
 		mRuntimeScene->RenderRuntime(mSceneRenderer, dt);
-
-		if (Input::IsKeyPressed(KeyCode::LeftShift))
-		{
-			using namespace std::chrono_literals;
-			std::this_thread::sleep_for(100ms);
-		}
 	}
 
 	void RuntimeLayer::OpenProject()

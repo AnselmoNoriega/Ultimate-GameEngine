@@ -346,8 +346,6 @@ namespace NR
         bool IsTrigger = false;
         AssetHandle Material;
 
-        Ref<Mesh> DebugMesh;
-
         BoxColliderComponent() = default;
         BoxColliderComponent(const BoxColliderComponent& other) = default;
     };
@@ -361,8 +359,6 @@ namespace NR
 
         bool IsTrigger = false;
         AssetHandle Material;
-
-        Ref<Mesh> DebugMesh;
 
         SphereColliderComponent() = default;
         SphereColliderComponent(const SphereColliderComponent& other) = default;
@@ -378,8 +374,6 @@ namespace NR
 
         bool IsTrigger = false;
         AssetHandle Material;
-
-        Ref<Mesh> DebugMesh;
 
         CapsuleColliderComponent() = default;
         CapsuleColliderComponent(const CapsuleColliderComponent& other) = default;

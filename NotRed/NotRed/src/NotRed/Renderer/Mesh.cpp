@@ -9,7 +9,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <assimp/scene.h>
@@ -45,11 +44,11 @@ namespace NR
         aiProcess_CalcTangentSpace |        // Create binormals/tangents
         aiProcess_Triangulate |             // Make sure we're triangles
         aiProcess_SortByPType |             // Split meshes by primitive type
-        aiProcess_GenNormals |              // Make sure we have normals
+        aiProcess_GenNormals |              // Make sure we have legit normals
         aiProcess_GenUVCoords |             // Convert UVs if required 
         aiProcess_OptimizeMeshes |          // Batch draws where possible
-        aiProcess_JoinIdenticalVertices |   // Remove vertices that are identical
-        aiProcess_LimitBoneWeights |        // If more than 4 bone weights, discard least influencing ones and renormalize sum to 1
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_GlobalScale |           // If more than 4 bone weights, discard least influencing ones and renormalize sum to 1
         aiProcess_ValidateDataStructure;    // Validation
 
     static std::string LevelToSpaces(uint32_t level)
@@ -254,6 +253,10 @@ namespace NR
                         mSkinnedVertices[VertexID].AddBoneData(boneIndex, Weight);
                     }
                 }
+            }
+            for (auto& skinnedVertex : mSkinnedVertices) 
+            {
+                skinnedVertex.NormalizeWeights();
             }
         }
 

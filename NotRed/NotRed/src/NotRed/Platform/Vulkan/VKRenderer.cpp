@@ -307,12 +307,12 @@ namespace NR
         return sData->SelectedDrawCall;
     }
 
-    void VKRenderer::RenderMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<StaticMesh> mesh, Ref<MaterialTable> materialTable, const glm::mat4& transform)
+    void VKRenderer::RenderStaticMesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<StaticMesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, Ref<VertexBuffer> transformBuffer, uint32_t transformOffset, uint32_t instanceCount)
     {
         NR_CORE_VERIFY(mesh);
         NR_CORE_VERIFY(materialTable);
 
-        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, transform, materialTable]() mutable
+        Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, submeshIndex, materialTable, transformBuffer, transformOffset, instanceCount]() mutable
             {
                 NR_PROFILE_FUNC("VKnRenderer::RenderMesh");
                 NR_SCOPE_PERF("VKRenderer::RenderMesh");
@@ -331,6 +331,11 @@ namespace NR
                 VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
                 VkDeviceSize offsets[1] = { 0 };
                 vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
+
+                Ref<VKVertexBuffer> vulkanTransformBuffer = transformBuffer.As<VKVertexBuffer>();
+                VkBuffer vbTransformBuffer = vulkanTransformBuffer->GetVulkanBuffer();
+                VkDeviceSize instanceOffsets[1] = { transformOffset };
+                vkCmdBindVertexBuffers(commandBuffer, 1, 1, &vbTransformBuffer, instanceOffsets);
 
                 auto vulkanMeshIB = Ref<VKIndexBuffer>(meshAsset->GetIndexBuffer());
                 VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();

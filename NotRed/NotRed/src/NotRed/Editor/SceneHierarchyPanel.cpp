@@ -6,7 +6,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <codecvt>
@@ -199,7 +198,6 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
-                                        bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                                         SetSelected(newEntity);
                                     }
                                     if (ImGui::MenuItem("Sphere"))
@@ -208,7 +206,6 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         auto& scc = newEntity.AddComponent<SphereColliderComponent>();
-                                        scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
                                         SetSelected(newEntity);
                                     }
                                     if (ImGui::MenuItem("Capsule"))
@@ -217,7 +214,6 @@ namespace NR
                                         auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrmesh");
                                         newEntity.AddComponent<MeshComponent>(mesh);
                                         CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
-                                        ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                                         SetSelected(newEntity);
                                     }
                                     if (ImGui::MenuItem("Cylinder"))
@@ -541,7 +537,6 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrmesh");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
-                            bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Sphere"))
@@ -551,7 +546,6 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrmesh");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             auto& scc = newEntity.AddComponent<SphereColliderComponent>();
-                            scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Capsule"))
@@ -561,7 +555,6 @@ namespace NR
                             auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrmesh");
                             newEntity.AddComponent<MeshComponent>(mesh);
                             CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
-                            ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                             SetSelected(newEntity);
                         }
                         if (ImGui::MenuItem("Cylinder"))
@@ -1110,7 +1103,6 @@ namespace NR
                     if (ImGui::MenuItem("Box Collider"))
                     {
                         auto& bcc = mSelectionContext.AddComponent<BoxColliderComponent>();
-                        bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
                         ImGui::CloseCurrentPopup();
                     }
                 }
@@ -1119,7 +1111,6 @@ namespace NR
                     if (ImGui::MenuItem("Sphere Collider"))
                     {
                         auto& scc = mSelectionContext.AddComponent<SphereColliderComponent>();
-                        scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
                         ImGui::CloseCurrentPopup();
                     }
                 }
@@ -1128,7 +1119,6 @@ namespace NR
                     if (ImGui::MenuItem("Capsule Collider"))
                     {
                         auto& ccc = mSelectionContext.AddComponent<CapsuleColliderComponent>();
-                        ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                         ImGui::CloseCurrentPopup();
                     }
                 }
@@ -2137,10 +2127,7 @@ namespace NR
             {
                 UI::BeginPropertyGrid();
 
-                if (UI::Property("Size", bcc.Size))
-                {
-                    bcc.DebugMesh = MeshFactory::CreateBox(bcc.Size);
-                }
+                UI::Property("Size", bcc.Size);
 
                 UI::Property("Offset", bcc.Offset);
                 UI::Property("Is Trigger", bcc.IsTrigger);
@@ -2152,11 +2139,7 @@ namespace NR
         DrawComponent<SphereColliderComponent>("Sphere Collider", entity, [](SphereColliderComponent& scc)
             {
                 UI::BeginPropertyGrid();
-
-                if (UI::Property("Radius", scc.Radius))
-                {
-                    scc.DebugMesh = MeshFactory::CreateSphere(scc.Radius);
-                }
+                UI::Property("Radius", scc.Radius);
                 UI::Property("Is Trigger", scc.IsTrigger);
                 UI::PropertyAssetReference<PhysicsMaterial>("Material", scc.Material);
 
@@ -2175,10 +2158,6 @@ namespace NR
                 if (UI::Property("Height", ccc.Height))
                 {
                     changed = true;
-                }
-                if (changed)
-                {
-                    ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
                 }
                 UI::Property("Offset", ccc.Offset);
                 UI::Property("Is Trigger", ccc.IsTrigger);

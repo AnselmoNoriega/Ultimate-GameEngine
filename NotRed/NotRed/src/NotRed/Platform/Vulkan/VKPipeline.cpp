@@ -243,14 +243,27 @@ namespace NR
 				// Vertex input descriptor
 
 				VertexBufferLayout& layout = instance->mSpecification.Layout;
+				VertexBufferLayout& instanceLayout = instance->mSpecification.InstanceLayout;
+
+				std::vector<VkVertexInputBindingDescription> vertexInputBindingDescriptions;
+
+				VkVertexInputBindingDescription& vertexInputBinding = vertexInputBindingDescriptions.emplace_back();
 
 				VkVertexInputBindingDescription vertexInputBinding = {};
 				vertexInputBinding.binding = 0;
 				vertexInputBinding.stride = layout.GetStride();
 				vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
+				if (instanceLayout.GetElementCount())
+				{
+					VkVertexInputBindingDescription& instanceInputBinding = vertexInputBindingDescriptions.emplace_back();
+					instanceInputBinding.binding = 1;
+					instanceInputBinding.stride = instanceLayout.GetStride();
+					instanceInputBinding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+				}
+
 				// Inpute attribute bindings describe shader attribute locations and memory layouts
-				std::vector<VkVertexInputAttributeDescription> vertexInputAttributes(layout.GetElementCount());
+				std::vector<VkVertexInputAttributeDescription> vertexInputAttributes(layout.GetElementCount() + instanceLayout.GetElementCount());
 
 				uint32_t location = 0;
 				for (auto element : layout)
@@ -262,11 +275,20 @@ namespace NR
 					++location;
 				}
 
+				for (auto element : instanceLayout)
+				{
+					vertexInputAttributes[location].binding = 1;
+					vertexInputAttributes[location].location = location;
+					vertexInputAttributes[location].format = ShaderDataTypeToVulkanFormat(element.Type);
+					vertexInputAttributes[location].offset = element.Offset;
+					++location;
+				}
+
 				// Vertex input state used for pipeline creation
 				VkPipelineVertexInputStateCreateInfo vertexInputState = {};
-				vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-				vertexInputState.vertexBindingDescriptionCount = 1;
-				vertexInputState.pVertexBindingDescriptions = &vertexInputBinding;
+				vertexInputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;			
+				vertexInputState.vertexBindingDescriptionCount = (uint32_t)vertexInputBindingDescriptions.size();
+				vertexInputState.pVertexBindingDescriptions = vertexInputBindingDescriptions.data();
 				vertexInputState.vertexAttributeDescriptionCount = (uint32_t)vertexInputAttributes.size();
 				vertexInputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 

@@ -4,7 +4,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "GLFW/include/GLFW/glfw3.h"
@@ -357,7 +356,8 @@ namespace NR
                     }
 
                     ImGui::MenuItem("Audio Events Editor", nullptr, &mShowAudioEventsEditor);
-                    ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);					
+                    ImGui::MenuItem("Asset Manager", nullptr, &mAssetManagerPanelOpen);										
+                    ImGui::MenuItem("Physics", nullptr, &mShowPhysicsPanel);
                     ImGui::MenuItem("ECS Debug", nullptr, &mECSDebugPanelOpen);
 
                     ImGui::PopStyleColor();
@@ -2178,8 +2178,8 @@ namespace NR
             ImGui::PopStyleVar();
         }
 
-        mPanelManager->ImGuiRender();
-        mECSDebugPanel->OnImGuiRender(mECSDebugPanelOpen);
+        mPanelManager->ImGuiRender(); // TODO
+        mECSDebugPanel->ImGuiRender(mECSDebugPanelOpen);
 
         ImGui::Begin("Materials");
         if (mSelectionContext.size())
@@ -2547,13 +2547,31 @@ namespace NR
                 ImVec2 button_size = ImGui::CalcItemSize(ImVec2(0, 0), label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
                 ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 10));
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 6));
-                ImGui::SetNextItemWidth(700 - button_size.x - style.FramePadding.x * 2.0f - style.ItemInnerSpacing.x - 1);
-                ImGui::InputTextWithHint("##notred_install_location", "C:/Dev/NotRed-dev/", sNotRedInstallPath.data(), MAX_PROJECT_FILEPATH_LENGTH, ImGuiInputTextFlags_ReadOnly);
-                ImGui::SameLine();
-                if (ImGui::Button("..."))
+                float inputWidth = 700 - button_size.x - style.FramePadding.x * 2.0f - style.ItemInnerSpacing.x - 1;
+                ImGui::SetNextItemWidth(inputWidth);
+
+                ImVec2 cursorPos = ImGui::GetCursorPos();
+
+                ImGui::InputTextWithHint("##not_red_install_location", "C:/Dev/Not-dev/", sNotRedInstallPath.data(), MAX_PROJECT_FILEPATH_LENGTH, ImGuiInputTextFlags_ReadOnly);
+
+                ImGui::SetItemAllowOverlap();
+                ImGui::SetCursorPos(cursorPos);
+
+                // Assign install path
                 {
-                    std::string result = Application::Get().OpenFolder();
-                    sNotRedInstallPath.assign(result);
+                    bool openBrowseDialog = ImGui::InvisibleButton("##not_red_install_location_button", ImVec2(inputWidth, button_size.y));
+
+                    ImGui::SameLine();
+
+                    openBrowseDialog = openBrowseDialog || ImGui::Button("...");
+                    if (openBrowseDialog)
+                    {
+                        std::string result = Application::Get().OpenFolder();
+                        if (!result.empty())
+                        {
+                            sNotRedInstallPath.assign(result);
+                        }
+                    }
                 }
                 if (ImGui::Button("Confirm"))
                 {

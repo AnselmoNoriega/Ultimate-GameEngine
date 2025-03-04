@@ -53,17 +53,41 @@ namespace NR
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
-			for (size_t i = 0; i < 4; ++i)
+			if (Weight < 0.0f || Weight > 1.0f)
 			{
-				if (Weights[i] == 0.0)
+				NR_CORE_WARN("Vertex bone weight is out of range. We will clamp it to [0, 1] (BoneID={0}, Weight={1})", BoneID, Weight);
+				Weight = std::clamp(Weight, 0.0f, 1.0f);
+			}
+			if (Weight > 0.0f)
+			{
+				for (size_t i = 0; i < 4; ++i)
 				{
-					IDs[i] = BoneID;
-					Weights[i] = Weight;
-					return;
+					if (Weights[i] == 0.0f)
+					{
+						IDs[i] = BoneID;
+						Weights[i] = Weight;
+						return;
+					}
+				}
+
+				NR_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
+			}
+		}
+
+		void NormalizeWeights()
+		{
+			float sumWeights = 0.0f;
+			for (size_t i = 0; i < 4; i++)
+			{
+				sumWeights += Weights[i];
+			}
+			if (sumWeights > 0.0f)
+			{
+				for (size_t i = 0; i < 4; i++)
+				{
+					Weights[i] /= sumWeights;
 				}
 			}
-
-			NR_CORE_WARN("Vertex has more than four bones/weights affecting it, extra data will be discarded (BoneID={0}, Weight={1})", BoneID, Weight);
 		}
 	};
 

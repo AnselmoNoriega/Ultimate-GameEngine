@@ -11,7 +11,7 @@ namespace NR
 		ECSPanel(Ref<Scene> context);
 		~ECSPanel();
 
-		void OnImGuiRender(bool& open);
+		void ImGuiRender(bool& open);
 
 		void SetContext(Ref<Scene> context) { mContext = context; }
 		void SetSelected(Entity entity) { mSelectedEntity = entity; }

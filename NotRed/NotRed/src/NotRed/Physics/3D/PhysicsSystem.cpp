@@ -5,6 +5,7 @@ namespace NR
 {
 	void PhysicsSystem::Init()
 	{
+		sPhysicsMeshCache.Init();
 	}
 
 	void PhysicsSystem::Shutdown()

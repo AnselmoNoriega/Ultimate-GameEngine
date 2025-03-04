@@ -81,11 +81,11 @@ namespace NR
     {
         public Mesh Mesh { get; private set; }
 
-        internal MeshCollider(ulong entityID, IntPtr mesh, bool isTrigger)
+        internal MeshCollider(ulong entityID, bool isTrigger, IntPtr mesh, bool isStatic)
         {
             EntityID = entityID;
             IsTrigger = isTrigger;
-            Mesh = new Mesh(mesh);
+            Mesh = new Mesh(mesh, isStatic);
         }
     }
 }

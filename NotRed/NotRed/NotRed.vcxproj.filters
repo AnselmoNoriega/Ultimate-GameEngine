@@ -889,6 +889,8 @@
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h" />
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActorBase.h" />
     <ClInclude Include="src\NotRed\Editor\ECSPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\EditorPanel.h" />
+    <ClInclude Include="src\NotRed\Editor\PanelManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">

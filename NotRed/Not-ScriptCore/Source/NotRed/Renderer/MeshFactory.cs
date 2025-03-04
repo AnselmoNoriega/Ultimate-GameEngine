@@ -11,7 +11,7 @@ namespace NR
     {
         public static Mesh CreatePlane(float width, float height)
         {
-            return new Mesh(CreatePlane_Native(width, height));
+            return new Mesh(CreatePlane_Native(width, height), true);
         }
 
         public static Mesh CreateCustomMesh(Vertex[][] vertices, int[][] indices, string[] materialNames)

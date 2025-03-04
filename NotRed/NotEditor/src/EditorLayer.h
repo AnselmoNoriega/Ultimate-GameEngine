@@ -115,6 +115,7 @@ namespace NR
 	private:
 		Ref<UserPreferences> mUserPreferences;		
 		Scope<PanelManager> mPanelManager;
+		bool mShowPhysicsPanel = true;
 
 		Scope<ECSPanel> mECSDebugPanel;
 		bool mECSDebugPanelOpen = false;

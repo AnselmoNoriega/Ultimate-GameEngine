@@ -75,8 +75,7 @@ namespace NR
 
         public static int Range(int minValue, int maxValue)
         {
-            return 0;// TODO
+            return ((int)(UInt64() >> 33) % (maxValue - minValue)) + minValue;
         }
-
     }
 }

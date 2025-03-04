@@ -108,7 +108,7 @@ namespace NR
             if (result == CookingResult::Success)
             {
                 NotRedPhysicsMesh nrpm;
-                nrpm.Type = MeshColliderData::ColliderType::Triangle;
+                nrpm.Type = isStaticMesh ? MeshColliderData::ColliderType::Triangle : MeshColliderData::ColliderType::Convex;
                 nrpm.SubmeshCount = (uint32_t)meshData.Submeshes.size();
 
                 std::ofstream stream(filepath, std::ios::binary | std::ios::trunc);
@@ -208,9 +208,14 @@ namespace NR
         {
             MeshColliderData meshData;
             if (isStaticMesh)
+            {
                 result = CookTriangleMesh(mesh.As<StaticMesh>(), meshData);
+            }
             else
+            {
                 result = CookConvexMesh(mesh.As<Mesh>(), meshData);
+            }
+
             if (result == CookingResult::Success)
             {
                 NotRedPhysicsMesh nrpm;

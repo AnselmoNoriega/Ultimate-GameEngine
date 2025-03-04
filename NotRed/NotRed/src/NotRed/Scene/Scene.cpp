@@ -3,7 +3,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <box2d/box2d.h>
@@ -192,10 +191,10 @@ namespace NR
 
 
         // TODO: Obviously not necessary in all cases
-        Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(m_SceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
+        Box2DWorldComponent& b2dWorld = mRegistry.emplace<Box2DWorldComponent>(mSceneEntity, std::make_unique<b2World>(b2Vec2{ 0.0f, -9.8f }));
         b2dWorld.World->SetContactListener(&sBox2DContactListener);
 
-        mRegistry.emplace<PhysicsSceneComponent>(mSceneEntity, Ref<PhysicsScene>::Create(this, Physics::GetSettings()));
+        mRegistry.emplace<PhysicsSceneComponent>(mSceneEntity, Ref<PhysicsScene>::Create(PhysicsManager::GetSettings()));
 
         sActiveScenes[mSceneID] = this;
 

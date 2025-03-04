@@ -3,7 +3,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/common.hpp>
 
@@ -540,7 +539,12 @@ namespace NR::Script
 			return scene->Instantiate(prefab).GetID();
 		}
 
-		uint64_t NR_Entity_InstantiateWithTranslation(uint64_t prefabID, glm::vec3* inTranslation)
+		uint64_t NR_Entity_InstantiateWithTranslation(uint64_t entityID, uint64_t prefabID, glm::vec3* inTranslation)
+		{
+			return NR_Entity_InstantiateWithTransform(entityID, prefabID, inTranslation, nullptr, nullptr);
+		}
+
+		uint64_t NR_Entity_InstantiateWithTransform(uint64_t entityID, uint64_t prefabID, glm::vec3* inTranslation, glm::vec3* inRotation, glm::vec3* inScale)
 		{
 			Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
 
@@ -548,7 +552,7 @@ namespace NR::Script
 				return 0;
 
 			Ref<Prefab> prefab = AssetManager::GetAsset<Prefab>(prefabID);
-			return scene->Instantiate(prefab, inTranslation).GetID();
+			Entity result = scene->Instantiate(prefab, inTranslation, inRotation, inScale);
 		}
 
 		void NR_Entity_DestroyEntity(uint64_t entityID)

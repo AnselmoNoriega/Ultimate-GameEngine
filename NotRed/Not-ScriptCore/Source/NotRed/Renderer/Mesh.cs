@@ -21,17 +21,18 @@ namespace NR
     {
         public Mesh(string filepath)
         {
-            _unmanagedInstance = Constructor_Native(filepath);
+            _unmanagedInstance = Constructor_Native(filepath, ref _isStatic);
         }
 
-        internal Mesh(IntPtr unmanagedInstance)
+        internal Mesh(IntPtr unmanagedInstance, bool isStatic)
         {
             _unmanagedInstance = unmanagedInstance;
+            _isStatic = isStatic;
         }
 
         ~Mesh()
         {
-            Destructor_Native(_unmanagedInstance);
+            Destructor_Native(_unmanagedInstance, _isStatic);
         }
 
         public Vertex[] Vertices
@@ -72,7 +73,7 @@ namespace NR
         {
             get
             {
-                return new Material(GetMaterial_Native(_unmanagedInstance));
+                return new Material(GetMaterial_Native(_unmanagedInstance, _isStatic));
             }
         }
 
@@ -84,7 +85,7 @@ namespace NR
 
         public Material GetMaterial(int index)
         {
-            IntPtr result = GetMaterialByIndex_Native(_unmanagedInstance, index);
+            IntPtr result = GetMaterialByIndex_Native(_unmanagedInstance, index, _isStatic);
             if (result == null)
             {
                 return null;
@@ -120,17 +121,11 @@ namespace NR
 
         public int GetMaterialCount()
         {
-            return GetMaterialCount_Native(_unmanagedInstance);
+            return GetMaterialCount_Native(_unmanagedInstance, _isStatic);
         }
 
         internal IntPtr _unmanagedInstance;
-
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern IntPtr Constructor_Native(string filepath);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern void Destructor_Native(IntPtr unmanagedInstance);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern IntPtr GetMaterial_Native(IntPtr unmanagedInstance);
+        internal bool _isStatic = true;
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern byte[] GetVertices_Native(IntPtr unmanagedInstance);
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -143,10 +138,16 @@ namespace NR
         public static extern int GetSubMeshCount_Native(IntPtr unmanagedInstance);
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern void SetSubMeshCount_Native(IntPtr unmanagedInstance, int count);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern IntPtr GetMaterialByIndex_Native(IntPtr unmanagedInstance, int index);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        public static extern int GetMaterialCount_Native(IntPtr unmanagedInstance);
 
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern IntPtr Constructor_Native(string filepath, ref bool outIsStatic);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern void Destructor_Native(IntPtr unmanagedInstance, bool isStatic);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern IntPtr GetMaterial_Native(IntPtr unmanagedInstance, bool isStatic);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern IntPtr GetMaterialByIndex_Native(IntPtr unmanagedInstance, int index, bool isStatic);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        public static extern int GetMaterialCount_Native(IntPtr unmanagedInstance, bool isStatic);
     }
 }

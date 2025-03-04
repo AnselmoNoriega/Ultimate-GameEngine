@@ -18,8 +18,8 @@ namespace NR
 {
 	static ContactListener sContactListener;
 
-	PhysicsScene::PhysicsScene(const Ref<Scene>& scene, const PhysicsSettings& settings)
-		: mEntityScene(scene), mSubStepSize(settings.FixedDeltaTime)
+	PhysicsScene::PhysicsScene(const PhysicsSettings& settings)
+		: mSubStepSize(settings.FixedDeltaTime)
 	{
 		physx::PxSceneDesc sceneDesc(PhysicsInternal::GetPhysicsSDK().getTolerancesScale());
 		sceneDesc.flags |= physx::PxSceneFlag::eENABLE_CCD | physx::PxSceneFlag::eENABLE_PCM;
@@ -49,8 +49,6 @@ namespace NR
 		mPhysicsControllerManager->release();
 		mPhysicsScene->release();
 		mPhysicsScene = nullptr;
-
-		mEntityScene = nullptr;
 	}
 
 	void PhysicsScene::Simulate(float dt)
@@ -101,8 +99,14 @@ namespace NR
 
 		for (uint32_t i = 0; i < mNumSubSteps; ++i)
 		{
-			mPhysicsScene->simulate(mSubStepSize);
-			mPhysicsScene->fetchResults(true);
+			{
+				NR_PROFILE_FUNC("PxScene::simulate");
+				mPhysicsScene->simulate(mSubStepSize, nullptr);
+			}
+			{
+				NR_PROFILE_FUNC("PxScene::fetchResults");
+				mPhysicsScene->fetchResults(true);
+			}
 		}
 
 		return mNumSubSteps != 0;
@@ -478,9 +482,16 @@ namespace NR
 		return result;
 	}
 
-	void PhysicsScene::ImGuiRender()
+	void PhysicsScene::ImGuiRender(bool& show)
 	{
-		ImGui::Begin("Physics Stats");
+		NR_PROFILE_FUNC();
+
+		if (!show)
+		{
+			return;
+		}
+
+		ImGui::Begin("Physics Stats", &show);
 
 		if (IsValid())
 		{
@@ -625,8 +636,10 @@ namespace NR
 		ImGui::End();
 	}
 
-	void PhysicsScene::InitializeScene()
+	void PhysicsScene::InitializeScene(const Ref<Scene>& scene)
 	{
+		mEntityScene = scene;
+
 		{
 			auto view = mEntityScene->GetAllEntitiesWith<RigidBodyComponent>();
 
@@ -724,6 +737,8 @@ namespace NR
 
 		mControllers.clear();
 		mActors.clear();
+
+		mEntityScene = nullptr;
 	}
 
 	void PhysicsScene::CreateRegions()

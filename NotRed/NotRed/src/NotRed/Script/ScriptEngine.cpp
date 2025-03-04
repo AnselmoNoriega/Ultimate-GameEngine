@@ -411,7 +411,10 @@ namespace NR
 	void ScriptEngine::SetSceneContext(const Ref<Scene>& scene)
 	{
 		sClasses.clear();
-		sEntityInstanceMap.clear();
+		if (!scene)
+		{
+			sEntityInstanceMap.clear();
+		}
 		sSceneContext = scene;
 	}
 

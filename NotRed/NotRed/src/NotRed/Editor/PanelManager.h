@@ -83,12 +83,14 @@ namespace NR
 			mPanels.erase(id);
 		}
 
-		void OnImGuiRender()
+		void ImGuiRender()
 		{
 			for (auto& [id, panelData] : mPanels)
 			{
 				if (panelData.IsOpen)
-					panelData.Panel->OnImGuiRender(panelData.IsOpen);
+				{
+					panelData.Panel->ImGuiRender(panelData.IsOpen);
+				}
 			}
 		}
 
@@ -107,7 +109,9 @@ namespace NR
 		void OnProjectChanged(const Ref<Project>& project)
 		{
 			for (auto& [id, panelData] : mPanels)
-				panelData.Panel->OnProjectChanged(project);
+			{
+				panelData.Panel->ProjectChanged(project);
+			}
 		}
 
 		std::unordered_map<uint32_t, PanelData>& GetPanels() { return mPanels; }

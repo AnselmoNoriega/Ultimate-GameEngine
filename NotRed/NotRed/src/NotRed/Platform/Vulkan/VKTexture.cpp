@@ -53,7 +53,6 @@ namespace NR
         : mPath(path), mProperties(properties)
     {
         bool loaded = LoadImage(path);
-        NR_CORE_ASSERT(loaded);
         if (loaded)
         {
             ImageSpecification imageSpec;
@@ -127,7 +126,6 @@ namespace NR
             mFormat = ImageFormat::RGBA;
         }
 
-        NR_CORE_ASSERT(mImageData.Data, "Failed to load image!");
         if (!mImageData.Data)
         {
             return false;

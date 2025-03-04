@@ -4,9 +4,11 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "NotRed/Asset/AssetManager.h"
+
 namespace NR
 {
-	Ref<Mesh> MeshFactory::CreateBox(const glm::vec3& size)
+	AssetHandle MeshFactory::CreateBox(const glm::vec3& size)
 	{
 		std::vector<Vertex> vertices;
 		vertices.resize(8);
@@ -43,10 +45,12 @@ namespace NR
 		indices[10] = { 3, 2, 6 };
 		indices[11] = { 6, 7, 3 };
 
-		return Ref<Mesh>::Create(Ref<MeshSource>::Create(vertices, indices, glm::mat4(1.0f)));
+		AssetHandle meshSourceHandle = AssetManager::CreateMemoryOnlyAsset<MeshSource>(vertices, indices, glm::mat4(1.0f));
+		Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
+		return AssetManager::CreateMemoryOnlyAsset<StaticMesh>(meshSource);
 	}
 
-	Ref<Mesh> MeshFactory::CreateSphere(float radius)
+	AssetHandle MeshFactory::CreateSphere(float radius)
 	{
 		std::vector<Vertex> vertices;
 		std::vector<Index> indices;
@@ -85,7 +89,9 @@ namespace NR
 			}
 		}
 
-		return Ref<Mesh>::Create(Ref<MeshSource>::Create(vertices, indices, glm::mat4(1.0f)));
+		AssetHandle meshSourceHandle = AssetManager::CreateMemoryOnlyAsset<MeshSource>(vertices, indices, glm::mat4(1.0f));
+		Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
+		return AssetManager::CreateMemoryOnlyAsset<StaticMesh>(meshSource);
 	}
 
 	static void CalculateRing(size_t segments, float radius, float y, float dy, float height, float actualRadius, std::vector<Vertex>& vertices)
@@ -101,7 +107,7 @@ namespace NR
 		}
 	}
 
-	Ref<Mesh> MeshFactory::CreateCapsule(float radius, float height)
+	AssetHandle MeshFactory::CreateCapsule(float radius, float height)
 	{
 		constexpr size_t subdivisionsHeight = 8;
 		constexpr size_t ringsBody = subdivisionsHeight + 1;
@@ -146,6 +152,8 @@ namespace NR
 			}
 		}
 
-		return Ref<Mesh>::Create(Ref<MeshSource>::Create(vertices, indices, glm::mat4(1.0f)));
+		AssetHandle meshSourceHandle = AssetManager::CreateMemoryOnlyAsset<MeshSource>(vertices, indices, glm::mat4(1.0f));
+		Ref<MeshSource> meshSource = AssetManager::GetAsset<MeshSource>(meshSourceHandle);
+		return AssetManager::CreateMemoryOnlyAsset<StaticMesh>(meshSource);
 	}
 }

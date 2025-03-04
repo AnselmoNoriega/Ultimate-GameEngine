@@ -10,9 +10,15 @@ namespace NR
 	class PhysicsMeshCache
 	{
 	public:
+		void Init();
+
 		const MeshColliderData& GetMeshData(AssetHandle collisionMesh);
 		Ref<Mesh> GetDebugMesh(AssetHandle collisionMesh);
 		Ref<StaticMesh> GetDebugStaticMesh(AssetHandle collisionMesh);
+
+		AssetHandle GetBoxDebugMesh() const { return mBoxMesh; }
+		AssetHandle GetSphereDebugMesh() const { return mSphereMesh; }
+		AssetHandle GetCapsuleDebugMesh() const { return mCapsuleMesh; }
 
 		bool Exists(AssetHandle collisionMesh);
 
@@ -23,6 +29,8 @@ namespace NR
 		// Editor-only
 		std::map<AssetHandle, Ref<StaticMesh>> mDebugStaticMeshes;
 		std::map<AssetHandle, Ref<Mesh>> mDebugMeshes;
+
+		AssetHandle mBoxMesh = 0, mSphereMesh = 0, mCapsuleMesh = 0;
 
 		friend class CookingFactory;
 	};

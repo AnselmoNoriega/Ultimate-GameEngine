@@ -14,7 +14,7 @@ namespace NR
 	{
 	}
 
-	void ECSPanel::OnImGuiRender(bool& open)
+	void ECSPanel::ImGuiRender(bool& open)
 	{
 		if (!open)
 		{

@@ -131,13 +131,15 @@ namespace NR
         {
             get
             {
-                Mesh result = new Mesh(GetMesh_Native(Entity.ID));
+                bool isStatic = true;
+                IntPtr mesh = GetMesh_Native(Entity.ID, ref isStatic);
+                Mesh result = new Mesh(mesh, isStatic);
                 return result;
             }
             set
             {
                 IntPtr ptr = value == null ? IntPtr.Zero : value._unmanagedInstance;
-                SetMesh_Native(Entity.ID, ptr);
+                SetMesh_Native(Entity.ID, ptr, value._isStatic);
             }
         }
 
@@ -170,10 +172,10 @@ namespace NR
         }
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern IntPtr GetMesh_Native(ulong entityID);
+        internal static extern IntPtr GetMesh_Native(ulong entityID, ref bool isStatic);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetMesh_Native(ulong entityID, IntPtr unmanagedInstance);
+        internal static extern void SetMesh_Native(ulong entityID, IntPtr unmanagedInstance, bool isStatic);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         public static extern bool GetIsRigged_Native(ulong entityID);
@@ -918,7 +920,9 @@ namespace NR
         {
             get
             {
-                Mesh result = new Mesh(GetColliderMesh_Native(Entity.ID));
+                bool isStatic = true;
+                IntPtr mesh = GetColliderMesh_Native(Entity.ID, ref isStatic);
+                Mesh result = new Mesh(mesh, isStatic);
                 return result;
             }
             /*set
@@ -942,9 +946,9 @@ namespace NR
 
 
         [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern IntPtr GetColliderMesh_Native(ulong entityID);
-        [MethodImpl(MethodImplOptions.InternalCall)]
-        internal static extern void SetColliderMesh_Native(ulong entityID, IntPtr mesh);
+        internal static extern IntPtr GetColliderMesh_Native(ulong entityID, ref bool outIsStatic);
+        [MethodImpl(MethodImplOptions.InternalCall)] 
+        internal static extern void SetColliderMesh_Native(ulong entityID, IntPtr mesh, bool isStatic);
 
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern bool IsConvex_Native(ulong entityID);

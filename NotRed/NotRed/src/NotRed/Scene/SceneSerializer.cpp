@@ -3,7 +3,6 @@
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
@@ -1130,8 +1129,6 @@ namespace NR
 						NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
 					}
 				}
-
-				component.DebugMesh = MeshFactory::CreateBox(component.Size);
 			}
 
 			auto sphereColliderComponent = entity["SphereColliderComponent"];
@@ -1153,8 +1150,6 @@ namespace NR
 						NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
 					}
 				}
-
-				component.DebugMesh = MeshFactory::CreateSphere(component.Radius);
 			}
 
 			auto capsuleColliderComponent = entity["CapsuleColliderComponent"];
@@ -1178,8 +1173,6 @@ namespace NR
 						NR_CORE_ERROR("Tried to load invalid Physics Material in Entity {0}", deserializedEntity.GetID());
 					}
 				}
-
-				component.DebugMesh = MeshFactory::CreateCapsule(component.Radius, component.Height);
 			}
 
 			auto meshColliderComponent = entity["MeshColliderComponent"];

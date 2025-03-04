@@ -2,9 +2,17 @@
 #include "PhysicsMeshCache.h"
 
 #include "NotRed/Asset/AssetManager.h"
+#include "NotRed/Renderer/MeshFactory.h"
 
 namespace NR
 {
+	void PhysicsMeshCache::Init()
+	{
+		mBoxMesh = MeshFactory::CreateBox(glm::vec3(1));
+		mSphereMesh = MeshFactory::CreateSphere(0.5f);
+		mCapsuleMesh = MeshFactory::CreateCapsule(0.5f, 1.0f);
+	}
+
 	const MeshColliderData& PhysicsMeshCache::GetMeshData(AssetHandle collisionMesh)
 	{
 		if (mMeshData.find(collisionMesh) != mMeshData.end())
@@ -48,6 +56,7 @@ namespace NR
 	{
 		mMeshData.clear();
 
+		mDebugStaticMeshes.clear();
 		mDebugMeshes.clear();
 	}
 }

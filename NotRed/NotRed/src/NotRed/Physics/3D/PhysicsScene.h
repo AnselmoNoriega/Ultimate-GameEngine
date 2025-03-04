@@ -28,7 +28,7 @@ namespace NR
 	class PhysicsScene : public RefCounted
 	{
 	public:
-		PhysicsScene(const Ref<Scene>& scene, const PhysicsSettings& settings);
+		PhysicsScene(const PhysicsSettings& settings);
 		~PhysicsScene();
 
 		void Simulate(float dt);
@@ -68,10 +68,10 @@ namespace NR
 		const Ref<Scene>& GetEntityScene() const { return mEntityScene; }
 		Ref<Scene> GetEntityScene() { return mEntityScene; }
 
-		void ImGuiRender();
+		void ImGuiRender(bool& show);
 
 	private:
-		void InitializeScene();
+		void InitializeScene(const Ref<Scene>& scene);
 		void Clear();
 
 		void CreateRegions();

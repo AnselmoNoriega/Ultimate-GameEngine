@@ -118,7 +118,7 @@ layout(std140, binding = 17) uniform HBAOData
 
 layout(push_constant) uniform Material
 {
-	layout(offset = 64) vec3 AlbedoColor;
+	vec3 AlbedoColor;
 	float Metalness;
 	float Roughness;
 	float Emission;

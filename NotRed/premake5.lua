@@ -231,9 +231,9 @@ project "NotEditor"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.ImGuiNodeEditor}",
 		"%{IncludeDir.Vulkan}",
-		"%{IncludeDir.Glad}",
 		"%{IncludeDir.MiniAudio}",
 		"%{IncludeDir.Farbot}",
+		"%{IncludeDir.Optick}",
 		"%{IncludeDir.Yaml}",
 		"%{IncludeDir.Ozz}"
 	}
@@ -448,7 +448,7 @@ project "Not-Runtime"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.ImGuiNodeEditor}",
 		"%{IncludeDir.Vulkan}",
-		"%{IncludeDir.Glad}",
+		"%{IncludeDir.Optick}"
 		"%{IncludeDir.Ozz}"
 	}
 	postbuildcommands 

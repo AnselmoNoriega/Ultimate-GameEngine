@@ -219,12 +219,14 @@
     <ClInclude Include="src\NotRed\Editor\EditorConsole\ConsoleMessage.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsole\EditorConsoleSink.h" />
     <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h" />
+    <ClInclude Include="src\NotRed\Editor\EditorPanel.h" />
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeEditorModel.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphAsset.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\NodeGraphEditor.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\Nodes.h" />
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\PropertySet.h" />
+    <ClInclude Include="src\NotRed\Editor\PanelManager.h" />
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="src\NotRed\EntryPoint.h" />
     <ClInclude Include="src\NotRed\ImGui\Colors.h" />
