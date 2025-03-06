@@ -100,7 +100,9 @@ namespace NR
 					MouseZoom(delta.x + delta.y);
 				}
 				else
+				{
 					EnableMouse();
+				}
 			}
 			else
 			{
@@ -114,7 +116,9 @@ namespace NR
 		mPitch += mPitchDelta;
 
 		if (mCameraMode == CameraMode::ARCBALL)
+		{
 			mPosition = CalculatePosition();
+		}
 
 		UpdateCameraView();
 	}
@@ -212,15 +216,15 @@ namespace NR
 			if (e.GetKeyCode() == KeyCode::LeftShift)
 			{
 				mLastSpeed = mSpeed;
-				mSpeed *= 2.0f - glm::log(mSpeed);
+				mSpeed *= 10.0f - glm::log(mSpeed);
 			}
 			if (e.GetKeyCode() == KeyCode::LeftControl)
 			{
 				mLastSpeed = mSpeed;
-				mSpeed /= 2.0f - glm::log(mSpeed);
+				mSpeed /= 10.0f - glm::log(mSpeed);
 			}
 
-			mSpeed = glm::clamp(mSpeed, 0.0005f, 2.0f);
+			mSpeed = glm::clamp(mSpeed, 0.0005f, 10.0f);
 		}
 		return true;
 	}
@@ -234,7 +238,7 @@ namespace NR
 				mSpeed = mLastSpeed;
 				mLastSpeed = 0.0f;
 			}
-			mSpeed = glm::clamp(mSpeed, 0.0005f, 2.0f);
+			mSpeed = glm::clamp(mSpeed, 0.0005f, 10.0f);
 		}
 		return true;
 	}

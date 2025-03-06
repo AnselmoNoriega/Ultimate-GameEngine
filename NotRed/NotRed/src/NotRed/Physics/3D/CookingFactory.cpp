@@ -170,7 +170,7 @@ namespace NR
 
 	CookingResult CookingFactory::CookConvexMesh(const Ref<Mesh>& mesh, MeshColliderData& outData)
 	{
-		const auto& vertices = mesh->GetMeshSource()->GetStaticVertices();
+		const auto& vertices = mesh->GetMeshSource()->GetVertices();
 		const auto& indices = mesh->GetMeshSource()->GetIndices();
 		const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
 
@@ -206,7 +206,7 @@ namespace NR
 
 	CookingResult CookingFactory::CookTriangleMesh(const Ref<StaticMesh>& staticMesh, MeshColliderData& outData)
 	{
-		const auto& vertices = staticMesh->GetMeshSource()->GetStaticVertices();
+		const auto& vertices = staticMesh->GetMeshSource()->GetVertices();
 		const std::vector<Index>& indices = staticMesh->GetMeshSource()->GetIndices();
 
 		const auto& submeshes = staticMesh->GetMeshSource()->GetSubmeshes();

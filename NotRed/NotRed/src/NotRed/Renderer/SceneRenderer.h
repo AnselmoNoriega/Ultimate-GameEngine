@@ -49,7 +49,7 @@ namespace NR
 		float Threshold = 1.0f;
 		float Knee = 0.1f;
 		float UpsampleScale = 1.0f;
-		float Intensity = 1.0f;
+		float Intensity = 0.05f;
 		float DirtIntensity = 1.0f;
 	};
 

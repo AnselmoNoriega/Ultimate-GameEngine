@@ -91,28 +91,23 @@ namespace NR
 			mLightCullingPipeline = PipelineCompute::Create(lightCullingShader);
 		}
 
-		VertexBufferLayout staticVertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tangent" },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" }
-		};
-
-		VertexBufferLayout animatedVertexLayout = {
-			{ ShaderDataType::Float3, "a_Position" },
-			{ ShaderDataType::Float3, "a_Normal" },
-			{ ShaderDataType::Float3, "a_Tangent" },
-			{ ShaderDataType::Float3, "a_Binormal" },
-			{ ShaderDataType::Float2, "a_TexCoord" },
-			{ ShaderDataType::Int4,   "a_BoneIDs" },
-			{ ShaderDataType::Float4, "a_BoneWeights" },
+		VertexBufferLayout vertexLayout = {
+			{ ShaderDataType::Float3, "aPosition" },
+			{ ShaderDataType::Float3, "aNormal" },
+			{ ShaderDataType::Float3, "aTangent" },
+			{ ShaderDataType::Float3, "aBinormal" },
+			{ ShaderDataType::Float2, "aTexCoord" }
 		};
 
 		VertexBufferLayout instanceLayout = {
-			{ ShaderDataType::Float4, "a_MRow0" },
-			{ ShaderDataType::Float4, "a_MRow1" },
-			{ ShaderDataType::Float4, "a_MRow2" },
+			{ ShaderDataType::Float4, "aMRow0" },
+			{ ShaderDataType::Float4, "aMRow1" },
+			{ ShaderDataType::Float4, "aMRow2" },
+		};
+
+		VertexBufferLayout boneInfluenceLayout = {
+			{ ShaderDataType::Int4,   "aBoneIDs" },
+			{ ShaderDataType::Float4, "aBoneWeights" },
 		};
 
 		// Shadow pass
@@ -143,13 +138,14 @@ namespace NR
 			PipelineSpecification pipelineSpec;
 			pipelineSpec.DebugName = "ShadowPass";
 			pipelineSpec.Shader = shadowPassShader;
-			pipelineSpec.Layout = staticVertexLayout;
+			pipelineSpec.Layout = vertexLayout;
 			pipelineSpec.InstanceLayout = instanceLayout;
 			PipelineSpecification pipelineSpecAnim;
 			pipelineSpecAnim.DebugName = "ShadowPass-Anim";
 			pipelineSpecAnim.Shader = shadowPassShaderAnim;
-			pipelineSpecAnim.Layout = animatedVertexLayout;
+			pipelineSpecAnim.Layout = vertexLayout;
 			pipelineSpecAnim.InstanceLayout = instanceLayout;
+			pipelineSpecAnim.BoneInfluencesLayout = boneInfluenceLayout;
 
 			// 4 cascades
 			for (int i = 0; i < 4; i++)
@@ -186,7 +182,7 @@ namespace NR
 			pipelineSpec.DebugName = "PreDepth";
 
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth");
-			pipelineSpec.Layout = staticVertexLayout;
+			pipelineSpec.Layout = vertexLayout;
 			pipelineSpec.InstanceLayout = instanceLayout;
 			pipelineSpec.RenderPass = RenderPass::Create(preDepthRenderPassSpec);
 			mPreDepthPipeline = Pipeline::Create(pipelineSpec);
@@ -194,7 +190,7 @@ namespace NR
 
 			pipelineSpec.DebugName = "PreDepth_Anim";
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth_Anim");
-			pipelineSpec.Layout = animatedVertexLayout;
+			pipelineSpec.BoneInfluencesLayout = boneInfluenceLayout;
 			mPreDepthPipelineAnim = Pipeline::Create(pipelineSpec);
 		}
 
@@ -215,7 +211,7 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = "PBR-Static";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
-			pipelineSpecification.Layout = staticVertexLayout;
+			pipelineSpecification.Layout = vertexLayout;
 			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.LineWidth = mLineWidth;
 			pipelineSpecification.RenderPass = renderPass;
@@ -223,7 +219,7 @@ namespace NR
 
 			pipelineSpecification.DebugName = "PBR-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Anim");
-			pipelineSpecification.Layout = animatedVertexLayout;
+			pipelineSpecification.BoneInfluencesLayout = boneInfluenceLayout;
 			mGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryPipeline
 		}
 
@@ -244,7 +240,7 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = "SelectedGeometry";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry");
-			pipelineSpecification.Layout = staticVertexLayout;
+			pipelineSpecification.Layout = vertexLayout;
 			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 			mSelectedGeometryPipeline = Pipeline::Create(pipelineSpecification);
@@ -252,7 +248,7 @@ namespace NR
 
 			pipelineSpecification.DebugName = "SelectedGeometry-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry_Anim");
-			pipelineSpecification.Layout = animatedVertexLayout;
+			pipelineSpecification.BoneInfluencesLayout = boneInfluenceLayout;
 			mSelectedGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mSelectedGeometryPipeline
 		}
 
@@ -298,8 +294,8 @@ namespace NR
 
 			pipelineSpec.Shader = shader;
 			pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" }
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" }
 			};
 
 			// 2 frame buffers, 2 render passes .. 8 attachments each
@@ -356,8 +352,8 @@ namespace NR
 			Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("Reinterleaving");
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" },
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" },
 			};
 			pipelineSpecification.BackfaceCulling = false;
 
@@ -380,8 +376,8 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DepthWrite = false;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" },
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" },
 			};
 			pipelineSpecification.BackfaceCulling = false;
 
@@ -443,8 +439,8 @@ namespace NR
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" }
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" }
 			};
 			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
@@ -473,8 +469,8 @@ namespace NR
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" }
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" }
 			};
 			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("DOF");
@@ -516,7 +512,7 @@ namespace NR
 			pipelineSpecification.DepthTest = true;
 			pipelineSpecification.LineWidth = 2.0f;
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe");
-			pipelineSpecification.Layout = staticVertexLayout;
+			pipelineSpecification.Layout = vertexLayout;
 			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.RenderPass = mExternalCompositeRenderPass;
 			mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
@@ -528,8 +524,7 @@ namespace NR
 			pipelineSpecification.DepthTest = true;
 			pipelineSpecification.DebugName = "Wireframe-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe_Anim");
-			pipelineSpecification.Layout = animatedVertexLayout;
-			pipelineSpecification.InstanceLayout = instanceLayout;
+			pipelineSpecification.BoneInfluencesLayout = boneInfluenceLayout;
 			mGeometryWireframePipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryWireframePipeline
 
 			pipelineSpecification.DepthTest = false;
@@ -559,8 +554,8 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = renderPassSpec.DebugName;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" }
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" }
 			};
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Init");
@@ -598,8 +593,8 @@ namespace NR
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Grid");
 			pipelineSpec.BackfaceCulling = false;
 			pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" }
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" }
 			};
 			pipelineSpec.RenderPass = mGeometryPipeline->GetSpecification().RenderPass;
 			mGridPipeline = Pipeline::Create(pipelineSpec);
@@ -630,8 +625,8 @@ namespace NR
 			pipelineSpec.DebugName = "Skybox";
 			pipelineSpec.Shader = skyboxShader;
 			pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "a_Position" },
-				{ ShaderDataType::Float2, "a_TexCoord" }
+				{ ShaderDataType::Float3, "aPosition" },
+				{ ShaderDataType::Float2, "aTexCoord" }
 			};
 			pipelineSpec.RenderPass = mGeometryPipeline->GetSpecification().RenderPass;
 			mSkyboxPipeline = Pipeline::Create(pipelineSpec);

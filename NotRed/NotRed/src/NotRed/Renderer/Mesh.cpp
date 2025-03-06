@@ -213,17 +213,11 @@ namespace NR
 				}
 
 				if (mesh->HasTextureCoords(0))
+				{
 					vertex.Texcoord = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y };
+				}
 
-				if (IsRigged())
-				{
-					mStaticVertices.push_back(vertex);   // Rigged meshes currently need both a set of static vertices (e.g. for physics mesh collider, and for "triangle cache" which is used for mouse picking), 
-					mSkinnedVertices.push_back(vertex);  // and a set of skinned vertices.    TODO: think about this a bit more.  Obvs. preference is to not duplicate all this data
-				}
-				else
-				{
-					mStaticVertices.push_back(vertex);
-				}
+				mVertices.push_back(vertex);
 			}
 
 			// Indices
@@ -233,7 +227,7 @@ namespace NR
 				Index index = { mesh->mFaces[i].mIndices[0], mesh->mFaces[i].mIndices[1], mesh->mFaces[i].mIndices[2] };
 				mIndices.push_back(index);
 
-				mTriangleCache[m].emplace_back(mStaticVertices[index.V1 + submesh.BaseVertex], mStaticVertices[index.V2 + submesh.BaseVertex], mStaticVertices[index.V3 + submesh.BaseVertex]);
+				mTriangleCache[m].emplace_back(mVertices[index.V1 + submesh.BaseVertex], mVertices[index.V2 + submesh.BaseVertex], mVertices[index.V3 + submesh.BaseVertex]);
 			}
 		}
 
@@ -261,6 +255,7 @@ namespace NR
 		// Bones
 		if (IsRigged())
 		{
+			mBoneInfluences.resize(mVertices.size());
 			for (uint32_t m = 0; m < scene->mNumMeshes; m++)
 			{
 				aiMesh* mesh = scene->mMeshes[m];
@@ -317,13 +312,14 @@ namespace NR
 					{
 						int VertexID = submesh.BaseVertex + bone->mWeights[j].mVertexId;
 						float Weight = bone->mWeights[j].mWeight;
-						mSkinnedVertices[VertexID].AddBoneData(boneIndex, Weight);
+						mBoneInfluences[VertexID].AddBoneData(boneIndex, Weight);
 					}
 				}
 			}
 
-			for (auto& skinnedVertex : mSkinnedVertices) {
-				skinnedVertex.NormalizeWeights();
+			for (auto& boneInfluence : mBoneInfluences) 
+			{
+				boneInfluence.NormalizeWeights();
 			}
 		}
 
@@ -609,20 +605,17 @@ namespace NR
 			mMaterials.push_back(mi);
 		}
 
+		mVertexBuffer = VertexBuffer::Create(mVertices.data(), (uint32_t)(mVertices.size() * sizeof(Vertex)));
 		if (IsRigged())
 		{
-			mVertexBuffer = VertexBuffer::Create(mSkinnedVertices.data(), (uint32_t)(mSkinnedVertices.size() * sizeof(SkinnedVertex)));
-		}
-		else
-		{
-			mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
+			mBoneInfluencesBuffer = VertexBuffer::Create(mBoneInfluences.data(), (uint32_t)(mBoneInfluences.size() * sizeof(BoneInfluence)));
 		}
 
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
 	}
 
 	MeshSource::MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const glm::mat4& transform)
-		: mStaticVertices(vertices), mIndices(indices)
+		: mVertices(vertices), mIndices(indices)
 	{
 		Submesh submesh;
 		submesh.BaseVertex = 0;
@@ -631,15 +624,15 @@ namespace NR
 		submesh.Transform = transform;
 		mSubmeshes.push_back(submesh);
 
-		mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
+		mVertexBuffer = VertexBuffer::Create(mVertices.data(), (uint32_t)(mVertices.size() * sizeof(Vertex)));
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
 	}
 
 
 	MeshSource::MeshSource(const std::vector<Vertex>& vertices, const std::vector<Index>& indices, const std::vector<Submesh>& submeshes)
-		: mStaticVertices(vertices), mIndices(indices), mSubmeshes(submeshes)
+		: mVertices(vertices), mIndices(indices), mSubmeshes(submeshes)
 	{
-		mVertexBuffer = VertexBuffer::Create(mStaticVertices.data(), (uint32_t)(mStaticVertices.size() * sizeof(Vertex)));
+		mVertexBuffer = VertexBuffer::Create(mVertices.data(), (uint32_t)(mVertices.size() * sizeof(Vertex)));
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
 	}
 
@@ -712,33 +705,16 @@ namespace NR
 		NR_MESH_LOG("------------------------------------------------------");
 		NR_MESH_LOG("Vertex Buffer Dump");
 		NR_MESH_LOG("Mesh: {0}", mFilePath);
-		if (IsRigged())
+		for (size_t i = 0; i < mVertices.size(); i++)
 		{
-			for (size_t i = 0; i < mSkinnedVertices.size(); ++i)
-			{
-				auto& vertex = mSkinnedVertices[i];
-				NR_MESH_LOG("Vertex: {0}", i);
-				NR_MESH_LOG("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
-				NR_MESH_LOG("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
-				NR_MESH_LOG("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
-				NR_MESH_LOG("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
-				NR_MESH_LOG("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
-				NR_MESH_LOG("--");
-			}
-		}
-		else
-		{
-			for (size_t i = 0; i < mStaticVertices.size(); ++i)
-			{
-				auto& vertex = mStaticVertices[i];
-				NR_MESH_LOG("Vertex: {0}", i);
-				NR_MESH_LOG("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
-				NR_MESH_LOG("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
-				NR_MESH_LOG("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
-				NR_MESH_LOG("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
-				NR_MESH_LOG("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
-				NR_MESH_LOG("--");
-			}
+			auto& vertex = mVertices[i];
+			NR_MESH_LOG("Vertex: {0}", i);
+			NR_MESH_LOG("Position: {0}, {1}, {2}", vertex.Position.x, vertex.Position.y, vertex.Position.z);
+			NR_MESH_LOG("Normal: {0}, {1}, {2}", vertex.Normal.x, vertex.Normal.y, vertex.Normal.z);
+			NR_MESH_LOG("Binormal: {0}, {1}, {2}", vertex.Binormal.x, vertex.Binormal.y, vertex.Binormal.z);
+			NR_MESH_LOG("Tangent: {0}, {1}, {2}", vertex.Tangent.x, vertex.Tangent.y, vertex.Tangent.z);
+			NR_MESH_LOG("TexCoord: {0}, {1}", vertex.Texcoord.x, vertex.Texcoord.y);
+			NR_MESH_LOG("--");
 		}
 		NR_MESH_LOG("------------------------------------------------------");
 	}

@@ -731,9 +731,8 @@ namespace NR
 						Entity e = Entity(entity, this);
 						if (mesh->IsRigged())
 						{
-							if (e.HasComponent<AnimationComponent>()) {
-								// QUESTION: Would it be better to render all the static meshes first, and then all the animated ones?
-								//           Does chopping and changing between static graphics pipeline and animated one slow things down?
+							if (e.HasComponent<AnimationComponent>()) 
+							{
 								auto& anim = e.GetComponent<AnimationComponent>();
 								if (AssetManager::IsAssetHandleValid(anim.AnimationController))
 								{

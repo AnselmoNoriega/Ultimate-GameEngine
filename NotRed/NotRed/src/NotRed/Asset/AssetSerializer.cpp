@@ -51,7 +51,7 @@ namespace NR
 	{
 		asset = Ref<MeshSource>::Create(AssetManager::GetFileSystemPathString(metadata));
 		asset->Handle = metadata.Handle;
-		return asset.As<MeshSource>()->GetStaticVertices().size() > 0; // Maybe?
+		return asset.As<MeshSource>()->GetVertices().size() > 0; // Maybe?
 	}
 
 	void MaterialAssetSerializer::Serialize(const AssetMetadata& metadata, const Ref<Asset>& asset) const

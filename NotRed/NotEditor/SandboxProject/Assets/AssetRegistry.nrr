@@ -56,12 +56,12 @@ Assets:
   - Handle: 2616411042088901641
     FilePath: Meshes/Source/Sponza/7056944414013900257.jpg
     Type: Texture
+  - Handle: 2647442379260852602
+    FilePath: Meshes/Default/Torus.nrmesh
+    Type: Mesh
   - Handle: 2648632943464799454
     FilePath: Meshes/Source/mosin/arms1_Mat_diff.jpg
     Type: Texture
-  - Handle: 2856502281337498133
-    FilePath: Meshes/Default/Sphere.nrmesh
-    Type: Mesh
   - Handle: 3107484917692596472
     FilePath: Meshes/Source/mosin/E_bullet_3_spec.jpg
     Type: Texture
@@ -104,9 +104,6 @@ Assets:
   - Handle: 4364513237643754488
     FilePath: VoxelGame/Player.nrprefab
     Type: Prefab
-  - Handle: 4517023518274335626
-    FilePath: Meshes/Default/Plane.nrmesh
-    Type: Mesh
   - Handle: 4550571936014914487
     FilePath: Meshes/Source/Sponza/8773302468495022225.jpg
     Type: Texture
@@ -122,6 +119,9 @@ Assets:
   - Handle: 4991865301627633221
     FilePath: Meshes/Source/Sponza/9288698199695299068.jpg
     Type: Texture
+  - Handle: 5097363367879754815
+    FilePath: Meshes/Default/Cone.nrmesh
+    Type: Mesh
   - Handle: 5098072529481501973
     FilePath: Meshes/Source/Sponza/3827035219084910048.jpg
     Type: Texture
@@ -182,12 +182,6 @@ Assets:
   - Handle: 8022275046787492334
     FilePath: Meshes/Source/mosin/mat1_n.png
     Type: Texture
-  - Handle: 8030254096555745445
-    FilePath: Meshes/Default/Torus.nrmesh
-    Type: Mesh
-  - Handle: 8130581881994747795
-    FilePath: Meshes/Default/Cube.nrmesh
-    Type: Mesh
   - Handle: 8148748321047846456
     FilePath: Textures/VoxelImagesTransparency.png
     Type: Texture
@@ -200,9 +194,6 @@ Assets:
   - Handle: 8440373069449964730
     FilePath: Meshes/Source/Sponza/8750083169368950601.jpg
     Type: Texture
-  - Handle: 8446488358702990668
-    FilePath: Meshes/Default/Cone.nrmesh
-    Type: Mesh
   - Handle: 8492575981071253112
     FilePath: Meshes/Source/Sponza/4871783166746854860.jpg
     Type: Texture
@@ -218,6 +209,9 @@ Assets:
   - Handle: 9036988128454158525
     FilePath: Meshes/Source/Sponza/11490520546946913238.jpg
     Type: Texture
+  - Handle: 9055278624154047346
+    FilePath: Meshes/Default/Cube.nrmesh
+    Type: Mesh
   - Handle: 9117641358602271080
     FilePath: Meshes/Source/Sponza/16885566240357350108.jpg
     Type: Texture
@@ -242,9 +236,6 @@ Assets:
   - Handle: 10484363069851829387
     FilePath: Meshes/Source/Sponza/4675343432951571524.jpg
     Type: Texture
-  - Handle: 10608088170493439887
-    FilePath: Meshes/Demo/BloomText.nrsmesh
-    Type: StaticMesh
   - Handle: 10662381690747305546
     FilePath: Meshes/Source/mosin/Mosin.fbx
     Type: MeshSource
@@ -272,9 +263,6 @@ Assets:
   - Handle: 11482752742825677721
     FilePath: Music/MinecraftThing.wav
     Type: Audio
-  - Handle: 11486095108012541376
-    FilePath: Meshes/Default/Capsule.nrmesh
-    Type: Mesh
   - Handle: 11892832976188623719
     FilePath: Meshes/Source/Sponza/15722799267630235092.jpg
     Type: Texture
@@ -335,6 +323,9 @@ Assets:
   - Handle: 14376323303412918687
     FilePath: Meshes/Source/Sponza/6047387724914829168.jpg
     Type: Texture
+  - Handle: 14380186109112877321
+    FilePath: Meshes/Default/Capsule.nrmesh
+    Type: Mesh
   - Handle: 14675644701751734111
     FilePath: Meshes/Source/cerberus/Cerberus_M-Cerberus_R.png
     Type: Texture
@@ -356,12 +347,18 @@ Assets:
   - Handle: 15532876837713159171
     FilePath: Meshes/Source/mosin/E_bullet_3_diff.jpg
     Type: Texture
+  - Handle: 15625326168947424425
+    FilePath: Meshes/Default/Cylinder.nrmesh
+    Type: Mesh
   - Handle: 15639926771555786455
     FilePath: Scenes/Demo.nrsc
     Type: Scene
   - Handle: 15684959434881931482
     FilePath: Meshes/Source/Sponza/332936164838540657.jpg
     Type: Texture
+  - Handle: 15845929159343319531
+    FilePath: Meshes/Default/Sphere.nrmesh
+    Type: Mesh
   - Handle: 15993520622364324887
     FilePath: Meshes/Source/mosin/E_bullet_3_diff.png
     Type: Texture
@@ -374,21 +371,18 @@ Assets:
   - Handle: 16266072468258787845
     FilePath: Meshes/Source/stormtrooper/Stormtrooper_D.png
     Type: Texture
-  - Handle: 16343370536937625393
-    FilePath: Meshes/Demo/Mosin.nrsmesh
-    Type: StaticMesh
   - Handle: 16364217459705434838
     FilePath: Meshes/Source/Sponza/759203620573749278.jpg
     Type: Texture
+  - Handle: 16375523908524165662
+    FilePath: Meshes/Default/Plane.nrmesh
+    Type: Mesh
   - Handle: 16547055185454095904
     FilePath: Meshes/Source/Default/Cylinder.gltf
     Type: MeshSource
   - Handle: 16568931938534971881
     FilePath: Meshes/Source/Sponza/8114461559286000061.jpg
     Type: Texture
-  - Handle: 16946254640843248582
-    FilePath: Meshes/Default/Cylinder.nrmesh
-    Type: Mesh
   - Handle: 17044792105072577609
     FilePath: Textures/Materials/WaterVoxelMat.nrmaterial
     Type: Material
@@ -398,6 +392,9 @@ Assets:
   - Handle: 17514496322347391178
     FilePath: Env/cobblestone_street_night_4k.hdr
     Type: EnvMap
+  - Handle: 17626909514849751984
+    FilePath: Meshes/Demo/TestScene.nrsmesh
+    Type: StaticMesh
   - Handle: 17746434792616329936
     FilePath: Meshes/Source/Sponza/8503262930880235456.jpg
     Type: Texture

@@ -5,10 +5,17 @@ layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec3 aTangent;
 layout(location = 3) in vec3 aBinormal;
 layout(location = 4) in vec2 aTexCoord;
-layout(location = 5) in ivec4 aBoneIndices;
-layout(location = 6) in vec4 aBoneWeights;
 
-layout (std140, binding = 0) uniform Camera
+// Transform buffer
+layout(location = 5) in vec4 aMRow0;
+layout(location = 6) in vec4 aMRow1;
+layout(location = 7) in vec4 aMRow2;
+
+// Bone influences
+layout(location = 8) in ivec4 aBoneIndices;
+layout(location = 9) in vec4 aBoneWeights;
+
+layout(std140, binding = 0) uniform Camera
 {
 	mat4 uViewProjectionMatrix;
 	mat4 uInverseViewProjectionMatrix;
@@ -27,11 +34,6 @@ layout (std140, set = 2, binding = 0) uniform BoneTransforms
 {
 	mat4 BoneTransforms[MAX_BONES];
 } uBoneTransforms;
-
-layout(push_constant) uniform Transform
-{
-	mat4 Transform;
-} uRenderer;
 
 struct VertexOutput
 {
@@ -52,17 +54,25 @@ layout(location = 0) out VertexOutput Output;
 
 void main()
 {
+	mat4 transform = mat4(
+		vec4(aMRow0.x, aMRow1.x, aMRow2.x, 0.0),
+		vec4(aMRow0.y, aMRow1.y, aMRow2.y, 0.0),
+		vec4(aMRow0.z, aMRow1.z, aMRow2.z, 0.0),
+		vec4(aMRow0.w, aMRow1.w, aMRow2.w, 1.0)
+	);
+
 	mat4 boneTransform = uBoneTransforms.BoneTransforms[aBoneIndices[0]] * aBoneWeights[0];
 	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[1]] * aBoneWeights[1];
 	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[2]] * aBoneWeights[2];
 	boneTransform += uBoneTransforms.BoneTransforms[aBoneIndices[3]] * aBoneWeights[3];
 
-	Output.WorldPosition = vec3(uRenderer.Transform * boneTransform * vec4(aPosition, 1.0));
-	Output.Normal = mat3(uRenderer.Transform) * mat3(boneTransform) * aNormal;
+	//Output.WorldPosition = vec3(uRenderer.Transform * boneTransform * vec4(aPosition, 1.0));
+	Output.WorldPosition = vec3(transform * boneTransform * vec4(aPosition, 1.0));
+	Output.Normal = mat3(transform) * mat3(boneTransform) * aNormal;
 	Output.TexCoord = vec2(aTexCoord.x, 1.0 - aTexCoord.y);
-	Output.WorldNormals = mat3(uRenderer.Transform) * mat3(boneTransform) * mat3(aTangent, aBinormal, aNormal);
-	Output.WorldTransform = mat3(uRenderer.Transform) * mat3(boneTransform);
-	Output.Binormal = mat3(uRenderer.Transform) * mat3(boneTransform) * aBinormal;
+	Output.WorldNormals = mat3(transform) * mat3(boneTransform) * mat3(aTangent, aBinormal, aNormal);
+	Output.WorldTransform = mat3(transform) * mat3(boneTransform);
+	Output.Binormal = mat3(transform) * mat3(boneTransform) * aBinormal;
 
 	Output.CameraView = mat3(uViewMatrix);
 
@@ -71,6 +81,6 @@ void main()
 	Output.ShadowMapCoords[2] = uLightMatrix[2] * vec4(Output.WorldPosition, 1.0);
 	Output.ShadowMapCoords[3] = uLightMatrix[3] * vec4(Output.WorldPosition, 1.0);
 	Output.ViewPosition = vec3(uViewMatrix * vec4(Output.WorldPosition, 1.0));
-	
+
 	gl_Position = uViewProjectionMatrix * vec4(Output.WorldPosition, 1.0);
 }

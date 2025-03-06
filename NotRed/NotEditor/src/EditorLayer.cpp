@@ -1623,7 +1623,7 @@ namespace NR
             UI::PropertySlider("Skybox LOD", mEditorScene->GetSkyboxLod(), 0.0f, (float)Utils::CalculateMipCount(rendererConfig.EnvironmentMapResolution, rendererConfig.EnvironmentMapResolution));
             UI::PropertySlider("Exposure", mEditorCamera.GetExposure(), 0.0f, 5.0f);
             UI::PropertySlider("Env Map Rotation", mEnvMapRotation, -360.0f, 360.0f);
-            UI::PropertySlider("Camera Speed", mEditorCamera.GetCameraSpeed(), 0.0005f, 2.f);
+            UI::PropertySlider("Camera Speed", mEditorCamera.GetCameraSpeed(), 0.0005f, 10.f);
 
             if (mSceneState == SceneState::Edit)
             {

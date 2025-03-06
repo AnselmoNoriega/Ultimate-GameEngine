@@ -327,8 +327,8 @@ namespace NR
 				uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
 				VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-				Ref<MeshSource> meshAsset = mesh->GetMeshSource();
-				Ref<VKVertexBuffer> vulkanMeshVB = meshAsset->GetVertexBuffer().As<VKVertexBuffer>();
+				Ref<MeshSource> meshSource = mesh->GetMeshSource();
+				Ref<VKVertexBuffer> vulkanMeshVB = meshSource->GetVertexBuffer().As<VKVertexBuffer>();
 				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
 				VkDeviceSize offsets[1] = { 0 };
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
@@ -338,7 +338,7 @@ namespace NR
 				VkDeviceSize instanceOffsets[1] = { transformOffset };
 				vkCmdBindVertexBuffers(commandBuffer, 1, 1, &vbTransformBuffer, instanceOffsets);
 
-				auto vulkanMeshIB = Ref<VKIndexBuffer>(meshAsset->GetIndexBuffer());
+				auto vulkanMeshIB = Ref<VKIndexBuffer>(meshSource->GetIndexBuffer());
 				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
 				vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -348,8 +348,8 @@ namespace NR
 
 				std::vector<std::vector<VkWriteDescriptorSet>> writeDescriptors;
 
-				const auto& meshAssetSubmeshes = meshAsset->GetSubmeshes();
-				const Submesh& submesh = meshAssetSubmeshes[submeshIndex];
+				const auto& submeshes = meshSource->GetSubmeshes();
+				const Submesh& submesh = submeshes[submeshIndex];
 				const auto& meshMaterialTable = mesh->GetMaterials();
 				uint32_t materialCount = meshMaterialTable->GetMaterialCount();
 				Ref<MaterialAsset> material = materialTable->HasMaterial(submesh.MaterialIndex) ? materialTable->GetMaterial(submesh.MaterialIndex) : meshMaterialTable->GetMaterial(submesh.MaterialIndex);
@@ -371,84 +371,6 @@ namespace NR
 				Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
 				vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, uniformStorageBuffer.Size, uniformStorageBuffer.Data);
 				vkCmdDrawIndexed(commandBuffer, submesh.IndexCount, instanceCount, submesh.BaseIndex, submesh.BaseVertex, 0);
-				sData->DrawCallCount++;
-			});
-	}
-
-	void VKRenderer::RenderSubmesh(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform)
-	{
-		NR_CORE_VERIFY(mesh);
-		NR_CORE_VERIFY(materialTable);
-
-		Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, mesh, submeshIndex, transform, materialTable]() mutable
-			{
-				NR_PROFILE_FUNC("VKRenderer::RenderMesh");
-				NR_SCOPE_PERF("VKRenderer::RenderMesh");
-
-				if (sData->SelectedDrawCall != -1 && sData->DrawCallCount > sData->SelectedDrawCall)
-					return;
-
-				uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-				VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
-
-				Ref<MeshSource> meshSource = mesh->GetMeshSource();
-				Ref<VKVertexBuffer> vulkanMeshVB = meshSource->GetVertexBuffer().As<VKVertexBuffer>();
-				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
-				VkDeviceSize offsets[1] = { 0 };
-				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, offsets);
-
-				auto vulkanMeshIB = Ref<VKIndexBuffer>(meshSource->GetIndexBuffer());
-				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
-				vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
-
-				Ref<VKPipeline> vulkanPipeline = pipeline.As<VKPipeline>();
-				VkPipeline pipeline = vulkanPipeline->GetVulkanPipeline();
-				vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-
-				VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
-				if (mesh->IsRigged())
-				{
-					auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(2); //  hard coding 2 = animation data.  Yuk.
-
-					VkWriteDescriptorSet writeDescriptorSet;
-					writeDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-					writeDescriptorSet.pNext = nullptr;
-					writeDescriptorSet.dstSet = temp.DescriptorSets[0];
-					writeDescriptorSet.dstBinding = 0;
-					writeDescriptorSet.dstArrayElement = 0;
-					writeDescriptorSet.descriptorCount = 1;
-					writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-					writeDescriptorSet.pImageInfo = nullptr;
-					writeDescriptorSet.pBufferInfo = &mesh->GetBoneTransformUB(frameIndex).As<VKUniformBuffer>()->GetDescriptorBufferInfo();
-					writeDescriptorSet.pTexelBufferView = nullptr;
-				}
-
-				const auto& submeshes = meshSource->GetSubmeshes();
-				const auto& submesh = submeshes[submeshIndex];
-				const auto& meshMaterialTable = mesh->GetMaterials();
-				uint32_t materialCount = meshMaterialTable->GetMaterialCount();
-				Ref<MaterialAsset> material = materialTable->HasMaterial(submesh.MaterialIndex) ? materialTable->GetMaterial(submesh.MaterialIndex) : meshMaterialTable->GetMaterial(submesh.MaterialIndex);
-				Ref<VKMaterial> vulkanMaterial = material->GetMaterial().As<VKMaterial>();
-				RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
-
-				if (sData->SelectedDrawCall != -1 && sData->DrawCallCount > sData->SelectedDrawCall)
-					return;
-
-				// NOTE: Descriptor Set 1 is owned by the renderer
-				std::vector<VkDescriptorSet> descriptorSets = {
-					vulkanMaterial->GetDescriptorSet(frameIndex),
-					sData->ActiveRendererDescriptorSet
-				};
-				if (animationDataDS)
-					descriptorSets.emplace_back(animationDataDS);
-
-				VkPipelineLayout layout = vulkanPipeline->GetVulkanPipelineLayout();
-				vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, (uint32_t)descriptorSets.size(), descriptorSets.data(), 0, nullptr);
-
-				Buffer uniformStorageBuffer = vulkanMaterial->GetUniformStorageBuffer();
-				vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4), &transform);
-				vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(glm::mat4), uniformStorageBuffer.Size, uniformStorageBuffer.Data);
-				vkCmdDrawIndexed(commandBuffer, submesh.IndexCount, 1, submesh.BaseIndex, submesh.BaseVertex, 0);
 				sData->DrawCallCount++;
 			});
 	}
@@ -491,6 +413,10 @@ namespace NR
 				VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
 				if (mesh->IsRigged())
 				{
+					Ref<VKVertexBuffer> vulkanBoneInfluencesVB = meshSource->GetBoneInfluencesBuffer().As<VKVertexBuffer>();
+					VkBuffer vbBoneInfluencesBuffer = vulkanBoneInfluencesVB->GetVulkanBuffer();
+					vkCmdBindVertexBuffers(commandBuffer, 2, 1, &vbBoneInfluencesBuffer, vertexOffsets);
+
 					auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(2); //  hard coding 2 = animation data.  Yuk.
 
 					VkWriteDescriptorSet writeDescriptorSet;
@@ -586,6 +512,10 @@ namespace NR
 				VkDescriptorSet animationDataDS = VK_NULL_HANDLE;
 				if (mesh->IsRigged())
 				{
+					Ref<VKVertexBuffer> vulkanBoneInfluencesVB = meshSource->GetBoneInfluencesBuffer().As<VKVertexBuffer>();
+					VkBuffer vbBoneInfluencesBuffer = vulkanBoneInfluencesVB->GetVulkanBuffer();
+					vkCmdBindVertexBuffers(commandBuffer, 2, 1, &vbBoneInfluencesBuffer, vertexOffsets);
+
 					auto temp = vulkanPipeline->GetSpecification().Shader.As<VKShader>()->AllocateDescriptorSet(1); //  hard coding 1 = animation data.  Yuk.
 
 					VkWriteDescriptorSet writeDescriptorSet;

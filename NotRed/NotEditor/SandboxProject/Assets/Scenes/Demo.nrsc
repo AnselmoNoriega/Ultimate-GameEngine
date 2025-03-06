@@ -6,6 +6,25 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 8528722828347833362
+    TagComponent:
+      Tag: TestScene
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 2.04068351, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    StaticMeshComponent:
+      AssetID: 17626909514849751984
+      MaterialTable:
+        0: 0
+        1: 0
+        2: 0
+        3: 0
+        4: 0
+        5: 0
   - Entity: 6451080881842518632
     TagComponent:
       Tag: m1911
@@ -17,7 +36,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 17550791605303498834
+      AssetID: 14416589419028438637
       SubmeshIndex: 0
       MaterialTable:
         0: 0
@@ -47,7 +66,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 17366596071191145527
+      AssetID: 6433855906584588398
       SubmeshIndex: 0
       MaterialTable:
         0: 0

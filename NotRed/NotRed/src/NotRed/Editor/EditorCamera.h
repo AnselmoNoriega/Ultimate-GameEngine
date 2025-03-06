@@ -82,7 +82,7 @@ namespace NR
 		glm::vec3 mInitialFocalPoint, mInitialRotation;
 
 		float mDistance;
-		float mSpeed{ 0.002f };
+		float mSpeed{ 3.f };
 		float mLastSpeed = 0.f;
 
 		float mPitch, mYaw;

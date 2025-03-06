@@ -37,12 +37,10 @@ namespace NR
 		glm::vec2 Texcoord;
 	};
 
-	struct SkinnedVertex : public Vertex
+	struct BoneInfluence
 	{
 		uint32_t IDs[4] = { 0, 0, 0, 0 };
 		float Weights[4]{ 0.0f, 0.0f, 0.0f, 0.0f };
-
-		SkinnedVertex(const Vertex& vertex) : Vertex(vertex) {}
 
 		void AddBoneData(uint32_t BoneID, float Weight)
 		{
@@ -111,34 +109,6 @@ namespace NR
 		{}
 	};
 
-	struct VertexBoneData
-	{
-		uint32_t IDs[4];
-		float Weights[4];
-
-		VertexBoneData()
-		{
-			memset(IDs, 0, sizeof(IDs));
-			memset(Weights, 0, sizeof(Weights));
-		};
-
-		void AddBoneData(uint32_t BoneID, float Weight)
-		{
-			for (size_t i = 0; i < 4; i++)
-			{
-				if (Weights[i] == 0.0)
-				{
-					IDs[i] = BoneID;
-					Weights[i] = Weight;
-					return;
-				}
-			}
-
-			// should never get here - more bones than we have space for
-			NR_CORE_ASSERT(false, "Too many bones!");
-		}
-	};
-
 	struct Triangle
 	{
 		Vertex V0, V1, V2;
@@ -182,8 +152,8 @@ namespace NR
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
 		bool IsRigged() const { return (bool)mSkeleton; }
-		const std::vector<Vertex>& GetStaticVertices() const { return mStaticVertices; }
-		const std::vector<SkinnedVertex>& GetAnimatedVertices() const { return mSkinnedVertices; }
+		const std::vector<Vertex>& GetVertices() const { return mVertices; }
+		const std::vector<BoneInfluence>& GetBoneInfluences() const { return mBoneInfluences; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
 
 		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
@@ -193,6 +163,7 @@ namespace NR
 		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }
 
 		Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
+		Ref<VertexBuffer> GetBoneInfluencesBuffer() { return mBoneInfluencesBuffer; }
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 
 		static AssetType GetStaticType() { return AssetType::MeshSource; }
@@ -206,17 +177,18 @@ namespace NR
 	private:
 		std::vector<Submesh> mSubmeshes;
 
-		std::unique_ptr<Assimp::Importer> mImporter; // note: the importer owns data pointed to by mScene, and mNodeMap and hence must stay in scope for lifetime of MeshAsset.
+		std::unique_ptr<Assimp::Importer> mImporter; // note: the importer owns data pointed to by mScene, and mNodeMap and hence must stay in scope for lifetime of MeshSource.
 
 		Ref<VertexBuffer> mVertexBuffer;
+		Ref<VertexBuffer> mBoneInfluencesBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
 
-		std::vector<Vertex> mStaticVertices;
+		std::vector<Vertex> mVertices;
 		std::vector<Index> mIndices;
 		std::unordered_map<aiNode*, std::vector<uint32_t>> mNodeMap;
 		const aiScene* mScene;
 
-		std::vector<SkinnedVertex> mSkinnedVertices;
+		std::vector<BoneInfluence> mBoneInfluences;
 		std::vector<BoneInfo> mBoneInfo;
 		ozz::unique_ptr<ozz::animation::Skeleton> mSkeleton;
 

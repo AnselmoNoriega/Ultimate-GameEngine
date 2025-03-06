@@ -25,6 +25,7 @@ namespace NR
 		Ref<NR::Shader> Shader;
 		VertexBufferLayout Layout;
 		VertexBufferLayout InstanceLayout;
+		VertexBufferLayout BoneInfluencesLayout;
 		Ref<RenderPass> RenderPass;
 
 		PrimitiveTopology Topology = PrimitiveTopology::Triangles;

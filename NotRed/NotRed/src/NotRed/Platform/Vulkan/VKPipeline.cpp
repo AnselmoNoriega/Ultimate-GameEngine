@@ -242,8 +242,9 @@ namespace NR
 
 				// Vertex input descriptor
 
-				VertexBufferLayout& layout = instance->mSpecification.Layout;
+				VertexBufferLayout& vertexLayout = instance->mSpecification.Layout;
 				VertexBufferLayout& instanceLayout = instance->mSpecification.InstanceLayout;
+				VertexBufferLayout& boneInfluenceLayout = instance->mSpecification.BoneInfluencesLayout;
 
 				std::vector<VkVertexInputBindingDescription> vertexInputBindingDescriptions;
 
@@ -251,7 +252,7 @@ namespace NR
 
 				//VkVertexInputBindingDescription vertexInputBinding = {};
 				vertexInputBinding.binding = 0;
-				vertexInputBinding.stride = layout.GetStride();
+				vertexInputBinding.stride = vertexLayout.GetStride();
 				vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 				if (instanceLayout.GetElementCount())
@@ -262,26 +263,30 @@ namespace NR
 					instanceInputBinding.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
 				}
 
-				// Inpute attribute bindings describe shader attribute locations and memory layouts
-				std::vector<VkVertexInputAttributeDescription> vertexInputAttributes(layout.GetElementCount() + instanceLayout.GetElementCount());
-
-				uint32_t location = 0;
-				for (auto element : layout)
+				if (boneInfluenceLayout.GetElementCount())
 				{
-					vertexInputAttributes[location].binding = 0;
-					vertexInputAttributes[location].location = location;
-					vertexInputAttributes[location].format = ShaderDataTypeToVulkanFormat(element.Type);
-					vertexInputAttributes[location].offset = element.Offset;
-					++location;
+					VkVertexInputBindingDescription& boneInfluenceInputBinding = vertexInputBindingDescriptions.emplace_back();
+					boneInfluenceInputBinding.binding = 2;
+					boneInfluenceInputBinding.stride = boneInfluenceLayout.GetStride();
+					boneInfluenceInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 				}
 
-				for (auto element : instanceLayout)
+				// Input attribute bindings describe shader attribute locations and memory layouts
+				std::vector<VkVertexInputAttributeDescription> vertexInputAttributes(vertexLayout.GetElementCount() + instanceLayout.GetElementCount() + boneInfluenceLayout.GetElementCount());
+
+				uint32_t binding = 0;
+				uint32_t location = 0;
+				for (const auto& layout : { vertexLayout, instanceLayout, boneInfluenceLayout })
 				{
-					vertexInputAttributes[location].binding = 1;
-					vertexInputAttributes[location].location = location;
-					vertexInputAttributes[location].format = ShaderDataTypeToVulkanFormat(element.Type);
-					vertexInputAttributes[location].offset = element.Offset;
-					++location;
+					for (auto element : layout)
+					{
+						vertexInputAttributes[location].binding = binding;
+						vertexInputAttributes[location].location = location;
+						vertexInputAttributes[location].format = ShaderDataTypeToVulkanFormat(element.Type);
+						vertexInputAttributes[location].offset = element.Offset;
+						location++;
+					}
+					++binding;
 				}
 
 				// Vertex input state used for pipeline creation
