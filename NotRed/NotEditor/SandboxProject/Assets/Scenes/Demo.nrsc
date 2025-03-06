@@ -17,7 +17,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 6628700756885003527
+      AssetID: 17550791605303498834
       SubmeshIndex: 0
       MaterialTable:
         0: 0
@@ -47,10 +47,10 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 10610151712161516910
+      AssetID: 17366596071191145527
       SubmeshIndex: 0
       MaterialTable:
-        0: 1
+        0: 0
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light
