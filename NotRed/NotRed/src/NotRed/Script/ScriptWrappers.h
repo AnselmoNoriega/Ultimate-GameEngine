@@ -126,8 +126,8 @@ namespace NR::Script
 		void NR_RigidBody2DComponent_AddTorque(uint64_t entityID, float* torque, bool wake);
 		void NR_RigidBody2DComponent_ApplyLinearImpulse(uint64_t entityID, glm::vec2* impulse, glm::vec2* offset, bool wake);
 		void NR_RigidBody2DComponent_ApplyAngularImpulse(uint64_t entityID, float* impulse, bool wake);
-		void NR_RigidBody2DComponent_GetLinearVelocity(uint64_t entityID, glm::vec2* outVelocity);
-		void NR_RigidBody2DComponent_SetLinearVelocity(uint64_t entityID, glm::vec2* inVelocity);
+		void NR_RigidBody2DComponent_GetVelocity(uint64_t entityID, glm::vec2* outVelocity);
+		void NR_RigidBody2DComponent_SetVelocity(uint64_t entityID, glm::vec2* inVelocity);
 		void NR_RigidBody2DComponent_GetGravityScale(uint64_t entityID, float* outGravityScale);
 		void NR_RigidBody2DComponent_SetGravityScale(uint64_t entityID, float* inGravityScale);
 		void NR_RigidBody2DComponent_GetMass(uint64_t entityID, float* outMass);
@@ -142,12 +142,12 @@ namespace NR::Script
 		void NR_RigidBodyComponent_Rotate(uint64_t entityID, glm::vec3* inRotation);
 		void NR_RigidBodyComponent_AddForce(uint64_t entityID, glm::vec3* force, ForceMode foceMode);
 		void NR_RigidBodyComponent_AddTorque(uint64_t entityID, glm::vec3* torque, ForceMode forceMode);
-		void NR_RigidBodyComponent_GetLinearVelocity(uint64_t entityID, glm::vec3* outVelocity);
-		void NR_RigidBodyComponent_SetLinearVelocity(uint64_t entityID, glm::vec3* inVelocity);
+		void NR_RigidBodyComponent_GetVelocity(uint64_t entityID, glm::vec3* outVelocity);
+		void NR_RigidBodyComponent_SetVelocity(uint64_t entityID, glm::vec3* inVelocity);
 		void NR_RigidBodyComponent_GetAngularVelocity(uint64_t entityID, glm::vec3* outVelocity);
 		void NR_RigidBodyComponent_SetAngularVelocity(uint64_t entityID, glm::vec3* inVelocity);
-		float NR_RigidBodyComponent_GetMaxLinearVelocity(uint64_t entityID);
-		void NR_RigidBodyComponent_SetMaxLinearVelocity(uint64_t entityID, float maxVelocity);
+		float NR_RigidBodyComponent_GetMaxVelocity(uint64_t entityID);
+		void NR_RigidBodyComponent_SetMaxVelocity(uint64_t entityID, float maxVelocity);
 		float NR_RigidBodyComponent_GetMaxAngularVelocity(uint64_t entityID);
 		void NR_RigidBodyComponent_SetMaxAngularVelocity(uint64_t entityID, float maxVelocity);
 		float NR_RigidBodyComponent_GetLinearDrag(uint64_t entityID);
@@ -159,7 +159,7 @@ namespace NR::Script
 		void NR_RigidBodyComponent_SetMass(uint64_t entityID, float mass);
 		void NR_RigidBodyComponent_GetKinematicTarget(uint64_t entityID, glm::vec3* outTargetPosition, glm::vec3* outTargetRotation);
 		void NR_RigidBodyComponent_SetKinematicTarget(uint64_t entityID, glm::vec3* inTargetPosition, glm::vec3* inTargetRotation);
-		void NR_RigidBodyComponent_SetLockFlag(uint64_t entityID, ActorLockFlag flag, bool value);
+		void NR_RigidBodyComponent_ModifyLockFlag(uint64_t entityID, ActorLockFlag flag, bool value);
 		bool NR_RigidBodyComponent_IsLockFlagSet(uint64_t entityID, ActorLockFlag flag);
 		uint32_t NR_RigidBodyComponent_GetLockFlags(uint64_t entityID);
 		bool NR_RigidBodyComponent_IsKinematic(uint64_t entityID);

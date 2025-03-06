@@ -131,8 +131,8 @@ namespace NR
 		mono_add_internal_call("NR.RigidBody2DComponent::AddTorque_Native", NR::Script::NR_RigidBody2DComponent_AddTorque);
 		mono_add_internal_call("NR.RigidBody2DComponent::ApplyLinearImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyLinearImpulse);
 		mono_add_internal_call("NR.RigidBody2DComponent::ApplyAngularImpulse_Native", NR::Script::NR_RigidBody2DComponent_ApplyAngularImpulse);
-		mono_add_internal_call("NR.RigidBody2DComponent::GetLinearVelocity_Native", NR::Script::NR_RigidBody2DComponent_GetLinearVelocity);
-		mono_add_internal_call("NR.RigidBody2DComponent::SetLinearVelocity_Native", NR::Script::NR_RigidBody2DComponent_SetLinearVelocity);
+		mono_add_internal_call("NR.RigidBody2DComponent::GetVelocity_Native", NR::Script::NR_RigidBody2DComponent_GetVelocity);
+		mono_add_internal_call("NR.RigidBody2DComponent::SetVelocity_Native", NR::Script::NR_RigidBody2DComponent_SetVelocity);
 		mono_add_internal_call("NR.RigidBody2DComponent::GetGravityScale_Native", NR::Script::NR_RigidBody2DComponent_GetGravityScale);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetGravityScale_Native", NR::Script::NR_RigidBody2DComponent_SetGravityScale);
 		mono_add_internal_call("NR.RigidBody2DComponent::GetMass_Native", NR::Script::NR_RigidBody2DComponent_GetMass);
@@ -147,12 +147,12 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::Rotate_Native", NR::Script::NR_RigidBodyComponent_Rotate);
 		mono_add_internal_call("NR.RigidBodyComponent::AddForce_Native", NR::Script::NR_RigidBodyComponent_AddForce);
 		mono_add_internal_call("NR.RigidBodyComponent::AddTorque_Native", NR::Script::NR_RigidBodyComponent_AddTorque);
-		mono_add_internal_call("NR.RigidBodyComponent::GetLinearVelocity_Native", NR::Script::NR_RigidBodyComponent_GetLinearVelocity);
-		mono_add_internal_call("NR.RigidBodyComponent::SetLinearVelocity_Native", NR::Script::NR_RigidBodyComponent_SetLinearVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::GetVelocity_Native", NR::Script::NR_RigidBodyComponent_GetVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::SetVelocity_Native", NR::Script::NR_RigidBodyComponent_SetVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::GetAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_GetAngularVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::SetAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_SetAngularVelocity);
-		mono_add_internal_call("NR.RigidBodyComponent::GetMaxLinearVelocity_Native", NR::Script::NR_RigidBodyComponent_GetMaxLinearVelocity);
-		mono_add_internal_call("NR.RigidBodyComponent::SetMaxLinearVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxLinearVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::GetMaxVelocity_Native", NR::Script::NR_RigidBodyComponent_GetMaxVelocity);
+		mono_add_internal_call("NR.RigidBodyComponent::SetMaxVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::GetMaxAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_GetMaxAngularVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::SetMaxAngularVelocity_Native", NR::Script::NR_RigidBodyComponent_SetMaxAngularVelocity);
 		mono_add_internal_call("NR.RigidBodyComponent::GetLinearDrag_Native", NR::Script::NR_RigidBodyComponent_GetLinearDrag);
@@ -164,7 +164,7 @@ namespace NR
 		mono_add_internal_call("NR.RigidBodyComponent::SetMass_Native", NR::Script::NR_RigidBodyComponent_SetMass);
 		mono_add_internal_call("NR.RigidBodyComponent::GetKinematicTarget_Native", NR::Script::NR_RigidBodyComponent_GetKinematicTarget);
 		mono_add_internal_call("NR.RigidBodyComponent::SetKinematicTarget_Native", NR::Script::NR_RigidBodyComponent_SetKinematicTarget);
-		mono_add_internal_call("NR.RigidBodyComponent::SetLockFlag_Native", NR::Script::NR_RigidBodyComponent_SetLockFlag);
+		mono_add_internal_call("NR.RigidBodyComponent::SetLockFlag_Native", NR::Script::NR_RigidBodyComponent_ModifyLockFlag);
 		mono_add_internal_call("NR.RigidBodyComponent::IsLockFlagSet_Native", NR::Script::NR_RigidBodyComponent_IsLockFlagSet);
 		mono_add_internal_call("NR.RigidBodyComponent::GetLockFlags_Native", NR::Script::NR_RigidBodyComponent_GetLockFlags);
 		mono_add_internal_call("NR.RigidBodyComponent::IsKinematic_Native", NR::Script::NR_RigidBodyComponent_IsKinematic);

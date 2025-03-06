@@ -43,7 +43,7 @@ namespace NR
 	void SceneHierarchyPanel::Init()
 	{
 		sPencilIcon = Texture2D::Create("Resources/Editor/pencil_icon.png");
-		sPlusIcon = Texture2D::Create("Resources/Editor/plusicon.png");
+		sPlusIcon = Texture2D::Create("Resources/Editor/plus_icon.png");
 		sGearIcon = Texture2D::Create("Resources/Editor/gear_icon.png");
 	}
 
@@ -195,7 +195,7 @@ namespace NR
 								if (ImGui::MenuItem("Cube"))
 								{
 									auto newEntity = mContext->CreateEntity("Cube");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.hmesh");
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrmesh");
 									newEntity.AddComponent<MeshComponent>(mesh);
 									auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
 									SetSelected(newEntity);
@@ -203,7 +203,7 @@ namespace NR
 								if (ImGui::MenuItem("Sphere"))
 								{
 									auto newEntity = mContext->CreateEntity("Sphere");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.hmesh");
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrmesh");
 									newEntity.AddComponent<MeshComponent>(mesh);
 									auto& scc = newEntity.AddComponent<SphereColliderComponent>();
 									SetSelected(newEntity);
@@ -211,7 +211,7 @@ namespace NR
 								if (ImGui::MenuItem("Capsule"))
 								{
 									auto newEntity = mContext->CreateEntity("Capsule");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.hmesh");
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrmesh");
 									newEntity.AddComponent<MeshComponent>(mesh);
 									CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
 									//ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
@@ -220,7 +220,7 @@ namespace NR
 								if (ImGui::MenuItem("Cylinder"))
 								{
 									auto newEntity = mContext->CreateEntity("Cylinder");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.hmesh");
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrmesh");
 									newEntity.AddComponent<MeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
@@ -229,7 +229,7 @@ namespace NR
 								if (ImGui::MenuItem("Torus"))
 								{
 									auto newEntity = mContext->CreateEntity("Torus");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.hmesh");
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrmesh");
 									newEntity.AddComponent<MeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
@@ -238,7 +238,7 @@ namespace NR
 								if (ImGui::MenuItem("Plane"))
 								{
 									auto newEntity = mContext->CreateEntity("Plane");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.hmesh");
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrmesh");
 									newEntity.AddComponent<MeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
@@ -572,7 +572,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Cube");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.hmesh");
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrmesh");
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
 							SetSelected(newEntity);
@@ -581,7 +581,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Sphere");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.hmesh");
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrmesh");
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& scc = newEntity.AddComponent<SphereColliderComponent>();
 							SetSelected(newEntity);
@@ -590,7 +590,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Capsule");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.hmesh");
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrmesh");
 							newEntity.AddComponent<MeshComponent>(mesh);
 							CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
 							//ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
@@ -600,7 +600,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Cylinder");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.hmesh");
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrmesh");
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);
@@ -610,7 +610,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Torus");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.hmesh");
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrmesh");
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);
@@ -620,7 +620,7 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Plane");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.hmesh");
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrmesh");
 							newEntity.AddComponent<MeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);

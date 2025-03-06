@@ -817,7 +817,7 @@ namespace NR
 						Ref<MeshSource> meshAsset = AssetManager::GetAsset<MeshSource>(assetHandle);
 						std::filesystem::path meshPath = metadata.FilePath;
 						std::filesystem::path meshDirectory = Project::GetMeshPath();
-						std::string filename = fmt::format("{0}.hmesh", meshPath.stem().string());
+						std::string filename = fmt::format("{0}.nrmesh", meshPath.stem().string());
 						Ref<Mesh> mesh = AssetManager::CreateNewAsset<Mesh>(filename, meshDirectory.string(), meshAsset);
 						component.MeshHandle = mesh->Handle;
 						AssetImporter::Serialize(mesh);

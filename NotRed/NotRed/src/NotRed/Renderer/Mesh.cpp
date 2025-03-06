@@ -339,7 +339,7 @@ namespace NR
 			{
 				auto aiMaterial = scene->mMaterials[i];
 				auto aiMaterialName = aiMaterial->GetName();
-				NR::Ref<Material> mi = Material::Create(Renderer::GetShaderLibrary()->Get("NRPBR_Static"), aiMaterialName.data);
+				NR::Ref<Material> mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), aiMaterialName.data);
 				mMaterials[i] = mi;
 
 				NR_MESH_LOG("  {0} (Index = {1})", aiMaterialName.data, i);
@@ -596,7 +596,7 @@ namespace NR
 		}
 		else
 		{
-			auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("NRPBR_Static"), "NR-Default");
+			auto mi = Material::Create(Renderer::GetShaderLibrary()->Get("PBR_Static"), "NR-Default");
 			mi->Set("uMaterialUniforms.AlbedoColor", glm::vec3(0.8f));
 			mi->Set("uMaterialUniforms.Emission", 0.0f);
 			mi->Set("uMaterialUniforms.Metalness", 0.0f);

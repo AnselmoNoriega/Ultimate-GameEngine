@@ -139,7 +139,7 @@ namespace NR
 		}
 
 		if (animationNames.size() > 1) {
-			NR_CORE_WARN("Hazel currently supports only one animation per file. Only the first of {0} will be loaded from file '{1}'", animationNames.size(), mFilePath);
+			NR_CORE_WARN("NotRed currently supports only one animation per file. Only the first of {0} will be loaded from file '{1}'", animationNames.size(), mFilePath);
 		}
 
 		ozz::animation::offline::RawAnimation rawAnimation;

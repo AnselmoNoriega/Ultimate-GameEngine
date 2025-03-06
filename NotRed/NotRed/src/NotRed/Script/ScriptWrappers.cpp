@@ -2215,7 +2215,7 @@ namespace NR::Script
     {
         if (!AudioCommandRegistry::DoesCommandExist<Audio::TriggerCommand>(eventID))
         {
-            NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", eventID);
+            NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", uint32_t(eventID));
             return;
         }
 
@@ -2244,7 +2244,7 @@ namespace NR::Script
         auto scene = ScriptEngine::GetCurrentSceneContext();
         if (!AudioCommandRegistry::DoesCommandExist<Audio::TriggerCommand>(eventID))
         {
-            NR_CORE_ERROR("Trigger Command with ID {0} does not exist!", eventID);
+            NR_CORE_ERROR("Trigger Command with ID does not exist!");
             return 0;
         }
 

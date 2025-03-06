@@ -214,7 +214,7 @@ namespace NR
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = "PBR-Static";
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HazelPBR_Static");
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
 			pipelineSpecification.Layout = staticVertexLayout;
 			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.LineWidth = mLineWidth;
@@ -222,7 +222,7 @@ namespace NR
 			mGeometryPipeline = Pipeline::Create(pipelineSpecification);
 
 			pipelineSpecification.DebugName = "PBR-Anim";
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HazelPBR_Anim");
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Anim");
 			pipelineSpecification.Layout = animatedVertexLayout;
 			mGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryPipeline
 		}

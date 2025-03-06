@@ -16,10 +16,10 @@ Assets:
     Type: Texture
   - Handle: 928769566187218326
     FilePath: Models/Plane1m.obj
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 940471849831676394
     FilePath: Meshes/Source/ZIS101Sport.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 1115660580443412098
     FilePath: Models/Source/Sponza/6593109234861095314.jpg
     Type: Texture
@@ -40,13 +40,13 @@ Assets:
     Type: Texture
   - Handle: 2856077084921523787
     FilePath: Models/Source/TestScene.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 2856502281337498133
     FilePath: Meshes/Default/Sphere.nrmesh
     Type: Mesh
   - Handle: 3078466047646632934
     FilePath: Models/Sphere1m.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 3169145106377838570
     FilePath: Models/Source/cerberus/Textures/Cerberus_N.png
     Type: Texture
@@ -64,7 +64,7 @@ Assets:
     Type: Texture
   - Handle: 3813279530466117779
     FilePath: Models/Source/Tests/TransformTest.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 4080848488975083700
     FilePath: Models/Source/Sponza/14267839433702832875.jpg
     Type: Texture
@@ -73,7 +73,7 @@ Assets:
     Type: Texture
   - Handle: 4169668720295357657
     FilePath: Meshes/Source/Default/Cylinder.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 4180098690103428077
     FilePath: Models/Source/pilot/Material.002_Normal_OpenGL.png
     Type: Texture
@@ -94,7 +94,7 @@ Assets:
     Type: Prefab
   - Handle: 4472115398838612294
     FilePath: Models/Source/stormtrooper/silly_dancing.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 4517023518274335626
     FilePath: Meshes/Default/Plane.nrmesh
     Type: Mesh
@@ -115,7 +115,7 @@ Assets:
     Type: Texture
   - Handle: 4923191638174302532
     FilePath: Meshes/Source/Default/Capsule.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 4991865301627633221
     FilePath: Models/Source/Sponza/9288698199695299068.jpg
     Type: Texture
@@ -127,7 +127,7 @@ Assets:
     Type: Texture
   - Handle: 5188472444224712633
     FilePath: Models/m1911/M1911Materials.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 5282571235462531411
     FilePath: Models/Source/Sponza/8783994986360286082.jpg
     Type: Texture
@@ -142,10 +142,10 @@ Assets:
     Type: Texture
   - Handle: 5823370086043940320
     FilePath: Meshes/Source/Default/Cube.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 5997943153421320909
     FilePath: Models/Source/Default/Sphere.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 6249827114591471084
     FilePath: Models/Source/Sponza/5061699253647017043.png
     Type: Texture
@@ -175,7 +175,7 @@ Assets:
     Type: Texture
   - Handle: 7620121883529511759
     FilePath: Models/Source/Default/Cube.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 7699878716145299001
     FilePath: Models/Source/Sponza/3455394979645218238.jpg
     Type: Texture
@@ -235,10 +235,10 @@ Assets:
     Type: Texture
   - Handle: 9370517366295976499
     FilePath: Models/Source/Default/Torus.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 9560007014529606805
     FilePath: Meshes/Source/Default/Torus.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 9622855033900602248
     FilePath: Models/Source/Sponza/11872827283454512094.jpg
     Type: Texture
@@ -253,7 +253,7 @@ Assets:
     Type: Texture
   - Handle: 10493809290632571562
     FilePath: Models/Source/cerberus/CerberusMaterials.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 10610151712161516910
     FilePath: Meshes/Source/Demo/TestScene.nrmesh
     Type: Mesh
@@ -274,7 +274,7 @@ Assets:
     Type: Texture
   - Handle: 10980127482056009670
     FilePath: Meshes/Source/TestScene.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 11123385323720282070
     FilePath: Meshes/Demo/TestScene.nrmesh
     Type: Mesh
@@ -286,7 +286,7 @@ Assets:
     Type: Texture
   - Handle: 11378497880036335834
     FilePath: Models/Source/Default/Plane.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 11482752742825677721
     FilePath: Music/MinecraftThing.wav
     Type: Audio
@@ -307,16 +307,16 @@ Assets:
     Type: Texture
   - Handle: 12075295163319250965
     FilePath: Meshes/Source/Default/Sphere.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 12567304604732680570
     FilePath: Models/Source/Sponza/Sponza.gltf
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 12602547663011984911
     FilePath: Models/m1911/m1911_normal.png
     Type: Texture
   - Handle: 12626786852730282428
     FilePath: Models/Source/pilot/Pilot_LP_Animated.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 13003522556742733601
     FilePath: Models/Source/Sponza/8481240838833932244.jpg
     Type: Texture
@@ -352,10 +352,10 @@ Assets:
     Type: Texture
   - Handle: 14444034214867725514
     FilePath: Meshes/Source/Default/Cone.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 14620522465487178210
     FilePath: Models/sci-fi-rifle-m13-gaus/source/Gaus_M13_export.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 14693710350519985485
     FilePath: VoxelGame/Chunk.nrprefab
     Type: Prefab
@@ -364,7 +364,7 @@ Assets:
     Type: Texture
   - Handle: 15241730571501316311
     FilePath: Models/Source/Default/Cylinder.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 15450536207396684297
     FilePath: Models/Source/Sponza/2299742237651021498.jpg
     Type: Texture
@@ -379,7 +379,7 @@ Assets:
     Type: Texture
   - Handle: 15893506865529566834
     FilePath: Models/Cube.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 16075841579979782367
     FilePath: Models/Source/cerberus/Textures/Cerberus_M.png
     Type: Texture
@@ -397,22 +397,22 @@ Assets:
     Type: Texture
   - Handle: 16446025442881349728
     FilePath: Models/m1911/m1911.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 16518116033380006148
     FilePath: Models/Source/Default/Capsule.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 16568931938534971881
     FilePath: Models/Source/Sponza/8114461559286000061.jpg
     Type: Texture
   - Handle: 16812491990447046066
     FilePath: Models/Source/cerberus/cerberus.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 16819679542065464007
     FilePath: Models/Plane1m.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 16937671899017176025
     FilePath: Models/Source/CubeScene.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 16946254640843248582
     FilePath: Meshes/Default/Cylinder.nrmesh
     Type: Mesh
@@ -436,7 +436,7 @@ Assets:
     Type: Texture
   - Handle: 18154924251906576847
     FilePath: Meshes/Source/Default/Plane.fbx
-    Type: MeshAsset
+    Type: MeshSource
   - Handle: 18211924834184589924
     FilePath: Models/Source/Default/Cone.fbx
-    Type: MeshAsset
+    Type: MeshSource

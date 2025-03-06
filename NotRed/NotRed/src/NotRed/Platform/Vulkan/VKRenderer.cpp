@@ -1016,7 +1016,7 @@ namespace NR
 			{
 				NR_PROFILE_FUNC("VKRenderer::SetSceneEnvironment");
 
-				const auto shader = Renderer::GetShaderLibrary()->Get("HazelPBR_Static");
+				const auto shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
 				Ref<VKShader> pbrShader = shader.As<VKShader>();
 				const uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
 
