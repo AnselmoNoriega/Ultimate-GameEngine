@@ -448,7 +448,7 @@ project "Not-Runtime"
 		"%{IncludeDir.ImGui}",
 		"%{IncludeDir.ImGuiNodeEditor}",
 		"%{IncludeDir.Vulkan}",
-		"%{IncludeDir.Optick}"
+		"%{IncludeDir.Optick}",
 		"%{IncludeDir.Ozz}"
 	}
 	postbuildcommands 

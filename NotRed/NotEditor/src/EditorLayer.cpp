@@ -98,7 +98,7 @@ namespace NR
         Ref<SceneHierarchyPanel> sceneHierarchyPanel = mPanelManager->AddPanel<SceneHierarchyPanel>(SCENE_HIERARCHY_PANEL_ID, "Scene Hierarchy", true, mEditorScene);
         sceneHierarchyPanel->SetSelectionChangedCallback(std::bind(&EditorLayer::SelectEntity, this, std::placeholders::_1));
         sceneHierarchyPanel->SetEntityDeletedCallback(std::bind(&EditorLayer::EntityDeleted, this, std::placeholders::_1));
-        sceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
+        //sceneHierarchyPanel->SetMeshAssetConvertCallback(std::bind(&EditorLayer::CreateMeshFromMeshAsset, this, std::placeholders::_1, std::placeholders::_2));
         sceneHierarchyPanel->SetInvalidMetadataCallback(std::bind(&EditorLayer::SceneHierarchyInvalidMetadataCallback, this, std::placeholders::_1, std::placeholders::_2));
 
         mPanelManager->AddPanel<EditorConsolePanel>(CONSOLE_PANEL_ID, "Log", true);
@@ -740,7 +740,7 @@ namespace NR
             //mEditorCamera.SetActive(false);
             //UI::SetMouseEnabled(true);
 
-            mRuntimeScene->Update(dt);
+            mRuntimeScene->UpdateEditor(dt);
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);
             break;
         }
@@ -2508,7 +2508,7 @@ namespace NR
         ImGui::End();
 
         ScriptEngine::ImGuiRender();
-        PhysicsManager::ImGuiRender();
+        //PhysicsManager::ImGuiRender();
         if (mViewportPanelFocused)
         {
             mFocusedRenderer = mViewportRenderer;

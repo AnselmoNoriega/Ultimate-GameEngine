@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\choc;..\NotRed\vendor\SOUL\include;..\NotRed\vendor\SOUL\source\modules\soul_core;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\imgui-node-editor;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\farbot\include;..\NotRed\vendor\yaml-cpp\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\choc;..\NotRed\vendor\SOUL\include;..\NotRed\vendor\SOUL\source\modules\soul_core;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\imgui-node-editor;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\farbot\include;..\NotRed\vendor\Optick\src;..\NotRed\vendor\yaml-cpp\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -110,7 +110,7 @@ IF EXIST "..\NotRed\vendor\Vulkan\win64\shaderc_sharedd.dll"\ (xcopy /Q /E /Y /I
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_RELEASE;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\choc;..\NotRed\vendor\SOUL\include;..\NotRed\vendor\SOUL\source\modules\soul_core;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\imgui-node-editor;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\farbot\include;..\NotRed\vendor\yaml-cpp\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\choc;..\NotRed\vendor\SOUL\include;..\NotRed\vendor\SOUL\source\modules\soul_core;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\imgui-node-editor;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\farbot\include;..\NotRed\vendor\Optick\src;..\NotRed\vendor\yaml-cpp\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -135,7 +135,7 @@ IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCommon_64.dll"\ (xcopy /Q /E /Y /I "
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXCooking_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\PhysX\win64\PhysXFoundation_64.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
 IF EXIST "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\assimp\bin\Release\assimp-vc143-mt.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)
-IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)</Command>
+IF EXIST "..\NotRed\vendor\mono\bin\Release\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I "..\NotRed\vendor\mono\bin\Release\mono-2.0-sgen.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul) ELSE (xcopy /Q /Y /I "..\NotRed\vendor\mono\bin\Release\mono-2.0-sgen.dll" "..\bin\Release-windows-x86_64\NotEditor" &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Dist|x64'">
@@ -143,7 +143,7 @@ IF EXIST "..\NotRed\vendor\mono\bin\Debug\mono-2.0-sgen.dll"\ (xcopy /Q /E /Y /I
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NR_PLATFORM_WINDOWS;NR_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\choc;..\NotRed\vendor\SOUL\include;..\NotRed\vendor\SOUL\source\modules\soul_core;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\imgui-node-editor;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\glad\include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\farbot\include;..\NotRed\vendor\yaml-cpp\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;..\NotRed\src;..\NotRed\vendor;..\NotRed\vendor\choc;..\NotRed\vendor\SOUL\include;..\NotRed\vendor\SOUL\source\modules\soul_core;..\NotRed\vendor\Entt\include;..\NotRed\vendor\glm;..\NotRed\vendor\imgui;..\NotRed\vendor\imgui-node-editor;..\NotRed\vendor\Vulkan\Include;..\NotRed\vendor\MiniAudio\include;..\NotRed\vendor\farbot\include;..\NotRed\vendor\Optick\src;..\NotRed\vendor\yaml-cpp\include;..\NotRed\vendor\ozz-animation\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>

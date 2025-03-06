@@ -127,7 +127,7 @@ namespace NR
 		static void RegisterShaderDependency(Ref<Shader> shader, Ref<PipelineCompute> computePipeline);
 		static void RegisterShaderDependency(Ref<Shader> shader, Ref<Pipeline> pipeline);
 		static void RegisterShaderDependency(Ref<Shader> shader, Ref<Material> material);
-		static void OnShaderReloaded(size_t hash);
+		static void ShaderReloaded(size_t hash);
 
 		static uint32_t GetCurrentFrameIndex();
 

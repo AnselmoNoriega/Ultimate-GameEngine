@@ -125,7 +125,7 @@ namespace NR
 		}
 
 		Entity FindEntityByTag(const std::string& tag);
-		Entity FindEntityByUUID(UUID id);
+		Entity FindEntityByID(UUID id);
 
 		void ConvertToLocalSpace(Entity entity);
 		void ConvertToWorldSpace(Entity entity);
@@ -221,6 +221,6 @@ namespace NR
 		friend class SceneSerializer;
 		friend class PrefabSerializer;
 		friend class SceneHierarchyPanel;
-		friend class ECSDebugPanel;
+		friend class ECSPanel;
 	};
 }

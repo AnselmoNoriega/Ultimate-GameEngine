@@ -170,7 +170,7 @@ namespace NR
 
 		for (auto childId : entity.Children())
 		{
-			Entity child = mEntityScene->FindEntityByUUID(childId);
+			Entity child = mEntityScene->FindEntityByID(childId);
 
 			if (child.HasComponent<RigidBodyComponent>())
 			{

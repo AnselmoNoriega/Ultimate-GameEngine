@@ -2166,7 +2166,7 @@ namespace NR
 			mGeometryWireframePipeline->GetSpecification().LineWidth = width;
 	}
 
-	void SceneRenderer::OnImGuiRender()
+	void SceneRenderer::ImGuiRender()
 	{
 		NR_PROFILE_FUNC();
 

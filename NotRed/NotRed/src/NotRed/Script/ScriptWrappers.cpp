@@ -173,7 +173,7 @@ namespace NR::Script
 
         if (success && inData->RequiredComponentTypes != nullptr)
         {
-            Entity entity = scene->FindEntityByUUID(temp.HitEntity);
+            Entity entity = scene->FindEntityByID(temp.HitEntity);
             size_t length = mono_array_length(inData->RequiredComponentTypes);
 
             for (size_t i = 0; i < length; i++)

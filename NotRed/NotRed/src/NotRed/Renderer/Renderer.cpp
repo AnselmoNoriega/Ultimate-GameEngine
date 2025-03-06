@@ -1,4 +1,4 @@
-#include "hzpch.h"
+#include "nrpch.h"
 #include "Renderer.h"
 
 #include "Shader.h"
@@ -51,7 +51,7 @@ namespace NR
 		sShaderDependencies[shader->GetHash()].Materials.push_back(material);
 	}
 
-	void Renderer::OnShaderReloaded(size_t hash)
+	void Renderer::ShaderReloaded(size_t hash)
 	{
 		if (sShaderDependencies.find(hash) != sShaderDependencies.end())
 		{

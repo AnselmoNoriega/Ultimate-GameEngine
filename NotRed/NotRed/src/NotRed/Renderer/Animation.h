@@ -72,7 +72,7 @@ namespace NR
 		bool IsLoaded() { return mIsLoaded; }
 		void Load(Ref<SkeletonAsset> skeleton);
 
-		const ozz::animation::Animation& GetAnimation() const { HZ_CORE_ASSERT(mAnimation, "Attempted to access null animation!"); return *mAnimation; }
+		const ozz::animation::Animation& GetAnimation() const { NR_CORE_ASSERT(mAnimation, "Attempted to access null animation!"); return *mAnimation; }
 
 	private:
 		ozz::unique_ptr<ozz::animation::Animation> mAnimation;

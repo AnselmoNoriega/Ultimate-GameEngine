@@ -1576,7 +1576,7 @@ namespace NR
 
 				if (/*isRuntime &&*/ anim.EnableRootMotion)
 				{
-					auto rootMotionEntity = FindEntityByUUID(anim.RootMotionTarget);
+					auto rootMotionEntity = FindEntityByID(anim.RootMotionTarget);
 					if (rootMotionEntity)
 					{
 						auto parentEntity = rootMotionEntity.GetParent();
@@ -1738,7 +1738,7 @@ namespace NR
 			for (size_t i = 0; i < entity.Children().size(); i++)
 			{
 				auto childId = entity.Children()[i];
-				Entity child = FindEntityByUUID(childId);
+				Entity child = FindEntityByID(childId);
 				if (child)
 					DestroyEntity(child, excludeChildren, false);
 			}
@@ -1773,7 +1773,7 @@ namespace NR
 		{
 			for (UUID childID : entity.Children())
 			{
-				Entity child = FindEntityByUUID(childID);
+				Entity child = FindEntityByID(childID);
 				ResetTransformsToMesh(child, resetChildren);
 			}
 
@@ -1799,7 +1799,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
-		if (registry.has<T>(src))
+		if (registry.try_get<T>(src))
 		{
 			auto& srcComponent = registry.get<T>(src);
 			registry.emplace_or_replace<T>(dst, srcComponent);
@@ -1811,7 +1811,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
-		if (srcRegistry.has<T>(src))
+		if (srcRegistry.try_get<T>(src))
 		{
 			auto& srcComponent = srcRegistry.get<T>(src);
 			dstRegistry.emplace_or_replace<T>(dst, srcComponent);
@@ -1826,7 +1826,7 @@ namespace NR
 			{
 				if (entity.HasParent())
 				{
-					Entity parent = scene->FindEntityByUUID(entity.GetParentID());
+					Entity parent = scene->FindEntityByID(entity.GetParentID());
 					NR_CORE_ASSERT(parent, "Failed to find parent entity");
 					newEntity.SetParentID(entity.GetParentID());
 					parent.Children().push_back(newEntity.GetID());
@@ -1894,11 +1894,11 @@ namespace NR
 		auto childIds = entity.Children(); // need to take a copy of children here, because the collection is mutated below
 		for (auto childId : childIds)
 		{
-			Entity childEntity = FindEntityByUUID(childId);
+			Entity childEntity = FindEntityByID(childId);
 			NR_CORE_ASSERT(childEntity, "Failed to find child entity"); // Check your scene file.  It may be corrupted from earlier (buggy) attempts at entity duplication
 			if (childEntity)
 			{
-				Entity childDuplicate = DuplicateEntity(FindEntityByUUID(childId));
+				Entity childDuplicate = DuplicateEntity(FindEntityByID(childId));
 
 				// At this point childDuplicate is a child of entity, we need to remove it from that entity
 				UnparentEntity(childDuplicate, false);
@@ -1983,7 +1983,7 @@ namespace NR
 		// Create children
 		for (auto childId : entity.Children())
 		{
-			CreatePrefabEntity(entity.mScene->FindEntityByUUID(childId), newEntity);
+			CreatePrefabEntity(entity.mScene->FindEntityByID(childId), newEntity);
 		}
 
 		if (!mIsEditorScene)
@@ -2108,7 +2108,7 @@ namespace NR
 		return Entity{};
 	}
 
-	Entity Scene::FindEntityByUUID(UUID id)
+	Entity Scene::FindEntityByID(UUID id)
 	{
 		NR_PROFILE_FUNC();
 
@@ -2127,7 +2127,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
-		Entity parent = FindEntityByUUID(entity.GetParentID());
+		Entity parent = FindEntityByID(entity.GetParentID());
 
 		if (!parent)
 		{
@@ -2144,7 +2144,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
-		Entity parent = FindEntityByUUID(entity.GetParentID());
+		Entity parent = FindEntityByID(entity.GetParentID());
 
 		if (!parent)
 		{
@@ -2162,7 +2162,7 @@ namespace NR
 
 		glm::mat4 transform(1.0f);
 
-		Entity parent = FindEntityByUUID(entity.GetParentID());
+		Entity parent = FindEntityByID(entity.GetParentID());
 		if (parent)
 		{
 			transform = GetWorldSpaceTransformMatrix(parent);
@@ -2191,7 +2191,7 @@ namespace NR
 		{
 			UnparentEntity(parent);
 
-			Entity newParent = FindEntityByUUID(entity.GetParentID());
+			Entity newParent = FindEntityByID(entity.GetParentID());
 			if (newParent)
 			{
 				UnparentEntity(entity);
@@ -2200,7 +2200,7 @@ namespace NR
 		}
 		else
 		{
-			Entity previousParent = FindEntityByUUID(entity.GetParentID());
+			Entity previousParent = FindEntityByID(entity.GetParentID());
 
 			if (previousParent)
 			{
@@ -2218,7 +2218,7 @@ namespace NR
 	{
 		NR_PROFILE_FUNC();
 
-		Entity parent = FindEntityByUUID(entity.GetParentID());
+		Entity parent = FindEntityByID(entity.GetParentID());
 		if (!parent)
 		{
 			return;

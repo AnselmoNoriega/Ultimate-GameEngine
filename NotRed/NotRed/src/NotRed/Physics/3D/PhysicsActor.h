@@ -82,6 +82,7 @@ namespace NR
 
 	private:
 		void CreateRigidActor();
+		void FixedUpdate(float fixedDeltaTime);
 		void SynchronizeTransform() override;
 
 	private:

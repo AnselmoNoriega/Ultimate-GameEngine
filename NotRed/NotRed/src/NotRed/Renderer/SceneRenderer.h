@@ -100,7 +100,7 @@ namespace NR
 
 		void SetLineWidth(float width);
 
-		void OnImGuiRender();
+		void ImGuiRender();
 
 		static void WaitForThreads();
 	private:

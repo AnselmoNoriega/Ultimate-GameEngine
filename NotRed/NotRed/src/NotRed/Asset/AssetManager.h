@@ -53,7 +53,7 @@ namespace NR
 		template<typename T, typename... Args>
 		static Ref<T> CreateNewAsset(const std::string& filename, const std::string& directoryPath, Args&&... args)
 		{
-			static_assert(std::isbase_of<Asset, T>::value, "CreateNewAsset only works for types derived from Asset");
+			static_assert(std::is_base_of<Asset, T>::value, "CreateNewAsset only works for types derived from Asset");
 
 			AssetMetadata metadata;
 			metadata.Handle = AssetHandle();
@@ -104,7 +104,7 @@ namespace NR
 		template<typename T>
 		static Ref<T> GetAsset(AssetHandle assetHandle)
 		{
-			HZ_PROFILE_FUNC();
+			NR_PROFILE_FUNC();
 
 			if (IsMemoryAsset(assetHandle))
 				return sMemoryAssets[assetHandle].As<T>();
@@ -147,7 +147,7 @@ namespace NR
 		template<typename TAsset, typename... TArgs>
 		static AssetHandle CreateMemoryOnlyAsset(TArgs&&... args)
 		{
-			static_assert(std::isbase_of<Asset, TAsset>::value, "CreateMemoryOnlyAsset only works for types derived from Asset");
+			static_assert(std::is_base_of<Asset, TAsset>::value, "CreateMemoryOnlyAsset only works for types derived from Asset");
 
 			Ref<TAsset> asset = Ref<TAsset>::Create(std::forward<TArgs>(args)...);
 			asset->Handle = AssetHandle();
@@ -186,5 +186,4 @@ namespace NR
 		friend class ContentBrowserAsset;
 		friend class ContentBrowserDirectory;
 	};
-
 }

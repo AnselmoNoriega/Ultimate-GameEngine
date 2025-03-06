@@ -348,6 +348,9 @@
     <ClInclude Include="src\NotRed\Editor\DefaultAssetEditors.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\ECSPanel.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Editor\EditorCamera.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
@@ -358,6 +361,9 @@
       <Filter>src\NotRed\Editor\EditorConsole</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\EditorConsolePanel.h">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\EditorPanel.h">
       <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\MeshViewerPanel.h">
@@ -377,6 +383,9 @@
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\NodeGraphEditor\PropertySet.h">
       <Filter>src\NotRed\Editor\NodeGraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Editor\PanelManager.h">
+      <Filter>src\NotRed\Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Editor\SceneHierarchyPanel.h">
       <Filter>src\NotRed\Editor</Filter>
@@ -432,10 +441,16 @@
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsActor.h">
       <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsActorBase.h">
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsController.h">
       <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsInternal.h">
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h">
       <Filter>src\NotRed\Physics\3D</Filter>
     </ClInclude>
     <ClInclude Include="src\NotRed\Physics\3D\PhysicsLayer.h">
@@ -684,6 +699,9 @@
     <ClInclude Include="src\NotRed\Script\ScriptWrappers.h">
       <Filter>src\NotRed\Script</Filter>
     </ClInclude>
+    <ClInclude Include="src\NotRed\Util\ContainerUtils.h">
+      <Filter>src\NotRed\Util</Filter>
+    </ClInclude>
     <ClInclude Include="src\NotRed\Util\FileSystem.h">
       <Filter>src\NotRed\Util</Filter>
     </ClInclude>
@@ -885,12 +903,6 @@
     <ClInclude Include="vendor\yaml-cpp\src\token.h">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClInclude>
-    <ClInclude Include="src\NotRed\Util\ContainerUtils.h" />
-    <ClInclude Include="src\NotRed\Physics\3D\PhysicsJoints.h" />
-    <ClInclude Include="src\NotRed\Physics\3D\PhysicsActorBase.h" />
-    <ClInclude Include="src\NotRed\Editor\ECSPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\EditorPanel.h" />
-    <ClInclude Include="src\NotRed\Editor\PanelManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\NotRed\Asset\AssetImporter.cpp">
@@ -1025,6 +1037,9 @@
     <ClCompile Include="src\NotRed\Editor\DefaultAssetEditors.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
+    <ClCompile Include="src\NotRed\Editor\ECSPanel.cpp">
+      <Filter>src\NotRed\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="src\NotRed\Editor\EditorCamera.cpp">
       <Filter>src\NotRed\Editor</Filter>
     </ClCompile>
@@ -1107,6 +1122,9 @@
       <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsInternal.cpp">
+      <Filter>src\NotRed\Physics\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NotRed\Physics\3D\PhysicsJoints.cpp">
       <Filter>src\NotRed\Physics\3D</Filter>
     </ClCompile>
     <ClCompile Include="src\NotRed\Physics\3D\PhysicsLayer.cpp">
@@ -1457,7 +1475,5 @@
     <ClCompile Include="vendor\yaml-cpp\src\tag.cpp">
       <Filter>vendor\yaml-cpp\src</Filter>
     </ClCompile>
-    <ClCompile Include="src\NotRed\Physics\3D\PhysicsJoints.cpp" />
-    <ClCompile Include="src\NotRed\Editor\ECSPanel.cpp" />
   </ItemGroup>
 </Project>

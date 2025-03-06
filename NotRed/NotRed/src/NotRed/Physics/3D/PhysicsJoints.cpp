@@ -1,8 +1,8 @@
 #include "nrpch.h"
 #include "PhysicsJoints.h"
 
-#include <Physics/include/extensions/PxFixedJoint.h>
-#include <Physics/include/extensions/PxDistanceJoint.h>
+#include <PhysX/include/extensions/PxFixedJoint.h>
+#include <PhysX/include/extensions/PxDistanceJoint.h>
 
 #include "PhysicsManager.h"
 #include "PhysicsInternal.h"
@@ -22,7 +22,7 @@ namespace NR
 
 		mConnectedEntity = other;
 
-		OnConnectedEntityChanged(other);
+		ConnectedEntityChanged(other);
 
 		auto physicsScene = Scene::GetScene(mEntity.GetSceneID())->GetPhysicsScene();
 

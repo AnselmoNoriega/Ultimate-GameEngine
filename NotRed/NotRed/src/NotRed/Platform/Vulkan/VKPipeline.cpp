@@ -249,7 +249,7 @@ namespace NR
 
 				VkVertexInputBindingDescription& vertexInputBinding = vertexInputBindingDescriptions.emplace_back();
 
-				VkVertexInputBindingDescription vertexInputBinding = {};
+				//VkVertexInputBindingDescription vertexInputBinding = {};
 				vertexInputBinding.binding = 0;
 				vertexInputBinding.stride = layout.GetStride();
 				vertexInputBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
