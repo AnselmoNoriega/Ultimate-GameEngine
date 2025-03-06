@@ -22,9 +22,7 @@ namespace NR
 
 		enum class PhysicsColliderView
 		{
-			None,
-			Normal, 
-			OnTop
+			None, Normal, OnTop
 		};
 		PhysicsColliderView ShowPhysicsColliders = PhysicsColliderView::None;
 		glm::vec4 PhysicsCollidersColor = glm::vec4{ 0.2f, 1.0f, 0.2f, 1.0f };
@@ -39,7 +37,7 @@ namespace NR
 
 	struct SceneRendererCamera
 	{
-		Camera RenderCamera;
+		NR::Camera Camera;
 		glm::mat4 ViewMatrix;
 		float Near, Far;
 		float FOV;
@@ -48,10 +46,10 @@ namespace NR
 	struct BloomSettings
 	{
 		bool Enabled = true;
-		float Threshold = 4.4f;
+		float Threshold = 1.0f;
 		float Knee = 0.1f;
 		float UpsampleScale = 1.0f;
-		float Intensity = 0.15f;
+		float Intensity = 1.0f;
 		float DirtIntensity = 1.0f;
 	};
 
@@ -71,19 +69,18 @@ namespace NR
 
 		void SetViewportSize(uint32_t width, uint32_t height);
 
-		void UpdateHBAOData();
-		void BeginScene(const SceneRendererCamera& camera, float dt);
+		void updateHBAOData();
+		void BeginScene(const SceneRendererCamera& camera);
 		void EndScene();
 
 		void SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 		void SubmitStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+
 		void SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 		void SubmitSelectedStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 
 		void SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform = glm::mat4(1.0f));
 		void SubmitPhysicsStaticDebugMesh(Ref<StaticMesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
-
-		void SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
 
 		Ref<RenderPass> GetFinalRenderPass();
 		Ref<RenderPass> GetCompositeRenderPass() { return mCompositePipeline->GetSpecification().RenderPass; }
@@ -103,12 +100,13 @@ namespace NR
 
 		void SetLineWidth(float width);
 
-		void ImGuiRender();
+		void OnImGuiRender();
 
 		static void WaitForThreads();
-
 	private:
 		void FlushDrawList();
+
+		void PreRender();
 
 		void ClearPass();
 		void DeinterleavingPass();
@@ -133,9 +131,9 @@ namespace NR
 			glm::mat4 View;
 			float SplitDepth;
 		};
-
 		void CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const;
 
+		void UpdateStatistics();
 	private:
 		Ref<Scene> mScene;
 		SceneRendererSpecification mSpecification;
@@ -206,49 +204,10 @@ namespace NR
 			PointLight PointLights[1024]{};
 		} PointLightsUB;
 
-		struct UBEnvironmentParams
-		{
-			float Time = 0.0f;
-
-			uint32_t NumStars = 75000;
-			float StarSize = 10.0f;
-
-			float DustSize = 500.0f;
-			float H2Size = 150.0f;
-
-			float H2DistCheck = 300.0f;
-		} EnvironmentParamsUB;
-
-		struct UBStarParams
-		{
-			uint32_t NumStars = 75000;
-
-			float MaxRad = 3500.0f;
-			float BulgeRad = 1250.0f;
-
-			float AngleOffset = 6.28f;
-			float Eccentricity = 0.85f;
-
-			float BaseHeight = 300.0f;
-			float Height = 250.0f;
-
-			float MinTemp = 3000.0f;
-			float MaxTemp = 9000.0f;
-			float DustBaseTemp = 4000.0f;
-
-			float MinStarOpacity = 0.1f;
-			float MaxStarOpacity = 0.5f;
-
-			float MinDustOpacity = 0.01f;
-			float MaxDustOpacity = 0.05f;
-
-			float Speed = 10.0f;
-		} StarParamsUB;
-
 		struct UBScene
 		{
 			DirLight lights;
-			glm::vec3 CameraPosition;
+			glm::vec3 uCameraPosition;
 			float EnvironmentMapIntensity = 1.0f;
 		} SceneDataUB;
 
@@ -283,6 +242,7 @@ namespace NR
 		Ref<PipelineCompute> mHBAOPipeline;
 		Ref<Image2D> mHBAOOutputImage;
 		Ref<RenderPass> mHBAORenderPass;
+
 
 		glm::ivec3 mLightCullingWorkGroups;
 
@@ -324,7 +284,6 @@ namespace NR
 		Ref<Pipeline> mShadowPassPipelinesAnim[4];
 		Ref<Material> mShadowPassMaterial;
 
-
 		Ref<Pipeline> mSkyboxPipeline;
 		Ref<Material> mSkyboxMaterial;
 
@@ -332,12 +291,6 @@ namespace NR
 		Ref<Material> mDOFMaterial;
 
 		Ref<PipelineCompute> mLightCullingPipeline;
-
-		// Particle Pass
-		glm::ivec3 mParticleGenWorkGroups;
-		Ref<PipelineCompute> mParticleGenPipeline;
-		Ref<Pipeline> mParticlePipeline;
-		Ref<Material> mParticleGenMaterial;
 
 		// Jump Flood Pass
 		Ref<Pipeline> mJumpFloodInitPipeline;
@@ -352,7 +305,15 @@ namespace NR
 		Ref<Texture2D> mBloomComputeTextures[3];
 		Ref<Material> mBloomComputeMaterial;
 
+		struct TransformVertexData
+		{
+			glm::vec4 MRow[3];
+		};
+		Ref<VertexBuffer> mSubmeshTransformBuffer;
+		TransformVertexData* mTransformVertexData = nullptr;
+
 		Ref<Material> mSelectedGeometryMaterial;
+		Ref<Material> mSelectedGeometryMaterialAnim;
 
 		std::vector<Ref<FrameBuffer>> mTempFrameBuffers;
 
@@ -362,31 +323,69 @@ namespace NR
 		{
 			Ref<Mesh> Mesh;
 			uint32_t SubmeshIndex;
-			Ref<NR::MaterialTable> MaterialTable;
-			glm::mat4 Transform;
+			Ref<MaterialTable> MaterialTable;
 			Ref<Material> OverrideMaterial;
+
+			uint32_t InstanceCount = 0;
+			uint32_t InstanceOffset = 0;
 		};
-		
+
 		struct StaticDrawCommand
 		{
 			Ref<StaticMesh> StaticMesh;
+			uint32_t SubmeshIndex;
 			Ref<MaterialTable> MaterialTable;
-			glm::mat4 Transform;
 			Ref<Material> OverrideMaterial;
+
+			uint32_t InstanceCount = 0;
+			uint32_t InstanceOffset = 0;
 		};
 
-		std::vector<DrawCommand> mDrawList;
-		std::vector<DrawCommand> mSelectedMeshDrawList;
-		std::vector<DrawCommand> mShadowPassDrawList;
-		std::vector<DrawCommand> mParticlesDrawList;
+		struct MeshKey
+		{
+			AssetHandle MeshHandle;
+			AssetHandle MaterialHandle;
+			uint32_t SubmeshIndex;
 
-		std::vector<StaticDrawCommand> mStaticMeshDrawList;
-		std::vector<StaticDrawCommand> mSelectedStaticMeshDrawList;
-		std::vector<StaticDrawCommand> mStaticMeshShadowPassDrawList;
+			MeshKey(AssetHandle meshHandle, AssetHandle materialHandle, uint32_t submeshIndex)
+				: MeshHandle(meshHandle), MaterialHandle(materialHandle), SubmeshIndex(submeshIndex) {}
+
+			bool operator<(const MeshKey& other) const
+			{
+				if (MeshHandle < other.MeshHandle)
+				{
+					return true;
+				}
+
+				if ((MeshHandle == other.MeshHandle) && (SubmeshIndex < other.SubmeshIndex))
+				{
+					return true;
+				}
+
+				return (MeshHandle == other.MeshHandle) && (SubmeshIndex == other.SubmeshIndex) && (MaterialHandle < other.MaterialHandle);
+			}
+		};
+
+		struct TransformMapData
+		{
+			std::vector<TransformVertexData> Transforms;
+			uint32_t TransformOffset = 0;
+		};
+
+		std::map<MeshKey, TransformMapData> mMeshTransformMap;
+
+		//std::vector<DrawCommand> mDrawList;
+		std::map<MeshKey, DrawCommand> mDrawList;
+		std::map<MeshKey, DrawCommand> mSelectedMeshDrawList;
+		std::map<MeshKey, DrawCommand> mShadowPassDrawList;
+
+		std::map<MeshKey, StaticDrawCommand> mStaticMeshDrawList;
+		std::map<MeshKey, StaticDrawCommand> mSelectedStaticMeshDrawList;
+		std::map<MeshKey, StaticDrawCommand> mStaticMeshShadowPassDrawList;
 
 		// Debug
-		std::vector<StaticDrawCommand> mStaticColliderDrawList;
-		std::vector<DrawCommand> mColliderDrawList;
+		std::map<MeshKey, StaticDrawCommand> mStaticColliderDrawList;
+		std::map<MeshKey, DrawCommand> mColliderDrawList;
 
 		// Grid
 		Ref<Pipeline> mGridPipeline;
@@ -417,5 +416,13 @@ namespace NR
 			uint32_t JumpFloodPassQuery = 0;
 			uint32_t CompositePassQuery = 0;
 		} mGPUTimeQueries;
+
+		struct Statistics
+		{
+			uint32_t DrawCalls = 0;
+			uint32_t Meshes = 0;
+			uint32_t Instances = 0;
+			uint32_t SavedDraws = 0;
+		} mStatistics;
 	};
 }

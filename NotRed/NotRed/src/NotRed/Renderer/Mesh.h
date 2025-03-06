@@ -266,7 +266,7 @@ namespace NR
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
 	private:
-		void BoneTransform(float time);
+		void BoneTransform(float time) {};
 
 	private:
 		Ref<MeshSource> mMeshSource;

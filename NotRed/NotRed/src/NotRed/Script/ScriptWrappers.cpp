@@ -831,7 +831,7 @@ namespace NR::Script
         if (AssetManager::IsAssetHandleValid(animationComponent.AnimationController))
         {
             const auto& rootMotion = AssetManager::GetAsset<AnimationController>(animationComponent.AnimationController)->GetRootMotion();
-            outTransform->Translation = rootMotion.Position;
+            outTransform->Translation = rootMotion.Translation;
             outTransform->Rotation = { 0.0f, acos(rootMotion.Rotation.w * 2.0), 0.0f };
         }
     }

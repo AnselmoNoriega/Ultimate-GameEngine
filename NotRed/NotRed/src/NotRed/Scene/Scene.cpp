@@ -483,7 +483,7 @@ namespace NR
 		mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
 		renderer->SetScene(this);
-		renderer->BeginScene({ camera, cameraViewMatrix, camera.GetPerspectiveNearClip(), camera.GetPerspectiveFarClip(), camera.GetPerspectiveVerticalFOV() }, dt);
+		renderer->BeginScene({ camera, cameraViewMatrix, camera.GetPerspectiveNearClip(), camera.GetPerspectiveFarClip(), camera.GetPerspectiveVerticalFOV() });
 
 		// Render Static Meshes
 		{
@@ -567,8 +567,8 @@ namespace NR
 			if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
 			{
 				glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
-
-				renderer->SubmitParticles(particleComponent, transform);
+				// TODO
+				//renderer->SubmitParticles(particleComponent, transform);
 			}
 		}
 
@@ -690,7 +690,7 @@ namespace NR
 		mSkyboxMaterial->Set("uUniforms.TextureLod", mSkyboxLod);
 
 		renderer->SetScene(this);
-		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), editorCamera.GetNearClip(), editorCamera.GetFarClip(), editorCamera.GetVerticalFOV() }, dt);
+		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), editorCamera.GetNearClip(), editorCamera.GetFarClip(), editorCamera.GetVerticalFOV() });
 
 		// Render Static Meshes
 		{
@@ -774,8 +774,8 @@ namespace NR
 			if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
 			{
 				glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
-
-				renderer->SubmitParticles(particleComponent, transform);
+				//TODO
+				//renderer->SubmitParticles(particleComponent, transform);
 			}
 		}
 
@@ -955,7 +955,7 @@ namespace NR
 
 		auto group = mRegistry.group<MeshComponent>(entt::get<TransformComponent>);
 		renderer->SetScene(this);
-		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), editorCamera.GetNearClip(), editorCamera.GetFarClip(), editorCamera.GetVerticalFOV() }, dt);
+		renderer->BeginScene({ editorCamera, editorCamera.GetViewMatrix(), editorCamera.GetNearClip(), editorCamera.GetFarClip(), editorCamera.GetVerticalFOV() });
 
 		// Render Static Meshes
 		{
@@ -1037,8 +1037,8 @@ namespace NR
 			if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
 			{
 				glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
-
-				renderer->SubmitParticles(particleComponent, transform);
+				//TODO
+				//renderer->SubmitParticles(particleComponent, transform);
 			}
 		}
 
@@ -1589,14 +1589,14 @@ namespace NR
 						{
 							// 1. target entity is a physics character controller
 							//    => apply root motion to character pose
-							Ref<PhysicsController>& controller = GetPhysicsScene()->GetController(rootMotionEntity);
+							Ref<PhysicsController> controller = GetPhysicsScene()->GetController(rootMotionEntity);
 							NR_CORE_ASSERT(controller);
 							{
 								// note: translation is applied to the physics controller
 								//       rotation (which cannot be applied to the physics controller) is applied directly to the target entity's transform
 								glm::vec3 displacement = worldToTarget * modelToWorld * rootMotion.Translation;
 								controller->Move(displacement);
-								transform.Rotation = glm::eulerAngles(glm::quat(transform.Rotation) * rootMotion.Rotation);  // TODO: fix flipflops between +/- 180 degrees
+								transform.Rotation = glm::eulerAngles(glm::quat(transform.Rotation) * rootMotion.Rotation);
 							}
 						}
 						else if (mShouldSimulate && rootMotionEntity.HasComponent<RigidBodyComponent>())
@@ -1604,8 +1604,6 @@ namespace NR
 							// 2. target entity is a physics rigid body.
 							//    => apply root motion as kinematic target  (or do nothing if it isnt a kinematic rigidbody. We do not support attempting to convert root motion into physics impulses)
 							//
-							// QUESTION: Should we even support this?
-							// Are there situations where you want to move a kinematic rigidbody via animation root motion? (vs. doing it with character controller, or without any physics at all)
 							const Ref<PhysicsActor>& actor = GetPhysicsScene()->GetActor(rootMotionEntity);
 							NR_CORE_ASSERT(actor);
 							if (actor->IsKinematic())

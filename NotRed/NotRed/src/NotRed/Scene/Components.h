@@ -386,6 +386,7 @@ namespace NR
         AssetHandle CollisionMesh;
         uint32_t SubmeshIndex = 0;
         bool OverrideMesh = false;
+        bool IsConvex = false;
 
         bool IsTrigger = false;
         AssetHandle Material;

@@ -13,30 +13,18 @@
 
 namespace NR
 {
-	inline ozz::math::Float4x4 Float4x4FromAIMatrix4x4(const aiMatrix4x4& matrix)
-	{
-		ozz::math::Float4x4 result;
-		result.cols[0] = ozz::math::simd_float4::Load(matrix.a1, matrix.b1, matrix.c1, matrix.d1);
-		result.cols[1] = ozz::math::simd_float4::Load(matrix.a2, matrix.b2, matrix.c2, matrix.d2);
-		result.cols[2] = ozz::math::simd_float4::Load(matrix.a3, matrix.b3, matrix.c3, matrix.d3);
-		result.cols[3] = ozz::math::simd_float4::Load(matrix.a4, matrix.b4, matrix.c4, matrix.d4);
-		return result;
-	}
-
 	class OZZImporterAssimp
 	{
-	private:
 		OZZImporterAssimp() = delete;
 		~OZZImporterAssimp() = delete;
 
 	public:
 
-		static bool ExtractRawSkeleton(const aiScene* scene, ozz::animation::offline::RawSkeleton& rawSkeleton, ozz::math::Float4x4& skeletonTransform)
+		static bool ExtractRawSkeleton(const aiScene* scene, ozz::animation::offline::RawSkeleton& rawSkeleton)
 		{
 			BoneHierachy boneHierarchy(scene);
-			return boneHierarchy.ExtractRawSkeleton(rawSkeleton, skeletonTransform);
+			return boneHierarchy.ExtractRawSkeleton(rawSkeleton);
 		}
-
 
 		static std::vector<std::string> GetAnimationNames(const aiScene* scene)
 		{
@@ -51,7 +39,6 @@ namespace NR
 			}
 			return animationNames;
 		}
-
 
 		static bool ExtractRawAnimation(const std::string& animationName, const aiScene* scene, const ozz::animation::Skeleton& skeleton, float samplingRate, ozz::animation::offline::RawAnimation& rawAnimation)
 		{
@@ -99,17 +86,20 @@ namespace NR
 						for (uint32_t keyIndex = 0; keyIndex < nodeAnim->mNumPositionKeys; ++keyIndex)
 						{
 							aiVectorKey key = nodeAnim->mPositionKeys[keyIndex];
-							rawAnimation.tracks[jointIndex].translations.emplace_back(static_cast<float>(key.mTime / samplingRate), ozz::math::Float3(static_cast<float>(key.mValue.x), static_cast<float>(key.mValue.y), static_cast<float>(key.mValue.z)));
+							float frameTime = std::clamp(static_cast<float>(key.mTime / samplingRate), 0.0f, rawAnimation.duration);
+							rawAnimation.tracks[jointIndex].translations.emplace_back(frameTime, ozz::math::Float3(static_cast<float>(key.mValue.x), static_cast<float>(key.mValue.y), static_cast<float>(key.mValue.z)));
 						}
 						for (uint32_t keyIndex = 0; keyIndex < nodeAnim->mNumRotationKeys; ++keyIndex)
 						{
 							aiQuatKey key = nodeAnim->mRotationKeys[keyIndex];
-							rawAnimation.tracks[jointIndex].rotations.emplace_back(static_cast<float>(key.mTime / samplingRate), ozz::math::Quaternion(static_cast<float>(key.mValue.x), static_cast<float>(key.mValue.y), static_cast<float>(key.mValue.z), static_cast<float>(key.mValue.w)));
+							float frameTime = std::clamp(static_cast<float>(key.mTime / samplingRate), 0.0f, rawAnimation.duration);
+							rawAnimation.tracks[jointIndex].rotations.emplace_back(frameTime, ozz::math::Quaternion(static_cast<float>(key.mValue.x), static_cast<float>(key.mValue.y), static_cast<float>(key.mValue.z), static_cast<float>(key.mValue.w)));
 						}
 						for (uint32_t keyIndex = 0; keyIndex < nodeAnim->mNumScalingKeys; ++keyIndex)
 						{
 							aiVectorKey key = nodeAnim->mScalingKeys[keyIndex];
-							rawAnimation.tracks[jointIndex].scales.emplace_back(static_cast<float>(key.mTime / samplingRate), ozz::math::Float3(static_cast<float>(key.mValue.x), static_cast<float>(key.mValue.y), static_cast<float>(key.mValue.z)));
+							float frameTime = std::clamp(static_cast<float>(key.mTime / samplingRate), 0.0f, rawAnimation.duration);
+							rawAnimation.tracks[jointIndex].scales.emplace_back(frameTime, ozz::math::Float3(static_cast<float>(key.mValue.x), static_cast<float>(key.mValue.y), static_cast<float>(key.mValue.z)));
 						}
 					}
 					break;
@@ -125,7 +115,7 @@ namespace NR
 		public:
 			BoneHierachy(const aiScene* scene) : mScene(scene) {}
 
-			bool ExtractRawSkeleton(ozz::animation::offline::RawSkeleton& rawSkeleton, ozz::math::Float4x4& skeletonTransform)
+			bool ExtractRawSkeleton(ozz::animation::offline::RawSkeleton& rawSkeleton)
 			{
 				if (!mScene)
 				{
@@ -138,16 +128,14 @@ namespace NR
 					return false;
 				}
 
-				aiMatrix4x4 transform;
-				TraverseNode(mScene->mRootNode, rawSkeleton, transform);
-				skeletonTransform = Float4x4FromAIMatrix4x4(transform);
+				TraverseNode(mScene->mRootNode, rawSkeleton);
 
 				return true;
 			}
 
-
 			void ExtractBones()
 			{
+				// Note: ASSIMP does not appear to support import of digital content files that contain _only_ an armature/skeleton and no mesh.
 				for (uint32_t meshIndex = 0; meshIndex < mScene->mNumMeshes; ++meshIndex)
 				{
 					const aiMesh* mesh = mScene->mMeshes[meshIndex];
@@ -158,21 +146,18 @@ namespace NR
 				}
 			}
 
-			void TraverseNode(aiNode* node, ozz::animation::offline::RawSkeleton& rawSkeleton, aiMatrix4x4& transform)
+			void TraverseNode(aiNode* node, ozz::animation::offline::RawSkeleton& rawSkeleton)
 			{
 				bool isBone = (mBones.find(node->mName.C_Str()) != mBones.end());
 
-				if (isBone)
-				{
+				if (isBone) {
 					rawSkeleton.roots.emplace_back();
 					TraverseBone(node, rawSkeleton.roots.back());
 				}
-				else 
-				{
+				else {
 					for (uint32_t nodeIndex = 0; nodeIndex < node->mNumChildren; ++nodeIndex)
 					{
-						transform *= node->mTransformation;
-						TraverseNode(node->mChildren[nodeIndex], rawSkeleton, transform);
+						TraverseNode(node->mChildren[nodeIndex], rawSkeleton);
 					}
 				}
 			}
@@ -196,6 +181,7 @@ namespace NR
 					TraverseBone(node->mChildren[nodeIndex], joint.children[nodeIndex]);
 				}
 			}
+
 
 		private:
 			std::set<std::string> mBones;

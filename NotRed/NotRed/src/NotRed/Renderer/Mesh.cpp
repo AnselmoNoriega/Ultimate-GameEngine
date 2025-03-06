@@ -1,4 +1,4 @@
-#include "hzpch.h" 
+#include "nrpch.h" 
 #include "Mesh.h"
 
 #include <glad/glad.h>
@@ -922,7 +922,9 @@ namespace NR
 			const auto& submeshes = mMeshSource->GetSubmeshes();
 			mSubmeshes.resize(submeshes.size());
 			for (uint32_t i = 0; i < submeshes.size(); ++i)
+			{
 				mSubmeshes[i] = i;
+			}
 		}
 	}
 }

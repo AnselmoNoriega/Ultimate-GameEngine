@@ -17,35 +17,33 @@
 #include "NotRed/Platform/Vulkan/VKComputePipeline.h"
 #include "NotRed/Platform/Vulkan/VKMaterial.h"
 #include "NotRed/Platform/Vulkan/VKRenderer.h"
-#include "NotRed/Platform/Vulkan/VKContext.h"
 #include "NotRed/Platform/Vulkan/VKImage.h"
+
+
+enum Binding : uint32_t
+{
+	Camera = 0,
+	ShadowData = 1,
+
+	RendererData = 3,
+	SceneData = 4,
+	PointLightData = 5,
+	AlbedoTexture = 6,
+	NormalTexture = 7,
+	MetalnessTexture = 8,
+	RoughnessTexture = 9,
+	EnvRadianceTex = 10,
+	EnvIrradianceTex = 11,
+	BRDFLUTTexture = 12,
+	ShadowMapTexture = 13,
+	VisibleLightIndicesBuffer = 14,
+	LinearDepthTex = 15,
+	ScreenData = 16,
+	HBAOData = 17
+};
 
 namespace NR
 {
-	enum Binding : uint32_t
-	{
-		CameraData,
-		ShadowData,
-		BoneTransforms,
-		RendererData,
-		SceneData,
-		PointLightData,
-		AlbedoTexture,
-		NormalTexture,
-		MetalnessTexture,
-		RoughnessTexture,
-		EnvRadianceTex,
-		EnvIrradianceTex,
-		BRDFLUTTexture,
-		ShadowMapTexture,
-		VisibleLightIndicesBuffer,
-		LinearDepthTex,
-		ScreenData,
-		HBAOData,
-		StarsData,
-		StarsEnvironmentData
-	};
-
 	static std::vector<std::thread> sThreadPool;
 
 	SceneRenderer::SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification)
@@ -70,16 +68,13 @@ namespace NR
 
 		uint32_t framesInFlight = Renderer::GetConfig().FramesInFlight;
 		mUniformBufferSet = UniformBufferSet::Create(framesInFlight);
-		mUniformBufferSet->Create(sizeof(UBCamera), Binding::CameraData);
+		mUniformBufferSet->Create(sizeof(UBCamera), Binding::Camera);
 		mUniformBufferSet->Create(sizeof(UBShadow), Binding::ShadowData);
-		//mUniformBufferSet->Create(100 * sizeof(glm::mat4), Binding::BoneTransforms);
 		mUniformBufferSet->Create(sizeof(UBRendererData), Binding::RendererData);
 		mUniformBufferSet->Create(sizeof(UBScene), Binding::SceneData);
 		mUniformBufferSet->Create(sizeof(UBPointLights), Binding::PointLightData);
 		mUniformBufferSet->Create(sizeof(UBScreenData), Binding::ScreenData);
 		mUniformBufferSet->Create(sizeof(UBHBAOData), Binding::HBAOData);
-		mUniformBufferSet->Create(sizeof(UBStarParams), Binding::StarsData);
-		mUniformBufferSet->Create(sizeof(UBEnvironmentParams), Binding::StarsEnvironmentData);
 
 		mCompositeShader = Renderer::GetShaderLibrary()->Get("SceneComposite");
 		CompositeMaterial = Material::Create(mCompositeShader);
@@ -97,26 +92,27 @@ namespace NR
 		}
 
 		VertexBufferLayout staticVertexLayout = {
-			{ ShaderDataType::Float3, "aPosition" },
-			{ ShaderDataType::Float3, "aNormal" },
-			{ ShaderDataType::Float3, "aTangent" },
-			{ ShaderDataType::Float3, "aBinormal" },
-			{ ShaderDataType::Float2, "aTexCoord" }
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Binormal" },
+			{ ShaderDataType::Float2, "a_TexCoord" }
 		};
 
 		VertexBufferLayout animatedVertexLayout = {
-			{ ShaderDataType::Float3, "aPosition" },
-			{ ShaderDataType::Float3, "aNormal" },
-			{ ShaderDataType::Float3, "aTangent" },
-			{ ShaderDataType::Float3, "aBinormal" },
-			{ ShaderDataType::Float2, "aTexCoord" },
-			{ ShaderDataType::Int4,   "aBoneIDs" },
-			{ ShaderDataType::Float4, "aBoneWeights" },
+			{ ShaderDataType::Float3, "a_Position" },
+			{ ShaderDataType::Float3, "a_Normal" },
+			{ ShaderDataType::Float3, "a_Tangent" },
+			{ ShaderDataType::Float3, "a_Binormal" },
+			{ ShaderDataType::Float2, "a_TexCoord" },
+			{ ShaderDataType::Int4,   "a_BoneIDs" },
+			{ ShaderDataType::Float4, "a_BoneWeights" },
 		};
 
-		VertexBufferLayout particlesVertexLayout = {
-			{ ShaderDataType::Float3, "aPosition" },
-			{ ShaderDataType::Float, "aIndex" }
+		VertexBufferLayout instanceLayout = {
+			{ ShaderDataType::Float4, "a_MRow0" },
+			{ ShaderDataType::Float4, "a_MRow1" },
+			{ ShaderDataType::Float4, "a_MRow2" },
 		};
 
 		// Shadow pass
@@ -148,14 +144,15 @@ namespace NR
 			pipelineSpec.DebugName = "ShadowPass";
 			pipelineSpec.Shader = shadowPassShader;
 			pipelineSpec.Layout = staticVertexLayout;
-
+			pipelineSpec.InstanceLayout = instanceLayout;
 			PipelineSpecification pipelineSpecAnim;
 			pipelineSpecAnim.DebugName = "ShadowPass-Anim";
 			pipelineSpecAnim.Shader = shadowPassShaderAnim;
 			pipelineSpecAnim.Layout = animatedVertexLayout;
+			pipelineSpecAnim.InstanceLayout = instanceLayout;
 
 			// 4 cascades
-			for (int i = 0; i < 4; ++i)
+			for (int i = 0; i < 4; i++)
 			{
 				shadowMapFrameBufferSpec.ExistingImageLayers.clear();
 				shadowMapFrameBufferSpec.ExistingImageLayers.emplace_back(i);
@@ -190,6 +187,7 @@ namespace NR
 
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth");
 			pipelineSpec.Layout = staticVertexLayout;
+			pipelineSpec.InstanceLayout = instanceLayout;
 			pipelineSpec.RenderPass = RenderPass::Create(preDepthRenderPassSpec);
 			mPreDepthPipeline = Pipeline::Create(pipelineSpec);
 			mPreDepthMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
@@ -216,14 +214,15 @@ namespace NR
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = "PBR-Static";
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Static");
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HazelPBR_Static");
 			pipelineSpecification.Layout = staticVertexLayout;
+			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.LineWidth = mLineWidth;
 			pipelineSpecification.RenderPass = renderPass;
 			mGeometryPipeline = Pipeline::Create(pipelineSpecification);
 
 			pipelineSpecification.DebugName = "PBR-Anim";
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Anim");
+			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("HazelPBR_Anim");
 			pipelineSpecification.Layout = animatedVertexLayout;
 			mGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryPipeline
 		}
@@ -246,6 +245,7 @@ namespace NR
 			pipelineSpecification.DebugName = "SelectedGeometry";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry");
 			pipelineSpecification.Layout = staticVertexLayout;
+			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 			mSelectedGeometryPipeline = Pipeline::Create(pipelineSpecification);
 			mSelectedGeometryMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
@@ -263,15 +263,14 @@ namespace NR
 			TextureProperties props;
 			props.SamplerWrap = TextureWrap::Clamp;
 			props.Storage = true;
-
 			props.DebugName = "BloomCompute-0";
 			mBloomComputeTextures[0] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
 			props.DebugName = "BloomCompute-1";
 			mBloomComputeTextures[1] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
 			props.DebugName = "BloomCompute-2";
 			mBloomComputeTextures[2] = Texture2D::Create(ImageFormat::RGBA32F, 1, 1, nullptr, props);
-			
 			mBloomComputeMaterial = Material::Create(shader);
+
 			mBloomDirtTexture = Renderer::GetBlackTexture();
 		}
 
@@ -299,18 +298,16 @@ namespace NR
 
 			pipelineSpec.Shader = shader;
 			pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" }
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
 			};
 
 			// 2 frame buffers, 2 render passes .. 8 attachments each
-			for (int rp = 0; rp < 2; ++rp)
+			for (int rp = 0; rp < 2; rp++)
 			{
 				deinterleavingFrameBufferSpec.ExistingImageLayers.clear();
-				for (int layer = 0; layer < 8; ++layer)
-				{
+				for (int layer = 0; layer < 8; layer++)
 					deinterleavingFrameBufferSpec.ExistingImageLayers.emplace_back(rp * 8 + layer);
-				}
 
 				Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(deinterleavingFrameBufferSpec);
 
@@ -322,9 +319,10 @@ namespace NR
 				mDeinterleavingPipelines[rp] = Pipeline::Create(pipelineSpec);
 			}
 			mDeinterleavingMaterial = Material::Create(pipelineSpec.Shader, pipelineSpec.DebugName);
+
 		}
 
-		//HBAO
+		// HBAO
 		{
 			ImageSpecification imageSpec;
 			imageSpec.Format = ImageFormat::RG16F;
@@ -342,14 +340,12 @@ namespace NR
 			mHBAOPipeline = Ref<VKComputePipeline>::Create(shader);
 			mHBAOMaterial = Material::Create(shader, "HBAO");
 
-			for (int i = 0; i < 16; ++i)
-			{
+			for (int i = 0; i < 16; i++)
 				HBAODataUB.Float2Offsets[i] = glm::vec4((float)(i % 4) + 0.5f, (float)(i / 4) + 0.5f, 0.0f, 1.f);
-			}
 			std::memcpy(HBAODataUB.Jitters, Noise::HBAOJitter().data(), sizeof glm::vec4 * 16);
 		}
 
-		//Reinterleaving
+		// Reinterleaving
 		{
 			FrameBufferSpecification reinterleavingFrameBufferSpec;
 			reinterleavingFrameBufferSpec.Attachments = { ImageFormat::RG16F, };
@@ -360,10 +356,11 @@ namespace NR
 			Ref<Shader> shader = Renderer::GetShaderLibrary()->Get("Reinterleaving");
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" },
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
 			};
 			pipelineSpecification.BackfaceCulling = false;
+
 
 			pipelineSpecification.Shader = shader;
 
@@ -383,12 +380,10 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DepthWrite = false;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" },
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" },
 			};
 			pipelineSpecification.BackfaceCulling = false;
-
-			auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur");
 
 			//HBAO first blur pass
 			{
@@ -402,6 +397,7 @@ namespace NR
 				renderPassSpec.DebugName = hbaoBlurFrameBufferSpec.DebugName;
 				pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 
+				auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur");
 				pipelineSpecification.Shader = shader;
 				pipelineSpecification.DebugName = "HBAOBlur";
 				mHBAOBlurPipelines[0] = Pipeline::Create(pipelineSpecification);
@@ -423,9 +419,10 @@ namespace NR
 				renderPassSpec.DebugName = hbaoBlurFrameBufferSpec.DebugName;
 				pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 
+				auto shader = Renderer::GetShaderLibrary()->Get("HBAOBlur2");
 				pipelineSpecification.Shader = shader;
 				pipelineSpecification.DebugName = "HBAOBlur2";
-				mHBAOBlurPipelines[1] = Pipeline::Create(pipelineSpecification);				
+				mHBAOBlurPipelines[1] = Pipeline::Create(pipelineSpecification);
 				mHBAOBlurMaterials[1] = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
 		}
@@ -438,20 +435,16 @@ namespace NR
 			compFrameBufferSpec.SwapChainTarget = mSpecification.SwapChainTarget;
 			// No depth for swapchain
 			if (mSpecification.SwapChainTarget)
-			{
 				compFrameBufferSpec.Attachments = { ImageFormat::RGBA };
-			}
 			else
-			{
 				compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
-			}
 
 			Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" }
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
 			};
 			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SceneComposite");
@@ -472,20 +465,16 @@ namespace NR
 			compFrameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
 			// No depth for swapchain
 			if (mSpecification.SwapChainTarget)
-			{
 				compFrameBufferSpec.Attachments = { ImageFormat::RGBA };
-			}
 			else
-			{
 				compFrameBufferSpec.Attachments = { ImageFormat::RGBA, ImageFormat::Depth };
-			}
 
 			Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(compFrameBufferSpec);
 
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" }
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
 			};
 			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("DOF");
@@ -521,13 +510,14 @@ namespace NR
 			mExternalCompositeRenderPass = RenderPass::Create(renderPassSpec);
 
 			PipelineSpecification pipelineSpecification;
-			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.DebugName = "Wireframe";
+			pipelineSpecification.BackfaceCulling = false;
 			pipelineSpecification.Wireframe = true;
 			pipelineSpecification.DepthTest = true;
 			pipelineSpecification.LineWidth = 2.0f;
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe");
 			pipelineSpecification.Layout = staticVertexLayout;
+			pipelineSpecification.InstanceLayout = instanceLayout;
 			pipelineSpecification.RenderPass = mExternalCompositeRenderPass;
 			mGeometryWireframePipeline = Pipeline::Create(pipelineSpecification);
 
@@ -539,6 +529,7 @@ namespace NR
 			pipelineSpecification.DebugName = "Wireframe-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe_Anim");
 			pipelineSpecification.Layout = animatedVertexLayout;
+			pipelineSpecification.InstanceLayout = instanceLayout;
 			mGeometryWireframePipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryWireframePipeline
 
 			pipelineSpecification.DepthTest = false;
@@ -555,10 +546,8 @@ namespace NR
 			frameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
 			frameBufferSpec.BlendMode = FrameBufferBlendMode::OneZero;
 
-			for (uint32_t i = 0; i < 2; ++i)
-			{
+			for (uint32_t i = 0; i < 2; i++)
 				mTempFrameBuffers.emplace_back(FrameBuffer::Create(frameBufferSpec));
-			}
 		}
 
 		// Jump Flood (outline)
@@ -570,8 +559,8 @@ namespace NR
 			PipelineSpecification pipelineSpecification;
 			pipelineSpecification.DebugName = renderPassSpec.DebugName;
 			pipelineSpecification.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" }
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
 			};
 			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Init");
@@ -579,7 +568,7 @@ namespace NR
 			mJumpFloodInitMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 
 			const char* passName[2] = { "EvenPass", "OddPass" };
-			for (uint32_t i = 0; i < 2; ++i)
+			for (uint32_t i = 0; i < 2; i++)
 			{
 				renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[(i + 1) % 2];
 				renderPassSpec.DebugName = fmt::format("JumpFlood-{0}", passName[i]);
@@ -587,8 +576,7 @@ namespace NR
 				pipelineSpecification.DebugName = renderPassSpec.DebugName;
 				pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
 				pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("JumpFlood_Pass");
-
-				mJumpFloodPassPipeline[i] = Pipeline::Create(pipelineSpecification);				
+				mJumpFloodPassPipeline[i] = Pipeline::Create(pipelineSpecification);
 				mJumpFloodPassMaterial[i] = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 			}
 
@@ -603,46 +591,6 @@ namespace NR
 			}
 		}
 
-		// Particles Gen
-		{
-			int numParticles = 80128;
-			int localSizeX = 256;
-
-			int workGroupsX = int((numParticles + localSizeX - 1) / localSizeX);
-
-			mParticleGenWorkGroups = { workGroupsX, 1, 1 };
-			int particleSize = 32;
-			mStorageBufferSet->Create(particleSize * numParticles, 16);
-
-			mParticleGenMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("ParticleGen"), "ParticleGen");
-			Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");
-			mParticleGenPipeline = Ref<VKComputePipeline>::Create(particleGenShader);
-		}
-
-		// Particles
-		{
-			FrameBufferSpecification particleFrameBufferSpec;
-			particleFrameBufferSpec.Attachments = { ImageFormat::RGBA32F, ImageFormat::RGBA16F, ImageFormat::RGBA16F, ImageFormat::Depth };
-			particleFrameBufferSpec.BlendMode = FrameBufferBlendMode::SrcAlphaOneMinusSrcAlpha;
-			particleFrameBufferSpec.Samples = 1;
-			particleFrameBufferSpec.ClearColor = { 0.0f, 0.0f, 0.0f, 0.0f };
-			particleFrameBufferSpec.DebugName = "Particles";
-
-			Ref<FrameBuffer> frameBuffer = FrameBuffer::Create(particleFrameBufferSpec);
-
-			PipelineSpecification pipelineSpecification;
-			pipelineSpecification.Layout = particlesVertexLayout;
-			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
-			pipelineSpecification.DepthWrite = false;
-
-			RenderPassSpecification renderPassSpec;
-			renderPassSpec.TargetFrameBuffer = frameBuffer;
-			renderPassSpec.DebugName = "ParticlesRenderer";
-			pipelineSpecification.RenderPass = RenderPass::Create(renderPassSpec);
-			pipelineSpecification.DebugName = "Particles";
-			mParticlePipeline = Pipeline::Create(pipelineSpecification);
-		}
-
 		// Grid
 		{
 			PipelineSpecification pipelineSpec;
@@ -650,8 +598,8 @@ namespace NR
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("Grid");
 			pipelineSpec.BackfaceCulling = false;
 			pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" }
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
 			};
 			pipelineSpec.RenderPass = mGeometryPipeline->GetSpecification().RenderPass;
 			mGridPipeline = Pipeline::Create(pipelineSpec);
@@ -662,6 +610,11 @@ namespace NR
 			mGridMaterial->Set("uSettings.Scale", gridScale);
 			mGridMaterial->Set("uSettings.Size", gridSize);
 		}
+
+		// Collider
+		//auto colliderShader = Shader::Create("assets/shaders/Collider.glsl");
+		//ColliderMaterial = Material::Create(Material::Create(colliderShader));
+		//ColliderMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
 
 		mWireframeMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("Wireframe"), "Wireframe");
 		mWireframeMaterial->Set("uMaterialUniforms.Color", glm::vec4{ 1.0f, 0.5f, 0.0f, 1.0f });
@@ -677,8 +630,8 @@ namespace NR
 			pipelineSpec.DebugName = "Skybox";
 			pipelineSpec.Shader = skyboxShader;
 			pipelineSpec.Layout = {
-				{ ShaderDataType::Float3, "aPosition" },
-				{ ShaderDataType::Float2, "aTexCoord" }
+				{ ShaderDataType::Float3, "a_Position" },
+				{ ShaderDataType::Float2, "a_TexCoord" }
 			};
 			pipelineSpec.RenderPass = mGeometryPipeline->GetSpecification().RenderPass;
 			mSkyboxPipeline = Pipeline::Create(pipelineSpec);
@@ -686,13 +639,15 @@ namespace NR
 			mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
 		}
 
+		// TODO(Yan): resizeable/flushable
+		const size_t TransformBufferCount = 10 * 1024; // 10240 transforms
+		mSubmeshTransformBuffer = VertexBuffer::Create(sizeof(TransformVertexData) * TransformBufferCount);
+		mTransformVertexData = new TransformVertexData[TransformBufferCount];
+
 		Ref<SceneRenderer> instance = this;
 		Renderer::Submit([instance]() mutable
 			{
 				instance->mResourcesCreated = true;
-
-				instance->mHBAOBlurMaterials[0]->Set("uInputTex", instance->mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
-				instance->mHBAOBlurMaterials[1]->Set("uInputTex", instance->mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
 			});
 	}
 
@@ -714,7 +669,7 @@ namespace NR
 		}
 	}
 
-	void SceneRenderer::UpdateHBAOData()
+	void SceneRenderer::updateHBAOData()
 	{
 		const auto& opts = mOptions;
 		UBHBAOData& hbaoData = HBAODataUB;
@@ -727,7 +682,7 @@ namespace NR
 		hbaoData.InvQuarterResolution = 1.f / glm::vec2{ (float)mViewportWidth / 4, (float)mViewportHeight / 4 };
 		hbaoData.RadiusToScreen = R * 0.5f * (float)mViewportHeight / (tanf(glm::radians(mSceneData.SceneCamera.FOV) * 0.5f) * 2.0f); //FOV is hard coded
 
-		const float* P = glm::value_ptr(mSceneData.SceneCamera.RenderCamera.GetProjectionMatrix());
+		const float* P = glm::value_ptr(mSceneData.SceneCamera.Camera.GetProjectionMatrix());
 		const glm::vec4 projInfoPerspective = {
 				 2.0f / (P[4 * 0 + 0]),                  // (x) * (R - L)/N
 				 2.0f / (P[4 * 1 + 1]),                  // (y) * (T - B)/N
@@ -741,7 +696,7 @@ namespace NR
 		hbaoData.AOMultiplier = 1.f / (1.f - hbaoData.NDotVBias);
 	}
 
-	void SceneRenderer::BeginScene(const SceneRendererCamera& camera, float dt)
+	void SceneRenderer::BeginScene(const SceneRendererCamera& camera)
 	{
 		NR_PROFILE_FUNC();
 
@@ -750,9 +705,7 @@ namespace NR
 		mActive = true;
 
 		if (!mResourcesCreated)
-		{
 			return;
-		}
 
 		mSceneData.SceneCamera = camera;
 		mSceneData.SceneEnvironment = mScene->mEnvironment;
@@ -768,29 +721,21 @@ namespace NR
 
 			mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
-			const uint32_t quarterWidth = (uint32_t)glm::ceil((float)mViewportWidth / 4.0f);
-			const uint32_t quarterHeight = (uint32_t)glm::ceil((float)mViewportHeight / 4.0f);
-
+			uint32_t quarterWidth = (uint32_t)glm::ceil((float)mViewportWidth / 4.0f);
+			uint32_t quarterHeight = (uint32_t)glm::ceil((float)mViewportHeight / 4.0f);
 			mDeinterleavingPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
 			mDeinterleavingPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(quarterWidth, quarterHeight);
-
 			mHBAOWorkGroups.x = (uint32_t)glm::ceil((float)quarterWidth / 16.0f);
 			mHBAOWorkGroups.y = (uint32_t)glm::ceil((float)quarterHeight / 16.0f);
 			mHBAOWorkGroups.z = 16;
-
 			auto& spec = mHBAOOutputImage->GetSpecification();
 			spec.Width = quarterWidth;
 			spec.Height = quarterHeight;
-
 			mHBAOOutputImage->Invalidate();
 			mHBAOOutputImage->CreatePerLayerImageViews();
-
 			mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-
 			mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 			mHBAOBlurPipelines[1]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight); //Only resize after geometry frameBuffer
-
-			mParticlePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 
 			mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
 			mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
@@ -807,19 +752,13 @@ namespace NR
 			}
 
 			for (auto& tempFB : mTempFrameBuffers)
-			{
 				tempFB->Resize(mViewportWidth, mViewportHeight);
-			}
 
 			if (mExternalCompositeRenderPass)
-			{
 				mExternalCompositeRenderPass->GetSpecification().TargetFrameBuffer->Resize(mViewportWidth, mViewportHeight);
-			}
 
 			if (mSpecification.SwapChainTarget)
-			{
 				mCommandBuffer = RenderCommandBuffer::CreateFromSwapChain("SceneRenderer");
-			}
 
 			mLightCullingWorkGroups = { (mViewportWidth + mViewportWidth % 16) / 16,(mViewportHeight + mViewportHeight % 16) / 16, 1 };
 			RendererDataUB.TilesCountX = mLightCullingWorkGroups.x;
@@ -836,26 +775,20 @@ namespace NR
 		UBHBAOData& hbaoData = HBAODataUB;
 		UBScreenData& screenData = ScreenDataUB;
 
-		UBStarParams& starParamsData = StarParamsUB;
-		UBEnvironmentParams& environmentParamsData = EnvironmentParamsUB;
-		EnvironmentParamsUB.Time += dt;
-
 		auto& sceneCamera = mSceneData.SceneCamera;
-		const auto viewProjection = sceneCamera.RenderCamera.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+		const auto viewProjection = sceneCamera.Camera.GetProjectionMatrix() * sceneCamera.ViewMatrix;
 		const glm::vec3 cameraPosition = glm::inverse(sceneCamera.ViewMatrix)[3];
 
 		const auto inverseVP = glm::inverse(viewProjection);
 		cameraData.ViewProjection = viewProjection;
 		cameraData.InverseViewProjection = inverseVP;
-		cameraData.Projection = sceneCamera.RenderCamera.GetProjectionMatrix();
+		cameraData.Projection = sceneCamera.Camera.GetProjectionMatrix();
 		cameraData.View = sceneCamera.ViewMatrix;
 		Ref<SceneRenderer> instance = this;
-		Renderer::Submit([instance, cameraData, starParamsData, environmentParamsData]() mutable
+		Renderer::Submit([instance, cameraData]() mutable
 			{
 				uint32_t bufferIndex = Renderer::GetCurrentFrameIndex();
-				instance->mUniformBufferSet->Get(Binding::CameraData, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
-				instance->mUniformBufferSet->Get(Binding::StarsData, 0, bufferIndex)->RT_SetData(&starParamsData, sizeof(starParamsData));
-				instance->mUniformBufferSet->Get(Binding::StarsEnvironmentData, 0, bufferIndex)->RT_SetData(&environmentParamsData, sizeof(environmentParamsData));
+				instance->mUniformBufferSet->Get(Binding::Camera, 0, bufferIndex)->RT_SetData(&cameraData, sizeof(cameraData));
 			});
 
 		const std::vector<PointLight>& pointLightsVec = mSceneData.SceneLightEnvironment.PointLights;
@@ -872,7 +805,7 @@ namespace NR
 		sceneData.lights.Direction = directionalLight.Direction;
 		sceneData.lights.Radiance = directionalLight.Radiance;
 		sceneData.lights.Multiplier = directionalLight.Multiplier;
-		sceneData.CameraPosition = cameraPosition;
+		sceneData.uCameraPosition = cameraPosition;
 		sceneData.EnvironmentMapIntensity = mSceneData.SceneEnvironmentIntensity;
 		Renderer::Submit([instance, sceneData]() mutable
 			{
@@ -880,7 +813,7 @@ namespace NR
 				instance->mUniformBufferSet->Get(Binding::SceneData, 0, bufferIndex)->RT_SetData(&sceneData, sizeof(sceneData));
 			});
 
-		UpdateHBAOData();
+		updateHBAOData();
 
 		Renderer::Submit([instance, hbaoData]() mutable
 			{
@@ -899,7 +832,8 @@ namespace NR
 		CascadeData cascades[4];
 		CalculateCascades(cascades, sceneCamera, directionalLight.Direction);
 
-		for (int i = 0; i < 4; ++i)
+		// TODO: four cascades for now
+		for (int i = 0; i < 4; i++)
 		{
 			CascadeSplits[i] = cascades[i].SplitDepth;
 			shadowData.ViewProjection[i] = cascades[i].ViewProj;
@@ -941,7 +875,7 @@ namespace NR
 
 	void SceneRenderer::WaitForThreads()
 	{
-		for (uint32_t i = 0; i < sThreadPool.size(); ++i)
+		for (uint32_t i = 0; i < sThreadPool.size(); i++)
 			sThreadPool[i].join();
 
 		sThreadPool.clear();
@@ -949,41 +883,238 @@ namespace NR
 
 	void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
-		mDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
-		mShadowPassDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
+		NR_PROFILE_FUNC();
+
+		// TODO: Culling, sorting, etc.
+
+		const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+		uint32_t materialIndex = submeshes[submeshIndex].MaterialIndex;
+		AssetHandle materialHandle = materialTable->HasMaterial(materialIndex) ? materialTable->GetMaterial(materialIndex)->Handle : mesh->GetMaterials()->GetMaterial(materialIndex)->Handle;
+
+		MeshKey meshKey = { mesh->Handle, materialHandle, submeshIndex };
+		auto& transformStorage = mMeshTransformMap[meshKey].Transforms.emplace_back();
+
+		transformStorage.MRow[0] = { transform[0][0], transform[1][0], transform[2][0], transform[3][0] };
+		transformStorage.MRow[1] = { transform[0][1], transform[1][1], transform[2][1], transform[3][1] };
+		transformStorage.MRow[2] = { transform[0][2], transform[1][2], transform[2][2], transform[3][2] };
+
+
+		// Main geo
+		{
+			auto& dc = mDrawList[meshKey];
+			dc.Mesh = mesh;
+			dc.SubmeshIndex = submeshIndex;
+			dc.MaterialTable = materialTable;
+			dc.OverrideMaterial = overrideMaterial;
+			dc.InstanceCount++;
+		}
+
+		// Shadow pass
+		{
+			auto& dc = mShadowPassDrawList[meshKey];
+			dc.Mesh = mesh;
+			dc.SubmeshIndex = submeshIndex;
+			dc.MaterialTable = materialTable;
+			dc.OverrideMaterial = overrideMaterial;
+			dc.InstanceCount++;
+		}
 	}
 
-	void SceneRenderer::SubmitStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform /*= glm::mat4(1.0f)*/, Ref<Material> overrideMaterial /*= nullptr*/)
+	void SceneRenderer::SubmitStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
-		mStaticMeshDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
-		mStaticMeshShadowPassDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
+		NR_PROFILE_FUNC();
+
+		Ref<MeshSource> meshSource = staticMesh->GetMeshSource();
+		const auto& submeshData = meshSource->GetSubmeshes();
+		for (uint32_t submeshIndex : staticMesh->GetSubmeshes())
+		{
+			glm::mat4 submeshTransform = transform * submeshData[submeshIndex].Transform;
+
+			const auto& submeshes = staticMesh->GetMeshSource()->GetSubmeshes();
+			uint32_t materialIndex = submeshes[submeshIndex].MaterialIndex;
+			AssetHandle materialHandle = materialTable->HasMaterial(materialIndex) ? materialTable->GetMaterial(materialIndex)->Handle : staticMesh->GetMaterials()->GetMaterial(materialIndex)->Handle;
+
+			MeshKey meshKey = { staticMesh->Handle, materialHandle, submeshIndex };
+			auto& transformStorage = mMeshTransformMap[meshKey].Transforms.emplace_back();
+
+			transformStorage.MRow[0] = { submeshTransform[0][0], submeshTransform[1][0], submeshTransform[2][0], submeshTransform[3][0] };
+			transformStorage.MRow[1] = { submeshTransform[0][1], submeshTransform[1][1], submeshTransform[2][1], submeshTransform[3][1] };
+			transformStorage.MRow[2] = { submeshTransform[0][2], submeshTransform[1][2], submeshTransform[2][2], submeshTransform[3][2] };
+
+			// Main geo
+			{
+				auto& dc = mStaticMeshDrawList[meshKey];
+				dc.StaticMesh = staticMesh;
+				dc.SubmeshIndex = submeshIndex;
+				dc.MaterialTable = materialTable;
+				dc.OverrideMaterial = overrideMaterial;
+				dc.InstanceCount++;
+			}
+
+			// Shadow pass
+			{
+				auto& dc = mStaticMeshShadowPassDrawList[meshKey];
+				dc.StaticMesh = staticMesh;
+				dc.SubmeshIndex = submeshIndex;
+				dc.MaterialTable = materialTable;
+				dc.OverrideMaterial = overrideMaterial;
+				dc.InstanceCount++;
+			}
+		}
+
 	}
 
 	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
-		mSelectedMeshDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
-		mShadowPassDrawList.push_back({ mesh, submeshIndex, materialTable, transform, overrideMaterial });
+		NR_PROFILE_FUNC();
+
+		// TODO: Culling, sorting, etc.
+
+		const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+		uint32_t materialIndex = submeshes[submeshIndex].MaterialIndex;
+		AssetHandle materialHandle = materialTable->HasMaterial(materialIndex) ? materialTable->GetMaterial(materialIndex)->Handle : mesh->GetMaterials()->GetMaterial(materialIndex)->Handle;
+
+		MeshKey meshKey = { mesh->Handle, materialHandle, submeshIndex };
+		auto& transformStorage = mMeshTransformMap[meshKey].Transforms.emplace_back();
+
+		transformStorage.MRow[0] = { transform[0][0], transform[1][0], transform[2][0], transform[3][0] };
+		transformStorage.MRow[1] = { transform[0][1], transform[1][1], transform[2][1], transform[3][1] };
+		transformStorage.MRow[2] = { transform[0][2], transform[1][2], transform[2][2], transform[3][2] };
+
+		uint32_t instanceIndex = 0;
+
+		// Main geo
+		{
+			auto& dc = mDrawList[meshKey];
+			dc.Mesh = mesh;
+			dc.SubmeshIndex = submeshIndex;
+			dc.MaterialTable = materialTable;
+			dc.OverrideMaterial = overrideMaterial;
+
+			instanceIndex = dc.InstanceCount;
+			dc.InstanceCount++;
+		}
+
+		// Selected mesh list
+		{
+			auto& dc = mSelectedMeshDrawList[meshKey];
+			dc.Mesh = mesh;
+			dc.SubmeshIndex = submeshIndex;
+			dc.MaterialTable = materialTable;
+			dc.OverrideMaterial = overrideMaterial;
+			dc.InstanceCount++;
+			dc.InstanceOffset = instanceIndex;
+		}
+
+		// Shadow pass
+		{
+			auto& dc = mShadowPassDrawList[meshKey];
+			dc.Mesh = mesh;
+			dc.SubmeshIndex = submeshIndex;
+			dc.MaterialTable = materialTable;
+			dc.OverrideMaterial = overrideMaterial;
+			dc.InstanceCount++;
+		}
 	}
 
 	void SceneRenderer::SubmitSelectedStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
 	{
-		mSelectedStaticMeshDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
-		mStaticMeshShadowPassDrawList.push_back({ staticMesh, materialTable, transform, overrideMaterial });
+		NR_PROFILE_FUNC();
+
+		Ref<MeshSource> meshSource = staticMesh->GetMeshSource();
+		const auto& submeshData = meshSource->GetSubmeshes();
+		for (uint32_t submeshIndex : staticMesh->GetSubmeshes())
+		{
+			glm::mat4 submeshTransform = transform * submeshData[submeshIndex].Transform;
+
+			const auto& submeshes = staticMesh->GetMeshSource()->GetSubmeshes();
+			uint32_t materialIndex = submeshes[submeshIndex].MaterialIndex;
+			AssetHandle materialHandle = materialTable->HasMaterial(materialIndex) ? materialTable->GetMaterial(materialIndex)->Handle : staticMesh->GetMaterials()->GetMaterial(materialIndex)->Handle;
+
+			MeshKey meshKey = { staticMesh->Handle, materialHandle, submeshIndex };
+			auto& transformStorage = mMeshTransformMap[meshKey].Transforms.emplace_back();
+
+			transformStorage.MRow[0] = { submeshTransform[0][0], submeshTransform[1][0], submeshTransform[2][0], submeshTransform[3][0] };
+			transformStorage.MRow[1] = { submeshTransform[0][1], submeshTransform[1][1], submeshTransform[2][1], submeshTransform[3][1] };
+			transformStorage.MRow[2] = { submeshTransform[0][2], submeshTransform[1][2], submeshTransform[2][2], submeshTransform[3][2] };
+
+			uint32_t instanceIndex = 0;
+
+			// Main geo
+			{
+				auto& dc = mStaticMeshDrawList[meshKey];
+				dc.StaticMesh = staticMesh;
+				dc.SubmeshIndex = submeshIndex;
+				dc.MaterialTable = materialTable;
+				dc.OverrideMaterial = overrideMaterial;
+
+				instanceIndex = dc.InstanceCount;
+				dc.InstanceCount++;
+			}
+
+			// Selected mesh list
+			{
+				auto& dc = mSelectedStaticMeshDrawList[meshKey];
+				dc.StaticMesh = staticMesh;
+				dc.SubmeshIndex = submeshIndex;
+				dc.MaterialTable = materialTable;
+				dc.OverrideMaterial = overrideMaterial;
+				dc.InstanceCount++;
+				dc.InstanceOffset = instanceIndex;
+			}
+
+			// Shadow pass
+			{
+				auto& dc = mStaticMeshShadowPassDrawList[meshKey];
+				dc.StaticMesh = staticMesh;
+				dc.SubmeshIndex = submeshIndex;
+				dc.MaterialTable = materialTable;
+				dc.OverrideMaterial = overrideMaterial;
+				dc.InstanceCount++;
+			}
+		}
 	}
 
 	void SceneRenderer::SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform)
 	{
-		mColliderDrawList.push_back({ mesh, submeshIndex, nullptr, transform });
+		MeshKey meshKey = { mesh->Handle, 5, submeshIndex };
+		auto& transformStorage = mMeshTransformMap[meshKey].Transforms.emplace_back();
+
+		transformStorage.MRow[0] = { transform[0][0], transform[1][0], transform[2][0], transform[3][0] };
+		transformStorage.MRow[1] = { transform[0][1], transform[1][1], transform[2][1], transform[3][1] };
+		transformStorage.MRow[2] = { transform[0][2], transform[1][2], transform[2][2], transform[3][2] };
+
+		{
+			auto& dc = mColliderDrawList[meshKey];
+			dc.Mesh = mesh;
+			dc.SubmeshIndex = submeshIndex;
+			dc.InstanceCount++;
+		}
 	}
 
-	void SceneRenderer::SubmitPhysicsStaticDebugMesh(Ref<StaticMesh> mesh, const glm::mat4& transform)
+	void SceneRenderer::SubmitPhysicsStaticDebugMesh(Ref<StaticMesh> staticMesh, const glm::mat4& transform)
 	{
-		mStaticColliderDrawList.push_back({ mesh, nullptr, transform });
-	}
+		Ref<MeshSource> meshSource = staticMesh->GetMeshSource();
+		const auto& submeshData = meshSource->GetSubmeshes();
+		for (uint32_t submeshIndex : staticMesh->GetSubmeshes())
+		{
+			glm::mat4 submeshTransform = transform * submeshData[submeshIndex].Transform;
 
-	void SceneRenderer::SubmitParticles(Ref<Mesh> mesh, const glm::mat4& transform)
-	{
-		mParticlesDrawList.push_back({ mesh, 0, nullptr, transform });
+			MeshKey meshKey = { staticMesh->Handle, 5, submeshIndex };
+			auto& transformStorage = mMeshTransformMap[meshKey].Transforms.emplace_back();
+
+			transformStorage.MRow[0] = { submeshTransform[0][0], submeshTransform[1][0], submeshTransform[2][0], submeshTransform[3][0] };
+			transformStorage.MRow[1] = { submeshTransform[0][1], submeshTransform[1][1], submeshTransform[2][1], submeshTransform[3][1] };
+			transformStorage.MRow[2] = { submeshTransform[0][2], submeshTransform[1][2], submeshTransform[2][2], submeshTransform[3][2] };
+
+			{
+				auto& dc = mStaticColliderDrawList[meshKey];
+				dc.StaticMesh = staticMesh;
+				dc.SubmeshIndex = submeshIndex;
+				dc.InstanceCount++;
+			}
+
+		}
 	}
 
 	void SceneRenderer::ClearPass(Ref<RenderPass> renderPass, bool explicitClear)
@@ -1003,35 +1134,39 @@ namespace NR
 		auto& directionalLights = mSceneData.SceneLightEnvironment.DirectionalLights;
 		if (directionalLights[0].Multiplier == 0.0f || !directionalLights[0].CastShadows)
 		{
-			for (int i = 0; i < 4; ++i)
-			{
+			// Clear shadow maps
+			for (int i = 0; i < 4; i++)
 				ClearPass(mShadowPassPipelines[i]->GetSpecification().RenderPass);
-			}
 
 			return;
 		}
 
-		for (int i = 0; i < 4; ++i)
+		// TODO: change to four cascades (or set number)
+		for (int i = 0; i < 4; i++)
 		{
 			Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass);
 
+			// static glm::mat4 scaleBiasMatrix = glm::scale(glm::mat4(1.0f), { 0.5f, 0.5f, 0.5f }) * glm::translate(glm::mat4(1.0f), { 1, 1, 1 });
+
 			// Render entities
 			const Buffer cascade(&i, sizeof(uint32_t));
-			
-			for (auto& dc : mStaticMeshShadowPassDrawList)
+			for (auto& [mk, dc] : mStaticMeshShadowPassDrawList)
 			{
-				Renderer::RenderStaticMesh(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mShadowPassMaterial, cascade);
+				NR_CORE_VERIFY(mMeshTransformMap.find(mk) != mMeshTransformMap.end());
+				const auto& transformData = mMeshTransformMap.at(mk);
+				Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
 			}
-
-			for (auto& dc : mShadowPassDrawList)
+			for (auto& [mk, dc] : mShadowPassDrawList)
 			{
+				NR_CORE_VERIFY(mMeshTransformMap.find(mk) != mMeshTransformMap.end());
+				const auto& transformData = mMeshTransformMap.at(mk);
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mShadowPassMaterial, cascade);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
 				}
 				else
 				{
-					Renderer::RenderMesh(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mShadowPassMaterial, cascade);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
 				}
 			}
 
@@ -1043,37 +1178,41 @@ namespace NR
 
 	void SceneRenderer::PreDepthPass()
 	{
+		// PreDepth Pass, only used for light culling for now
 		mGPUTimeQueries.DepthPrePassQuery = mCommandBuffer->BeginTimestampQuery();
-		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);		
-		
-		for (auto& dc : mStaticMeshDrawList)
+		Renderer::BeginRenderPass(mCommandBuffer, mPreDepthPipeline->GetSpecification().RenderPass);
+		for (auto& [mk, dc] : mStaticMeshDrawList)
 		{
-			Renderer::RenderStaticMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mPreDepthMaterial);
+			const auto& transformData = mMeshTransformMap.at(mk);
+			Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
 		}
-		for (auto& dc : mDrawList)
+		for (auto& [mk, dc] : mDrawList)
 		{
+			const auto& transformData = mMeshTransformMap.at(mk);
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
 			}
 			else
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
 			}
 		}
-		for (auto& dc : mSelectedStaticMeshDrawList)
+		for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
 		{
-			Renderer::RenderStaticMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mPreDepthMaterial);
+			const auto& transformData = mMeshTransformMap.at(mk);
+			Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
 		}
-		for (auto& dc : mSelectedMeshDrawList)
+		for (auto& [mk, dc] : mSelectedMeshDrawList)
 		{
+			const auto& transformData = mMeshTransformMap.at(mk);
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
 			}
 			else
 			{
-				Renderer::RenderMesh(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
@@ -1088,6 +1227,7 @@ namespace NR
 				imageMemoryBarrier.subresourceRange = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, image->GetSpecification().Mips, 0, 1 };
 				imageMemoryBarrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 				imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
 				vkCmdPipelineBarrier(
 					cb.As<VKRenderCommandBuffer>()->GetCommandBuffer(Renderer::GetCurrentFrameIndex()),
 					VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
@@ -1118,23 +1258,25 @@ namespace NR
 		mGPUTimeQueries.GeometryPassQuery = mCommandBuffer->BeginTimestampQuery();
 
 		Renderer::BeginRenderPass(mCommandBuffer, mSelectedGeometryPipeline->GetSpecification().RenderPass);
-		for (auto& dc : mSelectedStaticMeshDrawList)
+		for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
 		{
-			Renderer::RenderStaticMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mSelectedGeometryMaterial);
+			const auto& transformData = mMeshTransformMap.at(mk);
+			Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
 		}
-		for (auto& dc : mSelectedMeshDrawList)
+		for (auto& [mk, dc] : mSelectedMeshDrawList)
 		{
+			const auto& transformData = mMeshTransformMap.at(mk);
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mSelectedGeometryMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
 			}
 			else
 			{
-				Renderer::RenderMesh(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mSelectedGeometryMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
-		
+
 		Renderer::BeginRenderPass(mCommandBuffer, mGeometryPipeline->GetSpecification().RenderPass);
 		// Skybox
 		mSkyboxMaterial->Set("uUniforms.TextureLod", mSceneData.SkyboxLod);
@@ -1145,53 +1287,18 @@ namespace NR
 		Renderer::SubmitFullscreenQuad(mCommandBuffer, mSkyboxPipeline, mUniformBufferSet, nullptr, mSkyboxMaterial);
 
 		// Render static meshes
-		for (auto& dc : mStaticMeshDrawList)
+		for (auto& [mk, dc] : mStaticMeshDrawList)
 		{
-			Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.StaticMesh, dc.MaterialTable ? dc.MaterialTable : dc.StaticMesh->GetMaterials(), dc.Transform);
-		}
-		for (auto& dc : mSelectedStaticMeshDrawList)
-		{
-			Renderer::RenderMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.StaticMesh, dc.MaterialTable ? dc.MaterialTable : dc.StaticMesh->GetMaterials(), dc.Transform);
-			if (mOptions.ShowSelectedInWireframe)
-			{
-				Renderer::RenderStaticMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mWireframeMaterial);
-			}
+			const auto& transformData = mMeshTransformMap.at(mk);
+			Renderer::RenderStaticMesh(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.StaticMesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.StaticMesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount);
 		}
 
 		// Render dynamic meshes
-		for (auto& dc : mDrawList)
+		for (auto& [mk, dc] : mDrawList)
 		{
-			Renderer::RenderSubmesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
-		}
+			const auto& transformData = mMeshTransformMap.at(mk);
+			Renderer::RenderSubmeshInstanced(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount);
 
-		for (auto& dc : mSelectedMeshDrawList)
-		{
-			Renderer::RenderSubmesh(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
-			if (mOptions.ShowSelectedInWireframe)
-			{
-				if (dc.Mesh->IsRigged())
-				{
-					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mWireframeMaterial);
-				}
-				else
-				{
-					Renderer::RenderMesh(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mWireframeMaterial);
-				}
-			}
-		}
-
-		static bool createGalaxyPositions = true;
-		if (createGalaxyPositions)
-		{
-			// TODO: Fix it and check whats happening
-			// It runs for not every pixel
-			Renderer::GenerateParticles(mCommandBuffer, mParticleGenPipeline, mUniformBufferSet, mStorageBufferSet, mParticleGenMaterial, mParticleGenWorkGroups);
-			//createGalaxyPositions = false;
-		}
-
-		for (auto& dc : mParticlesDrawList)
-		{
-			Renderer::RenderParticles(mCommandBuffer, mParticlePipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), dc.Transform);
 		}
 
 		// Grid
@@ -1210,10 +1317,8 @@ namespace NR
 	{
 		if (!mOptions.EnableHBAO)
 		{
-			for (int i = 0; i < 2; ++i)
-			{
+			for (int i = 0; i < 2; i++)
 				ClearPass(mDeinterleavingPipelines[i]->GetSpecification().RenderPass);
-			}
 
 			return;
 		}
@@ -1221,7 +1326,7 @@ namespace NR
 		mDeinterleavingMaterial->Set("uLinearDepthTex", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
 
 		constexpr static glm::vec2 offsets[2]{ { 0.5f, 0.5f }, { 0.5f, 2.5f } };
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < 2; i++)
 		{
 			mDeinterleavingMaterial->Set("uInfo.UVOffset", offsets[i]);
 			Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass);
@@ -1269,7 +1374,7 @@ namespace NR
 			Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[0]->GetSpecification().RenderPass);
 			mHBAOBlurMaterials[0]->Set("uInfo.InvResDirection", glm::vec2{ mInvViewportWidth, 0.0f });
 			mHBAOBlurMaterials[0]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
-			mHBAOBlurMaterials[1]->Set("uInfo.FirstPass", 1);
+			mHBAOBlurMaterials[0]->Set("uInputTex", mReinterleavingPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
 			Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOBlurPipelines[0], nullptr, nullptr, mHBAOBlurMaterials[0]);
 			Renderer::EndRenderPass(mCommandBuffer);
 		}
@@ -1278,7 +1383,7 @@ namespace NR
 			Renderer::BeginRenderPass(mCommandBuffer, mHBAOBlurPipelines[1]->GetSpecification().RenderPass);
 			mHBAOBlurMaterials[1]->Set("uInfo.InvResDirection", glm::vec2{ 0.0f, mInvViewportHeight });
 			mHBAOBlurMaterials[1]->Set("uInfo.Sharpness", mOptions.HBAOBlurSharpness);
-			mHBAOBlurMaterials[1]->Set("uInfo.FirstPass", 0);
+			mHBAOBlurMaterials[1]->Set("uInputTex", mHBAOBlurPipelines[0]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
 			Renderer::SubmitFullscreenQuad(mCommandBuffer, mHBAOBlurPipelines[1], nullptr, nullptr, mHBAOBlurMaterials[1]);
 			Renderer::EndRenderPass(mCommandBuffer);
 		}
@@ -1294,7 +1399,7 @@ namespace NR
 		auto frameBuffer = mSelectedGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
 		mJumpFloodInitMaterial->Set("uTexture", frameBuffer->GetImage());
 
-		Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodInitPipeline, nullptr, nullptr, mJumpFloodInitMaterial);
+		Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodInitPipeline, nullptr, mJumpFloodInitMaterial);
 		Renderer::EndRenderPass(mCommandBuffer);
 
 		mJumpFloodPassMaterial[0]->Set("uTexture", mTempFrameBuffers[0]->GetImage());
@@ -1371,6 +1476,7 @@ namespace NR
 				allocInfo.pSetLayouts = &descriptorSetLayout;
 
 				pipeline->Begin(useComputeQueue ? nullptr : commandBuffer);
+
 				if (false)
 				{
 					VkImageMemoryBarrier imageMemoryBarrier = {};
@@ -1438,7 +1544,7 @@ namespace NR
 				VkSampler samplerClamp = VKRenderer::GetClampSampler();
 
 				uint32_t mips = bloomTextures[0]->GetMipLevelCount() - 2;
-				for (uint32_t i = 1; i < mips; ++i)
+				for (uint32_t i = 1; i < mips; i++)
 				{
 					auto [mipWidth, mipHeight] = bloomTextures[0]->GetMipSize(i);
 					workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)workGroupSize);
@@ -1470,6 +1576,7 @@ namespace NR
 						pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
 						pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
 					}
+
 					{
 						VkImageMemoryBarrier imageMemoryBarrier = {};
 						imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1488,6 +1595,7 @@ namespace NR
 							0, nullptr,
 							1, &imageMemoryBarrier);
 					}
+
 					{
 						descriptorImageInfo.imageView = images[0]->RT_GetMipImageView(i);
 
@@ -1514,6 +1622,7 @@ namespace NR
 						pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
 						pipeline->Dispatch(descriptorSet, workGroupsX, workGroupsY, 1);
 					}
+
 					{
 						VkImageMemoryBarrier imageMemoryBarrier = {};
 						imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -1557,7 +1666,7 @@ namespace NR
 
 				vkUpdateDescriptorSets(device, (uint32_t)writeDescriptors.size(), writeDescriptors.data(), 0, nullptr);
 
-				--bloomComputePushConstants.LOD;
+				bloomComputePushConstants.LOD--;
 				pipeline->SetPushConstants(&bloomComputePushConstants, sizeof(bloomComputePushConstants));
 
 				auto [mipWidth, mipHeight] = bloomTextures[2]->GetMipSize(mips - 2);
@@ -1637,7 +1746,6 @@ namespace NR
 
 				pipeline->End();
 			});
-
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.BloomComputePassQuery);
 	}
 
@@ -1646,10 +1754,11 @@ namespace NR
 		NR_PROFILE_FUNC();
 
 		mGPUTimeQueries.CompositePassQuery = mCommandBuffer->BeginTimestampQuery();
+
 		Renderer::BeginRenderPass(mCommandBuffer, mCompositePipeline->GetSpecification().RenderPass, true);
 
 		auto frameBuffer = mGeometryPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
-		float exposure = mSceneData.SceneCamera.RenderCamera.GetExposure();
+		float exposure = mSceneData.SceneCamera.Camera.GetExposure();
 		int textureSamples = frameBuffer->GetSpecification().Samples;
 
 		CompositeMaterial->Set("uUniforms.Exposure", exposure);
@@ -1664,15 +1773,49 @@ namespace NR
 			CompositeMaterial->Set("uUniforms.BloomDirtIntensity", 0.0f);
 		}
 
+		// CompositeMaterial->Set("uUniforms.TextureSamples", textureSamples);
+
 		CompositeMaterial->Set("uTexture", frameBuffer->GetImage());
 		CompositeMaterial->Set("uBloomTexture", mBloomComputeTextures[2]);
 		CompositeMaterial->Set("uBloomDirtTexture", mBloomDirtTexture);
 
-		Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, nullptr, CompositeMaterial);
-		Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, nullptr, mJumpFloodCompositeMaterial);
+		Renderer::SubmitFullscreenQuad(mCommandBuffer, mCompositePipeline, nullptr, CompositeMaterial);
+		Renderer::SubmitFullscreenQuad(mCommandBuffer, mJumpFloodCompositePipeline, nullptr, mJumpFloodCompositeMaterial);
 		Renderer::EndRenderPass(mCommandBuffer);
 
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.CompositePassQuery);
+
+#if 0 // WIP
+		// DOF
+		Renderer::BeginRenderPass(mCommandBuffer, mDOFPipeline->GetSpecification().RenderPass);
+		mDOFMaterial->Set("uTexture", mCompositePipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
+		mDOFMaterial->Set("uDepthTexture", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetDepthImage());
+		Renderer::SubmitFullscreenQuad(mCommandBuffer, mDOFPipeline, nullptr, mDOFMaterial);
+		Renderer::EndRenderPass(mCommandBuffer);
+#endif
+
+		//Renderer::BeginRenderPass(mCommandBuffer, mJumpFloodCompositePipeline->GetSpecification().RenderPass);
+		//Renderer::EndRenderPass(mCommandBuffer);
+
+
+		if (mOptions.ShowSelectedInWireframe)
+		{
+			Renderer::BeginRenderPass(mCommandBuffer, mExternalCompositeRenderPass);
+
+			for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
+			{
+				const auto& transformData = mMeshTransformMap.at(mk);
+				Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mWireframeMaterial);
+			}
+
+			for (auto& [mk, dc] : mSelectedMeshDrawList)
+			{
+				const auto& transformData = mMeshTransformMap.at(mk);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mWireframeMaterial);
+			}
+
+			Renderer::EndRenderPass(mCommandBuffer);
+		}
 
 		if (mOptions.ShowPhysicsColliders != SceneRendererOptions::PhysicsColliderView::None)
 		{
@@ -1681,21 +1824,27 @@ namespace NR
 			auto pipelineAnim = mOptions.ShowPhysicsColliders == SceneRendererOptions::PhysicsColliderView::Normal ? mGeometryWireframePipelineAnim : mGeometryWireframeOnTopPipelineAnim;
 			mColliderMaterial->Set("uMaterialUniforms.Color", mOptions.PhysicsCollidersColor);
 
-			for (auto& dc : mStaticColliderDrawList)
+			for (auto& [mk, dc] : mStaticColliderDrawList)
 			{
-				Renderer::RenderStaticMesh(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.Transform, mColliderMaterial);
+				NR_CORE_VERIFY(mMeshTransformMap.find(mk) != mMeshTransformMap.end());
+				const auto& transformData = mMeshTransformMap.at(mk);
+				Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mColliderMaterial);
 			}
-			for (auto& dc : mColliderDrawList)
+
+			for (auto& [mk, dc] : mColliderDrawList)
 			{
+				NR_CORE_VERIFY(mMeshTransformMap.find(mk) != mMeshTransformMap.end());
+				const auto& transformData = mMeshTransformMap.at(mk);
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMesh(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mColliderMaterial);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mColliderMaterial);
 				}
 				else
 				{
-					Renderer::RenderMesh(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, dc.Transform, mColliderMaterial);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mColliderMaterial);
 				}
 			}
+
 			Renderer::EndRenderPass(mCommandBuffer);
 		}
 	}
@@ -1704,6 +1853,8 @@ namespace NR
 	{
 		if (mResourcesCreated && mViewportWidth > 0 && mViewportHeight > 0)
 		{
+			PreRender();
+
 			mCommandBuffer->Begin();
 
 			// Main render passes
@@ -1739,10 +1890,11 @@ namespace NR
 			mCommandBuffer->Submit();
 		}
 
+		UpdateStatistics();
+
 		mDrawList.clear();
 		mSelectedMeshDrawList.clear();
 		mShadowPassDrawList.clear();
-		mParticlesDrawList.clear();
 
 		mStaticMeshDrawList.clear();
 		mSelectedStaticMeshDrawList.clear();
@@ -1750,8 +1902,84 @@ namespace NR
 
 		mColliderDrawList.clear();
 		mStaticColliderDrawList.clear();
-		
 		mSceneData = {};
+
+		mMeshTransformMap.clear();
+	}
+
+	void SceneRenderer::PreRender()
+	{
+		NR_PROFILE_FUNC();
+
+#if 0
+		uint32_t offset = 0;
+
+		for (size_t i = 0; i < mStaticMeshShadowPassDrawList.size(); i++)
+		{
+			auto& dc = mStaticMeshShadowPassDrawList[i];
+
+			// Copy transform data
+			mTransformVertexData[offset].MRow[0] = { dc.Transform[0][0], dc.Transform[1][0], dc.Transform[2][0], dc.Transform[3][0] };
+			mTransformVertexData[offset].MRow[1] = { dc.Transform[0][1], dc.Transform[1][1], dc.Transform[2][1], dc.Transform[3][1] };
+			mTransformVertexData[offset].MRow[2] = { dc.Transform[0][2], dc.Transform[1][2], dc.Transform[2][2], dc.Transform[3][2] };
+
+			dc.TransformOffset = offset * sizeof(TransformVertexData);
+			offset++;
+		}
+
+		for (size_t i = 0; i < mShadowPassDrawList.size(); i++)
+		{
+			auto& dc = mShadowPassDrawList[i];
+
+			// Copy transform data
+			mTransformVertexData[offset].MRow[0] = { dc.Transform[0][0], dc.Transform[1][0], dc.Transform[2][0], dc.Transform[3][0] };
+			mTransformVertexData[offset].MRow[1] = { dc.Transform[0][1], dc.Transform[1][1], dc.Transform[2][1], dc.Transform[3][1] };
+			mTransformVertexData[offset].MRow[2] = { dc.Transform[0][2], dc.Transform[1][2], dc.Transform[2][2], dc.Transform[3][2] };
+
+			dc.TransformOffset = offset * sizeof(TransformVertexData);
+			offset++;
+		}
+
+		for (size_t i = 0; i < mStaticMeshDrawList.size(); i++)
+		{
+			auto& dc = mStaticMeshDrawList[i];
+
+			// Copy transform data
+			mTransformVertexData[offset].MRow[0] = { dc.Transform[0][0], dc.Transform[1][0], dc.Transform[2][0], dc.Transform[3][0] };
+			mTransformVertexData[offset].MRow[1] = { dc.Transform[0][1], dc.Transform[1][1], dc.Transform[2][1], dc.Transform[3][1] };
+			mTransformVertexData[offset].MRow[2] = { dc.Transform[0][2], dc.Transform[1][2], dc.Transform[2][2], dc.Transform[3][2] };
+
+			dc.TransformOffset = offset * sizeof(TransformVertexData);
+			offset++;
+		}
+
+		/*for (size_t i = 0; i < mDrawList.size(); i++)
+		{
+			auto& dc = mDrawList[i];
+
+			// Copy transform data
+			mTransformVertexData[offset].MRow[0] = { dc.Transform[0][0], dc.Transform[1][0], dc.Transform[2][0], dc.Transform[3][0] };
+			mTransformVertexData[offset].MRow[1] = { dc.Transform[0][1], dc.Transform[1][1], dc.Transform[2][1], dc.Transform[3][1] };
+			mTransformVertexData[offset].MRow[2] = { dc.Transform[0][2], dc.Transform[1][2], dc.Transform[2][2], dc.Transform[3][2] };
+
+			dc.TransformOffset = offset * sizeof(TransformVertexData);
+			offset++;
+		}*/
+#endif
+
+		uint32_t offset = 0;
+		for (auto& [key, transformData] : mMeshTransformMap)
+		{
+			transformData.TransformOffset = offset * sizeof(TransformVertexData);
+			for (const auto& transform : transformData.Transforms)
+			{
+				mTransformVertexData[offset] = transform;
+				offset++;
+			}
+
+		}
+
+		mSubmeshTransformBuffer->SetData(mTransformVertexData, offset * sizeof(TransformVertexData));
 	}
 
 	void SceneRenderer::ClearPass()
@@ -1782,14 +2010,13 @@ namespace NR
 
 	void SceneRenderer::CalculateCascades(CascadeData* cascades, const SceneRendererCamera& sceneCamera, const glm::vec3& lightDirection) const
 	{
-		auto viewProjection = sceneCamera.RenderCamera.GetProjectionMatrix() * sceneCamera.ViewMatrix;
+		auto viewProjection = sceneCamera.Camera.GetProjectionMatrix() * sceneCamera.ViewMatrix;
 
 		const int SHADOW_MAP_CASCADE_COUNT = 4;
 		float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
 
 		float nearClip = sceneCamera.Near;
 		float farClip = sceneCamera.Far;
-
 		float clipRange = farClip - nearClip;
 
 		float minZ = nearClip;
@@ -1799,8 +2026,8 @@ namespace NR
 		float ratio = maxZ / minZ;
 
 		// Calculate split depths based on view camera frustum
-		// Based on https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
+		// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
+		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++)
 		{
 			float p = (i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
 			float log = minZ * std::pow(ratio, p);
@@ -1811,9 +2038,15 @@ namespace NR
 
 		cascadeSplits[3] = 0.3f;
 
+		// Manually set cascades here
+		// cascadeSplits[0] = 0.05f;
+		// cascadeSplits[1] = 0.15f;
+		// cascadeSplits[2] = 0.3f;
+		// cascadeSplits[3] = 1.0f;
+
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
-		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
+		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++)
 		{
 			float splitDist = cascadeSplits[i];
 
@@ -1831,13 +2064,13 @@ namespace NR
 
 			// Project frustum corners into world space
 			glm::mat4 invCam = glm::inverse(viewProjection);
-			for (uint32_t i = 0; i < 8; ++i)
+			for (uint32_t i = 0; i < 8; i++)
 			{
 				glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
 				frustumCorners[i] = invCorner / invCorner.w;
 			}
 
-			for (uint32_t i = 0; i < 4; ++i)
+			for (uint32_t i = 0; i < 4; i++)
 			{
 				glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
 				frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
@@ -1846,7 +2079,7 @@ namespace NR
 
 			// Get frustum center
 			glm::vec3 frustumCenter = glm::vec3(0.0f);
-			for (uint32_t i = 0; i < 8; ++i)
+			for (uint32_t i = 0; i < 8; i++)
 				frustumCenter += frustumCorners[i];
 
 			frustumCenter /= 8.0f;
@@ -1854,7 +2087,7 @@ namespace NR
 			//frustumCenter *= 0.01f;
 
 			float radius = 0.0f;
-			for (uint32_t i = 0; i < 8; ++i)
+			for (uint32_t i = 0; i < 8; i++)
 			{
 				float distance = glm::length(frustumCorners[i] - frustumCenter);
 				radius = glm::max(radius, distance);
@@ -1889,17 +2122,51 @@ namespace NR
 		}
 	}
 
+	void SceneRenderer::UpdateStatistics()
+	{
+		mStatistics.DrawCalls = 0;
+		mStatistics.Instances = 0;
+		mStatistics.Meshes = 0;
+
+		for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
+		{
+			mStatistics.Instances += dc.InstanceCount;
+			mStatistics.DrawCalls++;
+			mStatistics.Meshes++;
+		}
+
+		for (auto& [mk, dc] : mStaticMeshDrawList)
+		{
+			mStatistics.Instances += dc.InstanceCount;
+			mStatistics.DrawCalls++;
+			mStatistics.Meshes++;
+		}
+
+		for (auto& [mk, dc] : mSelectedMeshDrawList)
+		{
+			mStatistics.Instances += dc.InstanceCount;
+			mStatistics.DrawCalls++;
+			mStatistics.Meshes++;
+		}
+
+		for (auto& [mk, dc] : mDrawList)
+		{
+			mStatistics.Instances += dc.InstanceCount;
+			mStatistics.DrawCalls++;
+			mStatistics.Meshes++;
+		}
+
+		mStatistics.SavedDraws = mStatistics.Instances - mStatistics.DrawCalls;
+	}
 
 	void SceneRenderer::SetLineWidth(float width)
 	{
 		mLineWidth = width;
 		if (mGeometryWireframePipeline)
-		{
 			mGeometryWireframePipeline->GetSpecification().LineWidth = width;
-		}
 	}
 
-	void SceneRenderer::ImGuiRender()
+	void SceneRenderer::OnImGuiRender()
 	{
 		NR_PROFILE_FUNC();
 
@@ -1908,6 +2175,7 @@ namespace NR
 		ImGui::Text("Viewport Size: %d, %d", mViewportWidth, mViewportHeight);
 
 		const float headerSpacingOffset = -(ImGui::GetStyle().ItemSpacing.y + 1.0f);
+
 		if (UI::PropertyGridHeader("Shaders", false))
 		{
 			ImGui::Indent();
@@ -1917,23 +2185,17 @@ namespace NR
 				ImGui::Columns(2);
 				ImGui::Text(shader->GetName().c_str());
 				ImGui::NextColumn();
-			
 				std::string buttonName = "Reload##" + shader->GetName();
 				if (ImGui::Button(buttonName.c_str()))
-				{
 					shader->Reload(true);
-				}
 				ImGui::Columns(1);
 			}
-
 			ImGui::Unindent();
 			UI::EndTreeNode();
 			UI::ShiftCursorY(18.0f);
 		}
 		else
-		{
 			UI::ShiftCursorY(headerSpacingOffset);
-		}
 
 		if (UI::PropertyGridHeader("Visualization"))
 		{
@@ -1947,9 +2209,8 @@ namespace NR
 			UI::EndTreeNode();
 		}
 		else
-		{
 			UI::ShiftCursorY(headerSpacingOffset);
-		}
+
 
 		if (UI::PropertyGridHeader("Bloom Settings"))
 		{
@@ -1961,6 +2222,7 @@ namespace NR
 			UI::Property("Intensity", mBloomSettings.Intensity, 0.05f, 0.0f, 20.0f);
 			UI::Property("Dirt Intensity", mBloomSettings.DirtIntensity, 0.05f, 0.0f, 20.0f);
 
+			// TODO(Yan): move this to somewhere else
 			UI::Image(mBloomDirtTexture, ImVec2(64, 64));
 			if (ImGui::IsItemHovered())
 			{
@@ -1976,9 +2238,8 @@ namespace NR
 			UI::EndTreeNode();
 		}
 		else
-		{
 			UI::ShiftCursorY(headerSpacingOffset);
-		}
+
 
 		if (UI::PropertyGridHeader("Horizon-Based Ambient Occlusion"))
 		{
@@ -1989,12 +2250,11 @@ namespace NR
 			UI::Property("Bias", mOptions.HBAOBias, 0.02f, 0.0f, 0.95f);
 			UI::Property("Blur Sharpness", mOptions.HBAOBlurSharpness, 0.5f, 0.0f, 100.f);
 			UI::EndPropertyGrid();
+
 			UI::EndTreeNode();
 		}
 		else
-		{
 			UI::ShiftCursorY(headerSpacingOffset);
-		}
 
 		if (UI::PropertyGridHeader("Shadows"))
 		{
@@ -2021,29 +2281,25 @@ namespace NR
 				auto fb = mShadowPassPipelines[cascadeIndex]->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer;
 				auto image = fb->GetDepthImage();
 
-				float size = ImGui::GetContentRegionAvail().x; // (float)fb->GetWidth() * 0.5f, (float)fb->GetHeight() * 0.5f
+				float size = ImGui::GetContentRegionAvailWidth(); // (float)fb->GetWidth() * 0.5f, (float)fb->GetHeight() * 0.5f
 				UI::BeginPropertyGrid();
 				UI::PropertySlider("Cascade Index", cascadeIndex, 0, 3);
 				UI::EndPropertyGrid();
 				if (mResourcesCreated)
-				{
 					UI::Image(image, (uint32_t)cascadeIndex, { size, size }, { 0, 1 }, { 1, 0 });
-				}
 				UI::EndTreeNode();
 			}
 
 			UI::EndTreeNode();
 		}
 		else
-		{
 			UI::ShiftCursorY(headerSpacingOffset);
-		}
 
 		if (UI::PropertyGridHeader("Render Statistics", false))
 		{
 			uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
-
 			ImGui::Text("GPU time: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex));
+
 			ImGui::Text("Shadow Map Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.ShadowMapPassQuery));
 			ImGui::Text("Depth Pre-Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.DepthPrePassQuery));
 			ImGui::Text("Light Culling Pass: %.3fms", mCommandBuffer->GetExecutionGPUTime(frameIndex, mGPUTimeQueries.LightCullingPassQuery));
@@ -2066,16 +2322,25 @@ namespace NR
 				UI::EndTreeNode();
 			}
 
+			if (UI::BeginTreeNode("Draw Statistics"))
+			{
+				ImGui::Text("Draw calls: %d", mStatistics.DrawCalls);
+				ImGui::Text("Meshes: %d", mStatistics.Meshes);
+				ImGui::Text("Instances: %d", mStatistics.Instances);
+				ImGui::Text("Actual instances: %d", mStatistics.Instances - mStatistics.DrawCalls);
+				ImGui::Text("Draws saved (by instancing): %d", mStatistics.SavedDraws);
+				UI::EndTreeNode();
+			}
+
 			UI::EndTreeNode();
 		}
 		else
-		{
 			UI::ShiftCursorY(headerSpacingOffset);
-		}
+
 #if 0
 		if (UI::BeginTreeNode("Compute Bloom"))
 		{
-			float size = ImGui::GetContentRegionAvail().x;
+			float size = ImGui::GetContentRegionAvailWidth();
 			if (mResourcesCreated)
 			{
 				static int tex = 0;
@@ -2092,4 +2357,5 @@ namespace NR
 
 		ImGui::End();
 	}
+
 }
