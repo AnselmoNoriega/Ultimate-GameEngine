@@ -1378,6 +1378,7 @@ namespace NR
 		delete[] mPhysics2DBodyEntityBuffer;
 		PhysicsManager::SceneStop();
 		GetPhysicsScene()->Clear();
+		AudioEngine::SetSceneContext(nullptr);
 		mIsPlaying = false;
 		mShouldSimulate = false;
 	}
@@ -1988,7 +1989,15 @@ namespace NR
 		if (!mIsEditorScene)
 		{
 			if (newEntity.HasComponent<RigidBodyComponent>())
+			{
 				GetPhysicsScene()->CreateActor(newEntity);
+			}
+			else if (newEntity.HasAny<BoxColliderComponent, SphereColliderComponent, CapsuleColliderComponent, MeshColliderComponent>())
+			{
+				auto& rigidbody = newEntity.AddComponent<RigidBodyComponent>();
+				rigidbody.BodyType = RigidBodyComponent::Type::Static;
+				GetPhysicsScene()->CreateActor(newEntity);
+			}
 
 			if (newEntity.HasComponent<ScriptComponent>())
 			{
@@ -2329,6 +2338,20 @@ namespace NR
 	{
 		NR_CORE_ASSERT(mRegistry.try_get<PhysicsSceneComponent>(mSceneEntity));
 		return mRegistry.get<PhysicsSceneComponent>(mSceneEntity).World;
+	}
+
+	void Scene::SceneTransition(const std::string& scene)
+	{
+		if (mSceneTransitionCallback)
+		{
+			mSceneTransitionCallback(scene);
+		}
+
+		// Debug
+		if (!mSceneTransitionCallback)
+		{
+			NR_CORE_WARN("Cannot transition scene - no callback set!");
+		}
 	}
 
 	Ref<Scene> Scene::CreateEmpty()

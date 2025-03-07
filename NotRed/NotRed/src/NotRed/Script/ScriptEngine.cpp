@@ -287,6 +287,7 @@ namespace NR
 
 	static MonoAssembly* sAppAssembly = nullptr;
 	static MonoAssembly* sCoreAssembly = nullptr;
+	static MonoAssembly* sCoreAssemblyToUnload = nullptr;
 
 	static MonoString* GetName()
 	{
@@ -311,6 +312,7 @@ namespace NR
 			sPostLoadCleanup = false;
 		}
 
+		sCoreAssemblyToUnload = sCoreAssembly;
 		sCoreAssembly = LoadAssembly(sCoreAssemblyPath);
 		if (!sCoreAssembly)
 		{
@@ -346,8 +348,16 @@ namespace NR
 		if (sPostLoadCleanup)
 		{
 			mono_domain_unload(sCurrentMonoDomain);
+			if (sCoreAssemblyToUnload)
+			{
+				//mono_assembly_close(sCoreAssemblyToUnload);
+				sCoreAssemblyToUnload = nullptr;
+			}
 			sCurrentMonoDomain = sNewMonoDomain;
 			sNewMonoDomain = nullptr;
+
+			//mono_assembly_close(sAppAssembly);
+			sAppAssembly = nullptr;
 		}
 
 		sAppAssembly = appAssembly;

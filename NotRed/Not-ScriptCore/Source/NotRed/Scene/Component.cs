@@ -269,10 +269,28 @@ namespace NR
                 SetRadiance_Native(Entity.ID, ref value);
             }
         }
+
+        public float Intensity
+        {
+            get
+            {
+                return GetIntensity_Native(Entity.ID);
+            }
+
+            set
+            {
+                SetIntensity_Native(Entity.ID, value);
+            }
+        }
+
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void GetRadiance_Native(ulong entityID, out Vector3 outRadiance);
         [MethodImpl(MethodImplOptions.InternalCall)]
         internal static extern void SetRadiance_Native(ulong entityID, ref Vector3 inRadiance);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern float GetIntensity_Native(ulong entityID);
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        internal static extern void SetIntensity_Native(ulong entityID, float intensity);
     }
 
     public enum RigidBody2DBodyType

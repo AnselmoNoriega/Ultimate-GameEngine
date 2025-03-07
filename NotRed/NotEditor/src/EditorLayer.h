@@ -73,6 +73,8 @@ namespace NR
 		std::pair<float, float> GetMouseViewportSpace(bool primaryViewport);
 		std::pair<glm::vec3, glm::vec3> CastRay(const EditorCamera& camera, float mx, float my);
 
+		std::vector<std::function<void()>> mPostSceneUpdateQueue;
+
 		struct SelectedSubmesh
 		{
 			Entity EntityObj;
@@ -98,6 +100,8 @@ namespace NR
 		void CreateMeshFromMeshSource(Entity entity, Ref<MeshSource> meshSource);
 		void SceneHierarchyInvalidMetadataCallback(Entity entity, AssetHandle handle);
 
+		void SceneTransition(const std::string& scene);
+
 		void UpdateWindowTitle(const std::string& sceneName);
 		void UI_DrawMenubar();
 
@@ -111,6 +115,7 @@ namespace NR
 		void DeleteEntity(Entity entity);
 
 		void UpdateSceneRendererSettings();
+		void QueueSceneTransition(const std::string& scene);
 
 	private:
 		Ref<UserPreferences> mUserPreferences;		

@@ -164,6 +164,7 @@ namespace NR
 
         mRuntimeScene = Ref<Scene>::Create();
         mEditorScene->CopyTo(mRuntimeScene);
+        mRuntimeScene->SetSceneTransitionCallback([this](const std::string& scene) { QueueSceneTransition(scene); });
 
         mRuntimeScene->RuntimeStart();
         mPanelManager->SetSceneContext(mRuntimeScene);
@@ -186,6 +187,31 @@ namespace NR
         mPanelManager->SetSceneContext(mEditorScene);
         mECSDebugPanel->SetContext(mEditorScene);
         mCurrentScene = mEditorScene;
+    }
+
+    void EditorLayer::QueueSceneTransition(const std::string& scene)
+    {
+        mPostSceneUpdateQueue.emplace_back([this, scene]() { SceneTransition(scene); });
+    }
+
+    void EditorLayer::SceneTransition(const std::string& scene)
+    {
+        Ref<Scene> newScene = Ref<Scene>::Create();
+        SceneSerializer serializer(newScene);
+        if (serializer.Deserialize((Project::GetAssetDirectory() / scene).string()))
+        {
+            mRuntimeScene->RuntimeStop();
+
+            mRuntimeScene = newScene;
+            mRuntimeScene->SetSceneTransitionCallback([this](const std::string& scene) { QueueSceneTransition(scene); });
+            mRuntimeScene->RuntimeStart();
+            mPanelManager->SetSceneContext(mRuntimeScene);
+            mCurrentScene = mRuntimeScene;
+        }
+        else
+        {
+            NR_CORE_ERROR("Could not deserialize scene {0}", scene);
+        }
     }
 
     void EditorLayer::UpdateWindowTitle(const std::string& sceneName)
@@ -751,6 +777,14 @@ namespace NR
 
             mEditorCamera.Update(dt);
             mRuntimeScene->RenderRuntime(mViewportRenderer, dt);
+
+            for (auto& fn : mPostSceneUpdateQueue)
+            {
+                fn();
+            }
+
+            mPostSceneUpdateQueue.clear();
+
             break;
         }
         }

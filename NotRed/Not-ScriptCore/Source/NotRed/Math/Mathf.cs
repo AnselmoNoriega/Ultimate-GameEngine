@@ -90,6 +90,20 @@ namespace NR
             return p1 + ((p2 - p1) * t);
         }
 
+        public static Vector3 Lerp(Vector3 p1, Vector3 p2, float t)
+        {
+            if (t < 0.0f)
+            {
+                return p1;
+            }
+            else if (t > 1.0f)
+            {
+                return p2;
+            }
+            return p1 + ((p2 - p1) * t);
+        }
+
+        // not the same as a%b
         public static float Modulo(float a, float b)
         {
             return a - b * (float)Math.Floor(a / b);

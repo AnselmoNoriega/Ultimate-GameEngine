@@ -634,8 +634,7 @@ namespace NR
 			mSkyboxMaterial->ModifyFlags(MaterialFlag::DepthTest, false);
 		}
 
-		// TODO(Yan): resizeable/flushable
-		const size_t TransformBufferCount = 10 * 1024; // 10240 transforms
+		const size_t TransformBufferCount = 100 * 1024; // 10240 transforms
 		mSubmeshTransformBuffer = VertexBuffer::Create(sizeof(TransformVertexData) * TransformBufferCount);
 		mTransformVertexData = new TransformVertexData[TransformBufferCount];
 
@@ -1419,6 +1418,8 @@ namespace NR
 			index = (index + 1) % 2;
 			step /= 2;
 		}
+
+		vertexOverrides.Release();
 
 		mJumpFloodCompositeMaterial->Set("uTexture", mTempFrameBuffers[1]->GetImage());
 		mCommandBuffer->EndTimestampQuery(mGPUTimeQueries.JumpFloodPassQuery);

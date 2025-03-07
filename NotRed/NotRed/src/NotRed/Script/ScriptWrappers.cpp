@@ -590,6 +590,14 @@ namespace NR::Script
         return 0;
     }
 
+    void NR_SceneManager_LoadScene(MonoString* scene)
+    {
+        Ref<Scene> activeScene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(activeScene, "No active scene!");
+
+        activeScene->SceneTransition(mono_string_to_utf8(scene));
+    }
+
     MonoString* NR_TagComponent_GetTag(uint64_t entityID)
     {
         auto entity = GetEntity(entityID);
@@ -865,6 +873,30 @@ namespace NR::Script
         Entity entity = entityMap.at(entityID);
         NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
         entity.GetComponent<PointLightComponent>().Radiance = *inRadiance;
+    }
+
+    float NR_PointLightComponent_GetIntensity(uint64_t entityID)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
+        return entity.GetComponent<PointLightComponent>().Intensity;
+    }
+
+    void NR_PointLightComponent_SetIntensity(uint64_t entityID, float intensity)
+    {
+        Ref<Scene> scene = ScriptEngine::GetCurrentSceneContext();
+        NR_CORE_ASSERT(scene, "No active scene!");
+        const auto& entityMap = scene->GetEntityMap();
+        NR_CORE_ASSERT(entityMap.find(entityID) != entityMap.end(), "Invalid entity ID or entity doesn't exist in scene!");
+
+        Entity entity = entityMap.at(entityID);
+        NR_CORE_VERIFY(entity.HasComponent<PointLightComponent>());
+        entity.GetComponent<PointLightComponent>().Intensity = intensity;
     }
 
     void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* outType)

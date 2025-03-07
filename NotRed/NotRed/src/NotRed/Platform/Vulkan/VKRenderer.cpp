@@ -934,6 +934,9 @@ namespace NR
 					vkCmdPushConstants(commandBuffer, layout, VK_SHADER_STAGE_FRAGMENT_BIT, vertexPushConstantBuffer.Size, fragmentPushConstantBuffer.Size, fragmentPushConstantBuffer.Data);
 
 				vkCmdDrawIndexed(commandBuffer, sData->QuadIndexBuffer->GetCount(), 1, 0, 0, 0);
+
+				vertexPushConstantBuffer.Release();
+				fragmentPushConstantBuffer.Release();
 			});
 	}
 

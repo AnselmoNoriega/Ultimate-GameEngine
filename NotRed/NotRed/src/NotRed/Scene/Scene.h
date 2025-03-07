@@ -151,6 +151,8 @@ namespace NR
 
 		Ref<PhysicsScene> GetPhysicsScene() const;
 
+		void SceneTransition(const std::string& scene);
+
 		// Editor-specific
 		void SetSelectedEntity(entt::entity entity) { mSelectedEntity = entity; }
 
@@ -159,6 +161,8 @@ namespace NR
 
 		const std::string& GetName() const { return mName; }
 		void SetName(const std::string& name) { mName = name; }
+
+		void SetSceneTransitionCallback(const std::function<void(const std::string&)>& callback) { mSceneTransitionCallback = callback; }
 
 	public:
 		static Ref<Scene> CreateEmpty();
@@ -185,6 +189,8 @@ namespace NR
 		UUID mSceneID;
 		entt::entity mSceneEntity = entt::null;
 		entt::registry mRegistry;
+
+		std::function<void(const std::string&)> mSceneTransitionCallback;
 
 		std::string mName;
 		bool mIsEditorScene = false;

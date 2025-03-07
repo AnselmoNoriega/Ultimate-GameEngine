@@ -81,6 +81,7 @@ namespace NR
                 VKAllocator allocator("IndexBuffer");
                 allocator.DestroyBuffer(buffer, allocation);
             });
+        mLocalData.Release();
     }
 
     void VKIndexBuffer::SetData(void* buffer, uint32_t size, uint32_t offset)

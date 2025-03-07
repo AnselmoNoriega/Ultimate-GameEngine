@@ -87,6 +87,8 @@ namespace NR
 		mono_add_internal_call("NR.Entity::HasComponent_Native", NR::Script::NR_Entity_HasComponent);
 		mono_add_internal_call("NR.Entity::FindEntityByTag_Native", NR::Script::NR_Entity_FindEntityByTag);
 
+		mono_add_internal_call("NR.SceneManager::LoadScene_Native", NR::Script::NR_SceneManager_LoadScene);
+
 		mono_add_internal_call("NR.TagComponent::GetTag_Native", NR::Script::NR_TagComponent_GetTag);
 		mono_add_internal_call("NR.TagComponent::SetTag_Native", NR::Script::NR_TagComponent_SetTag);
 
@@ -120,6 +122,8 @@ namespace NR
 
 		mono_add_internal_call("NR.PointLightComponent::GetRadiance_Native", NR::Script::NR_PointLightComponent_GetRadiance);
 		mono_add_internal_call("NR.PointLightComponent::SetRadiance_Native", NR::Script::NR_PointLightComponent_SetRadiance);
+		mono_add_internal_call("NR.PointLightComponent::GetIntensity_Native", NR::Script::NR_PointLightComponent_GetIntensity);
+		mono_add_internal_call("NR.PointLightComponent::SetIntensity_Native", NR::Script::NR_PointLightComponent_SetIntensity);
 
 		mono_add_internal_call("NR.RigidBody2DComponent::GetBodyType_Native", NR::Script::NR_RigidBody2DComponent_GetBodyType);
 		mono_add_internal_call("NR.RigidBody2DComponent::SetBodyType_Native", NR::Script::NR_RigidBody2DComponent_SetBodyType);

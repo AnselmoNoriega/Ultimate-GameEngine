@@ -198,6 +198,10 @@ namespace NR
 
 	void Renderer2D::Shutdown()
 	{
+		delete[] mQuadVertexBufferBase;
+		delete[] mTextVertexBufferBase;
+		delete[] mLineVertexBufferBase;
+		delete[] mCircleVertexBufferBase;
 	}
 
 	void Renderer2D::BeginScene(const glm::mat4& viewProj, const glm::mat4& view, bool depthTest)

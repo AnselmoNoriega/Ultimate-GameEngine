@@ -94,6 +94,8 @@ namespace NR
                 VKAllocator allocator("VertexBuffer");
                 allocator.DestroyBuffer(buffer, allocation);
             });
+
+        mLocalData.Release();
     }
 
     void VKVertexBuffer::SetData(void* buffer, uint32_t size, uint32_t offset)

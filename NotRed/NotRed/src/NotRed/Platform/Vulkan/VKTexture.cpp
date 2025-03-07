@@ -84,7 +84,6 @@ namespace NR
         if (data)
         {
             mImageData = Buffer::Copy(data, size);
-            memcpy(mImageData.Data, data, mImageData.Size);
         }
 
         ImageSpecification imageSpec;
@@ -107,7 +106,9 @@ namespace NR
         if (mImage)
         {
             mImage->Release();
-        }
+        }		
+        
+        mImageData.Release();
     }
 
     bool VKTexture2D::LoadImage(const std::string& path)
@@ -334,6 +335,8 @@ namespace NR
         {
             GenerateMips();
         }
+
+        mImageData.Release();
     }
 
     void VKTexture2D::Bind(uint32_t slot) const

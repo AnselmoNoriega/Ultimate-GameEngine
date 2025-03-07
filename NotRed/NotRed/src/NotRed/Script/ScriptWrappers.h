@@ -83,6 +83,8 @@ namespace NR::Script
 		bool NR_Entity_HasComponent(uint64_t entityID, void* type);
 		uint64_t NR_Entity_FindEntityByTag(MonoString* tag);
 
+		void NR_SceneManager_LoadScene(MonoString* scene);
+
 		MonoString* NR_TagComponent_GetTag(uint64_t entityID);
 		void NR_TagComponent_SetTag(uint64_t entityID, MonoString* tag);
 
@@ -115,6 +117,8 @@ namespace NR::Script
 
 		void NR_PointLightComponent_GetRadiance(uint64_t entityID, glm::vec3* outRadiance);
 		void NR_PointLightComponent_SetRadiance(uint64_t entityID, glm::vec3* inRadiance);
+		float NR_PointLightComponent_GetIntensity(uint64_t entityID);
+		void NR_PointLightComponent_SetIntensity(uint64_t entityID, float intensity);
 
 		void NR_RigidBody2DComponent_GetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);
 		void NR_RigidBody2DComponent_SetBodyType(uint64_t entityID, RigidBody2DComponent::Type* type);

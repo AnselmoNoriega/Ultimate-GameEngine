@@ -153,6 +153,7 @@ namespace NR
 				// Data
 				uint32_t size = *(uint32_t*)buffer;
 				buffer += sizeof(uint32_t);
+				submeshData.ColliderData.Release();
 				submeshData.ColliderData = Buffer::Copy(buffer, size);
 				buffer += size;
 			}

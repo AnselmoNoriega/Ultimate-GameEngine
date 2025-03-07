@@ -1889,12 +1889,6 @@ namespace NR
 					if (!rbc.IsKinematic && entity.HasComponent<MeshColliderComponent>())
 					{
 						auto& mcc = entity.GetComponent<MeshColliderComponent>();
-
-						// NOTE(Peter):
-						// Can't have a triangle mesh collider on a non-kinematic dynamic actor
-						// We should probably prompt the user for this action since it might've been accidental
-						// This also needs to apply to any children that have colliders but not rigidbody component since their colliders will be added to this entity's PhysicsActor
-						//mcc.IsConvex = true;
 					}
 				}
 
