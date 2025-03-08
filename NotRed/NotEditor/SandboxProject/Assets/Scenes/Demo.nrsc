@@ -6,16 +6,6 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 77084210175964335
-    TagComponent:
-      Tag: mixamorig:RightToe_End
-    Parent: 16834670365893187460
-    Children:
-      []
-    TransformComponent:
-      Position: [2.03435491e-08, 0.0703159049, 1.74633488e-10]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
   - Entity: 16834670365893187460
     TagComponent:
       Tag: mixamorig:RightToeBase
@@ -683,7 +673,6 @@ Entities:
       SubmeshIndex: 0
       MaterialTable:
         0: 0
-        1: 0
     RigidBodyComponent:
       BodyType: 1
       Mass: 1
@@ -703,7 +692,7 @@ Entities:
     MeshColliderComponent:
       IsTrigger: false
       OverrideMesh: false
-      Material: 6004816692999666086
+      Material: 1415030834851102324
   - Entity: 4336966586694355175
     TagComponent:
       Tag: stormtrooper
@@ -733,7 +722,7 @@ Entities:
     SphereColliderComponent:
       Radius: 0.5
       IsTrigger: false
-      Material: 446176659886803272
+      Material: 14180073759800369843
   - Entity: 8528722828347833362
     TagComponent:
       Tag: TestScene
@@ -764,7 +753,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     MeshComponent:
-      AssetID: 16006431299751895171
+      AssetID: 14424636273472891220
       SubmeshIndex: 0
       MaterialTable:
         0: 0
@@ -783,21 +772,16 @@ Entities:
       Intensity: 1
       Lod: 1
       DynamicSky: false
-  - Entity: 9651895283264950110
+  - Entity: 77084210175964335
     TagComponent:
-      Tag: TestScene
-    Parent: 0
+      Tag: mixamorig:RightToe_End
+    Parent: 16834670365893187460
     Children:
       []
     TransformComponent:
-      Position: [0, 1.45841134, 0]
+      Position: [2.03435491e-08, 0.0703159049, 1.74633488e-10]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    MeshComponent:
-      AssetID: 4966091250344458045
-      SubmeshIndex: 0
-      MaterialTable:
-        0: 0
   - Entity: 14391742795172839692
     TagComponent:
       Tag: Point Light
