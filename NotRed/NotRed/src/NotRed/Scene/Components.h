@@ -90,15 +90,17 @@ namespace NR
         AssetHandle MeshHandle;
         uint32_t SubmeshIndex = 0;
         Ref<MaterialTable> Materials = Ref<MaterialTable>::Create();
+        std::vector<UUID> BoneEntityIds;
 
         MeshComponent() = default;
 
         MeshComponent(const MeshComponent& other)
-            : MeshHandle(other.MeshHandle), SubmeshIndex(other.SubmeshIndex),
-            Materials(Ref<MaterialTable>::Create(other.Materials)) {}
+            : MeshHandle(other.MeshHandle), SubmeshIndex(other.SubmeshIndex), Materials(Ref<MaterialTable>::Create(other.Materials)), BoneEntityIds(other.BoneEntityIds)
+        {}
 
         MeshComponent(AssetHandle mesh, uint32_t submeshIndex = 0)
-            : MeshHandle(mesh), SubmeshIndex(submeshIndex) {}
+            : MeshHandle(mesh), SubmeshIndex(submeshIndex)
+        {}
     };
 
     struct ParticleComponent

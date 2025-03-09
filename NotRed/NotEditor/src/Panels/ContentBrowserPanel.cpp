@@ -277,9 +277,10 @@ namespace NR
 							if (ImGui::MenuItem("Import"))
 							{
 								std::string filepath = Application::Get().OpenFile();
-								if (!filepath.empty())
+								if (!filepath.empty()) 
 								{
-									FileSystem::MoveFile(filepath, mCurrentDirectory->FilePath);
+									FileSystem::CopyFile(filepath, Project::GetAssetDirectory() / mCurrentDirectory->FilePath);
+									Refresh();
 								}
 							}
 

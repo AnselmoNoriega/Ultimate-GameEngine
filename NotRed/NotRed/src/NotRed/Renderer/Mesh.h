@@ -151,10 +151,12 @@ namespace NR
 		std::vector<Submesh>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<Submesh>& GetSubmeshes() const { return mSubmeshes; }
 
-		bool IsRigged() const { return (bool)mSkeleton; }
 		const std::vector<Vertex>& GetVertices() const { return mVertices; }
-		const std::vector<BoneInfluence>& GetBoneInfluences() const { return mBoneInfluences; }
 		const std::vector<Index>& GetIndices() const { return mIndices; }
+
+		bool IsRigged() const { return (bool)mSkeleton; }
+		const ozz::animation::Skeleton* GetSkeleton() const { NR_CORE_ASSERT(mSkeleton, "Attempted to access null skeleton!"); return mSkeleton.get(); }
+		const std::vector<BoneInfluence>& GetBoneInfluences() const { return mBoneInfluences; }
 
 		std::vector<Ref<Material>>& GetMaterials() { return mMaterials; }
 		const std::vector<Ref<Material>>& GetMaterials() const { return mMaterials; }
@@ -163,7 +165,7 @@ namespace NR
 		const std::vector<Triangle> GetTriangleCache(uint32_t index) const { return mTriangleCache.at(index); }
 
 		Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
-		Ref<VertexBuffer> GetBoneInfluencesBuffer() { return mBoneInfluencesBuffer; }
+		Ref<VertexBuffer> GetBoneInfluenceBuffer() { return mBoneInfluenceBuffer; }
 		Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
 
 		static AssetType GetStaticType() { return AssetType::MeshSource; }
@@ -180,7 +182,7 @@ namespace NR
 		std::unique_ptr<Assimp::Importer> mImporter; // note: the importer owns data pointed to by mScene, and mNodeMap and hence must stay in scope for lifetime of MeshSource.
 
 		Ref<VertexBuffer> mVertexBuffer;
-		Ref<VertexBuffer> mBoneInfluencesBuffer;
+		Ref<VertexBuffer> mBoneInfluenceBuffer;
 		Ref<IndexBuffer> mIndexBuffer;
 
 		std::vector<Vertex> mVertices;
@@ -201,6 +203,7 @@ namespace NR
 		std::string mFilePath;
 
 		friend class Scene;
+		friend class SceneRenderer;
 		friend class Renderer;
 		friend class VKRenderer;
 		friend class SceneHierarchyPanel;
@@ -217,10 +220,7 @@ namespace NR
 		Mesh(const Ref<Mesh>& other);
 		virtual ~Mesh();
 
-		void UpdateBoneTransforms(const ozz::vector<ozz::math::Float4x4>& modelSpaceTransforms);
-
 		bool IsRigged() { return mMeshSource && mMeshSource->IsRigged(); }
-		Ref<UniformBuffer> GetBoneTransformUB(uint32_t frameIndex) { return mBoneTransformUBs[frameIndex]; }
 
 		std::vector<uint32_t>& GetSubmeshes() { return mSubmeshes; }
 		const std::vector<uint32_t>& GetSubmeshes() const { return mSubmeshes; }
@@ -238,18 +238,11 @@ namespace NR
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
 
 	private:
-		void BoneTransform(float time) {};
-
-	private:
 		Ref<MeshSource> mMeshSource;
 		std::vector<uint32_t> mSubmeshes;
 
 		// Materials
 		Ref<MaterialTable> mMaterials;
-
-		// Skinning
-		ozz::vector<ozz::math::Float4x4> mBoneTransforms;
-		std::vector<Ref<UniformBuffer>> mBoneTransformUBs;
 
 		friend class Scene;
 		friend class Renderer;

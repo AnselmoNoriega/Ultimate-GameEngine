@@ -1473,10 +1473,8 @@ namespace NR
                     }
                     else
                     {
-                        const auto& submeshIndices = mesh->GetSubmeshes();
-                        const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
-                        Entity rootEntity = mEditorScene->InstantiateMesh(mesh);
-                        SelectEntity(rootEntity);
+                        entity = mEditorScene->InstantiateMesh(mesh);
+                        SelectEntity(entity);
                     }
                 }
                 mCreateNewMeshPopupData = {};

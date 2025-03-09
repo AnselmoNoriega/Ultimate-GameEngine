@@ -38,6 +38,7 @@ namespace NR
 		static bool Exists(const std::string& filePath);
 		static bool DeleteFile(const std::filesystem::path& filepath);
 		static bool MoveFile(const std::filesystem::path& filepath, const std::filesystem::path& dest);
+		static bool CopyFile(const std::filesystem::path& filepath, const std::filesystem::path& dest);
 		static bool IsDirectory(const std::filesystem::path& filepath);
 
 		static void SetChangeCallback(const FileSystemChangedCallbackFn& callback);
@@ -45,6 +46,7 @@ namespace NR
 		static void StopWatching();
 
 		static bool Move(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);
+		static bool Copy(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);
 		static bool Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath);
 		static bool RenameFilename(const std::filesystem::path& oldFilepath, const std::string& newName);
 

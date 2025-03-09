@@ -1219,38 +1219,45 @@ namespace NR
 
 		DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
 			{
-				Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
-				if (AssetManager::IsAssetHandleValid(mc.MeshHandle))
-					mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
-
 				UI::BeginPropertyGrid();
 				UI::PropertyAssetReferenceError error;
 				if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshSource>("Mesh", mc.MeshHandle,
-					[=](Ref<MeshSource> meshAsset)
+					[=](Ref<MeshSource> meshAsset) 
 					{
 						if (mMeshAssetConvertCallback)
+						{
 							mMeshAssetConvertCallback(entity, meshAsset);
+						}
 					}, &error))
 				{
-					// TODO(Yan): maybe prompt for this, this isn't always expected behaviour
+					Entity parent = entity.GetParent();
+					mc.BoneEntityIds = mContext->FindBoneEntityIds(parent ? parent : entity, AssetManager::GetAsset<Mesh>(mc.MeshHandle));
 					if (entity.HasComponent<MeshColliderComponent>())
 					{
 						auto& mcc = entity.GetComponent<MeshColliderComponent>();
 						mcc.CollisionMesh = mc.MeshHandle;
 						if (AssetManager::IsAssetHandleValid(mcc.CollisionMesh))
+						{
 							CookingFactory::CookMesh(mcc.CollisionMesh);
+						}
 					}
 				}
+
 				if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
 				{
 					if (mInvalidMetadataCallback)
+					{
 						mInvalidMetadataCallback(entity, UI::sPropertyAssetReferenceAssetHandle);
+					}
 				}
-				if (mesh)
+
+				Ref<Mesh> mesh = AssetManager::IsAssetHandleValid(mc.MeshHandle) ? AssetManager::GetAsset<Mesh>(mc.MeshHandle) : nullptr;
+				if (mesh && mesh->IsValid())
 				{
 					if (UI::Property("Submesh Index", mc.SubmeshIndex, 0, mesh->GetMeshSource()->GetSubmeshes().size() - 1))
+					{
 						mc.SubmeshIndex = glm::clamp<uint32_t>(mc.SubmeshIndex, 0, mesh->GetMeshSource()->GetSubmeshes().size() - 1);
-
+					}
 				}
 
 

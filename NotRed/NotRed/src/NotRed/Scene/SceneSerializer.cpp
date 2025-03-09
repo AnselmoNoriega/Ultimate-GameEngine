@@ -211,6 +211,11 @@ namespace NR
 				out << YAML::EndMap; // MaterialTable
 			}
 
+			if (!mc.BoneEntityIds.empty())
+			{
+				out << YAML::Key << "BoneEntities" << YAML::Value << YAML::Flow << mc.BoneEntityIds;
+			}
+
 			out << YAML::EndMap; // MeshComponent
 		}
 
@@ -842,6 +847,8 @@ namespace NR
 						}
 					}
 				}
+
+				component.BoneEntityIds = meshComponent["BoneEntities"].as<std::vector<UUID>>(std::vector<UUID>{});
 			}
 
 			auto particleComponent = entity["ParticleComponent"];

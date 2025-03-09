@@ -52,6 +52,11 @@ namespace NR
 		Init();
 	}
 
+	SceneRenderer::~SceneRenderer()
+	{
+		delete[] mTransformVertexData;
+		delete[] mBoneTransformsData;
+	}
 
 	void SceneRenderer::Init()
 	{
@@ -145,7 +150,7 @@ namespace NR
 			pipelineSpecAnim.Shader = shadowPassShaderAnim;
 			pipelineSpecAnim.Layout = vertexLayout;
 			pipelineSpecAnim.InstanceLayout = instanceLayout;
-			pipelineSpecAnim.BoneInfluencesLayout = boneInfluenceLayout;
+			pipelineSpecAnim.BoneInfluenceLayout = boneInfluenceLayout;
 
 			// 4 cascades
 			for (int i = 0; i < 4; i++)
@@ -190,7 +195,7 @@ namespace NR
 
 			pipelineSpec.DebugName = "PreDepth_Anim";
 			pipelineSpec.Shader = Renderer::GetShaderLibrary()->Get("PreDepth_Anim");
-			pipelineSpec.BoneInfluencesLayout = boneInfluenceLayout;
+			pipelineSpec.BoneInfluenceLayout = boneInfluenceLayout;
 			mPreDepthPipelineAnim = Pipeline::Create(pipelineSpec);
 		}
 
@@ -219,7 +224,7 @@ namespace NR
 
 			pipelineSpecification.DebugName = "PBR-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("PBR_Anim");
-			pipelineSpecification.BoneInfluencesLayout = boneInfluenceLayout;
+			pipelineSpecification.BoneInfluenceLayout = boneInfluenceLayout;
 			mGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryPipeline
 		}
 
@@ -248,7 +253,7 @@ namespace NR
 
 			pipelineSpecification.DebugName = "SelectedGeometry-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("SelectedGeometry_Anim");
-			pipelineSpecification.BoneInfluencesLayout = boneInfluenceLayout;
+			pipelineSpecification.BoneInfluenceLayout = boneInfluenceLayout;
 			mSelectedGeometryPipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mSelectedGeometryPipeline
 		}
 
@@ -524,7 +529,7 @@ namespace NR
 			pipelineSpecification.DepthTest = true;
 			pipelineSpecification.DebugName = "Wireframe-Anim";
 			pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Wireframe_Anim");
-			pipelineSpecification.BoneInfluencesLayout = boneInfluenceLayout;
+			pipelineSpecification.BoneInfluenceLayout = boneInfluenceLayout;
 			mGeometryWireframePipelineAnim = Pipeline::Create(pipelineSpecification); // Note: same frameBuffer and renderpass as mGeometryWireframePipeline
 
 			pipelineSpecification.DepthTest = false;
@@ -638,6 +643,14 @@ namespace NR
 		mSubmeshTransformBuffer = VertexBuffer::Create(sizeof(TransformVertexData) * TransformBufferCount);
 		mTransformVertexData = new TransformVertexData[TransformBufferCount];
 
+		const size_t BoneTransformBufferCount = 1 * 1024; // basically means limited to 1024 animated meshes
+		mBoneTransformStorageBuffers.resize(Renderer::GetConfig().FramesInFlight);
+		for (auto& buffer : mBoneTransformStorageBuffers) 
+		{
+			buffer = StorageBuffer::Create(static_cast<uint32_t>(sizeof(BoneTransforms) * BoneTransformBufferCount), 0);
+		}
+		mBoneTransformsData = new BoneTransforms[BoneTransformBufferCount];
+		
 		Ref<SceneRenderer> instance = this;
 		Renderer::Submit([instance]() mutable
 			{
@@ -875,13 +888,12 @@ namespace NR
 		sThreadPool.clear();
 	}
 
-	void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	void SceneRenderer::SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, const ozz::vector<ozz::math::Float4x4>& boneTransforms, Ref<Material> overrideMaterial)
 	{
 		NR_PROFILE_FUNC();
 
-		// TODO: Culling, sorting, etc.
-
-		const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+		const auto meshSource = mesh->GetMeshSource();
+		const auto& submeshes = meshSource->GetSubmeshes();
 		uint32_t materialIndex = submeshes[submeshIndex].MaterialIndex;
 		AssetHandle materialHandle = materialTable->HasMaterial(materialIndex) ? materialTable->GetMaterial(materialIndex)->Handle : mesh->GetMaterials()->GetMaterial(materialIndex)->Handle;
 
@@ -892,6 +904,10 @@ namespace NR
 		transformStorage.MRow[1] = { transform[0][1], transform[1][1], transform[2][1], transform[3][1] };
 		transformStorage.MRow[2] = { transform[0][2], transform[1][2], transform[2][2], transform[3][2] };
 
+		if (mesh->IsRigged())
+		{
+			CopyToBoneTransformStorage(meshKey, meshSource, boneTransforms);
+		}
 
 		// Main geo
 		{
@@ -958,13 +974,12 @@ namespace NR
 
 	}
 
-	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, Ref<Material> overrideMaterial)
+	void SceneRenderer::SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform, const ozz::vector<ozz::math::Float4x4>& boneTransforms, Ref<Material> overrideMaterial)
 	{
 		NR_PROFILE_FUNC();
 
-		// TODO: Culling, sorting, etc.
-
-		const auto& submeshes = mesh->GetMeshSource()->GetSubmeshes();
+		const auto meshSource = mesh->GetMeshSource();
+		const auto& submeshes = meshSource->GetSubmeshes();
 		uint32_t materialIndex = submeshes[submeshIndex].MaterialIndex;
 		AssetHandle materialHandle = materialTable->HasMaterial(materialIndex) ? materialTable->GetMaterial(materialIndex)->Handle : mesh->GetMaterials()->GetMaterial(materialIndex)->Handle;
 
@@ -974,6 +989,11 @@ namespace NR
 		transformStorage.MRow[0] = { transform[0][0], transform[1][0], transform[2][0], transform[3][0] };
 		transformStorage.MRow[1] = { transform[0][1], transform[1][1], transform[2][1], transform[3][1] };
 		transformStorage.MRow[2] = { transform[0][2], transform[1][2], transform[2][2], transform[3][2] };
+
+		if (mesh->IsRigged())
+		{
+			CopyToBoneTransformStorage(meshKey, meshSource, boneTransforms);
+		}
 
 		uint32_t instanceIndex = 0;
 
@@ -1156,11 +1176,12 @@ namespace NR
 				const auto& transformData = mMeshTransformMap.at(mk);
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
+					const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
 				}
 				else
 				{
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelines[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, {}, 0, dc.InstanceCount, mShadowPassMaterial, cascade);
 				}
 			}
 
@@ -1185,11 +1206,12 @@ namespace NR
 			const auto& transformData = mMeshTransformMap.at(mk);
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
+				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mPreDepthMaterial);
 			}
 			else
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, {}, 0, dc.InstanceCount, mPreDepthMaterial);
 			}
 		}
 		for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
@@ -1202,11 +1224,12 @@ namespace NR
 			const auto& transformData = mMeshTransformMap.at(mk);
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
+				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mPreDepthMaterial);
 			}
 			else
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, {}, 0, dc.InstanceCount, mPreDepthMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
@@ -1262,11 +1285,12 @@ namespace NR
 			const auto& transformData = mMeshTransformMap.at(mk);
 			if (dc.Mesh->IsRigged())
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
+				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset + dc.InstanceOffset * sizeof(BoneTransforms), dc.InstanceCount, mSelectedGeometryMaterial);
 			}
 			else
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), {}, 0, dc.InstanceCount, mSelectedGeometryMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
@@ -1291,8 +1315,15 @@ namespace NR
 		for (auto& [mk, dc] : mDrawList)
 		{
 			const auto& transformData = mMeshTransformMap.at(mk);
-			Renderer::RenderSubmeshInstanced(mCommandBuffer, (dc.Mesh->IsRigged() ? mGeometryPipelineAnim : mGeometryPipeline), mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount);
-
+			if (dc.Mesh->IsRigged())
+			{
+				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+				Renderer::RenderSubmeshInstanced(mCommandBuffer, mGeometryPipelineAnim, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount);
+			}
+			else
+			{
+				Renderer::RenderSubmeshInstanced(mCommandBuffer, mGeometryPipeline, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, {}, 0, dc.InstanceCount);
+			}
 		}
 
 		// Grid
@@ -1807,7 +1838,15 @@ namespace NR
 			for (auto& [mk, dc] : mSelectedMeshDrawList)
 			{
 				const auto& transformData = mMeshTransformMap.at(mk);
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mWireframeMaterial);
+				if (dc.Mesh->IsRigged())
+				{
+					const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset + dc.InstanceOffset * sizeof(BoneTransforms), dc.InstanceCount, mWireframeMaterial);
+				}
+				else
+				{
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), {}, 0, dc.InstanceCount, mWireframeMaterial);
+				}
 			}
 
 			Renderer::EndRenderPass(mCommandBuffer);
@@ -1833,11 +1872,12 @@ namespace NR
 				const auto& transformData = mMeshTransformMap.at(mk);
 				if (dc.Mesh->IsRigged())
 				{
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mColliderMaterial);
+					const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mColliderMaterial);
 				}
 				else
 				{
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, dc.InstanceCount, mColliderMaterial);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, {}, 0, dc.InstanceCount, mColliderMaterial);
 				}
 			}
 
@@ -1901,6 +1941,7 @@ namespace NR
 		mSceneData = {};
 
 		mMeshTransformMap.clear();
+		mMeshBoneTransformsMap.clear();
 	}
 
 	void SceneRenderer::PreRender()
@@ -1969,13 +2010,46 @@ namespace NR
 			transformData.TransformOffset = offset * sizeof(TransformVertexData);
 			for (const auto& transform : transformData.Transforms)
 			{
-				mTransformVertexData[offset] = transform;
-				offset++;
+				mTransformVertexData[offset++] = transform;
 			}
 
 		}
 
-		mSubmeshTransformBuffer->SetData(mTransformVertexData, offset * sizeof(TransformVertexData));
+		mSubmeshTransformBuffer->SetData(mTransformVertexData, offset * sizeof(TransformVertexData));		offset = 0;
+		for (auto& [key, boneTransformsData] : mMeshBoneTransformsMap)
+		{
+			boneTransformsData.BoneTransformsOffset = offset;
+			for (const auto& boneTransforms : boneTransformsData.BoneTransformsData)
+			{
+				mBoneTransformsData[offset++] = boneTransforms;
+			}
+		}
+
+		Ref<SceneRenderer> instance = this;
+		Renderer::Submit([instance, offset]() mutable
+			{
+				instance->mBoneTransformStorageBuffers[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransformsData, static_cast<uint32_t>(offset * sizeof(BoneTransforms)));
+			});
+	}
+
+	void SceneRenderer::CopyToBoneTransformStorage(const MeshKey& meshKey, const Ref<MeshSource>& meshSource, const ozz::vector<ozz::math::Float4x4>& boneTransforms)
+	{
+		auto& boneTransformStorage = mMeshBoneTransformsMap[meshKey].BoneTransformsData.emplace_back();
+		if (boneTransforms.empty())
+		{
+			boneTransformStorage.fill(ozz::math::Float4x4::identity());
+		}
+		else
+		{
+			for (size_t i = 0; i < meshSource->mBoneInfo.size(); ++i)
+			{
+				auto submeshInvTransform = meshSource->mBoneInfo[i].SubMeshInverseTransform;
+				auto boneTransform = boneTransforms[meshSource->mBoneInfo[i].JointIndex];
+				auto invBindPose = meshSource->mBoneInfo[i].InverseBindPose;
+				auto result = submeshInvTransform * boneTransform * invBindPose;
+				boneTransformStorage[i] = meshSource->mBoneInfo[i].SubMeshInverseTransform * boneTransforms[meshSource->mBoneInfo[i].JointIndex] * meshSource->mBoneInfo[i].InverseBindPose;
+			}
+		}
 	}
 
 	void SceneRenderer::ClearPass()

@@ -62,6 +62,7 @@ namespace NR
 	{
 	public:
 		SceneRenderer(Ref<Scene> scene, SceneRendererSpecification specification = SceneRendererSpecification());
+		virtual ~SceneRenderer();
 
 		void Init();
 
@@ -73,10 +74,10 @@ namespace NR
 		void BeginScene(const SceneRendererCamera& camera);
 		void EndScene();
 
-		void SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), const ozz::vector<ozz::math::Float4x4>& boneTransforms = {}, Ref<Material> overrideMaterial = nullptr);
 		void SubmitStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 
-		void SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+		void SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), const ozz::vector<ozz::math::Float4x4>& boneTransforms = {}, Ref<Material> overrideMaterial = nullptr);
 		void SubmitSelectedStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
 
 		void SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform = glm::mat4(1.0f));
@@ -107,6 +108,33 @@ namespace NR
 		void FlushDrawList();
 
 		void PreRender();
+
+		struct MeshKey
+		{
+			AssetHandle MeshHandle;
+			AssetHandle MaterialHandle;
+			uint32_t SubmeshIndex;
+
+			MeshKey(AssetHandle meshHandle, AssetHandle materialHandle, uint32_t submeshIndex)
+				: MeshHandle(meshHandle), MaterialHandle(materialHandle), SubmeshIndex(submeshIndex) {}
+
+			bool operator<(const MeshKey& other) const
+			{
+				if (MeshHandle < other.MeshHandle)
+				{
+					return true;
+				}
+
+				if ((MeshHandle == other.MeshHandle) && (SubmeshIndex < other.SubmeshIndex))
+				{
+					return true;
+				}
+
+				return (MeshHandle == other.MeshHandle) && (SubmeshIndex == other.SubmeshIndex) && (MaterialHandle < other.MaterialHandle);
+			}
+		};
+
+		void CopyToBoneTransformStorage(const MeshKey& meshKey, const Ref<MeshSource>& meshSource, const ozz::vector<ozz::math::Float4x4>& boneTransforms);
 
 		void ClearPass();
 		void DeinterleavingPass();
@@ -312,6 +340,10 @@ namespace NR
 		Ref<VertexBuffer> mSubmeshTransformBuffer;
 		TransformVertexData* mTransformVertexData = nullptr;
 
+		using BoneTransforms = std::array<ozz::math::Float4x4, 100>;
+		std::vector<Ref<StorageBuffer>> mBoneTransformStorageBuffers;
+		BoneTransforms* mBoneTransformsData = nullptr;
+
 		Ref<Material> mSelectedGeometryMaterial;
 		Ref<Material> mSelectedGeometryMaterialAnim;
 
@@ -341,38 +373,20 @@ namespace NR
 			uint32_t InstanceOffset = 0;
 		};
 
-		struct MeshKey
-		{
-			AssetHandle MeshHandle;
-			AssetHandle MaterialHandle;
-			uint32_t SubmeshIndex;
-
-			MeshKey(AssetHandle meshHandle, AssetHandle materialHandle, uint32_t submeshIndex)
-				: MeshHandle(meshHandle), MaterialHandle(materialHandle), SubmeshIndex(submeshIndex) {}
-
-			bool operator<(const MeshKey& other) const
-			{
-				if (MeshHandle < other.MeshHandle)
-				{
-					return true;
-				}
-
-				if ((MeshHandle == other.MeshHandle) && (SubmeshIndex < other.SubmeshIndex))
-				{
-					return true;
-				}
-
-				return (MeshHandle == other.MeshHandle) && (SubmeshIndex == other.SubmeshIndex) && (MaterialHandle < other.MaterialHandle);
-			}
-		};
-
 		struct TransformMapData
 		{
 			std::vector<TransformVertexData> Transforms;
 			uint32_t TransformOffset = 0;
 		};
 
+		struct BoneTransformsMapData
+		{
+			std::vector<BoneTransforms> BoneTransformsData;
+			uint32_t BoneTransformsOffset = 0;
+		};
+
 		std::map<MeshKey, TransformMapData> mMeshTransformMap;
+		std::map<MeshKey, BoneTransformsMapData> mMeshBoneTransformsMap;
 
 		//std::vector<DrawCommand> mDrawList;
 		std::map<MeshKey, DrawCommand> mDrawList;

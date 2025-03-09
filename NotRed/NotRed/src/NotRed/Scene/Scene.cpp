@@ -1,6 +1,16 @@
 #include "nrpch.h"
 #include "Scene.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include <ozz/animation/runtime/local_to_model_job.h>
+
+// Box2D
+#include <box2d/box2d.h>
+#include <assimp/scene.h>
+
 #include "Entity.h"
 #include "Prefab.h"
 
@@ -23,14 +33,6 @@
 
 #include "NotRed/Debug/Profiler.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-// Box2D
-#include <box2d/box2d.h>
-#include <assimp/scene.h>
-
 // TEMP
 #include "NotRed/Core/Input.h"
 
@@ -45,13 +47,12 @@ namespace NR
 		UUID SceneID;
 	};
 
-	namespace Utils {
-
+	namespace Utils 
+	{
 		glm::mat4 Mat4FromAIMatrix4x4(const aiMatrix4x4& matrix);
-
+		ozz::math::Float4x4 Float4x4FromMat4(const glm::mat4& mat);
 	}
 
-	// TODO: MOVE TO PHYSICS FILE!
 	class ContactListener2D : public b2ContactListener
 	{
 	public:
@@ -526,33 +527,16 @@ namespace NR
 					if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
 					{
 						Entity e = Entity(entity, this);
-						if (mesh->IsRigged()) {
-							if (e.HasComponent<AnimationComponent>()) {
-								auto& anim = e.GetComponent<AnimationComponent>();
-								if (AssetManager::IsAssetHandleValid(anim.AnimationController))
-								{
-									auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-									mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
-								}
-								else
-								{
-									mesh->UpdateBoneTransforms({});
-								}
-							}
-							else
-							{
-								mesh->UpdateBoneTransforms({});
-							}
-						}
 
 						glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
+						ozz::vector<ozz::math::Float4x4> boneTransforms = GetModelSpaceBoneTransforms(meshComponent.BoneEntityIds, mesh);
 						if (mSelectedEntity == entity)
 						{
-							renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+							renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform, boneTransforms);
 						}
 						else
 						{
-							renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+							renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform, boneTransforms);
 						}
 					}
 				}
@@ -729,36 +713,17 @@ namespace NR
 					if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
 					{
 						Entity e = Entity(entity, this);
-						if (mesh->IsRigged())
-						{
-							if (e.HasComponent<AnimationComponent>()) 
-							{
-								auto& anim = e.GetComponent<AnimationComponent>();
-								if (AssetManager::IsAssetHandleValid(anim.AnimationController))
-								{
-									auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-									mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
-								}
-								else
-								{
-									mesh->UpdateBoneTransforms({});
-								}
-							}
-							else
-							{
-								mesh->UpdateBoneTransforms({});
-							}
-						}
 
 						glm::mat4 transform = GetWorldSpaceTransformMatrix(e);
+						ozz::vector<ozz::math::Float4x4> boneTransforms = GetModelSpaceBoneTransforms(meshComponent.BoneEntityIds, mesh);
 
 						if (mSelectedEntity == entity)
 						{
-							renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+							renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform, boneTransforms);
 						}
 						else
 						{
-							renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+							renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform, boneTransforms);
 						}
 					}
 				}
@@ -991,38 +956,17 @@ namespace NR
 					if (mesh && !mesh->IsFlagSet(AssetFlag::Missing))
 					{
 						Entity e = Entity(entity, this);
-						if (mesh->IsRigged())
-						{
-							if (e.HasComponent<AnimationComponent>()) {
-								// QUESTION: Would it be better to render all the static meshes first, and then all the animated ones?
-								//           Does chopping and changing between static graphics pipeline and animated one slow things down?
-								auto& anim = e.GetComponent<AnimationComponent>();
-								if (AssetManager::IsAssetHandleValid(anim.AnimationController))
-								{
-									auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
-									mesh->UpdateBoneTransforms(animationController->GetModelSpaceTransforms());
-								}
-								else
-								{
-									mesh->UpdateBoneTransforms({});
-								}
-							}
-							else
-							{
-								mesh->UpdateBoneTransforms({});
-							}
-						}
 
 						glm::mat4 transform = e.HasComponent<RigidBodyComponent>() ? e.Transform().GetTransform() : GetWorldSpaceTransformMatrix(e);
+						ozz::vector<ozz::math::Float4x4> boneTransforms = GetModelSpaceBoneTransforms(meshComponent.BoneEntityIds, mesh);
 
-						// TODO: Should we render (logically)
 						if (mSelectedEntity == entity)
 						{
-							renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+							renderer->SubmitSelectedMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform, boneTransforms);
 						}
 						else
 						{
-							renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform);
+							renderer->SubmitMesh(mesh, meshComponent.SubmeshIndex, meshComponent.Materials, transform, boneTransforms);
 						}
 					}
 				}
@@ -1552,6 +1496,78 @@ namespace NR
 	{
 	}
 
+	ozz::vector<ozz::math::Float4x4> Scene::GetModelSpaceBoneTransforms(const std::vector<UUID>& boneEntityIds, Ref<Mesh> mesh)
+	{
+		ozz::vector<ozz::math::Float4x4> boneTransforms(boneEntityIds.size());   // Note (0x):  performance? can we avoid constructing this every frame, every mesh?
+
+		if (mesh->IsRigged())
+		{
+			ozz::span<ozz::math::SoaTransform> localBoneTransforms;
+
+			const size_t numSoaJoints = (boneEntityIds.size() + 3) / 4;
+			const size_t bufferSize = numSoaJoints * sizeof(ozz::math::SoaTransform);
+			ozz::span<ozz::byte> buffer = {
+				static_cast<ozz::byte*>(ozz::memory::default_allocator()->Allocate(bufferSize, alignof(ozz::math::SoaTransform))),
+				bufferSize
+			};
+
+			localBoneTransforms = ozz::fill_span<ozz::math::SoaTransform>(buffer, numSoaJoints);
+
+			const ozz::math::SimdFloat4 w_axis = ozz::math::simd_float4::w_axis();
+			const ozz::math::SimdFloat4 zero = ozz::math::simd_float4::zero();
+			const ozz::math::SimdFloat4 one = ozz::math::simd_float4::one();
+
+			for (int i = 0; i < numSoaJoints; ++i)
+			{
+				ozz::math::SimdFloat4 translations[4];
+				ozz::math::SimdFloat4 scales[4];
+				ozz::math::SimdFloat4 rotations[4];
+				for (int j = 0; j < 4; ++j)
+				{
+					if (i * 4 + j < boneEntityIds.size())
+					{
+						auto boneEntityId = boneEntityIds[i * 4 + j];
+						// Note (0x): performance?  Is isn't going to scale to look up entities by UUID every frame every mesh.
+						auto boneEntity = FindEntityByID(boneEntityId);
+						if (boneEntity && boneEntity.HasComponent<TransformComponent>())
+						{
+							auto transform = boneEntity.GetComponent<TransformComponent>().Translation;
+							translations[j] = ozz::math::simd_float4::Load3PtrU(glm::value_ptr(boneEntity.GetComponent<TransformComponent>().Translation));
+							rotations[j] = ozz::math::simd_float4::LoadPtrU(glm::value_ptr(glm::quat(boneEntity.GetComponent<TransformComponent>().Rotation)));
+							scales[j] = ozz::math::simd_float4::Load3PtrU(glm::value_ptr(boneEntity.GetComponent<TransformComponent>().Scale));
+						}
+						else
+						{
+							translations[j] = zero;
+							rotations[j] = w_axis;
+							scales[j] = one;
+						}
+					}
+					else
+					{
+						translations[j] = zero;
+						rotations[j] = w_axis;
+						scales[j] = one;
+					}
+				}
+				ozz::math::Transpose4x3(translations, &localBoneTransforms[i].translation.x);
+				ozz::math::Transpose4x4(rotations, &localBoneTransforms[i].rotation.x);
+				ozz::math::Transpose4x3(scales, &localBoneTransforms[i].scale.x);
+			}
+
+			ozz::animation::LocalToModelJob ltm_job;
+			ltm_job.skeleton = mesh->GetMeshSource()->GetSkeleton();
+			ltm_job.input = localBoneTransforms;
+			ltm_job.output = ozz::make_span(boneTransforms);
+			if (!ltm_job.Run()) 
+			{
+				NR_CORE_ERROR("ozz animation convertion to model space failed!");
+			}
+
+			ozz::memory::default_allocator()->Deallocate(ozz::as_writable_bytes(localBoneTransforms).data());
+		}
+		return boneTransforms;
+	}
 
 	void Scene::UpdateAnimation(float dt, bool isRuntime)
 	{
@@ -1784,8 +1800,8 @@ namespace NR
 	template<typename T>
 	static void CopyComponent(entt::registry& dstRegistry, entt::registry& srcRegistry, const std::unordered_map<UUID, entt::entity>& enttMap)
 	{
-		auto components = srcRegistry.view<T>();
-		for (auto srcEntity : components)
+		auto srcEntities = srcRegistry.view<T>();
+		for (auto srcEntity : srcEntities)
 		{
 			entt::entity destEntity = enttMap.at(srcRegistry.get<IDComponent>(srcEntity).ID);
 
@@ -2058,9 +2074,8 @@ namespace NR
 		{
 			// Node == Mesh in this case
 			uint32_t submeshIndex = node->mMeshes[0];
-			nodeEntity.AddComponent<MeshComponent>(mesh->Handle, submeshIndex);
+			auto& mc = nodeEntity.AddComponent<MeshComponent>(mesh->Handle, submeshIndex);
 
-			// TODO(Yan): import settings should determine this
 			nodeEntity.AddComponent<MeshColliderComponent>(mesh->Handle, submeshIndex);
 			nodeEntity.AddComponent<RigidBodyComponent>();
 		}
@@ -2076,7 +2091,6 @@ namespace NR
 
 				childEntity.AddComponent<MeshComponent>(mesh->Handle, submeshIndex);
 
-				// TODO(Yan): import settings should determine this
 				childEntity.AddComponent<MeshColliderComponent>(mesh->Handle, submeshIndex);
 				childEntity.AddComponent<RigidBodyComponent>();
 			}
@@ -2095,14 +2109,43 @@ namespace NR
 		Entity rootEntity = CreateEntity(assetData.FilePath.stem().string());
 		auto aScene = mesh->GetMeshSource()->mScene;
 		BuildMeshEntityHierarchy(rootEntity, mesh, aScene, aScene->mRootNode);
+		BuildMeshBoneEntityIds(rootEntity, rootEntity, mesh);
 		return rootEntity;
+	}
+
+	void Scene::BuildMeshBoneEntityIds(Entity rootEntity, Entity entity, Ref<Mesh> mesh) {
+		if (entity.HasComponent<MeshComponent>())
+		{
+			auto& mc = entity.GetComponent<MeshComponent>();
+			mc.BoneEntityIds = FindBoneEntityIds(rootEntity, mesh);
+		}
+		for (auto childId : entity.Children())
+		{
+			Entity child = FindEntityByID(childId);
+			BuildMeshBoneEntityIds(rootEntity, child, mesh);
+		}
+	}
+
+	std::vector<UUID> Scene::FindBoneEntityIds(Entity parent, Ref<Mesh> mesh)
+	{
+		std::vector<UUID> boneEntityIds;
+		// given a parent entity, find descendant entities holding the transforms for the specified mesh's bones
+		if (mesh && mesh->IsRigged())
+		{
+			auto joints = mesh->GetMeshSource()->GetSkeleton()->joint_names();
+			for (const auto joint : joints)
+			{
+				Entity e = FindChildEntityByTag(parent, joint);
+				boneEntityIds.emplace_back(e ? e.GetID() : UUID(0));
+			}
+		}
+		return boneEntityIds;
 	}
 
 	Entity Scene::FindEntityByTag(const std::string& tag)
 	{
 		NR_PROFILE_FUNC();
 
-		// TODO: If this becomes used often, consider indexing by tag
 		auto view = mRegistry.view<TagComponent>();
 		for (auto entity : view)
 		{
@@ -2114,6 +2157,29 @@ namespace NR
 		}
 
 		return Entity{};
+	}
+
+	Entity Scene::FindChildEntityByTag(Entity entity, const std::string& tag)
+	{
+		NR_PROFILE_FUNC();
+
+		if (entity) 
+		{
+			if (entity.GetComponent<TagComponent>().Tag == tag)
+			{
+				return entity;
+			}
+
+			for (const auto childId : entity.Children())
+			{
+				Entity child = FindChildEntityByTag(FindEntityByID(childId), tag);
+				if (child)
+				{
+					return child;
+				}
+			}
+		}
+		return {};
 	}
 
 	Entity Scene::FindEntityByID(UUID id)

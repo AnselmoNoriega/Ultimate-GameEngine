@@ -118,6 +118,8 @@ namespace NR
 		Entity Instantiate(Ref<Prefab> prefab, const glm::vec3* translation = nullptr, const glm::vec3* rotation = nullptr, const glm::vec3* scale = nullptr);
 		Entity InstantiateMesh(Ref<Mesh> mesh);
 
+		std::vector<UUID> FindBoneEntityIds(Entity parent, Ref<Mesh> mesh);
+
 		template<typename T>
 		auto GetAllEntitiesWith()
 		{
@@ -125,6 +127,7 @@ namespace NR
 		}
 
 		Entity FindEntityByTag(const std::string& tag);
+		Entity FindChildEntityByTag(Entity entity, const std::string& tag);
 		Entity FindEntityByID(UUID id);
 
 		void ConvertToLocalSpace(Entity entity);
@@ -176,12 +179,15 @@ namespace NR
 		void MeshColliderComponentDestroy(entt::registry& registry, entt::entity entity);
 
 		void BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode);
+		void BuildMeshBoneEntityIds(Entity root, Entity entity, Ref<Mesh> mesh);
 
 		template<typename Fn>
 		void SubmitPostUpdateFunc(Fn&& func)
 		{
 			mPostUpdateQueue.emplace_back(func);
 		}
+
+		ozz::vector<ozz::math::Float4x4> GetModelSpaceBoneTransforms(const std::vector<UUID>& boneEntityIds, Ref<Mesh> mesh);
 
 		void UpdateAnimation(float dt, bool isRuntime);
 

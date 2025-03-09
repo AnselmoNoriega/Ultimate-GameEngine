@@ -6,7 +6,7 @@ layout(location = 2) out vec4 unused1;
 
 layout (push_constant) uniform Material
 {
-	layout (offset = 64) vec4 Color;
+	layout(offset = 16) vec4 Color;
 } uMaterialUniforms;
 
 void main()

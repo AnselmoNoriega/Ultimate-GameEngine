@@ -26,9 +26,25 @@ namespace NR
 		return true;
 	}
 
+	bool FileSystem::Copy(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)
+	{
+		if (FileSystem::Exists(newFilepath))
+		{
+			return false;
+		}
+
+		std::filesystem::copy(oldFilepath, newFilepath);
+		return true;
+	}
+
 	bool FileSystem::MoveFile(const std::filesystem::path& filepath, const std::filesystem::path& dest)
 	{
 		return Move(filepath, dest / filepath.filename());
+	}
+
+	bool FileSystem::CopyFile(const std::filesystem::path& filepath, const std::filesystem::path& dest)
+	{
+		return Copy(filepath, dest / filepath.filename());
 	}
 
 	bool FileSystem::Rename(const std::filesystem::path& oldFilepath, const std::filesystem::path& newFilepath)

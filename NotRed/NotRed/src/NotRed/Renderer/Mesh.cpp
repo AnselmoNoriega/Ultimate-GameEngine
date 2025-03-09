@@ -64,13 +64,13 @@ namespace NR
 			return result;
 		}
 
-		ozz::math::Float4x4 Float4x4FromMat4(const glm::mat4 matrix)
+		ozz::math::Float4x4 Float4x4FromMat4(const glm::mat4& mat)
 		{
 			ozz::math::Float4x4 result;
-			result.cols[0] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[0]));
-			result.cols[1] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[1]));
-			result.cols[2] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[2]));
-			result.cols[3] = ozz::math::simd_float4::LoadPtr(glm::value_ptr(matrix[3]));
+			result.cols[0] = ozz::math::simd_float4::LoadPtrU(glm::value_ptr(mat[0]));
+			result.cols[1] = ozz::math::simd_float4::LoadPtrU(glm::value_ptr(mat[1]));
+			result.cols[2] = ozz::math::simd_float4::LoadPtrU(glm::value_ptr(mat[2]));
+			result.cols[3] = ozz::math::simd_float4::LoadPtrU(glm::value_ptr(mat[3]));
 			return result;
 		}
 
@@ -608,7 +608,7 @@ namespace NR
 		mVertexBuffer = VertexBuffer::Create(mVertices.data(), (uint32_t)(mVertices.size() * sizeof(Vertex)));
 		if (IsRigged())
 		{
-			mBoneInfluencesBuffer = VertexBuffer::Create(mBoneInfluences.data(), (uint32_t)(mBoneInfluences.size() * sizeof(BoneInfluence)));
+			mBoneInfluenceBuffer = VertexBuffer::Create(mBoneInfluences.data(), (uint32_t)(mBoneInfluences.size() * sizeof(BoneInfluence)));
 		}
 
 		mIndexBuffer = IndexBuffer::Create(mIndices.data(), (uint32_t)(mIndices.size() * sizeof(Index)));
@@ -751,16 +751,6 @@ namespace NR
 		{
 			mMaterials->SetMaterial(static_cast<uint32_t>(i), Ref<MaterialAsset>::Create(meshMaterials[i]));
 		}
-
-		if (mMeshSource->IsRigged())
-		{
-			mBoneTransforms.resize(mMeshSource->mBoneInfo.size());
-			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
-			for (auto& ub : mBoneTransformUBs) 
-			{
-				ub = UniformBuffer::Create(static_cast<uint32_t>(mMeshSource->mBoneInfo.size() * sizeof(glm::mat4)), 0);
-			}
-		}
 	}
 
 	Mesh::Mesh(Ref<MeshSource> meshSource, const std::vector<uint32_t>& submeshes)
@@ -774,60 +764,16 @@ namespace NR
 		{
 			mMaterials->SetMaterial(static_cast<uint32_t>(i), Ref<MaterialAsset>::Create(meshMaterials[static_cast<uint32_t>(i)]));
 		}
-
-		if (mMeshSource->IsRigged())
-		{
-			mBoneTransforms.resize(mMeshSource->mBoneInfo.size());
-			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
-			for (auto& ub : mBoneTransformUBs) {
-				ub = UniformBuffer::Create(static_cast<uint32_t>(mMeshSource->mBoneInfo.size() * sizeof(glm::mat4)), 0);
-			}
-		}
 	}
 
 	Mesh::Mesh(const Ref<Mesh>& other)
 		: mMeshSource(other->mMeshSource), mMaterials(other->mMaterials)
 	{
 		SetSubmeshes(other->mSubmeshes);
-
-		if (mMeshSource->IsRigged())
-		{
-			mBoneTransforms.resize(mMeshSource->mBoneInfo.size());
-			mBoneTransformUBs.resize(Renderer::GetConfig().FramesInFlight);
-			for (auto& ub : mBoneTransformUBs) 
-			{
-				ub = UniformBuffer::Create(static_cast<uint32_t>(mMeshSource->mBoneInfo.size() * sizeof(glm::mat4)), 0);
-			}
-		}
 	}
 
 	Mesh::~Mesh()
 	{
-	}
-
-	void Mesh::UpdateBoneTransforms(const ozz::vector<ozz::math::Float4x4>& modelSpaceTransforms)
-	{
-		NR_PROFILE_FUNC();
-		if (modelSpaceTransforms.empty())
-		{
-			for (size_t i = 0; i < mMeshSource->mBoneInfo.size(); ++i)
-			{
-				mBoneTransforms[i] = ozz::math::Float4x4::identity();
-			}
-		}
-		else
-		{
-			for (size_t i = 0; i < mMeshSource->mBoneInfo.size(); ++i)
-			{
-				mBoneTransforms[i] = mMeshSource->mBoneInfo[i].SubMeshInverseTransform * modelSpaceTransforms[mMeshSource->mBoneInfo[i].JointIndex] * mMeshSource->mBoneInfo[i].InverseBindPose;
-			}
-		}
-
-		Ref<Mesh> instance = this;
-
-		Renderer::Submit([instance]() mutable {
-			instance->mBoneTransformUBs[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransforms.data(), static_cast<uint32_t>(instance->mBoneTransforms.size() * sizeof(ozz::math::Float4x4)));
-			});
 	}
 
 	void Mesh::SetSubmeshes(const std::vector<uint32_t>& submeshes)

@@ -244,7 +244,7 @@ namespace NR
 
 				VertexBufferLayout& vertexLayout = instance->mSpecification.Layout;
 				VertexBufferLayout& instanceLayout = instance->mSpecification.InstanceLayout;
-				VertexBufferLayout& boneInfluenceLayout = instance->mSpecification.BoneInfluencesLayout;
+				VertexBufferLayout& boneInfluenceLayout = instance->mSpecification.BoneInfluenceLayout;
 
 				std::vector<VkVertexInputBindingDescription> vertexInputBindingDescriptions;
 
@@ -278,7 +278,7 @@ namespace NR
 				uint32_t location = 0;
 				for (const auto& layout : { vertexLayout, instanceLayout, boneInfluenceLayout })
 				{
-					for (auto element : layout)
+					for (const auto& element : layout)
 					{
 						vertexInputAttributes[location].binding = binding;
 						vertexInputAttributes[location].location = location;
