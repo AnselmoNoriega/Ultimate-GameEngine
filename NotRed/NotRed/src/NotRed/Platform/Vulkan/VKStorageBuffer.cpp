@@ -28,7 +28,7 @@ namespace NR
 
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.usage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		bufferInfo.size = mSize;
 
 		VKAllocator allocator("StorageBuffer");
@@ -67,10 +67,34 @@ namespace NR
 
 	void VKStorageBuffer::RT_SetData(const void* data, uint32_t size, uint32_t offset)
 	{
-		VKAllocator allocator("VulkanStorageBuffer");
-		uint8_t* pData = allocator.MapMemory<uint8_t>(mMemoryAlloc);
-		memcpy(pData, (uint8_t*)data + offset, size);
-		allocator.UnmapMemory(mMemoryAlloc);
+		VKAllocator allocator("Staging");
+
+		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferInfo.size = size;
+
+		VkBuffer stagingBuffer;
+		auto stagingAlloc = allocator.AllocateBuffer(bufferInfo, VMA_MEMORY_USAGE_CPU_TO_GPU, stagingBuffer);
+
+		uint8_t* pData = allocator.MapMemory<uint8_t>(stagingAlloc);
+		memcpy(pData, data, size);
+		allocator.UnmapMemory(stagingAlloc);
+
+		{
+			VkCommandBuffer commandBuffer = VKContext::GetCurrentDevice()->GetCommandBuffer(true);
+
+			VkBufferCopy copyRegion = {
+				0,
+				offset,
+				size
+			};
+			vkCmdCopyBuffer(commandBuffer, stagingBuffer, mBuffer, 1, &copyRegion);
+
+			VKContext::GetCurrentDevice()->FlushCommandBuffer(commandBuffer);
+		}
+
+		allocator.DestroyBuffer(stagingBuffer, stagingAlloc);
 	}
 
 	void VKStorageBuffer::Resize(uint32_t newSize)

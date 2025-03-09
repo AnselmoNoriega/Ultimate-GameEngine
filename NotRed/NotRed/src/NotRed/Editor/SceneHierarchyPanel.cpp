@@ -195,24 +195,24 @@ namespace NR
 								if (ImGui::MenuItem("Cube"))
 								{
 									auto newEntity = mContext->CreateEntity("Cube");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrmesh");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrsmesh");
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
 									SetSelected(newEntity);
 								}
 								if (ImGui::MenuItem("Sphere"))
 								{
 									auto newEntity = mContext->CreateEntity("Sphere");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrmesh");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrsmesh");
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									auto& scc = newEntity.AddComponent<SphereColliderComponent>();
 									SetSelected(newEntity);
 								}
 								if (ImGui::MenuItem("Capsule"))
 								{
 									auto newEntity = mContext->CreateEntity("Capsule");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrmesh");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrsmesh");
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
 									//ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
 									SetSelected(newEntity);
@@ -220,8 +220,8 @@ namespace NR
 								if (ImGui::MenuItem("Cylinder"))
 								{
 									auto newEntity = mContext->CreateEntity("Cylinder");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrmesh");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrsmesh");
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
 									SetSelected(newEntity);
@@ -229,8 +229,8 @@ namespace NR
 								if (ImGui::MenuItem("Torus"))
 								{
 									auto newEntity = mContext->CreateEntity("Torus");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrmesh");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrsmesh");
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
 									SetSelected(newEntity);
@@ -238,8 +238,8 @@ namespace NR
 								if (ImGui::MenuItem("Plane"))
 								{
 									auto newEntity = mContext->CreateEntity("Plane");
-									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrmesh");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrsmesh");
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
 									SetSelected(newEntity);
@@ -248,7 +248,7 @@ namespace NR
 								{
 									auto newEntity = mContext->CreateEntity("Cone");
 									auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cone.fbx");
-									newEntity.AddComponent<MeshComponent>(mesh);
+									newEntity.AddComponent<StaticMeshComponent>(mesh);
 									auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 									//CookingFactory::CookMesh(collider);
 									SetSelected(newEntity);
@@ -463,18 +463,26 @@ namespace NR
 		//---------------
 
 		if (isSelected)
+		{
 			ImGui::PushStyleColor(ImGuiCol_Text, Colors::Theme::backgroundDark);
+		}
 
-		// TODO(Peter): This should probably be a function that checks that the entities components are valid
 		const bool missingMesh = entity.HasComponent<MeshComponent>() && (AssetManager::IsAssetHandleValid(entity.GetComponent<MeshComponent>().MeshHandle)
 			&& AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle) && AssetManager::GetAsset<Mesh>(entity.GetComponent<MeshComponent>().MeshHandle)->IsFlagSet(AssetFlag::Missing));
 
-		if (missingMesh)
+		const bool missingStaticMesh = entity.HasComponent<StaticMeshComponent>() && (AssetManager::IsAssetHandleValid(entity.GetComponent<StaticMeshComponent>().StaticMesh)
+			&& AssetManager::GetAsset<StaticMesh>(entity.GetComponent<StaticMeshComponent>().StaticMesh) && AssetManager::GetAsset<StaticMesh>(entity.GetComponent<StaticMeshComponent>().StaticMesh)->IsFlagSet(AssetFlag::Missing));
+
+		if (missingMesh || missingStaticMesh)
+		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.4f, 0.3f, 1.0f));
+		}
 
 		bool isPrefab = entity.HasComponent<PrefabComponent>();
 		if (isPrefab && !isSelected)
+		{
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.32f, 0.7f, 0.87f, 1.0f));
+		}
 
 		/*ImGui::PushClipRect(rowAreaMin, rowAreaMax, false);
 		const bool isRowClicked = [&rowAreaMin, &rowAreaMax, isRowHovered]
@@ -572,8 +580,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Cube");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrmesh");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cube.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							auto& bcc = newEntity.AddComponent<BoxColliderComponent>();
 							SetSelected(newEntity);
 						}
@@ -581,8 +589,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Sphere");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrmesh");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Sphere.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							auto& scc = newEntity.AddComponent<SphereColliderComponent>();
 							SetSelected(newEntity);
 						}
@@ -590,8 +598,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Capsule");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrmesh");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Capsule.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							CapsuleColliderComponent& ccc = newEntity.AddComponent<CapsuleColliderComponent>();
 							//ccc.DebugMesh = MeshFactory::CreateCapsule(ccc.Radius, ccc.Height);
 							SetSelected(newEntity);
@@ -600,8 +608,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Cylinder");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrmesh");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cylinder.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);
 							SetSelected(newEntity);
@@ -610,8 +618,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Torus");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrmesh");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Torus.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);
 							SetSelected(newEntity);
@@ -620,8 +628,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Plane");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrmesh");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Plane.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);
 							SetSelected(newEntity);
@@ -630,8 +638,8 @@ namespace NR
 						{
 							auto newEntity = mContext->CreateEntity("Cone");
 							mContext->ParentEntity(newEntity, entity);
-							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cone.fbx");
-							newEntity.AddComponent<MeshComponent>(mesh);
+							auto mesh = AssetManager::GetAssetHandleFromFilePath("Meshes/Default/Cone.nrsmesh");
+							newEntity.AddComponent<StaticMeshComponent>(mesh);
 							auto& collider = newEntity.AddComponent<MeshColliderComponent>(mesh);
 							//CookingFactory::CookMesh(collider);
 							SetSelected(newEntity);
