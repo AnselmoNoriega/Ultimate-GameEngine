@@ -24,7 +24,7 @@ layout(std140, binding = 0) uniform Camera
 	mat4 uViewMatrix;
 };
 
-const int MAXBONES = 100;
+const int MAX_BONES = 100;
 const int MAX_ANIMATED_MESHES = 1024;
 
 layout (std140, set = 1, binding = 0) readonly buffer BoneTransforms

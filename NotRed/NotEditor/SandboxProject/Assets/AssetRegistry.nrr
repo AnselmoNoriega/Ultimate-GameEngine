@@ -290,9 +290,6 @@ Assets:
   - Handle: 12651856427116898672
     FilePath: Meshes/Source/Tests/TransformTest.gltf
     Type: MeshSource
-  - Handle: 12772124499182670516
-    FilePath: Meshes/Demo/stormtrooper.nrmesh
-    Type: Mesh
   - Handle: 13003522556742733601
     FilePath: Meshes/Source/Sponza/8481240838833932244.jpg
     Type: Texture
