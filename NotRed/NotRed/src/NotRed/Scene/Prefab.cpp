@@ -83,6 +83,8 @@ namespace NR
 	{
 		mScene = Scene::CreateEmpty();
 		mEntity = CreatePrefabFromEntity(entity);
+		mScene->BuildMeshBoneEntityIds(mEntity, mEntity);
+
 		if (serialize)
 		{
 			AssetImporter::Serialize(this);

@@ -153,7 +153,7 @@ namespace NR
 			pipelineSpecAnim.BoneInfluenceLayout = boneInfluenceLayout;
 
 			// 4 cascades
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 4; ++i)
 			{
 				shadowMapFrameBufferSpec.ExistingImageLayers.clear();
 				shadowMapFrameBufferSpec.ExistingImageLayers.emplace_back(i);
@@ -341,7 +341,7 @@ namespace NR
 			mHBAOPipeline = Ref<VKComputePipeline>::Create(shader);
 			mHBAOMaterial = Material::Create(shader, "HBAO");
 
-			for (int i = 0; i < 16; i++)
+			for (int i = 0; i < 16; ++i)
 				HBAODataUB.Float2Offsets[i] = glm::vec4((float)(i % 4) + 0.5f, (float)(i / 4) + 0.5f, 0.0f, 1.f);
 			std::memcpy(HBAODataUB.Jitters, Noise::HBAOJitter().data(), sizeof glm::vec4 * 16);
 		}
@@ -546,7 +546,7 @@ namespace NR
 			frameBufferSpec.ClearColor = { 0.5f, 0.1f, 0.1f, 1.0f };
 			frameBufferSpec.BlendMode = FrameBufferBlendMode::OneZero;
 
-			for (uint32_t i = 0; i < 2; i++)
+			for (uint32_t i = 0; i < 2; ++i)
 				mTempFrameBuffers.emplace_back(FrameBuffer::Create(frameBufferSpec));
 		}
 
@@ -568,7 +568,7 @@ namespace NR
 			mJumpFloodInitMaterial = Material::Create(pipelineSpecification.Shader, pipelineSpecification.DebugName);
 
 			const char* passName[2] = { "EvenPass", "OddPass" };
-			for (uint32_t i = 0; i < 2; i++)
+			for (uint32_t i = 0; i < 2; ++i)
 			{
 				renderPassSpec.TargetFrameBuffer = mTempFrameBuffers[(i + 1) % 2];
 				renderPassSpec.DebugName = fmt::format("JumpFlood-{0}", passName[i]);
@@ -840,7 +840,7 @@ namespace NR
 		CalculateCascades(cascades, sceneCamera, directionalLight.Direction);
 
 		// TODO: four cascades for now
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; ++i)
 		{
 			CascadeSplits[i] = cascades[i].SplitDepth;
 			shadowData.ViewProjection[i] = cascades[i].ViewProj;
@@ -882,7 +882,7 @@ namespace NR
 
 	void SceneRenderer::WaitForThreads()
 	{
-		for (uint32_t i = 0; i < sThreadPool.size(); i++)
+		for (uint32_t i = 0; i < sThreadPool.size(); ++i)
 			sThreadPool[i].join();
 
 		sThreadPool.clear();
@@ -1017,7 +1017,7 @@ namespace NR
 			dc.MaterialTable = materialTable;
 			dc.OverrideMaterial = overrideMaterial;
 			dc.InstanceCount++;
-			dc.InstanceOffset = instanceIndex;
+			dc.InstanceBaseIndex = instanceIndex;
 		}
 
 		// Shadow pass
@@ -1074,7 +1074,7 @@ namespace NR
 				dc.MaterialTable = materialTable;
 				dc.OverrideMaterial = overrideMaterial;
 				dc.InstanceCount++;
-				dc.InstanceOffset = instanceIndex;
+				dc.InstanceBaseIndex = instanceIndex;
 			}
 
 			// Shadow pass
@@ -1149,14 +1149,16 @@ namespace NR
 		if (directionalLights[0].Multiplier == 0.0f || !directionalLights[0].CastShadows)
 		{
 			// Clear shadow maps
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 4; ++i)
+			{
 				ClearPass(mShadowPassPipelines[i]->GetSpecification().RenderPass);
+			}
 
 			return;
 		}
 
 		// TODO: change to four cascades (or set number)
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; ++i)
 		{
 			Renderer::BeginRenderPass(mCommandBuffer, mShadowPassPipelines[i]->GetSpecification().RenderPass);
 
@@ -1177,7 +1179,7 @@ namespace NR
 				if (dc.Mesh->IsRigged())
 				{
 					const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mShadowPassMaterial, cascade);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mShadowPassPipelinesAnim[i], mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex, dc.InstanceCount, mShadowPassMaterial, cascade);
 				}
 				else
 				{
@@ -1207,7 +1209,7 @@ namespace NR
 			if (dc.Mesh->IsRigged())
 			{
 				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex, dc.InstanceCount, mPreDepthMaterial);
 			}
 			else
 			{
@@ -1225,7 +1227,7 @@ namespace NR
 			if (dc.Mesh->IsRigged())
 			{
 				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mPreDepthMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mPreDepthPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex, dc.InstanceCount, mPreDepthMaterial);
 			}
 			else
 			{
@@ -1278,7 +1280,7 @@ namespace NR
 		for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
 		{
 			const auto& transformData = mMeshTransformMap.at(mk);
-			Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
+			Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceBaseIndex  * sizeof(TransformVertexData), dc.InstanceCount, mSelectedGeometryMaterial);
 		}
 		for (auto& [mk, dc] : mSelectedMeshDrawList)
 		{
@@ -1286,11 +1288,11 @@ namespace NR
 			if (dc.Mesh->IsRigged())
 			{
 				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset + dc.InstanceOffset * sizeof(BoneTransforms), dc.InstanceCount, mSelectedGeometryMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceBaseIndex  * sizeof(TransformVertexData), mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex + dc.InstanceBaseIndex, dc.InstanceCount, mSelectedGeometryMaterial);
 			}
 			else
 			{
-				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), {}, 0, dc.InstanceCount, mSelectedGeometryMaterial);
+				Renderer::RenderMeshWithMaterial(mCommandBuffer, mSelectedGeometryPipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceBaseIndex  * sizeof(TransformVertexData), {}, 0, dc.InstanceCount, mSelectedGeometryMaterial);
 			}
 		}
 		Renderer::EndRenderPass(mCommandBuffer);
@@ -1318,7 +1320,7 @@ namespace NR
 			if (dc.Mesh->IsRigged())
 			{
 				const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-				Renderer::RenderSubmeshInstanced(mCommandBuffer, mGeometryPipelineAnim, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount);
+				Renderer::RenderSubmeshInstanced(mCommandBuffer, mGeometryPipelineAnim, mUniformBufferSet, mStorageBufferSet, dc.Mesh, dc.SubmeshIndex, dc.MaterialTable ? dc.MaterialTable : dc.Mesh->GetMaterials(), mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex, dc.InstanceCount);
 			}
 			else
 			{
@@ -1342,7 +1344,7 @@ namespace NR
 	{
 		if (!mOptions.EnableHBAO)
 		{
-			for (int i = 0; i < 2; i++)
+			for (int i = 0; i < 2; ++i)
 				ClearPass(mDeinterleavingPipelines[i]->GetSpecification().RenderPass);
 
 			return;
@@ -1351,7 +1353,7 @@ namespace NR
 		mDeinterleavingMaterial->Set("uLinearDepthTex", mPreDepthPipeline->GetSpecification().RenderPass->GetSpecification().TargetFrameBuffer->GetImage());
 
 		constexpr static glm::vec2 offsets[2]{ { 0.5f, 0.5f }, { 0.5f, 2.5f } };
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 2; ++i)
 		{
 			mDeinterleavingMaterial->Set("uInfo.UVOffset", offsets[i]);
 			Renderer::BeginRenderPass(mCommandBuffer, mDeinterleavingPipelines[i]->GetSpecification().RenderPass);
@@ -1571,7 +1573,7 @@ namespace NR
 				VkSampler samplerClamp = VKRenderer::GetClampSampler();
 
 				uint32_t mips = bloomTextures[0]->GetMipLevelCount() - 2;
-				for (uint32_t i = 1; i < mips; i++)
+				for (uint32_t i = 1; i < mips; ++i)
 				{
 					auto [mipWidth, mipHeight] = bloomTextures[0]->GetMipSize(i);
 					workGroupsX = (uint32_t)glm::ceil((float)mipWidth / (float)workGroupSize);
@@ -1832,7 +1834,7 @@ namespace NR
 			for (auto& [mk, dc] : mSelectedStaticMeshDrawList)
 			{
 				const auto& transformData = mMeshTransformMap.at(mk);
-				Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), dc.InstanceCount, mWireframeMaterial);
+				Renderer::RenderStaticMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.StaticMesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceBaseIndex  * sizeof(TransformVertexData), dc.InstanceCount, mWireframeMaterial);
 			}
 
 			for (auto& [mk, dc] : mSelectedMeshDrawList)
@@ -1841,11 +1843,11 @@ namespace NR
 				if (dc.Mesh->IsRigged())
 				{
 					const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset + dc.InstanceOffset * sizeof(BoneTransforms), dc.InstanceCount, mWireframeMaterial);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceBaseIndex  * sizeof(TransformVertexData), mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex + dc.InstanceBaseIndex, dc.InstanceCount, mWireframeMaterial);
 				}
 				else
 				{
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceOffset * sizeof(TransformVertexData), {}, 0, dc.InstanceCount, mWireframeMaterial);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, mGeometryWireframePipeline, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset + dc.InstanceBaseIndex  * sizeof(TransformVertexData), {}, 0, dc.InstanceCount, mWireframeMaterial);
 				}
 			}
 
@@ -1873,7 +1875,7 @@ namespace NR
 				if (dc.Mesh->IsRigged())
 				{
 					const auto& boneTransformsData = mMeshBoneTransformsMap.at(mk);
-					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsOffset, dc.InstanceCount, mColliderMaterial);
+					Renderer::RenderMeshWithMaterial(mCommandBuffer, pipelineAnim, mUniformBufferSet, nullptr, dc.Mesh, dc.SubmeshIndex, mSubmeshTransformBuffer, transformData.TransformOffset, mBoneTransformStorageBuffers, boneTransformsData.BoneTransformsBaseIndex, dc.InstanceCount, mColliderMaterial);
 				}
 				else
 				{
@@ -1951,7 +1953,7 @@ namespace NR
 #if 0
 		uint32_t offset = 0;
 
-		for (size_t i = 0; i < mStaticMeshShadowPassDrawList.size(); i++)
+		for (size_t i = 0; i < mStaticMeshShadowPassDrawList.size(); ++i)
 		{
 			auto& dc = mStaticMeshShadowPassDrawList[i];
 
@@ -1964,7 +1966,7 @@ namespace NR
 			offset++;
 		}
 
-		for (size_t i = 0; i < mShadowPassDrawList.size(); i++)
+		for (size_t i = 0; i < mShadowPassDrawList.size(); ++i)
 		{
 			auto& dc = mShadowPassDrawList[i];
 
@@ -1977,7 +1979,7 @@ namespace NR
 			offset++;
 		}
 
-		for (size_t i = 0; i < mStaticMeshDrawList.size(); i++)
+		for (size_t i = 0; i < mStaticMeshDrawList.size(); ++i)
 		{
 			auto& dc = mStaticMeshDrawList[i];
 
@@ -1990,7 +1992,7 @@ namespace NR
 			offset++;
 		}
 
-		/*for (size_t i = 0; i < mDrawList.size(); i++)
+		/*for (size_t i = 0; i < mDrawList.size(); ++i)
 		{
 			auto& dc = mDrawList[i];
 
@@ -2004,31 +2006,32 @@ namespace NR
 		}*/
 #endif
 
-		uint32_t offset = 0;
+		uint32_t index = 0;
 		for (auto& [key, transformData] : mMeshTransformMap)
 		{
-			transformData.TransformOffset = offset * sizeof(TransformVertexData);
+			transformData.TransformOffset = index * sizeof(TransformVertexData);
 			for (const auto& transform : transformData.Transforms)
 			{
-				mTransformVertexData[offset++] = transform;
+				mTransformVertexData[index++] = transform;
 			}
 
 		}
 
-		mSubmeshTransformBuffer->SetData(mTransformVertexData, offset * sizeof(TransformVertexData));		offset = 0;
+		mSubmeshTransformBuffer->SetData(mTransformVertexData, index * sizeof(TransformVertexData));		
+		index = 0;
 		for (auto& [key, boneTransformsData] : mMeshBoneTransformsMap)
 		{
-			boneTransformsData.BoneTransformsOffset = offset;
+			boneTransformsData.BoneTransformsBaseIndex = index;
 			for (const auto& boneTransforms : boneTransformsData.BoneTransformsData)
 			{
-				mBoneTransformsData[offset++] = boneTransforms;
+				mBoneTransformsData[index++] = boneTransforms;
 			}
 		}
 
 		Ref<SceneRenderer> instance = this;
-		Renderer::Submit([instance, offset]() mutable
+		Renderer::Submit([instance, index]() mutable
 			{
-				instance->mBoneTransformStorageBuffers[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransformsData, static_cast<uint32_t>(offset * sizeof(BoneTransforms)));
+				instance->mBoneTransformStorageBuffers[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransformsData, static_cast<uint32_t>(index * sizeof(BoneTransforms)));
 			});
 	}
 
@@ -2097,7 +2100,7 @@ namespace NR
 
 		// Calculate split depths based on view camera frustum
 		// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++)
+		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
 		{
 			float p = (i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
 			float log = minZ * std::pow(ratio, p);
@@ -2116,7 +2119,7 @@ namespace NR
 
 		// Calculate orthographic projection matrix for each cascade
 		float lastSplitDist = 0.0;
-		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++)
+		for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; ++i)
 		{
 			float splitDist = cascadeSplits[i];
 
@@ -2134,13 +2137,13 @@ namespace NR
 
 			// Project frustum corners into world space
 			glm::mat4 invCam = glm::inverse(viewProjection);
-			for (uint32_t i = 0; i < 8; i++)
+			for (uint32_t i = 0; i < 8; ++i)
 			{
 				glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[i], 1.0f);
 				frustumCorners[i] = invCorner / invCorner.w;
 			}
 
-			for (uint32_t i = 0; i < 4; i++)
+			for (uint32_t i = 0; i < 4; ++i)
 			{
 				glm::vec3 dist = frustumCorners[i + 4] - frustumCorners[i];
 				frustumCorners[i + 4] = frustumCorners[i] + (dist * splitDist);
@@ -2149,7 +2152,7 @@ namespace NR
 
 			// Get frustum center
 			glm::vec3 frustumCenter = glm::vec3(0.0f);
-			for (uint32_t i = 0; i < 8; i++)
+			for (uint32_t i = 0; i < 8; ++i)
 				frustumCenter += frustumCorners[i];
 
 			frustumCenter /= 8.0f;
@@ -2157,7 +2160,7 @@ namespace NR
 			//frustumCenter *= 0.01f;
 
 			float radius = 0.0f;
-			for (uint32_t i = 0; i < 8; i++)
+			for (uint32_t i = 0; i < 8; ++i)
 			{
 				float distance = glm::length(frustumCorners[i] - frustumCenter);
 				radius = glm::max(radius, distance);

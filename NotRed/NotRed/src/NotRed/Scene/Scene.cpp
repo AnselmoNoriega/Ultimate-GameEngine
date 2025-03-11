@@ -1926,6 +1926,8 @@ namespace NR
 
 		parentNewEntity(newEntity);
 
+		BuildMeshBoneEntityIds(newEntity, newEntity);
+
 		return newEntity;
 	}
 
@@ -2045,6 +2047,8 @@ namespace NR
 			}
 		}
 
+		BuildMeshBoneEntityIds(result, result);
+
 		return result;
 	}
 
@@ -2109,20 +2113,25 @@ namespace NR
 		Entity rootEntity = CreateEntity(assetData.FilePath.stem().string());
 		auto aScene = mesh->GetMeshSource()->mScene;
 		BuildMeshEntityHierarchy(rootEntity, mesh, aScene, aScene->mRootNode);
-		BuildMeshBoneEntityIds(rootEntity, rootEntity, mesh);
+		BuildMeshBoneEntityIds(rootEntity, rootEntity);
 		return rootEntity;
 	}
 
-	void Scene::BuildMeshBoneEntityIds(Entity rootEntity, Entity entity, Ref<Mesh> mesh) {
+	void Scene::BuildMeshBoneEntityIds(Entity rootEntity, Entity entity) 
+	{
 		if (entity.HasComponent<MeshComponent>())
 		{
 			auto& mc = entity.GetComponent<MeshComponent>();
-			mc.BoneEntityIds = FindBoneEntityIds(rootEntity, mesh);
+			auto mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
+			if (mesh && mesh->IsRigged())
+			{
+				mc.BoneEntityIds = FindBoneEntityIds(rootEntity, mesh);
+			}
 		}
 		for (auto childId : entity.Children())
 		{
 			Entity child = FindEntityByID(childId);
-			BuildMeshBoneEntityIds(rootEntity, child, mesh);
+			BuildMeshBoneEntityIds(rootEntity, child);
 		}
 	}
 

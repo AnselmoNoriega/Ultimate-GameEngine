@@ -359,7 +359,7 @@ namespace NR
 			Ref<Material> OverrideMaterial;
 
 			uint32_t InstanceCount = 0;
-			uint32_t InstanceOffset = 0;
+			uint32_t InstanceBaseIndex = 0;
 		};
 
 		struct StaticDrawCommand
@@ -370,7 +370,7 @@ namespace NR
 			Ref<Material> OverrideMaterial;
 
 			uint32_t InstanceCount = 0;
-			uint32_t InstanceOffset = 0;
+			uint32_t InstanceBaseIndex = 0;
 		};
 
 		struct TransformMapData
@@ -382,7 +382,7 @@ namespace NR
 		struct BoneTransformsMapData
 		{
 			std::vector<BoneTransforms> BoneTransformsData;
-			uint32_t BoneTransformsOffset = 0;
+			uint32_t BoneTransformsBaseIndex = 0;
 		};
 
 		std::map<MeshKey, TransformMapData> mMeshTransformMap;

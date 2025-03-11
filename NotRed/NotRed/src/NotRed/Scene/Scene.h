@@ -179,7 +179,7 @@ namespace NR
 		void MeshColliderComponentDestroy(entt::registry& registry, entt::entity entity);
 
 		void BuildMeshEntityHierarchy(Entity parent, Ref<Mesh> mesh, const void* assimpScene, void* assimpNode);
-		void BuildMeshBoneEntityIds(Entity root, Entity entity, Ref<Mesh> mesh);
+		void BuildMeshBoneEntityIds(Entity root, Entity entity);
 
 		template<typename Fn>
 		void SubmitPostUpdateFunc(Fn&& func)

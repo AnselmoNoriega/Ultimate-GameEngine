@@ -32,10 +32,10 @@ layout (std140, set = 1, binding = 0) readonly buffer BoneTransforms
 	mat4 BoneTransforms[MAX_BONES * MAX_ANIMATED_MESHES];
 } rBoneTransforms;
 
-layout(push_constant) uniform BoneTransformOffset
+layout(push_constant) uniform BoneTransformIndex
 {
-	uint BaseIndex;
-} uBoneTransformOffset;
+	uint Base;
+} uBoneTransformIndex;
 
 layout(location = 0) out float LinearDepth;
 
@@ -48,10 +48,10 @@ void main()
 		vec4(aMRow0.w, aMRow1.w, aMRow2.w, 1.0)
 	);
 	
-	mat4 boneTransform = rBoneTransforms.BoneTransforms[(uBoneTransformOffset.BaseIndex + gl_InstanceIndex) * MAX_BONES + aBoneIndices[0]] * aBoneWeights[0];
-	boneTransform     += rBoneTransforms.BoneTransforms[(uBoneTransformOffset.BaseIndex + gl_InstanceIndex) * MAX_BONES + aBoneIndices[1]] * aBoneWeights[1];
-	boneTransform     += rBoneTransforms.BoneTransforms[(uBoneTransformOffset.BaseIndex + gl_InstanceIndex) * MAX_BONES + aBoneIndices[2]] * aBoneWeights[2];
-	boneTransform     += rBoneTransforms.BoneTransforms[(uBoneTransformOffset.BaseIndex + gl_InstanceIndex) * MAX_BONES + aBoneIndices[3]] * aBoneWeights[3];
+	mat4 boneTransform = rBoneTransforms.BoneTransforms[(uBoneTransformIndex.Base + gl_InstanceIndex) * MAX_BONES + aBoneIndices[0]] * aBoneWeights[0];
+	boneTransform     += rBoneTransforms.BoneTransforms[(uBoneTransformIndex.Base + gl_InstanceIndex) * MAX_BONES + aBoneIndices[1]] * aBoneWeights[1];
+	boneTransform     += rBoneTransforms.BoneTransforms[(uBoneTransformIndex.Base + gl_InstanceIndex) * MAX_BONES + aBoneIndices[2]] * aBoneWeights[2];
+	boneTransform     += rBoneTransforms.BoneTransforms[(uBoneTransformIndex.Base + gl_InstanceIndex) * MAX_BONES + aBoneIndices[3]] * aBoneWeights[3];
 
 	vec4 worldPosition = transform * boneTransform * vec4(aPosition, 1.0);
 
