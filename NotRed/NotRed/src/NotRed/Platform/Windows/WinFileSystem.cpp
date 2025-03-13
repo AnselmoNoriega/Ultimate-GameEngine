@@ -26,6 +26,7 @@ namespace NR
 		DWORD threadId;
 		sWatcherThread = CreateThread(NULL, 0, Watch, 0, 0, &threadId);
 		NR_CORE_ASSERT(sWatcherThread != NULL);
+		SetThreadDescription(sWatcherThread, L"NotRed FileSystemWatcher");
 	}
 
 	void FileSystem::StopWatching()
@@ -36,12 +37,7 @@ namespace NR
 		}
 
 		sWatching = false;
-		DWORD result = WaitForSingleObject(sWatcherThread, 5000);
-		
-		if (result == WAIT_TIMEOUT)
-		{
-			TerminateThread(sWatcherThread, 0);
-		}
+		TerminateThread(sWatcherThread, 0);
 		
 		CloseHandle(sWatcherThread);
 	}

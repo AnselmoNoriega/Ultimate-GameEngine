@@ -443,7 +443,9 @@ namespace NR
 		if (isSelected)
 		{
 			if (isWindowFocused || UI::NavigatedTo())
+			{
 				fillRowWithColor(Colors::Theme::selection);
+			}
 			else
 			{
 				const ImColor col = UI::ColorWithMultipliedValue(Colors::Theme::selection, 0.9f);
@@ -1219,27 +1221,31 @@ namespace NR
 
 		DrawComponent<MeshComponent>("Mesh", entity, [&](MeshComponent& mc)
 			{
+				Ref<Mesh> mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
+				if (AssetManager::IsAssetHandleValid(mc.MeshHandle))
+					mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
+
 				UI::BeginPropertyGrid();
 				UI::PropertyAssetReferenceError error;
 				if (UI::PropertyAssetReferenceWithConversion<Mesh, MeshSource>("Mesh", mc.MeshHandle,
-					[=](Ref<MeshSource> meshAsset) 
+					[=](Ref<MeshSource> meshAsset)
 					{
 						if (mMeshAssetConvertCallback)
-						{
 							mMeshAssetConvertCallback(entity, meshAsset);
-						}
 					}, &error))
 				{
-					Entity parent = entity.GetParent();
-					mc.BoneEntityIds = mContext->FindBoneEntityIds(parent ? parent : entity, AssetManager::GetAsset<Mesh>(mc.MeshHandle));
+					// TODO(Yan): maybe prompt for this, this isn't always expected behaviour
 					if (entity.HasComponent<MeshColliderComponent>())
 					{
+						mesh = AssetManager::GetAsset<Mesh>(mc.MeshHandle);
+						// Validate submesh index
+						if (mesh)
+							mc.SubmeshIndex = glm::clamp<uint32_t>(mc.SubmeshIndex, 0, mesh->GetMeshSource()->GetSubmeshes().size() - 1);
+
 						auto& mcc = entity.GetComponent<MeshColliderComponent>();
 						mcc.CollisionMesh = mc.MeshHandle;
 						if (AssetManager::IsAssetHandleValid(mcc.CollisionMesh))
-						{
 							CookingFactory::CookMesh(mcc.CollisionMesh);
-						}
 					}
 				}
 
@@ -1251,8 +1257,7 @@ namespace NR
 					}
 				}
 
-				Ref<Mesh> mesh = AssetManager::IsAssetHandleValid(mc.MeshHandle) ? AssetManager::GetAsset<Mesh>(mc.MeshHandle) : nullptr;
-				if (mesh && mesh->IsValid())
+				if (mesh)
 				{
 					if (UI::Property("Submesh Index", mc.SubmeshIndex, 0, mesh->GetMeshSource()->GetSubmeshes().size() - 1))
 					{
@@ -1269,14 +1274,18 @@ namespace NR
 					{
 						UI::BeginPropertyGrid();
 
-						auto meshMaterialTable = mesh->GetMaterials();
+						const auto& meshMaterialTable = mesh->GetMaterials();
 						if (mc.Materials->GetMaterialCount() < meshMaterialTable->GetMaterialCount())
+						{
 							mc.Materials->SetMaterialCount(meshMaterialTable->GetMaterialCount());
+						}
 
 						for (size_t i = 0; i < mc.Materials->GetMaterialCount(); i++)
 						{
 							if (i == meshMaterialTable->GetMaterialCount())
+							{
 								ImGui::Separator();
+							}
 
 							bool hasLocalMaterial = mc.Materials->HasMaterial(i);
 							bool hasMeshMaterial = meshMaterialTable->HasMaterial(i);
@@ -1339,7 +1348,6 @@ namespace NR
 						UI::EndTreeNode();
 					}
 				}
-
 			}, sGearIcon);
 
 		DrawComponent<StaticMeshComponent>("Static Mesh", entity, [&](StaticMeshComponent& smc)
@@ -1357,13 +1365,6 @@ namespace NR
 							mMeshAssetConvertCallback(entity, meshAsset);
 					}, &error))
 				{
-					// TODO(Yan): maybe prompt for this, this isn't always expected behaviour
-					/*if (entity.HasComponent<MeshColliderComponent>())
-					{
-						auto& mcc = entity.GetComponent<MeshColliderComponent>();
-						mcc.CollisionMesh = smc.StaticMesh;
-						CookingFactory::CookMesh(mcc, true);
-					}*/
 				}
 
 				if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
@@ -1447,11 +1448,17 @@ namespace NR
 			{
 				UI::BeginPropertyGrid();
 				UI::PropertyAssetReferenceError error;
-				UI::PropertyAssetReference<AnimationController>("Animation Controller", anim.AnimationController, &error); // TODO: error only reports invalid assets.  What about other errors, like: rig not matching animation skeleton?
+				if (UI::PropertyAssetReference<AnimationController>("Animation Controller", anim.AnimationController, &error))
+				{
+					anim.BoneEntityIds = mContext->FindBoneEntityIds(entity, AssetManager::GetAsset<AnimationController>(anim.AnimationController));
+				}
+
 				if (error == UI::PropertyAssetReferenceError::InvalidMetadata)
 				{
 					if (mInvalidMetadataCallback)
+					{
 						mInvalidMetadataCallback(entity, UI::sPropertyAssetReferenceAssetHandle);
+					}
 				}
 				if (AssetManager::IsAssetHandleValid(anim.AnimationController))
 				{
@@ -1471,13 +1478,6 @@ namespace NR
 						UI::PropertySlider("Animation Time", anim.AnimationTime, 0.0f, 1.0f);
 					}
 
-					//{
-					//	UI::ScopedItemFlags flags(ImGuiItemFlags_Disabled);
-					//	UI::Property("Root Bone Translation", animationController->GetRootPose().Translation);
-					//	UI::Property("Root Bone Rotation", glm::degrees(glm::eulerAngles(animationController->GetRootPose().Rotation));
-					//}
-
-					//
 					/////////////////////////////
 
 					UI::Property("Enable Root Motion", anim.EnableRootMotion);
@@ -1485,30 +1485,12 @@ namespace NR
 						UI::ScopedItemFlags flags(ImGuiItemFlags_Disabled, !anim.EnableRootMotion);
 						auto rootMotionTarget = mContext->FindEntityByID(anim.RootMotionTarget);
 						if (UI::PropertyEntityReference("Root Motion Target Entity", rootMotionTarget))
+						{
 							anim.RootMotionTarget = rootMotionTarget.GetID();
+						}
 					}
 				}
 				UI::EndPropertyGrid();
-				if (entity.HasComponent<MeshComponent>())
-				{
-					auto mc = entity.GetComponent<MeshComponent>();
-					if (mc.MeshHandle && AssetManager::IsAssetHandleValid(mc.MeshHandle) && AssetManager::GetAsset<Mesh>(mc.MeshHandle)->IsRigged())
-					{
-						// TODO: skeleton compatibility check...
-					}
-					else
-					{
-						ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
-						ImGui::Text("Mesh is not rigged for animation!");
-						ImGui::PopStyleColor();
-					}
-				}
-				else
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.2f, 0.2f, 1.0f));
-					ImGui::Text("Please add a Mesh component!");
-					ImGui::PopStyleColor();
-				}
 			}, sGearIcon);
 
 		DrawComponent<CameraComponent>("Camera", entity, [](CameraComponent& cc)

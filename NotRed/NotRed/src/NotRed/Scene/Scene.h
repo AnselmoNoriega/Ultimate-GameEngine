@@ -119,6 +119,7 @@ namespace NR
 		Entity InstantiateMesh(Ref<Mesh> mesh);
 
 		std::vector<UUID> FindBoneEntityIds(Entity parent, Ref<Mesh> mesh);
+		std::vector<UUID> FindBoneEntityIds(Entity parent, Ref<AnimationController> anim);
 
 		template<typename T>
 		auto GetAllEntitiesWith()

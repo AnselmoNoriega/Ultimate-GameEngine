@@ -6,25 +6,117 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
-  - Entity: 14391742795172839692
+  - Entity: 1500112521836472359
     TagComponent:
-      Tag: Point Light
+      Tag: Sponza
     Parent: 0
     Children:
       []
     TransformComponent:
-      Position: [0, 7.55172777, 0]
+      Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    PointLightComponent:
-      Radiance: [0.494208515, 0.269047856, 0.269047856]
-      Intensity: 7.44999981
-      CastShadows: true
-      SoftShadows: true
-      MinRadius: 1
-      Radius: 9.19999981
-      LightSize: 0.5
-      Falloff: 1
+    StaticMeshComponent:
+      AssetID: 8146815577066903124
+      MaterialTable:
+        0: 0
+        1: 0
+        2: 0
+        3: 0
+        4: 0
+        5: 0
+        6: 0
+        7: 0
+        8: 0
+        9: 0
+        10: 0
+        11: 0
+        12: 0
+        13: 0
+        14: 0
+        15: 0
+        16: 0
+        17: 0
+        18: 0
+        19: 0
+        20: 0
+        21: 0
+        22: 0
+        23: 0
+        24: 0
+        25: 0
+  - Entity: 13831589080962452610
+    TagComponent:
+      Tag: Cerberus00_Fixed
+    Parent: 5804190008045637331
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 2.30292606, -5.03400946]
+      Rotation: [-180, 58.0072098, -180]
+      Scale: [1, 1, 1]
+    MeshComponent:
+      AssetID: 15140534807283751244
+      SubmeshIndex: 0
+      MaterialTable:
+        0: 0
+        1: 0
+    RigidBodyComponent:
+      BodyType: 1
+      Mass: 1
+      LinearDrag: 0.00999999978
+      AngularDrag: 0.0500000007
+      DisableGravity: false
+      IsKinematic: false
+      Layer: 0
+      CollisionDetection: 0
+      Constraints:
+        LockPositionX: false
+        LockPositionY: false
+        LockPositionZ: false
+        LockRotationX: false
+        LockRotationY: false
+        LockRotationZ: false
+  - Entity: 5701670007354428347
+    TagComponent:
+      Tag: stormtrooper
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [-1.79968023, 0.00525838137, -0.61452353]
+      Rotation: [3.06247034e-06, -72.9421616, -1.86269756e-06]
+      Scale: [0.999996901, 1, 0.999996901]
+    StaticMeshComponent:
+      AssetID: 11937407340031422995
+      MaterialTable:
+        0: 1718751778170488210
+        1: 0
+  - Entity: 5804190008045637331
+    TagComponent:
+      Tag: cerberus
+    Parent: 0
+    Children:
+      - Handle: 13831589080962452610
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+  - Entity: 1586665166336596990
+    TagComponent:
+      Tag: Sky Light
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    SkyLightComponent:
+      EnvironmentMap: 13163247778782548346
+      Intensity: 1
+      Lod: 0
+      DynamicSky: false
   - Entity: 3341184822646445148
     TagComponent:
       Tag: Directional Light

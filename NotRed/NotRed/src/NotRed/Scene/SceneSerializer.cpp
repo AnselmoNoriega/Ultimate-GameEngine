@@ -262,11 +262,21 @@ namespace NR
 		{
 			out << YAML::Key << "AnimationComponent";
 			out << YAML::BeginMap; // AnimationComponent
+
 			auto& anim = entity.GetComponent<AnimationComponent>();
 			if (anim.AnimationController)
 			{
 				out << YAML::Key << "AnimationController" << YAML::Value << anim.AnimationController;
 			}
+			if (!anim.BoneEntityIds.empty())
+			{
+				out << YAML::Key << "BoneEntities" << YAML::Value << YAML::Flow << anim.BoneEntityIds;
+			}
+			out << YAML::Key << "EnableAnimation" << YAML::Value << anim.EnableAnimation;
+			out << YAML::Key << "AnimationTime" << YAML::Value << anim.AnimationTime;
+			out << YAML::Key << "EnableRootMotion" << YAML::Value << anim.EnableRootMotion;
+			out << YAML::Key << "RootMotionTarget" << YAML::Value << anim.RootMotionTarget;
+
 			out << YAML::EndMap; // AnimationComponent
 		}
 
@@ -620,6 +630,18 @@ namespace NR
 
 	void SceneSerializer::Serialize(const std::string& filepath)
 	{
+		auto entities = mScene->GetAllEntitiesWith<AnimationComponent>();
+		for (auto e : entities) 
+		{
+			Entity entity = { e, mScene.Raw() };
+			auto& anim = entity.GetComponent<AnimationComponent>();
+			if (anim.EnableAnimation)
+			{
+				anim.AnimationTime = 0.0f;
+			}
+		}
+		mScene->UpdateAnimation(0.0f, false);
+
 		YAML::Emitter out;
 		out << YAML::BeginMap;
 		out << YAML::Key << "Scene";
@@ -874,6 +896,7 @@ namespace NR
 			if (animationComponent)
 			{
 				auto& component = deserializedEntity.AddComponent<AnimationComponent>();
+
 				if (animationComponent["AnimationController"])
 				{
 					AssetHandle animationControllerHandle = animationComponent["AnimationController"].as<uint64_t>();
@@ -881,11 +904,15 @@ namespace NR
 					{
 						const AssetMetadata& metadata = AssetManager::GetMetadata(animationControllerHandle);
 						if (metadata.Type == AssetType::AnimationController)
-						{
 							component.AnimationController = animationControllerHandle;
-						}
 					}
 				}
+
+				component.BoneEntityIds = animationComponent["BoneEntities"].as<std::vector<UUID>>(std::vector<UUID>{});
+				component.EnableAnimation = animationComponent["EnableAnimation"].as<bool>(component.EnableAnimation);
+				component.AnimationTime = component.EnableAnimation ? 0.0f : animationComponent["AnimationTime"].as<float>(component.AnimationTime);
+				component.EnableRootMotion = animationComponent["EnableRootMotion"].as<bool>(component.EnableRootMotion);
+				component.RootMotionTarget = animationComponent["RootMotionTarget"].as<uint64_t>(component.RootMotionTarget);
 			}
 
 			auto staticMeshComponent = entity["StaticMeshComponent"];

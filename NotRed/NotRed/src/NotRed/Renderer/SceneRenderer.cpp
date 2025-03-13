@@ -2028,11 +2028,14 @@ namespace NR
 			}
 		}
 
-		Ref<SceneRenderer> instance = this;
-		Renderer::Submit([instance, index]() mutable
-			{
-				instance->mBoneTransformStorageBuffers[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransformsData, static_cast<uint32_t>(index * sizeof(BoneTransforms)));
-			});
+		if (index)
+		{
+			Ref<SceneRenderer> instance = this;
+			Renderer::Submit([instance, index]() mutable
+				{
+					instance->mBoneTransformStorageBuffers[Renderer::GetCurrentFrameIndex()]->RT_SetData(instance->mBoneTransformsData, static_cast<uint32_t>(index * sizeof(BoneTransforms)));
+				});
+		}
 	}
 
 	void SceneRenderer::CopyToBoneTransformStorage(const MeshKey& meshKey, const Ref<MeshSource>& meshSource, const ozz::vector<ozz::math::Float4x4>& boneTransforms)

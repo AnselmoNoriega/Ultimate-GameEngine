@@ -168,6 +168,7 @@ namespace NR
     struct AnimationComponent
     {
         AssetHandle AnimationController;
+        std::vector<UUID> BoneEntityIds;
         UUID RootMotionTarget = 0;  
         float AnimationTime = 0.0;
 

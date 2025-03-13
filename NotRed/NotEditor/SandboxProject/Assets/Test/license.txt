@@ -1,0 +1,11 @@
+Model Information:
+* title:	Cartoon Shark (Animated)
+* source:	https://sketchfab.com/3d-models/cartoon-shark-animated-aff822cf5d9643569b153de9284b05c4
+* author:	Jungle Jim (https://sketchfab.com/jungle_jim)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Cartoon Shark (Animated)" (https://sketchfab.com/3d-models/cartoon-shark-animated-aff822cf5d9643569b153de9284b05c4) by Jungle Jim (https://sketchfab.com/jungle_jim) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

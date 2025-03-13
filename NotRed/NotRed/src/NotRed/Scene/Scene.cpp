@@ -1531,7 +1531,6 @@ namespace NR
 						auto boneEntity = FindEntityByID(boneEntityId);
 						if (boneEntity && boneEntity.HasComponent<TransformComponent>())
 						{
-							auto transform = boneEntity.GetComponent<TransformComponent>().Translation;
 							translations[j] = ozz::math::simd_float4::Load3PtrU(glm::value_ptr(boneEntity.GetComponent<TransformComponent>().Translation));
 							rotations[j] = ozz::math::simd_float4::LoadPtrU(glm::value_ptr(glm::quat(boneEntity.GetComponent<TransformComponent>().Rotation)));
 							scales[j] = ozz::math::simd_float4::Load3PtrU(glm::value_ptr(boneEntity.GetComponent<TransformComponent>().Scale));
@@ -1571,7 +1570,7 @@ namespace NR
 
 	void Scene::UpdateAnimation(float dt, bool isRuntime)
 	{
-		auto view = mRegistry.view<AnimationComponent>();
+		auto view = GetAllEntitiesWith<AnimationComponent>();
 		for (auto entity : view)
 		{
 			Entity e = { entity, this };
@@ -1582,13 +1581,23 @@ namespace NR
 				auto animationController = AssetManager::GetAsset<AnimationController>(anim.AnimationController);
 
 				animationController->SetAnimationPlaying(anim.EnableAnimation);
-				if (!anim.EnableAnimation)
-				{
-					animationController->SetAnimationTime(anim.AnimationTime);
-				}
+				animationController->SetAnimationTime(anim.AnimationTime);
 
 				auto& rootMotion = animationController->Update(dt, anim.EnableRootMotion);
 				anim.AnimationTime = animationController->GetAnimationTime();
+
+				for (size_t i = 0; i < anim.BoneEntityIds.size(); ++i)
+				{
+					auto boneTransformEntity = FindEntityByID(anim.BoneEntityIds[i]);
+					if (boneTransformEntity)
+					{
+						// Note: we're assuming there is always a transform component
+						auto& transform = boneTransformEntity.GetComponent<TransformComponent>();
+						transform.Translation = animationController->GetTranslation(i);
+						transform.Rotation = glm::eulerAngles(animationController->GetRotation(i));
+						transform.Scale = animationController->GetScale(i);
+					}
+				}
 
 				if (/*isRuntime &&*/ anim.EnableRootMotion)
 				{
@@ -2142,6 +2151,21 @@ namespace NR
 		if (mesh && mesh->IsRigged())
 		{
 			auto joints = mesh->GetMeshSource()->GetSkeleton()->joint_names();
+			for (const auto joint : joints)
+			{
+				Entity e = FindChildEntityByTag(parent, joint);
+				boneEntityIds.emplace_back(e ? e.GetID() : UUID(0));
+			}
+		}
+		return boneEntityIds;
+	}
+
+	std::vector<UUID> Scene::FindBoneEntityIds(Entity parent, Ref<AnimationController> animationController)
+	{
+		std::vector<UUID> boneEntityIds;
+		if (animationController)
+		{
+			auto joints = animationController->GetSkeletonAsset()->GetSkeleton().joint_names();
 			for (const auto joint : joints)
 			{
 				Entity e = FindChildEntityByTag(parent, joint);

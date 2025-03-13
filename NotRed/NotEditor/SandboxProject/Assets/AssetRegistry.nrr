@@ -8,6 +8,9 @@ Assets:
   - Handle: 213057390394688517
     FilePath: Meshes/Source/mosin/mat1_r.png
     Type: Texture
+  - Handle: 219512904787871401
+    FilePath: Meshes/Demo/stormtrooper.nrmesh
+    Type: Mesh
   - Handle: 562127339932013354
     FilePath: Music/BackgroundMusic.nrsoundc
     Type: SoundConfig
@@ -47,6 +50,9 @@ Assets:
   - Handle: 1611408416186189859
     FilePath: Meshes/Source/Sponza/6151467286084645207.jpg
     Type: Texture
+  - Handle: 1718751778170488210
+    FilePath: mATS/ST.nrmaterial
+    Type: Material
   - Handle: 2108813152956166162
     FilePath: Meshes/Source/cerberus/CerberusMaterials.gltf
     Type: MeshSource
@@ -119,6 +125,9 @@ Assets:
   - Handle: 4775416180002498292
     FilePath: Scenes/Galaxy.nrsc
     Type: Scene
+  - Handle: 4784377614091690620
+    FilePath: Animation/Source/mosin/Mosin-animation.gltf
+    Type: MeshSource
   - Handle: 4991865301627633221
     FilePath: Meshes/Source/Sponza/9288698199695299068.jpg
     Type: Texture
@@ -152,6 +161,9 @@ Assets:
   - Handle: 6559135482504914919
     FilePath: Meshes/Source/Default/Torus.gltf
     Type: MeshSource
+  - Handle: 6776258291530640611
+    FilePath: Test/textures/Material.002_normal.png
+    Type: Texture
   - Handle: 6791575183051968345
     FilePath: Meshes/Source/Sponza/white.png
     Type: Texture
@@ -185,6 +197,9 @@ Assets:
   - Handle: 8022275046787492334
     FilePath: Meshes/Source/mosin/mat1_n.png
     Type: Texture
+  - Handle: 8146815577066903124
+    FilePath: Meshes/Demo/Sponza.nrsmesh
+    Type: StaticMesh
   - Handle: 8148748321047846456
     FilePath: Textures/VoxelImagesTransparency.png
     Type: Texture
@@ -209,6 +224,9 @@ Assets:
   - Handle: 8847470463203576936
     FilePath: Meshes/Source/Sponza/14118779221266351425.jpg
     Type: Texture
+  - Handle: 8898400630665838169
+    FilePath: Animation/Source/mosin/Mosin-skeleton.gltf
+    Type: MeshSource
   - Handle: 9036988128454158525
     FilePath: Meshes/Source/Sponza/11490520546946913238.jpg
     Type: Texture
@@ -230,9 +248,15 @@ Assets:
   - Handle: 9622855033900602248
     FilePath: Meshes/Source/Sponza/11872827283454512094.jpg
     Type: Texture
+  - Handle: 9797512118412840185
+    FilePath: Animation/Source/mixamo/stormtrooper-falling.gltf
+    Type: MeshSource
   - Handle: 9917343644379428854
     FilePath: Meshes/Source/mosin/E_bullet_3_ddna.jpg
     Type: Texture
+  - Handle: 10035428775756432382
+    FilePath: Animation/Source/stormtrooper-skeleton.gltf
+    Type: MeshSource
   - Handle: 10157384174676721827
     FilePath: Meshes/Source/Sponza/6772804448157695701.jpg
     Type: Texture
@@ -257,6 +281,9 @@ Assets:
   - Handle: 10826103972671999086
     FilePath: Meshes/Source/Sponza/15295713303328085182.jpg
     Type: Texture
+  - Handle: 10862608540809207998
+    FilePath: Animation/Source/mixamo/stormtrooper-running.gltf
+    Type: MeshSource
   - Handle: 10896458388844015785
     FilePath: Meshes/Source/Sponza/2969916736137545357.jpg
     Type: Texture
@@ -269,12 +296,18 @@ Assets:
   - Handle: 11369867067491543923
     FilePath: Meshes/Source/Sponza/11968150294050148237.jpg
     Type: Texture
+  - Handle: 11409973932099096352
+    FilePath: Animation/Source/mixamo/stormtrooper-idle.gltf
+    Type: MeshSource
   - Handle: 11482752742825677721
     FilePath: Music/MinecraftThing.wav
     Type: Audio
   - Handle: 11892832976188623719
     FilePath: Meshes/Source/Sponza/15722799267630235092.jpg
     Type: Texture
+  - Handle: 11937407340031422995
+    FilePath: Meshes/Demo/stormtrooper.nrsmesh
+    Type: StaticMesh
   - Handle: 12003013722308979316
     FilePath: Meshes/Source/Sponza/11474523244911310074.jpg
     Type: Texture
@@ -289,6 +322,9 @@ Assets:
     Type: MeshSource
   - Handle: 12651856427116898672
     FilePath: Meshes/Source/Tests/TransformTest.gltf
+    Type: MeshSource
+  - Handle: 12925020312488271366
+    FilePath: Test/scene.gltf
     Type: MeshSource
   - Handle: 13003522556742733601
     FilePath: Meshes/Source/Sponza/8481240838833932244.jpg
@@ -314,6 +350,9 @@ Assets:
   - Handle: 13365087405678185919
     FilePath: Meshes/Source/Sponza/17556969131407844942.jpg
     Type: Texture
+  - Handle: 13802724933505338364
+    FilePath: Animation/Source/mixamo/stormtrooper-backflip.gltf
+    Type: MeshSource
   - Handle: 13859949389562575970
     FilePath: Meshes/Source/Sponza/7815564343179553343.jpg
     Type: Texture
@@ -335,6 +374,9 @@ Assets:
   - Handle: 14376323303412918687
     FilePath: Meshes/Source/Sponza/6047387724914829168.jpg
     Type: Texture
+  - Handle: 14482833940933662298
+    FilePath: Animation/Source/mosin/Mosin-animation.fbx
+    Type: MeshSource
   - Handle: 14675644701751734111
     FilePath: Meshes/Source/cerberus/Cerberus_M-Cerberus_R.png
     Type: Texture
@@ -349,6 +391,18 @@ Assets:
     Type: MeshSource
   - Handle: 14986923546141433629
     FilePath: Meshes/Source/cerberus/cerberus.gltf
+    Type: MeshSource
+  - Handle: 15140534807283751244
+    FilePath: Meshes/Demo/cerberus.nrmesh
+    Type: Mesh
+  - Handle: 15140910878056662929
+    FilePath: Animation/stormtrooper.nranim
+    Type: AnimationController
+  - Handle: 15177471484156410750
+    FilePath: Animation/Source/m1911-shoot.gltf
+    Type: MeshSource
+  - Handle: 15360777992125999058
+    FilePath: Animation/Source/mosin/Mosin-skeleton.fbx
     Type: MeshSource
   - Handle: 15450536207396684297
     FilePath: Meshes/Source/Sponza/2299742237651021498.jpg
@@ -383,6 +437,9 @@ Assets:
   - Handle: 16568931938534971881
     FilePath: Meshes/Source/Sponza/8114461559286000061.jpg
     Type: Texture
+  - Handle: 16996760459583789960
+    FilePath: Meshes/Demo/scene.nrmesh
+    Type: Mesh
   - Handle: 17044792105072577609
     FilePath: Textures/Materials/WaterVoxelMat.nrmaterial
     Type: Material
@@ -400,4 +457,16 @@ Assets:
     Type: Texture
   - Handle: 18106756696114205909
     FilePath: Meshes/Source/Sponza/14170708867020035030.jpg
+    Type: Texture
+  - Handle: 18149926463947890275
+    FilePath: Animation/Source/mixamo/stormtrooper-walking.gltf
+    Type: MeshSource
+  - Handle: 18283826944727656943
+    FilePath: Test/textures/Material.002_baseColor.png
+    Type: Texture
+  - Handle: 18439563913612784912
+    FilePath: Animation/Source/m1911-skeleton.gltf
+    Type: MeshSource
+  - Handle: 18440713510865772538
+    FilePath: Test/textures/Material.002_metallicRoughness.png
     Type: Texture

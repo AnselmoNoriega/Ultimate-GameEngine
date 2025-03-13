@@ -165,28 +165,24 @@ namespace NR
 		// Only the components of root motion per the root motion mask of the current animation state are returned.
 		const RootMotion& GetRootMotion() const { return mRootMotion; }
 
-		// Returns the current pose of root bone
-		// (e.g. allows for "debugging" animations via imgui widgets)
-		const RootPose& GetRootPose() const { return mRootPose; }
+		glm::vec3 GetTranslation(size_t jointIndex) const { return mLocalTranslations[jointIndex]; }
+		glm::vec3 GetScale(size_t jointIndex) const { return mLocalScales[jointIndex]; }
+		glm::quat GetRotation(size_t jointIndex) const { return mLocalRotations[jointIndex]; }
 
 		static AssetType GetStaticType() { return AssetType::AnimationController; }
 		virtual AssetType GetAssetType() const override { return GetStaticType(); }
-
-		// The bone transforms resulting from a call to OnUpdate()
-		// These are the ones to use for mesh skinning
-		const ozz::vector<ozz::math::Float4x4>& GetModelSpaceTransforms() { return mModelSpaceTransforms; }
 
 	private:
 		// sample current animation clip (aka "state") at current animation time
 		void SampleAnimation();
 
-		// Extract the pose of root joint as computed by a call to SampleAnimation()
-		RootPose ExtractRootPose() const;
-
 	private:
 		ozz::animation::SamplingJob::Context mSamplingContext;
-		ozz::vector<ozz::math::SoaTransform> mLocalSpaceTransforms;
-		ozz::vector<ozz::math::Float4x4> mModelSpaceTransforms;
+		ozz::vector<ozz::math::SoaTransform> mLocalSpaceSoaTransforms;
+
+		std::vector<glm::vec3> mLocalTranslations;
+		std::vector<glm::vec3> mLocalScales;
+		std::vector<glm::quat> mLocalRotations;
 
 		RootPose mRootPoseStart; // root pose at start of animation (for current state)
 		RootPose mRootPoseEnd;   // root pose and end of animation (for current state)

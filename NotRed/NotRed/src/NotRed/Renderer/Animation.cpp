@@ -39,6 +39,10 @@ namespace NR
 		//		aiProcess_PopulateArmatureData |    // not currently using this data
 		aiProcess_ValidateDataStructure;    // Validation 
 
+	namespace Utils 
+	{
+		glm::mat4 Mat4FromFloat4x4(const ozz::math::Float4x4& float4x4);
+	}
 
 	SkeletonAsset::SkeletonAsset(const std::string& filename)
 		: mFilePath(filename)
@@ -221,11 +225,8 @@ namespace NR
 				// root motion, and once again by the bone transforms).
 
 				// Extract root transform so we can fiddle with it...
-				ozz::math::SoaFloat3& soaTranslation = mLocalSpaceTransforms[0].translation;
-				ozz::math::SoaQuaternion& soaRotation = mLocalSpaceTransforms[0].rotation;
-				glm::vec3 translation = glm::vec3(ozz::math::GetX(soaTranslation.x), ozz::math::GetX(soaTranslation.y), ozz::math::GetX(soaTranslation.z));
-				//// BEWARE: order of elements in glm::quat could be (w,x,y,z) or (x,y,z,w) depending on glm version
-				glm::quat rotation = { ozz::math::GetX(soaRotation.w), ozz::math::GetX(soaRotation.x),ozz::math::GetX(soaRotation.y), ozz::math::GetX(soaRotation.z) };
+				glm::vec3 translation = mLocalTranslations[0];
+				glm::quat rotation = mLocalRotations[0];
 				glm::mat4 rootTransform = glm::translate(glm::mat4(1.0f), translation) * glm::toMat4(glm::quat(rotation));
 
 				// remove components of root transform, based on root motion extract mask
@@ -245,25 +246,8 @@ namespace NR
 				rotation = glm::quat_cast(rootTransform);
 
 				// put the modified root transform back into the bone transforms
-				soaTranslation = ozz::math::SoaFloat3::Load(
-					ozz::math::simd_float4::Load(translation.x, ozz::math::GetY(soaTranslation.x), ozz::math::GetZ(soaTranslation.x), ozz::math::GetW(soaTranslation.x)),
-					ozz::math::simd_float4::Load(translation.y, ozz::math::GetY(soaTranslation.y), ozz::math::GetZ(soaTranslation.y), ozz::math::GetW(soaTranslation.y)),
-					ozz::math::simd_float4::Load(translation.z, ozz::math::GetY(soaTranslation.z), ozz::math::GetZ(soaTranslation.z), ozz::math::GetW(soaTranslation.z))
-				);
-				soaRotation = ozz::math::SoaQuaternion::Load(
-					ozz::math::simd_float4::Load(rotation.x, ozz::math::GetY(soaRotation.x), ozz::math::GetZ(soaRotation.x), ozz::math::GetW(soaRotation.x)),
-					ozz::math::simd_float4::Load(rotation.y, ozz::math::GetY(soaRotation.y), ozz::math::GetZ(soaRotation.y), ozz::math::GetW(soaRotation.y)),
-					ozz::math::simd_float4::Load(rotation.z, ozz::math::GetY(soaRotation.z), ozz::math::GetZ(soaRotation.z), ozz::math::GetW(soaRotation.z)),
-					ozz::math::simd_float4::Load(rotation.w, ozz::math::GetY(soaRotation.w), ozz::math::GetZ(soaRotation.w), ozz::math::GetW(soaRotation.w))
-				);
-			}
-
-			ozz::animation::LocalToModelJob ltmjob;
-			ltmjob.skeleton = &mSkeletonAsset->GetSkeleton();
-			ltmjob.input = ozz::make_span(mLocalSpaceTransforms);
-			ltmjob.output = ozz::make_span(mModelSpaceTransforms);
-			if (!ltmjob.Run()) {
-				NR_CORE_ERROR("ozz animation convertion to model space failed!");
+				mLocalTranslations[0] = translation;
+				mLocalRotations[0] = rotation;
 			}
 
 			mPreviousAnimationTime = mAnimationTime;
@@ -281,11 +265,11 @@ namespace NR
 			mStateIndex = stateIndex;
 
 			SampleAnimation();
-			mRootPoseEnd = ExtractRootPose();
+			mRootPoseEnd = { mLocalTranslations[0], mLocalRotations[0] };
 
 			mAnimationTime = 0.0;
 			SampleAnimation();
-			mRootPoseStart = ExtractRootPose();
+			mRootPoseStart = { mLocalTranslations[0], mLocalRotations[0] };
 			mRootPose = mRootPoseStart;
 		}
 	}
@@ -297,8 +281,10 @@ namespace NR
 		if (mSkeletonAsset && mSkeletonAsset->IsValid())
 		{
 			mSamplingContext.Resize(mSkeletonAsset->GetSkeleton().num_joints());
-			mLocalSpaceTransforms.resize(mSkeletonAsset->GetSkeleton().num_soa_joints());
-			mModelSpaceTransforms.resize(mSkeletonAsset->GetSkeleton().num_joints());
+			mLocalSpaceSoaTransforms.resize(mSkeletonAsset->GetSkeleton().num_soa_joints());
+			mLocalTranslations.resize(mSkeletonAsset->GetSkeleton().num_joints());
+			mLocalScales.resize(mSkeletonAsset->GetSkeleton().num_joints());
+			mLocalRotations.resize(mSkeletonAsset->GetSkeleton().num_joints());
 		}
 	}
 
@@ -337,14 +323,38 @@ namespace NR
 		sampling_job.animation = &state->GetAnimationAsset()->GetAnimation();
 		sampling_job.context = &mSamplingContext;
 		sampling_job.ratio = mAnimationTime;
-		sampling_job.output = ozz::make_span(mLocalSpaceTransforms);
+		sampling_job.output = ozz::make_span(mLocalSpaceSoaTransforms);
 		if (!sampling_job.Run())
 		{
 			NR_CORE_ERROR("ozz animation sampling job failed!");
 		}
 
+		for (int i = 0; i < mLocalSpaceSoaTransforms.size(); ++i)
+		{
+			ozz::math::SimdFloat4 translations[4];
+			ozz::math::SimdFloat4 scales[4];
+			ozz::math::SimdFloat4 rotations[4];
+
+			ozz::math::Transpose3x4(&mLocalSpaceSoaTransforms[i].translation.x, translations);
+			ozz::math::Transpose3x4(&mLocalSpaceSoaTransforms[i].scale.x, scales);
+			ozz::math::Transpose4x4(&mLocalSpaceSoaTransforms[i].rotation.x, rotations);
+
+			for (int j = 0; j < 4; ++j)
+			{
+				auto index = i * 4 + j;
+				if (index >= mLocalTranslations.size())
+				{
+					break;
+				}
+
+				ozz::math::Store3PtrU(translations[j], glm::value_ptr(mLocalTranslations[index]));
+				ozz::math::Store3PtrU(scales[j], glm::value_ptr(mLocalScales[index]));
+				ozz::math::StorePtrU(rotations[j], glm::value_ptr(mLocalRotations[index]));
+			}
+		}
+
 		// Get pose of root bone right now...
-		RootPose rootPoseNew = ExtractRootPose();
+		RootPose rootPoseNew = { mLocalTranslations[0], mLocalRotations[0] };
 
 		// ... and work out how much it has changed since the previous call to SampleAnimation().
 		// This change is the "root motion".
@@ -410,26 +420,4 @@ namespace NR
 
 		mRootPose = rootPoseNew;
 	}
-
-
-	RootPose AnimationController::ExtractRootPose() const
-	{
-		// Extract the [0]th transform from ozz soa structs.
-		// The skeleton is ordered depth first, so we know [0]th joint is the "root"
-		// (there could be more than one root, but for now we just care about the the first one)
-		// We're extracting from local-space transforms, but since it's a root, that's the same thing as model-space.
-
-		ozz::math::SoaTransform soaTransform = mLocalSpaceTransforms[0];
-		ozz::math::SoaFloat3 soaTranslation = soaTransform.translation;
-		ozz::math::SoaQuaternion soaRotation = soaTransform.rotation;
-
-		RootPose rootPose;
-		rootPose.Translation = { ozz::math::GetX(soaTranslation.x), ozz::math::GetX(soaTranslation.y), ozz::math::GetX(soaTranslation.z) };
-		rootPose.Rotation = { ozz::math::GetX(soaRotation.w), ozz::math::GetX(soaRotation.x),ozz::math::GetX(soaRotation.y), ozz::math::GetX(soaRotation.z) };
-		float angleY = AngleAroundYAxis(rootPose.Rotation);
-		rootPose.Rotation = glm::quat(cos(angleY * 0.5f), glm::vec3{ 0.0f, 1.0f, 0.0f } *sin(angleY * 0.5f));
-
-		return rootPose;
-	}
-
 }
