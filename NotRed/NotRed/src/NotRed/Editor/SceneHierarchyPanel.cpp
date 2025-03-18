@@ -276,6 +276,12 @@ namespace NR
 								newEntity.AddComponent<SkyLightComponent>();
 								SetSelected(newEntity);
 							}
+							if (ImGui::MenuItem("Particles"))
+							{
+								auto newEntity = mContext->CreateEntity("Galxy Particles");
+								newEntity.AddComponent<ParticleComponent>();
+								SetSelected(newEntity);
+							}
 							ImGui::EndMenu();
 						}
 						ImGui::EndPopup();
@@ -1186,6 +1192,14 @@ namespace NR
 						ImGui::CloseCurrentPopup();
 					}
 				}
+				if (!mSelectionContext.HasComponent<ParticleComponent>())
+				{
+					if (ImGui::MenuItem("Particle"))
+					{
+						mSelectionContext.AddComponent<ParticleComponent>();
+						ImGui::CloseCurrentPopup();
+					}
+				}
 
 				UI::EndPopup();
 			}
@@ -1644,6 +1658,38 @@ namespace NR
 						}
 					}
 				}
+				UI::EndPropertyGrid();
+			}, sGearIcon);
+
+		DrawComponent<ParticleComponent>("Particles", entity, [&](ParticleComponent& pc)
+			{
+				// TODO
+				UI::BeginPropertyGrid();
+
+				if (UI::Property("Particle Count", pc.ParticleCount, 0, INT_MAX))
+				{
+					if (pc.ParticleCount < 1)
+					{
+						pc.ParticleCount = 1;
+					}
+					pc.MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(pc.ParticleCount));
+				}
+
+				if (UI::PropertyColor("Star Color", pc.StarColor))
+				{
+					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.StarColor", pc.StarColor);
+				}
+
+				if (UI::PropertyColor("Dust Color", pc.DustColor))
+				{
+					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.DustColor", pc.DustColor);
+				}
+
+				if (UI::PropertyColor("h2Region Color", pc.h2RegionColor))
+				{
+					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.h2RegionColor", pc.h2RegionColor);
+				}
+
 				UI::EndPropertyGrid();
 			}, sGearIcon);
 

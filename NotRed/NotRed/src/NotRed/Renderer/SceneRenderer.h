@@ -11,6 +11,8 @@
 #include "NotRed/Renderer/RenderCommandBuffer.h"
 #include "NotRed/Renderer/PipelineCompute.h"
 
+#include "NotRed/Renderer/Particles.h"
+
 #include "StorageBufferSet.h"
 
 namespace NR
@@ -79,6 +81,8 @@ namespace NR
 
 		void SubmitSelectedMesh(Ref<Mesh> mesh, uint32_t submeshIndex, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), const ozz::vector<ozz::math::Float4x4>& boneTransforms = {}, Ref<Material> overrideMaterial = nullptr);
 		void SubmitSelectedStaticMesh(Ref<StaticMesh> staticMesh, Ref<MaterialTable> materialTable, const glm::mat4& transform = glm::mat4(1.0f), Ref<Material> overrideMaterial = nullptr);
+
+		void SubmitParticles(Ref<Particles> particles, const glm::mat4& transform);
 
 		void SubmitPhysicsDebugMesh(Ref<Mesh> mesh, uint32_t submeshIndex, const glm::mat4& transform = glm::mat4(1.0f));
 		void SubmitPhysicsStaticDebugMesh(Ref<StaticMesh> mesh, const glm::mat4& transform = glm::mat4(1.0f));
@@ -333,6 +337,12 @@ namespace NR
 		Ref<Texture2D> mBloomComputeTextures[3];
 		Ref<Material> mBloomComputeMaterial;
 
+		// Particle Pass
+		glm::ivec3 mParticleGenWorkGroups;
+		Ref<PipelineCompute> mParticleGenPipeline;
+		Ref<Material> mParticleGenMaterial;
+		Ref<Pipeline> mParticlesPipeline;
+
 		struct TransformVertexData
 		{
 			glm::vec4 MRow[3];
@@ -385,6 +395,12 @@ namespace NR
 			uint32_t BoneTransformsBaseIndex = 0;
 		};
 
+		struct ParticleData
+		{
+			Ref<Particles> ParticlesRef;
+			Ref<Material> Material;
+		};
+
 		std::map<MeshKey, TransformMapData> mMeshTransformMap;
 		std::map<MeshKey, BoneTransformsMapData> mMeshBoneTransformsMap;
 
@@ -396,6 +412,9 @@ namespace NR
 		std::map<MeshKey, StaticDrawCommand> mStaticMeshDrawList;
 		std::map<MeshKey, StaticDrawCommand> mSelectedStaticMeshDrawList;
 		std::map<MeshKey, StaticDrawCommand> mStaticMeshShadowPassDrawList;
+
+		std::map<ParticleData, TransformMapData> mParticlesTransformMap;
+		std::vector<ParticleData> mParticlesDrawList;
 
 		// Debug
 		std::map<MeshKey, StaticDrawCommand> mStaticColliderDrawList;

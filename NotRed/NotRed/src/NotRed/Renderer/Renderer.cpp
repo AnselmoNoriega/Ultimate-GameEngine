@@ -333,6 +333,16 @@ namespace NR
 		sRendererAPI->SubmitFullscreenQuadWithOverrides(renderCommandBuffer, pipeline, uniformBufferSet, material, vertexShaderOverrides, fragmentShaderOverrides);
 	}
 
+	void Renderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
+	{
+		sRendererAPI->GenerateParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, workGroups);
+	}
+
+	void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Particles> particles, Ref<Material> material, Ref<VertexBuffer> transformBuffer, uint32_t transformOffset)
+	{
+		sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet, material, vertexShaderOverrides, fragmentShaderOverrides);
+	}
+
 #if 0
 	void Renderer::SubmitFullscreenQuad(Ref<Material> material)
 	{

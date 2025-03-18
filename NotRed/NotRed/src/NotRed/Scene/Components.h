@@ -105,8 +105,7 @@ namespace NR
 
     struct ParticleComponent
     {
-        // TODO: Change it to a AssetHandler
-        Ref<Mesh> MeshObj;
+        AssetHandle MeshHandle;
 
         int ParticleCount = 80128;
         float Velocity = 1.0f;
@@ -115,18 +114,13 @@ namespace NR
         glm::vec3 DustColor = glm::vec3(0.388f, 0.333f, 1.0f);
         glm::vec3 h2RegionColor = glm::vec3(0.8f, 0.071f, 0.165f);
 
-        ParticleComponent()
-        {
-            MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(ParticleCount));
-        }
+        ParticleComponent() = default;
         ParticleComponent(const ParticleComponent& other) = default;
         ParticleComponent(const int particleNum)
         {
             ParticleCount = particleNum;
             MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(particleNum));
         }
-
-        operator Ref<Mesh>() { return MeshObj; }
     };
 
     enum class LightType
