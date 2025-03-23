@@ -1,41 +1,62 @@
 Scene: Demo
 Environment:
-  AssetHandle: 11650778882005779170
+  AssetHandle: true
   DirLight:
     Direction: [0, 0, 0]
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 17091777453748841161
+    TagComponent:
+      Tag: Camera
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 19.758852, 13.8291874]
+      Rotation: [0, 0, 57.5004921]
+      Scale: [0.999999881, 0.999999881, 1]
+    CameraComponent:
+      Camera:
+        ProjectionType: 0
+        PerspectiveFOV: 45
+        PerspectiveNear: 0.100000001
+        PerspectiveFar: 1000
+        OrthographicSize: 10
+        OrthographicNear: -1
+        OrthographicFar: 1
+      Primary: true
   - Entity: 5362506673440228151
     TagComponent:
       Tag: Sphere
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 2.88094544, 0]
       Rotation: [0, 0, 0]
       Scale: [7.06679964, 7.06679964, 7.06679964]
-    Parent: 0
-    Children:
-      []
     MeshComponent:
-      AssetID: 2856502281337498133
+      AssetID: 4085374630684743385
+      SubmeshIndex: 0
+      MaterialTable:
+        0: 0
   - Entity: 15800128647745287998
     TagComponent:
       Tag: Particles
+    Parent: 0
+    Children:
+      []
     TransformComponent:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    Parent: 0
-    Children:
-      []
     ParticleComponent:
       ParticleCount: 80128
       Velocity: 1
       StarColor: [1, 1, 1]
       DustColor: [0.275690079, 0.198312461, 0.969111979]
       h2RegionColor: [0.98455596, 0, 0.126952499]
-PhysicsLayers:
-  []
 SceneAudio:
   MasterReverb:
     Pre-delay: 50

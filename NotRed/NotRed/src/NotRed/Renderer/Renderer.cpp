@@ -169,8 +169,8 @@ namespace NR
 		Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry_Anim");
 		
 		// Particles
-		Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle");
-		Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen");
+		Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle", true);
+		Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen", true);
 
 		// Compile shaders
 		Renderer::WaitAndRender();

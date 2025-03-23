@@ -42,7 +42,8 @@ enum Binding : uint32_t
     HBAOData = 17,
 
     StarsData = 18,
-    StarsEnvironmentData = 19
+    StarsEnvironmentData = 19,
+    StarsBuffer = 20,
 };
 
 namespace NR
@@ -605,7 +606,7 @@ namespace NR
 
             mParticleGenWorkGroups = { workGroupsX, 1, 1 };
             int particleSize = 32;
-            mStorageBufferSet->Create(particleSize * numParticles, 16);
+            mStorageBufferSet->Create(particleSize * numParticles, 20);
 
             mParticleGenMaterial = Material::Create(Renderer::GetShaderLibrary()->Get("ParticleGen"), "ParticleGen");
             Ref<Shader> particleGenShader = Renderer::GetShaderLibrary()->Get("ParticleGen");
@@ -628,6 +629,7 @@ namespace NR
                 { ShaderDataType::Float3, "aPosition" },
                 { ShaderDataType::Float, "aIndex" }
             };
+            pipelineSpecification.InstanceLayout = instanceLayout;
             pipelineSpecification.Shader = Renderer::GetShaderLibrary()->Get("Particle");
             pipelineSpecification.DepthWrite = false;
 
@@ -2033,6 +2035,7 @@ namespace NR
         mSceneData = {};
 
         mMeshTransformMap.clear();
+        mParticlesTransformMap.clear();
         mMeshBoneTransformsMap.clear();
     }
 
@@ -2105,6 +2108,14 @@ namespace NR
                 mTransformVertexData[index++] = transform;
             }
 
+        }
+        for (auto& [key, transformData] : mParticlesTransformMap)
+        {
+            transformData.TransformOffset = index * sizeof(TransformVertexData);
+            for (const auto& transform : transformData.Transforms)
+            {
+                mTransformVertexData[index++] = transform;
+            }
         }
 
         mSubmeshTransformBuffer->SetData(mTransformVertexData, index * sizeof(TransformVertexData));

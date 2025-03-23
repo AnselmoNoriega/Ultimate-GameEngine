@@ -386,6 +386,17 @@ namespace NR
 			}
 		}
 
+		{
+			// Particles
+			auto view = mRegistry.view<ParticleComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, this };
+				auto& pc = e.GetComponent<ParticleComponent>();
+
+				pc.ParticlesRef->Update(dt);
+			}
+		}
 	}
 
 	void Scene::UpdateEditor(float dt)
@@ -558,6 +569,18 @@ namespace NR
 		if (renderer->GetOptions().ShowPhysicsColliders != SceneRendererOptions::PhysicsColliderView::None)
 		{
 			RenderPhysicsDebug(renderer, true);
+		}
+
+		{
+			// Particles
+			auto view = mRegistry.view<ParticleComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, this };
+				auto& pc = e.GetComponent<ParticleComponent>();
+
+				pc.ParticlesRef->Update(dt);
+			}
 		}
 
 		renderer->EndScene();
@@ -834,6 +857,18 @@ namespace NR
 			}
 
 			mSceneRenderer2D->EndScene();
+		}
+
+		{
+			// Particles
+			auto view = mRegistry.view<ParticleComponent>();
+			for (auto entity : view)
+			{
+				Entity e = { entity, this };
+				auto& pc = e.GetComponent<ParticleComponent>();
+
+				pc.ParticlesRef->Update(dt);
+			}
 		}
 	}
 

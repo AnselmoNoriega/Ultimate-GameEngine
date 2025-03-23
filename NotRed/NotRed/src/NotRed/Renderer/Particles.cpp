@@ -46,26 +46,20 @@ namespace NR
         mMaterial->Set("uGalaxySpecs.DustColor", glm::vec3(0.388f, 0.333f, 1.0f));
         mMaterial->Set("uGalaxySpecs.h2RegionColor", glm::vec3(0.8f, 0.071f, 0.165f));
 
-        //Submesh& submesh = mSubmeshes.emplace_back();
-        //submesh.BaseVertex = 0;
-        //submesh.BaseIndex = 0;
-        //submesh.IndexCount = mIndices.size() * 3;
-        //submesh.VertexCount = mVertices.size();
-        //submesh.Transform = glm::mat4(1.0f);
-        //submesh.MaterialIndex = 0;
-        //submesh.MeshName = "Particles";
-
         mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(ParticleVertex));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(ParticleIndex));
     }
 
     void Particles::Update(float dt)
     {
-
+        mEnvironmentParamsUB.Time += dt;
     }
 
     void Particles::ChangeSize(int particleCount)
     {
+        mVertices.clear();
+        mIndices.clear();
+
         {
             for (uint32_t i = 0; i < particleCount; ++i)
             {
@@ -97,14 +91,6 @@ namespace NR
             }
         }
 
-        //Submesh& submesh = mSubmeshes.emplace_back();
-        //submesh.BaseVertex = 0;
-        //submesh.BaseIndex = 0;
-        //submesh.IndexCount = mIndices.size() * 3;
-        //submesh.VertexCount = mVertices.size();
-        //submesh.Transform = glm::mat4(1.0f);
-        //submesh.MaterialIndex = 0;
-        //submesh.MeshName = "Particles";
         mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(ParticleVertex));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(ParticleIndex));
     }

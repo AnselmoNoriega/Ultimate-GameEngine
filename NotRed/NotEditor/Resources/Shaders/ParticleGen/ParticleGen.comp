@@ -22,7 +22,7 @@ struct Particle
 
 //----------------------------------------------------------------------------//
 
-layout(std430, binding = 16) writeonly buffer Particles
+layout(std430, binding = 20) writeonly buffer Particles
 {
 	Particle particlesData[];
 } particles;

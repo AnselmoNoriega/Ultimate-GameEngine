@@ -5,6 +5,11 @@
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in float aIndex;
 
+// Transform buffer
+layout(location = 2) in vec4 aMRow0;
+layout(location = 3) in vec4 aMRow1;
+layout(location = 4) in vec4 aMRow2;
+
 layout(location = 0) out vec2 o_texPos;
 layout(location = 1) out vec4 o_color;
 layout(location = 2) out flat uint o_type;
@@ -13,14 +18,9 @@ layout (std140, binding = 0) uniform Camera
 {
 	mat4 uViewProjectionMatrix;
 	mat4 uInverseViewProjectionMatrix;
-	mat4 Projection;
+	mat4 uProjectionMatrix;
 	mat4 uViewMatrix;
 };
-
-layout (push_constant) uniform Transform
-{
-	mat4 Transform;
-} uRenderer;
 
 //---------------------------------------------------
 
@@ -35,7 +35,7 @@ struct Particle
 	float temp;
 };
 
-layout(std430, binding = 16) readonly buffer Particles
+layout(std430, binding = 20) readonly buffer Particles
 {
     Particle particlesData[];
 } particles;
@@ -336,11 +336,18 @@ void main()
 	o_texPos = a_texPos;
 	o_color = vec4(color, particle.opacity);
 	o_type = type;
+	
+	mat4 transform = mat4(
+		vec4(aMRow0.x, aMRow1.x, aMRow2.x, 0.0),
+		vec4(aMRow0.y, aMRow1.y, aMRow2.y, 0.0),
+		vec4(aMRow0.z, aMRow1.z, aMRow2.z, 0.0),
+		vec4(aMRow0.w, aMRow1.w, aMRow2.w, 1.0)
+	);
 
-	gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(worldspacePos / 100, 1.0);
+	gl_Position = uViewProjectionMatrix  * transform * vec4(worldspacePos / 100, 1.0);
 	
 	// This is for debug
-	//gl_Position = uViewProjectionMatrix  * uRenderer.Transform * vec4(aPosition, 1.0);
+	//gl_Position = uViewProjectionMatrix  * transform * vec4(aPosition, 1.0);
 
 	float vecCol = aIndex / 10.0;
 	o_color = vec4(vecCol, vecCol, vecCol, 0.5);
