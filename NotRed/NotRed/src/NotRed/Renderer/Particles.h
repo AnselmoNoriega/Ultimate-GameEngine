@@ -71,6 +71,11 @@ namespace NR
         Ref<Material>& GetMaterial() { return mMaterial; }
         const Ref<Material>& GetMaterial() const { return mMaterial; }
 
+        Ref<VertexBuffer> GetVertexBuffer() { return mVertexBuffer; }
+        Ref<IndexBuffer> GetIndexBuffer() { return mIndexBuffer; }
+
+        uint32_t GetIndexCount() { return mIndices.size() * 3; }
+
     private:
         static UBStarParams& GetStarParams() { return mStarParamsUB; }
         static UBEnvironmentParams& GetEnvironmentParams() { return mEnvironmentParamsUB; }

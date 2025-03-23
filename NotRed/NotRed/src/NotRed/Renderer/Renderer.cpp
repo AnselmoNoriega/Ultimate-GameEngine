@@ -167,6 +167,10 @@ namespace NR
 		// Misc
 		Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry");
 		Renderer::GetShaderLibrary()->Load("Resources/Shaders/SelectedGeometry_Anim");
+		
+		// Particles
+		Renderer::GetShaderLibrary()->Load("Resources/Shaders/Particle");
+		Renderer::GetShaderLibrary()->Load("Resources/Shaders/ParticleGen");
 
 		// Compile shaders
 		Renderer::WaitAndRender();
@@ -333,14 +337,14 @@ namespace NR
 		sRendererAPI->SubmitFullscreenQuadWithOverrides(renderCommandBuffer, pipeline, uniformBufferSet, material, vertexShaderOverrides, fragmentShaderOverrides);
 	}
 
-	void Renderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
+	void Renderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<PipelineCompute> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
 	{
 		sRendererAPI->GenerateParticles(renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, material, workGroups);
 	}
 
 	void Renderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Particles> particles, Ref<Material> material, Ref<VertexBuffer> transformBuffer, uint32_t transformOffset)
 	{
-		sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet, material, vertexShaderOverrides, fragmentShaderOverrides);
+		sRendererAPI->RenderParticles(renderCommandBuffer, pipeline, uniformBufferSet,storageBufferSet, particles, material, transformBuffer, transformOffset);
 	}
 
 #if 0

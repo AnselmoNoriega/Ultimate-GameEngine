@@ -399,6 +399,11 @@ namespace NR
 		{
 			Ref<Particles> ParticlesRef;
 			Ref<Material> Material;
+
+			bool operator<(const ParticleData& other) const
+			{
+				return ParticlesRef->GetStarParams().NumStars < other.ParticlesRef->GetStarParams().NumStars;
+			}
 		};
 
 		std::map<MeshKey, TransformMapData> mMeshTransformMap;

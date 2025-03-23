@@ -12,6 +12,7 @@
 #include "NotRed/Renderer/Texture.h"
 #include "NotRed/Renderer/Mesh.h"
 #include "NotRed/Renderer/MaterialAsset.h"
+#include "NotRed/Renderer/Particles.h"
 #include "NotRed/Scene/SceneCamera.h"
 #include "NotRed/Renderer/SceneEnvironment.h"
 #include "NotRed/Asset/Asset.h"
@@ -105,7 +106,7 @@ namespace NR
 
     struct ParticleComponent
     {
-        AssetHandle MeshHandle;
+        Ref<Particles> ParticlesRef;
 
         int ParticleCount = 80128;
         float Velocity = 1.0f;
@@ -114,12 +115,16 @@ namespace NR
         glm::vec3 DustColor = glm::vec3(0.388f, 0.333f, 1.0f);
         glm::vec3 h2RegionColor = glm::vec3(0.8f, 0.071f, 0.165f);
 
-        ParticleComponent() = default;
+        ParticleComponent()
+        {
+            ParticlesRef = Ref<Particles>::Create(ParticleCount);
+        }
+
         ParticleComponent(const ParticleComponent& other) = default;
         ParticleComponent(const int particleNum)
         {
             ParticleCount = particleNum;
-            MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(particleNum));
+            ParticlesRef = Ref<Particles>::Create(particleNum);
         }
     };
 

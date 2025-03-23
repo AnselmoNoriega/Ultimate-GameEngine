@@ -548,11 +548,10 @@ namespace NR
 		for (auto entity : groupParticles)
 		{
 			auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
-			if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+			if (particleComponent.ParticlesRef && !particleComponent.ParticlesRef->IsFlagSet(AssetFlag::Missing))
 			{
 				glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
-				// TODO
-				//renderer->SubmitParticles(particleComponent, transform);
+				renderer->SubmitParticles(particleComponent.ParticlesRef, transform);
 			}
 		}
 
@@ -735,11 +734,10 @@ namespace NR
 		for (auto entity : groupParticles)
 		{
 			auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
-			if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+			if (particleComponent.ParticlesRef && !particleComponent.ParticlesRef->IsFlagSet(AssetFlag::Missing))
 			{
 				glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
-				//TODO
-				//renderer->SubmitParticles(particleComponent, transform);
+				renderer->SubmitParticles(particleComponent.ParticlesRef, transform);
 			}
 		}
 
@@ -977,11 +975,10 @@ namespace NR
 		for (auto entity : groupParticles)
 		{
 			auto [transformComponent, particleComponent] = groupParticles.get<TransformComponent, ParticleComponent>(entity);
-			if (particleComponent.MeshObj && !particleComponent.MeshObj->IsFlagSet(AssetFlag::Missing))
+			if (particleComponent.ParticlesRef && !particleComponent.ParticlesRef->IsFlagSet(AssetFlag::Missing))
 			{
 				glm::mat4 transform = GetWorldSpaceTransformMatrix(Entity(entity, this));
-				//TODO
-				//renderer->SubmitParticles(particleComponent, transform);
+				renderer->SubmitParticles(particleComponent.ParticlesRef, transform);
 			}
 		}
 

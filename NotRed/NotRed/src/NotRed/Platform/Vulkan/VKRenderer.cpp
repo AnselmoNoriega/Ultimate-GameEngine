@@ -671,13 +671,31 @@ namespace NR
 			});
 	}
 
-	void VKRenderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::mat4& transform)
+	void VKRenderer::GenerateParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<PipelineCompute> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Material> material, const glm::ivec3& workGroups)
 	{
-		NR_CORE_ASSERT(staticMesh);
-		NR_CORE_ASSERT(staticMesh->GetMeshSource());
+		//TODO FIX
+		auto vulkanMaterial = material.As<VKMaterial>();
+		auto vulkanpipeline = pipeline.As<VKComputePipeline>();
+		Renderer::Submit([renderCommandBuffer, vulkanpipeline, vulkanMaterial, uniformBufferSet, storageBufferSet, workGroups]() mutable
+			{
+				const uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
+				RT_UpdateMaterialForRendering(vulkanMaterial, uniformBufferSet, storageBufferSet);
+
+				const VkDescriptorSet descriptorSet = vulkanMaterial->GetDescriptorSet(frameIndex);
+
+				vulkanpipeline->Begin(renderCommandBuffer);
+				//pipeline->SetPushConstants(glm::value_ptr(screenSize), sizeof(glm::ivec2));
+				vulkanpipeline->Dispatch(descriptorSet, workGroups.x, workGroups.y, workGroups.z);
+				vulkanpipeline->End();
+			});
+	}
+
+	void VKRenderer::RenderParticles(Ref<RenderCommandBuffer> renderCommandBuffer, Ref<Pipeline> pipeline, Ref<UniformBufferSet> uniformBufferSet, Ref<StorageBufferSet> storageBufferSet, Ref<Particles> particles, Ref<Material> material, Ref<VertexBuffer> transformBuffer, uint32_t transformOffset)
+	{
+		NR_CORE_ASSERT(particles);
 
 		Ref<VKMaterial> vulkanMaterial = material.As<VKMaterial>();
-		Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, vulkanMaterial]() mutable
+		Renderer::Submit([renderCommandBuffer, pipeline, uniformBufferSet, storageBufferSet, vulkanMaterial, particles, transformBuffer, transformOffset]() mutable
 			{
 				NR_PROFILE_FUNC("VKRenderer::RenderParticles");
 				NR_SCOPE_PERF("VKRenderer::RenderMeshParticles");
@@ -685,8 +703,7 @@ namespace NR
 				uint32_t frameIndex = Renderer::GetCurrentFrameIndex();
 				VkCommandBuffer commandBuffer = renderCommandBuffer.As<VKRenderCommandBuffer>()->GetCommandBuffer(frameIndex);
 
-				Ref<MeshSource> meshSource = staticMesh->GetMeshSource();
-				auto vulkanMeshVB = meshSource->GetVertexBuffer().As<VKVertexBuffer>();
+				auto vulkanMeshVB = particles->GetVertexBuffer().As<VKVertexBuffer>();
 				VkBuffer vbMeshBuffer = vulkanMeshVB->GetVulkanBuffer();
 				VkDeviceSize vertexOffsets[1] = { 0 };
 				vkCmdBindVertexBuffers(commandBuffer, 0, 1, &vbMeshBuffer, vertexOffsets);
@@ -696,7 +713,7 @@ namespace NR
 				VkDeviceSize instanceOffsets[1] = { transformOffset };
 				vkCmdBindVertexBuffers(commandBuffer, 1, 1, &vbTransformBuffer, instanceOffsets);
 
-				auto vulkanMeshIB = Ref<VKIndexBuffer>(meshSource->GetIndexBuffer());
+				auto vulkanMeshIB = Ref<VKIndexBuffer>(particles->GetIndexBuffer());
 				VkBuffer ibBuffer = vulkanMeshIB->GetVulkanBuffer();
 				vkCmdBindIndexBuffer(commandBuffer, ibBuffer, 0, VK_INDEX_TYPE_UINT32);
 
@@ -729,12 +746,7 @@ namespace NR
 					pushConstantOffset += uniformStorageBuffer.Size;
 				}
 
-				const auto& submeshes = meshSource->GetSubmeshes();
-				const auto& submesh = submeshes[submeshIndex];
-
-				vkCmdDrawIndexed(commandBuffer, submesh.IndexCount, 1, 0, 0, 0);
-
-				pushConstantBuffer.Release();
+				vkCmdDrawIndexed(commandBuffer, particles->GetIndexCount(), 1, 0, 0, 0);
 			});
 	}
 

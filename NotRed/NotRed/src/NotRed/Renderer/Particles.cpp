@@ -5,6 +5,9 @@
 
 namespace NR
 {
+    UBStarParams Particles::mStarParamsUB;
+    UBEnvironmentParams Particles::mEnvironmentParamsUB;
+
     Particles::Particles(int particleCount)
     {
         {
@@ -102,7 +105,6 @@ namespace NR
         //submesh.Transform = glm::mat4(1.0f);
         //submesh.MaterialIndex = 0;
         //submesh.MeshName = "Particles";
-
         mVertexBuffer = VertexBuffer::Create(mVertices.data(), mVertices.size() * sizeof(ParticleVertex));
         mIndexBuffer = IndexBuffer::Create(mIndices.data(), mIndices.size() * sizeof(ParticleIndex));
     }

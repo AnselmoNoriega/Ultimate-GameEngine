@@ -886,7 +886,7 @@ namespace NR
 				component.DustColor = particleComponent["DustColor"].as<glm::vec3>();
 				component.h2RegionColor = particleComponent["h2RegionColor"].as<glm::vec3>();
 
-				auto mat = component.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial();
+				auto mat = component.ParticlesRef->GetMaterial();
 				mat->Set("uGalaxySpecs.StarColor", component.StarColor);
 				mat->Set("uGalaxySpecs.DustColor", component.DustColor);
 				mat->Set("uGalaxySpecs.h2RegionColor", component.h2RegionColor);

@@ -1672,22 +1672,22 @@ namespace NR
 					{
 						pc.ParticleCount = 1;
 					}
-					pc.MeshObj = Ref<Mesh>::Create(Ref<MeshSource>::Create(pc.ParticleCount));
+					pc.ParticlesRef->ChangeSize(pc.ParticleCount);
 				}
 
 				if (UI::PropertyColor("Star Color", pc.StarColor))
 				{
-					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.StarColor", pc.StarColor);
+					pc.ParticlesRef->GetMaterial()->Set("uGalaxySpecs.StarColor", pc.StarColor);
 				}
 
 				if (UI::PropertyColor("Dust Color", pc.DustColor))
 				{
-					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.DustColor", pc.DustColor);
+					pc.ParticlesRef->GetMaterial()->Set("uGalaxySpecs.DustColor", pc.DustColor);
 				}
 
 				if (UI::PropertyColor("h2Region Color", pc.h2RegionColor))
 				{
-					pc.MeshObj->GetMaterials()->GetMaterial(0)->GetMaterial()->Set("uGalaxySpecs.h2RegionColor", pc.h2RegionColor);
+					pc.ParticlesRef->GetMaterial()->Set("uGalaxySpecs.h2RegionColor", pc.h2RegionColor);
 				}
 
 				UI::EndPropertyGrid();
