@@ -65,18 +65,21 @@ Assets:
   - Handle: 2648632943464799454
     FilePath: Meshes/Source/mosin/arms1_Mat_diff.jpg
     Type: Texture
-  - Handle: 2932059542541108267
-    FilePath: Meshes/Default/Cone.nrmesh
-    Type: Mesh
   - Handle: 3107484917692596472
     FilePath: Meshes/Source/mosin/E_bullet_3_spec.jpg
     Type: Texture
+  - Handle: 3145552332412488254
+    FilePath: Meshes/Default/Cylinder.nrsmesh
+    Type: StaticMesh
   - Handle: 3169145106377838570
     FilePath: Meshes/Source/cerberus/Cerberus_N.png
     Type: Texture
   - Handle: 3177314189954447025
     FilePath: Meshes/Source/Default/Capsule.gltf
     Type: MeshSource
+  - Handle: 3236074416226475887
+    FilePath: Meshes/Default/Sphere.nrsmesh
+    Type: StaticMesh
   - Handle: 3501485925783834539
     FilePath: Meshes/Source/mosin/mat1_diff.jpg
     Type: Texture
@@ -98,9 +101,6 @@ Assets:
   - Handle: 4194858078388327029
     FilePath: Env/lonely_road_afternoon_puresky_4k.hdr
     Type: EnvMap
-  - Handle: 4265620981415808319
-    FilePath: Meshes/Default/Plane.nrmesh
-    Type: Mesh
   - Handle: 4267416741355185729
     FilePath: Meshes/Source/Sponza/8747919177698443163.jpg
     Type: Texture
@@ -140,12 +140,21 @@ Assets:
   - Handle: 5345621051590601992
     FilePath: Meshes/Source/Sponza/3371964815757888145.jpg
     Type: Texture
+  - Handle: 5357729127121569386
+    FilePath: Meshes/Default/Plane.nrsmesh
+    Type: StaticMesh
   - Handle: 5361446404797608401
     FilePath: Meshes/Source/Sponza/5792855332885324923.jpg
     Type: Texture
+  - Handle: 5590602382095233863
+    FilePath: Meshes/Default/Cube.nrsmesh
+    Type: StaticMesh
   - Handle: 5727396031808757148
     FilePath: Meshes/Source/CubeScene.gltf
     Type: MeshSource
+  - Handle: 5872718937783096679
+    FilePath: Meshes/Default/Cone.nrsmesh
+    Type: StaticMesh
   - Handle: 6249827114591471084
     FilePath: Meshes/Source/Sponza/5061699253647017043.png
     Type: Texture
@@ -173,15 +182,15 @@ Assets:
   - Handle: 7177039559866099242
     FilePath: Textures/Materials/VoxelMat.nrmaterial
     Type: Material
+  - Handle: 7367935733630307836
+    FilePath: Meshes/Default/Torus.nrsmesh
+    Type: StaticMesh
   - Handle: 7398374036105599942
     FilePath: Scenes/VoxelGame.nrsc
     Type: Scene
   - Handle: 7405524683225566902
     FilePath: Meshes/Source/Sponza/755318871556304029.jpg
     Type: Texture
-  - Handle: 7473908402094211557
-    FilePath: Meshes/Default/Torus.nrmesh
-    Type: Mesh
   - Handle: 7699878716145299001
     FilePath: Meshes/Source/Sponza/3455394979645218238.jpg
     Type: Texture
@@ -218,6 +227,9 @@ Assets:
   - Handle: 8494079683672087058
     FilePath: Meshes/Source/Sponza/4477655471536070370.jpg
     Type: Texture
+  - Handle: 8561503732761969618
+    FilePath: mATS/GalaxySphere.nrmaterial
+    Type: Material
   - Handle: 8564853969468246387
     FilePath: Meshes/Source/Sponza/16299174074766089871.jpg
     Type: Texture
@@ -239,12 +251,6 @@ Assets:
   - Handle: 9223867938027157974
     FilePath: Meshes/Source/mosin/arms1_Mat_spec.png
     Type: Texture
-  - Handle: 9320198861779660170
-    FilePath: Meshes/Default/Sphere.nrmesh
-    Type: Mesh
-  - Handle: 9501522405885547972
-    FilePath: Meshes/Default/Cylinder.nrmesh
-    Type: Mesh
   - Handle: 9622855033900602248
     FilePath: Meshes/Source/Sponza/11872827283454512094.jpg
     Type: Texture
@@ -257,6 +263,9 @@ Assets:
   - Handle: 10035428775756432382
     FilePath: Animation/Source/stormtrooper-skeleton.gltf
     Type: MeshSource
+  - Handle: 10075446451445111290
+    FilePath: Meshes/Demo/Capsule.nrsmesh
+    Type: StaticMesh
   - Handle: 10157384174676721827
     FilePath: Meshes/Source/Sponza/6772804448157695701.jpg
     Type: Texture
@@ -272,9 +281,6 @@ Assets:
   - Handle: 10724342870320267274
     FilePath: Meshes/Source/Sponza/2051777328469649772.jpg
     Type: Texture
-  - Handle: 10725061173347399932
-    FilePath: Meshes/Default/Capsule.nrmesh
-    Type: Mesh
   - Handle: 10768775592758119374
     FilePath: Meshes/Source/Sponza/7645212358685992005.jpg
     Type: Texture
@@ -365,9 +371,6 @@ Assets:
   - Handle: 14252059733909410128
     FilePath: Meshes/Source/stormtrooper/stormtrooper.gltf
     Type: MeshSource
-  - Handle: 14292015221837139304
-    FilePath: Meshes/Default/Cube.nrmesh
-    Type: Mesh
   - Handle: 14372483529436363612
     FilePath: Meshes/Source/Sponza/3628158980083700836.jpg
     Type: Texture

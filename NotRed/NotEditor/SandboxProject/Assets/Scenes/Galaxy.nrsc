@@ -6,6 +6,20 @@ Environment:
     Radiance: [0, 0, 0]
     Multiplier: 1
 Entities:
+  - Entity: 18002302746129087174
+    TagComponent:
+      Tag: Sphere
+    Parent: 0
+    Children:
+      []
+    TransformComponent:
+      Position: [0, 3.11189461, 0]
+      Rotation: [0, 0, 0]
+      Scale: [6.1697998, 6.1697998, 6.1697998]
+    StaticMeshComponent:
+      AssetID: 3236074416226475887
+      MaterialTable:
+        0: 8561503732761969618
   - Entity: 17091777453748841161
     TagComponent:
       Tag: Camera
@@ -26,21 +40,6 @@ Entities:
         OrthographicNear: -1
         OrthographicFar: 1
       Primary: true
-  - Entity: 5362506673440228151
-    TagComponent:
-      Tag: Sphere
-    Parent: 0
-    Children:
-      []
-    TransformComponent:
-      Position: [0, 2.88094544, 0]
-      Rotation: [0, 0, 0]
-      Scale: [7.06679964, 7.06679964, 7.06679964]
-    MeshComponent:
-      AssetID: 4085374630684743385
-      SubmeshIndex: 0
-      MaterialTable:
-        0: 0
   - Entity: 15800128647745287998
     TagComponent:
       Tag: Particles
